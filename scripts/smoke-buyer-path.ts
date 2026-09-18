@@ -27,7 +27,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Workspace access requires an invitation.", "The app can", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Workspace access requires an invitation.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {

@@ -129,6 +129,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   const english = routeContract("/");
   assert.ok(english.requiredMarkers.includes("Start a free check"));
   assert.ok(english.requiredMarkers.includes("The app cannot"));
+  assert.ok(english.requiredMarkers.includes("Record one bounded check"));
   assert.ok(english.requiredMarkers.includes("Free checks need no account. Workspace access requires an invitation."));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zweryfikuj działanie AI"));
@@ -304,4 +305,14 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
     assert.equal(result.ok, false, path);
     assert.ok(result.missingMarkers.includes(marker), path);
   }
+});
+
+
+test("the limits section cannot satisfy the positive capabilities check", () => {
+  const route = routeContract("/");
+  const body = route.requiredMarkers.filter(marker => marker !== "Record one bounded check").join("\n");
+  assert.ok(body.includes("The app cannot"));
+  const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.missingMarkers, ["Record one bounded check"]);
 });
