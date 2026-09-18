@@ -71,7 +71,7 @@ export class MembersStore {
     });
     if (!row) return; // Retry never sends twice. Unknown outcomes require explicit resend.
     try {
-      const result = await send({ to: row.recipient, subject: 'WitnessOps workspace invitation', text: `You have been invited to a WitnessOps workspace as ${row.role}. Sign in with this email address to preview and explicitly accept. Joining does not authorize a check or create a payment obligation.\n\n${origin}/invitations/${row.id}\n\nThis invitation expires after seven days. If unexpected, ignore it.`, signatureProfile: 'none', deliveryAttemptId: row.id });
+      const result = await send({ from: 'WitnessOps <invitations@send.witnessops.com>', replyTo: 'engage@mail.witnessops.com', to: row.recipient, subject: 'WitnessOps workspace invitation', text: `You have been invited to a WitnessOps workspace as ${row.role}. Sign in with this email address to preview and explicitly accept. Joining does not authorize a check or create a payment obligation.\n\n${origin}/invitations/${row.id}\n\nThis invitation expires after seven days. If unexpected, ignore it.`, signatureProfile: 'none', deliveryAttemptId: row.id });
       await this.pool.query("UPDATE workspace_invitations SET delivery_state='accepted',provider=$2,provider_message_id=$3,provider_accepted_at=$4 WHERE id=$1", [id,result.provider,result.providerMessageId,result.providerAcceptedAt]);
     } catch { await this.pool.query("UPDATE workspace_invitations SET delivery_state='unknown' WHERE id=$1", [id]); }
   }

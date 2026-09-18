@@ -1293,7 +1293,7 @@ test('Membership HTTP: origin, verified recipient, explicit acceptance, file del
     const state=await response.json(), invite=state.invitations[0];assert.equal(invite.deliveryState,'accepted');assert.equal(invite.provider,'file');
     assert.equal((await handle(request('/api/members',payload))).status,200);
     const files=await readdir(directory);assert.equal(files.length,1);
-    const eml=await readFile(join(directory,files[0]),'utf8');assert.ok(eml.includes(`${origin}/invitations/${invite.id}`));assert.ok(eml.includes(`To: ${recipientIdentity.email}`));
+    const eml=await readFile(join(directory,files[0]),'utf8');assert.ok(eml.includes(`${origin}/invitations/${invite.id}`));assert.ok(eml.includes(`To: ${recipientIdentity.email}`));assert.ok(eml.includes('From: WitnessOps <invitations@send.witnessops.com>'));assert.ok(eml.includes('Reply-To: engage@mail.witnessops.com'));
     delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
     current={identity:recipientIdentity,session:sessionKey(recipientIdentity.issuer,'session_memberrecipient',recipientIdentity.subject)};
     assert.equal((await handle(request(`/api/invitations?id=${invite.id}`),true)).status,200);

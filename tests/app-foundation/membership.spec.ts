@@ -22,7 +22,8 @@ test('signed-out invitation preserves only the locator and offers no accept acti
   await expect(page.getByRole('link',{name:'Sign in',exact:true})).toHaveAttribute('href',`/login?returnTo=${encodeURIComponent('/invitations/'+id)}`);
   await expect(page.getByRole('button',{name:'Accept invitation'})).toHaveCount(0);
 });
-for(const role of ['owner','contributor','viewer']) test(`members surface grants ${role} the appropriate controls`,async({page})=>{
+for(const width of [390,1440]) for(const role of ['owner','contributor','viewer']) test(`members surface grants ${role} the appropriate controls at ${width}`,async({page},info)=>{
+  await page.setViewportSize({width,height:900});
   const workspace={id:'workspace',name:'Team workspace',slug:'team',role,assets:[],runs:[],members:[]};
   const roster={role,members:[{id:'owner',displayName:'Team Owner',role:'owner',generation:1}],invitations:[] as unknown[]};
   await page.route('**/api/**',route=>{
@@ -38,9 +39,13 @@ for(const role of ['owner','contributor','viewer']) test(`members surface grants
   });
   await page.goto('/members');await expect(page.getByText('Team Owner',{exact:true})).toBeVisible();
   if(role==='owner'){
+    await page.getByRole('button',{name:'Invite teammate',exact:true}).click();
+    await expect(page.getByLabel('Email',{exact:true})).toBeFocused();
     await expect(page.getByLabel('Role',{exact:true})).toHaveValue('viewer');
     await page.getByLabel('Email',{exact:true}).fill('teammate@example.test');await page.getByRole('button',{name:'Send invitation'}).click();
     await expect(page.getByText(/Saved locally; email not sent/)).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    if(info.project.name==='chromium')await page.screenshot({path:`/tmp/wops-members-polish-${width}.png`,fullPage:true});
   }else{await expect(page.getByRole('button',{name:'Send invitation'})).toHaveCount(0);await expect(page.getByRole('button',{name:/Remove/})).toHaveCount(0);}
 });
 test('successful self-removal clears the previously rendered workspace',async({page})=>{

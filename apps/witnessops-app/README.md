@@ -76,6 +76,8 @@ Joining creates only a workspace membership. It does not change account admissio
 
 Migration `0015_workspace_membership.sql` adds invitation records and authority-generation bindings without rewriting accepted terms or saved sources. The runtime role needs SELECT/INSERT/UPDATE on the new table in addition to existing grants; apply migration-owner default privileges before release. An older app image does not enforce these generation checks and is not a safe rollback after membership mutations. Stop membership writes and review compatibility before any rollback; do not drop the new schema to roll back.
 
+Invitations set `WitnessOps <invitations@send.witnessops.com>` and reply-to `engage@mail.witnessops.com` explicitly; report/verification sender defaults are unchanged. Domain verification and approved staging provider configuration require separate confirmation.
+
 Local invitation tests use the existing file adapter: set `WITNESSOPS_MAIL_PROVIDER=file` and an ignored, private `WITNESSOPS_MAIL_OUTPUT_DIR`. The UI distinguishes local file creation from provider acceptance. File output and mocked browser tests do not establish inbox delivery or hosted recipient acceptance. Configure a separately approved staging sender and complete the two-person WorkOS journey before treating this candidate as accepted.
 
 ## Execution and immutable source
