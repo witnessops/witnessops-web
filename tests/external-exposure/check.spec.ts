@@ -261,8 +261,11 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
       await expect(page.locator('#witnessops-mobile-menu')).toBeVisible();
     }
     const navigation = mobile ? page.locator('#witnessops-mobile-menu') : page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    await navigation.getByRole('button', { name: 'Product', exact: true }).click();
-    const link = navigation.getByRole('link', { name: /^Free check/ });
+    const product = navigation.getByRole('button', { name: 'Product', exact: true });
+    await product.click();
+    const panelId = await product.getAttribute('aria-controls');
+    expect(panelId).toBeTruthy();
+    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Free check/ });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', '/check');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
