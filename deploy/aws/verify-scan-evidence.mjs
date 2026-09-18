@@ -14,6 +14,16 @@ const REPOSITORY_OWNER_ID = "272034497";
 const CALLER_PATH = ".github/workflows/aws-release.yml";
 const REUSABLE_PATH =
   "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml";
+const SUPPLY_CHAIN_PATH =
+  "witnessops/witnessops-web/.github/workflows/supply-chain-gate.yml";
+// Immutable pre-gate rollback publication; no future runs inherit this exception.
+const HISTORICAL_RELEASE_ONLY = {
+  publicationRunId: "34687143425",
+  publicationRunAttempt: "1",
+  sourceCommit: "07b46159e533a4135bd27c848b7a35d72f24da61",
+  imageDigest: "sha256:edca9acf0ea74fc5bc636575a88d52892b3a6babeeee59d92f4f39ecf45ad080",
+  configDigest: "sha256:106e108e8486397745cbfc1395f6913acb8d82c313ac525e62bb24a3ec81f472",
+};
 const CALLER_WORKFLOW_REF =
   "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main";
 const EVENT_NAME = "workflow_dispatch";
@@ -100,19 +110,31 @@ export function validatePublicationRun(run, expected) {
     String(run.repository?.owner?.id) === REPOSITORY_OWNER_ID,
     "publication run repository owner ID differs",
   );
+  // Only the pinned rollback publication may omit the nested supply-chain gate.
+  // Unknown workflows and duplicates never expand the trusted inventory.
   assert(
-    Array.isArray(run.referenced_workflows) && run.referenced_workflows.length === 1,
+    Array.isArray(run.referenced_workflows) &&
+      run.referenced_workflows.length >= 1 && run.referenced_workflows.length <= 2,
     "publication run reusable workflow inventory differs",
   );
-  const reusable = run.referenced_workflows[0];
-  assert(
-    reusable.path === `${REUSABLE_PATH}@${expected.sourceCommit}` ||
-      reusable.path === `${REUSABLE_PATH}@main` ||
-      reusable.path === `${REUSABLE_PATH}@refs/heads/main`,
-    "publication run reusable workflow path differs",
-  );
-  assert(reusable.ref === "refs/heads/main", "publication run reusable workflow ref differs");
-  assert(reusable.sha === expected.sourceCommit, "publication run reusable workflow SHA differs");
+  const seen = new Set();
+  for (const reusable of run.referenced_workflows) {
+    const path = [REUSABLE_PATH, SUPPLY_CHAIN_PATH].find((allowed) =>
+      reusable?.path === `${allowed}@${expected.sourceCommit}` ||
+      reusable?.path === `${allowed}@main` ||
+      reusable?.path === `${allowed}@refs/heads/main`,
+    );
+    assert(path, "publication run reusable workflow path differs");
+    assert(!seen.has(path), "publication run reusable workflow inventory differs");
+    assert(reusable.ref === "refs/heads/main", "publication run reusable workflow ref differs");
+    assert(reusable.sha === expected.sourceCommit, "publication run reusable workflow SHA differs");
+    seen.add(path);
+  }
+  assert(seen.has(REUSABLE_PATH), "publication run reusable workflow inventory differs");
+  const historicalRollback = Object.entries(HISTORICAL_RELEASE_ONLY)
+    .every(([key, value]) => expected[key] === value);
+  assert(historicalRollback || seen.has(SUPPLY_CHAIN_PATH),
+    "publication run required supply-chain workflow missing");
   return true;
 }
 
