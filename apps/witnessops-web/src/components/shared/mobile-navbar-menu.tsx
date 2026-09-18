@@ -7,6 +7,7 @@ import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { CtaButton } from "./cta-button";
 
 interface MobileNavbarMenuProps {
+  loginUrl?: string | null;
   links: { label: string; href: string }[];
   groups?: readonly { label: string; links: readonly { label: string; href: string }[] }[];
   cta: { label: string; href: string; variant: string };
@@ -19,6 +20,7 @@ interface MobileNavbarMenuProps {
 
 export function MobileNavbarMenu({
   links,
+  loginUrl = null,
   groups,
   cta,
   assistantLink,
@@ -176,7 +178,7 @@ export function MobileNavbarMenu({
         <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
           {groups && <div className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
             <Link href={cta.href} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md bg-text-primary px-4 text-sm font-medium text-text-inverse">{cta.label}</Link>
-            <Link href="https://app.witnessops.com/login" onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md border border-surface-border px-4 text-sm">Log in</Link>
+            {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md border border-surface-border px-4 text-sm">Log in</Link>}
           </div>}
           {groups?.map((group, index) => <section key={group.label} className="border-b border-surface-border">
             <h2><button type="button" className="flex min-h-16 w-full items-center justify-between px-3 text-left text-base text-text-primary focus-visible:outline-2 focus-visible:outline-brand-accent" aria-expanded={expandedGroup === group.label} aria-controls={`${menuId}-group-${index}`} onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}>{group.label}<span aria-hidden="true" className="text-xl text-text-muted">{expandedGroup === group.label ? "−" : "+"}</span></button></h2>

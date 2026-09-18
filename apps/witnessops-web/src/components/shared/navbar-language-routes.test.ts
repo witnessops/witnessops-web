@@ -11,12 +11,12 @@ test("primary navigation exposes the simplified website destinations", () => {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
   assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.match(navbar, /label: "Sign up"/);
+  assert.match(navbar, /label: signupUrl \? "Sign up" : "Free check"/);
 });
 
 test("shared navigation preserves Polish destinations and selected enquiry", () => {
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
-  assert.match(navbar, /https:\/\/app\.witnessops\.com\/signup/);
+  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
     "/pl/catalog", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);

@@ -23,6 +23,7 @@ const PREMIUM_FOOTER_SUBLINE = "REPEATABLE. INDEPENDENT.";
 type FooterLink = { label: string; href: string };
 
 interface FooterProps {
+  appUrl?: string | null;
   brand_line: string;
   subline: string;
   links: FooterLink[];
@@ -87,6 +88,7 @@ export function isFooterRequestHref(href: string): boolean {
 }
 
 export function Footer({
+  appUrl = null,
   brand_line,
   links,
   legal_links,
@@ -119,13 +121,13 @@ export function Footer({
       { label: "Docs", href: DOCS_PUBLIC_HREF },
       { label: "Support", href: "/support" },
     ] },
-    { label: "App", links: [
-      { label: "Sign up", href: "https://app.witnessops.com/signup" },
-      { label: "Log in", href: "https://app.witnessops.com/login" },
-      { label: "Assets", href: "https://app.witnessops.com/assets" },
-      { label: "Reports", href: "https://app.witnessops.com/reports" },
-      { label: "Settings", href: "https://app.witnessops.com/settings" },
-    ] },
+    ...(appUrl ? [{ label: "App", links: [
+      { label: "Sign up", href: new URL("/signup", appUrl).href },
+      { label: "Log in", href: new URL("/login", appUrl).href },
+      { label: "Assets", href: new URL("/assets", appUrl).href },
+      { label: "Reports", href: new URL("/reports", appUrl).href },
+      { label: "Settings", href: new URL("/settings", appUrl).href },
+    ] }] : []),
   ];
 
   function renderLink(link: FooterLink, className: string) {

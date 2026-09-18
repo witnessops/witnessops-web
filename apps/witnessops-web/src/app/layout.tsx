@@ -1,3 +1,4 @@
+import { getWorkspaceAppUrl } from "@/lib/workspace-access";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
@@ -76,6 +77,8 @@ export default async function RootLayout({
           <div className={documentNavigationStyles.chrome}>
             <DocumentNavigation>
               <Navbar
+                signupUrl={getWorkspaceAppUrl("/signup")}
+                appUrl={getWorkspaceAppUrl()}
                 links={content.navbar.links}
                 cta={content.navbar.cta}
                 announcement={content.navbar.announcement}
@@ -85,7 +88,7 @@ export default async function RootLayout({
           {children}
           <div className={documentNavigationStyles.chrome}>
             <DocumentNavigation>
-              <Footer {...content.footer} />
+              <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
             </DocumentNavigation>
           </div>
           {localWorkspace === "external-check" && <DocsAssistantWidget />}
@@ -131,13 +134,15 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <Navbar
+          signupUrl={getWorkspaceAppUrl("/signup")}
+          appUrl={getWorkspaceAppUrl()}
           links={content.navbar.links}
           cta={content.navbar.cta}
           announcement={content.navbar.announcement}
         />
         <RouteScrollReset />
         {children}
-        <Footer {...content.footer} />
+        <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
         <DocsAssistantWidget />
         <KonamiPenguin />
       </body>

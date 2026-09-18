@@ -1,3 +1,4 @@
+import { getWorkspaceAppUrl } from "@/lib/workspace-access";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
@@ -63,7 +64,7 @@ export default function PricingPage() {
           </p>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-text-muted">Illustrative draft. App prices are not a live product claim. Named review fees match the public catalogue, excluding VAT. No payment is taken here.</p>
         </header>
-        <AppPricing />
+        <AppPricing signupUrl={getWorkspaceAppUrl("/signup")} />
         <section className="py-12 lg:py-16" aria-labelledby="pricing-services-heading">
           <p className="mb-3 text-xs uppercase tracking-[0.16em] text-text-muted">Named reviews</p>
           <h2 id="pricing-services-heading" className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">

@@ -352,7 +352,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       '#witnessops-mobile-menu [aria-current="page"]',
     );
     const cta = document.querySelector<HTMLElement>(
-      '#witnessops-mobile-menu a[href="https://app.witnessops.com/signup"]',
+      '#witnessops-mobile-menu a[href="/check"]',
     );
     return {
       currentBackground: current ? getComputedStyle(current).backgroundColor : null,
@@ -369,7 +369,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(menuVisuals.currentBorderColor).toBe(canonicalChrome.accent);
   expect(menuVisuals.currentColor).toBe(canonicalChrome.primary);
   expect(menuVisuals.menuBackground).toBe(canonicalChrome.background);
-  expect(menuVisuals.ctaBackground).toBe(canonicalChrome.primary);
+  expect(menuVisuals.ctaBackground).toBe(canonicalChrome.accent);
   expect(menuVisuals.ctaColor).toBe(canonicalChrome.inverse);
   expect(contrastRatio(menuVisuals.ctaColor!, menuVisuals.ctaBackground!)).toBeGreaterThanOrEqual(4.5);
   const openGeometry = await page.locator("main").evaluate((main) => {
@@ -522,5 +522,19 @@ test("mobile review request keeps the conversion form clear and legible", async 
     expect(formState.overflow).toBeLessThanOrEqual(1);
     expect(contrastRatio(formState.border, formState.background)).toBeGreaterThanOrEqual(3);
     await context.close();
+  }
+});
+
+test("unconfigured production pages expose no app destinations", async ({ page }) => {
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of ["/", "/pricing", "/check"]) {
+      await page.goto(route, { waitUntil: "networkidle" });
+      // Include hidden desktop/mobile menu links, not just visible CTAs.
+      await expect(page.locator('a[href*="app.witnessops.com"], a[href*="127.0.0.1:3020"]')).toHaveCount(0);
+      await expect(page.locator('footer a').filter({ hasText: /^(Sign up|Log in|Assets|Reports|Settings)$/ })).toHaveCount(0);
+      if (width < 1024) await openMobileMenu(page);
+      await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();
+    }
   }
 });
