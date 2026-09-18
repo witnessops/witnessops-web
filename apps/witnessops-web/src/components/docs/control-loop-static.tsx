@@ -35,7 +35,7 @@ const controlStages = [
     id: "execution-receipt",
     label: "Stage 04",
     title: "Execution Receipt",
-    body: "Every governed run emits a signed receipt with a continuity link and execution binding that records what ran and under what authority.",
+    body: "In this workflow model, a completed run records its declared authority and evidence. Receipt signing and continuity depend on the named profile and implementation.",
     tone: "border-orange-400/20 bg-[linear-gradient(180deg,rgba(28,20,12,0.94)_0%,rgba(17,12,8,0.98)_100%)]",
     accent: "text-orange-200",
     bulletTone: "bg-orange-300/70",
@@ -64,7 +64,7 @@ export function ControlLoopStatic() {
           Governed Execution Loop
         </div>
         <h2 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-          WitnessOps turns operational actions into governed runs with signed execution receipts and explicit continuity.
+          This operator reference illustrates a governed-workflow model. App snapshots and reports do not all contain signed receipts.
         </h2>
         <p className="mt-3 text-sm leading-7 text-text-secondary sm:text-base">
           WitnessOps explains control before action: operator intent passes through runbooks, policy gates, and scope controls before execution occurs.
@@ -145,7 +145,7 @@ export function ControlLoopStatic() {
             Witness &amp; Verification
           </h3>
           <p className="mt-2 text-sm leading-6 text-text-secondary">
-            WitnessOps stops at governed execution and signed receipt emission. Those receipts then feed the downstream witness and verification infrastructure.
+            This diagram separates workflow execution from receipt verification. It describes the operator model, not the complete app feature set or a claim of deployed enforcement.
           </p>
 
           <div className="mt-5 space-y-3">
@@ -177,10 +177,10 @@ export function ControlLoopStatic() {
 
       <div className="mt-6 flex flex-col gap-4 border-t border-white/8 pt-5 sm:flex-row sm:items-end sm:justify-between">
         <p className="max-w-[42rem] text-sm leading-7 text-text-secondary sm:text-base">
-          WitnessOps turns operational actions into governed runs with signed execution receipts and explicit continuity.
+          This operator reference illustrates a governed-workflow model. App snapshots and reports do not all contain signed receipts.
         </p>
         <Link
-          href="/governed-execution"
+          href="/docs/security-systems/governed-execution"
           className="inline-flex items-center rounded-full border border-orange-400/18 bg-orange-400/[0.06] px-4 py-2 text-sm font-medium text-brand-accent transition-colors hover:border-orange-400/30 hover:bg-orange-400/[0.1] hover:text-text-primary"
         >
           View governed execution

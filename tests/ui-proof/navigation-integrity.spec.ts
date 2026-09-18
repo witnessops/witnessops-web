@@ -141,7 +141,7 @@ async function expectBelowStickyHeader(page: Page, selector: string) {
   );
 }
 
-test("the shared sample-review link lands below the sticky header", async ({
+test("the homepage sample-work link opens the sample library", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -157,16 +157,9 @@ test("the shared sample-review link lands below the sticky header", async ({
   await expect(fragmentLink).toHaveCount(1);
   await fragmentLink.click();
 
-  await expect(page).toHaveURL(/\/catalog\/workflows#sample-review$/);
-  await expect(page.locator("#sample-review")).toBeVisible();
-  await page.waitForFunction(() => {
-    const target = document.querySelector("#sample-review");
-    const nav = document.querySelector("nav.public-shell");
-    if (!target || !nav) return false;
-    return target.getBoundingClientRect().top >= nav.getBoundingClientRect().bottom + 8;
-  });
-  await expectBelowStickyHeader(page, "#sample-review");
-  await saveEvidence(page, "01-desktop-fragment-landing.png");
+  await expect(page).toHaveURL(/\/library$/);
+  await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
+  await saveEvidence(page, "01-desktop-sample-library.png");
 
   await context.close();
 });
@@ -182,15 +175,15 @@ test("route navigation and Back restore scroll without a second-frame snap", asy
 
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
-    .locator("main")
-    .getByRole("link", { name: "See how a proof bundle works", exact: true });
+    .locator("footer")
+    .getByRole("link", { name: "Sample work", exact: true });
   await receiptLink.scrollIntoViewIfNeeded();
   const expectedScrollY = await page.evaluate(() => window.scrollY);
   expect(expectedScrollY).toBeGreaterThan(0);
 
   await receiptLink.click();
-  await expectPath(page, SAMPLE_PATH);
-  await expect(page.locator("main h1")).toContainText(/See a key rotation, step by step\./);
+  await expectPath(page, "/review/sample-cases");
+  await expect(page.locator("main h1")).toBeVisible();
 
   await page.goBack({ waitUntil: "domcontentloaded" });
   await expectPath(page, "/");
@@ -226,9 +219,11 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
 
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
-    .locator("main")
-    .getByRole("link", { name: "See how a proof bundle works", exact: true });
+    .locator("footer")
+    .getByRole("link", { name: "Sample work", exact: true });
   await receiptLink.click();
+  await expectPath(page, "/review/sample-cases");
+  await page.locator(`main a[href="${SAMPLE_PATH}"]`).first().click();
 
   await expectPath(page, SAMPLE_PATH);
   await expect(
@@ -317,7 +312,7 @@ test("support sends paid-work buyers to the canonical action security review", a
   }
 });
 
-test("Polish docs keep the logo local and switch EN stubs to a live docs route", async ({
+test("Polish docs keep the logo local and link to a live English docs route", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -342,8 +337,11 @@ test("Polish docs keep the logo local and switch EN stubs to a live docs route",
   page.on("response", (response) => {
     if (response.status() === 404) notFoundResponses.push(response.url());
   });
-  const englishSwitch = page.getByRole("link", { name: "EN", exact: true });
-  await expect(englishSwitch).toHaveAttribute("href", "/docs");
+  const englishSwitch = page.getByRole("link", { name: "Otwórz dokumentację techniczną (EN)", exact: true });
+  await expect(englishSwitch).toHaveAttribute("href", "https://witnessops.com/docs");
+  // Exercise the canonical link against this candidate without navigating production.
+  const localDocs = new URL("/docs", page.url()).href;
+  await page.route("https://witnessops.com/docs", route => route.fulfill({ status: 302, headers: { location: localDocs } }));
   await englishSwitch.click();
   await expectPath(page, "/docs");
   await expect(page.locator("main h1").first()).toBeVisible();
@@ -384,24 +382,22 @@ test("mobile Ask offers a human reply and source navigation without a stale over
 
   await page.goto("/catalog", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
-  await page.locator("[data-mobile-assistant-link]").click();
-  await expectPath(page, "/docs/assistant");
+  await expect(page.locator("[data-mobile-assistant-link]")).toHaveCount(0);
+  await page.getByRole("button", { name: "Close primary navigation" }).click();
+  await page.getByRole("button", { name: "Ask WitnessOps" }).click();
 
-  await page
-    .getByRole("button", {
-      name: "We're launching an AI agent",
-    })
-    .click();
+  await page.getByRole("textbox", { name: "Ask WitnessOps question" }).fill("We're launching an AI agent.");
+  await page.getByRole("button", { name: "Ask AI", exact: true }).click();
   const fit = page.getByRole("region", { name: "Suggested service", exact: true });
   await expect(fit).toContainText("€2,500 fixed · excluding VAT");
   await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
-  await expect(page.locator("main")).toContainText("No evidence was reviewed");
+  await expect(page.locator("#ask-witnessops-dialog")).toContainText("NO EVIDENCE REVIEWED");
   await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
   await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
   await expect(page.getByLabel("Ask WitnessOps question")).toHaveAttribute("placeholder", "Ask a follow-up…");
   await page.getByRole("button", { name: "Prepare my request", exact: true }).click();
 
-  await expectPath(page, "/docs/assistant");
+  await expectPath(page, "/catalog");
   const contact = page.locator("[data-ask-contact-region]");
   await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
   await expect(contact).toContainText("Agent Action Security Review");
@@ -413,7 +409,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await contact.getByRole("button", { name: "Back", exact: true }).click();
 
   // Sources are directly visible beside the answer, not hidden in a disclosure.
-  const source = page.locator("main").getByRole("link", { name: "Agent Action Security Review", exact: true });
+  const source = page.locator("#ask-witnessops-dialog").getByRole("link", { name: "Agent Action Security Review", exact: true });
   await expect(source).toBeVisible();
   await expect(source).toHaveAttribute("href", "/catalog/workflows");
   await source.click();
@@ -469,7 +465,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   const lastCta = menu.getByRole("link", {
-    name: "Scope a review",
+    name: "Free check",
     exact: true,
   });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
@@ -493,12 +489,10 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   });
   expect(ctaCenterIsClear, "the final mobile CTA is not covered by a floating layer").toBe(true);
 
-  await lastCta.click();
-  await expectPath(page, "/review/request");
-  expect(new URL(page.url()).search).toBe("");
-  await expect(page.locator("main h1")).toHaveText("Tell us what you need reviewed");
-  await expect(page.locator('main form input[name="intent"]')).toHaveValue("review");
-  await saveEvidence(page, "05-mobile-menu-cta-destination.png");
+  await expect(lastCta).toHaveAttribute("href", "/check");
+  // The compact menu keeps account navigation in the same tab.
+  await expect(lastCta).not.toHaveAttribute("target", "_blank");
+  await saveEvidence(page, "05-mobile-menu-signup.png");
 
   await context.close();
 });
@@ -541,6 +535,10 @@ test("the docs drawer and search preserve stacked focus and scroll locks", async
   const drawerTrigger = page.getByRole("button", {
     name: "Open documentation menu",
   });
+  const triggerBox = await drawerTrigger.boundingBox();
+  const articleBox = await page.locator("main").boundingBox();
+  expect(triggerBox!.y + triggerBox!.height).toBeLessThan(articleBox!.y);
+  await expect(page.locator("#docs-menu-slot")).toContainText("Browse docs");
   await drawerTrigger.focus();
   await drawerTrigger.click();
 
@@ -583,4 +581,80 @@ test("the docs drawer and search preserve stacked focus and scroll locks", async
   );
 
   await context.close();
+});
+
+for (const width of [1440, 390]) {
+  test(`support starts AI chat without submitting a ticket at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    let questions = 0;
+    let tickets = 0;
+    await page.route("**/api/support", async route => {
+      tickets += 1;
+      await route.abort();
+    });
+    await page.route("**/api/ask-witnessops", async route => {
+      if (await fulfillAskTelemetry(route)) return;
+      questions += 1;
+      expect(route.request().postDataJSON()).toEqual({ question: "How do I authenticate the CLI?", history: [] });
+      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Unavailable" }) });
+    });
+    await page.goto("/support", { waitUntil: "networkidle" });
+    expect(questions).toBe(0);
+    await page.getByLabel("Your question", { exact: true }).fill("How do I authenticate the CLI?");
+    await page.getByRole("button", { name: "Start AI chat" }).click();
+    const dialog = page.getByRole("dialog", { name: "Ask WitnessOps" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("alert")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Retry question" })).toBeEnabled();
+    await dialog.getByRole("link", { name: "Support help", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveURL(/\/support#support-request$/);
+    await page.locator("#si-email").fill("pilot@example.com");
+    await page.getByRole("button", { name: "Still need help? Email support" }).click();
+    await expect(page.locator("#si-desc")).toBeVisible();
+    expect(questions).toBe(1);
+    expect(tickets).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
+
+test("grouped desktop navigation supports keyboard, dismissal and document navigation", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  const resources = page.getByRole("button", { name: "Resources", exact: true });
+  await resources.focus();
+  await page.keyboard.press("ArrowDown");
+  const panel = page.locator("#public-nav-group-2");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole("link", { name: /^Docs/ })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(resources).toBeFocused();
+  await resources.click();
+  await page.mouse.click(30, 700);
+  await expect(panel).toBeHidden();
+  await resources.click();
+  await panel.getByRole("link", { name: /^Docs/ }).click();
+  await expect(page).toHaveURL(/\/docs$/);
+  await expect(panel).toBeHidden();
+});
+
+test("grouped mobile navigation keeps product and resource links reachable", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open primary navigation" }).click();
+  const menu = page.locator("#witnessops-mobile-menu");
+  for (const name of ["Product", "Expert help", "Resources"]) {
+    await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
+  }
+  await expect(menu.getByRole("link", { name: "Free check", exact: true })).toBeInViewport();
+  await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
+  await menu.getByRole("button", { name: "Product", exact: true }).click();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeVisible();
+  await menu.getByRole("button", { name: "Resources", exact: true }).click();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeHidden();
+  await menu.getByRole("link", { name: "Docs", exact: true }).click();
+  await expect(page).toHaveURL(/\/docs$/);
+  await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

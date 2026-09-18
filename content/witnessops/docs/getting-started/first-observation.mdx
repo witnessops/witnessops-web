@@ -1,0 +1,32 @@
+---
+title: "Your first observation"
+description: "Add an asset, authorize a hostname check and find its report in an invited workspace."
+section: "docs"
+order: 5
+nav_label: "Your first observation"
+draft: false
+---
+
+# Your first observation
+
+## Before you begin
+
+Create a [free account](/docs/getting-started). Workspace access requires an invitation managed by WitnessOps. The browser app needs no installation. You need the **Owner** role to add an asset and start a supported check; a **Viewer** can inspect accessible workspace data.
+
+Want a public result without an account? Use [Free check](/check) for a hostname you own or are authorized to check. Its result and download do not require registration. That snapshot is not automatically imported into the app.
+
+## Add and check a hostname
+
+1. Sign in to [the app](https://app.witnessops.com/login) and confirm the workspace and role.
+2. Open **Assets**, choose **Add asset**, and enter the public hostname you are authorized to check.
+3. Open the asset. Review the check's scope and authorization controls before starting it. Adding an asset does not establish ownership or permission to collect.
+4. Start the supported observation only after confirming authorization. Account creation and CLI login do not start a check.
+5. Read the completed observation and its limitations. An unresolved result is not a pass. A failed or incomplete run is not evidence that a system is secure.
+
+Checks are manually initiated; do not assume scheduled monitoring. Linux server checks and signed Local Audit imports have separate collection, scope and trust requirements. Do not use privileged collection commands merely to test login.
+
+## Find the result again
+
+Open **Assets** for the asset's observation history or **Reports** for saved reports. Use **View report** from an observation. A workspace without saved observations has no reports yet. A new observation does not silently rewrite the previous completed source snapshot.
+
+Next: [Understand results and reports](/docs/getting-started/results). If access is unavailable or paused, use [Account and CLI help](/docs/getting-started/access-help).

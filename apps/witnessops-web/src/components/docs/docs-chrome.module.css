@@ -1,0 +1,28 @@
+.shell { min-height: 100vh; }
+.toolbar { border-bottom: 1px solid var(--color-surface-border); background: var(--color-surface-bg); }
+.toolbarInner { max-width: 1400px; margin: auto; display: flex; align-items: center; gap: 1rem; padding: .75rem 1.5rem; }
+.menuSlot { display: none; }
+.searchButton, .browseButton { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-height: 44px; padding: .6rem .85rem; border: 1px solid var(--color-surface-border); border-radius: 8px; color: var(--color-text-primary); background: var(--color-surface-card); font-size: .875rem; font-weight: 500; }
+.searchButton:hover, .browseButton:hover { border-color: var(--color-brand-accent); }
+.searchButton:focus-visible, .browseButton:focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 3px; }
+.utilityLinks { display: flex; gap: .5rem; flex: 1; }
+.utilityLinks a { border: 0; border-radius: 6px; min-height: 44px; }
+.body { display: flex; min-height: 100vh; max-width: 1400px; margin: auto; }
+.content { min-width: 0; flex: 1; padding: 3rem clamp(1.5rem, 4vw, 4rem) 4rem; }
+.content :global([id]) { scroll-margin-top: 6rem; }
+.content :global(.docs-prose) { font-size: 1rem; line-height: 1.8; }
+.content :global(.docs-prose pre) { border-radius: 10px; padding: 1.25rem; }
+.content :global(.docs-prose table) { font-size: .875rem; line-height: 1.6; }
+.content :global(.kb-section-tag) { color: var(--color-text-muted); }
+.shell :global(.sidebar-kb-item-prefix) { display: none; }
+.shell :global(.sidebar-kb-item) { padding-block: .7rem; }
+@media (max-width: 1023px) {
+  .toolbar { position: sticky; top: var(--app-navbar-height, 64px); z-index: 35; }
+  .toolbarInner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem .75rem; padding: .6rem 1rem .35rem; }
+  .menuSlot { display: block; }
+  .utilityLinks { grid-column: 1 / -1; gap: .25rem; overflow-x: auto; }
+  .utilityLinks a { flex: none; padding-inline: .65rem; font-size: .8125rem; }
+  .content { padding: 2rem 1.25rem 3rem; }
+  .content :global([id]) { scroll-margin-top: calc(var(--app-navbar-height, 64px) + 125px); }
+  .content :global(h1) { overflow-wrap: anywhere; }
+}

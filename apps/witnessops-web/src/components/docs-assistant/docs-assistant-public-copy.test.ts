@@ -11,12 +11,12 @@ function source(filename: string): string {
 
 
 const subtitle = "Questions about scope, evidence or pricing";
-const questionIntro = /Ask about security reviews, verification or workflow repair/;
+const questionIntro = /Ask about signup, invitations, CLI setup, reports or expert help/;
 const warning = "Do not paste secrets";
 const providerDisclosure =
   /Eligible questions and recent conversation are sent to OpenAI with.*store: false.*provider retention may still apply/s;
 const placeholder =
-  "Example: Leads stopped reaching our CRM.";
+  "Example: How do I create an account?";
 
 test("Ask WitnessOps surfaces describe AI questions within the public-input boundary", () => {
   for (const filename of [
@@ -26,13 +26,13 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
   ]) {
     const content = source(filename);
     assert.match(content, /Ask WitnessOps|ASK WITNESSOPS/);
-    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /Tell me what happened/ : new RegExp(subtitle));
-    assert.match(content, filename !== "docs-assistant-inline.tsx" ? /Tell me what happened/ : questionIntro);
+    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /AI product guide/ : new RegExp(subtitle));
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Try a product question/ : filename === "docs-assistant-page.tsx" ? /Ask about the app, CLI, results or expert help/ : questionIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, /AskAiDisclosure/);
     assert.match(source("ask-ai-disclosure.tsx"), providerDisclosure);
     assert.doesNotMatch(content, /provider storage disabled/);
-    assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Ask a product question/ : filename === "docs-assistant-page.tsx" ? new RegExp(placeholder.replaceAll(".", "\\.")) : /Example: Leads stopped reaching our CRM/);
     assert.match(content, filename === "docs-assistant-page.tsx" ? /"Send"/ : /Ask AI/);
     assert.match(content, /aria-label="Ask WitnessOps question"/);
     assert.match(content, /maxLength=\{2_000\}/);
@@ -64,7 +64,7 @@ test("Ask WitnessOps retains the answer text when a suggested review is shown", 
   assert.doesNotMatch(widget, /!hasPaidScopeCta\s*&&\s*\(\s*<p className=\{styles\.answerCopy\}/);
   assert.match(page, /\{msg\.content\}\s*<\/p>\s*\{msg\.answer && \(/);
   assert.match(inline, /\{askWitnessOpsAnswerText\(response\)\}\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
-  assert.match(widget, /Tell me what happened/);
+  assert.match(widget, /Try a product question/);
   assert.match(widget, /Ask a follow-up/);
   assert.match(widget, /Start over/);
 });
@@ -272,10 +272,10 @@ test("Ask WitnessOps keeps answer, unavailable, and evidence-boundary states dis
   assert.match(content, /data-ask-state/);
   assert.match(content, /aria-label="Ask WitnessOps question"/);
   assert.match(styles, /--proof-bg:\s*var\(--color-surface-bg\)/);
-  assert.match(styles, /--proof-accent:\s*var\(--color-brand-accent\)/);
+  assert.match(styles, /--proof-accent:\s*#b89b62/);
   assert.match(styles, /--receipt-paper:\s*#151512/);
   assert.match(styles, /--receipt-sheet:\s*#1b1b17/);
-  assert.match(styles, /--receipt-accent-text:\s*#df874d/);
+  assert.match(styles, /--receipt-accent-text:\s*#c9b387/);
   assert.match(styles, /border:\s*1px solid var\(--proof-muted\)/);
   assert.match(
     styles,

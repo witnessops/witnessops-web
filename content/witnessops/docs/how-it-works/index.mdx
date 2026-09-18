@@ -1,6 +1,6 @@
 ---
 title: "How It Works"
-description: "How an External Attack Surface Review becomes an evidence-linked receipt and a bounded verification result."
+description: "How free checks, invited app workspaces, optional CLI access and expert reviews fit together."
 section: "docs"
 order: 1
 nav_label: "How It Works"
@@ -9,11 +9,25 @@ draft: false
 
 # How It Works
 
-WitnessOps turns one authorized External Attack Surface Review into a scoped record that another reviewer can inspect. The product workflow, evidence producer, receipt builder, trust policy, verifier, and web adapter remain separate components.
+## Start with the task you need
 
-## 1. Product workflow
+- **A public hostname check:** [Free check](/check) requires no account. Check only a hostname you own or are authorized to check; its result and download do not require signup.
+- **Saved workspace observations:** [Create a free account](/docs/getting-started), then use an invited workspace. Signup creates no workspace membership or permission to execute checks. The browser app needs no installation.
+- **Your first app result:** follow [Your first observation](/docs/getting-started/first-observation), then [Understand results and reports](/docs/getting-started/results). Owners authorize supported checks; Viewers inspect accessible data.
+- **Command-line access:** use the optional [CLI setup guide](/docs/getting-started/cli). Login and permission to collect are separate.
+- **Expert help:** choose a [review or service](/catalog). Scope, price and authorization are agreed separately from an app account.
 
-The customer-facing order is:
+Paid app plans remain illustrative. Creating an account does not start a paid subscription. See [FAQ](/docs/faq) for access and billing questions.
+
+## Understand what you received
+
+External Exposure snapshots are unsigned. Reports are derived presentations. Local Audit Proofpacks have a separate signature and pinned-trust checking path. Public `/verify` accepts supported receipt JSON only. [Compare these outputs](/docs/getting-started/results) before interpreting a verdict.
+
+The technical reference below describes the legacy `public_exposure_review` profile for an authorized External Attack Surface Review. It is not the format of every app observation or report. The product workflow, evidence producer, receipt builder, trust policy, verifier, and web adapter remain separate components.
+
+## Expert-review evidence workflow
+
+For that review profile, the documented order is:
 
 1. request
 2. scoped review
@@ -22,7 +36,7 @@ The customer-facing order is:
 5. signed receipt
 6. verification page
 
-This order preserves product authority. The verification layer supports the review; it does not create another offer, dashboard, marketplace, or user-management product.
+The verification layer supports this review. App signup, workspace permissions and browser reports are separate product features.
 
 The pre-signing result uses receipt outcomes `pass`, `partial`, `fail`, or `inconclusive`; `blocked` remains an operational state, not a receipt outcome. Review outcome and verifier verdict are separate domains, so a review `pass` can still project as `indeterminate` when independent checks are incomplete.
 

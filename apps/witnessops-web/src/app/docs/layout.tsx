@@ -5,7 +5,7 @@ import {
   getDocSectionTitle,
   listDocPages,
 } from "@witnessops/content/docs";
-import { getDocsSidebar } from "@witnessops/content/sidebar";
+import { getDocsSidebar, getDocsLayerForHref } from "@witnessops/content/sidebar";
 
 import { DocsLayoutFrame } from "@/components/docs/docs-layout-frame";
 import { DocsNavbar } from "@/components/docs/docs-navbar";
@@ -72,7 +72,7 @@ function buildSearchEntries(
       description: doc.description ?? sectionTitle,
       href: publish(href),
       section: doc.section,
-      layerTitle: sectionTitle,
+      layerTitle: getDocsLayerForHref("witnessops", href)?.title ?? sectionTitle,
       sectionTitle,
     });
   }
@@ -114,8 +114,8 @@ export default async function DocsLayout({
 
   return (
     <DocsLayoutFrame
-      navigation={<><DocsPathExitTracker /><DocsNavbar docs={searchDocs} /></>}
-      sidebar={<DocsSidebar sections={publicSidebar} />}
+      navigation={<div key="navigation" className="contents"><DocsPathExitTracker key="exit-tracker" /><DocsNavbar key="docs-navigation" docs={searchDocs} /></div>}
+      sidebar={<DocsSidebar key="sidebar" sections={publicSidebar} />}
     >{children}</DocsLayoutFrame>
   );
 }

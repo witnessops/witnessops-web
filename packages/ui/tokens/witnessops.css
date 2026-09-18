@@ -41,3 +41,29 @@
   --font-display: var(--font-barlow-condensed, "Barlow Condensed"), "Inter", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
+
+/* Quiet Utility footer palette; other public surfaces keep their existing theme. */
+footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
+  --color-surface-bg: #111110;
+  --color-text-primary: #f5f1e8;
+  --color-text-secondary: #c3bfb6;
+  --color-text-muted: #a7a399;
+  --color-brand-accent: #b89b62;
+  --color-surface-border: #34332e;
+  --color-surface-border-strong: #777267;
+}
+
+/* Public presentation theme; admin and customer workspaces retain their own palette. */
+body:has(nav[data-public-presentation="quiet"]) {
+  --color-surface-bg: #0b0c0b;
+  --color-surface-bg-alt: #111210;
+  --color-surface-card: #121310;
+  --color-surface-inset: #181914;
+  --color-surface-border: #30312b;
+  --color-surface-border-strong: #69695f;
+  --color-text-primary: #f5f1e8;
+  --color-text-secondary: #c3bfb6;
+  --color-text-muted: #a7a399;
+  --color-brand-accent: #b89b62;
+  --color-text-inverse: #151510;
+}

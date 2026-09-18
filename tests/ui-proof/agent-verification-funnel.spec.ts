@@ -123,10 +123,17 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.locator("main")).toContainText(/Find security gaps in your systems/);
-      await expect(page.locator("main")).toContainText(/Exposure/);
-      await expect(page.locator("main")).toContainText(/Evidence/);
-      await expect(page.locator("main")).toContainText(/Scope a review/);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("See what’s exposed.Understand what changed.");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("findings, the evidence and what remains unknown");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", "/check");
+      await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Free checks need no account. Workspace access requires an invitation.");
+      const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
+      await expect(sampleLink).toHaveAttribute("href", "/library");
+      await sampleLink.click();
+      await expect(page).toHaveURL(/\/library$/);
+      await expect(page.locator('main section[aria-label="First-party skills"] a')).toHaveCount(11);
+      await page.goto("/", { waitUntil: "networkidle" });
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);
       await context.close();

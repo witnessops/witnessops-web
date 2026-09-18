@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BuyerHomepage } from "@/components/marketing/buyer-homepage";
+import { SimpleHomepage } from "@/components/marketing/simple-homepage";
 import { loadHomeContent } from "@/lib/content";
 import { buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -14,14 +14,7 @@ export default function HomePage() {
     <>
       <JsonLd id="witnessops-organization" value={organizationJsonLd} />
       <JsonLd id="witnessops-website" value={websiteJsonLd} />
-      <BuyerHomepage
-        locale="en"
-        hero={{
-          eyebrow: home.hero.eyebrow,
-          title: home.hero.title,
-          body: home.hero.body,
-        }}
-      />
+      <SimpleHomepage />
     </>
   );
 }

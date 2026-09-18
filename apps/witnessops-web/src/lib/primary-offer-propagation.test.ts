@@ -1,3 +1,4 @@
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -232,7 +233,9 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     PRIMARY_OFFER.name.en,
   );
 
-  const pricing = renderToStaticMarkup(createElement(PricingPage));
+  const pricing = renderToStaticMarkup(createElement(AppRouterContext.Provider, {
+    value: { back() {}, forward() {}, refresh() {}, push() {}, replace() {}, prefetch() {} },
+  }, createElement(PricingPage)));
   const primaryCard = renderedArticle(
     pricing,
     "data-pricing-service",

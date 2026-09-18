@@ -1,6 +1,6 @@
 ---
 title: "Glossary"
-description: "Core WitnessOps terms for governed execution, approval gates, and receipts."
+description: "App terms first, followed by profile-specific operator and receipt reference."
 section: "docs"
 order: 4
 nav_label: "Glossary"
@@ -9,7 +9,22 @@ draft: false
 
 # Glossary
 
-Canonical definitions for the `/docs` surface. These terms describe current live and public WitnessOps behavior. Retained-reference or corpus terms are out of scope unless explicitly linked.
+## App terms
+
+- **Account:** your sign-in identity. Free signup creates no workspace membership or subscription.
+- **Workspace:** the app data and permissions available through an invitation managed by WitnessOps.
+- **Owner / Viewer:** app roles. Owners authorize supported checks; Viewers inspect accessible data.
+- **Asset:** a system identifier you want to observe. Adding one does not establish ownership.
+- **Observation:** one recorded check at a particular time and scope.
+- **Report:** a readable presentation derived from an observation, not source evidence or a security score.
+- **External Exposure snapshot:** unsigned source observations. Digests identify bytes, not an authenticated issuer.
+- **Local Audit Proofpack:** a package with a signed receipt and detached ZIP signature, checked against pinned trust policy in its supported flow.
+
+Read [Understand results and reports](/docs/getting-started/results) for the differences and limitations.
+
+## Operator and receipt-profile reference
+
+The terms below belong to the documented operator model or named receipt profiles. They are not a list of app features or evidence that a deployment enforces every model control. The Tier 1 mailbox sequence is a specific reference lane, not the format of every WitnessOps observation.
 
 ## Quick reference links
 
@@ -123,7 +138,7 @@ The published Tier 1 receipt wrapper. `R0` binds the frozen receipt projection (
 
 ### Receipt
 
-The atomic proof statement for a governed event.
+A recorded claim about a bounded event. Its shape alone is not proof; interpretation depends on its profile and the checks actually performed.
 
 **Scope note:** In the Tier 1 naming lane, `R0` is the published receipt wrapper inside the chain. Receipt validity still does not prove tool correctness or business-impact conclusions.
 

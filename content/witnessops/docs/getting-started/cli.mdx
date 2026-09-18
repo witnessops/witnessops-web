@@ -1,0 +1,70 @@
+---
+title: "CLI setup and authentication"
+description: "Run the current CLI source, sign in through the browser, check your session and sign out."
+section: "docs"
+order: 3
+nav_label: "CLI setup & auth"
+draft: false
+---
+
+# CLI setup and authentication
+
+The browser app needs no installation. This guide is for people who need the optional command-line client and already have invited workspace access.
+
+## Current installation path
+
+The repository package is named `@witnessops/cli` and is marked private. There is no published npm install command established by this source. Use an operator-approved repository revision for evaluation; do not assume an arbitrary checkout matches the deployed app.
+
+Install Node.js 22 and Git through your usual trusted package source. Clone the [WitnessOps repository](https://github.com/witnessops/witnessops-web), check out the revision supplied for your pilot, and enter the repository directory. The CLI uses Node's built-in modules and can run directly without installing the web application:
+
+```bash
+git clone https://github.com/witnessops/witnessops-web.git
+cd witnessops-web
+```
+
+Check out the revision supplied for your pilot before running the commands below. If you were not given a revision, ask support rather than treating the latest source as a supported release.
+
+```bash
+node --version
+node packages/wops-cli/src/main.mjs auth status
+```
+
+The first command should report Node.js 22. Before login, the second reports `Not signed in.` When a packaged `wops` launcher is supplied, it exposes the same commands as `wops auth status`, `wops auth login` and `wops auth logout`.
+
+## Sign in
+
+Run as your normal user, not with sudo:
+
+```bash
+node packages/wops-cli/src/main.mjs auth login
+```
+
+The CLI opens the browser authorization page and prints a code. If the browser cannot open, use the displayed address in your browser. Sign in, enter the code from your own terminal, and confirm the workspace and role. Authorize only a sign-in you started; never enter a code someone sends you.
+
+Return to the terminal and wait for confirmation. Login grants session identity/status and sign-out by default. It does not grant uploads, signing authority or server checks. Owners may explicitly request additional server-check rights in the authorization screen; collection still needs its own approved scope and window.
+
+## Confirm your session
+
+```bash
+node packages/wops-cli/src/main.mjs auth status
+```
+
+Check the account, workspace, role and active session. If current status cannot be confirmed, restore connectivity and retry. A local credential file alone does not establish current access. Do not copy or share that file.
+
+## Sign out
+
+```bash
+node packages/wops-cli/src/main.mjs auth logout
+```
+
+This removes the local credential and attempts server revocation. If revocation cannot be confirmed, the CLI says so; do not describe that as confirmed server sign-out.
+
+## Common problems
+
+- **Invitation required or access paused:** use the invited account and contact [Support](/support#support-request).
+- **A local session already exists:** check status or log out before starting another login.
+- **Code expired or login declined:** start login again from your own terminal.
+- **No browser on the Linux machine:** open the displayed authorization address on your browser-equipped device and enter your own terminal code.
+- **Server unreachable:** check connectivity. Do not paste tokens into chat or change servers to bypass access rules.
+
+Return to [Get started](/docs/getting-started) to find assets, observations and reports. Authenticating the CLI is not a server check and does not collect evidence.

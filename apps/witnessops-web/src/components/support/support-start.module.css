@@ -1,0 +1,12 @@
+.panel { padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--color-surface-border); border-radius: 16px; background: var(--color-surface-card); }
+.eyebrow { color: var(--color-brand-accent); font-size: .75rem; letter-spacing: .08em; }
+.panel h2 { margin: .75rem 0; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 500; letter-spacing: -.03em; }
+.panel p { line-height: 1.7; color: var(--color-text-secondary); }
+.panel form { margin-top: 1.5rem; }
+.panel label { display: block; margin-bottom: .5rem; font-size: .875rem; }
+.panel textarea { width: 100%; padding: .85rem; border: 1px solid var(--color-surface-border-strong); border-radius: 10px; background: var(--color-surface-bg); color: var(--color-text-primary); resize: vertical; font-size: 1rem; }
+.panel .note { margin: .75rem 0 1rem; font-size: .8rem; }
+.panel button { display: inline-flex; align-items: center; gap: 1.5rem; min-height: 48px; padding: .75rem 1rem; border-radius: 8px; background: #f5f1e8; color: #0b0c0b; font-weight: 500; }
+.panel button:disabled { opacity: .45; cursor: not-allowed; }
+.panel > a { display: inline-block; margin-top: 1.5rem; padding-block: .5rem; text-decoration: underline; text-underline-offset: .3em; font-size: .875rem; }
+.panel :is(textarea,button,a):focus-visible { outline: 2px solid #b89b62; outline-offset: 4px; }

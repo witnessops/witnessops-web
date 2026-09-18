@@ -204,7 +204,7 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
   );
 });
 
-test("header, footer, and service contact CTA use the shared context contract", () => {
+test("header uses the configured signup destination while footer and service enquiries preserve their selected context", () => {
   const navbar = readFileSync(
     resolve(__dirname, "../components/shared/navbar.tsx"),
     "utf-8",
@@ -218,7 +218,7 @@ test("header, footer, and service contact CTA use the shared context contract", 
     "utf-8",
   );
 
-  assert.match(navbar, /reviewRequestHrefForLocation\(/);
+  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
   assert.match(footer, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /primaryHref=\{reviewRequestHref\}/);
   assert.match(serviceDetail, /href=\{requestHref\}/);

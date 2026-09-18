@@ -1,6 +1,6 @@
 ---
 title: "FAQ"
-description: "Common questions about WitnessOps governed execution and evidence."
+description: "Free signup, workspace invitations, browser and CLI access, reports, pricing and support."
 section: "docs"
 order: 3
 nav_label: "FAQ"
@@ -9,7 +9,39 @@ draft: false
 
 # FAQ
 
-Recurring operator and reviewer questions, answered with bounded claims.
+## Accounts and app access
+
+### Is signup free? Do I need a card?
+
+Creating an account is free. No card or subscription is required. Paid app plans on the pricing page are illustrative, not active subscriptions. Signup does not grant a paid plan.
+
+### Why do I need an invitation after signup?
+
+An account lets you sign in; workspace membership is separate and managed by WitnessOps. Follow the activation prompt if invited. For missing or paused access, use [Support](/support#support-request). The Members page does not currently send invitations.
+
+### Do I have to install the app?
+
+No. Use the [browser app](https://app.witnessops.com). The optional [CLI](/docs/getting-started/cli) currently runs from an approved source checkout with Node.js 22; do not assume a published npm installer exists.
+
+### Does a free check require signup?
+
+No. The public [free check](/check), its result and download require no account. It does not automatically import into a workspace or authorize further checks.
+
+### Why can I not start a check or find a report?
+
+An Owner can authorize supported checks; a Viewer can inspect accessible workspace data. Reports require saved observations. Start with [Your first observation](/docs/getting-started/first-observation) or [Account and CLI help](/docs/getting-started/access-help).
+
+### Are reports signed proof?
+
+A report is a derived presentation. External Exposure snapshots are unsigned. Local Audit Proofpacks use a separate signed-receipt and ZIP-signature checking path. Read [Understand results and reports](/docs/getting-started/results); no format proves whole-system security or source-system truth.
+
+### Can AI solve an account issue or submit a ticket?
+
+AI can explain public guidance but cannot access your workspace, issue invitations or submit tickets. Use [Contact support](/support#support-request) and verify your email for a human request. You do not need a paid review for ordinary product support.
+
+## Expert help and technical reference
+
+The remaining questions describe separately scoped reviews and the documented governed-workflow model. They are not additional app features or permissions.
 
 ## Commercial Entry Point
 
@@ -23,7 +55,7 @@ Recurring operator and reviewer questions, answered with bounded claims.
 
 ### Is WitnessOps a scanner?
 
-No. WitnessOps governs tool execution: scope, policy gates, approvals, and evidence capture. It can orchestrate scanners, but it is not a scanner engine itself.
+The app offers bounded observations, and expert services provide separately scoped reviews. The technical governed-execution model describes tool orchestration; it is not a promise that every documented scanner or runbook is available in the app.
 
 **Scope limit:** finding quality still depends on the underlying tool and its configuration. See [Governed Execution](/docs/security-systems/governed-execution) and [Runbooks](/docs/operations/runbooks).
 
@@ -49,13 +81,13 @@ No. A receipt declares a governed claim, a manifest digest, evidence references,
 
 ### Who has authority to let a step run?
 
-Runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`) and permit or deny execution accordingly.
+In the documented operator workflow model, runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`) and permit or deny execution accordingly.
 
 **Scope limit:** WitnessOps enforces the configured authorization contract; it does not independently guarantee upstream identity sources are truthful. See [Authorization Model](/docs/governance/authorization-model) and [Policy Gates](/docs/security-systems/policy-gates).
 
 ### Can an operator bypass policy gates?
 
-Not inside governed runtime: a failed gate blocks the step. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.
+In that model, a failed required gate blocks the step. Confirm the actual implementation before claiming a deployed control enforced it. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.
 
 **Scope limit:** without a verified WitnessOps receipt, available evidence does not establish governed execution for that action. It does not prove that no action happened elsewhere. See [Governed Execution](/docs/security-systems/governed-execution) and [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass).
 

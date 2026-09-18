@@ -102,3 +102,12 @@ export function asksKnownQualification(text: string, facts: VisitorQualification
     (facts.outcome && /missing[^.!?]{0,45}(?:late|delayed|wrong fields)|\bwhat\b[^.!?]{0,30}\b(?:stopped|failed|outcome)\b/i.test(text))
   );
 }
+
+
+/** Explain public result limits without changing refusal, provider or execution policy. */
+export function appResultBoundaryExplanation(question: string): string | null {
+  if (!/external exposure/i.test(question) || !/report|snapshot|proof|signed/i.test(question)) return null;
+  return askLanguage(question) === "pl"
+    ? "Migawki External Exposure nie są podpisane. Raport przedstawia zapisaną obserwację; skrót identyfikuje bajty źródłowe, ale nie uwierzytelnia wystawcy ani nie dowodzi bezpieczeństwa serwera. Pakiety Local Audit mają osobną ścieżkę sprawdzania podpisów."
+    : "External Exposure snapshots are unsigned. A report presents a recorded observation; its digest identifies source bytes, but does not authenticate an issuer or prove that a server is secure. Local Audit packages have a separate signature-checking path.";
+}

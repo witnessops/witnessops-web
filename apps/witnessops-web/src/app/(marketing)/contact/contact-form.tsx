@@ -86,11 +86,13 @@ export function ContactForm({
   intent = "review",
   campaignAttribution,
   compact = false,
+  landing = false,
 }: {
   locale?: "en" | "pl";
   intent?: string;
   campaignAttribution?: string;
   compact?: boolean;
+  landing?: boolean;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -423,6 +425,7 @@ export function ContactForm({
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
+    const enquiryPath = landing ? stringField(data, "enquiryPath") : "";
     const requestScope = [
       externalExposureOrder
         ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
@@ -432,6 +435,7 @@ export function ContactForm({
           ? `Request: ${selectedNonAgentService.name.en}`
           : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
+      ...(enquiryPath ? [`Enquiry path: ${enquiryPath}`] : []),
       `Request locale: ${locale}`,
       ...(decisionTiming ? [`Decision and target date: ${decisionTiming}`] : []),
       ...(campaignAttribution
@@ -457,7 +461,7 @@ export function ContactForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.get("name"),
-          org: data.get("org"),
+          org: stringField(data, "org"),
           email: data.get("email"),
           intent,
           locale,
@@ -823,7 +827,7 @@ export function ContactForm({
       onSubmit={handleSubmit}
       method="post"
       action="/api/review/request"
-      className="space-y-5"
+      className={`space-y-5 ${landing ? "simple-enquiry-form" : ""}`}
       aria-busy={status === "sending"}
     >
       <input type="hidden" name="intent" value={intent} />
@@ -864,9 +868,9 @@ export function ContactForm({
         </p>
       </div>}
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className={`grid gap-5 ${landing ? "" : "md:grid-cols-2"}`}>
         <div>
-          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
+          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} {!landing && <span className="text-text-muted">{copy.required}</span>}</label>
           <input
             id="name" name="name" type="text" autoComplete="name" required
             maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
@@ -876,13 +880,13 @@ export function ContactForm({
             onInvalid={handleInvalid} onInput={handleFieldInput}
             className={`${inputClass} ${fieldErrors.name ? "!border-signal-red" : ""}`}
             style={inputStyle}
-            placeholder={copy.name}
+            placeholder={landing ? undefined : copy.name}
           />
           {fieldErrors.name && <p id="name-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.name}</p>}
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} <span className="text-text-muted">{copy.required}</span></label>
+          <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} {!landing && <span className="text-text-muted">{copy.required}</span>}</label>
           <input
             id="email" name="email" type="email" autoComplete="email" inputMode="email" required
             aria-invalid={fieldErrors.email ? true : undefined}
@@ -891,13 +895,20 @@ export function ContactForm({
             onInvalid={handleInvalid} onInput={handleFieldInput}
             className={`${inputClass} ${fieldErrors.email ? "!border-signal-red" : ""}`}
             style={inputStyle}
-            placeholder="buyer@company.com"
+            placeholder={landing ? undefined : "buyer@company.com"}
           />
           {fieldErrors.email && <p id="email-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.email}</p>}
         </div>
       </div>
 
-      <div>
+      {landing && <div>
+        <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
+        <select id="enquiryPath" name="enquiryPath" defaultValue="Free check" className={inputClass} style={inputStyle}>
+          {["Free check", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+        </select>
+      </div>}
+
+      {!landing && <div>
         <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
           id="org" name="org" type="text" autoComplete="organization"
@@ -911,31 +922,31 @@ export function ContactForm({
           placeholder={copy.organizationPlaceholder}
         />
         {fieldErrors.org && <p id="org-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.org}</p>}
-      </div>
+      </div>}
 
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          {copy.workflow} <span className="text-text-muted">{copy.required}</span>
+          {landing ? "What needs checking?" : copy.workflow} {!landing && <span className="text-text-muted">{copy.required}</span>}
         </label>
         <textarea
-          id="workflow" name="workflow" rows={3} required
+          id="workflow" name="workflow" rows={landing ? 5 : 3} required
           maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           aria-describedby={fieldErrors.workflow ? "workflow-helper workflow-error" : "workflow-helper"}
           aria-errormessage={fieldErrors.workflow ? "workflow-error" : undefined}
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder={copy.workflowPlaceholder}
+          placeholder={landing ? undefined : copy.workflowPlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflow ? true : undefined}
         />
         <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          {copy.workflowHelp}
+          {landing ? "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry." : copy.workflowHelp}
         </p>
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
-      <div>
+      {!landing && <div>
         <label htmlFor="decisionTiming" className="mb-2 block" style={labelStyle}>
           {copy.decisionTiming} <span className="text-text-muted">{copy.optional}</span>
         </label>
@@ -952,9 +963,9 @@ export function ContactForm({
         />
         <p id="decisionTiming-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.decisionTimingHelp}</p>
         {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
-      </div>
+      </div>}
 
-      {optionalContext ? (
+      {landing ? null : optionalContext ? (
         <details className="border-t border-surface-border pt-4">
           <summary className="cursor-pointer text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
             {polish ? "Dodaj kontekst (opcjonalnie)" : "Add context (optional)"}
@@ -976,12 +987,12 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? copy.sending : copy.send}
+        {status === "sending" ? copy.sending : landing ? "Submit non-secret enquiry" : copy.send}
       </button>
 
-      <p className="text-xs leading-relaxed text-text-muted">
+      {!landing && <p className="text-xs leading-relaxed text-text-muted">
         {copy.submitBoundary}
-      </p>
+      </p>}
 
       {status === "sent" && (
         <div
@@ -994,7 +1005,7 @@ export function ContactForm({
       )}
 
 
-      <div
+      {!landing && <div
         className="pt-4 border-t border-surface-border"
         style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
       >
@@ -1023,7 +1034,7 @@ export function ContactForm({
           </span>
         </div>
         <p className="mt-2">{copy.noSecrets}</p>
-      </div>
+      </div>}
     </form>
   );
 }

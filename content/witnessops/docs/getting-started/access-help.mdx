@@ -1,0 +1,36 @@
+---
+title: "Account and CLI help"
+description: "Troubleshoot signup, invitations, Owner and Viewer access, CLI login, logout and missing reports."
+section: "docs"
+order: 5
+nav_label: "Account and CLI help"
+draft: false
+---
+
+# Account and CLI help
+
+## Account created, but no workspace
+
+Creating an account is free and requires no card. It does not create workspace membership, a subscription or permission to run checks. If the app says **Workspace access requires an invitation**, contact [Support](/support#support-request). Workspace access is managed by WitnessOps; the Members page does not currently send invitations.
+
+If you were invited, sign in with that account and follow the activation prompt. If access is paused, contact support instead of creating another account to bypass it.
+
+## A control is missing
+
+Check the workspace and your role. **Owners** can add assets and authorize supported checks. **Viewers** inspect the data their workspace exposes. Operator and approver roles in the technical workflow reference are not additional app permissions.
+
+## CLI login does not work
+
+Follow [CLI setup and authentication](/docs/getting-started/cli) using the approved source revision and Node.js 22. Run `auth login`, authorize only the code from your own terminal in the browser, and return to the terminal for confirmation. Login grants session access by default, not signing or collection authority.
+
+Use `auth status` to check current access. For an expired or revoked session, use `auth logout`, then `auth login` again. If a server check is unavailable, do not bypass the permission check: additional rights require explicit Owner authorization and collection still needs its own approved scope and window.
+
+`auth logout` removes the local credential and attempts server revocation. A connectivity failure means server revocation is not confirmed. Do not share the credential file or paste tokens into support.
+
+## No reports yet
+
+Reports come from saved workspace observations. A public free check is not automatically imported. Follow [Your first observation](/docs/getting-started/first-observation) if your workspace is empty and your role permits a check.
+
+## Ask for help
+
+[Ask WitnessOps](/support) can explain public product guidance but cannot inspect your account, grant an invitation or start a private workspace check. AI is optional. For a human request, use [Contact support](/support#support-request), submit the form and verify your email. Chat alone does not submit a ticket. Include the page and non-secret error wording, never passwords, tokens or private evidence.

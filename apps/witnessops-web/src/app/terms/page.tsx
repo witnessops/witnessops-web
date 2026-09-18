@@ -1,3 +1,4 @@
+import styles from "../footer-pages.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -25,26 +26,40 @@ export default function TermsPage() {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[720px] px-6 py-24">
-      <header className="mb-10">
+    <main id="main-content" tabIndex={-1} className={styles.legalPage}>
+      <nav className={styles.policyNav} aria-label="Policies">
+        {[
+          { slug: "privacy", label: "Privacy" },
+          { slug: "terms", label: "Terms" },
+          { slug: "security", label: "Security" },
+        ].map((entry) => (
+          <Link key={entry.slug} href={`/${entry.slug}`}
+            aria-current={entry.slug === "terms" ? "page" : undefined}>
+            {entry.label}
+          </Link>
+        ))}
+      </nav>
+      <header className={styles.legalHeader}>
         <h1 className="text-4xl font-bold tracking-tight text-text-primary">
           {doc.title}
         </h1>
         <p className="mt-4 text-lg text-text-secondary">{doc.description}</p>
       </header>
 
-      <MarkdownContent source={doc.body} />
+      <div className={styles.legalBody}>
+        <MarkdownContent source={doc.body} />
 
-      {doc.trustBoundaryVariant ? (
-        <TrustBoundarySnippet variant={doc.trustBoundaryVariant} className="mt-8" />
-      ) : null}
+        {doc.trustBoundaryVariant ? (
+          <TrustBoundarySnippet variant={doc.trustBoundaryVariant} className="mt-8" />
+        ) : null}
+      </div>
 
       {relatedDocs.length > 0 && (
-        <section className="mt-12">
+        <section className={styles.relatedPolicies}>
           <h2 className="text-xl font-semibold text-text-primary">
             Related Legal Documents
           </h2>
-          <div className="mt-4 space-y-3">
+          <div className={styles.relatedGrid}>
             {relatedDocs.map((entry) => (
               <Link
                 key={entry.slug}

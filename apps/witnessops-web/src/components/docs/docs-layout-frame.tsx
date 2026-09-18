@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./docs-chrome.module.css";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -9,7 +10,7 @@ export function DocsLayoutFrame({ children, navigation, sidebar }: {
 }) {
   const pathname = usePathname();
   if (pathname.replace(/\/$/, "") === "/docs/assistant") return <>{children}</>;
-  return <div className="min-h-screen">{navigation}<div className="flex min-h-screen">
-    {sidebar}<div className="min-w-0 flex-1 px-6 py-10 lg:px-12 lg:py-12">{children}</div>
+  return <div className={styles.shell}>{navigation}<div className={styles.body}>
+    {sidebar}<div className={styles.content}>{children}</div>
   </div></div>;
 }

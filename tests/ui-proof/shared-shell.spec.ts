@@ -47,26 +47,23 @@ const languagePairs = [
 const routesWithSecondaryNavigation = new Set<string>(["/docs", "/pl/docs"]);
 
 const canonicalChrome = {
-  background: "rgb(5, 5, 5)",
-  primary: "rgb(250, 250, 247)",
-  accent: "rgb(242, 122, 61)",
-  inverse: "rgb(22, 11, 5)",
+  background: "rgb(11, 12, 11)",
+  primary: "rgb(245, 241, 232)",
+  accent: "rgb(184, 155, 98)",
+  inverse: "rgb(21, 21, 16)",
   tokens: {
-    background: "#050505",
-    primary: "#fafaf7",
-    accent: "#f27a3d",
-    inverse: "#160b05",
+    background: "#0b0c0b",
+    primary: "#f5f1e8",
+    accent: "#b89b62",
+    inverse: "#151510",
   },
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
-  ["/review/request", "/review/request"],
-  ["/pl/review/request", "/pl/review/request"],
   ["/catalog", "/catalog"],
   ["/pl/catalog", "/pl/catalog"],
   ["/docs", "/docs"],
   ["/pl/docs", "/pl/docs"],
-  ["/why-witnessops", "/why-witnessops"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
 ]);
 
@@ -243,7 +240,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         canonicalChrome.primary,
       );
       expect(shell.footerBackground, `${route} footer background`).toBe(
-        canonicalChrome.background,
+        "rgb(17, 17, 16)",
       );
       expect(shell.footerColor, `${route} footer foreground`).toBe(
         canonicalChrome.primary,
@@ -254,7 +251,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         ["main", shell.mainTokens],
       ] as const) {
         expect(tokens, `${route} ${viewport.name} ${surface} tokens`).toEqual(
-          canonicalChrome.tokens,
+          surface === "footer" ? { ...canonicalChrome.tokens, background: "#111110" } : canonicalChrome.tokens,
         );
       }
       expect(
@@ -267,7 +264,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       ).toBeGreaterThanOrEqual(4.5);
       if (viewport.width >= 1024) {
         expect(shell.desktopCtaBackground, `${route} desktop CTA background`).toBe(
-          canonicalChrome.accent,
+          canonicalChrome.primary,
         );
         expect(shell.desktopCtaColor, `${route} desktop CTA foreground`).toBe(
           canonicalChrome.inverse,
@@ -283,6 +280,15 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         'nav.public-shell [aria-current="page"]:visible',
       );
       if (activeHref) {
+        if (viewport.width < 1024) await openMobileMenu(page);
+        // English routes now live inside grouped navigation. Inspect the active
+        // link in its expanded group, preserving the one-current-page contract.
+        if (!route.startsWith("/pl")) {
+          const groupName = route === "/catalog" ? "Expert help" : "Resources";
+          const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
+          await groupToggle.click();
+          await expect(groupToggle).toHaveAttribute("aria-expanded", "true");
+        }
         await expect(visibleActive, `${route} active route`).toHaveCount(1);
         await expect(visibleActive).toHaveAttribute("href", activeHref);
       } else {
@@ -299,37 +305,16 @@ test("accepted public routes retain one consistent, accessible shared shell", as
   }
 });
 
-test("language switching preserves every accepted route pair and header geometry", async ({
+test("public header keeps language controls out of the primary navigation", async ({
   page,
 }) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 1100 });
 
-  for (const [englishPath, polishPath] of languagePairs) {
+  for (const englishPath of languagePairs.map(([path]) => path)) {
     await page.goto(englishPath, { waitUntil: "networkidle" });
-    const englishHeaderHeight = await page
-      .locator("nav.public-shell")
-      .evaluate((nav) => nav.getBoundingClientRect().height);
-    const polishLink = page.getByRole("link", { name: "PL", exact: true });
-    await expect(polishLink).toHaveCount(1);
-    await expect(polishLink).toHaveAttribute("href", polishPath);
-    await expect(polishLink).toHaveText("PL");
-    await polishLink.click();
-    await expect(page).toHaveURL(new RegExp(`${polishPath.replaceAll("/", "\\/")}$`));
-    await expect(page.locator("main h1").first()).toBeVisible();
-    expect(
-      await page
-        .locator("nav.public-shell")
-        .evaluate((nav) => nav.getBoundingClientRect().height),
-    ).toBe(englishHeaderHeight);
-
-    const englishLink = page.getByRole("link", { name: "EN", exact: true });
-    await expect(englishLink).toHaveCount(1);
-    await expect(englishLink).toHaveAttribute("href", englishPath);
-    await expect(englishLink).toHaveText("EN");
-    await englishLink.click();
-    await expect(page).toHaveURL(new RegExp(`${englishPath === "/" ? "\\/" : englishPath.replaceAll("/", "\\/")}$`));
-    await expect(page.locator("main h1").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "PL", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "EN", exact: true })).toHaveCount(0);
   }
 });
 
@@ -367,7 +352,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       '#witnessops-mobile-menu [aria-current="page"]',
     );
     const cta = document.querySelector<HTMLElement>(
-      '#witnessops-mobile-menu a[href^="/pl/review/request"]',
+      '#witnessops-mobile-menu a[href="/check"]',
     );
     return {
       currentBackground: current ? getComputedStyle(current).backgroundColor : null,
@@ -412,9 +397,9 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
 
   await openMobileMenu(page);
-  const englishSwitch = page.locator('#witnessops-mobile-menu a[href="/catalog"]');
-  await englishSwitch.click();
-  await expect(page).toHaveURL(/\/catalog$/);
+  const nextPolishPage = page.locator('#witnessops-mobile-menu a[href="/pl/why-witnessops"]');
+  await nextPolishPage.click();
+  await expect(page).toHaveURL(/\/pl\/why-witnessops$/);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
 });
 
@@ -484,7 +469,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     const response = await page.goto("/review/request", { waitUntil: "networkidle" });
 
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole("heading", { name: "Tell us what you need reviewed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "One question. Non-secret details only." })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {
@@ -537,5 +522,19 @@ test("mobile review request keeps the conversion form clear and legible", async 
     expect(formState.overflow).toBeLessThanOrEqual(1);
     expect(contrastRatio(formState.border, formState.background)).toBeGreaterThanOrEqual(3);
     await context.close();
+  }
+});
+
+test("unconfigured production pages expose no app destinations", async ({ page }) => {
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of ["/", "/pricing", "/check"]) {
+      await page.goto(route, { waitUntil: "networkidle" });
+      // Include hidden desktop/mobile menu links, not just visible CTAs.
+      await expect(page.locator('a[href*="app.witnessops.com"], a[href*="127.0.0.1:3020"]')).toHaveCount(0);
+      await expect(page.locator('footer a').filter({ hasText: /^(Sign up|Log in|Assets|Reports|Settings)$/ })).toHaveCount(0);
+      if (width < 1024) await openMobileMenu(page);
+      await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();
+    }
   }
 });

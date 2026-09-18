@@ -1,47 +1,46 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "./document-navigation";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
+import { DesktopNavbarMenu } from "./desktop-navbar-menu";
+import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 import {
   isPolishPath,
-  localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
-import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
-const HOME_BRAND_LINE = "Proof beats memory.";
 
 interface NavbarProps {
+  signupUrl?: string | null;
+  appUrl?: string | null;
   links: { label: string; href: string }[];
   cta: { label: string; href: string; variant: string };
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ links, announcement }: NavbarProps) {
+export function Navbar({ announcement, signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
-  const currentSearch = searchParams.toString();
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
-  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : links;
+  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
+    { label: "How the app works", href: "/early-access" },
+    { label: "Expert help", href: "/catalog" },
+    { label: "Price", href: "/pricing" },
+    { label: "Free check", href: "/check" },
+    { label: "Docs", href: "/docs" },
+  ];
   const effectiveCta = {
-    label: polish ? "Omów zakres przeglądu" : "Scope a review",
-    href: reviewRequestHrefForLocation(
-      polish ? "pl" : "en",
-      currentPath,
-      searchParams,
-    ),
+    label: signupUrl ? "Sign up" : "Free check",
+    href: signupUrl || "/check",
     variant: "primary",
   };
   const effectiveAnnouncement = announcement;
-  const languageLink = polish
-    ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }
-    : { label: "PL", href: localizedHref(currentPath, currentSearch, "pl") };
   const brandLabel = "WitnessOps";
 
   useLayoutEffect(() => {
@@ -111,11 +110,12 @@ export function Navbar({ links, announcement }: NavbarProps) {
         </div>
       )}
       <nav
+        data-public-presentation={usesPublicPresentation(currentPath) ? "quiet" : undefined}
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
-        className="mobile-brand-navbar public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
+        className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
       >
-        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
@@ -129,31 +129,17 @@ export function Navbar({ links, announcement }: NavbarProps) {
               className="text-text-primary"
             />
             <span
-              className="hidden text-sm font-semibold uppercase leading-none tracking-[0.14em] text-text-primary lg:inline"
+              className="text-xs font-medium uppercase leading-none tracking-[0.18em] text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
               aria-hidden="true"
             >
               {brandLabel}
             </span>
-            <span
-              aria-hidden="true"
-              className="inline-block -translate-y-px text-[0.7rem] font-semibold tracking-[0.035em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {HOME_BRAND_LINE}
-            </span>
-            <span
-              aria-hidden="true"
-              className="ml-2 hidden border-l border-surface-border pl-4 text-[0.68rem] font-medium tracking-[0.04em] text-text-muted transition-colors group-hover:text-text-secondary 2xl:inline"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {HOME_BRAND_LINE}
-            </span>
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
-              {effectiveLinks.map((link) =>
+              {!polish ? <DesktopNavbarMenu loginUrl={appUrl ? new URL("/login", appUrl).href : null} /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
                     key={link.href}
@@ -179,13 +165,6 @@ export function Navbar({ links, announcement }: NavbarProps) {
                   </Link>
                 ),
               )}
-              <Link
-                href={languageLink.href}
-                hrefLang={polish ? "en" : "pl"}
-                className="inline-flex min-h-11 items-center rounded-md border border-surface-border-strong px-2.5 text-sm font-semibold text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-brand-accent hover:bg-brand-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
-              >
-                {languageLink.label}
-              </Link>
               {isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
@@ -211,10 +190,10 @@ export function Navbar({ links, announcement }: NavbarProps) {
               )}
             </div>
             <MobileNavbarMenu
+              loginUrl={appUrl ? new URL("/login", appUrl).href : null}
               links={effectiveLinks}
+              groups={polish ? undefined : PUBLIC_NAV_GROUPS}
               cta={effectiveCta}
-              assistantLink={{ label: "Ask WitnessOps", href: "/docs/assistant" }}
-              utilityLink={languageLink}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}
               closeLabel={polish ? "Zamknij główną nawigację" : "Close primary navigation"}

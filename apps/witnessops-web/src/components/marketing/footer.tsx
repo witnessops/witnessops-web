@@ -12,17 +12,18 @@ const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
 const MEDIA_KIT_HREF = "/media-kit";
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
-const FOOTER_MOTTO = "Proof beats memory.";
 const FOOTER_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
 const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
+const PREMIUM_FOOTER_SUBLINE = "REPEATABLE. INDEPENDENT.";
 
 type FooterLink = { label: string; href: string };
 
 interface FooterProps {
+  appUrl?: string | null;
   brand_line: string;
   subline: string;
   links: FooterLink[];
@@ -87,8 +88,8 @@ export function isFooterRequestHref(href: string): boolean {
 }
 
 export function Footer({
+  appUrl = null,
   brand_line,
-  subline,
   links,
   legal_links,
   build_label,
@@ -101,9 +102,9 @@ export function Footer({
   const reviewRequestHref = reviewRequestHrefForLocation(
     isPolishSurface ? "pl" : "en", path, searchParams,
   );
-  const content = isPolishSurface ? POLISH_FOOTER : { subline, links, legal_links };
+  const content = isPolishSurface ? POLISH_FOOTER : { subline: PREMIUM_FOOTER_SUBLINE, links, legal_links };
   const navigationLinks = content.links.filter((link) => !isFooterRequestHref(link.href));
-  const groups = [
+  const groups = isPolishSurface ? [
     {
       label: isPolishSurface ? "Usługi" : "Services",
       links: navigationLinks.filter((link) => SERVICE_NAV_HREFS.has(link.href)),
@@ -112,6 +113,21 @@ export function Footer({
       label: isPolishSurface ? "Zasoby" : "Resources",
       links: navigationLinks.filter((link) => !SERVICE_NAV_HREFS.has(link.href)),
     },
+  ] : [
+    { label: "Product", links: [
+      { label: "Services", href: "/catalog" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "How it works", href: "/early-access" },
+      { label: "Docs", href: DOCS_PUBLIC_HREF },
+      { label: "Support", href: "/support" },
+    ] },
+    ...(appUrl ? [{ label: "App", links: [
+      { label: "Sign up", href: new URL("/signup", appUrl).href },
+      { label: "Log in", href: new URL("/login", appUrl).href },
+      { label: "Assets", href: new URL("/assets", appUrl).href },
+      { label: "Reports", href: new URL("/reports", appUrl).href },
+      { label: "Settings", href: new URL("/settings", appUrl).href },
+    ] }] : []),
   ];
 
   function renderLink(link: FooterLink, className: string) {
@@ -131,12 +147,12 @@ export function Footer({
   return (
     <footer
       id="site-footer"
-      className="public-shell public-footer border-t border-surface-border-strong bg-surface-bg"
+      className="public-shell public-footer border-t border-[#2a261f] bg-[#0d0d0c] simple-public-footer"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={isLibraryPath(path) ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
       <div className="mx-auto max-w-[1200px] px-6 py-6 lg:py-9">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="footer-main">
           <div data-footer-brand-lockup>
             <Link
               href={isPolishSurface ? "/pl" : "/"}
@@ -144,18 +160,18 @@ export function Footer({
               className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
             >
               <WitnessOpsMark variant="mark" size="md" tone="current" decorative
-                className="shrink-0 text-text-primary" />
+                className="shrink-0 text-[#f5f1e8]" />
               <span className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
                 style={FOOTER_DISPLAY_STYLE}>
                 {brand_line}
               </span>
             </Link>
-            <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
+            <p className="max-w-[320px] text-sm leading-relaxed text-[#b89b62]">
               {content.subline}
             </p>
           </div>
 
-          <div className="order-3 grid grid-cols-2 gap-x-5 lg:order-2">
+          <div className="footer-navigation grid grid-cols-2 gap-x-6">
             {groups.map((group) => (
               <nav key={group.label} aria-label={group.label}>
                 <p className="mb-1 text-sm font-semibold text-text-primary"
@@ -169,13 +185,23 @@ export function Footer({
             ))}
           </div>
 
-          <div className="order-2 min-w-0 lg:order-3">
-            <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"}
+          <div className="footer-contact min-w-0">
+            <p className="footer-heading">{isPolishSurface ? "Kontakt" : "Contact"}</p>
+            <PublicContactRoute compact premium locale={isPolishSurface ? "pl" : "en"}
               primaryHref={reviewRequestHref} />
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
+        {!isPolishSurface && (
+          <nav aria-label="Resources" className="footer-resources">
+            {[
+              { label: "Sample work", href: "/review/sample-cases" },
+              { label: "Research", href: "/research" },
+              { label: "Verify a receipt", href: "/verify" },
+            ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
+          </nav>
+        )}
+        <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
             {!isPolishSurface ? (
@@ -193,8 +219,6 @@ export function Footer({
           <div className="flex flex-wrap items-center gap-x-2 text-xs leading-5 text-text-secondary">
             {isPublicBuildLabel(build_label) ? <span>{build_label}</span> : null}
             <span>{copyright}</span>
-            <span aria-hidden="true">·</span>
-            <span data-footer-motto="proof-beats-memory">{FOOTER_MOTTO}</span>
           </div>
         </div>
       </div>

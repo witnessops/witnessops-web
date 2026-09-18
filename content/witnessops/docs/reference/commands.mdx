@@ -1,6 +1,6 @@
 ---
 title: "Commands"
-description: "Reference commands and operational entry points used in WitnessOps workflows."
+description: "Current app CLI authentication commands, followed by separate operator runbook reference."
 section: "docs"
 order: 10
 nav_label: "Commands"
@@ -9,7 +9,21 @@ draft: false
 
 # Commands
 
-This page is the command contract for operators running governed workflows and reviewers checking command-linked artifacts.
+## App CLI commands
+
+Start with [CLI setup and authentication](/docs/getting-started/cli). The package is private source, not a published npm installer. From the approved repository checkout with Node.js 22:
+
+```bash
+node packages/wops-cli/src/main.mjs auth login
+node packages/wops-cli/src/main.mjs auth status
+node packages/wops-cli/src/main.mjs auth logout
+```
+
+Login authorizes a CLI session, not collection or signing. Use [Account and CLI help](/docs/getting-started/access-help) for expired sessions, role restrictions or access problems.
+
+## Separate operator runbook reference
+
+The remainder describes the `witnessops-offsec` engagement toolchain, not the app CLI. Its helper scripts are not supplied by this web repository. Use it only with the separately supplied toolchain and its matching contract. These commands do not install the app or grant workspace access.
 
 ## Quick reference links
 

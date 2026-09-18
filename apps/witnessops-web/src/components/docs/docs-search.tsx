@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { matchScore } from "@/lib/docs-search";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
@@ -20,29 +21,6 @@ interface DocsSearchProps {
   onClose: () => void;
 }
 
-function matchScore(query: string, entry: DocEntry): number {
-  const q = query.toLowerCase();
-  const title = entry.title.toLowerCase();
-  const desc = entry.description.toLowerCase();
-  const layer = entry.layerTitle.toLowerCase();
-  const section = entry.sectionTitle.toLowerCase();
-
-  if (title === q) return 100;
-  if (title.startsWith(q)) return 80;
-  if (title.includes(q)) return 60;
-  if (layer.includes(q)) return 45;
-  if (section.includes(q)) return 40;
-  if (desc.includes(q)) return 30;
-
-  // Fuzzy: check if all chars appear in order
-  let ti = 0;
-  for (let i = 0; i < q.length; i++) {
-    const idx = title.indexOf(q[i], ti);
-    if (idx === -1) return 0;
-    ti = idx + 1;
-  }
-  return 15;
-}
 
 function groupBySection(entries: DocEntry[]): Map<string, DocEntry[]> {
   const groups = new Map<string, DocEntry[]>();

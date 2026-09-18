@@ -10,7 +10,8 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { usePathname } from "next/navigation";
-import { MessageCircle, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowUp, X } from "lucide-react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
@@ -381,6 +382,24 @@ export function DocsAssistantWidget() {
     };
   }, [mobileModal, open, widgetVisible]);
 
+  // A support-page submission uses the same conversation and API as the widget.
+  // No email, support ticket, or workspace data is attached to this event.
+  useEffect(() => {
+    function startSupportQuestion(event: Event) {
+      if (!widgetVisible || loading || contactBusyRef.current) return;
+      const detail: unknown = (event as CustomEvent).detail;
+      if (typeof detail !== "string" || !detail.trim() || detail.length > 2_000) return;
+      event.preventDefault();
+      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setOpen(true);
+      setFreeCheckIntake(false);
+      trackAskEvent("opened", { surface: "widget" });
+      void handleAsk(detail);
+    }
+    window.addEventListener("witnessops:ask-support", startSupportQuestion);
+    return () => window.removeEventListener("witnessops:ask-support", startSupportQuestion);
+  });
+
   if (!widgetVisible) {
     return null;
   }
@@ -535,10 +554,10 @@ export function DocsAssistantWidget() {
                 id="ask-witnessops-title"
                 className={styles.chromeTitle}
               >
-                ASK WITNESSOPS
+                Ask WitnessOps
               </span>
               <span className={styles.chromeSubtitle}>
-                Tell me what happened, or what you need to check.
+                AI product guide. Cannot read private evidence, run checks, or certify a system.
               </span>
             </div>
             <button
@@ -574,26 +593,15 @@ export function DocsAssistantWidget() {
             >
               {!answer && !loading && (
                 <div className={styles.promptStage}>
-                  <p className={styles.promptKicker}>
-                    Your question · a useful next step
-                  </p>
-                  <h2 className={styles.promptTitle}>
-                    Tell me what happened, or what you need to check.
-                  </h2>
-                  <p className={styles.promptCopy}>
-                    I’ll help you find the right next step.
-                  </p>
+                  <h2 className={styles.promptTitle}>Try a product question</h2>
                   <div className={styles.guidedRows}>
-                    {askGuidedQuestions(pageService).map((item, index) => (
+                    {askGuidedQuestions(pageService).map((item) => (
                       <button
                         key={item.label}
                         type="button"
                         onClick={() => void handleAsk(item.question)}
                         className={styles.guidedRow}
                       >
-                        <span className={styles.guidedIndex} aria-hidden="true">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
                         <span className={styles.guidedText}>
                           <span className={styles.guidedLabel}>{item.label}</span>
                           <span className={styles.guidedDetail}>{item.detail}</span>
@@ -727,6 +735,11 @@ export function DocsAssistantWidget() {
             {!contactMode && newReply && <button type="button" className="min-h-11 shrink-0 text-sm underline" onClick={resume}>New reply ↓</button>}
             {!contactMode && !freeCheckIntake && (
               <div className={styles.composer} data-ask-composer>
+                <nav className={styles.utilityLinks} aria-label="Ask help links">
+                  <Link href="/support#support-request" className={styles.utilityLink}>Support help</Link>
+                  <Link href="/catalog" className={styles.utilityLink}>Expert help</Link>
+                  <Link href="/docs" className={styles.utilityLink}>Docs</Link>
+                </nav>
                 <p className={styles.safetyLine}>Do not paste secrets or private evidence.</p>
 
                 <form
@@ -741,7 +754,7 @@ export function DocsAssistantWidget() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder={answer ? "Ask a follow-up…" : "Example: Leads stopped reaching our CRM."}
+                    placeholder={answer ? "Ask a follow-up…" : "Ask a product question"}
                     aria-label="Ask WitnessOps question"
                     maxLength={2_000}
                     enterKeyHint="send"
@@ -752,8 +765,9 @@ export function DocsAssistantWidget() {
                     type="submit"
                     disabled={loading || !question.trim()}
                     className={styles.askSubmit}
+                    aria-label="Ask AI"
                   >
-                    {loading ? "…" : "Ask AI"}
+                    {loading ? "…" : <ArrowUp size={18} aria-hidden="true" />}
                   </button>
                 </form>
                 <div className={styles.conversationActions}>
@@ -781,11 +795,9 @@ export function DocsAssistantWidget() {
           aria-expanded="false"
           aria-label="Ask WitnessOps"
         >
-          <MessageCircle size={15} strokeWidth={1.7} aria-hidden="true" />
-          <span className={styles.triggerLabel}>Ask WitnessOps</span>
-          <span className={styles.triggerMeta} aria-hidden="true">
-            AI
-          </span>
+          <span className={styles.triggerDot} aria-hidden="true" />
+          <span className={styles.triggerLabel}>Ask</span>
+
         </button>
       )}
     </div>

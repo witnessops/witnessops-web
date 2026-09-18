@@ -224,15 +224,14 @@ test("real HTTP API rejects unauthenticated, forged and cross-origin access with
   expect(await callback.text()).not.toContain("fixture");
 });
 
-test("logged-out UI keeps sign-in separate from workspace creation", async ({ page }) => {
+test("logged-out UI offers hosted signup and sign-in without creating a workspace", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Sign in to WitnessOps" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Continue with email" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Open WitnessOps" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create account" })).toHaveAttribute("href", "/signup");
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
   await expect(page.getByLabel("Workspace name")).toHaveCount(0);
-  await expect(page.locator("main")).toContainText("by invitation");
+  await expect(page.locator("main")).toContainText("Workspace access currently requires an invitation");
   await expect(page.getByRole("link", { name: "Run a free check without an account →", exact: true })).toHaveAttribute("href", "https://witnessops.com/check");
-  await expect(page.getByRole("link", { name: "Request workspace access →", exact: true })).toHaveAttribute("href", "https://witnessops.com/early-access");
 });
 
 test("Viewer UI has read-only asset/history access", async ({ page }) => {

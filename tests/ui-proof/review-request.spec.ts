@@ -67,11 +67,11 @@ test("review request routes remain responsive, accessible, and usable", async ({
     }
 
     const controlOrder = await form
-      .locator("input:not([type=hidden]), textarea, button[type=submit]")
+      .locator("input:not([type=hidden]), select, textarea, button[type=submit]")
       .evaluateAll((controls) =>
         controls.map((control) => control.getAttribute("name") || control.id || control.tagName.toLowerCase()),
       );
-    expect(controlOrder).toEqual([
+    expect(controlOrder).toEqual(scenario.locale === "en" ? ["name", "email", "enquiryPath", "workflow", "button"] : [
       "name",
       "email",
       "org",
@@ -83,12 +83,12 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "button",
     ]);
 
-    await expect(form.locator("#org")).not.toHaveAttribute("required", "");
+    if (scenario.locale === "pl") await expect(form.locator("#org")).not.toHaveAttribute("required", "");
     for (const fieldName of requiredFields) {
       const field = form.locator(`#${fieldName}`);
       await expect(field).toHaveAttribute("required", "");
       const labelText = await form.locator(`label[for=${fieldName}]`).textContent();
-      expect(labelText?.toLowerCase()).toContain(scenario.locale === "pl" ? "wymagane" : "required");
+      if (scenario.locale === "pl") expect(labelText?.toLowerCase()).toContain("wymagane");
     }
 
     const firstField = form.locator("#name");
@@ -117,7 +117,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     }
 
     await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
-    for (const name of ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"]) {
+    for (const name of scenario.locale === "pl" ? ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"] : []) {
       await expect(form.locator(`#${name}`)).not.toHaveAttribute("required", "");
     }
 
@@ -139,10 +139,14 @@ test("review request routes remain responsive, accessible, and usable", async ({
     await form.locator("#name").fill("Buyer Name");
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("One bounded technical action");
+    if (scenario.locale === "pl") {
     await form.locator("summary").filter({ hasText: /Add context|Dodaj kontekst/ }).click();
     await form.locator("#agentPath").fill("Issue to reviewed patch");
     await form.locator("#approvalBoundary").fill("Approved action with a named stopping point");
     await form.locator("#evidenceAvailable").fill("Ticket and commit record types only");
+    } else {
+      await form.locator("#enquiryPath").selectOption("Not sure");
+    }
     await submit.click();
 
     expect(Object.keys(submittedPayload ?? {}).sort()).toEqual([
@@ -462,7 +466,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
     },
     {
       path: "/review/request?productId=OFFSEC-PILOT",
-      heading: "Tell us what you need reviewed",
+      heading: "One question. Non-secret details only.",
       intent: "review",
       selectedOffer: null,
       boundary: "No work or target-facing check starts from this form.",
@@ -512,7 +516,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
         await expect(page.getByText(scenario.selectedOffer).first()).toBeVisible();
       } else {
         await expect(page.getByText(/Selected offer:|Wybrana oferta:/)).toHaveCount(0);
-        await expect(form.locator("#agentPath")).toHaveCount(1);
+        await expect(form.locator(scenario.path.startsWith("/pl/") ? "#agentPath" : "#enquiryPath")).toHaveCount(1);
       }
 
       const overflow = await page.evaluate(

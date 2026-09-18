@@ -27,12 +27,10 @@ export default function PolishDocsPage() {
           sprawdzić.
         </h1>
         <p className="mt-5 max-w-3xl text-sm leading-7 text-text-muted">
-          Opowiedz, co się wydarzyło. WitnessOps określi ściśle uzgodniony
-          zakres, wykona ustalone prace i dostarczy udokumentowany wynik wraz z
-          dowodami, ograniczeniami oraz sposobem weryfikacji.
+          Utworzenie konta jest bezpłatne i nie wymaga karty. Dostęp do obszaru roboczego wymaga osobnego zaproszenia zarządzanego przez WitnessOps. Aplikacja działa w przeglądarce; CLI jest opcjonalne. Przeglądy eksperckie wymagają osobnego uzgodnienia zakresu i ceny.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <CtaButton href="/pl/catalog" variant="primary" label="Zrozum usługę" />
+          <CtaButton href={getDocsUrl("witnessops", "/getting-started", { mode: "canonical" })} variant="primary" label="Pierwsze kroki (EN)" />
           <CtaButton
             href="/pl/verify"
             variant="secondary"
@@ -41,13 +39,13 @@ export default function PolishDocsPage() {
           <CtaButton
             href={EN_DOCS}
             variant="ghost"
-            label="Dokumentacja techniczna (EN)"
+            label="Instrukcje aplikacji i CLI (EN)"
           />
         </div>
       </header>
       <section className="mt-10 grid gap-4 md:grid-cols-2">
         <article className="border border-surface-border p-5">
-          <h2 className="font-semibold text-text-primary">Dla kupujących</h2>
+          <h2 className="font-semibold text-text-primary">Pomoc ekspercka</h2>
           <p className="mt-2 text-sm leading-6 text-text-muted">
             Porównaj aktualne oferty, jasno określone rezultaty, potrzebne
             informacje, ceny, terminy i wyłączenia.
@@ -58,9 +56,7 @@ export default function PolishDocsPage() {
             Dla osób sprawdzających
           </h2>
           <p className="mt-2 text-sm leading-6 text-text-muted">
-            Poznaj strukturę podpisanego zapisu wykonania, wskazany sposób
-            weryfikacji i granice każdego wyniku. Szczegóły techniczne: EN na
-            witnessops.com/docs.
+            Raport przedstawia obserwację. Migawki External Exposure nie są podpisane; pakiety Local Audit mają osobną ścieżkę sprawdzania podpisów. Publiczny weryfikator przyjmuje obsługiwany JSON zapisu, a nie pełne pakiety. Instrukcje pozostają po angielsku.
           </p>
         </article>
       </section>

@@ -197,6 +197,17 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       ? sampleArtifacts.slice(0, 5)
       : [];
 
+  if (!selectedOffer && !sku) {
+    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
+      <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Ask about your case</p>
+      <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">One question. Non-secret details only.</h1>
+      <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Tell us what needs to happen and by when. We’ll confirm whether the app, a named review, or neither is the right next step.</p>
+      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
+      <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
+      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_CONTACT_EMAIL}</a></p>
+    </main>;
+  }
+
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-12">
