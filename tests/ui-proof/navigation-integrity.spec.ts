@@ -465,7 +465,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   const lastCta = menu.getByRole("link", {
-    name: "Sign up",
+    name: "Free check",
     exact: true,
   });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
@@ -489,7 +489,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   });
   expect(ctaCenterIsClear, "the final mobile CTA is not covered by a floating layer").toBe(true);
 
-  await expect(lastCta).toHaveAttribute("href", "https://app.witnessops.com/signup");
+  await expect(lastCta).toHaveAttribute("href", "/check");
   // The compact menu keeps account navigation in the same tab.
   await expect(lastCta).not.toHaveAttribute("target", "_blank");
   await saveEvidence(page, "05-mobile-menu-signup.png");
@@ -647,12 +647,12 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   for (const name of ["Product", "Expert help", "Resources"]) {
     await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
   }
-  await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();
+  await expect(menu.getByRole("link", { name: "Free check", exact: true })).toBeInViewport();
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
   await menu.getByRole("button", { name: "Product", exact: true }).click();
-  await expect(menu.getByRole("link", { name: "Free check", exact: true })).toBeVisible();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeVisible();
   await menu.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(menu.getByRole("link", { name: "Free check", exact: true })).toBeHidden();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeHidden();
   await menu.getByRole("link", { name: "Docs", exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
