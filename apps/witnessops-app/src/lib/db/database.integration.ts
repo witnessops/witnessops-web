@@ -1480,3 +1480,123 @@ test('Billing: workspace seats, paid invoice reconciliation, retry/duplicate/out
  assert.equal((await pool.query('SELECT count(*) FROM billing_events WHERE event_id=$1',['evt_http'])).rows[0].count,'1');
  }finally{if(old===undefined)delete process.env.WITNESSOPS_BILLING_SANDBOX;else process.env.WITNESSOPS_BILLING_SANDBOX=old;}
 });
+
+test('Share access: rotation and expiry preserve revision, deny old tokens and enforce owner/version boundaries',async()=>{
+ const {ShareStore}=await import('./shares');const {ShareAccessStore}=await import('./share-access');const shares=new ShareStore(pool),access=new ShareAccessStore(pool);
+ const workspace=await store.create(a,'Access lifecycle',randomUUID()),other=await store.create(b,'Access other',randomUUID());
+ const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const preview=await shares.preview(a,workspace,run,'Fixed name');await shares.publish(a,workspace,{...preview,audience:'anyone_with_link'});
+ const original=await shares.read(preview.token),expires=new Date(Date.now()+86400000).toISOString();
+ await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'contributor')",[viewer.id,workspace]);
+ await assert.rejects(access.change(viewer,workspace,preview.id,1,expires,true));await assert.rejects(access.change(a,other,preview.id,1,expires,true));
+ await assert.rejects(access.change(a,workspace,preview.id,1,new Date(Date.now()+31*86400000).toISOString(),false));
+ const attempts=await Promise.allSettled([access.change(a,workspace,preview.id,1,expires,true),access.change(a,workspace,preview.id,1,expires,true)]);
+ assert.equal(attempts.filter(r=>r.status==='fulfilled').length,1);
+ const changed=attempts.find(r=>r.status==='fulfilled')!;assert.equal(changed.status,'fulfilled');if(changed.status!=='fulfilled')throw new Error();
+ const token=changed.value.token!;await assert.rejects(shares.read(preview.token));
+ assert.deepEqual((await shares.read(token)).snapshot,original.snapshot);assert.equal((await shares.read(token)).digest,original.digest);
+ await assert.rejects(shares.publish(a,workspace,{...preview,audience:'anyone_with_link'}));
+ await access.change(a,workspace,preview.id,2,new Date(Date.now()+2*86400000).toISOString(),false);
+ assert.ok(await shares.read(token));assert.equal((await shares.list(a,workspace,run))[0].version,3);
+ const retained=(await pool.query('SELECT s.*,a.token_hash AS current_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1',[preview.id])).rows[0];
+ assert.ok(!JSON.stringify(retained).includes(token));assert.equal(retained.token_hash,createHash('sha256').update(preview.token).digest('hex'));
+ await assert.rejects(pool.query("UPDATE report_shares SET digest=repeat('e',64) WHERE id=$1",[preview.id]));
+ await shares.revoke(a,workspace,preview.id);await assert.rejects(access.change(a,workspace,preview.id,3,expires,true));await assert.rejects(shares.read(token));
+});
+
+test('Share email: reviewed server message, idempotent send, unknown result and access-change denial',async()=>{
+ const {ShareStore}=await import('./shares');const {ShareAccessStore}=await import('./share-access');const shares=new ShareStore(pool),access=new ShareAccessStore(pool);
+ const workspace=await store.create(a,'Email lifecycle',randomUUID()),other=await store.create(b,'Email other',randomUUID());
+ const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const preview=await shares.preview(a,workspace,run,'Release report');await shares.publish(a,workspace,{...preview,audience:'anyone_with_link'});
+ const input={id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()},origin='https://app.example.com';
+ await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'viewer')",[viewer.id,workspace]);
+ await assert.rejects(access.draft(viewer,workspace,input,origin));await assert.rejects(access.draft(a,other,input,origin));
+ await assert.rejects(access.draft(a,workspace,{...input,email:'victim@example.com\r\nBcc: other@example.com'},origin));
+ const draft=await access.draft(a,workspace,input,origin);assert.equal(draft.state,'draft');assert.equal(draft.message.to,input.email);assert.equal(draft.message.from,'WitnessOps Reports <reports@send.witnessops.com>');assert.ok(draft.message.text.includes(`${origin}/s#${preview.token}`));assert.ok(draft.message.text.includes('Release report'));assert.equal(draft.message.html,undefined);
+ assert.deepEqual(await access.draft(a,workspace,input,origin),draft);
+ assert.ok(!JSON.stringify((await pool.query('SELECT * FROM report_share_deliveries WHERE id=$1',[draft.id])).rows).includes(preview.token));
+ let sends=0;const send=async()=>{sends++;return {provider:'resend',providerMessageId:'test-only',providerAcceptedAt:new Date().toISOString()};};
+ const confirm={id:draft.id,token:preview.token,digest:draft.digest,confirmed:true};
+ await assert.rejects(access.send(a,workspace,{...confirm,confirmed:false},origin,send));await assert.rejects(access.send(a,workspace,{...confirm,digest:'bad'},origin,send));assert.equal(sends,0);
+ await Promise.all([access.send(a,workspace,confirm,origin,send),access.send(a,workspace,confirm,origin,send)]);assert.equal(sends,1);assert.equal((await access.deliveries(a,workspace,preview.id))[0].state,'accepted');
+ const uncertain=await access.draft(a,workspace,{...input,requestId:randomUUID()},origin);
+ const uncertainInput={...confirm,id:uncertain.id,digest:uncertain.digest};
+ await access.send(a,workspace,uncertainInput,origin,async()=>{sends++;throw new Error('provider timeout');});await access.send(a,workspace,uncertainInput,origin,send);assert.equal(sends,2);assert.equal((await access.deliveries(a,workspace,preview.id))[0].state,'unknown');
+ const local=await access.draft(a,workspace,{...input,requestId:randomUUID()},origin);await access.send(a,workspace,{...confirm,id:local.id,digest:local.digest},origin,async()=>({provider:'file',providerMessageId:null,providerAcceptedAt:new Date().toISOString()}));assert.equal((await access.deliveries(a,workspace,preview.id))[0].state,'file_saved');
+ const stale=await access.draft(a,workspace,{...input,requestId:randomUUID()},origin);
+ await access.change(a,workspace,preview.id,1,new Date(Date.now()+86400000).toISOString(),false);
+ await assert.rejects(access.send(a,workspace,{...confirm,id:stale.id,digest:stale.digest},origin,send));assert.equal(sends,2);
+ await assert.rejects(access.deliveries(viewer,workspace,preview.id));
+ const demoted=await access.draft(a,workspace,{...input,requestId:randomUUID()},origin);
+ await pool.query("UPDATE memberships SET role='contributor' WHERE user_id=$1 AND workspace_id=$2",[a.id,workspace]);
+ await assert.rejects(access.send(a,workspace,{...confirm,id:demoted.id,digest:demoted.digest},origin,send));
+ await pool.query("UPDATE memberships SET role='owner' WHERE user_id=$1 AND workspace_id=$2",[a.id,workspace]);
+ await assert.rejects(access.send(a,workspace,{...confirm,id:demoted.id,digest:demoted.digest},origin,send));
+ assert.equal(sends,2);
+ await shares.revoke(a,workspace,preview.id);await assert.rejects(access.draft(a,workspace,{...input,requestId:randomUUID()},origin));
+});
+
+test('Share delivery HTTP: configuration gate, exact fields and file adapter acceptance',async()=>{
+ const {createShareService}=await import('../share-server');const {ShareStore}=await import('./shares');
+ const {mkdtemp,readdir,readFile,rm}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+ const {sendMail}=await import('../../../../witnessops-web/src/lib/server/send-verification-email');
+ const directory=await mkdtemp(join(tmpdir(),'wops-share-mail-'));
+ const previous={provider:process.env.WITNESSOPS_MAIL_PROVIDER,output:process.env.WITNESSOPS_MAIL_OUTPUT_DIR};
+ process.env.WITNESSOPS_MAIL_PROVIDER='file';process.env.WITNESSOPS_MAIL_OUTPUT_DIR=directory;
+ try {
+  const who=identity('user_sharemailhttp'),owner=await resolveIdentity(pool,who);
+  const workspace=await store.create(owner,'HTTP report email',randomUUID()),asset=await store.addAsset(owner,workspace,'witnessops.com','hostname'),run=await store.beginRun(owner,workspace,asset.id);await store.completeRun(owner,workspace,run,source);
+  const shares=new ShareStore(pool),preview=await shares.preview(owner,workspace,run);await shares.publish(owner,workspace,{...preview,audience:'anyone_with_link'});
+  const identityFn=async()=>({identity:who,session:sessionKey(who.issuer,'session_sharemailhttp',who.subject)});
+  const disabled=createShareService({pool,origin,identity:identityFn,mailEnabled:false}),enabled=createShareService({pool,origin,identity:identityFn,mailEnabled:true,send:sendMail});
+  const req=(input:unknown)=>new Request(origin+'/api/shares',{method:'POST',headers:{host:new URL(origin).host,origin,'content-type':'application/json','x-witnessops-workspace':workspace},body:JSON.stringify(input)});
+  const input={action:'email-preview',id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()};
+  assert.equal((await disabled(req(input))).status,503);assert.equal((await enabled(req({...input,url:'https://evil.invalid',html:'custom'}))).status,400);
+  const foreign=req(input);foreign.headers.set('origin','https://evil.invalid');assert.equal((await enabled(foreign)).status,403);
+  const response=await enabled(req(input));assert.equal(response.status,200);const draft=await response.json();assert.equal((await readdir(directory)).length,0);
+  const send={action:'email-send',id:draft.id,token:preview.token,digest:draft.digest,confirmed:true};
+  assert.equal((await enabled(req(send))).status,200);assert.equal((await enabled(req(send))).status,200);
+  const files=await readdir(directory);assert.equal(files.length,1);const eml=await readFile(join(directory,files[0]),'utf8');assert.ok(eml.includes('From: WitnessOps Reports <reports@send.witnessops.com>'));assert.ok(eml.includes(`${origin}/s#${preview.token}`));
+ } finally {
+  if(previous.provider===undefined)delete process.env.WITNESSOPS_MAIL_PROVIDER;else process.env.WITNESSOPS_MAIL_PROVIDER=previous.provider;
+  if(previous.output===undefined)delete process.env.WITNESSOPS_MAIL_OUTPUT_DIR;else process.env.WITNESSOPS_MAIL_OUTPUT_DIR=previous.output;
+  await rm(directory,{recursive:true,force:true});
+ }
+});
+
+test('Share access migration preserves existing published links and immutable revisions',async()=>{
+ const name='share_upgrade_'+randomUUID().replaceAll('-','');await admin.query(`CREATE SCHEMA ${name}`);
+ const upgrade=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${name},public`,max:1});
+ try {
+  await upgrade.query('CREATE TABLE app_migrations(name text PRIMARY KEY,sha256 text NOT NULL,applied_at timestamptz NOT NULL DEFAULT now())');
+  const dir=new URL('../../../db/migrations/',import.meta.url);
+  for(const file of readdirSync(dir).filter(n=>/^\d{4}_/.test(n)&&n<'0019').sort()){
+   const sql=readFileSync(new URL(file,dir),'utf8');await upgrade.query(sql);await upgrade.query('INSERT INTO app_migrations(name,sha256) VALUES($1,$2)',[file,createHash('sha256').update(sql).digest('hex')]);
+  }
+  const [user,workspace,asset,run,share]=Array.from({length:5},randomUUID),token='U'.repeat(43),digest=createHash('sha256').update('{}').digest('hex');
+  await upgrade.query('INSERT INTO users(id) VALUES($1)',[user]);
+  await upgrade.query("INSERT INTO workspaces(id,name,slug,created_by,creation_key) VALUES($1,'Upgrade','upgrade',$2,$3)",[workspace,user,randomUUID()]);
+  await upgrade.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES($1,$2,'hostname','example.com')",[asset,workspace]);
+  await upgrade.query("INSERT INTO runs(id,workspace_id,asset_id,initiated_by,source_type,status,finished_at,method_id,method_version,source_snapshot,source_digest) VALUES($1,$2,$3,$4,'external-snapshot-v1','completed',now(),'bounded-hostname','external-demo-v0.1',$5,$6)",[run,workspace,asset,user,source,digest]);
+  await upgrade.query("INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest,state,published_at) VALUES($1,$2,$3,$4,1,$5,'{}',$6,'published',now())",[share,workspace,run,user,createHash('sha256').update(token).digest('hex'),digest]);
+  const before=(await upgrade.query('SELECT * FROM report_shares WHERE id=$1',[share])).rows[0];await migrate(upgrade);
+  assert.deepEqual((await upgrade.query('SELECT * FROM report_shares WHERE id=$1',[share])).rows[0],before);
+  const record=(await upgrade.query('SELECT * FROM report_share_access WHERE share_id=$1',[share])).rows[0];assert.equal(record.token_hash,before.token_hash);assert.deepEqual(record.expires_at,before.expires_at);
+  const {ShareStore}=await import('./shares');assert.equal((await new ShareStore(upgrade).read(token)).digest,digest);
+  await assert.rejects(upgrade.query("UPDATE report_shares SET expires_at=now() WHERE id=$1",[share]),/immutable/);
+  await migrate(upgrade);assert.equal((await upgrade.query('SELECT count(*) FROM report_share_access')).rows[0].count,'1');
+ } finally {await upgrade.end();await admin.query(`DROP SCHEMA ${name} CASCADE`);}
+});
+
+test('Share email bounds concurrent preview/send capacity per workspace and actor',async()=>{
+ const {ShareStore}=await import('./shares');const {ShareAccessStore}=await import('./share-access');const shares=new ShareStore(pool),access=new ShareAccessStore(pool);
+ const owner=await resolveIdentity(pool,identity('user_reportmailbound')),workspace=await store.create(owner,'Bounded email',randomUUID());
+ const asset=await store.addAsset(owner,workspace,'witnessops.com','hostname'),run=await store.beginRun(owner,workspace,asset.id);await store.completeRun(owner,workspace,run,source);
+ const preview=await shares.preview(owner,workspace,run);await shares.publish(owner,workspace,{...preview,audience:'anyone_with_link'});
+ const inputs=Array.from({length:11},()=>({id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()}));
+ const outcomes=await Promise.allSettled(inputs.map(input=>access.draft(owner,workspace,input,origin)));
+ assert.equal(outcomes.filter(r=>r.status==='fulfilled').length,10);
+ const index=outcomes.findIndex(r=>r.status==='fulfilled');assert.ok(await access.draft(owner,workspace,inputs[index],origin));
+ assert.equal((await access.deliveries(owner,workspace,preview.id)).filter((r:{state:string})=>r.state==='draft').length,10);
+});
