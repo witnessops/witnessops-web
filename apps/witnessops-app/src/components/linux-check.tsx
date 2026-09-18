@@ -1,5 +1,6 @@
 'use client';
 import { hasWorkspaceCapability } from '../lib/workspace-role-policy';
+import { ReportShare } from './report-share';
 import Link from 'next/link';
 import { CHECK_DISCOVERY } from '../lib/check-discovery';
 import { publicContactMailto } from '../../../witnessops-web/src/lib/public-contact';
@@ -116,7 +117,7 @@ function LinuxReport({ model, run, workspaceId, comparison }: { model: Proofpack
   </>;
 }
 
-export function LinuxCheckPage({ runId, workspaceId }: { runId: string; workspaceId: string }) {
+export function LinuxCheckPage({ runId, workspaceId, role }: { runId: string; workspaceId: string; role: string }) {
   const [loaded, setLoaded] = useState<{ model: ProofpackReportV1; run: LinuxCheckRun; comparison?: LinuxComparison } | null>(null), [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -131,7 +132,7 @@ export function LinuxCheckPage({ runId, workspaceId }: { runId: string; workspac
     return () => { active = false; controller.abort(); };
   }, [runId, workspaceId]);
   if (error) return <p role="alert">{error}</p>;
-  return loaded ? <LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
+  return loaded ? <><ReportShare key={`${workspaceId}:${runId}`} workspaceId={workspaceId} runId={runId} role={role}/><LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /></> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
 }
 
 function LinuxChanges({ comparison }: { comparison?: LinuxComparison }) {
