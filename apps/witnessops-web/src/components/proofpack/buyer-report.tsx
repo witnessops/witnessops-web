@@ -127,7 +127,7 @@ export function BuyerReportDocument({ model, className = '', followThrough }: { 
             <p className={styles.fine}>{model.reproduction.trustBoundary}</p>
             <h3>Verification appendix</h3><p>Machine-readable source evidence and named checks support reconstruction. They do not extend the report scope.</p>
             <h3>Verification checks</h3><div className={styles.checks}>{model.verificationChecks.map(check => <div key={check.id}><div><strong>{check.label}</strong><span>{check.status}</span></div><p>{check.detail}</p></div>)}</div>
-            {model.sourceArtifacts.filter(source => source.presentation === 'appendix').map(source => <section key={source.id} className={styles.sourceArtifact}><h3>{source.label}</h3>{source.content !== undefined && <pre>{source.format === 'json' ? JSON.stringify(source.content, null, 2) : String(source.content)}</pre>}<p className={styles.fine}>{source.relationship}</p>{source.path && <p className={styles.evidenceRef}>{source.path}</p>}{source.digest && <p className={styles.evidenceRef}>sha256:{source.digest}</p>}</section>)}
+            {model.sourceArtifacts.filter(source => source.presentation === 'appendix').map(source => <section key={source.id} className={styles.sourceArtifact}><div className={styles.sourceMetadata}><h3>{source.label}</h3><p className={styles.fine}>{source.relationship}</p>{source.path && <p className={styles.evidenceRef}>{source.path}</p>}{source.digest && <p className={styles.evidenceRef}>sha256:{source.digest}</p>}</div>{source.content !== undefined && <pre>{source.format === 'json' ? JSON.stringify(source.content, null, 2) : String(source.content)}</pre>}</section>)}
         </Chapter>
     </article>;
 }

@@ -176,11 +176,12 @@ for (const name of ['synthetic', 'synthetic-unassessed-mixed', 'synthetic-unasse
     assert.equal(render((await fixtureModel(name))!), html);
 });
 
-// Captured before this compatibility change from main defda896 at the fixed time below.
+// Updated for grouped appendix metadata preceding source content; report values remain unchanged.
+// The lossless-mapping tests and immutable-source PDF checks separately protect evidence content.
 const localAuditHtmlDigests = {
-    complete: '84a6bf34edbd1262690f47d622b99062a2c33297ba30294721c6e799c2227827',
-    adverse: 'b89ba03f8fcb228e90a230247074391ca53639426e6f13690fae61bfc323a5ce',
-    partial: 'c2f44bf5390635660ebfa92f6998c1be9097121d9184e9c629dbe36bc6f938ca',
+    complete: '860a75dde8114e810edc842df5f6e9543907f698388eb4424b15293bfbf3eb64',
+    adverse: '130b9614e256e6989f2de2c63a5704b2f43e0f23ad97510b9f9060d294f937a1',
+    partial: 'f16231eabdcafefe543d0628668a9823bb30ed12ba379ca9c8a688e9848857b9',
 };
 for (const name of ['complete', 'adverse', 'partial'] as const) test(`Local Audit has zero effective unassessed findings and byte-identical HTML: ${name}`, async () => {
     const model = (await fixtureModel(name))!;
