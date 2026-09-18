@@ -280,6 +280,15 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         'nav.public-shell [aria-current="page"]:visible',
       );
       if (activeHref) {
+        if (viewport.width < 1024) await openMobileMenu(page);
+        // English routes now live inside grouped navigation. Inspect the active
+        // link in its expanded group, preserving the one-current-page contract.
+        if (!route.startsWith("/pl")) {
+          const groupName = route === "/catalog" ? "Expert help" : "Resources";
+          const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
+          await groupToggle.click();
+          await expect(groupToggle).toHaveAttribute("aria-expanded", "true");
+        }
         await expect(visibleActive, `${route} active route`).toHaveCount(1);
         await expect(visibleActive).toHaveAttribute("href", activeHref);
       } else {

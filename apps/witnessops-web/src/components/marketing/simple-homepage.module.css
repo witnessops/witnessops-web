@@ -1,4 +1,4 @@
-.page { color: var(--color-text-primary); background: var(--color-surface-bg); font-family: var(--font-sans); }
+.page { display: flow-root; color: var(--color-text-primary); background: var(--color-surface-bg); font-family: var(--font-sans); }
 .frame { width: min(1152px, calc(100% - 64px)); margin-inline: auto; }
 .page h1, .page h2, .page h3 { font-family: var(--font-sans); font-weight: 500; text-wrap: pretty; }
 .page h1 { max-width: 16ch; margin: 28px 0 24px; font-size: clamp(40px, 4.3vw, 60px); line-height: 1.08; letter-spacing: -.055em; }
@@ -140,7 +140,7 @@
   .heroCopy { text-align: left; }
   .hero .eyebrow { padding: 0; border: 0; border-radius: 0; font-size: 9px; letter-spacing: .09em; }
   .hero h1 { margin: 24px 0 20px; font-size: clamp(36px, 7.6vw, 54px); line-height: 1.08; text-wrap: initial; }
-  .hero .lead { margin: 0; font-size: 15px; line-height: 1.7; }
+  .hero .lead { margin: 0; font-size: 16px; line-height: 1.7; }
   .hero .actions { margin-top: 24px; gap: 8px; }
   .hero .primary { border-radius: 6px; }
   .hero .note { max-width: none; margin-top: 16px; font-size: 11px; }

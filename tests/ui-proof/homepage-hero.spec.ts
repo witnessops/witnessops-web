@@ -227,15 +227,22 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/check" : "/pl/review/request");
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "#sample-finding" : "/catalog/workflows#sample-review");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/catalog/workflows#sample-review");
       await expect(page.locator('main[data-home-direction="security-verification"]')).toHaveCount(1);
-      await expect(page.locator("[data-review-finding]")).toContainText(/No system (?:was )?tested|Nie testowano systemu/);
+      if (path === "/pl") {
+        await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
+      } else {
+        // The English homepage uses decorative art, not a fabricated finding.
+        await expect(page.locator("[data-review-finding]")).toHaveCount(0);
+        await expect(page.locator('main [aria-hidden="true"] img')).toHaveAttribute("alt", "");
+        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Workspace access requires an invitation.");
+      }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
       if (path === "/pl") {
         await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(1);
         await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
       } else {
-        await expect(page.locator("#home-limits-heading")).toContainText("What the app can and cannot do");
+        await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence.Explicit limits.");
         await expect(page.locator("#enquiry form")).toBeVisible();
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -272,7 +279,9 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       const question = "We're launching an AI agent.";
       const prompt = surface.getByLabel("Ask WitnessOps question");
       await expect(surface.locator("[data-ask-composer] button[type=submit]")).toBeDisabled();
-      await surface.getByRole("button", { name: "We're launching an AI agent", exact: true }).click();
+      await expect(surface.getByRole("button", { name: "Find expert help", exact: true })).toBeVisible();
+      await prompt.fill(question);
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
       await expect(surface.getByRole("alert")).toContainText("Your question is still here");
       await expect(prompt).toHaveValue(question);
       await expect(surface.getByRole("button", { name: "Prepare my request", exact: true })).toHaveCount(0);
