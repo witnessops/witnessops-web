@@ -5,8 +5,8 @@ import { reportTitle, type RecipientReport } from '../lib/share-projection';
 import styles from './recipient-reader.module.css';
 
 /** Accept only the stored recipient projection. Never fetch a private source from this reader. */
-export function RecipientReader({ model, digest, publishedAt, expiresAt, passwordProtected = false, preview = false }: {
-    model: RecipientReport; digest: string; publishedAt?: string | null; expiresAt?: string; passwordProtected?: boolean; preview?: boolean;
+export function RecipientReader({ model, digest, publishedAt, expiresAt, passwordProtected = false, signupUrl='/signup', preview = false }: {
+    model: RecipientReport; digest: string; publishedAt?: string | null; expiresAt?: string; passwordProtected?: boolean;signupUrl?:string; preview?: boolean;
 }) {
     const root = useRef<HTMLDivElement>(null);
     const navigate = (id: string) => {
@@ -51,7 +51,7 @@ export function RecipientReader({ model, digest, publishedAt, expiresAt, passwor
             <section id="recipient-evidence"><h2>Evidence included</h2><p>This share includes the recorded findings, recommendations, unknowns, scope and method explanation.</p><strong>Source evidence is not included in this share.</strong><p>Request appropriately scoped source evidence separately from the publisher.</p><ul>{model.declaredExclusions.map((x,i)=><li key={i}>{x}</li>)}</ul></section>
             <section id="recipient-method"><h2>Verification method</h2><h3>{model.verification.label}</h3><p>{model.verification.method}</p><p>{model.verification.boundary}</p><ul>{model.verification.established.map((x,i)=><li key={i}>{x}</li>)}</ul><p>{model.reproduction.trustBoundary}</p><details><summary>Recorded verification checks and digest identities</summary><ul>{model.verificationChecks.map(c=><li key={c.id}>{c.label}: {c.status}. {c.detail}</li>)}</ul><p>Source SHA-256: <code>{model.identity.sourceDigest}</code></p><p>Published snapshot SHA-256: <code>{digest}</code></p><p>This digest identifies this revision; it does not establish that the findings are true.</p></details></section>
             <section id="recipient-history"><h2>Report history</h2><dl><dt>Observed</dt><dd>{date(model.subject.observedAt)}</dd><dt>Report generated</dt><dd>{date(model.identity.generatedAt)}</dd><dt>Published</dt><dd>{publishedAt ? date(publishedAt) : preview ? 'Not published — preview only' : 'Publication date unavailable'}</dd></dl><p>Fixed revision. Later checks and corrections require a new publication. These dates are not a remediation history.</p></section>
-            <section id="recipient-export"><h2>Export</h2><p>PDF contains this recipient-safe revision only. Downloaded copies cannot be recalled.</p>{!preview && <button className="button secondary" onClick={()=>window.print()}>Export PDF</button>}<p><a href="https://app.witnessops.com/signup" referrerPolicy="no-referrer">Run your own check</a> · A separate account; no access to the publisher’s workspace is transferred.</p></section>
+            <section id="recipient-export"><h2>Export</h2><p>PDF contains this recipient-safe revision only. Downloaded copies cannot be recalled.</p>{!preview && <button className="button secondary" onClick={()=>window.print()}>Export PDF</button>}<p><a href={signupUrl} referrerPolicy="no-referrer">Run your own check</a> · A separate account; no access to the publisher’s workspace is transferred.</p></section>
         </article>
         {!preview && <div className={styles.print}><header><h1>{title}</h1><p>Publisher-supplied report name · Fixed recipient revision</p><p>Snapshot SHA-256: {digest}</p>{publishedAt && <p>Published {date(publishedAt)}</p>}<p>Source evidence is not included in this share.</p></header><BuyerReportDocument model={model}/></div>}
     </div>;

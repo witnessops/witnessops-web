@@ -1,11 +1,11 @@
 'use client';
 import {SharePasswordControl} from './share-password-control';
 import { useRef, useState } from 'react';
-type Access = {passwordProtected?:boolean;id:string;state:string;version:number;expiresAt:string};
+type Access = {linkBase?:string;passwordProtected?:boolean;id:string;state:string;version:number;expiresAt:string};
 type Draft = {id:string;digest:string;state:string;message:{from:string;replyTo:string;to:string;subject:string;text:string}};
 type Delivery = {id:string;recipient:string;state:string;provider:string|null};
 const status = (state:string) => ({draft:'Preview only — not sent',accepted:'Provider accepted — delivery not confirmed',file_saved:'Saved locally — no email delivered',unknown:'Outcome unknown — may have been sent',sending:'Outcome unknown — may have been sent'}[state]??state);
-export function ShareDelivery({link,token:initialToken,request,onChange}:{link:Access;token?:string;request:(input:unknown)=>Promise<unknown>;onChange:(value:{token?:string;expiresAt:string;passwordProtected?:boolean})=>Promise<void>}) {
+export function ShareDelivery({link,token:initialToken,request,onChange}:{link:Access;token?:string;request:(input:unknown)=>Promise<unknown>;onChange:(value:{linkBase?:string;token?:string;expiresAt:string;passwordProtected?:boolean})=>Promise<void>}) {
  const [token,setToken]=useState(initialToken),[expiry,setExpiry]=useState(link.expiresAt.slice(0,16)),[email,setEmail]=useState(''),[draft,setDraft]=useState<Draft|null>(null),[history,setHistory]=useState<Delivery[]>([]),[confirmed,setConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const lock=useRef(false);
  async function act(fn:()=>Promise<void>) {if(lock.current)return;lock.current=true;setBusy(true);setError('');try{await fn();}catch(cause){setError(cause instanceof Error ? cause.message : 'Request did not complete. Close and reopen sharing before retrying; an email may already have been sent.');}finally{lock.current=false;setBusy(false);}}
@@ -19,7 +19,7 @@ export function ShareDelivery({link,token:initialToken,request,onChange}:{link:A
   <label>Expiry (UTC)<input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} disabled={busy}/></label>
   <button className="button secondary" disabled={busy} onClick={()=>void act(()=>change(false))}>Save expiry</button>
   <button className="button secondary" disabled={busy} onClick={()=>void act(()=>change(true))}>Rotate link — invalidate old link</button>
-  {token ? <><label>Current access link<input readOnly value={`${location.origin}/s#${token}`}/></label><button className="button secondary" disabled={busy} onClick={()=>void act(async()=>{await navigator.clipboard.writeText(`${location.origin}/s#${token}`);setNotice('Link copied.');})}>Copy current link</button>
+  {token ? <><label>Current access link<input readOnly value={`${link.linkBase??location.origin+'/s'}#${token}`}/></label><button className="button secondary" disabled={busy} onClick={()=>void act(async()=>{await navigator.clipboard.writeText(`${link.linkBase??location.origin+'/s'}#${token}`);setNotice('Link copied.');})}>Copy current link</button>
    <label>Recipient email<input type="email" value={email} disabled={busy} onChange={e=>{setEmail(e.target.value);setDraft(null);setConfirmed(false);}}/></label>
    <button className="button secondary" disabled={busy||!email.trim()} onClick={()=>void act(async()=>{setDraft(await request({action:'email-preview',id:link.id,token,email,requestId:crypto.randomUUID()}) as Draft);setConfirmed(false);})}>{draft&&draft.state!=='draft'?'Prepare another email (may duplicate)':'Preview email'}</button>
    {draft&&<section aria-label="Email preview"><p>From: {draft.message.from}</p><p>Reply to: {draft.message.replyTo}</p><p>To: {draft.message.to}</p><h4>{draft.message.subject}</h4><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{draft.message.text}</pre><p>{status(draft.state)}</p>
