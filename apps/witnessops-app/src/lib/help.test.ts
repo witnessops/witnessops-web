@@ -35,3 +35,16 @@ test('source links permit canonical docs only; no provider file IDs or raw excer
  const answer:DocsAssistantAnswer={schema_version:'docs-assistant.answer.v1',answer_status:'supported_by_docs',question:'x',documented_facts:[],inference:[],not_proven:[],boundary_findings:[],human_review_required:false,unsupported_reason:null,citations:[{citation_id:'1',source_type:'source_url',title:'Docs',source_url:'https://witnessops.com/docs?secret=private'},{citation_id:'2',source_type:'source_url',title:'Rejected link',source_url:'https://evil.example/'}]};
  const projected=presentHelpAnswer(answer);assert.equal(projected.sources[0].url,'https://witnessops.com/docs');assert.equal(projected.sources[1].url,undefined);assert.doesNotMatch(JSON.stringify(projected),/private|evil.example/);
 });
+
+test('pasted secret formats are rejected before the provider is called',async()=>{
+ let calls=0;const service=createHelpService({origin,identity,enabled:true,answer:async()=>{calls++;return response;}});
+ for(const question of ['-----BEGIN PRIVATE KEY-----', 'AKIA'+'A'.repeat(16), 'Bearer '+'x'.repeat(24), 'api_key='+'x'.repeat(24)]){
+  const result=await service(request({question,page:'settings'}));assert.equal(result.status,400);assert.doesNotMatch(await result.text(),/xxxxx|AKIA|BEGIN PRIVATE/);
+ }
+ assert.equal(calls,0);
+});
+test('normalized runtime failures return the unavailable HTTP state without internal reasons',async()=>{
+ const answer:DocsAssistantAnswer={schema_version:'docs-assistant.answer.v1',answer_status:'needs_human_review',question:'Help',documented_facts:[],inference:[],not_proven:[],boundary_findings:[],human_review_required:true,unsupported_reason:'docs_assistant_runtime_unavailable',citations:[]};
+ const service=createHelpService({origin,identity,enabled:true,answer:async()=>presentHelpAnswer(answer)});
+ const result=await service(request({question:'How do I export?',page:'results'}));assert.equal(result.status,503);assert.doesNotMatch(await result.text(),/docs_assistant_runtime_unavailable/);
+});
