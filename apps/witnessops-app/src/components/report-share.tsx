@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { ShareDelivery } from './share-delivery';
 import { RecipientReader } from './recipient-reader';
 import { reportTitle, type RecipientReport } from '../lib/share-projection';
 type Preview = {
@@ -11,6 +12,7 @@ type Preview = {
     canPublish: boolean;
 };
 type LinkRow = {
+    version: number;
     id: string;
     state: string;
     expiresAt: string;
@@ -48,7 +50,7 @@ export function ReportShare({ workspaceId, runId, role }: {
  {preview.canPublish && !url ? <><label className="authorization"><input type="checkbox" checked={confirmed} disabled={busy} onChange={event => setConfirmed(event.target.checked)}/>I reviewed the included information and approve access for anyone with the link.</label><button className="button" disabled={busy || !confirmed || name !== reportTitle(preview.snapshot)} onClick={() => void act(async () => { await request({ action: 'publish', id: preview.id, token: preview.token, digest: preview.digest, audience: 'anyone_with_link' }); setUrl(`${location.origin}/s#${preview.token}`); await refresh(); })}>Publish link</button></> : !url ? <p>Only an Owner can publish or revoke links.</p> : null}
  {url && <div className="asset-form"><label htmlFor="published-share">Published link</label><input id="published-share" value={url} readOnly/><button className="button secondary" onClick={() => void act(async () => { await navigator.clipboard.writeText(url); setCopied(true); })}>Copy link</button>{copied && <p role="status">Link copied.</p>}</div>}
  <details open><summary>Inspect recipient report</summary><RecipientReader model={preview.snapshot} digest={preview.digest} expiresAt={preview.expiresAt} preview/></details></>}
- <h3>Published revisions</h3>{links.length ? links.map(link => <div className="member-row" key={link.id}><span>{link.state} · expires {new Date(link.expiresAt).toLocaleString()}</span>{role === 'owner' && link.state === 'published' && <button className="button secondary" disabled={busy} onClick={() => void act(async () => { await request({ action: 'revoke', id: link.id }); if (link.id === preview?.id) {
+ <h3>Published revisions</h3>{links.length ? links.map(link => <div className="member-row" key={link.id}><span>{link.state} · expires {new Date(link.expiresAt).toLocaleString()}</span>{role === 'owner' && ['published','expired'].includes(link.state) && <ShareDelivery link={link} token={preview?.id===link.id ? preview.token : undefined} request={request} onChange={async next=>{if(preview?.id===link.id){setPreview({...preview,expiresAt:next.expiresAt,token:next.token??preview.token});if(next.token)setUrl(`${location.origin}/s#${next.token}`);}await refresh();}}/>}{role === 'owner' && ['published','expired'].includes(link.state) && <button className="button secondary" disabled={busy} onClick={() => void act(async () => { await request({ action: 'revoke', id: link.id }); if (link.id === preview?.id) {
             setUrl('');
             setPreview(null);
         } await refresh(); })}>Revoke link</button>}</div>) : <p>No published revisions.</p>}

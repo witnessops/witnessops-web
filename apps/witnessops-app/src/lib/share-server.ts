@@ -4,6 +4,9 @@ import type { authenticatedWebSession } from './auth';
 import { authConfiguration } from './auth-config';
 import { database } from './db/pool';
 import { resolveIdentity } from './db/identity';
+import { ShareAccessStore } from './db/share-access';
+import { sendMail } from '../../../witnessops-web/src/lib/server/send-verification-email';
+import type { InvitationSender } from './db/members';
 import { ShareStore } from './db/shares';
 import { ApiError, requireId } from './errors';
 import { admitRequest } from './server';
@@ -12,6 +15,8 @@ import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json
 export const SHARE_HEADERS = { 'Cache-Control': 'private, no-store, max-age=0', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow, noarchive', 'X-Content-Type-Options': 'nosniff' };
 export function createShareService(options: {
     pool?: Pool;
+    send?: InvitationSender;
+    mailEnabled?: boolean;
     origin?: string;
     identity?: typeof authenticatedWebSession;
 } = {}) {
@@ -59,6 +64,25 @@ export function createShareService(options: {
             else if (input.action === 'publish') {
                 fields(['action', 'id', 'token', 'digest', 'audience']);
                 result = await store.publish(user, workspace, { id: input.id, token: input.token, digest: input.digest, audience: input.audience });
+            }
+            else if (input.action === 'access') {
+                fields(['action','id','version','expiresAt','rotate']);
+                if (typeof input.rotate !== 'boolean') throw new ApiError(400,'Choose an access action.');
+                result = await new ShareAccessStore(pool).change(user,workspace,input.id,input.version,input.expiresAt,input.rotate);
+            }
+            else if (input.action === 'email-history') {
+                fields(['action','id']);result=await new ShareAccessStore(pool).deliveries(user,workspace,input.id);
+            }
+            else if (input.action === 'email-preview' || input.action === 'email-send') {
+                if (!(options.mailEnabled ?? (process.env.WITNESSOPS_REPORT_EMAIL_ENABLED === '1' && process.env.WITNESSOPS_REPORT_EMAIL_TRACKING_DISABLED === '1'))) throw new ApiError(503,'Report email is not enabled. Copy the link instead.');
+                const access = new ShareAccessStore(pool), origin = options.origin ?? authConfiguration().origin;
+                if (input.action === 'email-preview') {
+                    fields(['action','id','token','email','requestId']);
+                    result=await access.draft(user,workspace,{id:input.id,token:input.token,email:input.email,requestId:input.requestId},origin);
+                } else {
+                    fields(['action','id','token','digest','confirmed']);
+                    result=await access.send(user,workspace,{id:input.id,token:input.token,digest:input.digest,confirmed:input.confirmed},origin,options.send??sendMail);
+                }
             }
             else if (input.action === 'revoke') {
                 fields(['action', 'id']);

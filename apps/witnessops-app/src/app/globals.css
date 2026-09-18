@@ -422,3 +422,10 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 @media print { .finding-interactive { display: none !important; } }
 .billing-panel > p, .billing-panel .actions { margin-top: 16px; }
 .billing-plans { margin-top: 20px; }
+
+.share-delivery { width: 100%; min-width: 0; overflow-wrap: anywhere; }
+.share-delivery summary { cursor: pointer; padding: 12px 0; }
+.share-delivery label { display: block; margin: 16px 0 8px; }
+.share-delivery input:not([type="checkbox"]) { width: 100%; min-width: 0; }
+.share-delivery .button { margin: 8px 8px 8px 0; }
+.share-delivery pre { padding: 16px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }

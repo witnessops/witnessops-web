@@ -54,7 +54,7 @@ export class ShareStore {
                 throw new ApiError(403, 'Workspace access changed.');
             // Bound storage under the same workspace lock as insertion. Expired
             // previews cannot publish; expired/revoked links retain 30 days of history.
-            await client.query("DELETE FROM report_shares WHERE workspace_id=$1 AND ((state='preview' AND created_at<now()-interval '1 hour') OR expires_at<now()-interval '30 days' OR revoked_at<now()-interval '30 days')", [workspace]);
+            await client.query("DELETE FROM report_shares s USING report_share_access a WHERE a.share_id=s.id AND s.workspace_id=$1 AND ((s.state='preview' AND s.created_at<now()-interval '1 hour') OR a.expires_at<now()-interval '30 days' OR s.revoked_at<now()-interval '30 days')", [workspace]);
             const count = (await client.query("SELECT count(*) AS retained,coalesce(sum(octet_length(snapshot::text)),0) AS bytes,count(*) FILTER (WHERE created_at>now()-interval '1 hour') AS recent FROM report_shares WHERE workspace_id=$1", [workspace])).rows[0];
             if (Number(count.retained) >= 128 || Number(count.bytes) + Buffer.byteLength(bytes) * 2 > 16 * 1024 * 1024)
                 throw new ApiError(429, 'Workspace share storage limit reached. Existing links can still be revoked.');
@@ -76,7 +76,7 @@ export class ShareStore {
         const hashed = tokenHash(input.token);
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace, true);
-            const row = (await client.query<Row>('SELECT * FROM report_shares WHERE id=$1 AND workspace_id=$2 FOR UPDATE', [requireId(input.id), workspace])).rows[0];
+            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(input.id), workspace])).rows[0];
             const m = await requireWorkspaceMembership(client, user, workspace, true);
             if (!row || row.created_by !== user.id || row.membership_generation !== m.generation || row.token_hash !== hashed || row.digest !== input.digest)
                 throw new ApiError(404, 'Preview unavailable.');
@@ -93,13 +93,13 @@ export class ShareStore {
     async list(user: AppUser, workspace: string, run: unknown) {
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace);
-            return (await client.query("SELECT id,digest,expires_at AS \"expiresAt\",CASE WHEN state='published' AND expires_at<=now() THEN 'expired' ELSE state END AS state FROM report_shares WHERE workspace_id=$1 AND run_id=$2 AND state<>'preview' ORDER BY created_at DESC LIMIT 128", [workspace, requireId(run)])).rows;
+            return (await client.query("SELECT s.id,s.digest,a.version,a.expires_at AS \"expiresAt\",CASE WHEN s.state='published' AND a.expires_at<=now() THEN 'expired' ELSE s.state END AS state FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.workspace_id=$1 AND s.run_id=$2 AND s.state<>'preview' ORDER BY s.created_at DESC LIMIT 128", [workspace, requireId(run)])).rows;
         });
     }
     async revoke(user: AppUser, workspace: string, id: unknown) {
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace, true);
-            const row = (await client.query<Row>('SELECT * FROM report_shares WHERE id=$1 AND workspace_id=$2 FOR UPDATE', [requireId(id), workspace])).rows[0];
+            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(id), workspace])).rows[0];
             if (!row || row.state === 'preview')
                 throw new ApiError(404, 'Published link not found.');
             if (row.state !== 'revoked')
@@ -108,7 +108,7 @@ export class ShareStore {
         });
     }
     async read(token: unknown) {
-        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,s.expires_at,s.published_at FROM report_shares s JOIN workspaces w ON w.id=s.workspace_id WHERE s.token_hash=$1 AND s.state='published' AND s.expires_at>now() AND w.status='active'", [tokenHash(token)]);
+        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,a.expires_at,s.published_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND s.state='published' AND a.expires_at>now() AND w.status='active'", [tokenHash(token)]);
         const row = result.rows[0];
         if (!row || hash(canonicalSource(row.snapshot)) !== row.digest)
             throw new ApiError(404, 'Shared report unavailable.');
