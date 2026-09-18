@@ -398,5 +398,20 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .shared-report header { margin-bottom: 24px; }
 .shared-report header p { margin-top: 12px; overflow-wrap: anywhere; }
 @media print { .report-sharing { display: none; } }
+
+.report-next-steps { margin: 24px 0; overflow-wrap: anywhere; }
+.report-next-item { padding: 12px 0; border-top: 1px solid currentColor; }
+.finding-follow-through { overflow-wrap: anywhere; }
+.finding-follow-through h4 { margin-top: 18px; }
+.finding-follow-through pre, .finding-draft pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+.finding-interactive { margin: 12px 0; }
+.finding-interactive a { text-decoration: underline; }
+.finding-draft { margin: 16px 0; padding: 18px; background: #f4f1e9; color: #181816; border: 1px solid #777; border-radius: 8px; }
+.finding-draft label { display: block; margin: 12px 0; }
+.finding-draft input:not([type=checkbox]), .finding-draft textarea { display: block; width: 100%; padding: 10px; background: white; color: #181816; border: 1px solid #777; }
+.finding-draft textarea { min-height: 100px; }
+.finding-draft .authorization { display: flex; }
+.finding-draft .button { background: #181816; color: #fff; }
+@media print { .finding-interactive { display: none !important; } }
 .billing-panel > p, .billing-panel .actions { margin-top: 16px; }
 .billing-plans { margin-top: 20px; }
