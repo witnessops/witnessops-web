@@ -398,3 +398,5 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .app-help-panel textarea { width: 100%; min-height: 80px; padding: 12px; margin: 8px 0; background: #0b0c0b; color: inherit; border: 1px solid #626258; border-radius: 6px; }
 @media(max-width:600px) { .app-help-panel { width: 100vw; padding: 20px; } .header-inner:has(.app-help-trigger) .early-access-pill { display: none; } }
 @media print { .app-help-panel, .app-help-trigger { display: none !important; } }
+.billing-panel > p, .billing-panel .actions { margin-top: 16px; }
+.billing-plans { margin-top: 20px; }

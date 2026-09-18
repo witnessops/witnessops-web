@@ -68,6 +68,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const open = async (path: string) => { await settleActivity(); completedActivity.clear(); await page.goto(path); };
     await page.route("**/api/**", async route => {
       const request = route.request(), path = new URL(request.url()).pathname;
+      if (path === "/api/billing" && request.method() === "GET") return route.fulfill({ json: { enabled: false, sandbox: false } });
       if (path === "/api/feedback" && request.method() === "GET") return route.fulfill({ json: [] });
       if (path === "/api/events" && request.method() === "POST") return route.fulfill({ json: { recorded: true } });
       if (path === "/api/workspace" && request.method() === "POST") {
