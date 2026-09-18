@@ -1,5 +1,6 @@
 'use client';
 import { hasWorkspaceCapability } from '../lib/workspace-role-policy';
+import { reportFollowThrough } from './report-follow-through';
 import { ReportShare } from './report-share';
 import Link from 'next/link';
 import { CHECK_DISCOVERY } from '../lib/check-discovery';
@@ -88,8 +89,9 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
   </div>;
 }
 
-function LinuxReport({ model, run, workspaceId, comparison }: { model: ProofpackReportV1; run: LinuxCheckRun; workspaceId: string; comparison?: LinuxComparison }) {
-  const { print, printRoot } = useBuyerReportPrint(model);
+function LinuxReport({ model, run, workspaceId, comparison, role }: { model: ProofpackReportV1; run: LinuxCheckRun; workspaceId: string; comparison?: LinuxComparison; role: string }) {
+  const context = { linux: true, evidenceHref: (finding: typeof model.findings[number]) => `#report-evidence-${model.findings.indexOf(finding) + 1}`, recheckHref: hasWorkspaceCapability(role, 'linux:import') ? `/assets/${run.assetId}` : undefined };
+  const { print, printRoot } = useBuyerReportPrint(model, reportFollowThrough(model, context, false));
   const [error, setError] = useState('');
   async function download(artifact: 'zip' | 'signature') {
     setError('');
@@ -113,7 +115,7 @@ function LinuxReport({ model, run, workspaceId, comparison }: { model: Proofpack
       {error ? <p className="error" role="alert">{error}</p> : null}
     </section>
     <LinuxChanges comparison={comparison} />
-    <BuyerReportDocument model={model} />
+    <BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} />
   </>;
 }
 
@@ -132,7 +134,7 @@ export function LinuxCheckPage({ runId, workspaceId, role }: { runId: string; wo
     return () => { active = false; controller.abort(); };
   }, [runId, workspaceId]);
   if (error) return <p role="alert">{error}</p>;
-  return loaded ? <><ReportShare key={`${workspaceId}:${runId}`} workspaceId={workspaceId} runId={runId} role={role}/><LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /></> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
+  return loaded ? <><ReportShare key={`${workspaceId}:${runId}`} workspaceId={workspaceId} runId={runId} role={role}/><LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} role={role} comparison={loaded.comparison} /></> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
 }
 
 function LinuxChanges({ comparison }: { comparison?: LinuxComparison }) {

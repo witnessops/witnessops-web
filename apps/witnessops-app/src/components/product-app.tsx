@@ -2,6 +2,7 @@
 import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
+import { reportFollowThrough } from "./report-follow-through";
 import { Billing } from "./billing";
 import { ReportShare } from "./report-share";
 import { Members } from "./members";
@@ -251,8 +252,9 @@ function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
   const { event } = useProductActivity();
   const previous = previousRun(workspace, run);
   const model = useMemo(() => savedRunReport(run, previous), [run, previous]);
-  const { print, printRoot } = useBuyerReportPrint(model);
-  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
+  const context = { linux: false, evidenceHref: (finding: typeof model.findings[number]) => `/runs/${run.id}/observations/${encodeURIComponent(finding.checkId ?? finding.id)}`, recheckHref: hasWorkspaceCapability(workspace.role, "hostname:run") ? `/assets/${run.assetId}#run-observation` : undefined };
+  const { print, printRoot } = useBuyerReportPrint(model, reportFollowThrough(model, context, false));
+  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
 }
 
 function SignInLinks() {
