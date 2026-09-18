@@ -1583,6 +1583,7 @@ test('Share access migration preserves existing published links and immutable re
   const before=(await upgrade.query('SELECT * FROM report_shares WHERE id=$1',[share])).rows[0];await migrate(upgrade);
   assert.deepEqual((await upgrade.query('SELECT * FROM report_shares WHERE id=$1',[share])).rows[0],before);
   const record=(await upgrade.query('SELECT * FROM report_share_access WHERE share_id=$1',[share])).rows[0];assert.equal(record.token_hash,before.token_hash);assert.deepEqual(record.expires_at,before.expires_at);
+  const routingName=(await upgrade.query('SELECT name FROM report_share_names WHERE share_id=$1',[share])).rows[0].name;assert.match(routingName,/^r-[a-f0-9]{32}$/);assert.notEqual(routingName,'r-'+share.replaceAll('-',''));
   const {ShareStore}=await import('./shares');assert.equal((await new ShareStore(upgrade).read(token)).digest,digest);
   await assert.rejects(upgrade.query("UPDATE report_shares SET expires_at=now() WHERE id=$1",[share]),/immutable/);
   await migrate(upgrade);assert.equal((await upgrade.query('SELECT count(*) FROM report_share_access')).rows[0].count,'1');
@@ -1658,4 +1659,54 @@ test('Share password HTTP denies unauthenticated content, extra fields and forei
  assert.equal((await service(req({action:'unlock',token:preview.token,password:secret},'https://foreign.example'),true)).status,403);
  const unlocked=await service(req({action:'unlock',token:preview.token,password:secret}),true);assert.equal(unlocked.status,200);const session=await unlocked.json();assert.ok(!JSON.stringify(session).includes(secret));
  const read=await service(req({token:preview.token,unlock:session.unlock}),true);assert.equal(read.status,200);assert.equal((await read.json()).digest,preview.digest);
+});
+
+test('Named reports: concurrent uniqueness, generated fallback, retained names and fixed revision',async()=>{
+ const {ShareStore}=await import('./shares');const shares=new ShareStore(pool);
+ const workspace=await store.create(a,'Named reports',randomUUID()),asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const candidates=await Promise.allSettled([shares.preview(a,workspace,run,'Specimen','specimen-q3'),shares.preview(a,workspace,run,'Specimen','specimen-q3')]);
+ assert.equal(candidates.filter(x=>x.status==='fulfilled').length,1);const winner=candidates.find(x=>x.status==='fulfilled');assert.ok(winner&&winner.status==='fulfilled');const preview=winner.value;
+ await shares.publish(a,workspace,{...preview,audience:'anyone_with_link'});
+ assert.equal((await shares.read(preview.token,undefined,'specimen-q3')).digest,preview.digest);
+ await assert.rejects(shares.read(preview.token,undefined,'different-name'));
+ assert.equal((await shares.read(preview.token)).digest,preview.digest); // legacy link remains valid
+ const fallback=await shares.preview(a,workspace,run);assert.match(fallback.name,/^r-[a-f0-9]{32}$/);assert.notEqual(fallback.name,'r-'+fallback.id.replaceAll('-',''));
+ await assert.rejects(shares.preview(a,workspace,run,'Specimen','admin'));
+ await assert.rejects(pool.query("UPDATE report_share_names SET name='replacement-name' WHERE share_id=$1",[preview.id]));
+ await shares.revoke(a,workspace,preview.id);await pool.query('DELETE FROM report_shares WHERE id=$1',[preview.id]);
+ assert.equal((await pool.query('SELECT share_id FROM report_share_names WHERE name=$1',['specimen-q3'])).rows[0].share_id,null);
+ await assert.rejects(shares.preview(a,workspace,run,'Specimen','specimen-q3'));
+ await assert.rejects(pool.query("DELETE FROM report_share_names WHERE name='specimen-q3'"));
+ await assert.rejects(pool.query("UPDATE report_share_names SET share_id=$1 WHERE name='specimen-q3'",[fallback.id]));
+});
+
+test('Named report HTTP binds host to token/password, excludes app identity and generates matching email links',async()=>{
+ const {ShareStore}=await import('./shares');const {SharePasswordStore}=await import('./share-passwords');const {ShareAccessStore}=await import('./share-access');const {createShareService}=await import('../share-server');
+ const prior=process.env.WITNESSOPS_REPORT_HOST_SUFFIX;process.env.WITNESSOPS_REPORT_HOST_SUFFIX='proof.example.com';
+ try{
+  const shares=new ShareStore(pool),passwords=new SharePasswordStore(pool),access=new ShareAccessStore(pool),workspace=await store.create(a,'Named HTTP',randomUUID());
+  const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+  const preview=await shares.preview(a,workspace,run,'Private named title','named-http'),secret='synthetic named password';await passwords.set(a,workspace,preview.id,1,secret);await shares.publish(a,workspace,{...preview,audience:'link_and_password'});
+  const appOrigin='https://app.example.com',named='https://named-http.proof.example.com';let identities=0;
+  const service=createShareService({pool,origin:appOrigin,identity:async()=>{identities++;return null;}});
+  const req=(origin:string,body:unknown,from=origin)=>new Request(origin+'/api/shared-report',{method:'POST',headers:{host:new URL(origin).host,origin:from,'content-type':'application/json',cookie:'irrelevant=customer-cookie'},body:JSON.stringify(body)});
+  const noToken=await service(req(named,{token:''}),true);assert.equal(noToken.status,404);assert.ok(!(await noToken.text()).includes('Private named title'));
+  assert.equal((await service(req(named,{token:preview.token}),true)).status,401);
+  assert.equal((await service(req('https://wrong-name.proof.example.com',{action:'unlock',token:preview.token,password:secret}),true)).status,404);
+  assert.equal((await service(req(named,{token:preview.token},appOrigin),true)).status,403);
+  const unlocked=await service(req(named,{action:'unlock',token:preview.token,password:secret}),true);assert.equal(unlocked.status,200);const session=await unlocked.json();
+  const result=await service(req(named,{token:preview.token,unlock:session.unlock}),true);assert.equal(result.status,200);assert.equal(result.headers.get('set-cookie'),null);assert.equal((await result.json()).digest,preview.digest);
+  assert.equal((await service(req(named,{action:'list',runId:run}),false)).status,403);assert.equal(identities,0);
+  const priorProxy=process.env.WITNESSOPS_REPORT_PROXY_MODE;
+  try {
+   process.env.WITNESSOPS_REPORT_PROXY_MODE='caddy-loopback-v1';
+   const proxy=(extra:Record<string,string>={})=>new Request('https://0.0.0.0:3020/api/shared-report',{method:'POST',headers:{host:new URL(named).host,origin:named,'content-type':'application/json','x-forwarded-host':new URL(named).host,'x-forwarded-proto':'https',...extra},body:JSON.stringify({token:preview.token,unlock:session.unlock})});
+   assert.equal((await service(proxy(),true)).status,200);
+   assert.equal((await service(proxy({'x-forwarded-host':'wrong-name.proof.example.com'}),true)).status,403);
+   assert.equal((await service(proxy({'x-forwarded-proto':'http'}),true)).status,403);
+   assert.equal((await service(proxy({forwarded:'host=evil.example'}),true)).status,403);
+  }finally{if(priorProxy===undefined)delete process.env.WITNESSOPS_REPORT_PROXY_MODE;else process.env.WITNESSOPS_REPORT_PROXY_MODE=priorProxy;}
+  const draft=await access.draft(a,workspace,{id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()},appOrigin);assert.ok(draft.message.text.includes(`${named}/#${preview.token}`));assert.ok(!draft.message.text.includes(secret));
+  await shares.revoke(a,workspace,preview.id);assert.equal((await service(req(named,{token:preview.token,unlock:session.unlock}),true)).status,404);
+ }finally{if(prior===undefined)delete process.env.WITNESSOPS_REPORT_HOST_SUFFIX;else process.env.WITNESSOPS_REPORT_HOST_SUFFIX=prior;}
 });

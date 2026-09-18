@@ -1,4 +1,5 @@
 import 'server-only';
+import { reportHost, reportLinkBase, reportHostSuffix } from './report-host';
 import type { Pool } from 'pg';
 import type { authenticatedWebSession } from './auth';
 import { authConfiguration } from './auth-config';
@@ -24,7 +25,16 @@ export function createShareService(options: {
 } = {}) {
     return async (request: Request, recipient = false) => {
         try {
-            admitRequest(request, options.origin ?? authConfiguration().origin, process.env.WITNESSOPS_APP_PROXY_MODE);
+            const appOrigin=options.origin??authConfiguration().origin;
+            const named=reportHost(request.headers.get('host'));
+            if(named&&!recipient)throw new ApiError(403,'Recipient access only.');
+            let admission=request;
+            if(named&&process.env.WITNESSOPS_REPORT_PROXY_MODE){
+                if(process.env.WITNESSOPS_REPORT_PROXY_MODE!=='caddy-loopback-v1'||new URL(request.url).origin!=='https://0.0.0.0:3020'||request.headers.get('x-forwarded-host')!==new URL(named.origin).host||request.headers.get('x-forwarded-proto')!=='https')throw new ApiError(403,'Unexpected reporting proxy metadata.');
+                admission=new Request(named.origin+new URL(request.url).pathname+new URL(request.url).search,{method:request.method,headers:request.headers});
+            }
+            admitRequest(admission,named?.origin??appOrigin,named?undefined:process.env.WITNESSOPS_APP_PROXY_MODE);
+            const withLink=<T extends {name?:string|null}>(value:T)=>({...value,linkBase:reportLinkBase(appOrigin,value.name),reportingEnabled:Boolean(reportHostSuffix())});
             if (request.method !== 'POST')
                 throw new ApiError(405, 'Use POST.');
             if (!/^application\/json(?:;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') || '') || request.headers.has('content-encoding'))
@@ -47,10 +57,10 @@ export function createShareService(options: {
             if (recipient) {
                 if(input.action==='unlock') {
                     fields(['action','token','password']);
-                    return Response.json(await new SharePasswordStore(pool).unlock(input.token,input.password),{headers:SHARE_HEADERS});
+                    return Response.json(await new SharePasswordStore(pool).unlock(input.token,input.password,named?.name),{headers:SHARE_HEADERS});
                 }
                 fields(Object.hasOwn(input,'unlock')?['token','unlock']:['token']);
-                return Response.json(await store.read(input.token,input.unlock), { headers: SHARE_HEADERS });
+                return Response.json(await store.read(input.token,input.unlock,named?.name), { headers: SHARE_HEADERS });
             }
             const web = await (options.identity ?? (await import('./auth')).authenticatedWebSession)();
             if (!web)
@@ -60,16 +70,16 @@ export function createShareService(options: {
             const workspace = requireId(request.headers.get('x-witnessops-workspace'));
             let result;
             if (input.action === 'preview') {
-                fields(Object.hasOwn(input, 'name') ? ['action', 'runId', 'name'] : ['action', 'runId']);
-                result = await store.preview(user, workspace, input.runId, input.name);
+                fields(['action','runId',...(Object.hasOwn(input,'name')?['name']:[]),...(Object.hasOwn(input,'routingName')?['routingName']:[])]);
+                result = withLink(await store.preview(user, workspace, input.runId, input.name,input.routingName));
             }
             else if (input.action === 'list') {
                 fields(['action', 'runId']);
-                result = await store.list(user, workspace, input.runId);
+                result = (await store.list(user, workspace, input.runId)).map(withLink);
             }
             else if (input.action === 'publish') {
                 fields(['action', 'id', 'token', 'digest', 'audience']);
-                result = await store.publish(user, workspace, { id: input.id, token: input.token, digest: input.digest, audience: input.audience });
+                result = withLink(await store.publish(user, workspace, { id: input.id, token: input.token, digest: input.digest, audience: input.audience }));
             }
             else if (input.action === 'password') {
                 fields(['action','id','version','password']);
@@ -78,7 +88,7 @@ export function createShareService(options: {
             else if (input.action === 'access') {
                 fields(['action','id','version','expiresAt','rotate']);
                 if (typeof input.rotate !== 'boolean') throw new ApiError(400,'Choose an access action.');
-                result = await new ShareAccessStore(pool).change(user,workspace,input.id,input.version,input.expiresAt,input.rotate);
+                result = withLink(await new ShareAccessStore(pool).change(user,workspace,input.id,input.version,input.expiresAt,input.rotate));
             }
             else if (input.action === 'email-history') {
                 fields(['action','id']);result=await new ShareAccessStore(pool).deliveries(user,workspace,input.id);

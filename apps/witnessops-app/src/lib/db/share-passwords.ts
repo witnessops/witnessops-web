@@ -30,12 +30,12 @@ export class SharePasswordStore {
    return {passwordProtected:true,version:Number(expected)+1,expiresAt:current.expiresAt};
   });
  }
- async unlock(token:unknown,password:unknown) {
+ async unlock(token:unknown,password:unknown,name?:string) {
   if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))throw new ApiError(404,'Shared report unavailable.');
   if(typeof password!=='string'||Buffer.byteLength(password,'utf8')>256||!password.length)throw new PasswordChallenge(401,'Password did not unlock this report.');
   const hashed=hash(token);
   const reserve=await transaction(this.pool,async client=>{
-   const row=(await client.query(`SELECT a.*,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 FOR UPDATE OF a`,[hashed])).rows[0];
+   const row=(await client.query(`SELECT a.*,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND ($2::text IS NULL OR EXISTS(SELECT 1 FROM report_share_names n WHERE n.share_id=s.id AND n.name=$2)) FOR UPDATE OF a`,[hashed,name??null])).rows[0];
    if(!row||row.state!=='published'||row.status!=='active'||row.expires_at.getTime()<=Date.now()||!row.password_hash)throw new ApiError(404,'Shared report unavailable.');
    const count=Date.now()-row.password_window.getTime()>=15*60000?0:row.password_attempts;
    if(count>=5)throw new PasswordChallenge(429,'Too many password attempts for this link. Try again after 15 minutes.');
