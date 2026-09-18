@@ -5,8 +5,8 @@ import { reportTitle, type RecipientReport } from '../lib/share-projection';
 import styles from './recipient-reader.module.css';
 
 /** Accept only the stored recipient projection. Never fetch a private source from this reader. */
-export function RecipientReader({ model, digest, publishedAt, expiresAt, preview = false }: {
-    model: RecipientReport; digest: string; publishedAt?: string | null; expiresAt?: string; preview?: boolean;
+export function RecipientReader({ model, digest, publishedAt, expiresAt, passwordProtected = false, preview = false }: {
+    model: RecipientReport; digest: string; publishedAt?: string | null; expiresAt?: string; passwordProtected?: boolean; preview?: boolean;
 }) {
     const root = useRef<HTMLDivElement>(null);
     const navigate = (id: string) => {
@@ -29,7 +29,7 @@ export function RecipientReader({ model, digest, publishedAt, expiresAt, preview
                 <h1>{title}</h1><p className={styles.muted}>Report name supplied by the publisher; it is not a verification claim.</p>
                 {model.identity.synthetic && <p className={styles.notice}>Synthetic / illustrative example. Not a customer result.</p>}
                 <p>{model.identity.productName} · {model.subject.label}</p><p className={styles.muted}>Observed {date(model.subject.observedAt)}</p>
-                <details><summary>Link access and expiry</summary><p>Anyone with the link can read. No workspace membership is granted. Access ends at expiry or revocation. Downloaded copies cannot be recalled.</p>{expiresAt && <p>Expires {date(expiresAt)}</p>}</details>
+                <details><summary>Link access and expiry</summary><p>{passwordProtected?'The link and password are required to read.':'Anyone with the link can read.'} No workspace membership is granted. Access ends at expiry or revocation. Downloaded copies cannot be recalled.</p>{expiresAt && <p>Expires {date(expiresAt)}</p>}</details>
                 <div className={styles.results} aria-label="Recorded results">
                     {checks ? <><p><strong>{checks.passed}</strong> Observed as expected</p><p><strong>{checks.needsAttention}</strong> Need attention</p><p><strong>{checks.informational}</strong> Informational</p><p><strong>{checks.undetermined}</strong> Undetermined checks</p></> : <><p><strong>{model.summary.findings.needsAttention}</strong> Findings needing attention</p><p><strong>{model.summary.findings.informational}</strong> Informational findings</p><p>No complete individual-check ledger. No overall pass inferred.</p></>}
                 </div>

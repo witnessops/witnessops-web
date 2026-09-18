@@ -1,10 +1,11 @@
 'use client';
+import {SharePasswordControl} from './share-password-control';
 import { useRef, useState } from 'react';
-type Access = {id:string;state:string;version:number;expiresAt:string};
+type Access = {passwordProtected?:boolean;id:string;state:string;version:number;expiresAt:string};
 type Draft = {id:string;digest:string;state:string;message:{from:string;replyTo:string;to:string;subject:string;text:string}};
 type Delivery = {id:string;recipient:string;state:string;provider:string|null};
 const status = (state:string) => ({draft:'Preview only — not sent',accepted:'Provider accepted — delivery not confirmed',file_saved:'Saved locally — no email delivered',unknown:'Outcome unknown — may have been sent',sending:'Outcome unknown — may have been sent'}[state]??state);
-export function ShareDelivery({link,token:initialToken,request,onChange}:{link:Access;token?:string;request:(input:unknown)=>Promise<unknown>;onChange:(value:{token?:string;expiresAt:string})=>Promise<void>}) {
+export function ShareDelivery({link,token:initialToken,request,onChange}:{link:Access;token?:string;request:(input:unknown)=>Promise<unknown>;onChange:(value:{token?:string;expiresAt:string;passwordProtected?:boolean})=>Promise<void>}) {
  const [token,setToken]=useState(initialToken),[expiry,setExpiry]=useState(link.expiresAt.slice(0,16)),[email,setEmail]=useState(''),[draft,setDraft]=useState<Draft|null>(null),[history,setHistory]=useState<Delivery[]>([]),[confirmed,setConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const lock=useRef(false);
  async function act(fn:()=>Promise<void>) {if(lock.current)return;lock.current=true;setBusy(true);setError('');try{await fn();}catch(cause){setError(cause instanceof Error ? cause.message : 'Request did not complete. Close and reopen sharing before retrying; an email may already have been sent.');}finally{lock.current=false;setBusy(false);}}
@@ -13,7 +14,8 @@ export function ShareDelivery({link,token:initialToken,request,onChange}:{link:A
   if(next.token)setToken(next.token);setDraft(null);setConfirmed(false);setNotice(rotate?'Old link invalidated. Copy or email the new link.':'Expiry updated; the report revision is unchanged.');await onChange(next);
  }
  return <details className="share-delivery"><summary>Manage link and email</summary>
-  <p>Anyone with the link can read. Rotating stops the old link immediately. Expiry changes do not recall downloads or change the report.</p>
+  <p>{link.passwordProtected?'Link and password required.':'Anyone with the link can read.'} Rotating stops the old link immediately. Expiry changes do not recall downloads or change the report.</p>
+  <SharePasswordControl id={link.id} version={link.version} protected={Boolean(link.passwordProtected)} disabled={busy} onBusyChange={setBusy} request={request} onSaved={async value=>{setDraft(null);setConfirmed(false);await onChange(value);}}/>
   <label>Expiry (UTC)<input type="datetime-local" value={expiry} onChange={e=>setExpiry(e.target.value)} disabled={busy}/></label>
   <button className="button secondary" disabled={busy} onClick={()=>void act(()=>change(false))}>Save expiry</button>
   <button className="button secondary" disabled={busy} onClick={()=>void act(()=>change(true))}>Rotate link — invalidate old link</button>
