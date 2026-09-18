@@ -36,6 +36,14 @@ Operational systems may also generate minimal server and delivery logs required 
 
 Public rate-limited routes may hold a short-lived, instance-local request counter keyed by client IP. The counter stops affecting access after its request window and is removed by periodic cleanup or process restart.
 
+## Public website analytics
+
+Public information pages use Cloudflare Web Analytics to measure document loads and page performance, including visits from the EU. The beacon sends measurements to Cloudflare. This integration does not send contact-form fields or Ask WitnessOps messages as analytics events.
+
+The beacon is not loaded on admin pages, authentication callbacks, private delivery and assessment routes, or the browser-based check and proofpack tools. Local and preview hosts are excluded. Pages with an active beacon use full-document navigation so its listeners do not continue into private pages. Automatic client-side route tracking is disabled. These measurements do not establish navigation clicks, individual visitor identity, or time spent on the site.
+
+See [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/about/) for the provider's measurement approach.
+
 ## How data is used
 
 Submitted information is used strictly for:

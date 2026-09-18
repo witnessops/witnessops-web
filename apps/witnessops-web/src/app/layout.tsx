@@ -127,6 +127,7 @@ export default async function RootLayout({
 
         */}
         <script src="/witnessops-manual.js" defer />
+        <script src="/witnessops-analytics.js" defer />
       </head>
       <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
         <a href="#main-content" className="skip-link">

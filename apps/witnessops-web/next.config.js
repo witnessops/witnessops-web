@@ -41,6 +41,16 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // Permit the manual beacon only on public information pages. Local tools,
+      // auth callbacks, admin, and private result routes retain the default CSP.
+      ...["/", "/:section(pricing|privacy|terms|security|media-kit|why|support|review|docs|articles|research|services|catalog|library|why-witnessops)/:path*"].map((source) => ({
+        source,
+        headers: securityHeaders.filter(({ key }) => key === "Content-Security-Policy").map(({ key, value }) => ({
+          key,
+          value: value.replace("script-src 'self'", "script-src 'self' https://static.cloudflareinsights.com/beacon.min.js")
+            .replace("connect-src 'self'", "connect-src 'self' https://cloudflareinsights.com/cdn-cgi/rum"),
+        })),
+      })),
       {
         source: "/proofpack",
         headers: [
