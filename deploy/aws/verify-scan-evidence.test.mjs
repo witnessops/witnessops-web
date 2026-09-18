@@ -41,6 +41,7 @@ function validRun() {
         ref: "refs/heads/main",
         sha: expected.sourceCommit,
       },
+      supplyChainWorkflow(),
     ],
     repository: {
       id: 1200448046,
@@ -125,16 +126,16 @@ function supplyChainWorkflow() {
 
 test("publication with the exact nested supply-chain gate is accepted in either order", () => {
   const run = validRun();
-  run.referenced_workflows.push(supplyChainWorkflow());
   assert.equal(validatePublicationRun(run, expected), true);
   run.referenced_workflows.reverse();
   assert.equal(validatePublicationRun(run, expected), true);
 });
 
 test("nested workflow inventory remains closed and bound to the publication commit", () => {
-  const good = [...validRun().referenced_workflows, supplyChainWorkflow()];
+  const good = validRun().referenced_workflows;
   for (const inventory of [
     [],
+    [good[0]],
     [good[1]],
     [good[0], good[0]],
     [...good, good[1]],
@@ -272,3 +273,22 @@ test("a manifest artifact with a different config digest is rejected", () => {
  test("legacy ECR-only evidence cannot authorize a new deployment",()=>{
    const evidence=validEvidence();evidence.schema_version=2;assert.throws(()=>validateScanEvidence(evidence,expected),/schema/);
  });
+
+
+test("only the exact historical rollback publication may omit the supply-chain gate", () => {
+  const historical = {
+    publicationRunId: "34687143425", publicationRunAttempt: "1",
+    sourceCommit: "07b46159e533a4135bd27c848b7a35d72f24da61",
+    imageDigest: "sha256:edca9acf0ea74fc5bc636575a88d52892b3a6babeeee59d92f4f39ecf45ad080",
+    configDigest: "sha256:106e108e8486397745cbfc1395f6913acb8d82c313ac525e62bb24a3ec81f472",
+  };
+  function rollbackRun(identity) {
+    return { ...validRun(), id: Number(identity.publicationRunId), run_attempt: Number(identity.publicationRunAttempt), head_sha: identity.sourceCommit,
+      referenced_workflows: [{ path: `witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@${identity.sourceCommit}`, ref: "refs/heads/main", sha: identity.sourceCommit }] };
+  }
+  assert.equal(validatePublicationRun(rollbackRun(historical), historical), true);
+  for (const [key, value] of Object.entries(expected)) {
+    const changed = { ...historical, [key]: value };
+    assert.throws(() => validatePublicationRun(rollbackRun(changed), changed), /required supply-chain workflow missing/);
+  }
+});
