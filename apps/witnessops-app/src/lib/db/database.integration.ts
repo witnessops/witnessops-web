@@ -1338,3 +1338,50 @@ test('Membership: concurrent capacity admission and cancel/accept races serializ
   assert.equal(count,row.state==='accepted'?'1':'0');
  } finally {if(previous===undefined)delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT=previous;}
 });
+
+test('Share: exact preview, roles, isolation, idempotency, immutable snapshot and revocation',async()=>{
+ const { ShareStore }=await import('./shares');const share=new ShareStore(pool);
+ const workspace=await store.create(a,'Share fixture',randomUUID()),other=await store.create(b,'Other share fixture',randomUUID());
+ const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),id=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,id,source);
+ await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'viewer')",[viewer.id,workspace]);
+ await assert.rejects(share.preview(viewer,workspace,id));await assert.rejects(share.preview(a,other,id));await assert.rejects(share.preview(b,workspace,id));
+ const preview=await share.preview(a,workspace,id);assert.equal(preview.canPublish,true);assert.equal(preview.token.length,43);
+ await assert.rejects(share.read(preview.token));assert.equal((await share.list(a,workspace,id)).length,0);
+ const raw=JSON.stringify(preview.snapshot);for(const value of [workspace,id,asset.id,a.id])assert.ok(!raw.includes(value));assert.equal(preview.snapshot.sourceArtifacts.length,0);
+ const input={id:preview.id,token:preview.token,digest:preview.digest,audience:'anyone_with_link'};
+ await assert.rejects(share.publish(a,workspace,{...input,audience:false}));await assert.rejects(share.publish(a,workspace,{...input,digest:'0'.repeat(64)}));await assert.rejects(share.publish(viewer,workspace,input));await assert.rejects(share.publish(b,other,input));
+ await Promise.all([share.publish(a,workspace,input),share.publish(a,workspace,input)]);assert.equal((await share.list(a,workspace,id)).length,1);
+ const stored=(await pool.query('SELECT token_hash,snapshot FROM report_shares WHERE id=$1',[preview.id])).rows[0];
+ assert.equal(stored.token_hash,createHash('sha256').update(preview.token).digest('hex'));assert.ok(!JSON.stringify(stored).includes(preview.token));
+ const received=await share.read(preview.token);assert.deepEqual(received.snapshot,preview.snapshot);
+ await assert.rejects(share.read('b'.repeat(43)));await assert.rejects(share.revoke(b,other,preview.id));
+ await pool.query("UPDATE workspaces SET status='archived' WHERE id=$1",[workspace]);await assert.rejects(share.read(preview.token));await pool.query("UPDATE workspaces SET status='active' WHERE id=$1",[workspace]);
+ const later=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,later,source);assert.deepEqual(await share.read(preview.token),received);
+ await assert.rejects(pool.query("UPDATE report_shares SET snapshot='{}' WHERE id=$1",[preview.id]));await assert.rejects(pool.query("UPDATE report_shares SET expires_at=now()+interval '9 days' WHERE id=$1",[preview.id]));
+ await assert.rejects(share.revoke(viewer,workspace,preview.id));await share.revoke(a,workspace,preview.id);await share.revoke(a,workspace,preview.id);await assert.rejects(share.read(preview.token));await assert.rejects(share.publish(a,workspace,input));
+ await pool.query("UPDATE memberships SET role='contributor' WHERE user_id=$1 AND workspace_id=$2",[viewer.id,workspace]);
+ const contributor=await share.preview(viewer,workspace,id);assert.equal(contributor.canPublish,false);await assert.rejects(share.publish(viewer,workspace,{id:contributor.id,token:contributor.token,digest:contributor.digest,audience:'anyone_with_link'}));
+ const stale=await share.preview(a,workspace,id);
+ await pool.query("UPDATE memberships SET role='contributor' WHERE user_id=$1 AND workspace_id=$2",[a.id,workspace]);
+ await pool.query("UPDATE memberships SET role='owner' WHERE user_id=$1 AND workspace_id=$2",[a.id,workspace]);
+ await assert.rejects(share.publish(a,workspace,{id:stale.id,token:stale.token,digest:stale.digest,audience:'anyone_with_link'}));
+ // Insert an already-expired immutable fixture rather than disabling the immutability trigger.
+ const token='E'.repeat(43);await pool.query("INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest,state,published_at,expires_at) VALUES($1,$2,$3,$4,1,$5,$6,$7,'published',now()-interval '8 days',now()-interval '1 day')",[randomUUID(),workspace,id,a.id,createHash('sha256').update(token).digest('hex'),preview.snapshot,preview.digest]);await assert.rejects(share.read(token));
+});
+
+test('Share: Linux recipient projection retains synthetic labels and unknowns; public HTTP requires a live token only',async()=>{
+ const { ShareStore }=await import('./shares');const { LinuxCheckStore }=await import('./linux-checks');const { createShareService }=await import('../share-server');
+ const workspace=await store.create(a,'Linux share fixture',randomUUID());const asset=await store.addAsset(a,workspace,'demo-host','linux_server');
+ const file=new URL('../../../../../tests/proofpack/production-fixtures/complete/proofpack-pr_lsa_20260710120000_198fd7aceb.zip',import.meta.url);
+ const imported=await new LinuxCheckStore(pool).import(a,workspace,asset.id,readFileSync(file),readFileSync(new URL(file.href+'.sig.json')),'proofpack-pr_lsa_20260710120000_198fd7aceb.zip');
+ const shares=new ShareStore(pool),preview=await shares.preview(a,workspace,imported.id);assert.equal(preview.snapshot.identity.synthetic,true);assert.ok(preview.snapshot.unknowns.length>0);assert.equal(preview.snapshot.sourceArtifacts.length,0);
+ await shares.publish(a,workspace,{id:preview.id,token:preview.token,digest:preview.digest,audience:'anyone_with_link'});
+ const api=createShareService({pool,origin,identity:async()=>null});
+ const req=(path:string,data:unknown)=>new Request(origin+path,{method:'POST',headers:{host:new URL(origin).host,origin,'Content-Type':'application/json'},body:JSON.stringify(data)});
+ assert.equal((await api(req('/api/shares',{action:'preview',runId:imported.id}))).status,401);
+ const response=await api(req('/api/shared-report',{token:preview.token}),true);assert.equal(response.status,200);assert.ok(response.headers.get('cache-control')?.includes('no-store'));assert.equal(response.headers.get('referrer-policy'),'no-referrer');assert.deepEqual((await response.json()).snapshot,preview.snapshot);
+ assert.equal((await api(req('/api/shared-report',{token:preview.token,workspaceId:workspace}),true)).status,400);
+ const foreign=req('/api/shared-report',{token:preview.token});foreign.headers.set('origin','https://foreign.invalid');assert.equal((await api(foreign,true)).status,403);
+ assert.equal((await api(new Request(origin+'/api/shared-report?token='+preview.token,{headers:{host:new URL(origin).host}}),true)).status,400);
+ await shares.revoke(a,workspace,preview.id);assert.equal((await api(req('/api/shared-report',{token:preview.token}),true)).status,404);
+});

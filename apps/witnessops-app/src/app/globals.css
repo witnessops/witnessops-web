@@ -375,3 +375,12 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 }
 .members-page select { min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--fg); font: inherit; }
 .members-page .page-heading { gap: 16px; }
+.report-sharing { margin: 20px 0; }
+.share-preview { margin-top: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 8px; }
+.share-preview > p, .share-preview > details, .share-preview > h3 { margin: 16px 0; }
+.share-preview .asset-form { margin: 16px 0; }
+.share-preview summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.shared-report { max-width: 1100px; margin: auto; padding: 24px; }
+.shared-report header { margin-bottom: 24px; }
+.shared-report header p { margin-top: 12px; overflow-wrap: anywhere; }
+@media print { .report-sharing { display: none; } }

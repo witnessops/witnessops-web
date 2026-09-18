@@ -2,6 +2,7 @@
 import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
+import { ReportShare } from "./report-share";
 import { Members } from "./members";
 import { CheckChoices } from "./check-choice";
 import { CHECK_DISCOVERY } from "../lib/check-discovery";
@@ -250,7 +251,7 @@ function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
   const previous = previousRun(workspace, run);
   const model = useMemo(() => savedRunReport(run, previous), [run, previous]);
   const { print, printRoot } = useBuyerReportPrint(model);
-  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><BuyerReportDocument model={model} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
+  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
 }
 
 function SignInLinks() {
@@ -401,7 +402,7 @@ export function ProductApp() {
     content = asset?.type === "linux_server" ? <LinuxAsset key={asset.id} workspace={workspace} asset={asset} imported={async run => { await refresh(); router.push(`/runs/${run.id}`); }} /> : asset ? <AssetPage key={asset.id} workspace={workspace} asset={asset} busy={busy} onRun={onRun} /> : <Missing title="Asset not found" />;
   } else if (parts[0] === "runs" && parts.length === 2) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
-    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} /> : run ? <RunPage key={run.id} workspace={workspace} run={run} busy={busy} onRun={onRun} /> : <Missing title="Run not found" />;
+    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} role={workspace.role} /> : run ? <RunPage key={run.id} workspace={workspace} run={run} busy={busy} onRun={onRun} /> : <Missing title="Run not found" />;
   } else if (parts[0] === "runs" && parts[2] === "observations" && parts.length === 4) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
     const check = run?.snapshot.checks.find((item) => item.check_id === parts[3]);
@@ -410,7 +411,7 @@ export function ProductApp() {
     content = <><Header title="Reports"><p>A report is a readable snapshot of one observation. It is not a security score.</p></Header><History workspace={workspace} report /><LinuxHistory workspace={workspace} /></>;
   } else if (parts[0] === "reports" && parts.length === 2) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
-    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} /> : run ? <ReportPage workspace={workspace} run={run} /> : <Missing title="Report not found" />;
+    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} role={workspace.role} /> : run ? <ReportPage workspace={workspace} run={run} /> : <Missing title="Report not found" />;
   } else if (pathname === "/members") {
     content = <Members key={workspace.id} workspaceId={workspace.id} onChanged={refresh} />;
   } else if (pathname === "/settings") {

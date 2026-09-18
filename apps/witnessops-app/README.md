@@ -108,6 +108,16 @@ pnpm health
 
 ## Deferred and production prerequisites
 
-No billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or public report sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Edit checks explains the fixed ten-check method.
+No billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or named-recipient sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Edit checks explains the fixed ten-check method.
 
 Before `app.witnessops.com`: separately authorize DNS/TLS/app routing, runtime/image publication and deployment; configure the production WorkOS client and exact HTTPS callbacks/sign-out URLs; custody runtime secrets separately; provision PostgreSQL backups/recovery/retention and migration grants; establish production session/operational limits and multi-worker execution admission. RLS is a later hardening layer. Public release commands still target witnessops-web; this slice does not deploy either application.
+
+## Fixed-revision report sharing
+
+Owners can preview and explicitly publish a completed hostname or Linux report. Contributors can preview; Viewers retain ordinary read/export access. Publication fixes the recipient projection and its SHA-256 digest in an additive `report_shares` record. The digest identifies bytes, not the truth of findings. The preview shows the exact content, audience and expiry before confirmation. Previews expire for publication after one hour; links expire seven days after preview creation. Repeated publication of the same preview is idempotent.
+
+The recipient projection omits raw attachments, detailed source observations, member emails, internal resource identifiers and comparison history. It preserves material unknowns, method limitations and existing synthetic labels. Owners must inspect the preview for sensitive narrative content before publishing. There is no source-download endpoint on this surface.
+
+Links use `/s#<secret>`: the fragment stays in the link so refresh and browser copying work, but is sent to the server only in the body of a same-origin POST to `/api/shared-report`. Tokens are random 256-bit values stored only as hashes. The public endpoint checks current publication, expiry and workspace state on every request. It exposes neither private workspace APIs nor membership. Pages and responses are no-store/noindex/no-referrer; the recipient page does not mount AuthKit or analytics. Revocation denies subsequent requests immediately; the open page rechecks periodically and when returning to it. Previously seen or downloaded content cannot be recalled. Losing a copied link requires publishing a new revision; tokens cannot be recovered from the database.
+
+Before customer activation: apply migration 0016 with appropriate runtime table privileges, confirm recovery procedures and deployed proxy/cache/body-log exclusions, and complete the authenticated Owner → separate-browser recipient → revoke journey in staging. Route-fixture browser tests and isolated database tests do not establish hosted acceptance. No mail configuration is needed.
