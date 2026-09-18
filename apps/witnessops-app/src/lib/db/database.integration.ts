@@ -1345,7 +1345,7 @@ test('Share: exact preview, roles, isolation, idempotency, immutable snapshot an
  const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),id=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,id,source);
  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'viewer')",[viewer.id,workspace]);
  await assert.rejects(share.preview(viewer,workspace,id));await assert.rejects(share.preview(a,other,id));await assert.rejects(share.preview(b,workspace,id));
- const preview=await share.preview(a,workspace,id);assert.equal(preview.canPublish,true);assert.equal(preview.token.length,43);
+ const preview=await share.preview(a,workspace,id,'Release review');assert.equal(preview.snapshot.sharedTitle,'Release review');assert.equal(preview.canPublish,true);assert.equal(preview.token.length,43);
  await assert.rejects(share.read(preview.token));assert.equal((await share.list(a,workspace,id)).length,0);
  const raw=JSON.stringify(preview.snapshot);for(const value of [workspace,id,asset.id,a.id])assert.ok(!raw.includes(value));assert.equal(preview.snapshot.sourceArtifacts.length,0);
  const input={id:preview.id,token:preview.token,digest:preview.digest,audience:'anyone_with_link'};
@@ -1353,7 +1353,9 @@ test('Share: exact preview, roles, isolation, idempotency, immutable snapshot an
  await Promise.all([share.publish(a,workspace,input),share.publish(a,workspace,input)]);assert.equal((await share.list(a,workspace,id)).length,1);
  const stored=(await pool.query('SELECT token_hash,snapshot FROM report_shares WHERE id=$1',[preview.id])).rows[0];
  assert.equal(stored.token_hash,createHash('sha256').update(preview.token).digest('hex'));assert.ok(!JSON.stringify(stored).includes(preview.token));
- const received=await share.read(preview.token);assert.deepEqual(received.snapshot,preview.snapshot);
+ const received=await share.read(preview.token);assert.deepEqual(received.snapshot,preview.snapshot);assert.ok(received.publishedAt);
+ const renamed=await share.preview(a,workspace,id,'Next release');assert.notEqual(renamed.digest,preview.digest);assert.equal((await share.read(preview.token)).snapshot.sharedTitle,'Release review');
+ await assert.rejects(share.preview(a,workspace,id,'x'.repeat(121)));
  await assert.rejects(share.read('b'.repeat(43)));await assert.rejects(share.revoke(b,other,preview.id));
  await pool.query("UPDATE workspaces SET status='archived' WHERE id=$1",[workspace]);await assert.rejects(share.read(preview.token));await pool.query("UPDATE workspaces SET status='active' WHERE id=$1",[workspace]);
  const later=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,later,source);assert.deepEqual(await share.read(preview.token),received);

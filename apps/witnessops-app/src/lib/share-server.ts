@@ -49,8 +49,8 @@ export function createShareService(options: {
             const workspace = requireId(request.headers.get('x-witnessops-workspace'));
             let result;
             if (input.action === 'preview') {
-                fields(['action', 'runId']);
-                result = await store.preview(user, workspace, input.runId);
+                fields(Object.hasOwn(input, 'name') ? ['action', 'runId', 'name'] : ['action', 'runId']);
+                result = await store.preview(user, workspace, input.runId, input.name);
             }
             else if (input.action === 'list') {
                 fields(['action', 'runId']);

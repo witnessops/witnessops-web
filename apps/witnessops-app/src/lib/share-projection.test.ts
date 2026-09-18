@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { externalExposureReportModel } from '../../../witnessops-web/src/lib/external-exposure/report-model';
-import { recipientReport } from './share-projection';
+import { recipientReport, reportTitle, validateReportName } from './share-projection';
 import type { ReportModelInput } from '../../../witnessops-web/src/lib/proofpack/report-model';
 const source = JSON.parse(readFileSync(new URL('../../../../tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json', import.meta.url), 'utf8'));
 test('recipient allowlist excludes arbitrary fields, identifiers, raw content and email/credential material', () => {
@@ -23,4 +23,19 @@ test('recipient allowlist excludes arbitrary fields, identifiers, raw content an
     assert.deepEqual(result.findings.map(x => x.limitations), model.findings.map(x => x.limitations));
     assert.equal(result.sourceArtifacts.length, 0);
     assert.ok(Object.isFrozen(result));
+});
+
+test('names are bounded literal text, frozen in a new projection; legacy shares remain unchanged', () => {
+ const model = externalExposureReportModel(source, { digest: 'a'.repeat(64), serialization: 'json-stringify' });
+ const old = recipientReport(model), before = JSON.stringify(old);
+ assert.equal(old.sharedTitle, undefined);
+ assert.ok(reportTitle(old).includes(model.subject.label));
+ const named = recipientReport(model, '  Release <script>review</script>  ');
+ assert.equal(named.sharedTitle, 'Release <script>review</script>');
+ assert.equal(JSON.stringify(old), before);
+ assert.equal(named.identity.sourceDigest, old.identity.sourceDigest);
+ assert.ok(Object.isFrozen(named));
+ assert.notEqual(JSON.stringify(named), before);
+ for (const invalid of ['', ' ', 'a'.repeat(121), 'line\nline', null, 123]) assert.throws(() => validateReportName(invalid));
+ assert.equal(recipientReport(model, 'member@example.test').sharedTitle, '[email omitted]');
 });
