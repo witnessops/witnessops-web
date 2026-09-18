@@ -1,4 +1,5 @@
 'use client';
+import { useRef } from 'react';
 import { BuyerReportDocument } from '../../../witnessops-web/src/components/proofpack/buyer-report';
 import { reportTitle, type RecipientReport } from '../lib/share-projection';
 import styles from './recipient-reader.module.css';
@@ -7,11 +8,21 @@ import styles from './recipient-reader.module.css';
 export function RecipientReader({ model, digest, publishedAt, expiresAt, preview = false }: {
     model: RecipientReport; digest: string; publishedAt?: string | null; expiresAt?: string; preview?: boolean;
 }) {
+    const root = useRef<HTMLDivElement>(null);
+    const navigate = (id: string) => {
+        const target = root.current?.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+        if (!target) return;
+        if (target instanceof HTMLDetailsElement) target.open = true;
+        const focusTarget = target.querySelector<HTMLElement>('summary, h2') ?? target;
+        if (focusTarget.tagName !== 'SUMMARY') focusTarget.tabIndex = -1;
+        focusTarget.focus({ preventScroll: true });
+        target.scrollIntoView({ block: 'start' });
+    };
     const title = reportTitle(model), checks = model.summary.checks;
     const attention = model.findings.filter(f => f.state === 'needs_attention');
     const next = (attention.length ? attention : model.findings).filter(f => f.recommendation).slice(0, 3);
     const date = (value: string) => { const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? 'Not recorded' : parsed.toISOString().replace('T', ' ').replace('.000Z', ' UTC').replace('Z', ' UTC'); };
-    return <div className={styles.reader}>
+    return <div ref={root} className={styles.reader}>
         <article className={styles.screen} aria-label="Shared report reader">
             <header className={styles.hero}>
                 <p className={styles.kicker}>WitnessOps · {preview ? 'Recipient preview' : 'Fixed report revision'}</p>
@@ -24,11 +35,11 @@ export function RecipientReader({ model, digest, publishedAt, expiresAt, preview
                 </div>
                 <p>{model.unknowns.length} recorded unknowns · {model.collectionGaps.length} collection gaps</p>
                 <h2>What to do next</h2>
-                {next.length ? <ul>{next.map(f => <li key={f.id}><a href={`#recipient-${f.id}`}>{f.title}</a> — {f.recommendation}</li>)}</ul> : <p>{attention.length ? 'Inspect the attention findings. No recommendation was recorded; agree an appropriate follow-up with the responsible owner.' : model.unknowns.length || model.collectionGaps.length ? 'Review the missing evidence and recorded limits below before drawing a conclusion.' : 'Keep this bounded baseline and repeat an appropriate authorized check after a relevant change. No overall security conclusion is established.'}</p>}
-                <a href="#recipient-findings">View all findings and unknowns</a>
+                {next.length ? <ul>{next.map(f => <li key={f.id}><button type="button" className={styles.jump} onClick={()=>navigate(`recipient-${f.id}`)}>{f.title}</button> — {f.recommendation}</li>)}</ul> : <p>{attention.length ? 'Inspect the attention findings. No recommendation was recorded; agree an appropriate follow-up with the responsible owner.' : model.unknowns.length || model.collectionGaps.length ? 'Review the missing evidence and recorded limits below before drawing a conclusion.' : 'Keep this bounded baseline and repeat an appropriate authorized check after a relevant change. No overall security conclusion is established.'}</p>}
+                <button type="button" className={styles.jump} onClick={()=>navigate('recipient-findings')}>View all findings and unknowns</button>
             </header>
-            <nav className={styles.nav} aria-label="Report sections">{[['scope','Scope'],['findings','Findings'],['evidence','Evidence included'],['method','Verification method'],['history','Report history'],['export','Export']].map(([id,label]) => <a key={id} href={`#recipient-${id}`}>{label}</a>)}</nav>
-            <section id="recipient-scope"><h2>Scope</h2><p>{model.subject.scopeSummary}</p><p>{model.subject.scopeBoundary}</p></section>
+            <nav className={styles.nav} aria-label="Report sections">{[['scope','Scope'],['findings','Findings'],['evidence','Evidence included'],['method','Verification method'],['history','Report history'],['export','Export']].map(([id,label]) => <button type="button" className={styles.jump} key={id} onClick={()=>navigate(`recipient-${id}`)}>{label}</button>)}</nav>
+            <section id="recipient-scope"><h2>Scope</h2><p>{model.subject.scopeSummary}</p><p>{model.subject.scopeBoundary}</p><h3>Recorded coverage</h3><ul>{model.coverage.map(item=><li key={item.id}><strong>{item.label}</strong> — {item.complete ? 'Collection complete' : 'Collection incomplete'} · Recorded outcome: {item.observedState ?? 'Not recorded'}</li>)}</ul><p>Collection completeness does not establish an expected outcome.</p></section>
             <section id="recipient-findings"><h2>Findings and unknowns</h2><p>Recorded order. Severity and disposition are separate; unknowns are not vulnerabilities.</p>
                 {model.findings.length === 0 && <p>No findings recorded. This does not establish that the system is secure.</p>}
                 {model.findings.map(f => <details id={`recipient-${f.id}`} key={f.id} className={styles.finding}><summary><strong>{f.title}</strong><span>{f.state} · {f.severity === null ? 'Severity not assessed' : `Severity: ${f.severity}`}</span></summary><h3>Recorded interpretation</h3><p>{f.interpretation || 'No interpretation recorded.'}</p><h3>Recommended next step</h3><p>{f.recommendation || 'No recommendation recorded. An appropriate follow-up test still needs to be agreed.'}</p><h3>Limits</h3>{f.limitations.length ? <ul>{f.limitations.map((l,i)=><li key={i}>{l}</li>)}</ul> : <p>No finding-specific limits recorded; the report scope and method limits still apply.</p>}<p className={styles.muted}>Detailed source observations are not included in this share.</p></details>)}

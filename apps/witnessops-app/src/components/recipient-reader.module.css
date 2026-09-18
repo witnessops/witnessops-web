@@ -18,6 +18,8 @@
 .results p { background:var(--surface); padding:16px; margin:0; border-radius:var(--radius); }
 .results strong { display:block; font-size:32px; }
 .nav { display:flex; flex-wrap:wrap; gap:8px 24px; padding:20px var(--spacing); border-bottom:1px solid var(--border); background:var(--surface); }
+.jump {background:none;border:0;padding:0;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:4px;cursor:pointer;color:var(--text);}
+.jump:hover {color:var(--warning);}
 .screen a { color:var(--text); text-underline-offset:4px; }
 .screen a:hover { color:var(--warning); }
 .screen :is(a,button,summary):focus-visible { outline:2px solid var(--warning); outline-offset:5px; }

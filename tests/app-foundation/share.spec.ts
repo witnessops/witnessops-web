@@ -57,24 +57,50 @@ for (const width of [1440, 390]) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
   const recipient = await context.newPage(); const unexpected: string[] = [];
   recipient.on('pageerror', e => errors.push(e.message));
-  await recipient.route('**/*', route => {
+  const recipientRequests: string[] = [];
+  const recipientHandler = (route: import('@playwright/test').Route) => {
    const request = route.request(), url = new URL(request.url());
    expect(request.url()).not.toContain(token);
    if (url.origin !== baseURL) { unexpected.push(request.url()); return route.abort(); }
    if (url.pathname === '/api/shared-report') {
-    expect(request.method()).toBe('POST'); expect(request.postDataJSON()).toEqual({ token });
+    expect(request.method()).toBe('POST');
+    const received = request.postDataJSON().token; recipientRequests.push(received);
+    if (received !== token) return route.fulfill({status:404,json:{error:'Unavailable'}});
     expect(request.headers().cookie).toBeUndefined(); expect(request.headers().referer).toBeUndefined();
     return state === 'published' ? route.fulfill({ json: { snapshot: named, digest, expiresAt }, headers: { 'Cache-Control': 'no-store' } }) : route.fulfill({ status: 404, json: { error: 'Unavailable' } });
    }
    if (url.pathname.startsWith('/api/') || url.pathname.includes('auth')) { unexpected.push(url.pathname); return route.abort(); }
    return route.continue();
-  });
+  };
+  await recipient.route('**/*', recipientHandler);
   const response = await recipient.goto(`${baseURL}/s#${token}`);
   expect(response!.headers()['cache-control']).toContain('no-store');
   expect(response!.headers()['x-robots-tag']).toContain('noindex');
   await expect(recipient.locator('article[aria-label="Shared report reader"]')).toBeVisible();
   await expect(recipient).toHaveURL(`${baseURL}/s#${token}`);
   await expect(recipient.getByRole('heading',{name:'Release review <script>',exact:true})).toBeVisible();
+  const reader = recipient.getByRole('article',{name:'Shared report reader'});
+  for (const label of ['Scope','Findings','Evidence included','Verification method','Report history','Export']) {
+   const button = reader.getByRole('navigation').getByRole('button',{name:label,exact:true});
+   await button.focus(); await recipient.keyboard.press('Enter');
+   await expect(reader.getByRole('heading',{name:label === 'Findings' ? 'Findings and unknowns' : label,exact:true})).toBeFocused();
+   await expect(recipient).toHaveURL(`${baseURL}/s#${token}`);
+   await recipient.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+  }
+  await reader.getByRole('button',{name:'View all findings and unknowns'}).click();
+  await expect(reader.getByRole('heading',{name:'Findings and unknowns',exact:true})).toBeFocused();
+  const suggested = named.findings.find(f=>f.recommendation)!;
+  await reader.getByRole('button',{name:suggested.title,exact:true}).focus();
+  await recipient.keyboard.press('Space');
+  const target = reader.locator('details').filter({has:recipient.locator('summary strong').filter({hasText:suggested.title})});
+  await expect(target).toHaveAttribute('open','');
+  await expect(target.locator('summary')).toBeFocused();
+  await expect(recipient).toHaveURL(`${baseURL}/s#${token}`);
+  for (const item of named.coverage) {
+   const row = reader.locator('#recipient-scope li').filter({hasText:item.label});
+   await expect(row).toContainText(item.complete ? 'Collection complete' : 'Collection incomplete');
+   await expect(row).toContainText(item.observedState ?? 'Not recorded');
+  }
   await recipient.emulateMedia({media:'print'});
   await expect(recipient.getByRole('button',{name:'Export PDF'})).toBeHidden();
   await expect(recipient.locator('main')).toContainText('Source evidence is not included');
@@ -84,6 +110,16 @@ for (const width of [1440, 390]) {
   await expect(recipient.locator('main')).toContainText('does not establish that the findings are true');
   expect(await recipient.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await recipient.screenshot({ path: info.outputPath(`recipient-${width}.png`) });
+  const copiedContext = await browser.newContext();
+  const copiedPage = await copiedContext.newPage();
+  await copiedPage.route('**/*', recipientHandler);
+  await copiedPage.goto(recipient.url());
+  await expect(copiedPage.getByRole('article',{name:'Shared report reader'})).toBeVisible();
+  await copiedPage.evaluate(()=>{location.hash='incorrect-token';});
+  await expect(copiedPage.locator('main').getByRole('alert')).toContainText('unavailable');
+  expect(recipientRequests.pop()).toBe('incorrect-token');
+  await copiedPage.goto(recipient.url());
+  await expect(copiedPage.getByRole('article',{name:'Shared report reader'})).toBeVisible();
   let releasePoll: (()=>void)|undefined;
   const delayed = async (route: import('@playwright/test').Route) => { await new Promise<void>(resolve => { releasePoll=resolve; }); await route.fulfill({json:{snapshot:named,digest,expiresAt}}); };
   await recipient.route('**/api/shared-report',delayed);
@@ -102,6 +138,11 @@ for (const width of [1440, 390]) {
   await expect(recipient.locator('article[aria-label="Shared report reader"]')).toHaveCount(0);
   await panel.getByRole('button', { name: 'Close preview' }).click();
   await expect(page.getByRole('button', { name: 'Share report', exact: true })).toBeFocused();
+  await copiedPage.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+  await expect(copiedPage.locator('main').getByRole('alert')).toContainText('expired or revoked');
+  expect(recipientRequests.length).toBeGreaterThan(3);
+  expect(recipientRequests.every(value=>value===token)).toBe(true);
+  await copiedContext.close();
   expect(unexpected).toEqual([]); expect(errors).toEqual([]); await context.close();
  });
 }
@@ -148,6 +189,11 @@ for (const kind of ['complete','partial','adverse']) for (const width of [1440,3
  for(const unknown of projection.unknowns) await expect(reader).toContainText(unknown.reason);
  await expect(reader).toContainText(projection.verification.boundary);
  await expect(reader).toContainText('Source evidence is not included');
+ for (const item of projection.coverage) {
+  const row = reader.locator('#recipient-scope li').filter({hasText:item.label});
+  await expect(row).toContainText(item.complete ? 'Collection complete' : 'Collection incomplete');
+  await expect(row).toContainText(item.observedState ?? 'Not recorded');
+ }
  await expect(reader.getByRole('heading',{level:1})).toContainText(projection.subject.label);
  const finding=projection.findings.length ? reader.locator('details').filter({hasText:projection.findings[0].title}) : reader.locator('details').filter({hasText:'Link access and expiry'});
  await finding.locator('summary').focus(); await page.keyboard.press('Enter');
