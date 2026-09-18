@@ -28,7 +28,7 @@ afterEach(async () => {
 });
 async function fixture() {
   const imported = await importGmailInboxItem({ gmailMessageId: "synthetic-message", gmailThreadId: "synthetic-thread", sender: "Avery <avery@example.test>", recipients: ["preview@example.test"], subject: "Production review", excerpt: "Review CRM write access before Friday.", receivedAt: new Date().toISOString() }, founder);
-  return (await convertInboxItemToReviewRequest(imported.item.id, owner)).reviewRequest;
+  return (await convertInboxItemToReviewRequest(imported.item.id, { ...owner, role: "Founder" })).reviewRequest;
 }
 function inputFor(request: ReviewRequestRecord) {
   return { ...Object.fromEntries(REVIEW_BRIEF_FIELDS.map(({ name }) => [name, request[name]])), missingInformation: request.missingInformation, expectedVersion: reviewRequestEditVersion(request) };

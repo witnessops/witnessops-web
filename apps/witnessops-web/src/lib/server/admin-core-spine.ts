@@ -1650,6 +1650,9 @@ export async function convertInboxItemToReviewRequest(
       requireAssignedBusinessRecord(actor, existing.owner);
       return { reviewRequest: clone(existing), customer: clone(customer), created: false };
     }
+    // Unlinked items have no assigned operator: only Founder can create the
+    // initial request. Check before idempotency lookup as well as mutation.
+    requireInboxAssignment(state, item, actor);
     const existingIdempotency = state.idempotency[idempotencyKey];
     if (existingIdempotency) {
       const existing = state.reviewRequests.find((request) => request.id === existingIdempotency.recordId);
