@@ -37,8 +37,17 @@ h2 { font-size: 16px; font-weight: 500; line-height: 1.4; }
 h3 { font-size: 14px; font-weight: 500; }
 p, li, dd { overflow-wrap: anywhere; }
 ul { padding-left: 20px; }
-.mono, code, pre, .eyebrow { font-family: var(--mono); }
+/* The machine layer: hostnames, targets, digests, ids, status codes.
+   .mono is retained for existing call sites; migrate them case by case, since
+   some fixed-width technical content is legitimately mono and not an identifier. */
+.mono, .identifier, code, pre { font-family: var(--mono); }
+/* A prose label above a heading. Sans: it is a word, not an identifier. */
 .eyebrow { color: var(--subtle); font-size: 11px; letter-spacing: .045em; margin-bottom: 8px; }
+/* An eyebrow carrying a hostname or target stays in the machine layer.
+   Mono is already wide, so drop the prose tracking and lift it one step. */
+.eyebrow.identifier { letter-spacing: 0; color: var(--muted); }
+/* A heading that is an identifier carries no prose tracking. */
+h1.identifier, h2.identifier { letter-spacing: 0; overflow-wrap: anywhere; }
 .quiet { color: var(--subtle); font-size: 12px; line-height: 1.6; }
 .support { color: var(--muted); margin-top: 12px; max-width: 600px; }
 .support p + p { margin-top: 8px; }
