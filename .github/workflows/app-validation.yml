@@ -208,6 +208,7 @@ jobs:
             --output type=oci,dest=artifacts/app-validation/image.tar \
             --metadata-file artifacts/app-validation/build.json "$RUNNER_TEMP/app-source"
           python3 deploy/aws/inspect-oci-image.py artifacts/app-validation/image.tar > artifacts/app-validation/identity.json
+          (cd artifacts/app-validation && sha256sum image.tar > image.sha256)
       - name: Independent exact-manifest Trivy (no suppression)
         run: bash deploy/aws/scan-runtime-image.sh artifacts/app-validation/image.tar artifacts/app-validation
       - name: Test exact scanned image with disposable authentication
@@ -224,6 +225,20 @@ jobs:
           database_host=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' app-image-test-db)
           test -n "$database_host"
           TEST_DATABASE_HOST="$database_host" TEST_IMAGE_ARCHIVE=artifacts/app-validation/image.tar TEST_IMAGE_REF="$manifest" TEST_IMAGE_CONFIG="$config" node --import ./apps/witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx tests/publication/authenticated-image.mts | tee artifacts/app-validation/authenticated-runtime.json
+      - name: Confirm tested archive bytes are unchanged
+        working-directory: artifacts/app-validation
+        run: sha256sum --check image.sha256
+      - name: Retain tested app candidate (not production publication)
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-image-candidate
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            artifacts/app-validation/image.tar
+            artifacts/app-validation/image.sha256
+            artifacts/app-validation/*.json
       - name: Preserve exact-image evidence (no publication/deployment)
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
