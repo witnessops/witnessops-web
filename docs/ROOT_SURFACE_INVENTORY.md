@@ -52,6 +52,47 @@ Observed findings:
 - Searches for stale public labels, TODO/FIXME/deprecated markers, backup/temp markers, and mutable sample links did not produce deletion-ready targets.
 - 2026-05-23 update: root `azure.yaml` and `infra/**` were classified as retired Azure ACA material and moved to `docs/archive/azure-aca-retired-20260508/`.
 
+## Root-file retirement decisions — 2026-09-20
+
+This follow-up closes the two root-file candidates identified after the earlier
+scope sweep. Source baseline:
+[`beada60e313199e7432841e1d1b0a93e140f1fc1`](https://github.com/witnessops/witnessops-web/tree/beada60e313199e7432841e1d1b0a93e140f1fc1).
+Earlier sweep and scope-review findings describe their own passes, not this one.
+
+| File | Decision and evidence |
+| --- | --- |
+| `tsconfig.base.json` | Remove the root duplicate; no consumer was found in the review below. Its Git blob is identical to retained `packages/tsconfig/base.json` (`85bb4595f2999f7fabbf69d30aed1fe1e1a06062`). The inspected app/demo/catalog configs are standalone; content extends `@witnessops/tsconfig/base.json`, and web tests extend the local web config. No inspected command or indexed content reference selects the root copy. No `extends`, compiler option or package export is rewritten. |
+| `witnessops-web-ui-map.md` | Retire the manual May/July website inventory. It declares itself source-derived, not authority, and says to regenerate after route changes. Its static route/assistant descriptions are not the current app inventory. No indexed inbound filename reference or command consumer was found. Use the maintained source/contracts below instead of another manually copied route list. |
+
+**Reference-check scope:** GitHub content searches for the exact root config name
+and the UI-map filename stem returned zero matches, with `incomplete_results`
+false. The broader `tsconfig` query returned 13 matches; package/test configuration
+references point to local or packaged configs, not the root duplicate. Root and
+app package scripts, the app/demo/catalog configs, content inheritance, web test
+inheritance and the quick-check script were inspected at this baseline. A search
+is not a full filesystem scan: external bookmarks, untracked scripts and personal
+commands are unknown. The review does not classify other config copies as unused.
+
+**Maintained replacements:**
+
+- [`packages/tsconfig/base.json`](../packages/tsconfig/base.json) — packaged shared config; existing consumers are unchanged.
+- [`apps/witnessops-web/src/lib/server/api-contract.ts`](../apps/witnessops-web/src/lib/server/api-contract.ts) and [`apps/witnessops-app/src/lib/api-contract.ts`](../apps/witnessops-app/src/lib/api-contract.ts) — declared API boundaries.
+- [`tests/route-parity/`](../tests/route-parity/) and the two app source trees — route/redirect checks and actual page/layout/component behavior; not evidence of live exposure.
+- [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md) and [`docs/README.md`](./README.md) — orientation and current maintenance boundaries.
+
+**Recovery:** the original
+[root config](https://github.com/witnessops/witnessops-web/blob/beada60e313199e7432841e1d1b0a93e140f1fc1/tsconfig.base.json)
+and [UI map](https://github.com/witnessops/witnessops-web/blob/beada60e313199e7432841e1d1b0a93e140f1fc1/witnessops-web-ui-map.md)
+remain in Git history. Retirement does not resolve historical findings or prove
+that every statement in the old map was false.
+
+**Validation:** compare the exact removal diff and retained package blob, then
+require `pnpm health` (including typechecks/builds and route parity) and required
+CI before merge. `pnpm docs:validate` checks public MDX, not this Markdown.
+The source/reference review is complete; no local repository-health pass is
+claimed by this record. Test results belong to the exact PR/candidate. No routes,
+fixtures, application code, package scripts or deployment helpers are removed.
+
 ## Deletion gate
 
 A future stale-file deletion PR must name each target file and include evidence for each target:
