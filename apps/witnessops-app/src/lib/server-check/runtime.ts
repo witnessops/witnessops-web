@@ -11,6 +11,7 @@ export const MAX_CAPTURE = 25 * 1024 * 1024;
 export type CaptureMetadata = {authority: unknown; hostname: string; collectorHash: string};
 export interface Finalizer {
   preflight(): Promise<string>;
+  reconcileCapture(id: string, bytes: Buffer): Promise<void>;
   validate(id: string, bytes: Buffer): Promise<CaptureMetadata>;
   finalize(id: string, bytes: Buffer): Promise<{zipName: string; zip: Buffer; signature: Buffer}>;
 }
@@ -33,6 +34,22 @@ export class LocalAuditFinalizer implements Finalizer {
     const stat=await lstat(dir); if(!stat.isDirectory()||stat.isSymbolicLink()||stat.uid!==root.uid||(stat.mode&0o077))throw new CliError('finalizer_unavailable',503);
     await this.preserve(path.join(dir,'registry.json'),Buffer.from(pinnedRegistryInput().bytes));
     return dir;
+  }
+  /** Read-only legacy identity check; never establishes or releases a charge. */
+  async reconcileCapture(id:string,bytes:Buffer) {
+    if(!/^[a-f0-9-]{36}$/.test(id)||!path.isAbsolute(this.config.root))throw new CliError('finalizer_unavailable',503);
+    const root=await lstat(this.config.root);
+    if(!root.isDirectory()||root.isSymbolicLink()||root.uid!==process.getuid!()||(root.mode&0o077)||await realpath(this.config.root)!==this.config.root)throw new CliError('finalizer_unavailable',503);
+    const dir=path.join(this.config.root,id);
+    try {
+      const ds=await lstat(dir);
+      if(!ds.isDirectory()||ds.isSymbolicLink()||ds.uid!==root.uid||(ds.mode&0o077))throw new CliError('custody_mismatch',409);
+      const file=await open(path.join(dir,'capture.json'),constants.O_RDONLY|constants.O_NOFOLLOW);
+      try {
+        const fs=await file.stat();
+        if(!fs.isFile()||fs.uid!==root.uid||(fs.mode&0o077)||fs.size!==bytes.length||!bytes.equals(await file.readFile()))throw new CliError('custody_mismatch',409);
+      }finally{await file.close();}
+    }catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   }
   private async preserve(file: string, bytes: Buffer) {
     try { const fd=await open(file,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);try{await fd.writeFile(bytes);await fd.sync();}finally{await fd.close();} }

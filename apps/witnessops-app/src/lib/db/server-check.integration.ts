@@ -1,7 +1,7 @@
 import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {writeFile,readFile,mkdir,stat} from 'node:fs/promises';
+import {writeFile,readFile,mkdir,stat,readdir} from 'node:fs/promises';
 import {parseEnv,promisify} from 'node:util';
 import {execFile} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
@@ -16,7 +16,7 @@ import {ApiError} from '../errors';
 import {CliAuthStore,CliError,type WebCliIdentity} from './cli-auth';
 import {LinuxCheckStore,sha256} from './linux-checks';
 import {ServerCheckStore} from '../server-check/store';
-import {LocalAuditFinalizer} from '../server-check/runtime';
+import {LocalAuditFinalizer,MAX_CAPTURE,type Finalizer} from '../server-check/runtime';
 import {createServerCheckService} from '../server-check/service';
 const exec=promisify(execFile);
 const env=parseEnv(readFileSync(new URL('../../../.env.test.local',import.meta.url),'utf8'));
@@ -87,18 +87,18 @@ test('Linux source limit is shared by concurrent browser and CLI registration; e
  } finally {await fresh.end();}
 });
 
-test('legacy CLI execution ceiling remains until enrollment; an existing source finalizes after 32 authorizations at zero contribution',async()=>{
+test('execution ceiling survives historical enrollment; admitted work still finalizes at the limit',async()=>{
  const ws=new WorkspaceStore(pool),selected=await ws.create(user,'Execution capacity fixture',randomUUID());
  const token=await credential('cli:session server_check:create',selected);
- for(let i=0;i<32;i++)await store.authorize(token,request());
+ let execution=await store.authorize(token,request());
+ for(let i=1;i<32;i++)execution=await store.authorize(token,request());
  const existing=(await ws.read(user,selected)).assets;
  assert.equal(existing.length,1);
  const input={...request(),assetId:existing[0].id};
  await assert.rejects(store.authorize(token,input),(error:unknown)=>error instanceof CliError && error.code === 'execution_capacity' && error.status === 409);
  assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'32');
  await new EarlyAccessPlanStore(pool).recordConsent(user,selected,{requestId:randomUUID(),expectedRevision:0,termsVersion:EARLY_ACCESS_PLAN_POLICY.version,contributionMinor:0,accepted:true});
- const execution=await store.authorize(token,input);
- assert.equal((await store.authorize(token,input)).id,execution.id);
+ await assert.rejects(store.authorize(token,input),/execution_capacity/);
  const bytes=await frozen(execution.authority),digest=sha256(bytes);
  await store.upload(token,execution.id,bytes,digest);
  const saved=await store.status(token,execution.id);assert.equal(saved.state,'run_created');
@@ -107,8 +107,8 @@ test('legacy CLI execution ceiling remains until enrollment; an existing source 
  assert.equal(reopened.run.assetId,existing[0].id);assert.ok(reopened.projectionMatches);
  const row=(await pool.query('SELECT capture_bytes,capture_digest FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
  assert.ok(row.capture_bytes.equals(bytes));assert.equal(row.capture_digest,digest);
- assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'33');
- assert.equal((await pool.query("SELECT count(*) FROM server_check_executions WHERE workspace_id=$1 AND state='authorized'",[selected])).rows[0].count,'32');
+ assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'32');
+ assert.equal((await pool.query("SELECT count(*) FROM server_check_executions WHERE workspace_id=$1 AND state='authorized'",[selected])).rows[0].count,'31');
  assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1',[selected])).rows[0].count,'1');
  assert.equal((await ws.read(user,selected)).assets.length,1);
 });
@@ -195,4 +195,104 @@ test('Contributor requires fresh CLI scope; rejoining cannot revive an unfinishe
  await assert.rejects(store.status(fresh,execution.id),/revoked/);
  await assert.rejects(store.authorize(fresh,input),/revoked/);
  await pool.query("UPDATE memberships SET role='owner' WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);
+});
+
+
+test('free policy cannot bypass retained execution admission; matching authorization retries remain usable',async()=>{
+ const selected=await new WorkspaceStore(pool).create(user,'Free custody bound',randomUUID());
+ await pool.query("INSERT INTO free_workspace_plans(workspace_id,policy_version) VALUES($1,'free-workspace-v1')",[selected]);
+ const token=await credential('cli:session server_check:create',selected),input=request();
+ const first=await store.authorize(token,input);
+ for(let i=1;i<32;i++)await store.authorize(token,request());
+ await assert.rejects(store.authorize(token,request()),/execution_capacity/);
+ assert.equal((await store.authorize(token,input)).id,first.id);
+});
+
+test('rejected and partially written custody stays charged across rollback and fresh store retries',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request()),bytes=Buffer.from('{invalid'),digest=sha256(bytes);
+ await assert.rejects(store.upload(token,execution.id,bytes,digest),/invalid_capture/);
+ const read=async()=> (await pool.query('SELECT capture_reserved_bytes,capture_reserved_digest,capture_bytes FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
+ let row=await read();assert.equal(Number(row.capture_reserved_bytes),bytes.length);assert.equal(row.capture_reserved_digest,digest);assert.equal(row.capture_bytes,null);
+ assert.ok((await readFile(custody+'/'+execution.id+'/capture.json')).equals(bytes));
+ const fresh=new ServerCheckStore(pool,finalizer);
+ await assert.rejects(fresh.upload(token,execution.id,bytes,digest),/invalid_capture/);
+ await assert.rejects(fresh.upload(token,execution.id,Buffer.from('{}'),sha256(Buffer.from('{}'))),/capture_conflict/);
+ row=await read();assert.equal(Number(row.capture_reserved_bytes),bytes.length);
+ await assert.rejects(pool.query('UPDATE server_check_executions SET capture_reserved_bytes=0 WHERE id=$1',[execution.id]),/reservation is retained/);
+ const partial=await store.authorize(token,request()),payload=Buffer.from('partial-write-fixture');
+ const interrupted:Finalizer={reconcileCapture:(id,b)=>finalizer.reconcileCapture(id,b),preflight:()=>finalizer.preflight(),finalize:(id,b)=>finalizer.finalize(id,b),validate:async(id,b)=>{
+  await mkdir(custody+'/'+id,{mode:0o700});await writeFile(custody+'/'+id+'/capture.json',b.subarray(0,3),{mode:0o600});throw new Error('interrupted write');
+ }};
+ await assert.rejects(new ServerCheckStore(pool,interrupted).upload(token,partial.id,payload,sha256(payload)),/interrupted write/);
+ assert.equal(Number((await pool.query('SELECT capture_reserved_bytes FROM server_check_executions WHERE id=$1',[partial.id])).rows[0].capture_reserved_bytes),payload.length);
+ await assert.rejects(fresh.upload(token,partial.id,payload,sha256(payload)),/custody_mismatch/);
+});
+
+test('capacity denial precedes writes; independent pools cannot over-reserve the last bytes',async()=>{
+ const selected=await new WorkspaceStore(pool).create(user,'Byte capacity fixture',randomUUID()),token=await credential('cli:session server_check:create',selected);
+ // Small fixtures: exercise the real reservation limit without filling a disk.
+ for(let i=0;i<8;i++){
+  const e=await store.authorize(token,request());
+  await pool.query('UPDATE server_check_executions SET capture_reserved_bytes=$2 WHERE id=$1',[e.id,MAX_CAPTURE-(i===7?4:0)]);
+ }
+ const one=await store.authorize(token,request()),two=await store.authorize(token,request()),bytes=Buffer.from('bad!');
+ const otherPool=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:2});
+ try{
+  const results=await Promise.allSettled([store.upload(token,one.id,bytes,sha256(bytes)),new ServerCheckStore(otherPool,finalizer).upload(token,two.id,bytes,sha256(bytes))]);
+  assert.ok(results.every(r=>r.status==='rejected'));
+  const rows=(await pool.query('SELECT id,capture_reserved_bytes FROM server_check_executions WHERE id=ANY($1::uuid[])',[[one.id,two.id]])).rows;
+  assert.equal(rows.reduce((n,r)=>n+Number(r.capture_reserved_bytes),0),4);
+  const denied=rows.find(r=>Number(r.capture_reserved_bytes)===0)!;
+  await assert.rejects(store.upload(token,denied.id,bytes,sha256(bytes)),/execution_capacity/);
+  await assert.rejects(stat(custody+'/'+denied.id),{code:'ENOENT'});
+  assert.equal(Number((await pool.query('SELECT sum(capture_reserved_bytes) AS n FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].n),200*1024*1024);
+ }finally{await otherPool.end();}
+});
+
+test('post-write database failure retains charge and valid bytes; retry succeeds without rewriting',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request()),bytes=await frozen(execution.authority);
+ await pool.query(`CREATE FUNCTION reject_capture_save() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.id='${execution.id}' AND NEW.state='uploaded' THEN RAISE EXCEPTION 'injected save failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_capture_save BEFORE UPDATE ON server_check_executions FOR EACH ROW EXECUTE FUNCTION reject_capture_save()`);
+ try {await assert.rejects(store.upload(token,execution.id,bytes,sha256(bytes)),/injected save failure/);}finally{await pool.query('DROP TRIGGER fail_capture_save ON server_check_executions; DROP FUNCTION reject_capture_save()');}
+ const row=(await pool.query('SELECT capture_reserved_bytes,capture_bytes FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];assert.equal(Number(row.capture_reserved_bytes),bytes.length);assert.equal(row.capture_bytes,null);
+ const before=await stat(custody+'/'+execution.id+'/capture.json');
+ assert.equal((await new ServerCheckStore(pool,finalizer).upload(token,execution.id,bytes,sha256(bytes))).state,'uploaded');
+ assert.equal((await stat(custody+'/'+execution.id+'/capture.json')).mtimeMs,before.mtimeMs);
+ assert.equal((await store.status(token,execution.id)).state,'run_created');
+});
+
+
+test('additive migration charges legacy authorized, rejected and completed executions without touching custody',async()=>{
+ const oldSchema='legacy_custody_'+randomUUID().replaceAll('-','');await admin.query(`CREATE SCHEMA ${oldSchema}`);
+ const old=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${oldSchema},public`,max:1});
+ try{
+  const dir=new URL('../../../db/migrations/',import.meta.url);
+  for(const name of (await readdir(dir)).filter(n=>n.endsWith('.sql')&&n<'0022').sort())await old.query(await readFile(new URL(name,dir),'utf8'));
+  // Copy only disposable fixture rows to recreate an actual pre-reservation schema.
+  await old.query('BEGIN');
+  // Like pg_restore: load retained fixture data before enabling its triggers.
+  await old.query('ALTER TABLE runs DISABLE TRIGGER USER; ALTER TABLE linux_check_sources DISABLE TRIGGER USER');
+  for(const table of ['users','workspaces','assets','runs','linux_check_sources'])await old.query(`INSERT INTO ${table} SELECT * FROM ${schema}.${table}`);
+  const columns=(await old.query("SELECT column_name FROM information_schema.columns WHERE table_schema=$1 AND table_name='server_check_executions' ORDER BY ordinal_position",[oldSchema])).rows.map(r=>r.column_name).join(',');
+  await old.query(`INSERT INTO server_check_executions(${columns}) SELECT ${columns} FROM ${schema}.server_check_executions`);
+  await old.query('ALTER TABLE runs ENABLE TRIGGER USER; ALTER TABLE linux_check_sources ENABLE TRIGGER USER; COMMIT');
+  const rows=(await old.query('SELECT id,state,capture_digest FROM server_check_executions ORDER BY id')).rows;
+  assert.ok(rows.some(r=>r.state==='authorized'));assert.ok(rows.some(r=>r.state==='run_created'));
+  await old.query(await readFile(new URL('0022_capture_admission.sql',dir),'utf8'));
+  const upgraded=(await old.query('SELECT id,state,capture_digest,capture_reserved_bytes FROM server_check_executions ORDER BY id')).rows;
+  assert.deepEqual(upgraded.map(({capture_reserved_bytes,...r})=>{assert.equal(Number(capture_reserved_bytes),MAX_CAPTURE);return r;}),rows);
+  // No scan/removal of historical custody: maximum-sized charges cover absent,
+  // rejected, partial and accepted capture bytes under the old per-input bound.
+ }finally{await old.end();await admin.query(`DROP SCHEMA ${oldSchema} CASCADE`);}
+});
+
+
+test('legacy conflicting retry cannot poison the retained capture digest',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request()),bytes=await frozen(execution.authority);
+ // Recreate old code's persisted-but-uncommitted capture, with migration charge.
+ await finalizer.validate(execution.id,bytes);
+ await pool.query('UPDATE server_check_executions SET capture_reserved_bytes=$2 WHERE id=$1',[execution.id,MAX_CAPTURE]);
+ const other=Buffer.from('{}');await assert.rejects(store.upload(token,execution.id,other,sha256(other)),/custody_mismatch/);
+ assert.equal((await pool.query('SELECT capture_reserved_digest FROM server_check_executions WHERE id=$1',[execution.id])).rows[0].capture_reserved_digest,null);
+ assert.equal((await store.upload(token,execution.id,bytes,sha256(bytes))).state,'uploaded');
+ assert.equal((await store.status(token,execution.id)).state,'run_created');
 });
