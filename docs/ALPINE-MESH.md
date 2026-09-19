@@ -1,51 +1,36 @@
-# Alpine OS — mesh image & Node 22 builder
+# Alpine and mesh image reference
 
-**Status:** digest-pinned default base (2026-08-19)
+**Status:** retained source reference, not release or deployment authority.
 
-## What changed
+The earlier August note described a shared k3s build as the general deployment
+path. That is not a repository-wide instruction. The inspected sources still
+use digest-pinned Node 22 Alpine images, but the website, authenticated app and
+local validation wrapper have distinct build and acceptance paths.
 
-Current shared k3s images use **Alpine Linux** through a reviewed
-`node:22-alpine@sha256:<digest>` reference, not a mutable Debian or Alpine tag:
+## Read the selected source, not a copied image recipe
 
-| Artifact | Base |
-|----------|------|
-| generated `deploy/Dockerfile.shared` | canonical digest-qualified `node:22-alpine` builder + runtime for both lanes |
-| `deploy/Dockerfile.mesh` | checked-in reference/parity Dockerfile |
-| `apps/witnessops-web/Dockerfile` | digest-qualified `node:22-alpine` runtime |
-| `deploy/scripts/k3s-lib.sh` | reviewed pin supplied to both shared-image stages |
-| `scripts/health-on-node22.sh` | reviewed digest-qualified `NODE22_BUILDER_IMAGE` default |
+| Source | Role |
+| --- | --- |
+| [`apps/witnessops-web/Dockerfile`](../apps/witnessops-web/Dockerfile) | Website runtime built around prebuilt standalone output; its package steps and reviewed image pin belong to this file. |
+| [`deploy/app/Dockerfile`](../deploy/app/Dockerfile) | Separate authenticated-app build/runtime, including its accepted finalizer producer. Not a shared website/app image. |
+| [`scripts/health-on-node22.sh`](../scripts/health-on-node22.sh) | Local validation wrapper with a digest-qualified default/override and a dependency-admission gate. A successful run is not exact production-image acceptance. |
+| [`deploy/Dockerfile.mesh`](../deploy/Dockerfile.mesh) and [`deploy/scripts/k3s-lib.sh`](../deploy/scripts/k3s-lib.sh) | Retained reference/shared-helper source. Classify its use through the deployment boundary, not the age of this note or a historical dual-lane recipe. |
 
-Builder installs `libc6-compat`, `python3`, `make`, `g++` for native modules (e.g. sharp).
+Do not copy a digest or substitute a different base OS from an old example.
+The inspected Dockerfiles have Alpine-specific package steps. Validate any
+proposed base change against the selected build and exact runtime tests.
+Container base, host operating system and release authority are different facts.
 
-## Reference-Dockerfile debug build
+## Historical material
 
-The deployment helpers generate the canonical shared Dockerfile and do not
-accept a mutable or caller-selected base. For an explicitly authorized local
-experiment using the reference Dockerfile, both manual build arguments must
-still be digest-qualified:
-
-```bash
-podman build -f deploy/Dockerfile.mesh \
-  --build-arg NODE22_BUILDER_IMAGE='node:22-bookworm-slim@sha256:<reviewed-builder-digest>' \
-  --build-arg NODE22_RUNTIME_IMAGE='node:22-slim@sha256:<reviewed-runtime-digest>' \
-  -t docker.io/library/witnessops-web:debug-local .
-```
-
-## Hunt loop LLM (Ollama)
-
-Ollama **models are OS-independent** (GGUF). On an **Alpine Linux host** (not proot-only), install Ollama from [ollama.com](https://ollama.com) or the official install script, then:
-
-```bash
-ollama pull gpt-oss:20b
-bash scripts/verify-ollama-model-alpine.sh
-```
-
-Hunt loop requires **`gpt-oss:20b`** with `WOPS_OLLAMA_API=chat` (not `gemma3:1b` for tool/loop workloads).
-
-An operator-custodied host may run **Ubuntu 22.04** for Ollama while mesh
-**containers** are Alpine. Host identity and topology stay outside this repo.
+The [pre-reconciliation note](https://github.com/witnessops/witnessops-web/blob/beada60e313199e7432841e1d1b0a93e140f1fc1/docs/ALPINE-MESH.md)
+retains the old debug-build example and Ollama/hunt-loop context. Those instructions
+are not website/app build prerequisites or authority to install software, run a
+remote helper or deploy. This documentation change does not remove the referenced
+scripts, change their defaults, or assess a separate local-LLM project.
 
 ## Related
 
-- [`NODE22-BUILDER.md`](./NODE22-BUILDER.md)
-- `WitnessOps/src/wops-local-llm/docs/ollama-alpine.md`
+- [`NODE22-BUILDER.md`](./NODE22-BUILDER.md) — repository-local validation.
+- [`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md) — website release, app acceptance and retained-helper classifications.
+- [`apps/witnessops-app/README.md`](../apps/witnessops-app/README.md) — app-specific acceptance and runtime boundaries.
