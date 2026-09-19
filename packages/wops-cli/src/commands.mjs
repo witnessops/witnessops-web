@@ -28,8 +28,8 @@ export async function run(args, options = {}) {
     } catch { throw new Error('Server unreachable. Current session status cannot be confirmed. Try again.'); }
   };
   const display = data => {
-    if (data.state !== 'active' || !['owner','viewer'].includes(data.role) || !['cli:session','cli:session server_check:create'].includes(data.scope)) throw new Error('Unexpected session response. Run wops auth login again.');
-    output(`Signed in as: ${safe(data.displayName)}\nWorkspace: ${safe(data.workspace)}\nRole: ${data.role === 'owner' ? 'Owner' : 'Viewer'}\nSession: active`);
+    if (data.state !== 'active' || !['owner','contributor','viewer'].includes(data.role) || !['cli:session','cli:session server_check:create'].includes(data.scope)) throw new Error('Unexpected session response. Run wops auth login again.');
+    output(`Signed in as: ${safe(data.displayName)}\nWorkspace: ${safe(data.workspace)}\nRole: ${data.role === 'owner' ? 'Owner' : data.role === 'contributor' ? 'Contributor' : 'Viewer'}\nSession: active`);
   };
   if (args[0] !== 'auth' || !['login','status','logout'].includes(args[1]) || (args.length !== 2 && !(args[1] === 'login' && args.length === 4 && args[2] === '--server'))) throw new Error('Use wops auth login [--server URL], wops auth status, or wops auth logout.');
   return storage.lock(async () => {
@@ -71,7 +71,7 @@ export async function run(args, options = {}) {
       if (!result.ok) throw new Error('Login expired, declined, or already used. Run wops auth login again.');
       if (result.data.state === 'pending') continue;
       const data = result.data;
-      if (!/^[A-Za-z0-9_-]{43}$/.test(data.credential) || !Number.isFinite(Date.parse(data.expiresAt)) || data.state !== 'active' || !['owner','viewer'].includes(data.role) || !['cli:session','cli:session server_check:create'].includes(data.scope)) throw new Error('Unexpected login response. No local session saved.');
+      if (!/^[A-Za-z0-9_-]{43}$/.test(data.credential) || !Number.isFinite(Date.parse(data.expiresAt)) || data.state !== 'active' || !['owner','contributor','viewer'].includes(data.role) || !['cli:session','cli:session server_check:create'].includes(data.scope)) throw new Error('Unexpected login response. No local session saved.');
       try { await storage.write({ server, credential: data.credential, expiresAt: data.expiresAt }); }
       catch { await request(server, 'session', {}, data.credential).catch(() => undefined); throw new Error('Could not save private credentials. Sign-in was not completed locally.'); }
       output('✓ Signed in'); display(data); return 0;
