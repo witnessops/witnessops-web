@@ -1,3 +1,5 @@
+import {headers} from 'next/headers';
+import {reportHost} from '../lib/report-host';
 import { AppProviders } from "../components/app-providers";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -9,4 +11,4 @@ const sans = localFont({ src: [
 ], variable: "--app-font-sans", display: "swap" });
 const mono = localFont({ src: "../../../witnessops-web/public/fonts/ibm-plex-mono-400.woff2", variable: "--app-font-mono", display: "swap" });
 export const metadata: Metadata = { title: "WitnessOps · Checks", robots: { index: false, follow: false } };
-export default function Layout({ children }: { children: React.ReactNode }) { return <html lang="en"><body className={`${sans.variable} ${mono.variable}`}><AppProviders>{children}</AppProviders></body></html>; }
+export default async function Layout({ children }: { children: React.ReactNode }) { const publicReport=Boolean(reportHost((await headers()).get('host'))); return <html lang="en"><body className={`${sans.variable} ${mono.variable}`}><AppProviders publicReport={publicReport}>{children}</AppProviders></body></html>; }

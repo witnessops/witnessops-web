@@ -1,6 +1,16 @@
 import { createReportModel, type ProofpackReportV1 } from '../../../witnessops-web/src/lib/proofpack/report-model';
+export type RecipientReport = ProofpackReportV1 & { readonly sharedTitle?: string };
+export function reportTitle(report: RecipientReport): string {
+    return report.sharedTitle || `${report.identity.productName} — ${report.subject.label}`;
+}
+export function validateReportName(value: unknown): string | undefined {
+    if (value === undefined) return undefined;
+    if (typeof value !== 'string' || !value.trim() || value.trim().length > 120 || /[\u0000-\u001f\u007f]/.test(value))
+        throw new Error('Use a report name of 1–120 characters without control characters.');
+    return value.trim();
+}
 /** Recipient allowlist: never serialize the original model, source objects or attachments. */
-export function recipientReport(source: ProofpackReportV1): ProofpackReportV1 {
+export function recipientReport(source: ProofpackReportV1, name?: string): RecipientReport {
     const text = (value: string) => value
         .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email omitted]')
         .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '[internal identifier omitted]')
@@ -14,7 +24,7 @@ export function recipientReport(source: ProofpackReportV1): ProofpackReportV1 {
         interpretation: f.interpretation === null ? null : text(f.interpretation),
         recommendation: f.recommendation === null ? null : text(f.recommendation), limitations: strings(f.limitations),
     }));
-    return createReportModel({
+    const model = createReportModel({
         reportVersion: '1.0',
         identity: { reportId: 'shared-report', sourceDigest: source.identity.sourceDigest, productId: source.identity.productId,
             productVersion: source.identity.productVersion, productName: text(source.identity.productName), generatedAt: source.identity.generatedAt, synthetic: source.identity.synthetic },
@@ -35,4 +45,6 @@ export function recipientReport(source: ProofpackReportV1): ProofpackReportV1 {
         sourceArtifacts: [], declaredExclusions: [...strings(source.declaredExclusions), 'Raw attachments, detailed observations, member emails, internal workspace/run/asset identifiers and comparison history are not included.'],
         reproduction: { steps: [{ title: 'Request source separately', description: 'Ask the report owner for appropriately scoped source evidence. This link grants no workspace or collection access.' }], trustBoundary: text(source.reproduction.trustBoundary) },
     });
+    const title = validateReportName(name);
+    return title === undefined ? model : Object.freeze({ ...model, sharedTitle: text(title) });
 }
