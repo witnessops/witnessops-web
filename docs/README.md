@@ -14,6 +14,16 @@ that are not public site content.
 - [`NODE22-BUILDER.md`](./NODE22-BUILDER.md) — Node 22 validation guidance without host-specific custody details.
 - [`R2-LOCAL-SERVER-AUDIT-VERIFY-ADAPTER.md`](./R2-LOCAL-SERVER-AUDIT-VERIFY-ADAPTER.md) — Local-server-audit structural receipt adapter for `/api/verify`.
 
+## Retired working notes
+
+The July 2026 footer plans, docs audit/crawl records, verify-polish plan and
+dual-deploy checklist are retained in the
+[pre-cleanup source tree](https://github.com/witnessops/witnessops-web/tree/beada60e313199e7432841e1d1b0a93e140f1fc1/docs).
+They are historical records, not current instructions or proof that every
+previously deferred task was completed. Reassess any deferred ideas against
+current source before reuse. Current deployment classification remains in
+[`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md).
+
 ## Boundaries
 
 - This folder is repository-local documentation, not canonical public proof law.
