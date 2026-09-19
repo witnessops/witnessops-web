@@ -72,3 +72,22 @@ test('real fetch rejects redirects without forwarding bearer to redirected path'
   await assert.rejects(run(['auth','status'],{storage}),/cannot be confirmed/);assert.equal(redirected,0);
  }finally{await new Promise(resolve=>server.close(resolve));}
 }));
+
+test('Contributor login and status preserve the issued session scope; unknown roles remain rejected',async()=>fixture(async(storage)=>{
+ const logs=[];let role='contributor';
+ const options={storage,output:x=>logs.push(x),openBrowser:async()=>false,sleep:async()=>{},fetch:async(url,opts)=>{
+  if(url.endsWith('/login'))return Response.json({device:'d'.repeat(43),userCode:'ABCD-EF12-3456',expiresAt,interval:5,authorizationUrl:'https://app.witnessops.com/cli/authorize'});
+  if(url.endsWith('/session'))assert.equal(opts.headers.Authorization,`Bearer ${credential}`);
+  return Response.json({state:'active',credential,expiresAt,workspace:'Test workspace',displayName:'Test Contributor',role,scope:'cli:session'});
+ }};
+ assert.equal(await run(['auth','login'],options),0);
+ assert.equal((await storage.read()).credential,credential);
+ assert.equal(await run(['auth','status'],options),0);
+ assert.match(logs.join('\n'),/Role: Contributor/);
+ assert.ok(!logs.join().includes(credential));
+ role='administrator';
+ await assert.rejects(run(['auth','status'],options),/Unexpected session response/);
+ await storage.remove();
+ await assert.rejects(run(['auth','login'],options),/Unexpected login response/);
+ assert.equal(await storage.read(),null);
+}));
