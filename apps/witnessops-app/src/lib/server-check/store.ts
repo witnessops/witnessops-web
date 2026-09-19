@@ -8,7 +8,8 @@ import { linuxHostname } from '../linux-hostname';
 import { ApiError, requireId } from '../errors';
 import { acceptedWorkspacePlan, requireLinuxSourceLimit } from '../db/plan-admission';
 import { canonicalSource } from '../source-digest';
-import type { Finalizer } from './runtime';
+import { MAX_CAPTURE, type Finalizer } from './runtime';
+const MAX_RETAINED_CAPTURE_BYTES=200*1024*1024;
 const equal=(a:unknown,b:unknown)=>canonicalSource(a)===canonicalSource(b);
 const clean=(x:unknown)=>typeof x==='string'&&x.length>0&&x.length<=256&&!/[\x00-\x1f\x7f]/.test(x);
 export function checkRequest(value: unknown) {
@@ -50,10 +51,9 @@ export class ServerCheckStore {
   try {
    const plan=await acceptedWorkspacePlan(client,workspace);
    if(plan)await requireLinuxSourceLimit(client,workspace,plan.policy.limits.linuxImportSources,asset?0:1);
-   else {
-    const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
-    if(Number(count)>=32)throw new CliError('execution_capacity',409);
-   }
+   // Operational custody bounds are independent of commercial/source allowances.
+   const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
+   if(Number(count)>=32)throw new CliError('execution_capacity',409);
   } catch(error) {
    if(error instanceof CliError)throw error;
    if(error instanceof ApiError && error.status === 409)throw new CliError('linux_source_capacity',409);
@@ -71,17 +71,44 @@ export class ServerCheckStore {
   const row=(await client.query('INSERT INTO server_check_executions(id,workspace_id,asset_id,user_id,request_id,request,authority,collector_hash,membership_generation) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[id,workspace,asset.id,user.id,request.requestId,request,authority,fingerprint,user.membershipGeneration])).rows[0];return this.view(row);
  });}
  private view(row:{id:string;state:string;authority:unknown;collector_hash:string;capture_digest:string|null;run_id:string|null;failure:string|null}){return {id:row.id,state:row.state,authority:row.authority,collectorHash:row.collector_hash,captureDigest:row.capture_digest,runId:row.run_id,failure:row.failure};}
- async upload(credential:unknown,id:string,bytes:Buffer,digest:string){requireId(id);if(sha256(bytes)!==digest)throw new CliError('capture_digest_mismatch',422);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
-  // Cross-process global work bound; do not queue unbounded validation/finalization jobs.
-  if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
-  const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];if(!row)throw new CliError('execution_not_found',404);if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
-  if(row.capture_digest){if(row.capture_digest!==digest||!row.capture_bytes.equals(bytes))throw new CliError('capture_conflict',409);return this.view(row);}
-  const metadata=await this.finalizer.validate(id,bytes);
-  if(!equal(metadata.authority,row.authority)||metadata.hostname!==row.authority.target.allowed_hostnames[0]||metadata.collectorHash!==row.collector_hash)throw new CliError('capture_binding_failed',422);
-  const size=(await client.query('SELECT coalesce(sum(octet_length(capture_bytes)),0) AS size FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].size;
-  if(Number(size)+bytes.length>200*1024*1024)throw new CliError('execution_capacity',409);
-  const saved=(await client.query("UPDATE server_check_executions SET state='uploaded',capture_bytes=$2,capture_digest=$3 WHERE id=$1 RETURNING *",[id,bytes,digest])).rows[0];return this.view(saved);
- });}
+ async upload(credential:unknown,id:string,bytes:Buffer,digest:string){
+  requireId(id);
+  if(!bytes.length||bytes.length>MAX_CAPTURE)throw new CliError('invalid_capture',413);
+  if(sha256(bytes)!==digest)throw new CliError('capture_digest_mismatch',422);
+  // Commit the charge before any custody write. A later rollback/crash must not
+  // undo accounting for rejected or partially persisted immutable material.
+  await this.auth().withServerWork(credential,async(client,user,workspace)=>{
+   if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+   const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
+   if(!row)throw new CliError('execution_not_found',404);
+   if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+   if(row.capture_digest){if(row.capture_digest!==digest||!row.capture_bytes.equals(bytes))throw new CliError('capture_conflict',409);return;}
+   if(row.capture_reserved_digest && row.capture_reserved_digest!==digest)throw new CliError('capture_conflict',409);
+   const reserved=Number(row.capture_reserved_bytes);
+   // Legacy charges cover files whose identity never reached the database.
+   // Do not let a conflicting retry poison the first immutable digest binding.
+   if(reserved&&!row.capture_reserved_digest)await this.finalizer.reconcileCapture(id,bytes);
+   const increase=Math.max(0,bytes.length-reserved);
+   if(increase){
+    const size=(await client.query('SELECT coalesce(sum(capture_reserved_bytes),0) AS size FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].size;
+    if(Number(size)+increase>MAX_RETAINED_CAPTURE_BYTES)throw new CliError('execution_capacity',409);
+   }
+   await client.query('UPDATE server_check_executions SET capture_reserved_bytes=$2,capture_reserved_digest=$3 WHERE id=$1',[id,Math.max(reserved,bytes.length),digest]);
+  });
+  // The reservation transaction released its locks: recheck current authority
+  // and serialize the actual filesystem/producer operation independently.
+  return this.auth().withServerWork(credential,async(client,user,workspace)=>{
+   if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+   const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
+   if(!row)throw new CliError('execution_not_found',404);
+   if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+   if(row.capture_digest){if(row.capture_digest!==digest||!row.capture_bytes.equals(bytes))throw new CliError('capture_conflict',409);return this.view(row);}
+   if(row.capture_reserved_digest!==digest||Number(row.capture_reserved_bytes)<bytes.length)throw new CliError('capture_conflict',409);
+   const metadata=await this.finalizer.validate(id,bytes);
+   if(!equal(metadata.authority,row.authority)||metadata.hostname!==row.authority.target.allowed_hostnames[0]||metadata.collectorHash!==row.collector_hash)throw new CliError('capture_binding_failed',422);
+   const saved=(await client.query("UPDATE server_check_executions SET state='uploaded',capture_bytes=$2,capture_digest=$3 WHERE id=$1 RETURNING *",[id,bytes,digest])).rows[0];return this.view(saved);
+  });
+ }
  async status(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
   if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
   const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];if(!row)throw new CliError('execution_not_found',404);if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
