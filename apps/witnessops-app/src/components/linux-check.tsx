@@ -58,7 +58,7 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
     <Link className="back" href="/assets">← Assets</Link>
     <header className="page-heading"><div>
       <p className="eyebrow">One Server Security Check</p>
-      <h1>{asset.hostname}</h1>
+      <h1 className="identifier">{asset.hostname}</h1>
       <div className="support"><p>Recommended check: {CHECK_DISCOVERY.linux_server.name}</p><p>Runs a bounded read-only check locally on one Linux server and preserves a verifiable Proofpack.</p></div>
     </div></header>
     <div className="linux-workflow">
@@ -107,7 +107,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
     <header className="page-heading"><div>
       <p className="eyebrow">One Server Security Check</p><h1>Saved check</h1>
       <div className="support"><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p></div>
-      <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run {run.id}</p>
+      <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run <span className="identifier">{run.id}</span></p>
     </div></header>
     <section className="linux-export-panel" aria-labelledby="linux-export-heading">
       <div><h2 id="linux-export-heading">Report and original source</h2><p className="quiet">Save the readable report for a review. Keep the original ZIP and its signature together for verification.</p></div>
