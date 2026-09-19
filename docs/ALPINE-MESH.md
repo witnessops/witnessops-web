@@ -11,7 +11,8 @@ local validation wrapper have distinct build and acceptance paths.
 
 | Source | Role |
 | --- | --- |
-| [`apps/witnessops-web/Dockerfile`](../apps/witnessops-web/Dockerfile) | Website runtime built around prebuilt standalone output; its package steps and reviewed image pin belong to this file. |
+| [`deploy/Dockerfile.aws`](../deploy/Dockerfile.aws) | Routine website release image selected by [`aws-release-reusable.yml`](../.github/workflows/aws-release-reusable.yml). Builds the website from source and produces the exact archive used by that workflow's image tests and publication gate. |
+| [`apps/witnessops-web/Dockerfile`](../apps/witnessops-web/Dockerfile) | Separate website artifact-runtime definition built around prebuilt standalone output. It is not the Dockerfile selected by the routine AWS release workflow; inspect its own package steps and image pin. |
 | [`deploy/app/Dockerfile`](../deploy/app/Dockerfile) | Separate authenticated-app build/runtime, including its accepted finalizer producer. Not a shared website/app image. |
 | [`scripts/health-on-node22.sh`](../scripts/health-on-node22.sh) | Local validation wrapper with a digest-qualified default/override and a dependency-admission gate. A successful run is not exact production-image acceptance. |
 | [`deploy/Dockerfile.mesh`](../deploy/Dockerfile.mesh) and [`deploy/scripts/k3s-lib.sh`](../deploy/scripts/k3s-lib.sh) | Retained reference/shared-helper source. Classify its use through the deployment boundary, not the age of this note or a historical dual-lane recipe. |

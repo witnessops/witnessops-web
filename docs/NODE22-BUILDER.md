@@ -9,9 +9,15 @@ Do not treat a partial check on another Node major as equivalent evidence.
 
 ## Supported local path
 
-On Node 22 with the pinned package manager and admitted dependencies, use
-`pnpm health` from the repository root. The optional container wrapper below
-requires a local container engine and Python 3 for its supply-chain gate:
+**Native Node 22:** with the pinned package manager and admitted dependencies,
+run from the repository root:
+
+```bash
+pnpm health
+```
+
+**Optional container path:** the wrapper below requires a local container engine
+and Python 3 for its supply-chain gate:
 
 ```bash
 pnpm health:node22
