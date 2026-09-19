@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -89,3 +89,33 @@ for (const variant of ['valid', 'missing', 'malformed', 'symlink']) {
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 }
+
+
+test('candidate retains tested bytes only after scan/runtime/checksum success', () => {
+  const steps=workflow.jobs.image.steps;
+  const scan=steps.findIndex(s=>s.name==='Independent exact-manifest Trivy (no suppression)');
+  const runtime=steps.findIndex(s=>s.name==='Test exact scanned image with disposable authentication');
+  const check=steps.findIndex(s=>s.name==='Confirm tested archive bytes are unchanged');
+  const index=steps.findIndex(s=>s.with?.name==='app-image-candidate');
+  assert.ok(scan>=0 && runtime>scan && check>runtime && index>check);
+  for(const i of [scan,runtime,check,index]){assert.equal(steps[i].if,undefined);assert.equal(steps[i]['continue-on-error'],undefined);}
+  const upload=steps[index];assert.equal(upload.with['retention-days'],14);assert.equal(upload.with['compression-level'],0);assert.equal(upload.with['if-no-files-found'],'error');
+  assert.deepEqual(upload.with.path.trim().split(/\s+/),['artifacts/app-validation/image.tar','artifacts/app-validation/image.sha256','artifacts/app-validation/*.json']);
+  assert.equal(steps[check]['working-directory'],'artifacts/app-validation');
+});
+
+test('actual checksum commands remain verifiable after artifact extraction and detect changed bytes',()=>{
+  const root=mkdtempSync(join(tmpdir(),'app-archive-test-'));
+  try{
+    const built=join(root,'artifacts/app-validation'),downloaded=join(root,'downloaded');mkdirSync(built,{recursive:true});mkdirSync(downloaded);
+    writeFileSync(join(built,'image.tar'),'bounded archive fixture');
+    const build=workflow.jobs.image.steps.find(s=>s.name==='Build one app candidate from exact tracked source');
+    const command=build.run.split('\n').find(s=>s.includes('> image.sha256'));assert.ok(command);
+    const binary=spawnSync('sha256sum',['--version']).status===0?'sha256sum':'shasum -a 256';
+    const run=(cmd,cwd)=>spawnSync('bash',['-e','-o','pipefail','-c',cmd.replaceAll('sha256sum',binary)],{cwd,encoding:'utf8'});
+    assert.equal(run(command,root).status,0);
+    for(const file of ['image.tar','image.sha256'])copyFileSync(join(built,file),join(downloaded,file));
+    const check=workflow.jobs.image.steps.find(s=>s.name==='Confirm tested archive bytes are unchanged').run;
+    assert.equal(run(check,downloaded).status,0);writeFileSync(join(downloaded,'image.tar'),'changed bytes');assert.notEqual(run(check,downloaded).status,0);
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
