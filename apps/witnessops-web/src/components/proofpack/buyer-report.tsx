@@ -25,7 +25,7 @@ function Chapter({ number: index, label, title, children, product, dark = false 
 export type ReportFollowThrough = { interactive?: boolean; summary: ReactNode; finding: (finding: ProofpackReportV1['findings'][number]) => ReactNode };
 
 /** Product-independent presentation. Browser preview and print use this same document. */
-export function BuyerReportDocument({ model, className = '', followThrough }: { model: ProofpackReportV1; className?: string; followThrough?: ReportFollowThrough }) {
+export function BuyerReportDocument({ model, className = '', followThrough, recipientPrint = false }: { model: ProofpackReportV1; className?: string; followThrough?: ReportFollowThrough; recipientPrint?: boolean }) {
     if (!isBuyerReport(model)) return null;
     const sections = model.coverage;
     const complete = model.summary.coverage.complete;
@@ -83,7 +83,7 @@ export function BuyerReportDocument({ model, className = '', followThrough }: { 
             </div>}
             <p className={styles.callout}>{model.verification.boundary}</p>
             <p className={styles.fine}>This report is a derived presentation of the source evidence.</p>
-            <div data-report-chapter-footer className={styles.chapterFooter}><span>{REPORT_TEMPLATE}</span><span>READ THE RESULT. INSPECT THE EVIDENCE.</span></div>
+            <div data-report-chapter-footer={recipientPrint || undefined} className={styles.chapterFooter}><span>{REPORT_TEMPLATE}</span><span>READ THE RESULT. INSPECT THE EVIDENCE.</span></div>
         </section>
 
         <Chapter product={product} number="02" label="THE SCOPE" title={model.subject.scopeTitle}>
@@ -105,7 +105,7 @@ export function BuyerReportDocument({ model, className = '', followThrough }: { 
                 {followThrough ? followThrough.finding(finding) : <><div className={styles.findingBody}><div><h4>Observed</h4><pre>{observation(finding.observation)}</pre></div><div><h4>Recommended next step</h4><p>{finding.recommendation ?? 'No recommended action recorded.'}</p></div></div>
                 {finding.interpretation && <div className={styles.findingLimit}><h4>Interpretation</h4><p>{finding.interpretation}</p></div>}
                 <div className={styles.findingLimit}><h4>What this establishes</h4><p>{finding.limitations.join(" ")}</p></div>
-                </>}{(finding.evidence.length > 0 || followThrough) && <p id={followThrough && followThrough.interactive !== false ? `report-evidence-${findings.indexOf(finding) + 1}` : undefined} tabIndex={followThrough ? -1 : undefined} className={styles.evidenceRef}><strong>{finding.checkId ?? finding.id}</strong> · Evidence: {finding.evidence.join(', ')}</p>}
+                </>}{(!recipientPrint || finding.evidence.length > 0 || followThrough) && <p id={followThrough && followThrough.interactive !== false ? `report-evidence-${findings.indexOf(finding) + 1}` : undefined} tabIndex={followThrough ? -1 : undefined} className={styles.evidenceRef}><strong>{finding.checkId ?? finding.id}</strong> · Evidence: {finding.evidence.join(', ')}</p>}
             </section></Fragment>)}
             {!findings.length && <p className={styles.callout}>An absence of findings does not establish overall security. Read the scope and proof boundary alongside this result.</p>}
         </Chapter>
