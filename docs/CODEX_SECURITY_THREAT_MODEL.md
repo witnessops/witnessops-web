@@ -94,7 +94,7 @@ checks. Do not treat these as additional public receipt-verifier inputs.
 
 | Surface | Focus of the review |
 | --- | --- |
-| WorkOS `/login`, `/signup`, `/callback`, logout and `/api/workspace` | Trusted identity/session, validated return targets, account admission, atomic workspace creation and workspace selection. |
+| WorkOS `/login`, `/signup`, `/callback`, logout, `/api/early-access` and `/api/workspace` | Trusted identity/session, validated return targets, explicit invited-account activation, paused/self-service admission, atomic workspace creation and workspace selection. |
 | `/api/members`, `/api/invitations`, `/api/assets`, `/api/runs` | Exact verified recipient, explicit acceptance, current role, workspace isolation, last-Owner protection, concurrency and revocation. |
 | `/api/linux-checks`, CLI authorization/session/capture endpoints | Untrusted packages and captures, bounded parsing, current scoped authority, one-time device grants, durable admission and preserved source bytes. |
 | `/api/shares`, `/api/shared-report` and recipient hosts | Explicit preview/publication, allowlisted fixed snapshot, reviewed email actions, token/password-session/host binding, expiry and revocation. |
