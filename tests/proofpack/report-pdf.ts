@@ -7,7 +7,7 @@ import { inflateSync } from 'node:zlib';
  * Fail closed if Chromium changes its direct-object/Flate stream format. Counting
  * pages alone missed an extra page whose only paint operation was a white box.
  */
-function pdfPages(pdf: Buffer): { runs: number; text: string }[] {
+export function pdfPages(pdf: Buffer): { runs: number; text: string }[] {
   const raw = pdf.toString('latin1');
   const objects = new Map([...raw.matchAll(/(?:^|\n)(\d+) 0 obj\n([\s\S]*?)\nendobj/g)].map(m => [m[1], m[2]]));
   const stream = (id: string) => {
