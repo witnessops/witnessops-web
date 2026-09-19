@@ -1,12 +1,28 @@
-# WitnessOps Web
+# WitnessOps Web and App
 
-Public web surface for WitnessOps.
+Source for the WitnessOps public website, authenticated product app, CLI and
+shared packages. Source presence, passing tests and a merge are not evidence
+that a feature is enabled or accepted in production.
 
-This repository contains the public WitnessOps site, the receipt-only `/verify`
-route, the `/api/verify` endpoint behind that flow, public buyer/review pages,
-and sample proof-surface pages used to explain artifact inspection boundaries.
+## Repository map
 
-## What this repository does
+| Source | Role and starting point |
+| --- | --- |
+| [`apps/witnessops-web/`](./apps/witnessops-web/) | Public website, receipt-only `/verify` and `/api/verify`, buyer/docs/support pages, samples and public MCP. Read its [subtree instructions](./apps/witnessops-web/AGENTS.md). |
+| [`apps/witnessops-app/`](./apps/witnessops-app/README.md) | Authenticated accounts/workspaces, team membership, saved checks/imports, reports, sharing, Help and opt-in sandbox seat billing. Its README covers setup, limits and acceptance. |
+| [`packages/wops-cli/`](./packages/wops-cli/) | CLI source and app-mediated authorization. Package presence is not an npm distribution or collection-authority claim. |
+| [`packages/`](./packages/) | Shared proof, content, catalogue, configuration and UI packages; their individual contracts still apply. |
+| [`content/witnessops/docs/`](./content/witnessops/docs/) and [`docs/`](./docs/README.md) | Public site documentation and repository-local maintenance/decision records, respectively. |
+| [`deploy/app/`](./deploy/app/) | App-specific build/lifecycle source, distinct from public-website release commands. No deployment authority is granted by this map. |
+
+The app's [API contract](./apps/witnessops-app/src/lib/api-contract.ts) identifies
+its workspace, recipient and provider-callback boundaries. Configured free signup
+can create a workspace without a card; membership and explicit collection
+permissions remain separate. Sandbox subscriptions control seat capacity, not
+comparison, Share, Linux imports or export access. No live pricing is activated
+by this source description.
+
+## Public website functionality
 
 - Shows the public WitnessOps pages.
 - Lets anyone check receipt JSON through `/verify`.
@@ -17,16 +33,15 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
 
-## What this repository does not do
+## Separate surface boundaries
 
-- It is not the control plane.
-- It does not issue or sign customer or production verification receipts or proof bundles. A CI canary workflow emits and keyless-signs a public-manifest diff to test repository release evidence.
-- It is not the system that runs customer workflows.
-- It does not store customer data as part of normal verification.
-- It does not recompute individual source artifact hashes for the external sample repo locally.
-- It does not prove production deployment, legal compliance, source-system truth, or complete AI governance coverage.
+- Public `/verify` and `/api/verify` remain receipt-only. They do not issue or sign customer or production receipts/proof bundles, execute customer workflows or store customer evidence as part of normal receipt verification.
+- The authenticated app has separate authorized import, storage, report-sharing and server-check/finalization paths. Read the [app contract](./apps/witnessops-app/README.md) and [finalizer contract](./deploy/app/FINALIZER_RUNTIME.md); these paths do not widen the receipt-only endpoints or authorize arbitrary workflows.
+- A CI canary workflow emits and keyless-signs a public-manifest diff to test repository release evidence. That is not customer proof issuance or production acceptance.
+- Public samples and their source relationships do not establish production deployment, legal compliance, source-system truth or complete AI governance coverage.
+- Separate private control-plane and mesh systems are not made part of this repository by documentation references.
 - Public positioning category (working): bounded independent verification of consequential AI and security work—one activity reconstructed (authorized, executed, observed, unresolved); not a whole-environment or GRC replacement.
-- It does not use retired cloud deployment material as active authority.
+- Retired cloud deployment material is not active authority.
 
 ## Product governance
 
@@ -58,12 +73,14 @@ full evidence, workflow, signature, and production trust checks are incomplete.
 
 Programmatic callers can post the same receipt to `/api/verify` and receive the
 same verification path and result shape. Proof-bundle uploads and caller-supplied
-trust inputs are not accepted on the public surface. Full-package verification is
-a separate internal path and is not currently a supported public distribution.
+trust inputs are not accepted by these receipt-only endpoints. Supported Linux
+Proofpack imports and saved-source verification belong to the separate
+authenticated app; see its [README](./apps/witnessops-app/README.md).
 
-## ChatGPT / MCP app
+## Public ChatGPT / MCP integration
 
-The production app endpoint is designed to be `https://witnessops.com/mcp`.
+The public MCP endpoint is designed to be `https://witnessops.com/mcp`; this is
+not the authenticated workspace app.
 It exposes three public, read-only tools:
 
 - `search` — find public WitnessOps documentation.
@@ -107,6 +124,7 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 
 - Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke). Browser installation is not required by this health command.
 - Separate A4 PDF pagination gate: install Chromium with `pnpm exec playwright install chromium --with-deps`, then run `pnpm build && pnpm test:pdf-pagination`. The dedicated **PDF Pagination Gate** CI workflow builds the app and runs the same four fixture-based cases. Playwright starts the built app on loopback port 3019, refuses an already-running server, and stops its server after success or failure. No public hostname collection is performed. This browser gate is separate from `pnpm health`.
+- App database and Chromium/WebKit browser suites are separate from `pnpm health`; use the explicit commands and prerequisites in the [app README](./apps/witnessops-app/README.md). Provider-backed and deployment acceptance remain separate.
 - Public buyer/proof-surface validation: `pnpm smoke:buyer-path:test`.
 - Frozen command contract: [`commands.md`](./commands.md).
 - Repository-local docs index: [`docs/README.md`](./docs/README.md).

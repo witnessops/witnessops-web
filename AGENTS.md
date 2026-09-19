@@ -2,22 +2,38 @@
 
 ## Scope
 
-This repo is the live authoritative repo for the WitnessOps public web surface.
+This is the authoritative source repository for the WitnessOps public website,
+authenticated product app, CLI and shared packages. These root instructions
+apply repository-wide; also read subtree `AGENTS.md` files where present.
+Source inclusion does not establish production enablement or acceptance.
 Published remote: `https://github.com/witnessops/witnessops-web`
 Default branch: `main`
 Release authority: explicit operator action; merge alone is not deployment authority.
 
-## Rules
+## Repository-wide rules
+
+- Keep live package names on the `@witnessops/*` surface.
+- Use the published remote as the operating source of truth for product source.
+- Use `pnpm health` for the full local check.
+- Use `pnpm release` as the frozen public-website release build entrypoint; promotion remains separately authorized. App-specific build and lifecycle source under `deploy/app/` is separate; do not assume the website command deploys the app.
+- Prefer route-parity evidence over interpretation.
+- Do not expose internal-only proof details through operator-facing surfaces.
+
+## Public receipt-only lane
 
 - Treat `/verify` and `/api/verify` as first-class owned surfaces.
 - Keep `packages/proof` limited to the receipt-only lane in this slice.
 - Do not widen into canonical bundle verification or corpus work unless a separate lane explicitly authorizes it.
-- Keep live package names on the `@witnessops/*` surface.
-- Use the published remote as the operating source of truth for product source.
-- Use `pnpm health` for the full local check.
-- Use `pnpm release` as the frozen release build entrypoint; promotion remains separately authorized.
-- Prefer route-parity evidence over interpretation.
-- Do not expose internal-only proof details through operator-facing surfaces.
+- Existing app import, storage and report-sharing paths do not widen public receipt-verifier inputs or confer new proof authority.
+
+## Authenticated app and CLI boundaries
+
+- `apps/witnessops-app/` owns the product's account/workspace, membership, saved-result, report-sharing and sandbox seat-billing implementation. Read its [README](./apps/witnessops-app/README.md) and [API contract](./apps/witnessops-app/src/lib/api-contract.ts) before changing these paths.
+- WorkOS authentication, current workspace membership, product entitlements and collection/CLI authorization are separate checks. Preserve Owner/Contributor/Viewer restrictions and revocation behavior.
+- Signup, joining a workspace and payment never authorize collection by themselves. Preserve existing historical admission/consent behavior; do not silently convert it into new billing terms.
+- Preserve original source evidence, material unknowns and synthetic labels. Report sharing uses an explicit recipient projection and a fixed revision; it grants no workspace membership and must not expose unselected source data.
+- The CLI source in `packages/wops-cli/` and the app's separately scoped server-check/finalization implementation are not the receipt-only verifier. Their presence does not authorize collection, signing, provider activation or deployment.
+- Sandbox billing is not a live catalogue. Provider-backed Help, mail delivery and payments require their own configuration and acceptance; fixture tests do not establish them.
 
 ## Deployment boundary
 
@@ -66,7 +82,7 @@ For security-sensitive changes, preserve these boundaries:
 - `/verify` and `/api/verify` accept untrusted receipt input.
 - Invalid, incomplete, ambiguous, or malformed receipt input must not be presented as verified.
 - Receipt parsing, public result rendering, copy, smoke tests, and route parity must not overclaim what the verifier proved.
-- The web surface does not issue, sign, mutate, backfill, or store receipts as part of normal verification.
+- The public receipt-verification surface does not issue, sign, mutate, backfill, or store receipts as part of normal verification. Do not apply this description to the app's separate authorized import/storage/finalization paths or use those paths to widen `/verify`.
 - Do not add production secrets, customer data, signing keys, cloud credentials, or private evidence bundles to tests, examples, prompts, or fixtures.
 
 ## Optimization and language strategy
@@ -81,4 +97,5 @@ For security-sensitive changes, preserve these boundaries:
 - `pnpm health` — full repository health gate on Node 22.
 - route parity against the frozen baseline captured at slice start.
 - buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`.
+- App database and browser acceptance commands are documented in `apps/witnessops-app/README.md`; `pnpm health` does not replace these separate suites or hosted-provider acceptance.
 - Deploy/runtime validation belongs to a separately authorized operator lane; do not infer it from local repository health.

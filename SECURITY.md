@@ -6,7 +6,7 @@ from us in return.
 
 ## Scope
 
-This repository contains the public web surface for WitnessOps:
+This repository contains source for the following WitnessOps surfaces:
 
 - The Next.js application under `apps/witnessops-web`
 - The `/verify` route
@@ -14,11 +14,23 @@ This repository contains the public web surface for WitnessOps:
 - Public buyer, review, docs, support, pricing, library, legal, and security pages
 - Public sample-case pages, including the AI Agent Action Proof Run sample surface
 - Web-side sample artifact contracts and buyer-path smoke tests
+- The authenticated app under `apps/witnessops-app`: WorkOS signup/session
+  integration, workspaces, Owner/Contributor/Viewer membership, authorized
+  hostname checks, Linux imports, saved evidence, reports and recipient sharing
+- Workspace sandbox Checkout/Portal and seat-entitlement reconciliation
+- CLI source under `packages/wops-cli`, app-mediated CLI authorization and the
+  separately scoped server-check capture/finalization implementation
+- Shared packages and repository build/test tooling supporting these surfaces
 
-It does **not** contain the WitnessOps private control plane, private mesh,
-customer evidence systems, app signup flow, OffSec portal, or checkout surface.
-Reports against systems outside this repository are out of scope here and
-should be directed to the appropriate project or vendor.
+These are source-scope statements, not claims that each feature is enabled or
+accepted in production. They do not authorize testing a deployed target,
+collecting customer data, sending email or activating live billing.
+
+Separate private control-plane, mesh and OffSec systems are not brought into
+scope merely because this repository references them. Reports about defects in
+systems outside this repository should be directed to their owning project or
+vendor. Defects in this repository's authentication, workspace isolation,
+evidence handling, recipient access or billing integration remain in scope.
 
 ## Supported surface
 
@@ -31,14 +43,19 @@ Reports about the public verifier, public sample pages, pinned artifact links,
 claim-boundary text, route behavior, or buyer-path smoke coverage are in scope
 for this repository when they affect this web surface.
 
-This repository records and displays pinned external sample manifest provenance,
-but it does not run customer workflows, issue or sign production receipts, accept
-customer evidence uploads, operate the control plane, or independently recompute
-external sample artifact bytes as part of normal public verification. Public
-samples are examples unless a specific public verifier or proof path says
-otherwise. Reports that require control-plane evidence, production customer
-evidence, signing-key custody, or source-system truth should be routed to the
-owning repository or operational process.
+The public `/verify` and `/api/verify` paths are receipt-only. Normal receipt
+verification does not accept proof-bundle uploads or caller-supplied trust inputs,
+run customer workflows, issue or sign production receipts, or persist customer
+evidence. Public samples are examples unless a specific sample verification path
+states its mechanism and scope; they do not establish source-system truth or
+production signing-key custody.
+
+That boundary is distinct from the authenticated app's authorized imports,
+persisted evidence, report sharing and separately scoped server-check/finalization
+paths. Security reports about those implementations are in scope here; their
+existence does not widen the public receipt verifier. Reports requiring private
+operational evidence must use the agreed handling process rather than publishing
+that evidence in this repository.
 
 ## Identifier and secret exposure reports
 
@@ -120,8 +137,9 @@ this repository:
 - Destructive testing, physical attacks, credential stuffing, spam, or automated
   abuse
 - Reports about private infrastructure, private mesh, internal receipts,
-  customer evidence, or non-public control planes, unless the issue is accidental
-  exposure through this repository or its public artifacts
+  customer evidence, or non-public control planes, unless the issue affects an
+  implementation in this repository (including its evidence handling and access
+  controls) or accidental exposure through this repository or its public artifacts
 - Vulnerabilities in third-party dependencies that are already tracked by
   Dependabot or an equivalent automated advisory feed
 - Claims that a sample artifact proves production deployment, legal compliance,
