@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { pdfPages } from '../proofpack/report-pdf';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -219,4 +220,27 @@ test('attention without a recommendation does not suggest a clear baseline', asy
  const reader=page.getByRole('article',{name:'Shared report reader'});
  await expect(reader).toContainText('No recommendation was recorded; agree an appropriate follow-up');
  await expect(reader).not.toContainText('Keep this bounded baseline');
+});
+
+// Actual Chromium page text catches wrappers that add enough height to orphan the summary.
+test('named hostname recipient PDF keeps summary and finding content together', async ({page,browserName}, info) => {
+ test.skip(browserName !== 'chromium');
+ const projection=recipientReport(savedRunReport(run),'Staging export acceptance — fixed revision');
+ const bytes=canonicalSource(projection), hash=createHash('sha256').update(bytes).digest('hex');
+ await page.route('**/api/shared-report',route=>route.fulfill({json:{snapshot:projection,digest:hash,expiresAt,publishedAt:'2026-09-18T12:00:00Z'}}));
+ await page.goto(`/s#${token}`);
+ await expect(page.getByRole('article',{name:'Shared report reader'})).toBeVisible();
+ const pdf=await page.pdf({path:info.outputPath('recipient.pdf'),format:'A4',printBackground:true,preferCSSPageSize:true});
+ const pages=pdfPages(pdf).map(p=>p.text.replace(/\s+/g,' '));
+ expect(pages[0]).toContain(projection.sharedTitle);
+ expect(pages[0]).toContain('This report is a derived presentation of the source evidence.');
+ const firstFinding=pages.find(p=>p.includes('THE FINDINGS'))!;
+ expect(firstFinding).toContain(projection.findings[0].title);
+ const all=pages.join(' '), compact=(s:string)=>s.replace(/\s+/g,'');
+ for(const f of projection.findings){if(f.recommendation)expect(compact(all)).toContain(compact(f.recommendation));for(const l of f.limitations)expect(compact(all)).toContain(compact(l));}
+ for(const u of projection.unknowns)expect(compact(all)).toContain(compact(u.reason));
+ expect(all).not.toContain(' · Evidence:');
+ for(const excluded of ['Full source JSON used for this report',run.id,run.assetId,'Export PDF','Publish link',token])expect(all).not.toContain(excluded);
+ expect(pages.every(p=>p.length>180)).toBe(true);
+ expect(canonicalSource(projection)).toBe(bytes);
 });
