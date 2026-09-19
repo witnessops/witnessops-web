@@ -3,8 +3,8 @@
 import assert from 'node:assert/strict';
 import {createServer,request as httpRequest} from 'node:http';
 import {createRequire} from 'node:module';
-import {randomUUID,generateKeyPairSync,sign} from 'node:crypto';
-import {readFileSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {randomUUID,generateKeyPairSync,sign,createHash} from 'node:crypto';
+import {readFileSync,readdirSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {parseEnv} from 'node:util';
@@ -112,8 +112,11 @@ try {
  for(const path of ['/api/assets?id='+asset.id,'/api/runs?id='+run])assert.equal((await request(path,outsider,{'x-witnessops-workspace':foreign})).status,404);
  await revokeSession(pool,{issuer,subject:'user_owner',sessionId:'session_userowner'});
  assert.equal((await request('/api/workspace',owner)).status,401);
- assert.equal((await pool.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'12');
- console.log(JSON.stringify({manifest:identity.image_digest,config,engineImage:image,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:12,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
+ const migrationsDirectory=new URL('../../apps/witnessops-app/db/migrations/',import.meta.url);
+ const expectedMigrations=readdirSync(migrationsDirectory).filter(name=>/^\d{4}_[a-z_]+\.sql$/.test(name)).sort().map(name=>({name,sha256:createHash('sha256').update(readFileSync(new URL(name,migrationsDirectory))).digest('hex')}));
+ assert.ok(expectedMigrations.length>0,'Migration inventory must not be empty');
+ assert.deepEqual((await pool.query('SELECT name,sha256 FROM app_migrations ORDER BY name')).rows,expectedMigrations);
+ console.log(JSON.stringify({manifest:identity.image_digest,config,engineImage:image,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:expectedMigrations.length,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
 } finally {
  if(started)execFileSync(docker,['rm','-f',name],{stdio:'pipe'});
  provider.close();await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();rmSync(directory,{recursive:true,force:true});

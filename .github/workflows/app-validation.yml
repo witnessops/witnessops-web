@@ -211,7 +211,9 @@ jobs:
       - name: Independent exact-manifest Trivy (no suppression)
         run: bash deploy/aws/scan-runtime-image.sh artifacts/app-validation/image.tar artifacts/app-validation
       - name: Test exact scanned image with disposable authentication
+        shell: bash
         run: |
+          set -euo pipefail
           pnpm install --frozen-lockfile
           umask 077
           printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
