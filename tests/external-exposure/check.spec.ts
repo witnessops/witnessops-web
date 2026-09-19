@@ -129,8 +129,13 @@ test('source download and the immutable report use the same identity and print d
   expect(await report.innerHTML()).toBe(before);
   expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
     elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
+  // Public reports retain the full-page cover; authenticated summaries use natural height.
+  expect(await report.locator('section').first().evaluate(el => parseFloat(getComputedStyle(el).minHeight))).toBeCloseTo(265 * 96 / 25.4, 1);
   if (browserName === 'chromium') await page.pdf({ path: testInfo.outputPath('mock-external-snapshot.pdf'), format: 'A4', printBackground: true });
   await page.emulateMedia({ media: 'screen' });
+  // Screen content remains intact.
+  expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
+    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, true, true, true, true]);
   await page.setViewportSize({ width: 390, height: 844 });
   const mobileWidth = await page.evaluate(() => document.documentElement.clientWidth);
   expect(await report.boundingBox()).toMatchObject({ x: 8, width: mobileWidth - 16 });

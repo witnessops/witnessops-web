@@ -32,9 +32,9 @@ function Summary({ model, interactive }: { model: ProofpackReportV1; interactive
     {next.findings.map(f => <div className="report-next-item" key={f.id}><strong>{f.title}</strong><p>{f.severity === null ? 'Severity not assessed' : `Recorded severity: ${f.severity}`}</p><p>{recommendation(f)}</p>{interactive && <a className="finding-interactive" href={`#${findingAnchor(model.findings.indexOf(f))}`}>Inspect finding →</a>}</div>)}
     {interactive && <a className="finding-interactive" href="#report-all-findings">View all findings →</a>}
     <p><strong>{next.gaps.length} collection gaps · {next.undetermined === null ? 'Individual undetermined-check total not recorded' : `${next.undetermined} undetermined checks`} · {next.unknowns.length} recorded unknowns/limitations</strong></p>
-    {next.gaps.slice(0, 3).map(g => <p key={g.id}><strong>{g.label}</strong>: {g.reason}</p>)}
+    <div className="report-summary-details">{next.gaps.slice(0, 3).map(g => <p key={g.id}><strong>{g.label}</strong>: {g.reason}</p>)}
     {next.unknowns.filter(u => u.evidenceNeeded).slice(0, 3).map(u => <p key={u.id}><strong>{u.title}</strong>: {u.reason} Evidence needed: {u.evidenceNeeded}</p>)}
-    {(next.gaps.length > 0 || next.unknowns.length > 0) && <details open={!interactive}><summary>Missing evidence and recorded limits</summary>{next.gaps.map(g => <p key={g.id}><strong>{g.label}</strong>: {g.reason}</p>)}{next.unknowns.map(u => <div key={u.id}><strong>{u.title}</strong><p>{u.reason}</p>{u.evidenceNeeded && <p>Evidence needed: {u.evidenceNeeded}</p>}</div>)}</details>}
+    {(next.gaps.length > 0 || next.unknowns.length > 0) && <details open={!interactive}><summary>Missing evidence and recorded limits</summary>{next.gaps.map(g => <p key={g.id}><strong>{g.label}</strong>: {g.reason}</p>)}{next.unknowns.map(u => <div key={u.id}><strong>{u.title}</strong><p>{u.reason}</p>{u.evidenceNeeded && <p>Evidence needed: {u.evidenceNeeded}</p>}</div>)}</details>}</div><p className="report-print-boundary">Read Chapter 04 for all collection gaps, limitations and evidence needed. These results do not establish overall security or completed remediation.</p>
   </section>;
 }
 function Finding({ model, finding, context, interactive }: { model: ProofpackReportV1; finding: ProofpackReportV1['findings'][number]; context: Context; interactive: boolean }) {

@@ -108,6 +108,7 @@
     .document .chapter { background: #f3f1eb !important; color: #181816; margin: 0; padding: 6mm 6mm 4mm; break-before: page; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
     .document .chapter:first-child { break-before: auto; }
     .document .cover { min-height: 265mm; box-sizing: border-box; break-before: auto; }
+    .document .cover:has(:global(.report-next-steps)) { min-height: 0; }
     .document .dark { --report-ink: #f4f1e9; --report-muted: #bebbb1; --report-line: #383832; --report-accent: #ff7945; background: #111210 !important; color: #f4f1e9 !important; }
     .document .running { font-size: 7pt; margin-bottom: 10mm; flex-wrap: nowrap; }
     .document .running strong { flex-basis: auto; }
@@ -128,7 +129,8 @@
     .document .steps { grid-template-columns: repeat(3, 1fr); gap: 5mm; }
     .document .scopeIntro > div + div, .document .boundaryGrid > div + div { border-top: 0; border-left: 1px solid var(--report-line); padding: 0 0 0 6mm; }
     .document .coverageList > div { padding: 8px 0; }
-    .document .finding { margin-top: 8mm; }
+    .document .finding { margin-top: 8mm; break-inside: auto; }
+    .document .chapter > .lead, .document .chapter > .lead + .fine, .document .findingMeta { break-after: avoid; }
     .document .finding h3 { font-size: 17pt; }
     .document .findingBody { margin-top: 5mm; }
     .document pre { background: transparent !important; color: var(--report-ink) !important; font-size: 7pt; max-height: none; }
@@ -136,7 +138,8 @@
     .document .receipt dd { margin: 0; }
     .document .chapterFooter { font-size: 7pt; margin-top: 8mm; break-inside: avoid; }
     /* Per-page identity already labels print pages; repeated chapter footers can orphan. */
-    .document .chapter:not(.cover) > .chapterFooter { display: none; }
+    .document .chapter:not(.cover) > .chapterFooter,
+    .document .cover:has(:global(.report-next-steps)) > .chapterFooter { display: none; }
     .document .checks p, .document .steps p { font-size: 8pt; }
     .document .findingLimit { font-size: 9pt; }
     .document .gap { margin-top: 3mm; }
@@ -173,5 +176,8 @@
     /* Large source appendices flow across pages without reserving an empty page. */
     .document .sourceArtifact { break-inside: auto; }
     .document .sourceArtifact > pre { line-height: 1.5; margin-bottom: 2mm; widows: 8; orphans: 8; }
-    .document .sourceArtifact > p { margin-bottom: 2mm; }
+    .document .running { break-after: avoid; }
+    .document .receipt dt, .document .receipt dd { break-inside: avoid; }
+    .document .sourceMetadata { break-inside: avoid; break-after: avoid; }
+    .document .sourceMetadata p { margin-bottom: 2mm; }
 }

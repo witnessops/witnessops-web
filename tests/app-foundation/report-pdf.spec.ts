@@ -9,10 +9,10 @@ import { RECOMMENDED_PROFILE, type Run, type Workspace } from "../../apps/witnes
 
 const captured = validateExternalSnapshot(JSON.parse(readFileSync(resolve("tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json"), "utf8")));
 
-for (const shape of ["clean", "attention", "long-evidence"] as const) {
+for (const shape of ["informational", "attention", "long-evidence"] as const) {
   test(`saved run A4 export preserves source and final-page content: ${shape}`, async ({ page, baseURL }, info) => {
     const source = structuredClone(captured);
-    if (shape !== "clean") {
+    if (shape !== "informational") {
       const check = source.checks.find(item => item.check_id === "web.hsts.v1")!;
       check.status = "NEEDS_ATTENTION"; check.observation = { hsts: null, url: "https://witnessops.com/", statusCode: 200 };
       check.interpretation = "No HSTS header was recorded in this deterministic fixture.";
@@ -80,7 +80,37 @@ for (const shape of ["clean", "attention", "long-evidence"] as const) {
     await expect(root).toContainText('What to do next');
     await expect(root).not.toContainText("PDF Workspace");
     await expect(root).not.toContainText("Sign out");
-    const { textRuns } = await assertReportPdf(page, info);
+    const { textRuns, pageTexts } = await assertReportPdf(page, info);
+    // Detaching the PDF CDP session restores media; reapply it for computed-style assertions.
+    await page.emulateMedia({ media: 'print' });
+    const finding = root.locator('.finding-follow-through').first().locator('..');
+    await expect(finding).toHaveCSS('break-inside', 'auto');
+    await expect(root.locator('article > section').first()).toHaveCSS('min-height', '0px');
+    const metadata = root.locator('article section').filter({ has: page.getByRole('heading', { name: 'Unsigned source observations', exact: true }) }).last().locator(':scope > div').first();
+    await expect(metadata).toHaveCSS('break-inside', 'avoid');
+    await expect(metadata).toHaveCSS('break-after', 'avoid');
+    const compact = (s: string) => s.replace(/\s/g, '');
+    const pages = pageTexts.map(compact);
+    const findingsPage = pages.findIndex(text => text.includes('THEFINDINGS'));
+    expect(findingsPage).toBeGreaterThan(0);
+    const firstFinding = shape === 'informational' ? 'Vulnerability reporting contact' : 'HTTP Strict Transport Security';
+    expect(pages[findingsPage], 'Chapter introduction must share a page with its first finding').toContain(compact(firstFinding));
+    expect(pages[findingsPage]).toContain(compact('WHAT WE OBSERVED'));
+    const appendixPage = pages.findIndex(text => text.includes(compact('Unsigned source observations')));
+    expect(appendixPage).toBeGreaterThan(0);
+    expect(pages[appendixPage]).toContain('external-exposure-snapshot.json');
+    expect(pages[appendixPage]).toContain(run.sourceDigest);
+    expect(pages[appendixPage]).toContain('"version":');
+    expect(pages.at(-1)!.length, 'Final page must contain substantial source content, not an isolated digest').toBeGreaterThan(250);
+    const pdfText = pages.join('');
+    for (const check of snapshot.checks) {
+      for (const text of [check.interpretation, ...check.limitations]) expect(pdfText).toContain(compact(text));
+    }
+    for (const control of ['Ask about this finding', 'Copy request', 'Publish link', 'Cancel draft']) expect(pdfText).not.toContain(compact(control));
+    if (shape === 'informational') {
+      expect(pages[0]).toContain(compact('This report is a derived presentation of the source evidence.'));
+      expect(pages[1]).toContain('THESCOPE');
+    }
     expect(textRuns.length).toBeGreaterThan(5);
     expect(canonicalSource(run)).toBe(before);
     expect(unexpected).toEqual([]);

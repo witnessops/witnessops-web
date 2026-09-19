@@ -429,3 +429,15 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .share-delivery input:not([type="checkbox"]) { width: 100%; min-width: 0; }
 .share-delivery .button { margin: 8px 8px 8px 0; }
 .share-delivery pre { padding: 16px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+
+.report-print-boundary { display: none; }
+@media print {
+  .report-summary-details { display: none; }
+  .report-print-boundary { display: block; }
+  .report-next-steps { margin: 4mm 0; }
+  .report-next-steps h3 { margin: 2mm 0; }
+  .report-next-steps p { margin: 2mm 0; }
+  .report-next-item { padding: 2mm 0; }
+  .finding-follow-through h4 { break-after: avoid; }
+  .finding-follow-through p, .finding-follow-through pre { orphans: 3; widows: 3; }
+}
