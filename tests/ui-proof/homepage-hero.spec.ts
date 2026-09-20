@@ -235,7 +235,8 @@ test("English and Polish homepages preserve bounded entry points and evidence li
         // The English homepage uses decorative art, not a fabricated finding.
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
         await expect(page.locator('main [aria-hidden="true"] img')).toHaveAttribute("alt", "");
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Workspace access requires an invitation.");
+        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Verify your email to create your own workspace.");
+        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
       if (path === "/pl") {
