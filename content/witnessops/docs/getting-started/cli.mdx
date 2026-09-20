@@ -1,6 +1,6 @@
 ---
 title: "CLI setup and authentication"
-description: "Run the current CLI source, sign in through the browser, check your session and sign out."
+description: "Install a supplied CLI archive, sign in through the browser, check your session and sign out."
 section: "docs"
 order: 3
 nav_label: "CLI setup & auth"
@@ -11,32 +11,26 @@ draft: false
 
 The browser app needs no installation. This guide is for people who need the optional command-line client and already have authorized workspace access.
 
-## Current installation path
+## Install the pilot archive
 
-The repository package is named `@witnessops/cli` and is marked private. There is no published npm install command established by this source. Use an operator-approved repository revision for evaluation; do not assume an arbitrary checkout matches the deployed app.
+The package is named `@witnessops/cli` and remains private. There is no public npm install command. For an assisted pilot, the operator supplies a versioned `.tgz` archive and its expected SHA-256 value through the trusted pilot channel. Do not use an archive or checksum copied from an untrusted message.
 
-Install Node.js 22 and Git through your usual trusted package source. Clone the [WitnessOps repository](https://github.com/witnessops/witnessops-web), check out the revision supplied for your pilot, and enter the repository directory. The CLI uses Node's built-in modules and can run directly without installing the web application:
-
-```bash
-git clone https://github.com/witnessops/witnessops-web.git
-cd witnessops-web
-```
-
-Check out the revision supplied for your pilot before running the commands below. If you were not given a revision, ask support rather than treating the latest source as a supported release.
+Install Node.js 22 through your usual trusted package source. From the directory containing the supplied archive and checksum sidecar, verify and install it:
 
 ```bash
-node --version
-node packages/wops-cli/src/main.mjs auth status
+sha256sum --check witnessops-cli-0.0.1.tgz.sha256
+npm install --global ./witnessops-cli-0.0.1.tgz
+wops auth status
 ```
 
-The first command should report Node.js 22. Before login, the second reports `Not signed in.` When a packaged `wops` launcher is supplied, it exposes the same commands as `wops auth status`, `wops auth login` and `wops auth logout`.
+Before login, the final command reports `Not signed in.` The checksum detects changed bytes only when you obtained the expected value through a trusted channel; it is not a publisher signature. The archive installs only the CLI. A server check also needs the separately supplied, root-owned Local Audit runtime and explicit authorization. If either prerequisite was not supplied, ask the pilot operator instead of cloning an arbitrary source revision.
 
 ## Sign in
 
 Run as your normal user, not with sudo:
 
 ```bash
-node packages/wops-cli/src/main.mjs auth login
+wops auth login
 ```
 
 The CLI opens the browser authorization page and prints a code. If the browser cannot open, use the displayed address in your browser. Sign in, enter the code from your own terminal, and confirm the workspace and role. Authorize only a sign-in you started; never enter a code someone sends you.
@@ -46,7 +40,7 @@ Return to the terminal and wait for confirmation. Login grants session identity/
 ## Confirm your session
 
 ```bash
-node packages/wops-cli/src/main.mjs auth status
+wops auth status
 ```
 
 Check the account, workspace, role and active session. If current status cannot be confirmed, restore connectivity and retry. A local credential file alone does not establish current access. Do not copy or share that file.
@@ -54,7 +48,7 @@ Check the account, workspace, role and active session. If current status cannot 
 ## Sign out
 
 ```bash
-node packages/wops-cli/src/main.mjs auth logout
+wops auth logout
 ```
 
 This removes the local credential and attempts server revocation. If revocation cannot be confirmed, the CLI says so; do not describe that as confirmed server sign-out.
