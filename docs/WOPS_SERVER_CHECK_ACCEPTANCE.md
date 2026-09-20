@@ -416,3 +416,13 @@ Comparison selects the exact baseline above. Environment records `tcp/127.0.0.1:
 **Boundaries:** valid != server secure; signed != source-system truth; capture is unsigned correspondence. Partial stays partial and null stays unknown. Selected target invariants != whole-host immutability. Root/source honesty is not attested. Reports are derived. Hostname/bind state does not prove public reachability. This was local/test-app acceptance, not production deployment or general distro/self-service acceptance.
 
 Terminal UX was successful, with a clear result URL; manual listener entry and UTC window flags remain operator-assisted friction. No second capture, remediation, product-code change, push, merge or deployment occurred. This freeze only reviews source/evidence and updates documentation.
+
+## Assisted pilot artifact follow-up — 2026-09-20
+
+The versioned private CLI archive and checksum sidecar were built from the current `codex/cli-pilot-artifact` candidate. Offline installation on one disposable Ubuntu lab guest preserved the fixed root-controlled wrapper/runtime layout and passed archive/member checksum and Node-runtime checks. The candidate now exposes bounded `wops --help`, `wops auth --help`, and `wops server check --help` output without starting authentication or collection. This supersedes the earlier help limitation for this candidate only; it does not establish general Linux distribution support.
+
+Separately, two existing Local Audit 1.2.2 signed artifact pairs were imported through the hosted app's normal manual-import flow, in before/after order, onto one dedicated lab asset. The asset retained two saved checks. Findings changed from five to four, and the persisted comparison recorded `unsafeSudoersMetadata: 1 → 0`. Both results remained partial at 10/11 collection coverage with the update-classification gap preserved.
+
+The Local Audit 1.2.2 before artifact incorrectly labels the firewall active. Firewall field differences in the comparison therefore do not establish firewall remediation or a second cleared finding. The supported change is limited to the sudoers metadata finding/count difference.
+
+This follow-up does not exercise the installed CLI's full `server check` journey. No new CLI collection, capture upload, finalization, signed package or app report was created through the installed guest CLI. That journey, including interruption recovery, remains a separate acceptance step with fresh authentication, connectivity, authority-window and signing-custody prerequisites.

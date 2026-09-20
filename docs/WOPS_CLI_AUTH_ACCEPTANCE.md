@@ -105,3 +105,13 @@ Desktop and 390px authorization screenshots were inspected: identity/workspace/r
 Security diff review found one initial availability defect: retaining expired transactions could exhaust the issuance cap. Cleanup now removes expired transactions before capacity checks; a 1,000-expired-row regression passes. No unresolved findings remain in reviewed current source. The sealed review distinguishes its original snapshot from remediated source/test addenda; final test-only additions and these result counts are post-seal evidence.
 
 No production credentials were used. No production/dev application database migration was applied: migrations ran only in disposable test schemas. No real collection, customer capture/upload, production signing, real run creation, installer, push, merge or deployment occurred. Existing regression suites use isolated fixture data.
+
+## Hosted pilot-auth follow-up — 2026-09-20
+
+The current CLI artifact candidate was exercised against the hosted app with two isolated local credential directories. In both cases, a user initiated `wops auth login`, entered the terminal code in the browser, gave explicit consent, and the already-polling CLI redeemed automatically. A second process confirmed persisted active status; the local directory and credential file were owner-only (`0700` and `0600`). Supported logout removed the local credential, and a follow-up session request returned `401 revoked`. The pre-existing default CLI configuration and browser session were not replaced or logged out.
+
+One path reused an authenticated browser session. A second used an Incognito window; the user reported choosing Google authentication and receiving a Google security alert. No provider inbox or email one-time code was inspected, so this does not establish email-OTP delivery. The user reports that email login worked in an earlier test; that claim was not replayed here.
+
+Both issued sessions reported `cli:session server_check:create`, including the auth-only follow-up where the optional browser selection was intended to remain off. The submitted selection state was not independently captured, so this is a review item rather than proof of a scope-escalation defect. No server-check endpoint, collection, upload or signing path was invoked.
+
+This hosted follow-up establishes the browser-consent, polling, persistence, status, logout and server-revocation path for the tested candidate. It is not a production-readiness, provider-delivery or general-user acceptance claim.
