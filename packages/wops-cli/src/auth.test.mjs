@@ -52,9 +52,9 @@ test('polling bounded, denial terminal, malicious browser URL rejected',async()=
  await assert.rejects(run(['auth','login'],{...options,fetch:async url=>url.endsWith('/login')?Response.json(tx):Response.json({code:'denied'},{status:403})}),/declined/);
  await assert.rejects(run(['auth','login'],{...options,fetch:async()=>Response.json({...tx,authorizationUrl:'https://evil.test'})}),/Unexpected login response/);
 }));
-test('concurrent commands are serialized and no production signing dependency exists',async()=>fixture(async(storage)=>{
+test('concurrent auth commands are serialized and auth modules have no collection or signing dependency',async()=>fixture(async(storage)=>{
  await storage.lock(()=>assert.rejects(storage.lock(async()=>{}),/Another auth command/));
- for(const file of ['commands.mjs','storage.mjs','main.mjs']){
+ for(const file of ['commands.mjs','storage.mjs']){
  const source=await readFile(new URL(file,import.meta.url),'utf8');assert.doesNotMatch(source,/local.audit|proofpack|signing.key|sign_record|collect_live|wops server check/i);
  }
 }));

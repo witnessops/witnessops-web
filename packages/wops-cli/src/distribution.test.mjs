@@ -39,6 +39,12 @@ test('versioned archive installs and runs without a repository checkout', async 
     });
     assert.equal(status.status, 0, status.stderr);
     assert.equal(status.stdout.trim(), 'Not signed in.');
+
+    const help = spawnSync(path.join(prefix, 'bin/wops'), ['--help'], { encoding: 'utf8' });
+    assert.equal(help.status, 0, help.stderr);
+    assert.match(help.stdout, /wops auth login \[--server URL\]/);
+    assert.match(help.stdout, /sudo wops server check/);
+    assert.match(help.stdout, /reconcile retained state/);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
