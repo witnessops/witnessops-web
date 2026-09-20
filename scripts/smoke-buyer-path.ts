@@ -27,7 +27,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Workspace access requires an invitation.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Verify your email to create your own workspace.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {
@@ -129,7 +129,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Documentation",
       "Start with the app",
-      "Signup is free. Workspace access requires an invitation. No card is required.",
+      "Signup is free. Verify your email to create your own workspace. No card is required.",
       "CLI setup and authentication",
       "Try an example",
       "The default example is indeterminate",
@@ -286,7 +286,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Illustrative draft. App prices are not a live product claim.",
       "No payment is taken here.",
       "Observe", "Compare", "Workspace", "Preview a plan to explore the draft. Selection applies only to this page.",
-      "Creating an account is free; workspace access currently requires an invitation.",
+      "Creating an account is free; verify your email to create your own workspace.",
       "A plan does not authorise a scan or establish that a system is secure.",
       "One Server Security Check", "€950 standard · excluding VAT",
       "Scope a review",
