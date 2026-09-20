@@ -1,13 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 import { buildCliArtifact } from '../../../scripts/build-cli-artifact.mjs';
-
-const packageDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 test('versioned archive installs and runs without a repository checkout', async () => {
   const scratch = await mkdtemp(path.join(tmpdir(), 'witnessops-cli-distribution-'));
@@ -45,6 +42,21 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.match(help.stdout, /wops auth login \[--server URL\]/);
     assert.match(help.stdout, /sudo wops server check/);
     assert.match(help.stdout, /reconcile retained state/);
+
+    for (const args of [['auth', '--help'], ['server', 'check', '--help']]) {
+      const before = await readdir(scratch);
+      const result = spawnSync(path.join(prefix, 'bin/wops'), args, {
+        encoding: 'utf8',
+        timeout: 5_000,
+        cwd: scratch,
+        env: { ...process.env, HOME: path.join(scratch, 'help-home'), XDG_CONFIG_HOME: path.join(scratch, 'help-config') },
+      });
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stderr, '');
+      assert.match(result.stdout, /^Usage:/);
+      assert.match(result.stdout, args[0] === 'auth' ? /wops auth logout/ : /accepted root-owned Local Audit runtime/);
+      assert.deepEqual(await readdir(scratch), before, 'help must not create authentication or collection state');
+    }
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
