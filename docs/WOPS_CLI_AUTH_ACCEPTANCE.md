@@ -115,3 +115,11 @@ One path reused an authenticated browser session. A second used an Incognito win
 Both issued sessions reported `cli:session server_check:create`, including the auth-only follow-up where the optional browser selection was intended to remain off. The submitted selection state was not independently captured, so this is a review item rather than proof of a scope-escalation defect. No server-check endpoint, collection, upload or signing path was invoked.
 
 This hosted follow-up establishes the browser-consent, polling, persistence, status, logout and server-revocation path for the tested candidate. It is not a production-readiness, provider-delivery or general-user acceptance claim.
+
+## Installed guest auth-only follow-up — 2026-09-20
+
+The installed CLI in one disposable Ubuntu guest completed a fresh browser-consented login against a local test app. The optional server-check permission was visibly unchecked; the issued session was independently checked and reported exactly `cli:session`. A separate CLI process confirmed active status. Credential directory/file modes were `0700`/`0600`.
+
+CLI logout removed the local credential. A subsequent request using the former credential, retained only in process memory for this check, returned `401 revoked`; final CLI status was not signed in. Temporary connectivity was removed and the existing app remained healthy. No server-check request, collection, upload, finalizer preflight or signing occurred in this auth-only test.
+
+This provides positive evidence for narrow-scope consent on this local path. It does not explain or retroactively resolve the earlier hosted selection-state discrepancy, and it is not a combined hosted collection acceptance test.
