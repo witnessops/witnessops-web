@@ -12,7 +12,7 @@ This repository does not document production host identity, cloud trust policy,
 secret inventories, private network topology, rollback endpoints, or operator
 credential locations.
 
-- `pnpm release` builds the app artifact only.
+- `pnpm release` builds the public website package (`witnessops-web`) only, not the separate authenticated app.
 - A merge to `main` does **not** itself authorize or perform production publication or deployment.
 - Production mutation requires a separate explicit operator action under separately custodied deployment authority.
 - Retired deployment paths are not valid shortcuts and must not be reactivated from this command contract.
@@ -22,24 +22,58 @@ credential locations.
 
 `pnpm health`
 
-Runs the full live-repo check:
+Runs the Node 22 local repository health chain in [package.json](./package.json),
+in the following order. A failure stops the remaining steps:
 
-- build
-- lint
-- typecheck
-- tests through `pnpm test`
-- docs validation
-- signals validation
+```text
+pnpm --filter witnessops-web build
+pnpm --filter witnessops-web lint
+pnpm --filter witnessops-web typecheck
+pnpm ticket-triage:typecheck
+pnpm test
+pnpm docs:validate
+pnpm signals:validate
+pnpm app:build
+pnpm --filter @witnessops/app lint
+pnpm --filter @witnessops/app typecheck
+```
 
-`pnpm test` currently includes:
+The nested `pnpm test` chain is:
 
-- app tests
-- `@witnessops/proof` tests
-- ticket-triage tests
-- route parity
-- receipt smoke
-- public buyer-path smoke test
-- public SEO tests
+```text
+pnpm --filter witnessops-web test
+pnpm --filter @witnessops/proof test
+pnpm ticket-triage:test
+pnpm route-parity
+pnpm receipt-smoke
+pnpm smoke:buyer-path:test
+pnpm verify:public-seo:test
+pnpm deploy:aws:test
+pnpm deploy:ghcr:test
+pnpm app:test
+pnpm cli:test
+```
+
+The first test command targets the public website package; `app:test` targets
+the separate `@witnessops/app` package, and `cli:test` targets `@witnessops/cli`.
+The deployment-related entries are repository test/syntax-check commands, not
+production deployment or image-publication commands.
+
+These are the direct health/test chains, not every available package script.
+From the repository root, inspect the current definitions without running them:
+
+```bash
+node -p "require('./package.json').scripts.health"
+node -p "require('./package.json').scripts.test"
+```
+
+Keep both lists aligned with script changes. Repository health is browser-free;
+it does not replace the app's separate database/browser acceptance suites
+listed in [the app README](./apps/witnessops-app/README.md), the PDF/browser
+gates below, or hosted-provider acceptance. A health result is not evidence of
+production deployment, live payment/mail delivery, or completed operator approval.
+Use `pnpm health:node22` as documented in [the Node 22 builder guide](./docs/NODE22-BUILDER.md)
+when the host is not already running Node 22.
 
 ## Focused validation commands
 
@@ -68,7 +102,7 @@ Validates signal content.
 
 `pnpm build && pnpm test:pdf-pagination`
 
-Builds the app and runs the four fixture-only A4 PDF regressions (clean External
+Builds the public website and runs the four fixture-only A4 PDF regressions (clean External
 Exposure, attention, long finding, and Local Audit). Install Chromium first with
 `pnpm exec playwright install chromium --with-deps`.
 
@@ -82,9 +116,10 @@ its workflow; repository branch-protection requirements are configured separatel
 
 `pnpm release`
 
-Builds the live app artifact for the current internal/manual release process.
-Promotion beyond the build step remains operator-managed and separately
-authorized.
+Runs `pnpm --filter witnessops-web build` for the public website artifact.
+The authenticated application has its separate `pnpm app:build` command.
+Neither build publishes an image or deploys production; promotion remains
+operator-managed and separately authorized.
 
 ## Public Buyer-Path Smoke
 
