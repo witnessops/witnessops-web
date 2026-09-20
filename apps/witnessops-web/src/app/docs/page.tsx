@@ -64,7 +64,7 @@ const primaryPaths = [
     href: "/docs/how-it-works",
     title: "How WitnessOps works",
     description:
-      "Free checks, invited workspaces, optional CLI access and expert reviews.",
+      "Free checks, your own workspaces, optional CLI access and expert reviews.",
     cta: "See how it works",
   },
 ] as const;
@@ -124,7 +124,7 @@ export default async function DocsIndexPage() {
         </p>
 
         <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
-          Signup is free. Workspace access requires an invitation. No card is required.
+          Signup is free. Verify your email to create your own workspace. No card is required.
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">

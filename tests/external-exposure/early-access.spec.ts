@@ -25,7 +25,8 @@ for (const width of [1440, 390]) {
     await page.getByLabel('Public hostname', { exact: true }).fill(snapshot.target);
     await page.getByRole('button', { name: 'Run free check', exact: true }).click();
     await expect(save).toContainText('not automatically imported');
-    await expect(save).toContainText('Workspace access requires an invitation');
+    await expect(save).toContainText('Create an account, verify your email, then create your workspace.');
+    await expect(save).not.toContainText('Workspace access requires an invitation');
     await expect(page.getByRole('button', { name: 'Download source JSON', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText('Keep a copy before you leave.');
     const openWorkspace = save.getByRole('link', { name: 'Open workspace', exact: true });
@@ -46,6 +47,8 @@ for (const width of [1440, 390]) {
     else await expect(createAccount).toHaveCount(0);
     const journey = page.getByRole('region', { name: 'From a free check to a useful history' });
     await expect(journey.getByRole('listitem')).toHaveCount(3);
+    await expect(journey).toContainText('Create your workspace');
+    await expect(journey).not.toContainText('Request workspace access');
     await expect(journey).toContainText('Checks run only when you request them.');
     if (appDestination) await expect(page.getByRole('link', { name: 'Open workspace →', exact: true })).toHaveAttribute('href', appDestination);
     else await expect(page.getByRole('link', { name: 'Open workspace →', exact: true })).toHaveCount(0);

@@ -15,7 +15,7 @@ const situations = [
 ];
 const paths = [
   ["Check public exposure", "Run a free check of an authorized public hostname. Download the result without creating an account.", "/check", "Explore External Exposure"],
-  ["Review a Linux server", "In an invited workspace, import a supported Local Audit package from one Linux host. Read findings alongside the source evidence.", "/early-access#early-access-choices", "See the import workflow"],
+  ["Review a Linux server", "In your workspace, import a supported Local Audit package from one Linux host. Read findings alongside the source evidence.", "/early-access#early-access-choices", "See the import workflow"],
   ["Get expert help", "Agree a focused review of an agent action, a Linux server or a public-facing system.", "/catalog", "Explore expert help"],
 ];
 function TextLink({ href, children, uiProofId }: { href: string; children: React.ReactNode; uiProofId?: string }) {
@@ -30,18 +30,18 @@ export function SimpleHomepage() {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>REPEATABLE EVIDENCE. INDEPENDENT FINDINGS.</p>
           <h1 data-ui-proof-id="homepage-hero-headline">See what’s exposed.<br />Understand what changed.</h1>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">Check a public hostname. See the findings, the evidence and what remains unknown. Compare saved checks in an invited workspace.</p>
+          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">Check a public hostname. See the findings, the evidence and what remains unknown. Compare saved checks in your workspace.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/check" data-ui-proof-id="homepage-hero-primary-cta">Start a free check</Link>
             {signupUrl && <TextLink href={signupUrl}>Create an account</TextLink>}
           </div>
-          <p className={styles.note}>Free checks need no account. Workspace access requires an invitation.</p>
+          <p className={styles.note}>Free checks need no account. Verify your email to create your own workspace.</p>
         </div>
 
       </div>
     </section>
     <section className={styles.workflow} aria-labelledby="home-workflow-heading"><div className={styles.frame}>
-      <div className={styles.workflowIntro}><p className={styles.eyebrow}>A result you can return to</p><h2 id="home-workflow-heading">One check.<br />A clearer picture.</h2><p>Start with a snapshot of public exposure. In an invited workspace, keep observations together and compare the next check.</p>
+      <div className={styles.workflowIntro}><p className={styles.eyebrow}>A result you can return to</p><h2 id="home-workflow-heading">One check.<br />A clearer picture.</h2><p>Start with a snapshot of public exposure. In your workspace, keep observations together and compare the next check.</p>
         <ol className={styles.steps}>
           <li><span>01</span><div><h3>Set the scope</h3><p>Choose one hostname you own or are authorized to check.</p></div></li>
           <li><span>02</span><div><h3>Read the result</h3><p>See recorded observations, supporting evidence and what remains unresolved.</p></div></li>

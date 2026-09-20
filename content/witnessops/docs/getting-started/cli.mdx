@@ -9,7 +9,7 @@ draft: false
 
 # CLI setup and authentication
 
-The browser app needs no installation. This guide is for people who need the optional command-line client and already have invited workspace access.
+The browser app needs no installation. This guide is for people who need the optional command-line client and already have authorized workspace access.
 
 ## Current installation path
 
@@ -41,7 +41,7 @@ node packages/wops-cli/src/main.mjs auth login
 
 The CLI opens the browser authorization page and prints a code. If the browser cannot open, use the displayed address in your browser. Sign in, enter the code from your own terminal, and confirm the workspace and role. Authorize only a sign-in you started; never enter a code someone sends you.
 
-Return to the terminal and wait for confirmation. Login grants session identity/status and sign-out by default. It does not grant uploads, signing authority or server checks. Owners may explicitly request additional server-check rights in the authorization screen; collection still needs its own approved scope and window.
+Return to the terminal and wait for confirmation. Login grants session identity/status and sign-out by default. It does not grant uploads, signing authority or server checks. Owners and Contributors may explicitly request additional server-check rights in the authorization screen; collection still needs its own approved scope and window.
 
 ## Confirm your session
 
@@ -61,7 +61,7 @@ This removes the local credential and attempts server revocation. If revocation 
 
 ## Common problems
 
-- **Invitation required or access paused:** use the invited account and contact [Support](/support#support-request).
+- **No workspace or access paused:** verify your email and create your workspace, or accept an Owner’s invitation. For paused or unexpectedly restricted access, contact [Support](/support#support-request).
 - **A local session already exists:** check status or log out before starting another login.
 - **Code expired or login declined:** start login again from your own terminal.
 - **No browser on the Linux machine:** open the displayed authorization address on your browser-equipped device and enter your own terminal code.

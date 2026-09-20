@@ -14,7 +14,7 @@ Use Node 22 and pnpm 9.15.4 from the monorepo root:
 6. Register the WorkOS staging callback `http://127.0.0.1:3020/callback`, initiate login `http://127.0.0.1:3020/login`, homepage and sign-out return `http://127.0.0.1:3020/`. Enable Google and Magic Auth (email one-time code) in the intended development identity environment. The two app entry links lead to the hosted method chooser; the app does not collect credentials or implement passwords. Do not change another application's shared provider settings inadvertently.
 7. Create an account or sign in. By default, an invited account chooses Activate workspace access. The optional free-workspace admission below enables verified-account self-service. Paused accounts remain blocked. Then create a workspace and add a hostname. Adding it does not collect anything. Confirm authorization and choose Observe. Rerun after one minute. Logout/login and application restart preserve assets and runs.
 
-## Free workspace lifecycle candidate
+## Free workspace lifecycle
 
 `WITNESSOPS_FREE_WORKSPACE_LIMIT` explicitly enables self-service with a creator ceiling from 2 to 20; unset preserves invitation-only admission. The ceiling counts all workspaces created by the account, including archived ones. It is an environment safeguard, not a live commercial promise. Disabling it closes new creation for free accounts but preserves their current memberships.
 
@@ -22,7 +22,7 @@ Eligibility comes from the authenticated WorkOS adapter's verified email, never 
 
 Migration `0014_free_workspaces.sql` adds a free-access marker and explicit `free-workspace-v1` workspace records. Number 0013 is reserved by the paused legacy admission proposal and is not a dependency. Workspace, Owner membership and free policy are written in one transaction under a user lock. Reusing a creation key returns the original workspace; changing its name with that key conflicts. New free workspaces cannot enroll in the historical contribution policy. Historical terms and consent rows are unchanged.
 
-The initial free policy enforces 32 saved/running hostname checks and three Linux import sources per workspace, with the existing 20-asset and storage/collector safeguards. There is no trial, subscription, automatic conversion, monthly reset or automatic retention deletion. These bounded staging defaults require a separate commercial decision before public self-service activation.
+The initial free policy enforces 32 saved/running hostname checks and three Linux import sources per workspace, with the existing 20-asset and storage/collector safeguards. There is no trial, subscription, automatic conversion, monthly reset or automatic retention deletion. The approved self-service release uses a per-creator ceiling of three with these existing operational limits. Activation is explicit runtime configuration; source inclusion alone does not establish deployment. These are not paid entitlements or historical commercial terms.
 
 The workspace picker remembers a per-account preference in browser storage and revalidates current membership on return. It is not an authorization token and does not synchronize across devices. Membership, fixed-revision sharing and opt-in sandbox billing are described below. Database tests exercise populated 0010/0012 upgrades, retries, rollback, concurrent ceilings, denial paths and unchanged historical data. Browser fixtures do not establish fresh hosted signup acceptance.
 
@@ -44,7 +44,7 @@ node scripts/early-access.mjs report
 
 These use the local migration connection and reject non-loopback databases. They do not send email, create memberships or expose an admin HTTP route. Identify the internal user through the existing database identity mapping after they sign in; do not enroll by matching an email domain. The operator invitation command remains available for a specific internal user. No provider production configuration is created by this flow.
 
-`/early-access` on the public site explains the account and invitation path. `Save this baseline` transfers no snapshot, source, email or hostname. The user creates an account or signs in, requests an invitation, then adds the hostname and authorizes a **fresh** saved observation after access is granted. The public site's optional server variable `WITNESSOPS_EARLY_ACCESS_APP_URL` enables app and signup links to an approved app origin (root URL, HTTPS; loopback HTTP allowed locally). Development defaults to the existing local app. Configuring or publishing a live app origin remains a separate deployment action.
+`/early-access` on the public site explains the account and invitation path. `Save this baseline` transfers no snapshot, source, email or hostname. With self-service enabled, the user creates an account or signs in, verifies email, creates their own workspace, then adds the hostname and authorizes a **fresh** saved observation. Joining someone else’s workspace requires its Owner’s invitation. Restricted environments retain the explicit invitation path. The public site's optional server variable `WITNESSOPS_EARLY_ACCESS_APP_URL` enables app and signup links to an approved app origin (root URL, HTTPS; loopback HTTP allowed locally). Development defaults to the existing local app. Configuring or publishing a live app origin remains a separate deployment action.
 
 ## Behavior events and feedback
 

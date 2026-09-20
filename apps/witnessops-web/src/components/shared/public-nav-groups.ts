@@ -2,7 +2,7 @@ export const PUBLIC_NAV_GROUPS = [
   { label: "Product", description: "Start small. Keep the evidence.", links: [
     { label: "How the app works", href: "/early-access", description: "Checks, saved observations and reports." },
     { label: "Free check", href: "/check", description: "A public hostname snapshot. No account needed." },
-    { label: "Get started", href: "/docs/getting-started", description: "Free signup and invited workspace access." },
+    { label: "Get started", href: "/docs/getting-started", description: "Free signup, email verification and your own workspace." },
   ] },
   { label: "Expert help", description: "One agreed scope. Clear findings.", links: [
     { label: "Agent Action Security Review", href: "/catalog/workflows", description: "Review one consequential agent action." },

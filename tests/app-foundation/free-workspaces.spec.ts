@@ -26,6 +26,8 @@ for (const width of [1440, 390]) test(`free workspace creation, recovery and acc
     return route.fulfill({ json: { user: { id: account, displayName: 'Owner' }, workspaces, workspace } });
   });
   await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Create workspace', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Request workspace access', exact: true })).toHaveCount(0);
   await page.getByLabel('Workspace name', { exact: true }).fill('First workspace');
   await page.getByRole('button', { name: 'Create workspace', exact: true }).click();
   await expect(page.locator('main').getByRole('alert')).toContainText('Temporary failure');

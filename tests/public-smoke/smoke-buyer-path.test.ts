@@ -130,7 +130,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.requiredMarkers.includes("Start a free check"));
   assert.ok(english.requiredMarkers.includes("The app cannot"));
   assert.ok(english.requiredMarkers.includes("Record one bounded check"));
-  assert.ok(english.requiredMarkers.includes("Free checks need no account. Workspace access requires an invitation."));
+  assert.ok(english.requiredMarkers.includes("Free checks need no account. Verify your email to create your own workspace."));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zweryfikuj działanie AI"));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
@@ -294,8 +294,8 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 
 test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
   for (const [path, marker] of [
-    ["/", "Free checks need no account. Workspace access requires an invitation."],
-    ["/docs", "Signup is free. Workspace access requires an invitation. No card is required."],
+    ["/", "Free checks need no account. Verify your email to create your own workspace."],
+    ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
     ["/pricing", "No payment is taken here."],
     ["/review/request", "No work or target-facing check starts from this form."],
   ]) {
