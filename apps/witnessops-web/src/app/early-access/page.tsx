@@ -15,12 +15,12 @@ export default function EarlyAccessPage() {
     <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.13] tracking-[-0.035em] text-text-primary md:text-5xl">Keep the evidence.<br />See what changed.</h1>
     <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary">Check a public hostname or import a signed check from one Linux server. Keep the evidence, compare later checks, and export a readable report.</p>
     <div className="mt-6 flex flex-wrap items-center gap-5"><Link className="inline-flex min-h-12 items-center rounded-lg border border-brand-accent bg-brand-accent px-6 py-3 font-medium text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4" href="/check">Run a free check</Link>{signIn ? <a className="inline-flex min-h-12 items-center text-text-primary underline underline-offset-4" href={signIn}>Open workspace →</a> : null}</div>
-    <p className="mt-3 text-sm leading-6 text-text-secondary">The free check needs no account. Create an account to sign in; workspace access currently requires an invitation.</p>
+    <p className="mt-3 text-sm leading-6 text-text-secondary">The free check needs no account. Create an account, verify your email, then create your own workspace.</p>
     <section className="mt-12 border-t border-surface-border pt-12 lg:mt-16 lg:pt-16" aria-labelledby="workspace-journey">
       <h2 id="workspace-journey" className="text-2xl font-medium tracking-tight text-text-primary md:text-3xl">From a free check to a useful history</h2>
       <ol className="mt-7 grid gap-4 lg:grid-cols-3">
         <li className="min-w-0 rounded-lg border border-surface-border p-6 lg:p-7"><h3 className="font-medium text-text-primary">1. Check one hostname</h3><p className="mt-3 text-sm leading-6 text-text-secondary">Get ten bounded observations. Download the source or save a PDF before leaving; the free result is not stored in an account.</p></li>
-        <li className="min-w-0 rounded-lg border border-surface-border p-6 lg:p-7"><h3 className="font-medium text-text-primary">2. Request workspace access</h3><p className="mt-3 text-sm leading-6 text-text-secondary">Create an account to sign in, then request an invitation. Add your hostname and explicitly authorize a new check only after access is granted. Your public snapshot is not automatically imported.</p></li>
+        <li className="min-w-0 rounded-lg border border-surface-border p-6 lg:p-7"><h3 className="font-medium text-text-primary">2. Create your workspace</h3><p className="mt-3 text-sm leading-6 text-text-secondary">Verify your email and create your workspace. To join someone else’s workspace, accept an invitation from its Owner. Add your hostname and explicitly authorize a new check. Your public snapshot is not automatically imported.</p></li>
         <li className="min-w-0 rounded-lg border border-surface-border p-6 lg:p-7"><h3 className="font-medium text-text-primary">3. Return after a change</h3><p className="mt-3 text-sm leading-6 text-text-secondary">Open the same asset and run again. Compare recorded changes, revisit the original evidence and export a report. Checks run only when you request them.</p></li>
       </ol>
     </section>
@@ -44,7 +44,7 @@ export default function EarlyAccessPage() {
     </section>
     <section className="mt-12 border-t border-surface-border pt-12" aria-labelledby="workspace-access">
       <h2 id="workspace-access" className="text-2xl font-medium tracking-tight text-text-primary md:text-3xl">Ready to keep your checks?</h2>
-      <p className="mt-3 text-sm leading-6 text-text-secondary">Creating an account is free. No card is required. Workspace access currently requires an invitation.</p>
+      <p className="mt-3 text-sm leading-6 text-text-secondary">Creating an account and your own workspace is free. Verify your email first; no card is required. An invitation is needed only to join another workspace.</p>
       {signUp ? <a className="mt-4 inline-flex min-h-12 items-center text-text-primary underline underline-offset-4" href={signUp}>Create an account →</a> : null}
       <p className="mt-3 text-sm leading-6 text-text-secondary">Already have an account? {signIn ? <a className="underline underline-offset-4" href={signIn}>Sign in to your workspace</a> : 'Open the app to sign in'}.</p>
     </section>

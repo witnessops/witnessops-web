@@ -1,6 +1,6 @@
 ---
 title: "Get started"
-description: "Create a free account, understand workspace invitations, set up the CLI and find your first report."
+description: "Create a free account, verify your email, create a workspace and find your first report."
 section: "docs"
 order: 2
 nav_label: "Get started"
@@ -9,21 +9,23 @@ draft: false
 
 # Get started
 
-WitnessOps has a browser app and a Linux command-line client. Start in the browser; the CLI is optional. Creating an account is free and requires no card. Workspace access currently requires an invitation.
+WitnessOps has a browser app and a Linux command-line client. Start in the browser; the CLI is optional. Creating an account is free and requires no card. Verify your email, then create your own workspace. An invitation is required to join someone else’s workspace.
 
 ## 1. Create your account
 
 Open [Sign up](https://app.witnessops.com/signup) and complete the identity provider's signup flow. If you already have an account, use [Sign in](https://app.witnessops.com/login).
 
-Signup creates an account, not a workspace, subscription or permission to run checks. If you see **Workspace access requires an invitation**, contact [Support](/support#support-request) with a non-secret access question. An invitation is separate from account creation. If invited, follow the app's activation prompt. If access is paused, contact support; do not create another account to bypass it.
+Complete email verification on the hosted sign-in screen. In the app, choose **Create workspace** and enter a name. This creates your workspace and its Owner membership; signup alone does not create a subscription or authorize checks. You can create up to three workspaces, counting archived workspaces. This is a per-creator limit, not a shared customer cap.
+
+To join an existing workspace, ask its Owner for an invitation and accept it while signed in with the matching verified email. Existing Early Access invitations may instead show **Activate workspace access**. If access is paused, unavailable or unexpectedly requires an invitation, contact [Support](/support#support-request); do not create another account to bypass a restriction.
 
 You can use the [public free check](/check) without signing up. Only check a hostname you own or are authorized to check. Its public result and download do not require an account, and the snapshot is not automatically imported into a workspace.
 
 ## 2. Open the app
 
-The browser app needs no installation. Open [WitnessOps](https://app.witnessops.com) and sign in with the invited account. Check the workspace and role before continuing.
+The browser app needs no installation. Open [WitnessOps](https://app.witnessops.com) and sign in with your verified account. Select an existing workspace or create your own. Check the workspace and role before continuing.
 
-An Owner can add assets and authorize supported checks. A Viewer can inspect the data their workspace exposes; signing in does not make a Viewer an Owner.
+Owners and Contributors can add assets and authorize supported checks. Viewers can read and export accessible results. Owners manage invitations, roles and members; signing in does not elevate a role.
 
 ## 3. Set up the optional CLI
 
@@ -31,7 +33,7 @@ Read [CLI setup and authentication](/docs/getting-started/cli). The current CLI 
 
 ## 4. Make your first permitted observation
 
-In an invited workspace, an Owner can open **Assets**, choose **Add asset**, and add a public hostname they are authorized to check. Open the asset and review the available check and authorization controls before starting. Account creation and CLI login do not start collection.
+In an authorized workspace, an Owner or Contributor can open **Assets**, choose **Add asset**, and add a public hostname they are authorized to check. Open the asset and review the available check and authorization controls before starting. Account creation and CLI login do not start collection.
 
 A saved observation is a new check; it is separate from a snapshot previously run on the public website. Linux server checks and signed Local Audit imports have separate requirements. Do not run privileged collection commands just to test login.
 

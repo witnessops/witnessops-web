@@ -1,6 +1,6 @@
 ---
 title: "Account and CLI help"
-description: "Troubleshoot signup, invitations, Owner and Viewer access, CLI login, logout and missing reports."
+description: "Troubleshoot signup, invitations, Owner, Contributor and Viewer access, CLI login, logout and missing reports."
 section: "docs"
 order: 5
 nav_label: "Account and CLI help"
@@ -11,19 +11,21 @@ draft: false
 
 ## Account created, but no workspace
 
-Creating an account is free and requires no card. It does not create workspace membership, a subscription or permission to run checks. If the app says **Workspace access requires an invitation**, contact [Support](/support#support-request). Workspace access is managed by WitnessOps; the Members page does not currently send invitations.
+Creating an account is free and requires no card. Complete hosted email verification, sign in again if prompted, then choose **Create workspace**. Existing verified accounts without a workspace follow the same path. Creating your own workspace makes you its Owner, not a member of anyone else’s workspace. It does not create a subscription or authorize checks.
+
+Owners invite people from **Members**. Accept with the exact verified email named by the invitation. An expired, revoked or superseded invitation requires a current invitation from the Owner. If the app unexpectedly says **Workspace access requires an invitation**, contact [Support](/support#support-request).
 
 If you were invited, sign in with that account and follow the activation prompt. If access is paused, contact support instead of creating another account to bypass it.
 
 ## A control is missing
 
-Check the workspace and your role. **Owners** can add assets and authorize supported checks. **Viewers** inspect the data their workspace exposes. Operator and approver roles in the technical workflow reference are not additional app permissions.
+Check the workspace and your role. **Owners and Contributors** can add assets and authorize supported checks. **Viewers** can read and export accessible results. Only Owners manage invitations, roles and members; the last Owner cannot be removed or demoted. Operator and approver roles in the technical workflow reference are not additional app permissions.
 
 ## CLI login does not work
 
 Follow [CLI setup and authentication](/docs/getting-started/cli) using the approved source revision and Node.js 22. Run `auth login`, authorize only the code from your own terminal in the browser, and return to the terminal for confirmation. Login grants session access by default, not signing or collection authority.
 
-Use `auth status` to check current access. For an expired or revoked session, use `auth logout`, then `auth login` again. If a server check is unavailable, do not bypass the permission check: additional rights require explicit Owner authorization and collection still needs its own approved scope and window.
+Use `auth status` to check current access. For an expired or revoked session, use `auth logout`, then `auth login` again. If a server check is unavailable, do not bypass the permission check: Owners and Contributors may explicitly request server-check rights, and collection still needs its own approved scope and window.
 
 `auth logout` removes the local credential and attempts server revocation. A connectivity failure means server revocation is not confirmed. Do not share the credential file or paste tokens into support.
 

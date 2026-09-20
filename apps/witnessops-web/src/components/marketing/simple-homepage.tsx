@@ -35,7 +35,7 @@ export function SimpleHomepage() {
             <Link className={styles.primary} href="/check" data-ui-proof-id="homepage-hero-primary-cta">Start a free check</Link>
             {signupUrl && <TextLink href={signupUrl}>Create an account</TextLink>}
           </div>
-          <p className={styles.note}>Free checks need no account. Workspace access requires an invitation.</p>
+          <p className={styles.note}>Free checks need no account. Verify your email to create your own workspace.</p>
         </div>
 
       </div>

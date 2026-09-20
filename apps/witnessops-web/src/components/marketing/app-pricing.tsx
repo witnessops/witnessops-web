@@ -33,7 +33,7 @@ export function AppPricing({ signupUrl = null }: { signupUrl?: string | null }) 
           <button type="button" aria-pressed={annual} onClick={() => setAnnual(true)} className={`${button} text-text-primary border-transparent ${annual ? "bg-surface-card" : ""}`}>Annual · 2 months included</button>
         </div>
       </div>
-      <p id="app-pricing-draft" className="mt-5 max-w-3xl text-sm leading-6 text-text-secondary">Proposed prices and capabilities for discussion, not current paid entitlements. Creating an account is free; workspace access currently requires an invitation.</p>
+      <p id="app-pricing-draft" className="mt-5 max-w-3xl text-sm leading-6 text-text-secondary">Proposed prices and capabilities for discussion, not current paid entitlements. Creating an account is free; verify your email to create your own workspace.</p>
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {plans.map(plan => <article key={plan.name} data-app-plan={plan.name} className={`flex min-w-0 flex-col gap-4 rounded-lg border p-6 lg:p-7 ${plan.name === "Compare" ? "border-brand-accent bg-surface-card/40" : "border-surface-border-strong"}`}>
           <p className={eyebrow}>{plan.label}</p><h3 className="text-[22px] font-medium">{plan.name}</h3>
@@ -70,7 +70,7 @@ export function PricingQuestions() {
       <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[
         ["Choose access", "Explore Observe, Compare or Workspace. The annual draft includes two months."],
         ["Preview in this browser", "Selection is a page preview. Nothing is billed and no card is collected."],
-        ["Create your account", "Create an account to sign in. Workspace access currently requires an invitation; creating an account does not start a check."],
+        ["Create your account", "Create an account, verify your email, then create your workspace. Creating an account does not start a check."],
         ["Escalate if needed", "A named review stays a separate, scoped engagement."],
       ].map(([title, body], i) => <li key={title} className="rounded-lg border border-surface-border p-5"><p className={eyebrow}>0{i + 1}</p><h3 className="mt-3 font-medium">{title}</h3><p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p></li>)}</ol>
     </section>
