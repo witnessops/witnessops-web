@@ -2,7 +2,7 @@
 
 Status: `PUBLIC_BOUNDARY_AND_EXECUTABLE_CLASSIFICATION`
 
-This public repository contains the WitnessOps web product source. It is not a public operator handbook and this document is not deploy approval, production verification, cloud inventory, rollback approval, or server-administration authority.
+This public repository contains the WitnessOps public website and authenticated app source. It is not a public operator handbook and this document is not deploy approval, production verification, cloud inventory, rollback approval, or server-administration authority.
 
 ## Publicly stated boundary
 
@@ -21,11 +21,33 @@ This table is intentionally limited to authority classification. It does not pub
 
 | Tracked surface | Public authority classification |
 | --- | --- |
-| `.github/workflows/aws-release.yml` and `.github/workflows/aws-release-reusable.yml` | **Active routine release/deployment source contract.** Use still requires an explicit authorized dispatch/approval path; merge alone does not run production deployment. The reusable workflow path participates in identity/trust constraints and must not be moved or renamed as incidental cleanup. |
-| `deploy/aws/**` | **Active deployment source/validation contract.** Contains reviewable AWS/OIDC/ECR/SSM/host-adapter source; source presence is not execution approval or evidence of live resource state. |
+| `.github/workflows/aws-release.yml` and `.github/workflows/aws-release-reusable.yml` | **Active routine website release/deployment source contract.** Use still requires an explicit authorized dispatch/approval path; merge alone does not run production deployment. The reusable workflow path participates in identity/trust constraints and must not be moved or renamed as incidental cleanup. |
+| `deploy/aws/**` | **Active website deployment and shared image-validation source.** Contains reviewable AWS/OIDC/ECR/SSM/host-adapter source; source presence is not execution approval or evidence of live resource state. |
+| [`deploy/app/`](../deploy/app/) | **Separate authenticated-app build/lifecycle and finalizer source.** Read the app README and selected app contracts. Do not treat the website release workflow or `pnpm release` as an app deployment path. Runtime grants, custody, migration compatibility, recovery and activation remain separately evidenced. |
+| [`.github/workflows/app-validation.yml`](../.github/workflows/app-validation.yml) | **App acceptance and retained candidate artifacts, not production publication.** Builds an exact app OCI archive, scans/tests that candidate and checks its archive checksum before retention. A stored candidate or green check alone is not proof of provider acceptance or a running release. |
 | `deploy/k8s/**` and retained `deploy/scripts/k3s-*` helpers | **Retained runtime/dev/recovery source.** Direct production invocation is not the routine production authority; distinguish read-only/dev/recovery behavior by the executable source and the non-public operator runbook. |
 | `.github/workflows/release.yml` and `.github/workflows/build-image.yml` | **Artifact/build/repository-release surfaces, not routine production runtime deployment authority.** A successful artifact workflow does not prove `witnessops.com` changed. |
 | legacy Compose/GHCR direct-deploy helpers and retired Azure deployment material | **Historical/retired for routine production.** Do not reactivate as a shortcut without a separately authorized reopening decision. |
+
+## Distinguish validation, retained helpers and activation
+
+Root `deploy:k3s:build`, `deploy:k3s:prod` and `deploy:k3s:both` point to
+[`retired-production-deploy.mjs`](../deploy/scripts/retired-production-deploy.mjs),
+which exits with an error. That does not classify every k3s helper or runtime
+manifest as unused. Retained dev/status/recovery operations must be evaluated
+individually; do not remove them or reactivate a production shortcut during docs
+cleanup.
+
+[`NODE22-BUILDER.md`](./NODE22-BUILDER.md) describes local source validation;
+[`ALPINE-MESH.md`](./ALPINE-MESH.md) is a retained image-source reference.
+Neither is a universal deployment recipe. Read current image pins, build steps
+and identity checks from the selected executable source, rather than copying
+historical command examples or assuming a shared base proves image equivalence.
+
+This classification is source-derived. It neither claims all referenced paths
+have been exercised nor establishes which image, providers or database schema
+are running. No helper, workflow trust binding, image pin or runtime configuration
+is changed by reconciling these documents.
 
 Executable source may remain in this repository where required by CI, recovery, or identity-bound release trust. Its presence is not evidence that a particular workflow ran or that a particular release is live.
 
