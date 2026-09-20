@@ -416,3 +416,25 @@ Comparison selects the exact baseline above. Environment records `tcp/127.0.0.1:
 **Boundaries:** valid != server secure; signed != source-system truth; capture is unsigned correspondence. Partial stays partial and null stays unknown. Selected target invariants != whole-host immutability. Root/source honesty is not attested. Reports are derived. Hostname/bind state does not prove public reachability. This was local/test-app acceptance, not production deployment or general distro/self-service acceptance.
 
 Terminal UX was successful, with a clear result URL; manual listener entry and UTC window flags remain operator-assisted friction. No second capture, remediation, product-code change, push, merge or deployment occurred. This freeze only reviews source/evidence and updates documentation.
+
+## Assisted pilot artifact follow-up — 2026-09-20
+
+The versioned private CLI archive and checksum sidecar were built from the current `codex/cli-pilot-artifact` candidate. Offline installation on one disposable Ubuntu lab guest preserved the fixed root-controlled wrapper/runtime layout and passed archive/member checksum and Node-runtime checks. The candidate now exposes bounded `wops --help`, `wops auth --help`, and `wops server check --help` output without starting authentication or collection. This supersedes the earlier help limitation for this candidate only; it does not establish general Linux distribution support.
+
+Separately, two existing Local Audit 1.2.2 signed artifact pairs were imported through the hosted app's normal manual-import flow, in before/after order, onto one dedicated lab asset. The asset retained two saved checks. Findings changed from five to four, and the persisted comparison recorded `unsafeSudoersMetadata: 1 → 0`. Both results remained partial at 10/11 collection coverage with the update-classification gap preserved.
+
+The Local Audit 1.2.2 before artifact incorrectly labels the firewall active. Firewall field differences in the comparison therefore do not establish firewall remediation or a second cleared finding. The supported change is limited to the sudoers metadata finding/count difference.
+
+This follow-up does not exercise the installed CLI's full `server check` journey. No new CLI collection, capture upload, finalization, signed package or app report was created through the installed guest CLI. That journey, including interruption recovery, remains a separate acceptance step with fresh authentication, connectivity, authority-window and signing-custody prerequisites.
+
+## Installed guest isolated collection follow-up — 2026-09-20
+
+A subsequent, separately authorized run exercised the installed Ubuntu CLI through one live read-only collection, capture upload, disposable off-host signing, independent app verification and saved-run reopening. Guest collector and finalizer used the matching accepted Local Audit 1.2.2 source fingerprint. Collection was limited to one explicitly approved five-minute window.
+
+The isolated backend used the real app service, authorization stores, finalizer and migrations in a unique disposable test-database schema. Identity was an explicitly approved test fixture with server-check scope, not a hosted browser session. HTTP requests crossed a temporary guest-loopback transport over the VM control channel. No full web UI was started; the printed run URL was not a persistent browser deliverable.
+
+The CLI reported capture complete, upload complete, Proofpack finalized, verification valid and run saved. Independent saved-run reopening confirmed non-synthetic source classification and matching report projection; exactly one execution was created. Collection remained partial at 10/11 sections: the package-manager simulation succeeded but security-update classification was unavailable and package-cache freshness was not assessed. Valid proof verification does not establish host security or correct every producer interpretation; the previously documented 1.2.2 firewall-classification limitation remains applicable.
+
+Cleanup revoked the test credential, removed its guest file and temporary listener, dropped the isolated database schema and deleted the disposable private signing key. Proof artifacts and the original guest capture were retained privately. Production signing material and application data were not changed.
+
+This supersedes the earlier absence of an installed-guest collection test only for this isolated path. It does not establish hosted identity plus normal network transport plus browser report reopening in one journey, installed-guest interruption recovery, general Linux support, production readiness or 1.2.3 acceptance. No release, merge or deployment was performed.

@@ -341,7 +341,12 @@ test("public onboarding answers use allowlisted docs and cannot grant workspace 
   assert.match(context, /Verify your email, then choose Create workspace/);
   assert.match(context, /Joining another workspace requires its Owner invitation/);
   assert.doesNotMatch(context, /Workspace access requires a separate invitation|Members page does not currently send invitations/);
-  assert.match(context, /No published npm installer is established/);
+  assert.match(context, /There is no public npm install command/);
+  assert.match(context, /versioned .tgz archive and expected SHA-256 through the trusted pilot channel/);
+  assert.match(context, /npm install --global/);
+  assert.match(context, /checksum is not a publisher signature/);
+  assert.match(context, /separately supplied root-owned Local Audit runtime and explicit authorization/);
+  assert.doesNotMatch(context, /packages\/wops-cli\/src\/main\.mjs|operator-approved checkout/);
   assert.match(context, /AI cannot access accounts or workspaces, issue invitations or submit tickets/);
   const answer = normalizePublicAskResponse(response("Signup is free. Verify your email, then create your workspace.", null, ["public.app-onboarding"]));
   assert.equal(answer?.recommendation, null);

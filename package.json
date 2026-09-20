@@ -61,6 +61,7 @@
     "app:test": "pnpm --filter @witnessops/app test",
     "test:app-browser": "playwright test --config tests/app-foundation/playwright.config.ts",
     "cli:test": "pnpm --filter @witnessops/cli test",
+    "cli:artifact": "node scripts/build-cli-artifact.mjs",
     "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py"
   },
   "devDependencies": {

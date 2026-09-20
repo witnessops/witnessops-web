@@ -5,5 +5,14 @@
   "type": "module",
   "engines": { "node": ">=22 <23" },
   "bin": { "wops": "src/main.mjs" },
+  "files": [
+    "README.md",
+    "src/commands.mjs",
+    "src/listener-endpoints.mjs",
+    "src/main.mjs",
+    "src/server-check.mjs",
+    "src/server-local.mjs",
+    "src/storage.mjs"
+  ],
   "scripts": { "test": "node --test src/*.test.mjs" }
 }
