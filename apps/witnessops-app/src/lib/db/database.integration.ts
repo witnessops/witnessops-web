@@ -67,6 +67,7 @@ test('Operator content removal: read-only preview, stale rejection, source erasu
   const after = await removeWorkspaceContent(pool, { workspaceId: workspace });
   for (const table of ['runs','linux_check_sources','assets','report_shares','report_share_access','report_share_unlocks','report_share_deliveries','product_events','product_feedback']) assert.equal(after.counts[table], 0, table);
   assert.equal(after.workspaceStatus, 'archived');
+  await assert.rejects(shares.read(share.token));
   assert.equal(after.counts.memberships, 1);
   assert.equal((await pool.query("SELECT share_id FROM report_share_names WHERE name='removal-fixture'")).rows[0].share_id, null);
   await assert.rejects(store.read(a,workspace));
@@ -1774,4 +1775,31 @@ test('Named report HTTP binds host to token/password, excludes app identity and 
   const draft=await access.draft(a,workspace,{id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()},appOrigin);assert.ok(draft.message.text.includes(`${named}/#${preview.token}`));assert.ok(!draft.message.text.includes(secret));
   await shares.revoke(a,workspace,preview.id);assert.equal((await service(req(named,{token:preview.token,unlock:session.unlock}),true)).status,404);
  }finally{if(prior===undefined)delete process.env.WITNESSOPS_REPORT_HOST_SUFFIX;else process.env.WITNESSOPS_REPORT_HOST_SUFFIX=prior;}
+});
+
+
+test('Operator removal preserves external custody, contracts, billing and delivery records instead of claiming erasure', async () => {
+  const { ShareStore } = await import('./shares');
+  for (const kind of ['custody', 'contract', 'billing', 'report_delivery', 'invitation_delivery']) {
+    const owner = await resolveIdentity(pool, identity(`removal_${kind}`));
+    const workspace = await store.create(owner, `Blocked ${kind}`, randomUUID());
+    const asset = await store.addAsset(owner,workspace,source.target,'hostname');
+    const run = await store.beginRun(owner,workspace,asset.id);
+    await store.completeRun(owner,workspace,run,source);
+    if (kind === 'custody') await pool.query("INSERT INTO server_check_executions(id,workspace_id,asset_id,user_id,request_id,request,authority,collector_hash) VALUES($1,$2,$3,$4,$5,'{}','{}',$6)", [randomUUID(),workspace,asset.id,owner.id,randomUUID(),'a'.repeat(64)]);
+    if (kind === 'contract') await new EarlyAccessPlanStore(pool).recordConsent(owner,workspace,planConsent());
+    if (kind === 'billing') await pool.query('INSERT INTO workspace_billing(workspace_id,customer_id) VALUES($1,$2)', [workspace,`cus_synthetic_${randomUUID()}`]);
+    if (kind === 'report_delivery') {
+      const share = await new ShareStore(pool).preview(owner,workspace,run,'Synthetic delivery');
+      await pool.query("INSERT INTO report_share_deliveries(id,share_id,workspace_id,actor_id,membership_generation,recipient,access_version,message_digest,state) VALUES($1,$2,$3,$4,1,'recipient@example.test',1,$5,'unknown')", [randomUUID(),share.id,workspace,owner.id,'b'.repeat(64)]);
+    }
+    if (kind === 'invitation_delivery') await pool.query("INSERT INTO workspace_invitations(id,workspace_id,recipient,role,inviter_id,request_id,delivery_state) VALUES($1,$2,'recipient@example.test','viewer',$3,$4,'unknown')", [randomUUID(),workspace,owner.id,randomUUID()]);
+    const preview = await removeWorkspaceContent(pool,{workspaceId:workspace});
+    assert.equal(preview.blockers.length,1,kind);
+    await assert.rejects(removeWorkspaceContent(pool,{workspaceId:workspace,apply:true,expectedDigest:preview.planDigest,requestReference:'blocked-fixture'}),/blocked/);
+    const after = await removeWorkspaceContent(pool,{workspaceId:workspace});
+    assert.equal(after.planDigest,preview.planDigest,kind);
+    assert.equal(after.workspaceStatus,'active');
+    assert.ok((await pool.query('SELECT source_snapshot FROM runs WHERE id=$1',[run])).rows[0].source_snapshot);
+  }
 });
