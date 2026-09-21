@@ -7,6 +7,7 @@ import { parseEnv } from "node:util";
 import { randomUUID, createHash } from "node:crypto";
 import { Pool } from "pg";
 import { migrate } from "../../../scripts/migrate.mjs";
+import { removeWorkspaceContent } from "../../../scripts/workspace-content-removal.mjs";
 import { resolveIdentity as resolveUnenrolledIdentity, type Identity, type AppUser } from "./identity";
 import { WorkspaceStore } from "./workspaces";
 import { createFoundationService } from "../server";
@@ -31,6 +32,70 @@ let pool: Pool, store: WorkspaceStore, a: AppUser, b: AppUser, viewer: AppUser, 
 const identity = (subject: string): Identity => ({ provider: "workos", issuer: "https://api.workos.com/user_management/client_fixture", subject, email: `${subject}@example.test`, displayName: subject });
 const source = JSON.parse(readFileSync(new URL("../../../../../tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json", import.meta.url), "utf8")) as ExternalSnapshotV1;
 const origin = "http://127.0.0.1:3020";
+
+test('Operator content removal: read-only preview, stale rejection, source erasure, share revocation and tenant isolation', async () => {
+  const { ShareStore } = await import('./shares');
+  const workspace = await store.create(a, 'Removal fixture', randomUUID());
+  const asset = await store.addAsset(a, workspace, source.target, 'hostname');
+  const run = await store.beginRun(a, workspace, asset.id);
+  await store.completeRun(a, workspace, run, source);
+  const other = await store.create(b, 'Preserved fixture', randomUUID());
+  const otherAsset = await store.addAsset(b, other, source.target, 'hostname');
+  const otherRun = await store.beginRun(b, other, otherAsset.id);
+  await store.completeRun(b, other, otherRun, source);
+  const shares = new ShareStore(pool);
+  const share = await shares.preview(a, workspace, run, 'Synthetic deletion fixture', 'removal-fixture');
+  await shares.publish(a, workspace, { ...share, audience: 'anyone_with_link' });
+  // Include a DB-custodied Linux source, independently of provider/filesystem execution.
+  const linuxAsset = await store.addAsset(a, workspace, 'remove-linux.example.test', 'linux_server');
+  const linuxRun = randomUUID();
+  await pool.query("INSERT INTO runs(id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version) VALUES($1,$2,$3,$4,'local-audit-1.2.2','running','fixture','v1')", [linuxRun,workspace,linuxAsset.id,a.id]);
+  await pool.query("INSERT INTO linux_check_sources(run_id,workspace_id,zip_name,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification) VALUES($1,$2,'synthetic.zip',$3,$3,$3,$4,$4,'{}','{\"status\":\"valid\"}')", [linuxRun,workspace,Buffer.from('synthetic deletion fixture'), 'a'.repeat(64)]);
+  await pool.query("UPDATE runs SET status='completed',finished_at=now(),source_digest=$2 WHERE id=$1", [linuxRun,'b'.repeat(64)]);
+  await pool.query("INSERT INTO product_feedback(id,workspace_id,user_id,run_id,surface,response,comment) VALUES($1,$2,$3,$4,'first_run','yes','synthetic private feedback')", [randomUUID(),workspace,a.id,run]);
+  const preview = await removeWorkspaceContent(pool, { workspaceId: workspace });
+  assert.equal(preview.outcome, 'preview_only');
+  assert.deepEqual(preview.blockers, []);
+  assert.equal(preview.counts.linux_check_sources, 1);
+  assert.equal((await store.read(a, workspace)).role, 'owner');
+  assert.ok((await pool.query('SELECT source_snapshot FROM runs WHERE id=$1',[run])).rows[0].source_snapshot);
+  await pool.query("UPDATE product_feedback SET comment='changed fixture' WHERE workspace_id=$1", [workspace]);
+  await assert.rejects(removeWorkspaceContent(pool, { workspaceId: workspace, apply:true, expectedDigest:preview.planDigest, requestReference:'fixture-1' }), /stale/);
+  const current = await removeWorkspaceContent(pool, { workspaceId: workspace });
+  const result = await removeWorkspaceContent(pool, { workspaceId: workspace, apply:true, expectedDigest:current.planDigest, requestReference:'fixture-1' });
+  assert.equal(result.outcome, 'database_content_removed_workspace_archived');
+  const after = await removeWorkspaceContent(pool, { workspaceId: workspace });
+  for (const table of ['runs','linux_check_sources','assets','report_shares','report_share_access','report_share_unlocks','report_share_deliveries','product_events','product_feedback']) assert.equal(after.counts[table], 0, table);
+  assert.equal(after.workspaceStatus, 'archived');
+  assert.equal(after.counts.memberships, 1);
+  assert.equal((await pool.query("SELECT share_id FROM report_share_names WHERE name='removal-fixture'")).rows[0].share_id, null);
+  await assert.rejects(store.read(a,workspace));
+  await assert.rejects(store.addAsset(a,workspace,'new.example.test','hostname'));
+  assert.ok((await pool.query('SELECT source_snapshot FROM runs WHERE id=$1',[otherRun])).rows[0].source_snapshot);
+  await assert.rejects(pool.query('DELETE FROM runs WHERE id=$1',[otherRun]), /immutable/);
+  await assert.rejects(removeWorkspaceContent(pool,{workspaceId:workspace,apply:true}), /preview digest/);
+});
+
+test('Operator content removal fails closed for in-flight work and rolls back source guards on unexpected dependencies', async () => {
+  const workspace = await store.create(a, 'Removal rollback', randomUUID());
+  const asset = await store.addAsset(a,workspace,source.target,'hostname');
+  const run = await store.beginRun(a,workspace,asset.id);
+  const running = await removeWorkspaceContent(pool,{workspaceId:workspace});
+  assert.ok(running.blockers.includes('running_work_requires_reconciliation'));
+  await assert.rejects(removeWorkspaceContent(pool,{workspaceId:workspace,apply:true,expectedDigest:running.planDigest,requestReference:'fixture-2'}),/blocked/);
+  await store.completeRun(a,workspace,run,source);
+  await pool.query('CREATE TABLE removal_fixture_dependency (run_id uuid REFERENCES runs(id))');
+  try {
+    await pool.query('INSERT INTO removal_fixture_dependency VALUES($1)',[run]);
+    const preview = await removeWorkspaceContent(pool,{workspaceId:workspace});
+    await assert.rejects(removeWorkspaceContent(pool,{workspaceId:workspace,apply:true,expectedDigest:preview.planDigest,requestReference:'fixture-2'}),/foreign key/);
+    assert.equal((await pool.query('SELECT status FROM workspaces WHERE id=$1',[workspace])).rows[0].status,'active');
+    assert.equal((await pool.query('SELECT count(*) FROM runs WHERE id=$1',[run])).rows[0].count,'1');
+    await assert.rejects(pool.query('DELETE FROM runs WHERE id=$1',[run]),/immutable/);
+    const guards = (await pool.query("SELECT tgenabled FROM pg_trigger WHERE (tgrelid='runs'::regclass AND tgname='runs_immutable') OR (tgrelid='linux_check_sources'::regclass AND tgname='linux_source_immutable')")).rows;
+    assert.ok(guards.every(row=>row.tgenabled==='O'));
+  } finally { await pool.query('DROP TABLE removal_fixture_dependency'); }
+});
 
 test('Free workspaces: verified admission, atomic retries, ceiling, persistence and access fences', async () => {
   const previous = process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
