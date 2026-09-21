@@ -16,6 +16,15 @@ Written for learning the offers while you sell and deliver them.
 
 Then use the paste templates below.
 
+## Offer identity and naming — proposal
+
+Read the [proposed policy](./OFFER_IDENTITY_AND_NAMING_POLICY.md) and its
+[research and worked examples](./OFFER_NAMING_RESEARCH_20260921.md) when reviewing
+naming or offer-identity changes. The policy is **not adopted** and selects no new
+name, SKU, price or scope. Existing accepted offer records remain authoritative.
+The dated naming market note below is retained as superseded research, not a
+current general naming policy.
+
 ## Document index
 
 | # | Doc | Use when |
@@ -32,7 +41,7 @@ Then use the paste templates below.
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
 | 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
 | 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
-| 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
+| 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Historical sampled research; naming instructions superseded |
 | 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
 | 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
 | 15 | [Agent Risk & Control Review offer](./15-agent-risk-control-review-offer.md) | Superseded 2026-08-26 positioning retained as a historical commercial record |
