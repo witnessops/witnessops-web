@@ -4,12 +4,12 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
-  title: "Example reviews",
+  title: "Sample work",
   description:
     "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
-    title: "Example reviews | WitnessOps",
+    title: "Sample work | WitnessOps",
     description:
       "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
     siteName: "WitnessOps",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Example reviews | WitnessOps",
+    title: "Sample work | WitnessOps",
     description:
       "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
   },
@@ -163,11 +163,13 @@ export default function SampleCasesIndexPage() {
     <main id="main-content" tabIndex={-1} className="buyer-page" data-page="sample-cases-index">
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <header className="max-w-4xl border-b border-surface-border pb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Examples</p>
-          <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            Example reviews you can inspect
+          <h1 className="text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+            Sample work
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            Illustrative reviews, findings and evidence.
+          </p>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
             Inspect the evidence, findings and limits of a bounded review.
             Published sample, not live customer evidence. No production verification or certification.
           </p>

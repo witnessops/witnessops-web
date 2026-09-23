@@ -714,7 +714,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/sample-cases",
     requiredMarkers: [
-      "Example reviews you can inspect",
+      "Sample work",
       "Sample cases",
       "Compromised API key rotation",
       "SBOM field checklist (method sample)",
