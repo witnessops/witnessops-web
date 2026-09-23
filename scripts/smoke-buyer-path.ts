@@ -29,7 +29,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Verify your email to create your own workspace.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "Agents act. WitnessOps reviews what yours are permitted to do.", "AI agents can send, buy, write, delete and call other systems.", PRIMARY_OFFER.name.en, PRIMARY_OFFER.price.en, INTERNET_FOOTPRINT_REVIEW_OFFER.name.en, INTERNET_FOOTPRINT_REVIEW_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {
