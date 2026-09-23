@@ -1,3 +1,5 @@
+import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -123,11 +125,11 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("See what’s exposed.Understand what changed.");
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("findings, the evidence and what remains unknown");
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", "/check");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("AI agents can send, buy, write, delete and call other systems.");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Free checks need no account. Verify your email to create your own workspace.");
+      await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
       await expect(sampleLink).toHaveAttribute("href", "/library");

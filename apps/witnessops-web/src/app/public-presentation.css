@@ -196,7 +196,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider::aft
 
 /* Important utilities take precedence over unlayered important rules. */
 @layer utilities {
-  body:has(nav[data-public-presentation="quiet"]) #witnessops-mobile-menu a[href$="/signup"] {
+  body:has(nav[data-public-presentation="quiet"]) nav:not([data-public-signup-variant="secondary"]) #witnessops-mobile-menu a[href$="/signup"] {
     background: var(--color-text-primary) !important;
     border-color: var(--color-text-primary) !important;
     color: var(--color-text-inverse) !important;

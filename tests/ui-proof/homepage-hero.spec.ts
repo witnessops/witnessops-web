@@ -1,5 +1,6 @@
+import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { expect, test, type Page, type Route } from "@playwright/test";
-import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { BUYER_SERVICES, buyerServiceRequestHref, buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { activeHeroSupport, checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -145,7 +146,8 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       } else {
         expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
         expect(headlineMetrics.fontSize).toBeLessThanOrEqual(49);
-        expect(headlineMetrics.lineCount).toBeLessThanOrEqual(4);
+        // Homepage A has a longer approved thesis; keep readable type and bounded wrapping.
+        expect(headlineMetrics.lineCount).toBeLessThanOrEqual(scenario.viewport.width <= 320 ? 5 : 4);
       }
       expect(headlineMetrics.lineHeightRatio).toBeGreaterThanOrEqual(0.94);
       expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.2);
@@ -226,16 +228,17 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       const page = await context.newPage();
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/check" : "/pl/review/request");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id) : "/pl/review/request");
       await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/catalog/workflows#sample-review");
-      await expect(page.locator('main[data-home-direction="security-verification"]')).toHaveCount(1);
+      await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
         await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
       } else {
-        // The English homepage uses decorative art, not a fabricated finding.
+        // The English specimen explains the structure; it must not invent a finding.
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
-        await expect(page.locator('main [aria-hidden="true"] img')).toHaveAttribute("alt", "");
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Verify your email to create your own workspace.");
+        await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
+        await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
+        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
         await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
