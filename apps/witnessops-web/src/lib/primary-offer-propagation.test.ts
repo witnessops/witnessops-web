@@ -18,6 +18,7 @@ import {
 } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
@@ -214,8 +215,8 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.match(homepageSource, /Find security gaps in your systems/);
   assert.match(homepageSource, /Scope a review/);
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
-  assert.equal(pricingMetadata.title, "Security Review and Automation Pricing");
-  assert.match(String(pricingMetadata.description), /AI action reviews, system security reviews/);
+  assert.equal(pricingMetadata.title, "Two Fixed-Price Reviews");
+  assert.ok(String(pricingMetadata.description).includes(PRIMARY_OFFER.name.en));
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
   assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
@@ -241,29 +242,22 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     "data-pricing-service",
     PRIMARY_OFFER.id,
   );
-  const publicExposureCard = renderedArticle(
-    pricing,
-    "data-pricing-service",
-    "external-exposure-assessment",
-  );
   assert.deepEqual(
-    [...pricing.matchAll(/data-pricing-service="([^"]+)"/g)]
-      .slice(0, 2)
-      .map((match) => match[1]),
-    [PRIMARY_OFFER.id, "external-exposure-assessment"],
-    "Primary and secondary offers must lead the pricing order",
+    [...pricing.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
+    ["footprint", "agent-action"],
+    "Pricing foreground contains exactly the two selected reviews",
   );
+  const footprintCard = renderedArticle(pricing, "data-pricing-review", "footprint");
+  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en));
+  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.price.en));
+  assert.doesNotMatch(footprintCard, /working days|response time|delivery time|FIRST 10|No\. 00/i);
+  assert.match(footprintCard, /href="\/review\/request"/);
+  assert.doesNotMatch(pricing, /€49|€149|External Attack Surface Review|One Server Security Check/);
   assert.doesNotMatch(primaryCard, /Start with a broken workflow/);
   assert.match(primaryCard, /Agent Action Security Review/);
   assert.match(primaryCard, /€2,500 fixed/);
   assert.doesNotMatch(primaryCard, /External Attack Surface Review/);
   assert.doesNotMatch(primaryCard, /Agent Risk &amp; Control Review|€1,500/);
-  assert.doesNotMatch(publicExposureCard, /For AI agent launches/);
-  assert.match(publicExposureCard, /For public-facing systems/);
-  assert.match(publicExposureCard, /External Attack Surface Review/);
-  assert.match(publicExposureCard, /€1,900 · excluding VAT/);
-  assert.match(publicExposureCard, /not a penetration test/i);
-
   const catalogue = renderToStaticMarkup(
     createElement(BuyerCatalogue, { locale: "en" }),
   );

@@ -52,7 +52,8 @@ test("public footprint audit uses an allowlisted selected-offer route without pa
   );
   assert.doesNotMatch(JSON.stringify(audit), /stripe|checkout|payment[_-]?link/i);
   assert.match(catalogueSource, /buyerServiceRequestHref\(locale, service\)/);
-  assert.match(pricingSource, /service\.pricingVisible !== false/);
+  assert.doesNotMatch(pricingSource, /professional-public-footprint-audit|buyerServicesByCommercialPriority/);
+  assert.match(pricingSource, /INTERNET_FOOTPRINT_REVIEW_OFFER/);
 });
 
 test("public footprint audit preserves consent, source and bounded-claim limits", () => {

@@ -1,3 +1,5 @@
+import { PRIMARY_OFFER, INTERNET_FOOTPRINT_REVIEW_OFFER } from "../apps/witnessops-web/src/lib/commercial-truth";
+
 type FetchLike = (
   input: string,
   init?: {
@@ -282,26 +284,15 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pricing",
     requiredMarkers: [
-      "App access and named reviews.",
-      "Illustrative draft. App prices are not a live product claim.",
+      "Two reviews. Two fixed prices.",
+      INTERNET_FOOTPRINT_REVIEW_OFFER.name.en,
+      INTERNET_FOOTPRINT_REVIEW_OFFER.price.en,
+      PRIMARY_OFFER.name.en,
+      PRIMARY_OFFER.price.en,
+      PRIMARY_OFFER.timing.en,
       "No payment is taken here.",
-      "Observe", "Compare", "Workspace", "Preview a plan to explore the draft. Selection applies only to this page.",
-      "Creating an account is free; verify your email to create your own workspace.",
-      "A plan does not authorise a scan or establish that a system is secure.",
-      "One Server Security Check", "€950 standard · excluding VAT",
-      "Scope a review",
-      "Agent Action Security Review",
-      "€2,500 fixed · excluding VAT",
-      "Within 10 working days after evidence rules are agreed",
-      "For public-facing systems",
-      "External Attack Surface Review",
-      "€1,900 · excluding VAT",
-      "No sales call required.",
-      "Payment is due in full before the delivery clock starts; payment alone does not authorise testing.",
-      "One focused retest within 30 days is included",
-      "Before work begins",
-      "No work starts from this page or from payment alone.",
-      "See sample",
+      "An enquiry does not authorise collection or start a review.",
+      "Explore the full catalogue",
       "Scope this review",
     ],
     prohibitedMarkers: [

@@ -148,7 +148,7 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
 });
 
 test("catalogue smoke preserves the primary and secondary offer hierarchy", () => {
-  for (const path of ["/catalog", "/pricing"] as const) {
+  for (const path of ["/catalog"] as const) {
     const route = routeContract(path);
     for (const marker of [
       "Scope a review",
