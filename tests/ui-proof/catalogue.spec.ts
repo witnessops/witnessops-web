@@ -228,22 +228,22 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
 
-  const card = page.locator(
-    '[data-pricing-service="external-exposure-assessment"]',
-  );
+  await page.getByRole("link", { name: "Explore the full catalogue" }).click();
+  await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
+  const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
   await expect(card).toContainText(
     "€1,900 · excluding VAT",
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
-  await expect(card).toContainText("payment alone does not authorise testing");
+  await expect(card).toContainText(/payment alone does not authorise testing/i);
   await expect(card).toContainText("This is not a penetration test");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
-  ).toHaveText("See sample");
+  ).toHaveText("See a sample review →");
 
   const fitHref = await card
-    .getByRole("link", { name: "Scope this review" })
+    .getByRole("link", { name: "Request this review" }).first()
     .getAttribute("href");
   expect(
     new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(

@@ -1,3 +1,4 @@
+import { getWorkspaceAppUrl } from "../../apps/witnessops-web/src/lib/workspace-access";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -465,7 +466,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   const lastCta = menu.getByRole("link", {
-    name: "Free check",
+    name: getWorkspaceAppUrl("/signup") ? "Sign up" : "Pricing",
     exact: true,
   });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
@@ -489,9 +490,9 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   });
   expect(ctaCenterIsClear, "the final mobile CTA is not covered by a floating layer").toBe(true);
 
-  await expect(lastCta).toHaveAttribute("href", "/check");
-  // The compact menu keeps account navigation in the same tab.
-  await expect(lastCta).not.toHaveAttribute("target", "_blank");
+  await expect(lastCta).toHaveAttribute("href", getWorkspaceAppUrl("/signup") || "/pricing");
+  if (getWorkspaceAppUrl("/signup")) await expect(lastCta).toHaveAttribute("target", "_blank");
+  else await expect(lastCta).not.toHaveAttribute("target", "_blank");
   await saveEvidence(page, "05-mobile-menu-signup.png");
 
   await context.close();
@@ -647,7 +648,8 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   for (const name of ["Product", "Expert help", "Resources"]) {
     await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
   }
-  await expect(menu.getByRole("link", { name: "Free check", exact: true })).toBeInViewport();
+  if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();
+  else await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
   await menu.getByRole("button", { name: "Product", exact: true }).click();
   await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeVisible();

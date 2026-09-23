@@ -61,10 +61,10 @@ test("External Attack Surface Review sample preserves the synthetic and integrit
   assert.match(page, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
-test("sample remains linked from its offer detail, catalogue, and pricing entry", () => {
+test("sample remains linked from its offer detail and catalogue; pricing links to the catalogue", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
   assert.match(serviceLandings, new RegExp(route));
-  assert.match(pricing, new RegExp(route));
+  assert.match(pricing, /href="\/catalog"/);
   assert.match(catalogue, new RegExp(route));
   assert.doesNotMatch(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.match(homepagePreview, new RegExp(route));

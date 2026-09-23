@@ -8,7 +8,7 @@ for (const width of [1280, 768, 390, 320]) {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.goto("/", { waitUntil: "networkidle" });
-    await expect(page.locator("h1")).toHaveText("Start with a question.");
+    await expect(page.locator("h1")).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
     await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     const form = page.locator("main form");
@@ -43,6 +43,7 @@ for (const pathname of ["/", "/pricing", "/review/request"]) test(`${pathname} e
     await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ issuanceId: "iss_design_test", email: "buyer@example.com", expiresAt: "2099-01-01T00:00:00.000Z" }) });
   });
   await page.goto(pathname);
+  if (pathname === "/pricing") await page.getByRole("link", { name: "Ask about this review", exact: true }).click();
   await page.locator("#name").fill("Example Buyer");
   await page.locator("#email").fill("buyer@example.com");
   await page.locator("#enquiryPath").selectOption("One Server Security Check");
@@ -52,5 +53,5 @@ for (const pathname of ["/", "/pricing", "/review/request"]) test(`${pathname} e
   expect(reviewRequestSchema.safeParse(submitted).success).toBe(true);
   expect(submitted).toMatchObject({ name: "Example Buyer", email: "buyer@example.com", org: "", intent: "review" });
   expect(submitted).toMatchObject({ scope: expect.stringContaining("Enquiry path: One Server Security Check") });
-  expect(new URL(page.url()).pathname).toBe(pathname);
+  expect(new URL(page.url()).pathname).toBe(pathname === "/pricing" ? "/review/request" : pathname);
 });

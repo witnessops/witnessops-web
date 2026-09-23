@@ -1,4 +1,4 @@
-import { publicB2bPrice } from "./commercial-price";
+import { PUBLIC_B2B_VAT_LABEL, publicB2bPrice } from "./commercial-price";
 
 /** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
 export const AUTOMATION_REPAIR_OFFER = {
@@ -191,3 +191,14 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
 export type PrimaryOffer = typeof PRIMARY_OFFER;
 export type PrimaryOfferName = PrimaryOffer["name"]["en"];
 export type PrimaryOfferPriceLabel = PrimaryOffer["price"]["en"];
+
+/** English Pricing T1 display terms. Generic enquiry only: no new intake ID,
+ * delivery promise, checkout or catalogue route is established by this record. */
+export const INTERNET_FOOTPRINT_REVIEW_OFFER = {
+  name: { en: "Early Bird — Internet Footprint Review" },
+  price: {
+    amount: "500",
+    currency: "EUR",
+    en: `€500 fixed · ${PUBLIC_B2B_VAT_LABEL.en}`,
+  },
+} as const;

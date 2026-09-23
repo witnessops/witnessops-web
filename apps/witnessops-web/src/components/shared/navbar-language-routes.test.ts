@@ -139,13 +139,25 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("every public route uses the orange primary action chrome", () => {
+test("English public navigation uses the existing outlined secondary action", () => {
   assert.doesNotMatch(navbar, /homepageNativeChrome/);
   assert.match(navbar, /getDesktopCtaClassName/);
   assert.match(
     navbar,
-    /border border-brand-accent bg-brand-accent text-text-inverse/,
+    /label: "Sign up",\s+href: signupUrl,\s+variant: "secondary"/,
   );
   assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
+});
+
+ test("grouped navigation respects the CTA variant and preserves catalogue destinations", () => {
+  const mobile = readFileSync(resolve(__dirname, "mobile-navbar-menu.tsx"), "utf-8");
+  const groups = readFileSync(resolve(__dirname, "public-nav-groups.ts"), "utf-8");
+  assert.match(mobile, /variant=\{cta.variant as/);
+  assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
+  assert.match(navbar, /: signupUrl \? \{/);
+  assert.match(navbar, /variant: "secondary",\s+} : null/);
+  assert.doesNotMatch(navbar, /label: "Start a free check"/);
+  assert.match(groups, /label: "Sample work", href: "\/library"/);
+  assert.match(groups, /label: "All services", href: "\/catalog"/);
 });
