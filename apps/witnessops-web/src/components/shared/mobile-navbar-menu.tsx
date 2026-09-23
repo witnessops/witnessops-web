@@ -10,7 +10,7 @@ interface MobileNavbarMenuProps {
   loginUrl?: string | null;
   links: { label: string; href: string }[];
   groups?: readonly { label: string; links: readonly { label: string; href: string }[] }[];
-  cta: { label: string; href: string; variant: string };
+  cta: { label: string; href: string; variant: string } | null;
   assistantLink?: { label: string; href: string };
   utilityLink?: { label: string; href: string };
   currentPath: string;
@@ -177,7 +177,7 @@ export function MobileNavbarMenu({
       >
         <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
           {groups && <div className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
-            <Link href={cta.href} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md bg-text-primary px-4 text-sm font-medium text-text-inverse">{cta.label}</Link>
+            {cta && <CtaButton label={cta.label} href={cta.href} variant={cta.variant as "primary" | "secondary" | "ghost"} onClick={closeMenu} className="min-h-11" />}
             {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md border border-surface-border px-4 text-sm">Log in</Link>}
           </div>}
           {groups?.map((group, index) => <section key={group.label} className="border-b border-surface-border">
@@ -220,7 +220,7 @@ export function MobileNavbarMenu({
               <span className="inline-block -translate-y-px">{utilityLink.label}</span>
             </Link>
           ) : null}
-          {!groups && <CtaButton
+          {!groups && cta && <CtaButton
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
