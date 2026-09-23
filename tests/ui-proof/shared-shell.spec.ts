@@ -553,7 +553,10 @@ test("unconfigured production pages expose no app destinations", async ({ page }
       // Include hidden desktop/mobile menu links, not just visible CTAs.
       await expect(page.locator('a[href*="app.witnessops.com"], a[href*="127.0.0.1:3020"]')).toHaveCount(0);
       await expect(page.locator('footer a').filter({ hasText: /^(Sign up|Log in|Assets|Reports|Settings)$/ })).toHaveCount(0);
-      if (width < 1024) await openMobileMenu(page);
+      if (width < 1024) {
+        await openMobileMenu(page);
+        await expect(page.locator("[data-mobile-account-actions]")).toHaveCount(0);
+      }
       await page.getByRole("navigation", { name: "Primary navigation", exact: true }).getByRole("button", { name: "Product", exact: true }).click();
       await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();
     }

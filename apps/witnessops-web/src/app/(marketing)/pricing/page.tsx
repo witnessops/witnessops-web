@@ -4,11 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { buyerRequestHref, buyerPublicOfferRequestHref } from "@/lib/buyer-services";
 import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER } from "@/lib/commercial-truth";
 
+const pricingDescription = `Compare ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en} and ${PRIMARY_OFFER.name.en}. Fixed prices excluding VAT; non-secret enquiries before work begins.`;
+
 export const metadata: Metadata = {
   title: "Two Fixed-Price Reviews",
-  description: `Compare ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en} and ${PRIMARY_OFFER.name.en}. Fixed prices excluding VAT; non-secret enquiries before work begins.`,
+  description: pricingDescription,
   alternates: { canonical: "/pricing" },
-  openGraph: { title: "Two Fixed-Price Reviews | WitnessOps", siteName: "WitnessOps", type: "website" },
+  twitter: { card: "summary_large_image", title: "Two Fixed-Price Reviews | WitnessOps", description: pricingDescription },
+  openGraph: { title: "Two Fixed-Price Reviews | WitnessOps", description: pricingDescription, siteName: "WitnessOps", type: "website" },
 };
 
 export default function PricingPage() {

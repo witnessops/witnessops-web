@@ -16,6 +16,10 @@ for (const width of [390, 1440]) {
         await expect(nav.locator('[data-public-primary-cta]')).toHaveCount(0);
         continue;
       }
+      if (width === 390) {
+        await expect(nav.locator('[data-mobile-account-actions]')).toBeVisible();
+        if (route === '/') await expect(nav.getByRole('link', { name: 'Log in', exact: true })).toHaveAttribute('href', new URL('/login', signup!).href);
+      }
       const cta = nav.getByRole('link', { name: 'Sign up', exact: true }).filter({ visible: true });
       await expect(cta).toHaveCount(1);
       await expect(cta).toHaveAttribute('href', signup);

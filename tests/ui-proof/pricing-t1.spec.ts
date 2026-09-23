@@ -4,6 +4,13 @@ for (const width of [390, 1440]) {
   test(`Pricing T1 two fixed reviews and valid enquiry paths at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/pricing");
+    const description = `Compare ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en} and ${PRIMARY_OFFER.name.en}. Fixed prices excluding VAT; non-secret enquiries before work begins.`;
+    await expect(page).toHaveTitle("Two Fixed-Price Reviews | WitnessOps");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://witnessops.com/pricing");
+    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
+      await expect(page.locator(selector)).toHaveAttribute("content", description);
+    }
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Two Fixed-Price Reviews | WitnessOps");
     const main = page.locator("main");
     await expect(main.getByRole("heading", { level: 1 })).toHaveText("Two reviews. Two fixed prices.");
     await expect(main.locator("article")).toHaveCount(2);
