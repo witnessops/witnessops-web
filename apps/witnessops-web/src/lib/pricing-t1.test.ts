@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
@@ -16,4 +18,10 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 · excluding VAT");
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");
   assert.equal(buyerServiceById("external-exposure-assessment").detailHref.en, "/catalog/offsec-external-exposure");
+});
+
+test("English FAQ describes review pricing without changing signup boundaries", () => {
+  const faq = readFileSync(resolve(__dirname, "../../../../content/witnessops/docs/faq.mdx"), "utf8");
+  assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan."));
+  assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
 });
