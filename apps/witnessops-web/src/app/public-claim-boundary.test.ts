@@ -6,6 +6,13 @@ import test from "node:test";
 const webRoot = resolve(__dirname, "../..");
 
 const PUBLIC_CLAIM_SOURCES = [
+  "src/app/review/sample-cases/wops-0001/page.tsx",
+  "src/app/review/sample-cases/wops-0001/case-contract.ts",
+  "public/samples/wops-0001/case-report.md",
+  "public/samples/wops-0001/signal-excerpts.txt",
+  "public/samples/wops-0001/process-observations.txt",
+  "public/samples/wops-0001/handler-excerpt.txt",
+  "public/samples/wops-0001/environment.json",
   "src/app/(library)/library/page.tsx",
   "src/app/(marketing)/pricing/page.tsx",
   "src/app/(marketing)/catalog/page.tsx",
@@ -113,6 +120,11 @@ const REQUIRED_BOUNDARY_MARKERS = [
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
+  "public/samples/wops-0001/case-report.md",
+  "public/samples/wops-0001/signal-excerpts.txt",
+  "public/samples/wops-0001/process-observations.txt",
+  "public/samples/wops-0001/handler-excerpt.txt",
+  "public/samples/wops-0001/environment.json",
   "src/components/marketing/why-witnessops.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",

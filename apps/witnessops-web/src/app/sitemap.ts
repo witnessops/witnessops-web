@@ -19,6 +19,10 @@ type StaticRoute = {
 };
 
 const staticRoutes: StaticRoute[] = [
+  {
+    route: "/review/sample-cases/wops-0001",
+    sourcePath: "src/app/review/sample-cases/wops-0001/page.tsx",
+  },
   { route: "/research", sourcePath: "src/app/research/page.tsx" },
   ...editorialArticles.map(entry => ({ route: entry.href, sourcePath: entry.contentReference })),
   { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },

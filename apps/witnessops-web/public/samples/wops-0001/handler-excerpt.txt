@@ -1,0 +1,21 @@
+WOPS-0001 — selected disassembly
+Source: recorded disassembly from the signal-run investigation on 2026-09-26.
+This is an excerpt, not the executable or complete disassembly.
+ELF instruction offsets and bytes are preserved. Symbol labels are removed to
+avoid implying responsible-component attribution; filename headers are omitted.
+The original runtime memory map is withheld. Mapping HANDLER_B to the stub below
+is the investigator's interpretation and cannot be fully reconstructed from this
+public selection. No controlled repair or source-level attribution is supplied.
+
+## Candidate replacement stub — one selected instruction
+[Original source lines 32-32; other lines omitted]
+    117d9f78:	e9 4b ca 50 00       	jmp    11ce69c8 [SYMBOL_LABEL_OMITTED]
+
+## Jump target — separate selected block
+[Original source lines 8-11; other lines omitted]
+    11ce69c8:	55                   	push   %rbp
+    11ce69c9:	48 89 e5             	mov    %rsp,%rbp
+    11ce69cc:	5d                   	pop    %rbp
+    11ce69cd:	c3                   	ret
+
+Publication boundary: not a production verification result.

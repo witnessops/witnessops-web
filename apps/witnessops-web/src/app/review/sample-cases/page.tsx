@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
+import { wopsCase } from "./wops-0001/case-contract";
+
 export const metadata: Metadata = {
   title: "Sample work",
   description:
@@ -24,6 +26,14 @@ export const metadata: Metadata = {
 };
 
 const sampleCases = [
+  {
+    title: `${wopsCase.id}: ${wopsCase.title}`,
+    href: wopsCase.route,
+    situation: wopsCase.summary,
+    youSee: wopsCase.reconstructionLimit,
+    tags: [wopsCase.boundary],
+    emphasize: false,
+  },
   {
     title: "External Exposure assessment",
     href: "/review/sample-cases/external-exposure-assessment",
@@ -167,7 +177,7 @@ export default function SampleCasesIndexPage() {
             Sample work
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            Illustrative reviews, findings and evidence.
+            Illustrative reviews, findings and evidence. Real investigations are labelled separately.
           </p>
           <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
             Inspect the evidence, findings and limits of a bounded review.

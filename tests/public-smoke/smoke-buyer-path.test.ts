@@ -316,3 +316,11 @@ test("the limits section cannot satisfy the positive capabilities check", () => 
   assert.equal(result.ok, false);
   assert.deepEqual(result.missingMarkers, ["Record one bounded check"]);
 });
+
+test("WOPS-0001 smoke contract requires scoped investigation and inference boundaries", () => {
+  const route = routeContract("/review/sample-cases/wops-0001");
+  const html = route.requiredMarkers.join(" ");
+  assert.equal(evaluateBuyerPathRoute(route, "http://127.0.0.1:3001", 200, html).ok, true);
+  assert.equal(evaluateBuyerPathRoute(route, "http://127.0.0.1:3001", 200, html.replace("INFERENCE", "")).ok, false);
+  assert.equal(evaluateBuyerPathRoute(route, "http://127.0.0.1:3001", 200, `${html} Independently verified`).ok, false);
+});
