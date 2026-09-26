@@ -27,8 +27,8 @@ export default function PricingPage() {
           <article data-pricing-review="footprint" className="flex min-w-0 flex-col rounded-lg border border-surface-border p-6 md:p-8">
             <h2 className="text-2xl font-semibold">{INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}</h2>
             <p className="mt-6 text-xl font-semibold text-brand-accent">{INTERNET_FOOTPRINT_REVIEW_OFFER.price.en}</p>
-            <p className="mt-5 text-sm leading-6 text-text-secondary">Use the general enquiry form and name this review. Share non-secret details only.</p>
-            <div className="mt-auto pt-8"><CtaButton href={buyerRequestHref("en")} variant="secondary" label="Ask about this review" /></div>
+            <p className="mt-5 text-sm leading-6 text-text-secondary">Start with a non-secret enquiry. We’ll confirm fit and scope before work begins.</p>
+            <div className="mt-auto pt-8"><CtaButton href={`${buyerRequestHref("en")}?enquiryPath=early-bird`} variant="secondary" label="Ask about this review" /></div>
           </article>
           <article data-pricing-review="agent-action" data-pricing-service={PRIMARY_OFFER.id} className="flex min-w-0 flex-col rounded-lg border border-surface-border p-6 md:p-8">
             <h2 className="text-2xl font-semibold">{PRIMARY_OFFER.name.en}</h2>
