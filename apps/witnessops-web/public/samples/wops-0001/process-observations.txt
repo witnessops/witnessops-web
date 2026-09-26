@@ -1,0 +1,54 @@
+WOPS-0001 — selected process observations
+Capture date: 2026-09-26, Europe/Warsaw.
+P = earlier process-traced run, 15:58:15–16:02:58.
+U = separate untraced observation recorded at 16:06:01.296426+02:00.
+Suffixed PID labels do not identify the same processes across runs.
+This file selects separate source blocks. Omitted lines are not reconstructed.
+Command arguments, unrelated processes and numeric PIDs are withheld.
+
+## P: Bash exit — child trace
+[Original source lines 42-42; other lines omitted]
+15:58:16.130952 exit_group(0)           = ?
+
+## P: Git exit — separate child trace
+[Original source lines 15-15; other lines omitted]
+15:58:22.682682 exit_group(0)           = ?
+
+## P: later zombie snapshot — separate observation
+[Original source lines 16-16; other lines omitted]
+ [BASH_CHILD_P]  [DESKTOP_PARENT_P] Z    Sat Sep 26 15:58:15 2026      \_ [bash] <defunct>
+
+[Original source lines 20-20; other lines omitted]
+ [GIT_CHILD_P]  [DESKTOP_PARENT_P] Z    Sat Sep 26 15:58:21 2026      \_ [git] <defunct>
+
+## U: separate untraced snapshot — not part of either traced run
+[Original source lines 15-15; other lines omitted]
+ [BASH_CHILD_U]  [DESKTOP_PARENT_U] Z    Sat Sep 26 16:03:00 2026  \_ [bash] <defunct>
+
+[Original source lines 25-25; other lines omitted]
+ [GIT_CHILD_U]  [DESKTOP_PARENT_U] Z    Sat Sep 26 16:03:06 2026  \_ [git] <defunct>
+
+## U: selected structured observation from the process-run manifest
+This JSON is a projection, not verbatim source. Numeric PID fields were replaced
+with the labels above; unrelated entries and metadata were omitted.
+{
+  "observed_at": "2026-09-26T16:06:01.296426+02:00",
+  "selected_children": [
+    {
+      "process_label": "BASH_CHILD_U",
+      "Name": "bash",
+      "State": "Z (zombie)",
+      "parent_label": "DESKTOP_PARENT_U",
+      "TracerPid": "0"
+    },
+    {
+      "process_label": "GIT_CHILD_U",
+      "Name": "git",
+      "State": "Z (zombie)",
+      "parent_label": "DESKTOP_PARENT_U",
+      "TracerPid": "0"
+    }
+  ]
+}
+
+Publication boundary: not a production verification result.

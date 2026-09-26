@@ -703,6 +703,19 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/review/sample-cases/wops-0001",
+    requiredMarkers: [
+      "Real investigation · Third-party software · Not a customer engagement.",
+      "Observed in two traced runs",
+      "Scope:",
+      "FACT_ARTIFACT", "INFERENCE", "UNKNOWN",
+      "What this review does not say",
+      "cannot reconstruct the complete investigation",
+      "/samples/wops-0001/SHA256SUMS",
+    ],
+    prohibitedMarkers: ["Vendor-confirmed cause", "Independently verified", "Download full raw traces"],
+  },
+  {
     path: "/review/sample-cases",
     requiredMarkers: [
       "Illustrative reviews, findings and evidence.",
