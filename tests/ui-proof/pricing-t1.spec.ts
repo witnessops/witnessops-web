@@ -39,8 +39,10 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`pricing-${width}.png`), fullPage: true });
     await footprint.getByRole("link", { name: "Ask about this review" }).click();
-    await expect(page).toHaveURL(/\/review\/request$/);
+    await expect(page).toHaveURL(/\/review\/request\?enquiryPath=early-bird$/);
     await expect(page.locator("main")).toContainText("Non-secret details only.");
+    await expect(page.locator("#enquiryPath")).toHaveValue(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
+    await page.screenshot({ path: test.info().outputPath(`early-bird-preselected-${width}.png`), fullPage: true });
     await page.goto("/pricing");
     await page.getByRole("link", { name: "Scope this review", exact: true }).click();
     await expect(page).toHaveURL(/\/review\/request\?offerId=bounded-workflow-review&/);
@@ -57,6 +59,30 @@ test("secondary catalogue capabilities remain reachable", async ({ page }) => {
     expect(response?.status()).toBe(200);
     await expect(page.locator("main h1").first()).toBeVisible();
   }
+});
+
+test("Early Bird enquiry reaches intake with the selected path; plain request keeps its default", async ({ page }) => {
+  let scope = "";
+  await page.route("**/api/review/request", async route => {
+    scope = (route.request().postDataJSON() as { scope: string }).scope;
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({ issuanceId: "iss_early_bird", email: "buyer@example.com", expiresAt: "2026-09-27T22:00:00.000Z" }),
+    });
+  });
+  await page.goto("/review/request");
+  await expect(page.locator("#enquiryPath")).toHaveValue("Free check");
+  await expect(page.locator("#enquiryPath option")).toHaveCount(5);
+  await page.goto("/pricing");
+  await page.locator('[data-pricing-review="footprint"]').getByRole("link", { name: "Ask about this review" }).click();
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator("#enquiryPath")).toHaveValue(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
+  await page.locator("#name").fill("Synthetic Buyer");
+  await page.locator("#email").fill("buyer@example.com");
+  await page.locator("#workflow").fill("Please review the public footprint of our authorised domain.");
+  await page.locator('main form button[type="submit"]').click();
+  await expect.poll(() => scope).toContain(`Enquiry path: ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}`);
 });
 
 test("published English FAQ keeps free-signup boundaries and current pricing guidance", async ({ page }) => {

@@ -251,7 +251,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en));
   assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.price.en));
   assert.doesNotMatch(footprintCard, /working days|response time|delivery time|FIRST 10|No\. 00/i);
-  assert.match(footprintCard, /href="\/review\/request"/);
+  assert.match(footprintCard, /href="\/review\/request\?enquiryPath=early-bird"/);
   assert.doesNotMatch(pricing, /€49|€149|External Attack Surface Review|One Server Security Check/);
   assert.doesNotMatch(primaryCard, /Start with a broken workflow/);
   assert.match(primaryCard, /Agent Action Security Review/);

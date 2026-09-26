@@ -30,6 +30,7 @@ import {
 import { BOUNDED_WORKFLOW_REVIEW_INTENT } from "@/lib/commercial-request-intents";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 
@@ -87,12 +88,14 @@ export function ContactForm({
   campaignAttribution,
   compact = false,
   landing = false,
+  defaultEnquiryPath,
 }: {
   locale?: "en" | "pl";
   intent?: string;
   campaignAttribution?: string;
   compact?: boolean;
   landing?: boolean;
+  defaultEnquiryPath?: typeof INTERNET_FOOTPRINT_REVIEW_OFFER.name.en;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -903,8 +906,8 @@ export function ContactForm({
 
       {landing && <div>
         <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
-        <select id="enquiryPath" name="enquiryPath" defaultValue="Free check" className={inputClass} style={inputStyle}>
-          {["Free check", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+        <select id="enquiryPath" name="enquiryPath" defaultValue={defaultEnquiryPath ?? "Free check"} className={inputClass} style={inputStyle}>
+          {["Free check", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [INTERNET_FOOTPRINT_REVIEW_OFFER.name.en] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
         </select>
       </div>}
 
