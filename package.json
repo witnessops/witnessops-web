@@ -62,7 +62,9 @@
     "test:app-browser": "playwright test --config tests/app-foundation/playwright.config.ts",
     "cli:test": "pnpm --filter @witnessops/cli test",
     "cli:artifact": "node scripts/build-cli-artifact.mjs",
-    "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py"
+    "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py",
+    "morpheus:handoff:inspect": "node --import tsx scripts/morpheus-handoff/cli.ts",
+    "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

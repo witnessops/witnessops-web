@@ -92,6 +92,9 @@ jobs:
       - name: Full repository health (app, CLI, verifier, report, lint, types)
         id: health
         run: pnpm health
+      - name: Morpheus read-only handoff intake
+        id: morpheus_handoff
+        run: pnpm morpheus:handoff:test
       - name: Standard database tests
         id: db
         run: pnpm --filter @witnessops/app test:db
