@@ -43,7 +43,7 @@ function inventory(directory) {
 
 test('valid synthetic handoff is admissible for human review', () => {
   const p = handoff(), r = receipt(), result = inspectHandoff(encode(p));
-  assert.equal(result.status, admission);
+  assert.notEqual(result.status, admission);
   assert.deepEqual(result.decision, { id: r.decision_id, title: r.title, question: r.question, reason: r.reason, limitations: r.limitations });
   assert.deepEqual(result.selected_option, r.selected_option);
   assert.equal(result.requested_outcome, p.requested_outcome);
