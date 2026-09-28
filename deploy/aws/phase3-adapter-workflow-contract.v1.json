@@ -52,7 +52,8 @@
     "operations": [
       "publish-image",
       "deploy-staging",
-      "deploy-production"
+      "deploy-production",
+      "status-production"
     ],
     "production_environment": "aws-production",
     "production_review_required": true,
@@ -68,7 +69,9 @@
     "successful_scan_evidence_pagination": "aws_cli_auto_paginated_response_must_not_contain_next_token",
     "successful_scan_evidence_retention_days": 90,
     "successful_scan_evidence_aws_iam_change": "repository_scoped_ecr_describe_image_scan_findings_only",
-    "immutable_tag_retry_strategy": "reuse_existing_source_tag_only_after_exact_registry_manifest_config_source_label_and_verified_local_build_config_digest_validation"
+    "immutable_tag_retry_strategy": "reuse_existing_source_tag_only_after_exact_registry_manifest_config_source_label_and_verified_local_build_config_digest_validation",
+    "production_status_document": "ProductionStatusDocument",
+    "production_status_output": "exact_current_digest_and_image_ref;_previous_digest_only_from_matching_successful_host_receipt;_adapter_and_config_sha256;_timestamp;_PASS_or_UNKNOWN"
   },
   "activation_gates": {
     "merge_required_before_host_install": true,
@@ -79,7 +82,9 @@
     "host_config_preflight_required": true,
     "production_managed_node_variable_required": true,
     "staging_managed_node_variable_required": true,
-    "workflow_dispatch_forbidden_in_activation_lane": true
+    "workflow_dispatch_forbidden_in_activation_lane": true,
+    "status_document_and_iam_apply_required": true,
+    "updated_host_adapter_install_required": true
   },
   "not_authorized": [
     "workflow_dispatch",
