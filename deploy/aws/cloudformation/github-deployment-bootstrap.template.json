@@ -820,11 +820,6 @@
       "Value": {
         "Ref": "RunCommandLogGroup"
       }
-    },
-    "ProductionStatusDocumentName": {
-      "Value": {
-        "Ref": "ProductionStatusDocument"
-      }
     }
   }
 }
