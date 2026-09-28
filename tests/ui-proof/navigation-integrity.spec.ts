@@ -165,6 +165,15 @@ test("the homepage sample-work link opens the sample library", async ({
   await context.close();
 });
 
+test("the Polish homepage historical-action link opens the historical sample", async ({ page }) => {
+  await page.goto("/pl", { waitUntil: "networkidle" });
+  const sampleLink = page.locator('main a[data-ui-proof-id="homepage-sample-review-cta"]');
+  await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
+  await sampleLink.click();
+  await expect(page).toHaveURL(/\/review\/sample-cases\/ai-agent-action-proof-run$/);
+  await expect(page.locator("main")).toBeVisible();
+});
+
 test("route navigation and Back restore scroll without a second-frame snap", async ({
   browser,
 }) => {
