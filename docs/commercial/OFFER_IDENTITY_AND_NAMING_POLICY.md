@@ -1,15 +1,19 @@
 # Offer identity and naming policy
 
-Policy ID: `WITNESSOPS_OFFER_IDENTITY_AND_NAMING_V1`
+```yaml
+policy_id: WITNESSOPS_OFFER_IDENTITY_AND_NAMING_V1
+status: ADOPTED
+authority: founder
+effective_at: "2026-09-28"
+decision_ref: "witnessops/witnessops-web#422"
+```
 
-**Status: PROPOSED — not adopted.** Prepared 21 September 2026. Owner: founder or
-explicitly delegated commercial owner. Adoption reference: none recorded.
+Prepared 21 September 2026; adopted 28 September 2026.
 
-This is a proposal for commercial offer naming and change handling. It neither
-selects a new offer name nor authorizes publication, billing, collection or
-technical migration. Existing contracts, approvals and repository gates remain
-in force. The rules below take effect only after explicit adoption is recorded.
-[Research, evidence and examples](./OFFER_NAMING_RESEARCH_20260921.md) are informative.
+This policy governs commercial offer naming and change handling. It does not
+select a new offer name or authorize publication, billing, collection or technical
+migration. Existing contracts, approvals and repository gates remain in force.
+[Research, evidence and examples](./OFFER_NAMING_RESEARCH_20260921.md) remain informative.
 
 ## Principle
 
@@ -69,14 +73,18 @@ Do not force the full offer name into every small button. [Research R2–R5](./O
 Mixed changes inherit the relevant controls; classifying them does not require
 separate PRs or approval portals. Follow any existing rule that requires a
 separate execution lane. A lower price for the same service may be a price
-variant; materially different deliverables may justify a distinct product.
-Record the decision instead of deriving it from the name. [Research R6–R7](./OFFER_NAMING_RESEARCH_20260921.md)
+variant. Materially different buyer problem, scope, deliverables, entitlement or
+transaction behavior require an explicit **reuse / variant / distinct-offer**
+decision. Record the decision instead of deriving it from the name. [Research R6–R7](./OFFER_NAMING_RESEARCH_20260921.md)
 
 ## 4. Choose for buyer comprehension
 
 Prefer words the intended buyer uses and a name plus descriptor that explains the
 purchase. Compare the nearest current offers and exact former names using buyer
-problem, target, methods, deliverables and exclusions—not just vocabulary. [Research R1](./OFFER_NAMING_RESEARCH_20260921.md)
+problem, target, methods, deliverables and exclusions—not just vocabulary. Do not
+use a technical mechanism, protocol, vendor or implementation detail as the primary
+offer name unless intended buyers actually use that term to identify the purchase.
+[Research R1](./OFFER_NAMING_RESEARCH_20260921.md)
 
 Ordinary words such as “public,” “exposure,” “footprint,” “review” or “audit” are
 not globally reserved by this policy. Do not claim a suffix, word family, finance

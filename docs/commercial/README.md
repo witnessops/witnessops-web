@@ -16,14 +16,14 @@ Written for learning the offers while you sell and deliver them.
 
 Then use the paste templates below.
 
-## Offer identity and naming — proposal
+## Offer identity and naming
 
-Read the [proposed policy](./OFFER_IDENTITY_AND_NAMING_POLICY.md) and its
+Use the [adopted policy](./OFFER_IDENTITY_AND_NAMING_POLICY.md) and its
 [research and worked examples](./OFFER_NAMING_RESEARCH_20260921.md) when reviewing
-naming or offer-identity changes. The policy is **not adopted** and selects no new
-name, SKU, price or scope. Existing accepted offer records remain authoritative.
-The dated naming market note below is retained as superseded research, not a
-current general naming policy.
+naming or offer-identity changes. Adoption selects no new name, SKU, price or scope
+and grants no publication, billing, collection or migration authority. Existing
+accepted offer records remain authoritative. The dated naming market note below is
+retained as superseded research, not a current general naming policy.
 
 ## Document index
 

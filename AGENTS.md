@@ -23,10 +23,11 @@ Release authority: explicit operator action; merge alone is not deployment autho
 
 For offer names, descriptors, CTAs or catalogue identity changes, start with the
 [commercial index](./docs/commercial/README.md) and the applicable offer record.
-The [offer identity and naming proposal](./docs/commercial/OFFER_IDENTITY_AND_NAMING_POLICY.md)
-and [supporting research](./docs/commercial/OFFER_NAMING_RESEARCH_20260921.md) are
-**proposed, not adopted**. They do not override current contracts or grant rename,
-billing, collection or deployment authority.
+The [offer identity and naming policy](./docs/commercial/OFFER_IDENTITY_AND_NAMING_POLICY.md)
+is **adopted**. Its [supporting research](./docs/commercial/OFFER_NAMING_RESEARCH_20260921.md)
+remains informative. The policy does not override current offer contracts or grant
+rename, billing, collection, migration or deployment authority; those actions keep
+their existing approval and execution gates.
 
 ## Public receipt-only lane
 
