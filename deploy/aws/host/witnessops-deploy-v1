@@ -36,6 +36,7 @@ import urllib.request
 CONFIG_PATH = Path("/etc/witnessops/deploy-v1.json")
 LOCK_PATH = Path("/run/lock/witnessops-deploy-v1.lock")
 STATE_DIR = Path("/var/lib/witnessops/deploy-v1")
+STATUS_K3S = "/usr/local/bin/k3s"
 REGION = "eu-central-1"
 REPOSITORY = "witnessops-web"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -601,11 +602,11 @@ def import_image(
     return image_ref
 
 
-def containerd_config_digest(config: dict[str, Any], image_digest: str) -> str:
+def containerd_config_digest(config: dict[str, Any], image_digest: str, *, binary: str = "k3s") -> str:
     validate_digest(image_digest, "containerd manifest")
     manifest_bytes = run_command(
         [
-            "k3s",
+            binary,
             "ctr",
             "-n",
             config["containerd_namespace"],
@@ -626,10 +627,10 @@ def containerd_config_digest(config: dict[str, Any], image_digest: str) -> str:
     )
 
 
-def kubectl(config: dict[str, Any], *args: str, timeout: int = 180) -> bytes:
+def kubectl(config: dict[str, Any], *args: str, timeout: int = 180, binary: str = "k3s") -> bytes:
     return run_command(
         [
-            "k3s",
+            binary,
             "kubectl",
             "-n",
             config["namespace"],
@@ -639,11 +640,11 @@ def kubectl(config: dict[str, Any], *args: str, timeout: int = 180) -> bytes:
     )
 
 
-def deployment(config: dict[str, Any], lane: str) -> dict[str, Any]:
+def deployment(config: dict[str, Any], lane: str, *, binary: str = "k3s") -> dict[str, Any]:
     name = config["lanes"][lane]["deployment"]
     try:
         value = json.loads(
-            kubectl(config, "get", "deployment", name, "-o", "json")
+            kubectl(config, "get", "deployment", name, "-o", "json", binary=binary)
         )
     except json.JSONDecodeError as exc:
         raise AdapterError("Kubernetes deployment response is malformed") from exc
@@ -788,8 +789,10 @@ def validate_running_identity(
     lane: str,
     expected_image: str,
     config_digest: str,
+    *,
+    binary: str = "k3s",
 ) -> None:
-    current = deployment(config, lane)
+    current = deployment(config, lane, binary=binary)
     _, observed_image = validate_runtime_contract(config, current)
     if observed_image != expected_image:
         raise AdapterError("deployment image differs after rollout")
@@ -801,7 +804,7 @@ def validate_running_identity(
     if not isinstance(selector, dict) or not selector:
         raise AdapterError("deployment selector is unavailable")
     selector_text = ",".join(f"{key}={value}" for key, value in sorted(selector.items()))
-    pods = json.loads(kubectl(config, "get", "pods", "-l", selector_text, "-o", "json"))
+    pods = json.loads(kubectl(config, "get", "pods", "-l", selector_text, "-o", "json", binary=binary))
     items = pods.get("items", []) if isinstance(pods, dict) else []
     if not isinstance(items, list) or len(items) != desired:
         raise AdapterError("running pod inventory differs from the desired replicas")
@@ -883,6 +886,61 @@ def write_receipt(
         os.fsync(stream.fileno())
     os.chmod(temporary, 0o640)
     os.replace(temporary, destination)
+
+
+def recorded_previous_digest(current_digest: str) -> str | None:
+    """Use only a successful host receipt for the image still in production."""
+    receipt_path = STATE_DIR / "last-production.json"
+    try:
+        directory = STATE_DIR.lstat()
+        if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != 0
+                or stat.S_IMODE(directory.st_mode) != 0o750):
+            return None
+        receipt_info = validate_secure_file(receipt_path, root_required=True)
+        if stat.S_IMODE(receipt_info.st_mode) != 0o640 or receipt_info.st_nlink != 1:
+            return None
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        if (
+            isinstance(receipt, dict)
+            and receipt.get("schema_version") == "witnessops.host-deploy.v1"
+            and receipt.get("lane") == "production"
+            and receipt.get("result") == "pass"
+            and receipt.get("image_digest") == current_digest
+        ):
+            previous = receipt.get("previous_digest")
+            if isinstance(previous, str) and SHA256.fullmatch(previous) and previous != current_digest:
+                return previous
+    except (AdapterError, OSError, json.JSONDecodeError):
+        pass
+    return None
+
+
+def status_production() -> dict[str, Any]:
+    """Inspect the fixed production deployment; never acquire the deploy lock."""
+    if os.geteuid() != 0:
+        raise AdapterError("status adapter must run as root")
+    config = load_config(CONFIG_PATH, enforce_root=True)
+    validate_secure_file(Path(__file__), root_required=True)
+    observed = deployment(config, "production", binary=STATUS_K3S)
+    _, image_ref = validate_runtime_contract(config, observed)
+    expected_prefix = f"{config['registry']}/{config['repository']}@"
+    if not image_ref.startswith(expected_prefix):
+        raise AdapterError("production image repository differs from host configuration")
+    current_digest = digest_from_image_ref(image_ref)
+    config_digest = containerd_config_digest(config, current_digest, binary=STATUS_K3S)
+    validate_running_identity(config, "production", image_ref, config_digest, binary=STATUS_K3S)
+    previous = recorded_previous_digest(current_digest)
+    return {
+        "schema_version": "witnessops.production-status.v1",
+        "status": "PASS",
+        "observed_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "current_digest": current_digest,
+        "current_image_ref": image_ref,
+        "previous_digest": previous if previous is not None else "UNKNOWN",
+        "previous_state": "RECORDED" if previous is not None else "UNKNOWN",
+        "adapter_sha256": f"sha256:{hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}",
+        "config_sha256": f"sha256:{hashlib.sha256(CONFIG_PATH.read_bytes()).hexdigest()}",
+    }
 
 
 def execute(args: argparse.Namespace) -> dict[str, Any]:
@@ -986,6 +1044,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--config", default=str(CONFIG_PATH))
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--status-production", action="store_true")
     parser.add_argument("--lane", choices=("staging", "production"))
     parser.add_argument("--region")
     parser.add_argument("--registry")
@@ -995,6 +1054,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config-digest")
     parser.add_argument("--expected-current-digest")
     args = parser.parse_args()
+    if args.status_production:
+        if len(sys.argv) != 2:
+            parser.error("production status accepts no inputs")
+        return args
     if args.self_test:
         return args
     required = (
@@ -1018,6 +1081,18 @@ def main() -> int:
         if args.self_test:
             load_config(Path(args.config), enforce_root=False)
             print('{"adapter_self_test":"pass"}')
+            return 0
+        if args.status_production:
+            try:
+                result = status_production()
+            except Exception:
+                print(json.dumps({
+                    "schema_version": "witnessops.production-status.v1",
+                    "status": "UNKNOWN",
+                    "observed_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                }, separators=(",", ":"), sort_keys=True))
+                return 1
+            print(json.dumps(result, separators=(",", ":"), sort_keys=True))
             return 0
         result = execute(args)
         print(json.dumps(result, separators=(",", ":"), sort_keys=True))

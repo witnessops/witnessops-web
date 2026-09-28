@@ -455,6 +455,52 @@
         ]
       }
     },
+    "ProductionStatusDocument": {
+      "Type": "AWS::SSM::Document",
+      "Properties": {
+        "DocumentFormat": "JSON",
+        "DocumentType": "Command",
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-status-production-v1"
+        },
+        "TargetType": "/",
+        "UpdateMethod": "NewVersion",
+        "VersionName": "v1_0_0",
+        "Content": {
+          "schemaVersion": "2.2",
+          "description": "Read only the exact WitnessOps production deployment image and retained host receipt.",
+          "parameters": {},
+          "mainSteps": [
+            {
+              "name": "inspectProductionStatus",
+              "action": "aws:runShellScript",
+              "precondition": {
+                "StringEquals": [
+                  "platformType",
+                  "Linux"
+                ]
+              },
+              "inputs": {
+                "timeoutSeconds": "120",
+                "runCommand": [
+                  "exec /usr/local/sbin/witnessops-deploy-v1 --status-production"
+                ]
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "WitnessOpsApplication",
+            "Value": "witnessops-web"
+          },
+          {
+            "Key": "WitnessOpsDeploymentLane",
+            "Value": "production"
+          }
+        ]
+      }
+    },
     "GitHubStagingDeployerRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -629,6 +675,21 @@
                   }
                 },
                 {
+                  "Sid": "UseProductionStatusDocument",
+                  "Effect": "Allow",
+                  "Action": "ssm:SendCommand",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${ProductionStatusDocument}"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
                   "Sid": "TargetOnlyProductionManagedNode",
                   "Effect": "Allow",
                   "Action": "ssm:SendCommand",
@@ -758,6 +819,11 @@
     "RunCommandLogGroupName": {
       "Value": {
         "Ref": "RunCommandLogGroup"
+      }
+    },
+    "ProductionStatusDocumentName": {
+      "Value": {
+        "Ref": "ProductionStatusDocument"
       }
     }
   }

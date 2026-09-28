@@ -26,6 +26,8 @@ on:
       - "deploy/aws/README.md"
       - "deploy/aws/validate-phase3.mjs"
       - "deploy/aws/validate-phase3.test.mjs"
+      - "deploy/aws/validate-production-status.mjs"
+      - "deploy/aws/validate-production-status.test.mjs"
       - "deploy/aws/validate-ecr-scan-findings.mjs"
       - "deploy/aws/validate-ecr-scan-findings.test.mjs"
       - "deploy/aws/validate-github-deployment.mjs"
@@ -66,6 +68,7 @@ jobs:
           python3 -m py_compile deploy/aws/host/witnessops-deploy-v1
           python3 -m unittest deploy/aws/host/test_witnessops_deploy_v1.py
           node --test deploy/aws/validate-phase3.test.mjs
+          node --test deploy/aws/validate-production-status.test.mjs
           node --test deploy/aws/validate-ecr-scan-findings.test.mjs
           python3 deploy/aws/inspect-oci-image.test.py
           node --test deploy/aws/validate-trivy-image.test.mjs

@@ -258,6 +258,44 @@ require a separate approval action. The temporary single-operator model may
 allow self-review, but must not remove the review gate or enable administrator
 bypass.
 
+### Production status source and activation boundary
+
+The manual `status-production` operation on merged `main` uses the existing
+`aws-production` Environment approval and OIDC role. It accepts no image,
+publication, expected-current, shell, path, or managed-node input. It targets
+only `AWS_SSM_MANAGED_NODE_ID` and derives the fixed
+`-status-production-v1` document name from the configured
+`-deploy-production-v1` name. The parameterless SSM document invokes only
+`/usr/local/sbin/witnessops-deploy-v1 --status-production`. The host mode reads
+the root-owned adapter configuration, exact production Deployment and matching
+ready pods, local containerd manifest metadata, and the existing successful
+host receipt. It does not acquire the deployment lock or write to the node.
+
+A `PASS` receipt contains the exact current digest and digest-qualified ECR
+reference, observation time, installed adapter/config SHA-256 values, and the
+configured managed-node and SSM command identities. The previous digest is
+`RECORDED` only when a successful retained production host receipt names the
+same current digest and a distinct previous digest; otherwise it is `UNKNOWN`.
+`RECORDED` is evidence of the adapter's prior state, not proof that a rollback
+image remains available. A failed or ambiguous live check yields `UNKNOWN`,
+never a digest inferred from GitHub history. The workflow uploads only the
+bounded receipt (30-day retention); raw SSM invocation output remains on the
+ephemeral runner and in the existing restricted Run Command log lane. The
+workflow summary prints only the current digest.
+
+Source merge alone does not activate this operation. A separately reviewed
+CloudFormation change set must create `ProductionStatusDocument` and add only
+its exact document ARN to the existing production role's `ssm:SendCommand`
+grant. The existing production-tagged managed-node boundary and
+`ssm:GetCommandInvocation` grant stay unchanged. Separately install and verify
+the merged adapter bytes and the already reviewed host config using the
+existing root-staged installer contract, then verify the configured production
+document name and managed-node ID. No status dispatch is authorized by this
+source change. Once activated, run `status-production` from merged `main`,
+approve the `aws-production` gate, read the retained receipt, and use its fresh
+`current_digest` as `expected_current_digest` in a separately authorized deploy.
+The deploy compare-and-swap check remains mandatory.
+
 Adapter removal is bounded and does not touch the application: move
 `/usr/local/sbin/witnessops-deploy-v1` and `/etc/witnessops/deploy-v1.json` into
 the restricted root backup location, then confirm both installed paths are

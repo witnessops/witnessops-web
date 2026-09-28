@@ -51,6 +51,44 @@ test("production environment removal is rejected", () => {
   );
 });
 
+test("status remains a distinct manual operation behind production approval", () => {
+  const noStatus = changed("caller", (value) => value.replace("          - status-production\n", ""));
+  assert.throws(() => validatePhase3Sources(noStatus), /status operation/);
+  const noGate = changed("reusable", (value) => value.replace(
+    "  status_production:\n    name: Read production image status\n    if: needs.validate.outputs.operation == 'status-production'\n    needs: validate\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    environment: aws-production",
+    "  status_production:\n    name: Read production image status\n    if: needs.validate.outputs.operation == 'status-production'\n    needs: validate\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    environment: aws-staging",
+  ));
+  assert.throws(() => validatePhase3Sources(noGate), /status job lacks environment: aws-production/);
+});
+
+test("status cannot accept deploy inputs or switch to the mutation document", () => {
+  const inputs = changed("reusable", (value) => value.replace(
+    '[[ -z "${IMAGE_DIGEST}${SOURCE_COMMIT}${CONFIG_DIGEST}${PUBLICATION_RUN_ID}${PUBLICATION_RUN_ATTEMPT}${EXPECTED_CURRENT_DIGEST}" ]]',
+    '[[ -n "${IMAGE_DIGEST}" ]]',
+  ));
+  assert.throws(() => validatePhase3Sources(inputs), /status operation accepts deployment inputs/);
+  const deployDocument = changed("reusable", (value) => value.replace(
+    '${DEPLOY_DOCUMENT_NAME%-deploy-production-v1}-status-production-v1',
+    '${DEPLOY_DOCUMENT_NAME}',
+  ));
+  assert.throws(() => validatePhase3Sources(deployDocument), /production status job lacks/);
+  const otherNode = changed("reusable", (value) => {
+    const start = value.indexOf("\n  status_production:");
+    return value.slice(0, start) + value.slice(start).replace(
+      '--instance-ids "${MANAGED_NODE_ID}"', '--instance-ids "${OTHER_NODE_ID}"',
+    );
+  });
+  assert.throws(() => validatePhase3Sources(otherNode), /production status job lacks/);
+});
+
+test("status adapter cannot gain a patch or image pull", () => {
+  const changedAdapter = changed("adapter", (value) => value.replace(
+    '    previous = recorded_previous_digest(current_digest)',
+    '    patch_image(config, "production", 0, image_ref, image_ref)\n    previous = recorded_previous_digest(current_digest)',
+  ));
+  assert.throws(() => validatePhase3Sources(changedAdapter), /status adapter contains a mutation operation/);
+});
+
 test("reusable workflow must pin the manual dispatch event", () => {
   const mutated = changed("reusable", (value) =>
     value.replace(

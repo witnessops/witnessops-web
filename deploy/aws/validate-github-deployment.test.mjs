@@ -79,6 +79,24 @@ test("GitHub deployment contract and CloudFormation source preserve the Phase 1 
   assert.equal(validateCloudFormationTemplate(contract, template), true);
 });
 
+test("status document is parameterless and fixed to the read-only adapter mode", () => {
+  const acceptsShell = structuredClone(template);
+  acceptsShell.Resources.ProductionStatusDocument.Properties.Content.parameters.Command = { type: "String" };
+  assert.throws(() => validateCloudFormationTemplate(contract, acceptsShell), /status document accepts inputs/);
+  const mutates = structuredClone(template);
+  mutates.Resources.ProductionStatusDocument.Properties.Content.mainSteps[0].inputs.runCommand = [
+    "kubectl patch deployment witnessops-web",
+  ];
+  assert.throws(() => validateCloudFormationTemplate(contract, mutates), /fixed read-only adapter invocation/);
+});
+
+test("production status IAM cannot use an unbounded document resource", () => {
+  const widened = structuredClone(template);
+  const grants = widened.Resources.GitHubProductionDeployerRole.Properties.Policies[0].PolicyDocument.Statement;
+  grants.find((item) => item.Sid === "UseProductionStatusDocument").Resource = "*";
+  assert.throws(() => validateCloudFormationTemplate(contract, widened), /status document grant/);
+});
+
 test("OIDC trust rejects legacy, wildcard, wrong-id, non-main, and wrong-environment subjects", () => {
   const mutations = [
     ["token.actions.githubusercontent.com:sub", "repo:witnessops/witnessops-web:environment:aws-staging"],
