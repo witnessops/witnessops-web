@@ -14,5 +14,5 @@
     "src/server-local.mjs",
     "src/storage.mjs"
   ],
-  "scripts": { "test": "node --test src/*.test.mjs" }
+  "scripts": { "test": "node --test src/*.test.mjs && python3 -B -m unittest discover -s ops -p 'test_*.py'" }
 }
