@@ -13,7 +13,6 @@ import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { getServiceLanding } from "@/lib/service-landings";
 import { servicePreparation } from "@/lib/service-preparation";
 import { AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
-import { AgentReviewSample } from "./agent-review-sample";
 import { ReviewerProfile } from "./reviewer-profile";
 
 const ui = {
@@ -107,8 +106,6 @@ export function BuyerServiceDetail({
             </Link>
           ) : null}
         </header>
-
-        {service.id === "bounded-workflow-review" ? <AgentReviewSample /> : null}
 
         <section className="grid gap-7 py-8 md:grid-cols-[1.15fr_0.85fr] md:gap-12 md:py-10">
           <div>

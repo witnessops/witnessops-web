@@ -23,7 +23,8 @@ const PRIMARY_OFFER_SAMPLE_PACK = {
 const PRIMARY_OFFER_PUBLIC_NAME = "Agent Action Security Review";
 const PRIMARY_OFFER_DELIVERY_METHOD = "Agent Workflow Reconstruction";
 
-export const PRIMARY_OFFER = {
+/** Superseded one-action offer. Keep its identity and terms for historical requests. */
+export const LEGACY_AGENT_ACTION_OFFER = {
   id: "bounded-workflow-review",
   route: "/catalog/workflows",
   requestRoute: "/review/request",
@@ -135,6 +136,76 @@ export const PRIMARY_OFFER = {
       "Tworzenie niestandardowego protokołu",
       "Programy obejmujące wiele workflow",
     ],
+  },
+} as const;
+
+/** Current distinct commercial offer; route continuity does not imply ID continuity. */
+export const PRIMARY_OFFER = {
+  id: "agent-tools-access-review",
+  route: "/catalog/workflows",
+  requestRoute: "/review/request",
+  mailSubject: "WitnessOps request — AI Agent Tools & Access Review",
+  name: {
+    en: "AI Agent Tools & Access Review",
+    pl: "Przegląd narzędzi i dostępu agenta AI",
+  },
+  deliveryMethod: {
+    en: "Manual agent/tool observation and action reconstruction",
+    pl: "Ręczna obserwacja narzędzi agenta i rekonstrukcja działania",
+  },
+  commercialContract: {
+    price: "from_eur_2500_fixed_quote_after_scope",
+    timing: "target_ten_working_days_after_documented_start_gates",
+  },
+  price: {
+    amount: "2500",
+    currency: "EUR",
+    ...publicB2bPrice("Starting at €2,500", "Od €2 500"),
+  },
+  unit: {
+    en: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+    pl: "Jedno uzgodnione urządzenie i system operacyjny, jeden datowany spis aplikacji lub pakietów, jedna konfiguracja agenta, jedno wybrane połączenie i jedno istotne działanie",
+  },
+  cardSituation: {
+    en: "See which agent tools are visible on an agreed device and what one consequential action can reach.",
+    pl: "Sprawdź narzędzia agenta widoczne na uzgodnionym urządzeniu i dostęp w ścieżce jednego istotnego działania.",
+  },
+  fitCheck: {
+    en: "Non-secret fit and scoping request first",
+    pl: "Najpierw niepoufne zgłoszenie do oceny i ustalenia zakresu",
+  },
+  fitCheckQuestion: {
+    en: "Which agent setup, tool connection and consequential action concern you?",
+    pl: "Która konfiguracja agenta, połączenie z narzędziem i istotne działanie wymagają przeglądu?",
+  },
+  timing: {
+    en: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+    pl: "Cel: 10 dni roboczych po potwierdzeniu zakresu, upoważnienia, płatności, obsługi materiałów i wymaganych danych",
+  },
+  situation: {
+    en: "Your coding agents and tool connections can reach repositories or operational systems. Understand the agent tooling observed in agreed sources, a selected connection, and the authority and permissions behind one important action.",
+    pl: "Agenty programistyczne i połączenia z narzędziami mają dostęp do repozytoriów lub systemów operacyjnych. Sprawdź narzędzia widoczne w uzgodnionych źródłach, wybrane połączenie oraz upoważnienie i uprawnienia za jednym ważnym działaniem.",
+  },
+  result: {
+    en: "A dated source-coverage and tool map, one action path, evidence-backed findings, prioritized fixes and a readout. Gaps and unavailable sources stay explicit.",
+    pl: "Datowana macierz źródeł i mapa narzędzi, ścieżka jednego działania, ustalenia ze źródłami, priorytety poprawek i omówienie. Braki oraz niedostępne źródła pozostają jawne.",
+  },
+  samplePack: { en: "Historical synthetic one-action sample", pl: "Historyczny syntetyczny przykład jednego działania" },
+  included: {
+    en: ["Coverage matrix", "Observed agent/tool landscape", "One action path", "Prioritized sourced findings", "Fixed report revision"],
+    pl: ["Macierz pokrycia źródeł", "Mapa zaobserwowanych narzędzi agenta i wybranego połączenia", "Ścieżka upoważnienia i faktycznych uprawnień jednego działania", "Ustalenia ze źródłami, priorytety i niewiadome", "Omówienie i jedna runda korekty faktów"],
+  },
+  technicalOutputs: {
+    en: ["Dated source coverage", "Selected connection map", "Action reconstruction and evidence gaps"],
+    pl: ["Datowane pokrycie źródeł", "Mapa wybranego połączenia", "Rekonstrukcja działania i luki dowodowe"],
+  },
+  defaultAuthority: {
+    en: "Manual, agreed and read-only inspection after written authority and handling are accepted.",
+    pl: "Ręczny, uzgodniony przegląd tylko do odczytu po przyjęciu pisemnego upoważnienia i zasad obsługi materiałów.",
+  },
+  notIncluded: {
+    en: ["Complete discovery of every installed agent or tool", "Additional devices or source classes without a quote", "Platform installation or production modification", "Executing the proposed action or exploitation", "Credential collection or changes", "Remediation or retesting", "Continuous monitoring or certification", "A security or production-readiness guarantee"],
+    pl: ["Pełne wykrycie wszystkich zainstalowanych agentów i narzędzi", "Dodatkowe urządzenia lub źródła bez wyceny", "Instalacja platformy lub zmiany w produkcji", "Wykonanie proponowanego działania lub eksploatacja", "Zbieranie lub zmiana danych uwierzytelniających", "Naprawy lub ponowne testy", "Ciągły monitoring lub certyfikacja", "Gwarancja bezpieczeństwa lub gotowości produkcyjnej"],
   },
 } as const;
 

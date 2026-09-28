@@ -40,45 +40,45 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
 
   assert.equal(
     headerHref,
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
   );
   assert.equal(footerHref, headerHref);
 
   for (const href of [headerHref, footerHref]) {
     const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "Agent Action Security Review");
-    assert.equal(selected?.price.en, "€2,500 fixed · excluding VAT");
+    assert.equal(selected?.name.en, "AI Agent Tools & Access Review");
+    assert.equal(selected?.price.en, "Starting at €2,500 · excluding VAT");
     assert.equal(
       selected?.timing.en,
-      "Within 10 working days after evidence rules are agreed",
+      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     );
   }
 });
 
 test("primary offer selection trusts its stable id before public query text", () => {
-  const primary = buyerServiceByPublicOfferId("bounded-workflow-review");
+  const primary = buyerServiceByPublicOfferId("agent-tools-access-review");
 
   assert.equal(
     buyerServiceFromRequestOffer(
-      "bounded-workflow-review",
+      "agent-tools-access-review",
       "buyer-edited text",
     ),
     primary,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "Agent Action Security Review"),
+    buyerServiceFromRequestOffer(null, "AI Agent Tools & Access Review"),
     primary,
   );
   assert.equal(
-    buyerServiceFromRequestOffer("unknown", "Agent Action Security Review"),
+    buyerServiceFromRequestOffer("unknown", "AI Agent Tools & Access Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer("", "Agent Action Security Review"),
+    buyerServiceFromRequestOffer("", "AI Agent Tools & Access Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "Agent Action Security Review "),
+    buyerServiceFromRequestOffer(null, "AI Agent Tools & Access Review "),
     undefined,
   );
 });
@@ -145,18 +145,18 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
       "en",
       "/review/request",
       new URLSearchParams(
-        "offerId=bounded-workflow-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+        "offerId=agent-tools-access-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
       ),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/review/request",
-      new URLSearchParams("offer=Agent+Action+Security+Review"),
+      new URLSearchParams("offer=AI+Agent+Tools+%26+Access+Review"),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(

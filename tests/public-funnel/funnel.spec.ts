@@ -29,7 +29,7 @@ test('focused control collision hides launcher only while actually overlapped',a
 for(const width of [1440,390])test(`footer and research at ${width}`,async({page},info)=>{
  await page.setViewportSize({width,height:900});await page.goto('/research');await expect(page).toHaveTitle(/Research & articles/);await expect(page.getByRole('heading',{name:'Research & articles',exact:true})).toBeVisible();await page.screenshot({path:info.outputPath('research.png')});
  const footer=page.locator('#site-footer');await footer.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('footer.png')});
- const links={'Agent Action Security Review':'/catalog/workflows','External Attack Surface Review':'/catalog/offsec-external-exposure','Our approach':'/why-witnessops','Research & articles':'/research','Sample work':'/review/sample-cases','Free check':'/check','Docs':'/docs','Verify a receipt':'/verify'};
+ const links={'AI Agent Tools & Access Review':'/catalog/workflows','External Attack Surface Review':'/catalog/offsec-external-exposure','Our approach':'/why-witnessops','Research & articles':'/research','Sample work':'/review/sample-cases','Free check':'/check','Docs':'/docs','Verify a receipt':'/verify'};
  for(const [name,href] of Object.entries(links))await expect(footer.getByRole('link',{name,exact:true})).toHaveAttribute('href',href);
  await expect(footer).not.toContainText('Repair and handover');await expect(footer.getByRole('link',{name:'Scope a review',exact:true})).toHaveAttribute('href',/\/review\/request/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -38,7 +38,7 @@ for(const width of [1440,390])test(`footer and research at ${width}`,async({page
 });
 test('Polish footer uses supported destinations and labels English-only surfaces',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/pl');const footer=page.locator('#site-footer');
- for(const [label,href] of [['Agent Action Security Review (EN)','/catalog/workflows'],['External Attack Surface Review','/pl/catalog/offsec-external-exposure'],['Badania i artykuły (EN)','/research'],['Bezpłatne sprawdzenie (EN)','/check'],['Dokumentacja','/pl/docs']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+ for(const [label,href] of [['AI Agent Tools & Access Review (EN)','/catalog/workflows'],['External Attack Surface Review','/pl/catalog/offsec-external-exposure'],['Badania i artykuły (EN)','/research'],['Bezpłatne sprawdzenie (EN)','/check'],['Dokumentacja','/pl/docs']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
  await expect(footer).not.toContainText('Naprawa i przekazanie');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  expect((await page.goto('/pl/catalog/offsec-external-exposure'))?.status()).toBe(200);
 });

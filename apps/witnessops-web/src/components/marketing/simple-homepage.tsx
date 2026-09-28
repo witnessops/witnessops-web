@@ -27,9 +27,9 @@ export function SimpleHomepage() {
       </div>
     </section>
     <section className={styles.offers} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
-      <h2 id="home-reviews-heading" className={styles.eyebrow}>Two reviews. Two fixed prices.</h2>
+      <h2 id="home-reviews-heading" className={styles.eyebrow}>Two reviews. Scope before work.</h2>
       <div className={styles.cards}>
-        <article data-home-offer="agent-action"><h3>{PRIMARY_OFFER.name.en}</h3><p>What your AI agents are permitted to do, and what happens when they do it.</p><p className={styles.price}>{PRIMARY_OFFER.price.en}</p><p className={styles.timing}>{PRIMARY_OFFER.timing.en}</p><TextLink href={agentRequest}>Request the review</TextLink></article>
+        <article data-home-offer="agent-tools-access"><h3>{PRIMARY_OFFER.name.en}</h3><p>Tooling observed in agreed sources, one selected connection and one consequential action path.</p><p className={styles.price}>{PRIMARY_OFFER.price.en}</p><p className={styles.timing}>{PRIMARY_OFFER.timing.en}</p><TextLink href={agentRequest}>Request a scope and fixed quote</TextLink></article>
         <article data-home-offer="footprint"><h3>{INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}</h3><p>What your organisation exposes to the open internet, found, evidenced and written up.</p><p className={styles.price}>{INTERNET_FOOTPRINT_REVIEW_OFFER.price.en}</p><TextLink href={buyerRequestHref("en")}>Request the review</TextLink></article>
       </div>
       <aside className={styles.freeCheck} aria-label="Free check — not a review"><div><h3>Free check</h3><p>A public hostname snapshot. No account needed. <strong>Not a review.</strong></p></div><TextLink href="/check">Start a free check</TextLink></aside>
@@ -45,7 +45,7 @@ export function SimpleHomepage() {
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
-        <p className={styles.eyebrow}>What an Agent Action Security Review records</p>
+        <p className={styles.eyebrow}>Historical synthetic one-action example</p>
         <h2 id="home-specimen-heading">One consequential action, taken apart.</h2>
         <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
         <dl className={styles.specimenRows}>

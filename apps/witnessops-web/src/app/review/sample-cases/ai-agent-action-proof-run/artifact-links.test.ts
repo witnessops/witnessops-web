@@ -155,32 +155,32 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
 });
 
-test("specimen review CTA preserves the Agent Action Security Review selection", () => {
+test("specimen review CTA preserves the AI Agent Tools & Access Review selection", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
 
   assert.match(
     page,
     /buyerPublicOfferRequestHref\(\s*"en",\s*PRIMARY_OFFER\.id,?\s*\)/,
   );
-  assert.match(page, /Want your own agent action reviewed\?/);
+  assert.match(page, /Need to review your agent tools and access\?/);
   assert.match(page, /PRIMARY_OFFER\.name\.en/);
   assert.match(page, /PRIMARY_OFFER\.price\.en/);
   assert.match(page, /PRIMARY_OFFER\.timing\.en/);
-  assert.match(page, /One consequential agent or automation action\. Prioritised fixes\./);
-  assert.match(page, /Non-secret fit check first\./);
-  assert.match(page, /<Link href=\{reviewRequestHref\}>Check fit<\/Link>/);
+  assert.match(page, /This synthetic one-action example is historical/);
+  assert.match(page, /Non-secret fit and scoping request first\./);
+  assert.match(page, /<Link href=\{reviewRequestHref\}>Request scope and quote<\/Link>/);
   assert.equal(
-    buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    buyerPublicOfferRequestHref("en", "agent-tools-access-review"),
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
   );
-  assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed · excluding VAT");
-  assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
+  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
+  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
+  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
   assert.equal(
     PRIMARY_OFFER.timing.en,
-    "Within 10 working days after evidence rules are agreed",
+    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
 });
 

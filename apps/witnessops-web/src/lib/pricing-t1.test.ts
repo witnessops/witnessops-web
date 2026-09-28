@@ -11,9 +11,9 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
     price: { amount: "500", currency: "EUR", en: "€500 fixed · excluding VAT" },
   });
   assert.equal(buyerRequestHref("en"), "/review/request");
-  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed · excluding VAT");
-  assert.equal(PRIMARY_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
-  assert.match(buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id), /offerId=bounded-workflow-review/);
+  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(PRIMARY_OFFER.timing.en, "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+  assert.match(buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id), /offerId=agent-tools-access-review/);
   assert.equal(buyerServiceById("professional-public-footprint-audit").price.en, "€4,900 · excluding VAT");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 · excluding VAT");
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");

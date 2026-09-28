@@ -168,22 +168,22 @@ const nextConfig = {
       },
       {
         source: "/catalog/workflow-s",
-        destination: "/catalog/workflows",
+        destination: "/catalog",
         permanent: true,
       },
       {
         source: "/catalog/workflow-m",
-        destination: "/catalog/workflows",
+        destination: "/catalog",
         permanent: true,
       },
       {
         source: "/catalog/workflow-l",
-        destination: "/catalog/workflows",
+        destination: "/catalog",
         permanent: true,
       },
       {
         source: "/catalog/workflow-rerun",
-        destination: "/catalog/workflows",
+        destination: "/catalog",
         permanent: true,
       },
     ];

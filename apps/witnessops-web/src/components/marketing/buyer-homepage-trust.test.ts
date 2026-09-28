@@ -28,17 +28,11 @@ const polishCustomerReviewSource = readFileSync(
 );
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
-test("the sample-review link reaches a fictional review with evidence limits, not a verifier verdict", () => {
+test("the current review links to a clearly historical one-action example", () => {
   const html = renderToStaticMarkup(createElement(CatalogWorkflowsPage));
-  assert.match(html, /href="\/catalog\/workflows#sample-review"/);
-  assert.match(html, /id="sample-review"/);
-  assert.match(html, /Synthetic example · Not customer evidence/);
-  assert.match(html, /All inputs and findings below are fictional; no system was tested/);
-  assert.match(html, /document-level inconsistency, not an observed unauthorized refund/);
-  assert.match(html, /No execution log or provider result is supplied/);
-  assert.match(html, /No fix or retest has been performed in this illustration/);
   assert.match(html, /href="\/review\/sample-cases\/ai-agent-action-proof-run"/);
-  assert.doesNotMatch(html.slice(html.indexOf('id="sample-review"'), html.indexOf('aria-labelledby="buyer-preparation-heading"')), /VALID_SYNTHETIC_SPECIMEN|data-verdict="valid"/);
+  assert.match(html, /historical synthetic one-action example/);
+  assert.doesNotMatch(html, /id="sample-review"/);
 });
 
 test("homepage leads with system-wide security verification while keeping repair accessible", () => {
@@ -72,7 +66,7 @@ test("security leads while the repair contract stays intact", () => {
   assert.match(repair?.boundary.en ?? "", /stop after diagnosis or accept a separate quote/);
   const specialist = BUYER_SERVICES.find(service => service.id === PRIMARY_OFFER.id);
   assert.equal(specialist?.homepageFeatured, true);
-  assert.equal(specialist?.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(specialist?.price.en, "Starting at €2,500 · excluding VAT");
   assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
   assert.equal(sampleCommitShort, "d4ad234bd815");
   assert.equal(sampleManifestSha256, "9d8668507f3da027886a1847a92b705671063ed89cbb354d45909c119bb414e7");

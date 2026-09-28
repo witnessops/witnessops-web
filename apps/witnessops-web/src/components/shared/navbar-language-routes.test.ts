@@ -10,7 +10,7 @@ test("primary navigation exposes the simplified website destinations", () => {
   for (const href of ["/early-access", "/catalog", "/pricing", "/check", "/docs"]) {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /label: signupUrl \? "Sign up" : "Free check"/);
 });
 
@@ -42,18 +42,20 @@ test("language switch preserves every approved paired buyer route", () => {
   }
 });
 
-test("request language switch preserves the selected workflow offer query", () => {
-  const offerQuery =
-    "offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
-
-  assert.equal(
-    localizedHref("/review/request", offerQuery, "pl"),
-    `/pl/review/request?${offerQuery}`,
-  );
-  assert.equal(
-    localizedHref("/pl/review/request", offerQuery, "en"),
-    `/review/request?${offerQuery}`,
-  );
+test("request language switch preserves current and historical offer queries", () => {
+  for (const offerQuery of [
+    "offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    "offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+  ]) {
+    assert.equal(
+      localizedHref("/review/request", offerQuery, "pl"),
+      `/pl/review/request?${offerQuery}`,
+    );
+    assert.equal(
+      localizedHref("/pl/review/request", offerQuery, "en"),
+      `/review/request?${offerQuery}`,
+    );
+  }
 });
 
 test("PL-only docs leaves switch to real English routes", () => {

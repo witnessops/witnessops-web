@@ -147,10 +147,10 @@ async function verifyRouteOutcomes(baseUrl: string) {
   const redirects = [
     ["/catalog/offsec", "/catalog"],
     ["/access-change-proof-run", "/catalog/workflows"],
-    ["/catalog/workflow-s", "/catalog/workflows"],
-    ["/catalog/workflow-m", "/catalog/workflows"],
-    ["/catalog/workflow-l", "/catalog/workflows"],
-    ["/catalog/workflow-rerun", "/catalog/workflows"],
+    ["/catalog/workflow-s", "/catalog"],
+    ["/catalog/workflow-m", "/catalog"],
+    ["/catalog/workflow-l", "/catalog"],
+    ["/catalog/workflow-rerun", "/catalog"],
   ] as const;
   for (const [source, destination] of redirects) {
     const response = await fetchWithoutRedirect(baseUrl, `${source}?audit=1`);

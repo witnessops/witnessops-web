@@ -5,11 +5,11 @@ import { classifyQuestion } from "./authority-classifier";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
 const CURRENT_PRIMARY_OFFER = {
-  name: "Agent Action Security Review",
-  price_label: "€2,500 fixed · excluding VAT",
-  unit_label: "One consequential agent or automation action",
-  fit_check_label: "Non-secret fit check first",
-  delivery_label: "Within 10 working days after evidence rules are agreed",
+  name: "AI Agent Tools & Access Review",
+  price_label: "Starting at €2,500 · excluding VAT",
+  unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+  fit_check_label: "Non-secret fit and scoping request first",
+  delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
 } as const;
 
 function classify(question: string) {
@@ -36,7 +36,7 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
   );
   assert.equal(result.commercialFit.result, "likely");
   assert.equal(result.commercialFit.intent, "workflow");
-  assert.equal(result.commercialFit.offer_id, "bounded-workflow-review");
+  assert.equal(result.commercialFit.offer_id, "agent-tools-access-review");
   assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
   assert.equal(
     result.commercialFit.matching_specimen_id,
@@ -47,7 +47,7 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
 
 test("recognizes the current offer and pricing question without inventing a new policy", () => {
   const result = classify(
-    "What is included in Agent Action Security Review and how much does it cost?",
+    "What is included in AI Agent Tools & Access Review and how much does it cost?",
   );
 
   assert.equal(result.commercialFit.result, "likely");
@@ -59,24 +59,24 @@ test("recognizes the current offer and pricing question without inventing a new 
   );
 });
 
-test("accepts the former offer name only as an input alias and returns the current offer", () => {
+test("does not map a historical offer name to the distinct current offer", () => {
   const result = classify(
     "What is included in the Agent Risk & Control Review and how much does it cost?",
   );
 
-  assert.equal(result.commercialFit.result, "likely");
-  assert.equal(result.commercialFit.intent, "offer");
-  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+  assert.equal(result.commercialFit.result, "unknown");
+  assert.equal(result.commercialFit.offer_id, null);
+  assert.equal(result.commercialFit.offer, null);
 });
 
-test("accepts the delivery-method name only as an input alias and returns the public offer", () => {
+test("does not map the historical delivery-method name to the distinct current offer", () => {
   const result = classify(
     "What is included in Agent Workflow Reconstruction and how much does it cost?",
   );
 
-  assert.equal(result.commercialFit.result, "likely");
-  assert.equal(result.commercialFit.intent, "offer");
-  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+  assert.equal(result.commercialFit.result, "unknown");
+  assert.equal(result.commercialFit.offer_id, null);
+  assert.equal(result.commercialFit.offer, null);
 });
 
 test("keeps an existing governed authority classification unchanged", () => {

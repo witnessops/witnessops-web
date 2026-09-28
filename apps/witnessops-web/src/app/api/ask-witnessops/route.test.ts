@@ -48,11 +48,11 @@ function askRequest(question: string, ip: string, context: Record<string, unknow
 }
 
 const CURRENT_PRIMARY_OFFER = {
-  name: "Agent Action Security Review",
-  price_label: "€2,500 fixed · excluding VAT",
-  unit_label: "One consequential agent or automation action",
-  fit_check_label: "Non-secret fit check first",
-  delivery_label: "Within 10 working days after evidence rules are agreed",
+  name: "AI Agent Tools & Access Review",
+  price_label: "Starting at €2,500 · excluding VAT",
+  unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+  fit_check_label: "Non-secret fit and scoping request first",
+  delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
 } as const;
 
 test("public Ask rejects malformed UTF-8 before JSON parsing", async () => {
@@ -260,10 +260,10 @@ test("a legitimate assistant limitation does not poison a follow-up", async () =
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   let calls = 0;
-  globalThis.fetch = (async () => { calls += 1; return generatedResponse("The scope covers one consequential action.", "bounded-workflow-review"); }) as typeof fetch;
+  globalThis.fetch = (async () => { calls += 1; return generatedResponse("The scope covers one consequential action.", "agent-tools-access-review"); }) as typeof fetch;
   try {
     const result = await POST(askRequest("What is included?", "203.0.113.165", {
-      history: [{ role: "user", content: "What review fits an agent action?" }, { role: "assistant", content: "The Agent Action Security Review covers one action. It does not provide certification or a security guarantee." }],
+      history: [{ role: "user", content: "What review fits an agent action?" }, { role: "assistant", content: "The AI Agent Tools & Access Review covers one action. It does not provide certification or a security guarantee." }],
     }));
     assert.equal((await result.json()).answer_mode, "ai_assisted");
     assert.equal(calls, 1);
@@ -315,7 +315,7 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   const cases = [
-    { question: "How much is Agent Action Security Review?", id: "bounded-workflow-review", price: "€2,500 fixed · excluding VAT", words: "The listed price below covers a single consequential action." },
+    { question: "How much is AI Agent Tools & Access Review?", id: "agent-tools-access-review", price: "Starting at €2,500 · excluding VAT", words: "The listed price below covers a single consequential action." },
     { question: "Can you help with a Customer Security Review Sprint?", id: "customer-security-review-sprint", price: "From €1,600 · excluding VAT", words: "The Customer Security Review Sprint prepares proposed answers and evidence references for one questionnaire and product." },
     { question: "What does One Server Security Check cost?", id: "one-server-security-check", price: "€950 standard · excluding VAT", words: "For a Linux host, the One Server Security Check gives you a read-only snapshot with findings and next steps." },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: a customer questionnaire, one agent action, or a server concern? A non-secret outline is enough." },
@@ -411,7 +411,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
   let calls = 0;
   globalThis.fetch = (async () => {
     calls += 1;
-    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The Agent Action Security Review can map approval, permissions and execution evidence.", "bounded-workflow-review");
+    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The AI Agent Tools & Access Review can map approval, permissions and execution evidence.", "agent-tools-access-review");
   }) as typeof fetch;
 
   try {
@@ -449,7 +449,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
     assert.equal(payload.commercial_fit?.intent, "workflow");
     assert.equal(
       payload.commercial_fit?.offer_id,
-      "bounded-workflow-review",
+      "agent-tools-access-review",
     );
     assert.deepEqual(payload.commercial_fit?.offer, CURRENT_PRIMARY_OFFER);
     assert.equal(
@@ -464,7 +464,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
 test("public Ask recognizes the paid offer and price", async () => {
   const response = await POST(
     askRequest(
-      "What is included in Agent Action Security Review and how much does it cost?",
+      "What is included in AI Agent Tools & Access Review and how much does it cost?",
       "203.0.113.89",
     ),
   );
@@ -754,7 +754,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "€2,500 fixed · excluding VAT",
+    "Starting at €2,500 · excluding VAT",
   );
 
   const multiResponse = await POST(
@@ -769,7 +769,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "€2,500 fixed · excluding VAT",
+    "Starting at €2,500 · excluding VAT",
   );
 
   const unrelatedResponse = await POST(
@@ -841,7 +841,7 @@ test("guarantee questions receive a useful scope explanation without a model cal
   let calls = 0;
   globalThis.fetch = (async () => { calls += 1; throw new Error("Provider must not run"); }) as typeof fetch;
   try {
-    const result = await POST(askRequest("Can the Agent Action Security Review guarantee that our agent is secure?", "203.0.113.180"));
+    const result = await POST(askRequest("Can the AI Agent Tools & Access Review guarantee that our agent is secure?", "203.0.113.180"));
     const payload = await result.json();
     assert.equal(result.status, 200);
     assert.equal(payload.answer_mode, "policy_refusal");

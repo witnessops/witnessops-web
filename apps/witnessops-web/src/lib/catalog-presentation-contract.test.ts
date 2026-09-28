@@ -13,9 +13,9 @@ const expectedPrices = {
     en: "From €1,600 · excluding VAT",
     pl: "Od 7 000 zł (ok. €1 600) · bez VAT",
   },
-  "bounded-workflow-review": {
-    en: "€2,500 fixed · excluding VAT",
-    pl: "€2 500: cena stała · bez VAT",
+  "agent-tools-access-review": {
+    en: "Starting at €2,500 · excluding VAT",
+    pl: "Od €2 500 · bez VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",
@@ -57,12 +57,12 @@ test("every live buyer offer uses the canonical EN and PL VAT display", () => {
 });
 
 test("presentation cleanup preserves locked names, ids, and price contracts", () => {
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Agent Workflow Reconstruction");
-  assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
+  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
+  assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Manual agent/tool observation and action reconstruction");
+  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.equal(PRIMARY_OFFER.requestRoute, "/review/request");
-  assert.equal(PRIMARY_OFFER.commercialContract.price, "eur_2500_fixed");
+  assert.equal(PRIMARY_OFFER.commercialContract.price, "from_eur_2500_fixed_quote_after_scope");
   assert.equal(PRIMARY_OFFER.price.amount, "2500");
 
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.name.en, "External Attack Surface Review");

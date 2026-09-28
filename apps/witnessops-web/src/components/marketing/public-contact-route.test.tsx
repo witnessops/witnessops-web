@@ -66,14 +66,14 @@ test("Polish compact footer preserves checking, scope and contact semantics", ()
 
 test("contact route preserves an explicitly selected offer request", () => {
   const selectedHref =
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review";
   const html = renderToStaticMarkup(
     <PublicContactRoute compact primaryHref={selectedHref} />,
   );
 
   assert.match(
     html,
-    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Action\+Security\+Review"/,
+    /href="\/review\/request\?offerId=agent-tools-access-review&amp;offer=AI\+Agent\+Tools\+%26\+Access\+Review"/,
   );
 });
 

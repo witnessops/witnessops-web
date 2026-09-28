@@ -35,7 +35,7 @@ async function expectSharedCopy(page: Page) {
   await expect(primary).toHaveText("Scope a review");
   await expect(primary).toHaveAttribute("href", "/review/request");
   await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute(
-    "href", "/catalog/workflows#sample-review",
+    "href", "/review/sample-cases/ai-agent-action-proof-run",
   );
 }
 
