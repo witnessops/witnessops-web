@@ -769,17 +769,21 @@ jobs:
             --region "${AWS_REGION}" \
             --command-id "${command_id}" \
             --instance-id "${MANAGED_NODE_ID}" || true
-          aws ssm get-command-invocation \
+          export COMMAND_ID="${command_id}"
+          if ! aws ssm get-command-invocation \
             --region "${AWS_REGION}" \
             --command-id "${command_id}" \
             --instance-id "${MANAGED_NODE_ID}" \
-            --output json > "${RUNNER_TEMP}/production-status-invocation.json"
-          export COMMAND_ID="${command_id}"
+            --output json > "${RUNNER_TEMP}/production-status-invocation.json" 2>/dev/null; then
+            node deploy/aws/validate-production-status.mjs \
+              --lookup-failed "${RUNNER_TEMP}/production-status-receipt.json"
+            exit 1
+          fi
           node deploy/aws/validate-production-status.mjs \
             "${RUNNER_TEMP}/production-status-invocation.json" \
             "${RUNNER_TEMP}/production-status-receipt.json"
           digest="$(jq -r .current_digest "${RUNNER_TEMP}/production-status-receipt.json")"
-          printf '### Production status\n\n- Current digest: `%s`\n- Receipt: workflow artifact\n' \
+          printf '### Production status\n\n- Current digest: `%s`\n' \
             "${digest}" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Retain the bounded non-secret status receipt

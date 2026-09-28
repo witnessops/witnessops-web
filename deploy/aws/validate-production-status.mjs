@@ -12,11 +12,9 @@ function assert(value, message) {
   if (!value) throw new Error(message);
 }
 
-export function boundedStatusReceipt(invocation, expectedNode, expectedCommand) {
+export function unknownStatusReceipt(expectedNode, expectedCommand) {
   assert(NODE.test(expectedNode) && COMMAND.test(expectedCommand), "invalid status target identity");
-  assert(invocation?.InstanceId === expectedNode, "status result came from another node");
-  assert(invocation?.CommandId === expectedCommand, "status result came from another command");
-  const unknown = {
+  return {
     schema_version: "witnessops.production-status-receipt.v1",
     status: "UNKNOWN",
     observed_at_utc: new Date().toISOString(),
@@ -25,6 +23,12 @@ export function boundedStatusReceipt(invocation, expectedNode, expectedCommand) 
     current_digest: "UNKNOWN",
     previous_digest: "UNKNOWN",
   };
+}
+
+export function boundedStatusReceipt(invocation, expectedNode, expectedCommand) {
+  const unknown = unknownStatusReceipt(expectedNode, expectedCommand);
+  assert(invocation?.InstanceId === expectedNode, "status result came from another node");
+  assert(invocation?.CommandId === expectedCommand, "status result came from another command");
   if (invocation.Status !== "Success" || invocation.StandardErrorContent !== "") return unknown;
   let result;
   try {
@@ -62,9 +66,14 @@ export function boundedStatusReceipt(invocation, expectedNode, expectedCommand) 
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [input, output] = process.argv.slice(2);
-  assert(input && output && process.argv.length === 4, "status receipt requires input and output paths");
-  const invocation = JSON.parse(readFileSync(input, "utf8"));
-  const receipt = boundedStatusReceipt(invocation, process.env.MANAGED_NODE_ID, process.env.COMMAND_ID);
+  if (input === "--lookup-failed") {
+    assert(output && process.argv.length === 4, "lookup failure requires a receipt output path");
+  } else {
+    assert(input && output && process.argv.length === 4, "status receipt requires input and output paths");
+  }
+  const receipt = input === "--lookup-failed"
+    ? unknownStatusReceipt(process.env.MANAGED_NODE_ID, process.env.COMMAND_ID)
+    : boundedStatusReceipt(JSON.parse(readFileSync(input, "utf8")), process.env.MANAGED_NODE_ID, process.env.COMMAND_ID);
   writeFileSync(output, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600 });
-  if (receipt.status !== "PASS") process.exitCode = 1;
+  if (input !== "--lookup-failed" && receipt.status !== "PASS") process.exitCode = 1;
 }
