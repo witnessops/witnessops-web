@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
+import io
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
 
 SCRIPT = Path(__file__).with_name("install_local_audit_1_2_2.py")
@@ -82,6 +86,71 @@ class LocalAuditInstallerTest(unittest.TestCase):
         }
         with self.assertRaisesRegex(installer.InstallError, "version or collector fingerprint"):
             installer.validate_report(report)
+
+    def test_dependency_install_uses_hash_mode_and_complete_runtime_lock(self):
+        requirements = installer._dependency_requirements(12)
+        for package in ("setuptools==80.9.0", "cryptography==50.0.1", "cffi==2.0.0", "pycparser==2.23"):
+            self.assertIn(package, requirements)
+        self.assertEqual(requirements.count("--hash=sha256:"), 9)
+        self.assertEqual(installer.HASH_LOCKED_PIP_OPTIONS, ("--only-binary=:all:", "--require-hashes"))
+
+    def test_pip_rejects_tampered_dependency_artifact(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            wheelhouse = root / "wheelhouse"
+            wheelhouse.mkdir()
+            wheel_name = "tamper_probe-0.0.1-py3-none-any.whl"
+            wheel_contents = io.BytesIO()
+            with zipfile.ZipFile(wheel_contents, "w") as archive:
+                archive.writestr("tamper_probe.py", "VALUE = 1\n")
+                archive.writestr(
+                    "tamper_probe-0.0.1.dist-info/METADATA",
+                    "Metadata-Version: 2.1\nName: tamper-probe\nVersion: 0.0.1\n\n",
+                )
+                archive.writestr(
+                    "tamper_probe-0.0.1.dist-info/WHEEL",
+                    "Wheel-Version: 1.0\nGenerator: test\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+                )
+                archive.writestr("tamper_probe-0.0.1.dist-info/RECORD", "")
+            expected_hash = hashlib.sha256(wheel_contents.getvalue()).hexdigest()
+            (wheelhouse / wheel_name).write_bytes(wheel_contents.getvalue() + b"substituted artifact")
+            requirements = root / "requirements.txt"
+            requirements.write_text(
+                f"tamper-probe==0.0.1 --hash=sha256:{expected_hash}\n",
+                encoding="utf-8",
+            )
+            venv = root / "venv"
+            subprocess.run(
+                [os.sys.executable, "-m", "venv", str(venv)],
+                check=True,
+                env=installer.SAFE_ENV,
+                timeout=30,
+            )
+            result = subprocess.run(
+                [
+                    str(venv / "bin/python3"),
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-cache-dir",
+                    *installer.HASH_LOCKED_PIP_OPTIONS,
+                    "--no-index",
+                    "--find-links",
+                    str(wheelhouse),
+                    "--target",
+                    str(root / "installed"),
+                    "-r",
+                    str(requirements),
+                ],
+                check=False,
+                text=True,
+                capture_output=True,
+                env=installer.SAFE_ENV,
+                timeout=30,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("do not match the hashes", result.stderr.lower())
+            self.assertFalse((root / "installed").exists())
 
     def test_existing_target_fails_closed_without_replacing_contents(self):
         with tempfile.TemporaryDirectory() as temp:

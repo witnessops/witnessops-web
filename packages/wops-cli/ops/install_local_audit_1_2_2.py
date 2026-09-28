@@ -15,6 +15,8 @@ import io
 import json
 import os
 from pathlib import Path, PurePosixPath
+import platform
+import re
 import shutil
 import stat
 import subprocess
@@ -29,6 +31,24 @@ COLLECTOR_FINGERPRINT = "2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588
 PACKAGE_VERSION = "1.2.2"
 SETUPTOOLS_VERSION = "80.9.0"
 CRYPTOGRAPHY_VERSION = "50.0.1"
+CFFI_VERSION = "2.0.0"
+PYCPARSER_VERSION = "2.23"
+SETUPTOOLS_WHEEL_SHA256 = "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"
+CRYPTOGRAPHY_WHEEL_SHA256 = (
+    "ff838d62ec1bfce4f9ba7fa16f4a7b554cd8d0c299e6be37502161a660c84eef",
+    "51593d180cf6d179bde5c5d065bed81386b1f381656ae7d042b7ffc87a9895ad",
+    "51afcfceb15597cf2635068e4ac9a56b2abde622edde17f37d85fd7b5306497a",
+    "e22dfed744bd4002e909464cb23d2f0b05c6f3113a79ef2e9864a53db737c733",
+    "407fe2b6db00939c05c0e945e9914238f2f0a430974839429dafc82b1ee6bee5",
+    "9dde0a357190eb3b1da1bb9ab750e9c85cba82ca5977aa0836cbb94e92611239",
+)
+PYCPARSER_WHEEL_SHA256 = "e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934"
+CFFI_WHEEL_SHA256 = {
+    11: "8941aaadaf67246224cee8c3803777eed332a19d909b47e29c9842ef1e79ac26",
+    12: "3e17ed538242334bf70832644a32a7aae3d83b57567f9fd60a26257e992b79ba",
+    13: "c8d3b5532fc71b7a77c09192b4a5a200ea992702734a2e9279a37f2478236f26",
+    14: "afb8db5439b81cf9c9d0c80404b60c3cc9c3add93e114dcae767f1477cb53775",
+}
 TARGET = Path("/opt/witnessops/local-audit-1.2.2")
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 PRODUCER = REPOSITORY_ROOT / "tests/server-check/producer"
@@ -52,6 +72,7 @@ SAFE_ENV = {
     "PIP_DISABLE_PIP_VERSION_CHECK": "1",
     "PIP_ROOT_USER_ACTION": "ignore",
 }
+HASH_LOCKED_PIP_OPTIONS = ("--only-binary=:all:", "--require-hashes")
 
 
 class InstallError(RuntimeError):
@@ -263,8 +284,21 @@ def _check_installed_target(target: Path) -> None:
 
 
 def _verify_python_environment(python: str = sys.executable) -> None:
-    if sys.platform != "linux" or sys.version_info < (3, 11):
-        raise InstallError("A Linux host with Python 3.11 or newer is required.")
+    try:
+        libc = os.confstr("CS_GNU_LIBC_VERSION") if sys.platform == "linux" else None
+    except (AttributeError, OSError, ValueError):
+        libc = None
+    libc_match = re.fullmatch(r"glibc (\d+)\.(\d+)", libc or "")
+    if (
+        sys.platform != "linux"
+        or platform.python_implementation() != "CPython"
+        or platform.machine() != "x86_64"
+        or sys.version_info.major != 3
+        or sys.version_info.minor not in CFFI_WHEEL_SHA256
+        or not libc_match
+        or tuple(map(int, libc_match.groups())) < (2, 17)
+    ):
+        raise InstallError("CPython 3.11-3.14 on x86_64 glibc 2.17 or newer is required.")
     try:
         import venv  # noqa: F401
     except ImportError as error:
@@ -280,6 +314,51 @@ def _write_source(files: dict[str, bytes], destination: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
         target.write_bytes(data)
         target.chmod(0o644)
+
+
+def _dependency_requirements(python_minor: int = sys.version_info.minor) -> str:
+    cffi_hash = CFFI_WHEEL_SHA256.get(python_minor)
+    if cffi_hash is None:
+        raise InstallError("No hash-pinned cffi wheel is accepted for this Python version.")
+    return (
+        f"setuptools=={SETUPTOOLS_VERSION} --hash=sha256:{SETUPTOOLS_WHEEL_SHA256}\n"
+        f"cryptography=={CRYPTOGRAPHY_VERSION} "
+        f"{' '.join(f'--hash=sha256:{digest}' for digest in CRYPTOGRAPHY_WHEEL_SHA256)}\n"
+        f"cffi=={CFFI_VERSION} --hash=sha256:{cffi_hash}\n"
+        f"pycparser=={PYCPARSER_VERSION} --hash=sha256:{PYCPARSER_WHEEL_SHA256}\n"
+    )
+
+
+def _pip_install_requirements(
+    python: str,
+    requirements_file: Path,
+    pip_options: tuple[str, ...] = (),
+) -> None:
+    _run_hidden(
+        [
+            python,
+            "-m",
+            "pip",
+            "install",
+            "--no-cache-dir",
+            "--disable-pip-version-check",
+            *HASH_LOCKED_PIP_OPTIONS,
+            *pip_options,
+            "-r",
+            str(requirements_file),
+        ],
+        SAFE_ENV,
+    )
+
+
+def _install_runtime_dependencies(venv_python: Path, stage: Path) -> None:
+    requirements = stage / "requirements.txt"
+    requirements.write_text(_dependency_requirements(), encoding="utf-8")
+    requirements.chmod(0o600)
+    try:
+        _pip_install_requirements(str(venv_python), requirements)
+    finally:
+        requirements.unlink(missing_ok=True)
 
 
 def _run_hidden(command: list[str], env: dict[str, str], timeout: int = 600) -> None:
@@ -321,13 +400,7 @@ def _build_runtime(
         _write_source(files, source)
         _run_hidden([python, "-m", "venv", str(runtime)], SAFE_ENV)
         venv_python = runtime / "bin/python3"
-        _run_hidden(
-            [
-                str(venv_python), "-m", "pip", "install", "--no-cache-dir", "--disable-pip-version-check",
-                f"setuptools=={SETUPTOOLS_VERSION}", f"cryptography=={CRYPTOGRAPHY_VERSION}",
-            ],
-            SAFE_ENV,
-        )
+        _install_runtime_dependencies(venv_python, stage)
         _run_hidden(
             [
                 str(venv_python), "-m", "pip", "install", "--no-cache-dir", "--no-deps",
