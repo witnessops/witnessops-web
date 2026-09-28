@@ -40,5 +40,24 @@ export async function trustedRuntime(){
 export async function privateDirectory(dir){await mkdir(dir,{mode:0o700}).catch(e=>{if(e.code!=='EEXIST')throw e;});const s=await lstat(dir);if(!s.isDirectory()||s.isSymbolicLink()||s.uid!==0||(s.mode&0o777)!==0o700)throw new Error('Unsafe capture directory.');}
 export async function privateRead(file,max=25*1024*1024){let fd;try{fd=await open(file,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);const s=await fd.stat();if(!s.isFile()||s.uid!==0||(s.mode&0o777)!==0o600||s.size>max)throw new Error('Unsafe capture file.');return await fd.readFile();}catch(e){if(e.code==='ENOENT')return null;throw e;}finally{await fd?.close();}}
 export async function privateWrite(file,bytes){const temp=file+'.new';const fd=await open(temp,'wx',0o600);try{await fd.writeFile(bytes);await fd.sync();}finally{await fd.close();}await rename(temp,file);}
-export async function capture(authority,dir){const authorityFile=path.join(dir,'authority.json');await privateWrite(authorityFile,JSON.stringify(authority));try{await exec(PYTHON,['-I','-m','witnessops_local_audit.operator','audit','capture','--authority',authorityFile,'--operator-id',authority.operator_id,'--live-approved','--output',dir],{env:environment,timeout:180_000,maxBuffer:16_384});}catch{throw new Error('Collection did not complete. No Proofpack was issued. Retained files require operator review before another capture.');}}
+const CAPTURE_OUTPUT_LIMIT=16_384;
+const DIAGNOSTIC_EXCERPT_LIMIT=512;
+export function boundedCaptureDiagnostic(error,{timestamp=new Date().toISOString(),reference}={}){
+ const stdout=String(error?.stdout??''),stderr=String(error?.stderr??'');
+ const outputLimit=error?.code==='ERR_CHILD_PROCESS_STDIO_MAXBUFFER';
+ const timeout=Boolean(error?.code==='ETIMEDOUT'||(error?.killed&& !outputLimit)||(error?.signal==='SIGTERM'&&!outputLimit));
+ const category=timeout?'producer_timeout':outputLimit?'producer_output_limit':Number.isInteger(error?.code)?'producer_exit_nonzero':'producer_execution_error';
+ const excerpt=(stderr||stdout).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g,' ').replace(/\s+/g,' ').replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi,'Bearer [REDACTED]').replace(/\b[A-Za-z0-9_-]{43}\b/g,'[REDACTED]').replace(/\b(authorization|credential|token|password|secret|private[_ -]?key)\s*[:=]\s*[^\s,;]+/gi,'$1=[REDACTED]').slice(0,DIAGNOSTIC_EXCERPT_LIMIT);
+ return {schema:'witnessops.cli.capture-failure.v1',timestamp,category,exitCode:Number.isInteger(error?.code)?error.code:null,signal:typeof error?.signal==='string'?error.signal:null,timeout,stdoutTruncated:stdout.length>=CAPTURE_OUTPUT_LIMIT,stderrTruncated:stderr.length>=CAPTURE_OUTPUT_LIMIT,excerpt:excerpt||null,...(reference?{reference}:{})};
+}
+export async function capture(authority,dir,{run=exec,now=()=>new Date()}={}){
+ const authorityFile=path.join(dir,'authority.json');await privateWrite(authorityFile,JSON.stringify(authority));
+ try{await run(PYTHON,['-I','-m','witnessops_local_audit.operator','audit','capture','--authority',authorityFile,'--operator-id',authority.operator_id,'--live-approved','--output',dir],{env:environment,timeout:180_000,maxBuffer:CAPTURE_OUTPUT_LIMIT});}
+ catch(error){
+  const diagnosticFile=path.join(dir,'collection-failure.json');
+  const diagnostic=boundedCaptureDiagnostic(error,{timestamp:now().toISOString(),reference:diagnosticFile});
+  try{await privateWrite(diagnosticFile,JSON.stringify(diagnostic));}catch{throw new Error(`Collection failed (${diagnostic.category}). No Proofpack was issued. The local diagnostic could not be saved; operator review of retained state is required before another capture.`);}
+  throw new Error(`Collection failed (${diagnostic.category}). No Proofpack was issued. Review retained local diagnostic: ${diagnosticFile}. Do not retry collection until the retained state is reviewed.`);
+ }
+}
 export async function lock(dir,action){const file=path.join(dir,'check.lock');let fd;try{fd=await open(file,'wx',0o600);}catch{throw new Error('Another check may be running. Ask the operator to review a stale check.lock before retrying.');}try{return await action();}finally{await fd.close();await unlink(file);}}

@@ -188,14 +188,16 @@ class LocalAuditInstallerTest(unittest.TestCase):
 
     def test_check_mode_uses_disposable_tree_and_leaves_fixed_target_untouched(self):
         with tempfile.TemporaryDirectory() as temp:
-            producer = self.copy_producer(Path(temp))
+            root = Path(temp)
+            producer = self.copy_producer(root)
+            target = root / "runtime-target"
             def fake_build(stage, _files, _final_runtime, _python, _uid, **_kwargs):
                 (stage / "runtime").mkdir()
                 (stage / "staging").mkdir(mode=0o700)
             with patch.object(installer, "_build_runtime", side_effect=fake_build):
-                digest = installer.check_mode(producer, installer.TARGET)
+                digest = installer.check_mode(producer, target)
             self.assertEqual(digest, installer.ARCHIVE_SHA256)
-            self.assertFalse(installer.TARGET.exists())
+            self.assertFalse(target.exists())
 
 
 if __name__ == "__main__":
