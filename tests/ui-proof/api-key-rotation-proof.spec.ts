@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const VERIFIER_PATH = "/samples/api-key-rotation/v1/verify.mjs";
 const REVIEW_HREF =
-  "/review/request?offerId=agent-tools-access-review&offer=Agent+Action+Security+Review";
+  "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review";
 
 test("the proof page enforces its bounded claim, offer, metadata, and replay contract", async ({
   browser,
@@ -38,15 +38,15 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.getByText(/that an AI agent caused or authorized the tool calls/)).toBeVisible();
   await expect(page.getByText(/real-world actor or approver identity/)).toBeVisible();
   await expect(page.getByText(/execution of the declared hard-stop conditions/)).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Want your own agent action reviewed?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Need to review your agent tools and access?" })).toBeVisible();
   await expect(page.locator("main")).toContainText("AI Agent Tools & Access Review");
   await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(page.locator("main")).toContainText("One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action. Prioritised fixes.");
+  await expect(page.locator("main")).toContainText("This synthetic one-action example is historical. The current review adds a dated, source-bounded device inventory, one selected connection and one deeper action path.");
   await expect(page.locator("main")).toContainText("Non-secret fit and scoping request first.");
   await expect(page.locator("main")).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.locator("main").getByRole("link", { name: "Check fit", exact: true }))
+  await expect(page.locator("main").getByRole("link", { name: "Request scope and quote", exact: true }))
     .toHaveAttribute("href", REVIEW_HREF);
 
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
