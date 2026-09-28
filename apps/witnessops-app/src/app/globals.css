@@ -32,10 +32,10 @@ button:not(:disabled), summary { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .5; }
 :focus-visible { outline: 2px solid var(--attention); outline-offset: 4px; }
 h1, h2, h3, p { margin: 0; }
-h1 { font-size: clamp(26px, 3vw, 32px); line-height: 1.2; font-weight: 500; letter-spacing: -.035em; overflow-wrap: anywhere; text-wrap: balance; }
+h1 { font-size: clamp(26px, 3vw, 32px); line-height: 1.2; font-weight: 500; letter-spacing: -.035em; overflow-wrap: break-word; text-wrap: balance; }
 h2 { font-size: 16px; font-weight: 500; line-height: 1.4; }
 h3 { font-size: 14px; font-weight: 500; }
-p, li, dd { overflow-wrap: anywhere; }
+p, li, dd { overflow-wrap: break-word; }
 ul { padding-left: 20px; }
 /* The machine layer: hostnames, targets, digests, ids, status codes.
    .mono is retained for existing call sites; migrate them case by case, since
@@ -395,7 +395,7 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .app-help-panel::backdrop { background: rgb(0 0 0 / 18%); }
 .app-help-panel header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .app-help-panel h2 { font-size: 22px; }.app-help-panel h3 { font-size: 17px; margin-bottom: 10px; }.app-help-panel h4 { margin-top: 12px; }
-.app-help-panel p, .app-help-panel li { overflow-wrap: anywhere; line-height: 1.5; }
+.app-help-panel p, .app-help-panel li { overflow-wrap: break-word; line-height: 1.5; }
 .app-help-panel nav { display: flex; gap: 24px; }.app-help-panel a { text-decoration: underline; }
 .app-help-history { flex: 1 1 120px; min-height: 100px; overflow-y: auto; overscroll-behavior: contain; }.app-help-history section { padding: 16px 0; border-top: 1px solid #45453d; }.app-help-history p { margin: 8px 0; }
 .app-help-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }.app-help-suggestions button { background: transparent; color: inherit; border: 1px solid #45453d; padding: 8px 10px; border-radius: 6px; text-align: left; }
@@ -412,12 +412,12 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 
 .shared-report { max-width: 1100px; margin: auto; padding: 24px; }
 .shared-report header { margin-bottom: 24px; }
-.shared-report header p { margin-top: 12px; overflow-wrap: anywhere; }
+.shared-report header p { margin-top: 12px; overflow-wrap: break-word; }
 @media print { .report-sharing { display: none; } }
 
-.report-next-steps { margin: 24px 0; overflow-wrap: anywhere; }
+.report-next-steps { margin: 24px 0; overflow-wrap: break-word; }
 .report-next-item { padding: 12px 0; border-top: 1px solid currentColor; }
-.finding-follow-through { overflow-wrap: anywhere; }
+.finding-follow-through { overflow-wrap: break-word; }
 .finding-follow-through h4 { margin-top: 18px; }
 .finding-follow-through pre, .finding-draft pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
 .finding-interactive { margin: 12px 0; }
@@ -432,7 +432,7 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .billing-panel > p, .billing-panel .actions { margin-top: 16px; }
 .billing-plans { margin-top: 20px; }
 
-.share-delivery { width: 100%; min-width: 0; overflow-wrap: anywhere; }
+.share-delivery { width: 100%; min-width: 0; overflow-wrap: break-word; }
 .share-delivery summary { cursor: pointer; padding: 12px 0; }
 .share-delivery label { display: block; margin: 16px 0 8px; }
 .share-delivery input:not([type="checkbox"]) { width: 100%; min-width: 0; }
