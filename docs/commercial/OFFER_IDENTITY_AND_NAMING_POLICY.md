@@ -5,7 +5,7 @@ policy_id: WITNESSOPS_OFFER_IDENTITY_AND_NAMING_V1
 status: ADOPTED
 authority: founder
 effective_at: "2026-09-28"
-decision_ref: "founder acceptance; implementation PR"
+decision_ref: "witnessops/witnessops-web#422"
 ```
 
 Prepared 21 September 2026; adopted 28 September 2026.
