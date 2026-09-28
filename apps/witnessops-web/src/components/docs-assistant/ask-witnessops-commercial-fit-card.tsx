@@ -74,14 +74,14 @@ export function AskWitnessOpsCommercialFitCard({
   const fitCheckHref = `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask&result=${fit.result}`;
   const heading = likely
     ? fit.intent === "offer"
-      ? "This is the live paid offer."
+      ? "This is the current review scope."
       : "This is a paid-review candidate."
-    : "This needs one consequential action.";
+    : "This needs an agreed device and action boundary.";
   const body = likely
     ? fit.intent === "offer"
-      ? "WitnessOps reviews one consequential agent or automation action across authority, identity, permissions, tools, execution, and evidence."
-      : `Your non-secret description matches the stated shape of ${PRIMARY_OFFER.name.en}: one consequential agent or automation action touching a sensitive system.`
-    : "It may fit once it is narrowed to one consequential action, failure impact, approving role, executing identity, tool path, and system boundary.";
+      ? "WitnessOps reviews agent tools observed in agreed sources, one selected connection and one consequential action path."
+      : `Your non-secret description may fit ${PRIMARY_OFFER.name.en}: a bounded device/source inventory plus one deeper action path.`
+    : "It may fit once the device/source boundary, selected agent connection and one consequential action are clear.";
 
   const cardClassName = compact
     ? "mt-4 border border-brand-accent/45 p-3"

@@ -24,13 +24,14 @@ test("selected non-agent services do not inherit the agent proof bundle", () => 
   assert.match(requestPage, /const selectedServiceOrder/);
   assert.match(
     requestPage,
-    /primaryOfferOrder\s*\? sampleArtifacts\.slice\(0, 5\)\s*:\s*\[\]/,
+    /const activeArtifacts = publicExposureOrder\s*\? publicExposureArtifacts\s*:\s*\[\]/,
   );
   assert.match(requestPage, /title: "Expected outcome"/);
   assert.match(requestPage, /title: "Offer boundary"/);
   assert.match(requestPage, /summary: selectedServiceOrder\.result\.en/);
   assert.match(requestPage, /summary: selectedServiceOrder\.boundary\.en/);
   assert.match(requestPage, /\{activeArtifacts\.length > 0 \? \(/);
+  assert.doesNotMatch(requestPage, /sampleArtifacts\.slice/);
   assert.match(requestPage, /const selectedServiceNextSteps/);
   assert.match(
     requestPage,

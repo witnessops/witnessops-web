@@ -24,7 +24,7 @@ test("public contact route uses a general inquiry path and fallback email", () =
   assert.equal(PUBLIC_CONTACT_SUBJECTS.fitCheck, "WitnessOps fit check");
   assert.equal(
     PRIMARY_OFFER.mailSubject,
-    "WitnessOps request — Agent Action Security Review",
+    "WitnessOps request — AI Agent Tools & Access Review",
   );
   assert.equal(
     PUBLIC_NO_SECRETS_NOTE,
@@ -44,6 +44,6 @@ test("public contact route uses a general inquiry path and fallback email", () =
   );
   assert.equal(
     publicContactMailto(PRIMARY_OFFER.mailSubject),
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Action%20Security%20Review",
+    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20AI%20Agent%20Tools%20%26%20Access%20Review",
   );
 });

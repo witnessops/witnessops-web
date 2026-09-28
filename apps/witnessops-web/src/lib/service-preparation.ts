@@ -7,16 +7,16 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
     en: { inputs: "For diagnosis: expected result, workflow export or source, and one failing example. Share these only after scope and handling are agreed.", access: "Appropriate test or limited access, arranged separately. We preserve the original workflow before changes; never paste credentials into the request.", after: "Stop after diagnosis or approve a bounded repair. Accepted repairs include updated source, acceptance results and operating/recovery instructions. Ongoing care is a separate capped engagement." },
     pl: { inputs: "Do diagnozy: oczekiwany wynik, eksport lub źródło procesu i jeden przykład błędu. Przekaż je dopiero po uzgodnieniu zakresu i sposobu obsługi materiałów.", access: "Odpowiedni dostęp testowy lub ograniczony ustalamy osobno. Zachowujemy oryginalny proces przed zmianami. Nigdy nie wklejaj danych logowania do formularza.", after: "Możesz zakończyć na diagnozie lub zaakceptować naprawę. Otrzymasz aktualne źródło, wyniki testów i instrukcje obsługi oraz odzyskiwania. Stała opieka wymaga osobnego zakresu z limitem godzin." },
   },
-  "bounded-workflow-review": {
+  "agent-tools-access-review": {
     en: {
-      inputs: "Start with a short description of one agent action and any launch or handover date. Before the paid review, we agree a named owner, the inputs and any meetings needed.",
-      access: "We agree how to inspect the action and handle evidence before you share it. The review is read-only: no platform installation, production changes or credentials through this form.",
-      after: "We walk through the findings, priorities and open questions. Your team decides what to change and implements fixes; remediation and retesting require separate scope.",
+      inputs: "Start with the agent setup, tool connection, device class, consequential action and decision date. Name possible source types only; do not send inventory exports or configurations in this form.",
+      access: "A later accepted scope names the device/OS, dated system inventory, agent and connection configuration, action authority and downstream permission evidence. Inspection is manual and read-only; do not send credentials.",
+      after: "You receive the coverage matrix, observed tool map, action path, prioritized findings and readout. Your team decides and implements fixes; additional scope needs a new quote.",
     },
     pl: {
-      inputs: "Zacznij od krótkiego opisu jednego działania agenta i ewentualnego terminu wdrożenia lub przekazania klientowi. Przed płatnym przeglądem uzgodnimy osobę odpowiedzialną, materiały i potrzebne spotkania.",
-      access: "Zanim przekażesz materiały, uzgodnimy sposób sprawdzenia działania i obsługi dowodów. Przegląd obejmuje tylko odczyt: bez instalacji platformy, zmian produkcyjnych i przesyłania danych logowania przez formularz.",
-      after: "Omówimy ustalenia, priorytety i otwarte pytania. Twój zespół podejmuje decyzje i wdraża poprawki; naprawy i ponowne testy wymagają odrębnego zakresu.",
+      inputs: "Na początek nazwij konfigurację agenta, połączenie z narzędziem, klasę urządzenia, istotne działanie i termin decyzji. Wskaż tylko rodzaje źródeł; nie przesyłaj spisów ani konfiguracji w formularzu.",
+      access: "Późniejszy zaakceptowany zakres wskazuje urządzenie/OS, datowany spis systemowy, konfigurację agenta i połączenia oraz dowody upoważnienia i faktycznych uprawnień. Inspekcja jest ręczna i tylko do odczytu; bez danych logowania.",
+      after: "Otrzymasz macierz źródeł, mapę narzędzi, ścieżkę działania, ustalenia i omówienie. Twój zespół decyduje i wdraża poprawki; dalszy zakres wymaga nowej wyceny.",
     },
   },
   "customer-security-review-sprint": {

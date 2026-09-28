@@ -1,5 +1,12 @@
 # Agent Action Security Review
 
+> **Superseded historical commercial record (2026-09-28).** This one-action,
+> €2,500-fixed offer is no longer the primary public offer in this source
+> promotion. Its terms continue to identify requests and customer agreements
+> made under this offer. The current distinct offer is
+> [AI Agent Tools & Access Review](./17-ai-agent-tools-access-review-offer.md).
+> Do not reinterpret `bounded-workflow-review` requests as the new offer.
+
 **Commercial status:** Canonical primary paid entry point as of 2026-09-02.
 
 **Public commercial offer:** Agent Action Security Review.

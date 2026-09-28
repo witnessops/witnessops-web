@@ -27,7 +27,7 @@ import {
   buyerServiceByProductId,
   buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
-import { BOUNDED_WORKFLOW_REVIEW_INTENT } from "@/lib/commercial-request-intents";
+import { AGENT_TOOLS_ACCESS_REVIEW_INTENT } from "@/lib/commercial-request-intents";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   INTERNET_FOOTPRINT_REVIEW_OFFER,
@@ -104,14 +104,14 @@ export function ContactForm({
   const submissionBusyRef = useRef(false);
   const polish = locale === "pl";
   const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
-  const boundedWorkflowReview = intent === BOUNDED_WORKFLOW_REVIEW_INTENT;
+  const agentToolsAccessReview = intent === AGENT_TOOLS_ACCESS_REVIEW_INTENT;
   const automationRepair = intent === "automation-repair-handover";
-  const optionalContext = boundedWorkflowReview || automationRepair || intent === "review";
+  const optionalContext = agentToolsAccessReview || automationRepair || intent === "review";
   const selectedService =
     buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
   const selectedNonAgentService =
     selectedService &&
-    selectedService.id !== BOUNDED_WORKFLOW_REVIEW_INTENT &&
+    selectedService.id !== AGENT_TOOLS_ACCESS_REVIEW_INTENT &&
     !externalExposureOrder
       ? selectedService
       : undefined;
@@ -299,32 +299,32 @@ export function ContactForm({
           : "Submitting this form opens fit and scope review for the selected service only. Work does not start until scope, required inputs, fee, timing, and evidence handling are agreed.",
       }
     : undefined;
-  const boundedWorkflowReviewCopy = boundedWorkflowReview
+  const agentToolsAccessReviewCopy = agentToolsAccessReview
     ? {
         ...baseCopy,
         fitTitle: polish
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `Na początek wystarczy imię, e-mail i krótki opis jednego działania. Pozostałe szczegóły są opcjonalne. Możemy wyjaśnić je razem. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
-          : `Start with your name, work email and a short description of one action. The other details are optional; we can clarify them together. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
+          ? `Na początek wystarczy imię, e-mail i niepoufny opis konfiguracji agenta, połączenia, klasy urządzenia i działania. Pozostałe szczegóły ustalimy razem. ${PRIMARY_OFFER.price.pl}; stała wycena po określeniu zakresu.`
+          : `Start with your name, work email and a non-secret description of the agent setup, connection, device class and action. We can clarify the rest together. ${PRIMARY_OFFER.price.en}; fixed quote after scope.`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,
         workflowPlaceholder: polish
-          ? "Np. nasz agent obsługi klienta może zlecać zwroty płatności. Chcemy sprawdzić to działanie przed przekazaniem klientowi w przyszłym miesiącu."
-          : "For example: our support agent can issue refunds. We want to review that action before handing it over to a customer next month.",
+          ? "Np. agent programistyczny na firmowym laptopie ma połączenie z repozytorium i może otworzyć PR. Chcemy sprawdzić widoczne narzędzia i tę ścieżkę przed rozszerzeniem dostępu."
+          : "For example: a coding agent on a work laptop has a repository connection and can open a PR. We want to review the visible tooling and that path before widening access.",
         workflowHelp: polish
-          ? "Opisz działanie na wysokim poziomie. Nie wklejaj sekretów, danych uwierzytelniających, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
-          : "Describe the action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
+          ? "Opisz tylko ogólny zarys. Nie wklejaj sekretów, poświadczeń, konfiguracji, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
+          : "Describe the setup at a high level only. Do not paste secrets, credentials, raw configurations, logs, screenshots, customer data or production evidence.",
         actionPath: polish ? "Co się stanie, jeśli działanie pójdzie źle?" : "What happens if it goes wrong?",
         actionPathPlaceholder: polish
           ? "Opisz możliwy wpływ: awaria produkcji, strata finansowa, zmiana lub ujawnienie danych, utrata dostępu albo niezamierzona komunikacja."
           : "Describe the likely impact: production outage, financial loss, data change or exposure, account impact, permission escalation, or unintended external communication.",
-        approval: polish ? "Jakie systemy i narzędzia są zaangażowane?" : "Which systems and tools are involved?",
+        approval: polish ? "Jakie urządzenie, połączenie i systemy są zaangażowane?" : "Which device, connection and systems are involved?",
         approvalPlaceholder: polish
-          ? "Nazwij tylko klasy systemów, narzędzi, API lub integracji MCP oraz osobę albo rolę zatwierdzającą. Bez danych dostępowych."
-          : "Name the system, tool, API, or MCP-integration classes and the approving person or role. Do not include access details.",
+          ? "Nazwij tylko klasę urządzenia, systemu, narzędzia lub integracji oraz rolę zatwierdzającą. Bez danych dostępowych i plików konfiguracyjnych."
+          : "Name device, system, tool or integration classes and the approving role. No access details or configuration files.",
         evidence: polish ? "Jakie granice bezpieczeństwa są zaangażowane?" : "Which security boundaries are involved?",
         evidencePlaceholder: polish
           ? "Wskaż ogólnie: produkcja, pieniądze, dane klientów, konta, uprawnienia lub komunikacja zewnętrzna."
@@ -333,8 +333,8 @@ export function ContactForm({
           ? "Poproś o wstępną ocenę bez informacji poufnych"
           : "Request a non-secret fit check",
         submitBoundary: polish
-          ? `Wysłanie formularza otwiera wyłącznie wstępną ocenę: ${PRIMARY_OFFER.unit.pl.toLowerCase()}. Praca nie rozpoczyna się, dopóki zakres, zasady dowodowe i sposób obsługi materiałów nie zostaną uzgodnione.`
-          : `Submitting this form opens only the non-secret fit check for ${PRIMARY_OFFER.unit.en.toLowerCase()}. Work does not start until scope, evidence rules, and evidence handling are agreed.`,
+          ? `Wysłanie formularza otwiera tylko ocenę dopasowania i zakresu. Nie jest rezerwacją, płatnością ani upoważnieniem. Praca wymaga zaakceptowanej umowy, upoważnienia, obsługi materiałów i domyślnie pełnej płatności.`
+          : `Submitting this form starts fit and scoping only. It is not a booking, checkout or authorization. Work requires an accepted agreement, authority, handling and, by default, payment in full.`,
       }
     : undefined;
   const copy = externalExposureOrder
@@ -375,7 +375,7 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
       }
-    : boundedWorkflowReviewCopy ?? selectedServiceCopy ?? baseCopy;
+    : agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -432,7 +432,7 @@ export function ContactForm({
     const requestScope = [
       externalExposureOrder
         ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
-        : boundedWorkflowReview
+        : agentToolsAccessReview
           ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
           ? `Request: ${selectedNonAgentService.name.en}`
@@ -444,17 +444,17 @@ export function ContactForm({
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      `${externalExposureOrder ? "Boundary seed / internet-facing system" : selectedNonAgentService ? "Selected-service need" : boundedWorkflowReview ? "Consequential action" : "Review need"}: ${workflow || "not provided"}`,
-      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : boundedWorkflowReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : boundedWorkflowReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : boundedWorkflowReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+      `${externalExposureOrder ? "Boundary seed / internet-facing system" : selectedNonAgentService ? "Selected-service need" : agentToolsAccessReview ? "Agent setup, connection and action" : "Review need"}: ${workflow || "not provided"}`,
+      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : agentToolsAccessReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : agentToolsAccessReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : agentToolsAccessReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
-          : boundedWorkflowReview
-            ? "Follow-up needed: fit, exact action, authority, executing identity, effective permissions, tool access, execution path, evidence chain, control gaps, fee, and evidence handling"
+          : agentToolsAccessReview
+            ? "Follow-up needed: fit, device and OS, dated system-level inventory, named agent setup, selected connection, one action, approval and downstream effective permissions, source coverage, fixed quote, payment, recipients, and evidence handling"
             : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
     ].join("\n");
 
@@ -907,7 +907,7 @@ export function ContactForm({
       {landing && <div>
         <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
         <select id="enquiryPath" name="enquiryPath" defaultValue={defaultEnquiryPath ?? "Free check"} className={inputClass} style={inputStyle}>
-          {["Free check", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [INTERNET_FOOTPRINT_REVIEW_OFFER.name.en] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+          {["Free check", PRIMARY_OFFER.name.en, "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [INTERNET_FOOTPRINT_REVIEW_OFFER.name.en] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
         </select>
       </div>}
 

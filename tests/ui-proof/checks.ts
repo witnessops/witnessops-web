@@ -121,7 +121,7 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedDemoHref = new URL(page.url()).pathname.startsWith("/pl") ? "/catalog/workflows#sample-review" : "/library";
+  const expectedDemoHref = new URL(page.url()).pathname.startsWith("/pl") ? "/review/sample-cases/ai-agent-action-proof-run" : "/library";
   checks.push({
     name: "sample CTA opens the supported sample destination",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",

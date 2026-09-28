@@ -12,7 +12,7 @@ const SCREENSHOT_DIR = path.join(
 
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const PRIMARY_REQUEST_PATH =
-  "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
+  "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review";
 const FOCUSABLE_SELECTOR = [
   "a[href]:visible",
   "button:not([disabled]):visible",
@@ -40,26 +40,26 @@ const askWorkflowAuthority = {
     schema: "witnessops.ask.commercial-fit.v1",
     result: "likely",
     intent: "workflow",
-    offer_id: "bounded-workflow-review",
+    offer_id: "agent-tools-access-review",
     source: "ask",
     offer: {
-      name: "Agent Action Security Review",
-      price_label: "€2,500 fixed · excluding VAT",
-      unit_label: "One consequential agent or automation action",
-      fit_check_label: "Non-secret fit check first",
-      delivery_label: "Within 10 working days after evidence rules are agreed",
+      name: "AI Agent Tools & Access Review",
+      price_label: "Starting at €2,500 · excluding VAT",
+      unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+      fit_check_label: "Non-secret fit and scoping request first",
+      delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
   presented_sources: [{
-    source_id: "service.bounded-workflow-review",
-    public_label: "Agent Action Security Review",
+    source_id: "service.agent-tools-access-review",
+    public_label: "AI Agent Tools & Access Review",
     canonical_href: "https://witnessops.com/catalog/workflows",
     href_class: "same_site",
   }],
 } as const;
 
-const agentService = BUYER_SERVICES.find(service => service.id === "bounded-workflow-review")!;
+const agentService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
 const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
 agentRequest.searchParams.set("source", "ask");
 const askWorkflowFitResponse = {
@@ -253,38 +253,38 @@ test("a selected offer survives the click handoff into the request form", async 
 
   await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
   const selectedOfferCta = page
-    .locator('[data-buyer-service-detail="bounded-workflow-review"]')
-    .getByRole("link", { name: "Scope this review", exact: true })
+    .locator('[data-buyer-service-detail="agent-tools-access-review"]')
+    .getByRole("link", { name: "Request a scope and fixed quote", exact: true })
     .first();
   await selectedOfferCta.click();
 
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
-  await expect(page.locator("main").getByText("Agent Action Security Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
+  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
+  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
+  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
+  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
   await expect(page.locator("main")).toContainText(
-    "Within 10 working days after evidence rules are agreed",
+    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("From €1,500");
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
-    "bounded-workflow-review",
+    "agent-tools-access-review",
   );
   await saveEvidence(page, "03-desktop-selected-offer-handoff.png");
 
   await context.close();
 });
 
-test("support sends paid-work buyers to the canonical action security review", async ({
+test("support sends paid-work buyers to the current agent tools review", async ({
   browser,
 }) => {
   for (const scenario of [
     { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
     {
       path: "/pl/support",
-      requestPath: `/pl${PRIMARY_REQUEST_PATH}`,
+      requestPath: buyerServiceRequestHref("pl", agentService),
     },
   ]) {
     const context = await browser.newContext({
@@ -296,7 +296,7 @@ test("support sends paid-work buyers to the canonical action security review", a
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), scenario.path).toBe(200);
     const main = page.locator("main");
-    await expect(main).toContainText("Agent Action Security Review");
+    await expect(main).toContainText(scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
     await expect(main).not.toContainText(
       "Request an AI Agent Action Proof Run",
     );
@@ -306,7 +306,7 @@ test("support sends paid-work buyers to the canonical action security review", a
     const offerLinks = main.locator(`a[href="${scenario.requestPath}"]`);
     expect(await offerLinks.count(), scenario.path).toBeGreaterThanOrEqual(1);
     await expect(offerLinks.first()).toContainText(
-      "Agent Action Security Review",
+      scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review",
     );
 
     await context.close();
@@ -390,8 +390,8 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await page.getByRole("textbox", { name: "Ask WitnessOps question" }).fill("We're launching an AI agent.");
   await page.getByRole("button", { name: "Ask AI", exact: true }).click();
   const fit = page.getByRole("region", { name: "Suggested service", exact: true });
-  await expect(fit).toContainText("€2,500 fixed · excluding VAT");
-  await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
+  await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
+  await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
   await expect(page.locator("#ask-witnessops-dialog")).toContainText("NO EVIDENCE REVIEWED");
   await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
   await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
@@ -401,7 +401,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await expectPath(page, "/catalog");
   const contact = page.locator("[data-ask-contact-region]");
   await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
-  await expect(contact).toContainText("Agent Action Security Review");
+  await expect(contact).toContainText("AI Agent Tools & Access Review");
   await expect(contact.getByLabel("Work email")).toBeFocused();
   await expect(contact.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toBeChecked();
   await expect(contact.getByLabel(/^Draft request/)).toHaveValue("We're launching an AI agent.");
@@ -410,24 +410,24 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await contact.getByRole("button", { name: "Back", exact: true }).click();
 
   // Sources are directly visible beside the answer, not hidden in a disclosure.
-  const source = page.locator("#ask-witnessops-dialog").getByRole("link", { name: "Agent Action Security Review", exact: true });
+  const source = page.locator("#ask-witnessops-dialog").getByRole("link", { name: "AI Agent Tools & Access Review", exact: true });
   await expect(source).toBeVisible();
   await expect(source).toHaveAttribute("href", "/catalog/workflows");
   await source.click();
   await expectPath(page, "/catalog/workflows");
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-  await page.locator('[data-buyer-service-detail="bounded-workflow-review"]')
-    .getByRole("link", { name: "Scope this review", exact: true }).first().click();
+  await page.locator('[data-buyer-service-detail="agent-tools-access-review"]')
+    .getByRole("link", { name: "Request a scope and fixed quote", exact: true }).first().click();
 
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
-  await expect(page.locator("main").getByText("Agent Action Security Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
+  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
+  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
+  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
+  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
   await expect(page.locator("main")).toContainText(
-    "Within 10 working days after evidence rules are agreed",
+    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator("#witnessops-mobile-menu")).toHaveAttribute(

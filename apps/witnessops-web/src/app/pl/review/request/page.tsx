@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
@@ -9,6 +10,7 @@ import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  LEGACY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { POLISH_OFFERS } from "@/lib/public-i18n";
 import { getSku } from "@witnessops/catalog";
@@ -60,6 +62,14 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
   const productId = oneParam(params.productId);
   const offerId = oneParam(params.offerId);
+  if (offerId === LEGACY_AGENT_ACTION_OFFER.id) {
+    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
+      <h1 className="text-4xl font-semibold">Ta oferta została zastąpiona</h1>
+      <p className="mt-5 leading-7">{LEGACY_AGENT_ACTION_OFFER.name.pl} był osobną ofertą przeglądu jednego działania za stałą cenę. Ten link nie wybiera jej dla nowych zgłoszeń. Wcześniejsze zgłoszenia i umowy zachowują swoje warunki.</p>
+      <p className="mt-5 leading-7">Obecny {PRIMARY_OFFER.name.pl} obejmuje ograniczony do uzgodnionych źródeł spis narzędzi na urządzeniu i głębszy przegląd jednego działania; stałą cenę ustalamy po określeniu zakresu.</p>
+      <Link className="mt-6 inline-block underline" href={`/pl/review/request?offerId=${PRIMARY_OFFER.id}`}>Poproś o ocenę dopasowania i zakres</Link>
+    </main>;
+  }
   const offer = oneParam(params.offer);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
@@ -103,7 +113,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
           {publicExposureOrder
             ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
             : primaryOfferOrder
-              ? `Opisz jedno działanie agenta. Wspólnie ustalimy dopasowanie i zakres. Na razie bez sekretów i materiałów.`
+              ? `Nazwij konfigurację agenta, wybrane połączenie, klasę urządzenia i jedno istotne działanie. Wspólnie ustalimy dopasowanie i zakres. Na razie bez sekretów i materiałów.`
             : selectedOffer
               ? "Podaj jedno niepoufne podsumowanie dla wybranej usługi. Przed rozpoczęciem pracy potwierdzimy dopasowanie, dokładny zakres, wymagane materiały, cenę i termin."
               : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
@@ -132,15 +142,17 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
             {primaryOfferOrder ? (
               <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">
                 <li>
-                  1. Sprawdzimy bez sekretów jedno istotne działanie, możliwy
-                  skutek błędu, zaangażowane systemy i narzędzia oraz granice bezpieczeństwa.
+                  1. Bez sekretów nazwiemy klasę urządzenia, konfigurację agenta,
+                  wybrane połączenie, jedno istotne działanie i potrzebną decyzję.
                 </li>
                 <li>
-                  2. Uzgodnimy upoważnienie, tożsamość wykonującą, granice
-                  uprawnień, dostęp do narzędzi, zasady dowodowe, wyłączenia i obsługę materiałów.
+                  2. Uzgodnimy datowany spis systemowy, źródła konfiguracji,
+                  dowody upoważnienia i faktycznych uprawnień, odbiorców raportu,
+                  wyłączenia i obsługę materiałów w stałej wycenie i umowie.
                 </li>
                 <li>
-                  3. {PRIMARY_OFFER.timing.pl}; {PRIMARY_OFFER.price.pl.toLowerCase()}.
+                  3. Cena od €2 500 bez VAT, stała wycena po ustaleniu zakresu;
+                  domyślnie pełna płatność przed rozpoczęciem. {PRIMARY_OFFER.timing.pl}.
                 </li>
               </ol>
             ) : (

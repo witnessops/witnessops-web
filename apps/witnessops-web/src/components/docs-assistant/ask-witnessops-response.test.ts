@@ -26,15 +26,15 @@ const likelyCommercialFit = {
   schema: "witnessops.ask.commercial-fit.v1" as const,
   result: "likely" as const,
   intent: "workflow" as const,
-  offer_id: "bounded-workflow-review" as const,
+  offer_id: "agent-tools-access-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Action Security Review" as const,
-    price_label: "€2,500 fixed · excluding VAT" as const,
-    unit_label: "One consequential agent or automation action" as const,
-    fit_check_label: "Non-secret fit check first" as const,
+    name: "AI Agent Tools & Access Review" as const,
+    price_label: "Starting at €2,500 · excluding VAT" as const,
+    unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action" as const,
+    fit_check_label: "Non-secret fit and scoping request first" as const,
     delivery_label:
-      "Within 10 working days after evidence rules are agreed" as const,
+      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
@@ -294,9 +294,9 @@ test("commercial fit keeps successful public guidance coherent with the live off
   };
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
-  assert.match(askWitnessOpsAnswerText(answer), /€2,500 fixed/);
-  assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
+  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Tools & Access Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /Starting at €2,500/);
+  assert.match(askWitnessOpsAnswerText(answer), /One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
 });
 
@@ -315,11 +315,11 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     answer_mode: "ai_assisted" as const,
   };
 
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
-  assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
+  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Tools & Access Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit and scoping request first/);
   assert.match(
     askWitnessOpsAnswerText(answer),
-    /Within 10 working days after evidence rules are agreed/,
+    /Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed/,
   );
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
   assert.equal(
@@ -415,7 +415,7 @@ test("ask witnessops fit-check routes carry the controlled product and source", 
       route_id: "route.fit-check",
       href: "/review/request",
     }),
-    "/review/request?offerId=bounded-workflow-review&source=ask",
+    "/review/request?offerId=agent-tools-access-review&source=ask",
   );
   assert.equal(
     askWitnessOpsRouteHref({ route_id: "route.support", href: "/support" }),

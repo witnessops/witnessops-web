@@ -159,6 +159,7 @@ test("maps public request intents to fixed record labels", () => {
   assert.deepEqual(
     [
       "bounded-workflow-review",
+      "agent-tools-access-review",
       "ai-agent-action-proof-run",
       "access-change-proof-run",
       "OFFSEC-EXTERNAL-EXPOSURE",
@@ -171,6 +172,7 @@ test("maps public request intents to fixed record labels", () => {
     ].map(resolveReviewRequestKind),
     [
       "agent-risk-control-review",
+      "agent-tools-access-review",
       "ai-agent-action-proof-run",
       "access-change-proof-run",
       "public-exposure-review",

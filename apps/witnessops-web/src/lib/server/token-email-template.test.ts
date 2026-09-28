@@ -55,7 +55,7 @@ test("Polish engage requests localize the buyer verification boundary", () => {
     token: "ABCD-EFGH-JKLM",
     expiresAt: "2026-07-30T12:00:00Z",
     verifyUrl: "https://witnessops.com/verify-token?context=opaque",
-    intent: "bounded-workflow-review",
+    intent: "agent-tools-access-review",
     locale: "pl",
   });
 
@@ -63,7 +63,7 @@ test("Polish engage requests localize the buyer verification boundary", () => {
   assert.match(rendered.text, /Weryfikacja WitnessOps/);
   assert.match(
     rendered.text,
-    /Potwierdź: Zgłoszenie Agent Action Security Review/,
+    /Potwierdź: Zgłoszenie: Przegląd narzędzi i dostępu agenta AI/,
   );
   assert.match(rendered.text, /Kod weryfikacyjny: ABCD-EFGH-JKLM/);
   assert.match(rendered.text, /Nie rozpoczyna przeglądu ani pracy/);

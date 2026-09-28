@@ -72,14 +72,14 @@ export default function ApiKeyRotationSamplePage() {
         <section className={styles.nextStep} aria-labelledby="rotation-next-step-heading">
           <div>
             <span className={styles.eyebrow}>{PRIMARY_OFFER.name.en}</span>
-            <h2 id="rotation-next-step-heading">Want your own agent action reviewed?</h2>
-            <p>One consequential agent or automation action. Prioritised fixes.</p>
+            <h2 id="rotation-next-step-heading">Need to review your agent tools and access?</h2>
+            <p>This synthetic one-action example is historical. The current review adds a dated, source-bounded device inventory, one selected connection and one deeper action path.</p>
             <strong className={styles.offerPrice}>{PRIMARY_OFFER.price.en}</strong>
             <p className={styles.offerTiming}>{PRIMARY_OFFER.timing.en}.</p>
           </div>
           <div className={styles.offerAction}>
-            <Link href={reviewRequestHref}>Check fit</Link>
-            <span>Non-secret fit check first.</span>
+            <Link href={reviewRequestHref}>Request scope and quote</Link>
+            <span>Non-secret fit and scoping request first.</span>
           </div>
         </section>
       </ApiKeyRotationDemo>

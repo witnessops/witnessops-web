@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const VERIFIER_PATH = "/samples/api-key-rotation/v1/verify.mjs";
 const REVIEW_HREF =
-  "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
+  "/review/request?offerId=agent-tools-access-review&offer=Agent+Action+Security+Review";
 
 test("the proof page enforces its bounded claim, offer, metadata, and replay contract", async ({
   browser,
@@ -39,11 +39,11 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.getByText(/real-world actor or approver identity/)).toBeVisible();
   await expect(page.getByText(/execution of the declared hard-stop conditions/)).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Want your own agent action reviewed?" })).toBeVisible();
-  await expect(page.locator("main")).toContainText("Agent Action Security Review");
-  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
-  await expect(page.locator("main")).toContainText("One consequential agent or automation action. Prioritised fixes.");
-  await expect(page.locator("main")).toContainText("Non-secret fit check first.");
-  await expect(page.locator("main")).toContainText("Within 10 working days after evidence rules are agreed");
+  await expect(page.locator("main")).toContainText("AI Agent Tools & Access Review");
+  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
+  await expect(page.locator("main")).toContainText("One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action. Prioritised fixes.");
+  await expect(page.locator("main")).toContainText("Non-secret fit and scoping request first.");
+  await expect(page.locator("main")).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("From €1,500");
   await expect(page.locator("main").getByRole("link", { name: "Check fit", exact: true }))

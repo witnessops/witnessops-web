@@ -919,14 +919,14 @@ test("admin core spine covers the complete message-to-receipt operating path", a
 
   const search = await searchCoreRecords("receipt-002");
   assert.ok(search.some((result) => result.type === "receipt" && result.id === secondReceipt.id));
-  const serviceSearch = await searchCoreRecords("bounded-workflow-review");
+  const serviceSearch = await searchCoreRecords("agent-tools-access-review");
   assert.deepEqual(
     serviceSearch.find((result) => result.type === "service"),
     {
       type: "service",
-      id: "bounded-workflow-review",
-      label: "Agent Action Security Review",
-      href: "/admin/products#service-bounded-workflow-review",
+      id: "agent-tools-access-review",
+      label: "AI Agent Tools & Access Review",
+      href: "/admin/products#service-agent-tools-access-review",
       matchedField: "id",
     },
   );

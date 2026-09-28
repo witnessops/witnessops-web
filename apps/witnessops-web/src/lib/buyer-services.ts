@@ -13,7 +13,7 @@ export type BuyerService = {
   id:
     | "automation-repair-handover"
     | "customer-security-review-sprint"
-    | "bounded-workflow-review"
+    | "agent-tools-access-review"
     | "one-server-security-check"
     | "external-exposure-assessment"
     | "launch-readiness-check"
@@ -48,14 +48,14 @@ export type BuyerPublicOfferId = Extract<
   BuyerService["id"],
   | "automation-repair-handover"
   | "customer-security-review-sprint"
-  | "bounded-workflow-review"
+  | "agent-tools-access-review"
   | "professional-public-footprint-audit"
 >;
 
 const BUYER_PUBLIC_OFFER_IDS = [
   "automation-repair-handover",
   "customer-security-review-sprint",
-  "bounded-workflow-review",
+  "agent-tools-access-review",
   "professional-public-footprint-audit",
 ] as const satisfies readonly BuyerPublicOfferId[];
 
@@ -124,12 +124,12 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     price: PRIMARY_OFFER.price,
     timing: PRIMARY_OFFER.timing,
     boundary: {
-      en: "One consequential agent or automation action only. Default operating mode: read, inspect, reconstruct, and report. No production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring, or safety certification unless separately scoped and explicitly authorised.",
-      pl: "Tylko jedno istotne działanie agenta lub automatyzacji. Domyślny tryb pracy to odczyt, inspekcja, rekonstrukcja i raportowanie. Bez modyfikacji produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitoringu ani certyfikacji bezpieczeństwa, chyba że zostaną osobno określone i wyraźnie autoryzowane.",
+      en: "One agreed device and dated system-level inventory, one named agent setup, one selected connection and one action. Only the agreed sources are covered; no complete tool discovery. Manual, read-only inspection after written scope and authority. No execution, production modification, exploitation, remediation, monitoring or certification.",
+      pl: "Jedno uzgodnione urządzenie i datowany spis systemowy, jedna konfiguracja agenta, jedno wybrane połączenie i jedno działanie. Przegląd obejmuje tylko uzgodnione źródła, bez pełnego wykrycia narzędzi. Ręczna inspekcja tylko do odczytu po przyjęciu zakresu i upoważnienia. Bez wykonania działania, zmian produkcyjnych, eksploatacji, napraw, monitorowania i certyfikacji.",
     },
     requestCta: {
-      en: "Scope this review",
-      pl: "Opisz swój przypadek",
+      en: "Request a scope and fixed quote",
+      pl: "Poproś o zakres i stałą wycenę",
     },
     detailHref: {
       en: PRIMARY_OFFER.route,

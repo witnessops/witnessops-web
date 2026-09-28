@@ -17,11 +17,11 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
   const body = hero?.body ?? (pl ? "Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody." : "Verify what is exposed, what changed, what acted, and what the evidence actually supports.");
   const cta = pl ? "Omów zakres przeglądu" : "Scope a review";
   const services = pl ? [
-    ["Zweryfikuj działanie AI", "Sprawdź uprawnienia, zatwierdzenia i dowody wykonania, zanim zaczniesz na nim polegać.", "/catalog/workflows", "Zobacz zakres przeglądu (EN)"],
+    ["Sprawdź narzędzia i dostęp agenta AI", "Zobacz narzędzia widoczne w uzgodnionych źródłach i dostęp w ścieżce jednego działania.", "/catalog/workflows", "Zobacz zakres przeglądu (EN)"],
     ["Sprawdź system", "Zbadaj jedno pytanie bezpieczeństwa dotyczące systemu, usługi lub zasobu wystawionego do internetu.", `${prefix}/catalog#system-reviews`, "Zobacz opcje przeglądu systemu"],
     ["Zweryfikuj lub napraw proces", "Prześledź zawodną ścieżkę, znajdź miejsce awarii i po naprawie sprawdź wynik w systemie docelowym.", `${prefix}/catalog/automation-repair`, "Zobacz diagnozę i naprawę"],
   ] : [
-    ["Verify an AI action", "Check permissions, approvals and execution evidence before you rely on it.", "/catalog/workflows", "See the review scope"],
+    ["Review AI agent tools and access", "See tooling observed on an agreed device and what one consequential action can reach.", "/catalog/workflows", "See the review scope"],
     ["Review a system", "Investigate one security question around a system, service or exposed asset.", "/catalog#system-reviews", "See system review options"],
     ["Verify or repair a workflow", "Trace a failing path, identify the break and verify the destination result after repair.", "/catalog/automation-repair", "See diagnosis and repair"],
   ];
@@ -45,7 +45,7 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         </div>
         <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={cta} className={styles.primaryCta} />
         <aside aria-label={pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}><h2 className="sr-only">{pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}</h2><HeroGap locale={locale} /></aside>
-        <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href="/catalog/workflows#sample-review">{pl ? "Zobacz przykładowe ustalenie (EN)" : "See a sample finding"}<ArrowRight size={18} aria-hidden="true" /></Link>
+        <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href={sampleHref}>{pl ? "Zobacz historyczny przykład działania (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
         <p className={styles.heroNote}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
       </header>
       <div className={styles.frame}>

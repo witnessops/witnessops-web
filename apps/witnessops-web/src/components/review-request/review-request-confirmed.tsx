@@ -25,6 +25,7 @@ import { ReviewRequestRecord } from "./review-request-record";
 const serviceIdByRequestKind: Partial<
   Record<ReviewRequestKind, BuyerService["id"]>
 > = {
+  "agent-tools-access-review": "agent-tools-access-review",
   "customer-security-review-sprint": "customer-security-review-sprint",
   "one-server-security-check": "one-server-security-check",
   "launch-readiness-check": "launch-readiness-check",
@@ -50,9 +51,9 @@ const copy = {
       "Work begins only after those terms are explicitly agreed.",
     ],
     primaryOfferNextSteps: [
-      `We assess the consequential action, failure impact, systems, tools, and security boundaries without asking for secrets.`,
-      `If it fits, ${PRIMARY_OFFER.price.en}; we agree authority, executing identity, permission boundary, tool access, evidence rules, exclusions, and evidence handling before source material is accepted.`,
-      `${PRIMARY_OFFER.timing.en}.`,
+      "We assess the agent setup, selected connection, device/source boundary and one consequential action without asking for secrets.",
+      `If it fits, ${PRIMARY_OFFER.price.en}. We issue a fixed quote after scope and agree authority, source handling and recipients before accepting material. Payment in full is due before start by default.`,
+      `${PRIMARY_OFFER.timing.en}. The request and mailbox confirmation do not start work.`,
     ],
     publicExposureNextSteps: [
       "We assess whether the requested public system fits one authorized, fixed-scope review.",
@@ -86,9 +87,9 @@ const copy = {
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
     ],
     primaryOfferNextSteps: [
-      "Sprawdzimy bez sekretów istotne działanie, skutek błędu, systemy, narzędzia i granice bezpieczeństwa.",
-      `Jeśli pasuje, ${PRIMARY_OFFER.price.pl.toLowerCase()}; przed przyjęciem materiałów uzgodnimy upoważnienie, tożsamość wykonującą, granice uprawnień, dostęp do narzędzi, zasady dowodowe, wyłączenia i sposób obsługi.`,
-      `${PRIMARY_OFFER.timing.pl}.`,
+      "Bez sekretów ocenimy konfigurację agenta, wybrane połączenie, granicę urządzenia i źródeł oraz jedno istotne działanie.",
+      `Jeśli pasuje, ${PRIMARY_OFFER.price.pl.toLowerCase()}. Stałą cenę podamy po określeniu zakresu, upoważnienia, obsługi materiałów i odbiorców. Domyślnie pełna płatność przed rozpoczęciem.`,
+      `${PRIMARY_OFFER.timing.pl}. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     publicExposureNextSteps: [
       "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o stałym zakresie.",
@@ -172,7 +173,7 @@ export function ReviewRequestConfirmed({
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
   const primaryOfferRequest =
-    confirmation.requestKind === "agent-risk-control-review";
+    confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
     confirmation.requestKind === "ai-agent-action-proof-run";
   const accessChangeProofRun =
@@ -187,7 +188,7 @@ export function ReviewRequestConfirmed({
         href: "/review/sample-cases/external-exposure-assessment",
         label: text.publicExposureSpecimen,
       }
-    : primaryOfferRequest || aiAgentActionProofRun
+    : confirmation.requestKind === "agent-risk-control-review" || aiAgentActionProofRun
       ? {
           href: "/review/sample-cases/ai-agent-action-proof-run",
           label: text.specimen,

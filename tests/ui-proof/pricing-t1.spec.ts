@@ -1,29 +1,29 @@
 import { expect, test } from "@playwright/test";
 import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 for (const width of [390, 1440]) {
-  test(`Pricing T1 two fixed reviews and valid enquiry paths at ${width}px`, async ({ page }) => {
+  test(`pricing shows the current starting-price review and valid enquiry paths at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/pricing");
-    const description = `Compare ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en} and ${PRIMARY_OFFER.name.en}. Fixed prices excluding VAT; non-secret enquiries before work begins.`;
-    await expect(page).toHaveTitle("Two Fixed-Price Reviews | WitnessOps");
+    const description = `Compare ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en} and ${PRIMARY_OFFER.name.en}. The agent review starts at €2,500 excluding VAT and receives a fixed quote after scope.`;
+    await expect(page).toHaveTitle("Review Pricing | WitnessOps");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://witnessops.com/pricing");
     for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
       await expect(page.locator(selector)).toHaveAttribute("content", description);
     }
-    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Two Fixed-Price Reviews | WitnessOps");
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Review Pricing | WitnessOps");
     const main = page.locator("main");
-    await expect(main.getByRole("heading", { level: 1 })).toHaveText("Two reviews. Two fixed prices.");
+    await expect(main.getByRole("heading", { level: 1 })).toHaveText("Review pricing and scope");
     await expect(main.locator("article")).toHaveCount(2);
     const footprint = main.locator('[data-pricing-review="footprint"]');
-    const agent = main.locator('[data-pricing-review="agent-action"]');
+    const agent = main.locator('[data-pricing-review="agent-tools-access"]');
     await expect(footprint).toContainText(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
     await expect(footprint).toContainText(INTERNET_FOOTPRINT_REVIEW_OFFER.price.en);
     await expect(footprint).not.toContainText(/working days|delivery time|response time/i);
     await expect(agent).toContainText(PRIMARY_OFFER.price.en);
     await expect(agent).toContainText(PRIMARY_OFFER.timing.en);
-    await expect(main).not.toContainText(/€0|€49|€149|FIRST 10|No\. 0042|free while in Early Access|starting at|quoted on scope|One Server Security Check|External Attack Surface Review/i);
+    await expect(main).not.toContainText(/€0|€49|€149|FIRST 10|No\. 0042|free while in Early Access|One Server Security Check|External Attack Surface Review/i);
     const footprintCta = footprint.getByRole("link", { name: "Ask about this review" });
-    const agentCta = agent.getByRole("link", { name: "Scope this review" });
+    const agentCta = agent.getByRole("link", { name: "Request a scope and fixed quote" });
     await expect(footprintCta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     expect(await footprintCta.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
     expect(await agentCta.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
@@ -33,7 +33,7 @@ for (const width of [390, 1440]) {
         const css = getComputedStyle(el);
         return box.width > 0 && box.y >= 0 && box.bottom <= innerHeight && css.backgroundColor !== "rgba(0, 0, 0, 0)";
       }).map(el => el.textContent?.trim()));
-      expect(filled).toEqual(["Scope this review"]);
+      expect(filled).toEqual(["Request a scope and fixed quote"]);
       await expect(footprintCta).toBeInViewport();
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -44,8 +44,8 @@ for (const width of [390, 1440]) {
     await expect(page.locator("#enquiryPath")).toHaveValue(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
     await page.screenshot({ path: test.info().outputPath(`early-bird-preselected-${width}.png`), fullPage: true });
     await page.goto("/pricing");
-    await page.getByRole("link", { name: "Scope this review", exact: true }).click();
-    await expect(page).toHaveURL(/\/review\/request\?offerId=bounded-workflow-review&/);
+    await page.getByRole("link", { name: "Request a scope and fixed quote", exact: true }).click();
+    await expect(page).toHaveURL(/\/review\/request\?offerId=agent-tools-access-review&/);
     expect(new URL(page.url()).searchParams.get("offerId")).toBe(PRIMARY_OFFER.id);
     await expect(page.locator("main")).toContainText(PRIMARY_OFFER.name.en);
   });

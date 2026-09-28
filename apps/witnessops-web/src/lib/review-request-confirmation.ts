@@ -5,6 +5,7 @@ import {
   AI_AGENT_ACTION_PROOF_RUN_INTENT,
   ASK_AI_CONTACT_INTENT,
   BOUNDED_WORKFLOW_REVIEW_INTENT,
+  AGENT_TOOLS_ACCESS_REVIEW_INTENT,
   CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT,
   EXTERNAL_EXPOSURE_ASSESSMENT_INTENT,
   INCIDENT_READINESS_REVIEW_INTENT,
@@ -17,6 +18,7 @@ import { verifyTokenResponseSchema } from "@/lib/token-contract";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  LEGACY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
 export const REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY =
@@ -25,6 +27,7 @@ export const REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY =
 export type ReviewRequestConfirmationLocale = "en" | "pl";
 export type ReviewRequestKind =
   | "agent-risk-control-review"
+  | "agent-tools-access-review"
   | "ai-agent-action-proof-run"
   | "access-change-proof-run"
   | "public-exposure-review"
@@ -43,6 +46,7 @@ const reviewRequestConfirmationSchema = z.object({
   locale: z.enum(["en", "pl"]),
   requestKind: z.enum([
     "agent-risk-control-review",
+    "agent-tools-access-review",
     "ai-agent-action-proof-run",
     "access-change-proof-run",
     "public-exposure-review",
@@ -74,6 +78,8 @@ export function resolveReviewRequestKind(intent: string): ReviewRequestKind {
   switch (normalizedIntent) {
     case BOUNDED_WORKFLOW_REVIEW_INTENT:
       return "agent-risk-control-review";
+    case AGENT_TOOLS_ACCESS_REVIEW_INTENT:
+      return "agent-tools-access-review";
     case AI_AGENT_ACTION_PROOF_RUN_INTENT:
       return "ai-agent-action-proof-run";
     case ACCESS_CHANGE_PROOF_RUN_INTENT:
@@ -188,7 +194,8 @@ export function buildReviewRequestConfirmationText(
     Record<ReviewRequestKind, string>
   > = {
     en: {
-      "agent-risk-control-review": PRIMARY_OFFER.name.en,
+      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
+      "agent-tools-access-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
@@ -202,7 +209,8 @@ export function buildReviewRequestConfirmationText(
       "review-request": "WitnessOps review request",
     },
     pl: {
-      "agent-risk-control-review": PRIMARY_OFFER.name.pl,
+      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
+      "agent-tools-access-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,

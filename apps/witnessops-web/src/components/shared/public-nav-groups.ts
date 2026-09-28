@@ -5,7 +5,7 @@ export const PUBLIC_NAV_GROUPS = [
     { label: "Get started", href: "/docs/getting-started", description: "Free signup, email verification and your own workspace." },
   ] },
   { label: "Expert help", description: "One agreed scope. Clear findings.", links: [
-    { label: "Agent Action Security Review", href: "/catalog/workflows", description: "Review one consequential agent action." },
+    { label: "AI Agent Tools & Access Review", href: "/catalog/workflows", description: "Observed tools, selected connection and one action path." },
     { label: "One Server Security Check", href: "/catalog/offsec-local-audit", description: "A focused review of one Linux server." },
     { label: "External Attack Surface Review", href: "/catalog/offsec-external-exposure", description: "Review one public-facing system." },
     { label: "All services", href: "/catalog", description: "Find the right scope for your situation." },
