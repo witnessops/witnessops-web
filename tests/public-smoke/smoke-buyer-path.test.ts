@@ -3,11 +3,16 @@ import test from "node:test";
 
 import {
   buyerPathSmokeRoutes,
+  escapeAmpersandsForHtml,
   evaluateBuyerPathRoute,
   normalizeBaseUrl,
   runBuyerPathSmoke,
   type BuyerPathSmokeRoute,
 } from "../../scripts/smoke-buyer-path";
+
+test("HTML smoke markers escape every ampersand", () => {
+  assert.equal(escapeAmpersandsForHtml("A & B & C"), "A &amp; B &amp; C");
+});
 
 function routeContract(path: string): BuyerPathSmokeRoute {
   const route = buyerPathSmokeRoutes.find((candidate) => candidate.path === path);

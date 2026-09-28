@@ -163,7 +163,7 @@ const nextConfig = {
       },
       {
         source: "/access-change-proof-run",
-        destination: "/catalog",
+        destination: "/catalog/workflows",
         permanent: true,
       },
       {

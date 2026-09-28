@@ -7,15 +7,15 @@
 > [AI Agent Tools & Access Review](./17-ai-agent-tools-access-review-offer.md).
 > Do not reinterpret `bounded-workflow-review` requests as the new offer.
 
-**Commercial status:** Canonical primary paid entry point as of 2026-09-02.
+**Commercial status:** Superseded historical contract. This was the primary paid entry point from 2026-09-02 until the 2026-09-28 source promotion; it is not the current public offer.
 
-**Public commercial offer:** Agent Action Security Review.
+**Historical public commercial offer:** Agent Action Security Review.
 
 **Delivery method:** Agent Workflow Reconstruction.
 
 **Company positioning:** Agents act. WitnessOps proves.
 
-The file path is retained for repository continuity. Before 2026-09-02, Agent Workflow Reconstruction was also the public product name. Historical references must remain historical; current buyer-facing surfaces use Agent Action Security Review.
+The file path is retained for repository continuity. Before 2026-09-02, Agent Workflow Reconstruction was also the public product name. These names and terms identify the former offer and its issued requests; the current buyer-facing offer is [AI Agent Tools & Access Review](./17-ai-agent-tools-access-review-offer.md).
 
 ## Buyer promise
 
@@ -54,8 +54,8 @@ These are illustrative questions and outputs, not observed findings or customer 
 - **Fixed price:** €2,500 fixed · excluding VAT.
 - **Scope:** one bounded consequential agent or automation action.
 - **Delivery:** within 10 working days after evidence rules are agreed.
-- **Canonical route:** `/catalog/workflows`.
-- **Request route:** `/review/request` with the stable `offerId=bounded-workflow-review` selection.
+- **Historical canonical route:** `/catalog/workflows`; this neutral route now presents the distinct current offer.
+- **Historical request identity:** `/review/request?offerId=bounded-workflow-review` remains interpretable for past requests but cannot select a new one.
 - Customer evidence is accepted only after scope, evidence rules, and handling are agreed.
 - Submitting the fit check does not start work or authorise access to customer systems.
 
@@ -108,7 +108,7 @@ Not included unless separately scoped and explicitly authorised:
 - continuous monitoring;
 - certification that an agent is safe.
 
-The active offer also excludes platform installation, custom protocol development, and multi-workflow programmes.
+This former offer also excluded platform installation, custom protocol development, and multi-workflow programmes.
 
 A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant, or complete. Extract supported receipt JSON from the sample pack to test through `/verify`; `/verify` does not accept the whole pack. The pack is not customer evidence and does not establish that a control has been deployed in production.
 
@@ -128,18 +128,18 @@ If known, include the launch or customer-handover deadline in the action descrip
 
 Do not request secrets, credentials, logs, screenshots, customer data, source material, or production evidence at this stage.
 
-## Public paths
+## Historical public paths and identifiers
 
 - Homepage: `/`
-- Canonical offer: `/catalog/workflows`
-- Non-secret fit check: `/review/request?offerId=bounded-workflow-review`
+- Former canonical offer route: `/catalog/workflows` (now the distinct current offer)
+- Former fit-check identity: `/review/request?offerId=bounded-workflow-review` (retired from new selection)
 - Synthetic agent sample: `/review/sample-cases/ai-agent-action-proof-run`
 
-The stable internal ID and neutral canonical route remain unchanged. Existing replacement routes for retired workflow-size tiers continue to redirect to `/catalog/workflows`.
+The internal ID remains for historical interpretation. Reuse of the neutral route does not carry this offer identity forward. Workflow-size tier redirects are governed by the current route source, not this historical record.
 
-## Offer hierarchy and separation
+## Historical offer hierarchy and separation (as of 2026-09-02)
 
-1. **Primary:** Agent Action Security Review — delivered with the Agent Workflow Reconstruction method.
+1. **Then-primary:** Agent Action Security Review — delivered with the Agent Workflow Reconstruction method.
 2. **Secondary catalogue offer:** External Attack Surface Review under `OFFSEC-EXTERNAL-EXPOSURE`.
 3. **Former positioning:** Agent Risk & Control Review; retained only as a superseded commercial record in [`15-agent-risk-control-review-offer.md`](./15-agent-risk-control-review-offer.md).
 

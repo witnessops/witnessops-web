@@ -26,10 +26,14 @@ export type BuyerPathSmokeResult = {
   prohibitedMarkersPresent: string[];
 };
 
+export function escapeAmpersandsForHtml(value: string): string {
+  return value.replaceAll("&", "&amp;");
+}
+
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Agents act. WitnessOps reviews what yours are permitted to do.", "AI agents can send, buy, write, delete and call other systems.", PRIMARY_OFFER.name.en.replace("&", "&amp;"), PRIMARY_OFFER.price.en, INTERNET_FOOTPRINT_REVIEW_OFFER.name.en, INTERNET_FOOTPRINT_REVIEW_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "Agents act. WitnessOps reviews what yours are permitted to do.", "AI agents can send, buy, write, delete and call other systems.", escapeAmpersandsForHtml(PRIMARY_OFFER.name.en), PRIMARY_OFFER.price.en, INTERNET_FOOTPRINT_REVIEW_OFFER.name.en, INTERNET_FOOTPRINT_REVIEW_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {
@@ -280,7 +284,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Review pricing and scope",
       INTERNET_FOOTPRINT_REVIEW_OFFER.name.en,
       INTERNET_FOOTPRINT_REVIEW_OFFER.price.en,
-      PRIMARY_OFFER.name.en.replace("&", "&amp;"),
+      escapeAmpersandsForHtml(PRIMARY_OFFER.name.en),
       PRIMARY_OFFER.price.en,
       PRIMARY_OFFER.timing.en,
       "No payment is taken here.",
