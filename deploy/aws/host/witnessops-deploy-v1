@@ -911,7 +911,8 @@ def recorded_previous_digest(current_digest: str) -> str | None:
             if isinstance(previous, str) and SHA256.fullmatch(previous) and previous != current_digest:
                 return previous
     except (AdapterError, OSError, json.JSONDecodeError):
-        pass
+        # Missing or untrusted receipt state deliberately leaves the previous digest UNKNOWN.
+        return None
     return None
 
 

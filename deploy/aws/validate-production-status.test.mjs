@@ -55,6 +55,10 @@ test("rejects guessed or malformed previous state", () => {
   guessed.previous_state = "RECORDED";
   guessed.previous_digest = "UNKNOWN";
   assert.equal(boundedStatusReceipt(invocation(guessed), node, command).status, "UNKNOWN");
+  const noOp = payload();
+  noOp.previous_state = "RECORDED";
+  noOp.previous_digest = noOp.current_digest;
+  assert.equal(boundedStatusReceipt(invocation(noOp), node, command).status, "UNKNOWN");
   const recorded = payload();
   recorded.previous_state = "RECORDED";
   recorded.previous_digest = digest("f");

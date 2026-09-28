@@ -43,7 +43,8 @@ export function boundedStatusReceipt(invocation, expectedNode, expectedCommand) 
       !DIGEST.test(result.adapter_sha256) || !DIGEST.test(result.config_sha256) ||
       !Number.isFinite(Date.parse(result.observed_at_utc)) ||
       !((result.previous_state === "UNKNOWN" && result.previous_digest === "UNKNOWN") ||
-        (result.previous_state === "RECORDED" && DIGEST.test(result.previous_digest)))) return unknown;
+        (result.previous_state === "RECORDED" && DIGEST.test(result.previous_digest) &&
+          result.previous_digest !== result.current_digest))) return unknown;
   return {
     schema_version: unknown.schema_version,
     status: "PASS",
