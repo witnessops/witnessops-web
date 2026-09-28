@@ -423,9 +423,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
     { name: "homepage-mobile-390", path: "/", width: 390, height: 844 },
-    { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
-    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
-    { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review&offer=Agent+Action+Security+Review", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
@@ -444,7 +444,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const response = await page.goto(capture.path, { waitUntil: "networkidle" });
       expect(response?.status(), capture.path).toBe(200);
       if (capture.path === "/catalog/workflow-s") {
-        expect(new URL(page.url()).pathname).toBe("/catalog/workflows");
+        expect(new URL(page.url()).pathname).toBe("/catalog");
       }
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
