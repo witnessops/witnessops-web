@@ -4,6 +4,7 @@ import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { buildCliArtifact } from '../../../scripts/build-cli-artifact.mjs';
 
 test('versioned archive installs and runs without a repository checkout', async () => {
@@ -19,9 +20,19 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.equal(listing.status, 0, listing.stderr);
     assert.match(listing.stdout, /package\/README\.md/);
     assert.match(listing.stdout, /package\/ops\/install_wops_sudo_launcher\.py/);
+    assert.match(listing.stdout, /package\/ops\/install_local_audit_1_2_2\.py/);
+    assert.match(listing.stdout, /package\/ops\/install_witnessops_node_22\.py/);
+    assert.match(listing.stdout, /package\/ops\/producer\/identity\.json/);
+    assert.match(listing.stdout, /package\/ops\/producer\/local-audit-1\.2\.2\.tar\.gz/);
     assert.match(listing.stdout, /package\/ops\/wops-sudo-launcher\.sh\.in/);
     assert.doesNotMatch(listing.stdout, /\.test\.mjs/);
     assert.doesNotMatch(listing.stdout, /test_wops_sudo_launcher\.py/);
+    const sourceProducer = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/server-check/producer');
+    for (const filename of ['identity.json', 'local-audit-1.2.2.tar.gz']) {
+      const packaged = spawnSync('tar', ['-xOzf', built.destination, `package/ops/producer/${filename}`]);
+      assert.equal(packaged.status, 0, packaged.stderr?.toString());
+      assert.deepEqual(packaged.stdout, await readFile(path.join(sourceProducer, filename)));
+    }
 
     const prefix = path.join(scratch, 'installed');
     const install = spawnSync('npm', ['install', '--global', '--prefix', prefix, built.destination], {

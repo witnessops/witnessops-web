@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import pwd
 from pathlib import Path
 import stat
 import subprocess
 import tempfile
+from unittest.mock import patch
 import unittest
 
 import install_wops_sudo_launcher as installer
@@ -13,7 +16,9 @@ import install_wops_sudo_launcher as installer
 class SudoLauncherTest(unittest.TestCase):
     def test_production_template_uses_fixed_interpreter_and_entrypoint(self):
         rendered = installer.render_launcher().decode()
-        self.assertIn("NODE='/usr/bin/node'", rendered)
+        self.assertIn("NODE='/opt/witnessops/node-22/bin/node'", rendered)
+        self.assertIn("RUNTIME_LOCK='/opt/witnessops/.local-audit-1.2.2.runtime.lock'", rendered)
+        self.assertIn("exec /usr/bin/flock --shared", rendered)
         self.assertIn("MAIN='/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs'", rendered)
         self.assertIn("CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'", rendered)
         self.assertNotIn("/usr/bin/env node", rendered)
@@ -26,10 +31,10 @@ class SudoLauncherTest(unittest.TestCase):
             installer.validate_prerequisites()
 
     def test_normal_cli_keeps_the_users_node_path(self):
-        if os.geteuid() == 0:
-            self.skipTest("normal-user dispatch must run without root")
         with tempfile.TemporaryDirectory(prefix="wops-user-launcher-") as temporary:
             root = Path(temporary)
+            if os.geteuid() == 0:
+                root.chmod(0o755)
             node = root / "node"
             main = root / "main.mjs"
             launcher = root / "wops"
@@ -40,7 +45,9 @@ class SudoLauncherTest(unittest.TestCase):
             launcher.chmod(0o755)
             result = subprocess.run(
                 [str(launcher), "auth", "status"], check=False, capture_output=True, text=True,
-                env={"PATH": str(root), "LANG": "C"}, timeout=10,
+                env={"PATH": str(root) + ":/usr/bin", "LANG": "C"}, timeout=10,
+                preexec_fn=(lambda: (os.setgid(pwd.getpwnam("nobody").pw_gid), os.setuid(pwd.getpwnam("nobody").pw_uid)))
+                if os.geteuid() == 0 else None,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("user-node-invoked", result.stdout)
@@ -60,18 +67,23 @@ class SudoLauncherTest(unittest.TestCase):
             main = source_dir / "main.mjs"
             launcher = root / "wops"
             marker = root / "should-not-execute"
+            runtime_lock = root / "runtime.lock"
             node.write_text(
                 "#!/bin/sh\n"
                 "[ -z \"${NODE_OPTIONS-}\" ] || { printf 'NODE_OPTIONS leaked\\n' >&2; exit 42; }\n"
                 "if [ \"${1-}\" = --version ]; then printf 'v22.23.3\\n'; exit 0; fi\n"
+                f"if /usr/bin/flock --exclusive --nonblock '{runtime_lock}' /bin/true; then printf 'runtime lock missing\\n' >&2; exit 43; fi\n"
+                "printf 'shared-runtime-lock-held\\n'\n"
                 "printf 'fixed-node-invoked\\n'\n"
                 "printf 'arg=%s\\n' \"$@\"\n",
                 encoding="utf-8",
             )
             node.chmod(0o755)
+            node_digest = hashlib.sha256(node.read_bytes()).hexdigest()
             main.write_text("// root-owned test entrypoint\n", encoding="utf-8")
             main.chmod(0o644)
-            installer.apply(node=node, main=main, destination=launcher)
+            with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
+                installer.apply(node=node, main=main, destination=launcher, runtime_lock=runtime_lock)
             launcher_stat = launcher.stat()
             self.assertEqual(launcher_stat.st_uid, 0)
             self.assertEqual(stat.S_IMODE(launcher_stat.st_mode), 0o755)
@@ -92,6 +104,7 @@ class SudoLauncherTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("fixed-node-invoked", result.stdout)
+            self.assertIn("shared-runtime-lock-held", result.stdout)
             self.assertIn(f"arg={main}", result.stdout)
             self.assertIn(f"arg={unsafe_argument}", result.stdout)
             self.assertFalse(marker.exists())
@@ -116,10 +129,15 @@ class SudoLauncherTest(unittest.TestCase):
 
             runtime_node_dir = root / "runtime-node-path"
             runtime_node_dir.mkdir(mode=0o755)
-            runtime_node_link = runtime_node_dir / "node"
-            runtime_node_link.symlink_to(node)
+            runtime_node = runtime_node_dir / "node"
+            runtime_node.write_bytes(node.read_bytes())
+            runtime_node.chmod(0o755)
             runtime_launcher = root / "wops-runtime-node"
-            installer.apply(node=runtime_node_link, main=main, destination=runtime_launcher)
+            runtime_lock = root / "runtime-node.lock"
+            with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
+                installer.apply(
+                    node=runtime_node, main=main, destination=runtime_launcher, runtime_lock=runtime_lock
+                )
             runtime_node_dir.chmod(0o777)
             denied_node_parent = subprocess.run(
                 [str(runtime_launcher), "server", "check"], check=False, capture_output=True, text=True,

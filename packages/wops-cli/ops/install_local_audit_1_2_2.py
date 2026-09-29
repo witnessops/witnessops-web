@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import ctypes
 import errno
+import fcntl
 import hashlib
 import io
 import json
@@ -50,9 +51,12 @@ CFFI_WHEEL_SHA256 = {
     14: "afb8db5439b81cf9c9d0c80404b60c3cc9c3add93e114dcae767f1477cb53775",
 }
 TARGET = Path("/opt/witnessops/local-audit-1.2.2")
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-PRODUCER = REPOSITORY_ROOT / "tests/server-check/producer"
+PRODUCER = Path(__file__).resolve().parent / "producer"
 MAX_RUNTIME_FILES = 30_000
+MAX_EVIDENCE_ENTRIES = 100_000
+MAX_EVIDENCE_BYTES = 2 * 1024 * 1024 * 1024
+PREVIOUS_COLLECTOR_FINGERPRINT = "2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8"
+RUNTIME_LOCK_NAME = ".local-audit-1.2.2.runtime.lock"
 RUNTIME_PROBE = (
     "import json; from importlib.metadata import version; import cryptography; "
     "from witnessops_local_audit.package import source_fingerprint, finalize_product; "
@@ -161,14 +165,14 @@ def load_accepted_source(producer: Path = PRODUCER) -> tuple[dict[str, bytes], s
     return extracted, archive_digest
 
 
-def validate_report(report: object) -> None:
+def validate_report(report: object, *, expected_fingerprint: str = COLLECTOR_FINGERPRINT) -> None:
     if not isinstance(report, dict):
         raise InstallError("Runtime identity check failed.")
     expected = {
         "packageVersion": PACKAGE_VERSION,
         "setuptoolsVersion": SETUPTOOLS_VERSION,
         "cryptographyVersion": CRYPTOGRAPHY_VERSION,
-        "collectorFingerprint": COLLECTOR_FINGERPRINT,
+        "collectorFingerprint": expected_fingerprint,
     }
     if any(report.get(key) != value for key, value in expected.items()):
         raise InstallError("Runtime version or collector fingerprint check failed.")
@@ -183,7 +187,13 @@ def _safe_directory(path: Path, expected_uid: int) -> os.stat_result:
     return info
 
 
-def validate_runtime_tree(runtime: Path, expected_uid: int, *, check_ancestors: bool = True) -> str:
+def validate_runtime_tree(
+    runtime: Path,
+    expected_uid: int,
+    *,
+    check_ancestors: bool = True,
+    expected_fingerprint: str = COLLECTOR_FINGERPRINT,
+) -> str:
     """Apply the runtime file, owner, mode and identity checks used by wops."""
     runtime = runtime.absolute()
     resolved_runtime = runtime.resolve(strict=True)
@@ -245,7 +255,7 @@ def validate_runtime_tree(runtime: Path, expected_uid: int, *, check_ancestors: 
             env=SAFE_ENV,
             timeout=15,
         )
-        validate_report(json.loads(result.stdout))
+        validate_report(json.loads(result.stdout), expected_fingerprint=expected_fingerprint)
         for command in (
             [str(python), "-I", "-m", "witnessops_local_audit.operator", "audit", "capture", "--help"],
             [str(python), "-I", "-m", "witnessops_local_audit.operator", "audit", "finalize", "--help"],
@@ -260,7 +270,7 @@ def validate_runtime_tree(runtime: Path, expected_uid: int, *, check_ancestors: 
             )
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         raise InstallError("Runtime version, import or entry-point check failed.") from error
-    return COLLECTOR_FINGERPRINT
+    return expected_fingerprint
 
 
 def _check_installed_target(target: Path) -> None:
@@ -507,23 +517,286 @@ def apply_mode(
                 pass
 
 
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _evidence_tree_digest(root: Path, expected_uid: int) -> str:
+    """Hash a private evidence tree without following links or changing it."""
+    digest = hashlib.sha256()
+    entries_seen = 0
+    bytes_seen = 0
+
+    def visit(path: Path, relative: str) -> None:
+        nonlocal entries_seen, bytes_seen
+        entries_seen += 1
+        if entries_seen > MAX_EVIDENCE_ENTRIES:
+            raise InstallError("Retained evidence entry limit exceeded.")
+        try:
+            info = path.lstat()
+        except OSError as error:
+            raise InstallError("Retained evidence tree could not be inspected.") from error
+        if info.st_uid != expected_uid or info.st_mode & 0o022:
+            raise InstallError("Retained evidence ownership or permissions are unsafe.")
+        digest.update(relative.encode("utf-8") + b"\0")
+        digest.update(f"{stat.S_IFMT(info.st_mode):o}:{stat.S_IMODE(info.st_mode):04o}:{info.st_uid}:{info.st_gid}\0".encode())
+        if stat.S_ISDIR(info.st_mode):
+            for child in sorted(path.iterdir(), key=lambda item: item.name):
+                visit(child, f"{relative}/{child.name}")
+            return
+        if not stat.S_ISREG(info.st_mode):
+            raise InstallError("Retained evidence tree contains an unsupported file type.")
+        bytes_seen += info.st_size
+        if bytes_seen > MAX_EVIDENCE_BYTES:
+            raise InstallError("Retained evidence byte limit exceeded.")
+        file_hash = hashlib.sha256()
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            descriptor = os.open(path, flags)
+            with os.fdopen(descriptor, "rb") as stream:
+                opened = os.fstat(stream.fileno())
+                if (opened.st_dev, opened.st_ino, opened.st_size) != (info.st_dev, info.st_ino, info.st_size):
+                    raise InstallError("Retained evidence changed during inspection.")
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    file_hash.update(chunk)
+                after = os.fstat(stream.fileno())
+                if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) != (
+                    opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns
+                ):
+                    raise InstallError("Retained evidence changed during inspection.")
+        except OSError as error:
+            raise InstallError("Retained evidence file could not be hashed.") from error
+        digest.update(file_hash.digest())
+
+    visit(root, ".")
+    return digest.hexdigest()
+
+
+def _rename_exchange(left: Path, right: Path) -> None:
+    """Atomically exchange two directories on the same filesystem."""
+    libc = ctypes.CDLL(None, use_errno=True)
+    renameat2 = getattr(libc, "renameat2", None)
+    if renameat2 is None:
+        raise InstallError("Atomic runtime exchange is unavailable on this host.")
+    renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameat2.restype = ctypes.c_int
+    result = renameat2(-100, os.fsencode(left), -100, os.fsencode(right), 2)  # RENAME_EXCHANGE
+    if result != 0:
+        raise InstallError("Atomic runtime exchange failed; installed runtime was not intentionally changed.")
+
+
+def _acquire_runtime_exclusive_lock(target: Path, expected_uid: int) -> int:
+    lock_path = target.parent / RUNTIME_LOCK_NAME
+    try:
+        info = lock_path.lstat()
+        if (not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode)
+                or info.st_uid != expected_uid or stat.S_IMODE(info.st_mode) != 0o600):
+            raise InstallError("Shared runtime lock custody is unsafe; upgrade refused.")
+        descriptor = os.open(lock_path, os.O_RDWR | getattr(os, "O_NOFOLLOW", 0))
+        opened = os.fstat(descriptor)
+        if (opened.st_dev, opened.st_ino, opened.st_uid, stat.S_IMODE(opened.st_mode)) != (
+            info.st_dev, info.st_ino, expected_uid, 0o600
+        ):
+            os.close(descriptor)
+            raise InstallError("Shared runtime lock changed during inspection; upgrade refused.")
+    except OSError as error:
+        raise InstallError("Shared runtime lock is unavailable; install the current root launcher first.") from error
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        os.close(descriptor)
+        raise InstallError("A server check is using the Local Audit runtime; upgrade refused.") from error
+    return descriptor
+
+
+def _check_upgrade_layout(target: Path, expected_uid: int, *, require_root: bool) -> tuple[str, str]:
+    if require_root and target != TARGET:
+        raise InstallError("Only the fixed Local Audit runtime target is supported.")
+    if require_root:
+        _safe_directory(Path("/opt"), 0)
+        _safe_directory(Path("/opt/witnessops"), 0)
+    _safe_directory(target.parent, expected_uid)
+    _safe_directory(target, expected_uid)
+    try:
+        names = {entry.name for entry in target.iterdir()}
+    except OSError as error:
+        raise InstallError("Installed runtime layout is unavailable.") from error
+    if names != {"runtime", "staging"}:
+        raise InstallError("Installed runtime layout is unexpected; upgrade refused.")
+    runtime_fingerprint = validate_runtime_tree(
+        target / "runtime", expected_uid, check_ancestors=require_root,
+        expected_fingerprint=PREVIOUS_COLLECTOR_FINGERPRINT
+    )
+    staging = target / "staging"
+    try:
+        info = staging.lstat()
+    except OSError as error:
+        raise InstallError("Root-only CLI staging directory is unavailable.") from error
+    if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode) or info.st_uid != expected_uid or stat.S_IMODE(info.st_mode) != 0o700:
+        raise InstallError("Root-only CLI staging directory has unsafe custody.")
+    evidence_digest = _evidence_tree_digest(staging, expected_uid)
+    return runtime_fingerprint, evidence_digest
+
+
+def _upgrade_mode_locked(
+    producer: Path = PRODUCER,
+    target: Path = TARGET,
+    python: str = sys.executable,
+    expected_uid: int = 0,
+    require_root: bool = True,
+) -> tuple[str, str, str, str, str]:
+    """Upgrade only runtime/ from the one accepted old fingerprint."""
+    if target != TARGET and require_root:
+        raise InstallError("Only the fixed Local Audit runtime target is supported.")
+    if require_root and os.geteuid() != 0:
+        raise InstallError("Run --upgrade as root.")
+    if sys.platform != "linux":
+        raise InstallError("The Local Audit runtime installer supports Linux only.")
+    _verify_python_environment(python)
+    old_fingerprint, evidence_before = _check_upgrade_layout(target, expected_uid, require_root=require_root)
+    if old_fingerprint != PREVIOUS_COLLECTOR_FINGERPRINT:
+        raise InstallError("Current collector fingerprint is not the one accepted for upgrade.")
+    previous_upgrade_stages = list(target.parent.glob(".local-audit-1.2.2.upgrade-*"))
+    if previous_upgrade_stages:
+        raise InstallError("A prior Local Audit rollback artifact exists; inspect it before another upgrade.")
+    files, archive_digest = load_accepted_source(producer)
+    parent_created = _ensure_secure_parent(target.parent, expected_uid) if require_root else False
+    stage: Path | None = None
+    runtime_lock_fd: int | None = None
+    exchanged = False
+    retain_stage = False
+    try:
+        stage = Path(tempfile.mkdtemp(prefix=".local-audit-1.2.2.upgrade-", dir=target.parent))
+        stage.chmod(0o700)
+        _fsync_directory(target.parent)
+        final_runtime = target / "runtime"
+        _build_runtime(stage, files, final_runtime, python, expected_uid, check_ancestors=False)
+        validate_runtime_tree(
+            stage / "runtime", expected_uid, check_ancestors=False, expected_fingerprint=COLLECTOR_FINGERPRINT
+        )
+        # _build_runtime creates this private staging path for first installs;
+        # it is not part of the new runtime and must not be exchanged.
+        temporary_staging = stage / "staging"
+        if temporary_staging.exists():
+            shutil.rmtree(temporary_staging)
+        stage.chmod(0o700)
+        # The installed launcher holds this same lock shared for the complete
+        # privileged CLI process. Do not exchange runtime code during a check.
+        runtime_lock_fd = _acquire_runtime_exclusive_lock(target, expected_uid)
+        _rename_exchange(stage / "runtime", target / "runtime")
+        exchanged = True
+        _fsync_directory(target)
+        _fsync_directory(stage)
+        try:
+            validate_runtime_tree(target / "runtime", expected_uid, check_ancestors=require_root)
+            evidence_after = _evidence_tree_digest(target / "staging", expected_uid)
+            if evidence_after != evidence_before:
+                raise InstallError("Retained evidence changed during runtime upgrade.")
+            stage_info = _safe_directory(stage, expected_uid)
+            if stat.S_IMODE(stage_info.st_mode) != 0o700:
+                raise InstallError("Rollback artifact directory mode is unexpected.")
+            if {entry.name for entry in stage.iterdir()} != {"runtime"}:
+                raise InstallError("Rollback artifact layout is unexpected.")
+            validate_runtime_tree(
+                stage / "runtime", expected_uid, check_ancestors=False,
+                expected_fingerprint=PREVIOUS_COLLECTOR_FINGERPRINT,
+            )
+            _fsync_directory(target.parent)
+        except BaseException:
+            try:
+                _rename_exchange(stage / "runtime", target / "runtime")
+            except InstallError as rollback_error:
+                retain_stage = True
+                raise InstallError(
+                    f"Runtime verification failed; previous runtime remains at {stage / 'runtime'} "
+                    "but atomic rollback could not be completed."
+                ) from rollback_error
+            exchanged = False
+            _fsync_directory(target)
+            _fsync_directory(stage)
+            validate_runtime_tree(
+                target / "runtime", expected_uid, check_ancestors=require_root,
+                expected_fingerprint=PREVIOUS_COLLECTOR_FINGERPRINT
+            )
+            if _evidence_tree_digest(target / "staging", expected_uid) != evidence_before:
+                raise InstallError("Retained evidence differs after rollback; rollback runtime preserved.")
+            raise
+
+        rollback_reference = stage / "runtime"
+        retain_stage = True
+        stage = None
+        return archive_digest, evidence_before, evidence_after, "retained-as-rollback-artifact", str(rollback_reference)
+    finally:
+        if runtime_lock_fd is not None:
+            os.close(runtime_lock_fd)
+        if stage is not None and not retain_stage:
+            # Before exchange this is only the staged new runtime. After a
+            # successful exchange stage/runtime is the old runtime; preserve
+            # it if the function did not reach its explicit verified cleanup.
+            if not exchanged:
+                shutil.rmtree(stage, ignore_errors=True)
+        if parent_created:
+            try:
+                target.parent.rmdir()
+            except OSError:
+                pass
+
+
+def upgrade_mode(
+    producer: Path = PRODUCER,
+    target: Path = TARGET,
+    python: str = sys.executable,
+    expected_uid: int = 0,
+    require_root: bool = True,
+) -> tuple[str, str, str, str, str]:
+    """Serialize upgrades through the already existing target directory."""
+    if require_root and target != TARGET:
+        raise InstallError("Only the fixed Local Audit runtime target is supported.")
+    try:
+        descriptor = os.open(target, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0))
+    except OSError as error:
+        raise InstallError("Installed runtime target cannot be locked safely.") from error
+    try:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            raise InstallError("Another Local Audit runtime upgrade is already in progress.") from error
+        return _upgrade_mode_locked(producer, target, python, expected_uid, require_root)
+    finally:
+        os.close(descriptor)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    if args not in (["--check"], ["--apply"]):
-        print("Usage: install_local_audit_1_2_2.py --check | --apply", file=sys.stderr)
+    if args not in (["--check"], ["--apply"], ["--upgrade"]):
+        print("Usage: install_local_audit_1_2_2.py --check | --apply | --upgrade", file=sys.stderr)
         return 2
     try:
         if args[0] == "--check":
             archive_digest = check_mode()
             runtime_state = "installed-runtime-verified" if os.path.lexists(TARGET) else "temporary-runtime-verified"
-        else:
+        elif args[0] == "--apply":
             archive_digest = apply_mode()
             runtime_state = "installed-runtime-verified"
+        else:
+            archive_digest, evidence_before, evidence_after, rollback_disposition, rollback_reference = upgrade_mode()
+            runtime_state = "upgraded-runtime-verified"
         print(
             f"status=PASS\narchive_sha256={archive_digest}\npackage_version={PACKAGE_VERSION}\n"
             f"cryptography_version={CRYPTOGRAPHY_VERSION}\ncollector_fingerprint={COLLECTOR_FINGERPRINT}\n"
             f"runtime={runtime_state}"
         )
+        if args[0] == "--upgrade":
+            print(f"retained_staging_sha256_before={evidence_before}")
+            print(f"retained_staging_sha256_after={evidence_after}")
+            print("retained_staging_preserved=true")
+            print(f"previous_runtime_fingerprint={PREVIOUS_COLLECTOR_FINGERPRINT}")
+            print(f"previous_runtime_disposition={rollback_disposition}")
+            print(f"previous_runtime_reference={rollback_reference}")
         return 0
     except InstallError as error:
         print(str(error), file=sys.stderr)
