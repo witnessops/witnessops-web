@@ -14,6 +14,7 @@ import tempfile
 NODE = Path("/usr/bin/node")
 MAIN = Path("/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs")
 DESTINATION = Path("/usr/local/bin/wops")
+CLI_ROOT = MAIN.parent.parent
 TEMPLATE = Path(__file__).with_name("wops-sudo-launcher.sh.in")
 SAFE_ENV = {"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C"}
 
@@ -50,10 +51,34 @@ def render_launcher(node: Path = NODE, main: Path = MAIN, template: Path = TEMPL
     return rendered.encode("utf-8")
 
 
+def _trusted_tree(root: Path) -> None:
+    root = _trusted_path(root, file=False)
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        try:
+            entries = list(os.scandir(directory))
+        except OSError as error:
+            raise InstallError(f"Cannot inspect root-controlled CLI package: {directory}") from error
+        for entry in entries:
+            info = entry.stat(follow_symlinks=False)
+            if info.st_uid != 0 or info.st_mode & 0o022:
+                raise InstallError(f"CLI package tree is not root-controlled and non-writable: {entry.path}")
+            if stat.S_ISDIR(info.st_mode):
+                pending.append(Path(entry.path))
+            elif not stat.S_ISREG(info.st_mode):
+                raise InstallError(f"CLI package tree contains an unsupported entry: {entry.path}")
+
+
 def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION) -> bytes:
     if os.geteuid() != 0:
         raise InstallError("Run the sudo launcher installer as root.")
-    node_real = _trusted_path(node, file=True, allow_symlink=True)
+    _trusted_path(node.parent, file=False)
+    node_entry = node.lstat()
+    if not (stat.S_ISREG(node_entry.st_mode) or stat.S_ISLNK(node_entry.st_mode)) or node_entry.st_uid != 0:
+        raise InstallError(f"Required Node.js entrypoint is not root-controlled: {node}")
+    _trusted_path(node, file=True, allow_symlink=True)
+    _trusted_tree(main.parent.parent)
     main_real = _trusted_path(main, file=True)
     _trusted_path(destination.parent, file=False)
     try:

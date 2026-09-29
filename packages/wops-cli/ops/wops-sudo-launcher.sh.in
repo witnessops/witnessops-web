@@ -2,6 +2,7 @@
 set -eu
 NODE='@NODE_PATH@'
 MAIN='@MAIN_PATH@'
+CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'
 
 fail() { printf '%s\n' "$1" >&2; exit 126; }
 
@@ -39,9 +40,21 @@ check_root_controlled_ancestors() {
     done
 }
 
+check_cli_tree() {
+    [ -d "$CLI_ROOT" ] && [ ! -L "$CLI_ROOT" ] || fail 'The installed CLI package is unavailable or unsafe.'
+    check_root_controlled "$CLI_ROOT"
+    check_root_controlled_ancestors "$CLI_ROOT"
+    unsafe_entry=$(/usr/bin/find "$CLI_ROOT" -xdev \( -type l -o \( ! -type d ! -type f \) -o ! -user 0 -o -perm /022 \) -print -quit) || fail 'The installed CLI package is unavailable or unsafe.'
+    [ -z "$unsafe_entry" ] || fail 'The installed CLI package is unavailable or unsafe.'
+}
+
+check_root_controlled_ancestors "$NODE"
+NODE_ENTRY_OWNER=$(/usr/bin/stat -c %u -- "$NODE") || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
+[ "$NODE_ENTRY_OWNER" = 0 ] || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
 MAIN_REAL=$(/usr/bin/readlink -f -- "$MAIN") || fail 'The installed CLI entrypoint is unavailable or unsafe.'
 [ "$MAIN_REAL" = "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
 [ -f "$MAIN" ] && [ ! -L "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
+check_cli_tree
 check_root_controlled "$MAIN"
 check_root_controlled_ancestors "$MAIN"
 

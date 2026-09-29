@@ -38,7 +38,7 @@ To remove this package:
 
 ```sh
 sudo python3 -B /usr/local/lib/node_modules/@witnessops/cli/ops/install_wops_sudo_launcher.py --remove
-npm uninstall --global @witnessops/cli
+sudo npm uninstall --global --prefix /usr/local @witnessops/cli
 ```
 
 The SHA-256 sidecar detects an accidental or malicious byte change only when

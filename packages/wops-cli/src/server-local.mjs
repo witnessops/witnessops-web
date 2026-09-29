@@ -45,7 +45,7 @@ const DIAGNOSTIC_EXCERPT_LIMIT=512;
 export function boundedCaptureDiagnostic(error,{timestamp=new Date().toISOString(),reference}={}){
  const stdout=String(error?.stdout??''),stderr=String(error?.stderr??'');
  const outputLimit=error?.code==='ERR_CHILD_PROCESS_STDIO_MAXBUFFER';
- const timeout=Boolean(error?.code==='ETIMEDOUT'||(error?.killed&& !outputLimit)||(error?.signal==='SIGTERM'&&!outputLimit));
+ const timeout=Boolean(error?.code==='ETIMEDOUT'||(error?.killed&&!outputLimit));
  const category=timeout?'producer_timeout':outputLimit?'producer_output_limit':Number.isInteger(error?.code)?'producer_exit_nonzero':'producer_execution_error';
  const excerpt=(stderr||stdout).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g,' ').replace(/\s+/g,' ').replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi,'Bearer [REDACTED]').replace(/\b[A-Za-z0-9_-]{43}\b/g,'[REDACTED]').replace(/\b(authorization|credential|token|password|secret|private[_ -]?key)\s*[:=]\s*[^\s,;]+/gi,'$1=[REDACTED]').slice(0,DIAGNOSTIC_EXCERPT_LIMIT);
  return {schema:'witnessops.cli.capture-failure.v1',timestamp,category,exitCode:Number.isInteger(error?.code)?error.code:null,signal:typeof error?.signal==='string'?error.signal:null,timeout,stdoutTruncated:stdout.length>=CAPTURE_OUTPUT_LIMIT,stderrTruncated:stderr.length>=CAPTURE_OUTPUT_LIMIT,excerpt:excerpt||null,...(reference?{reference}:{})};

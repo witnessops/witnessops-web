@@ -41,6 +41,12 @@ test('producer timeout is recorded locally while terminal error stays category-o
  assert.ok(!visibleError.message.includes('timeout internal detail'));
 });
 
+test('a producer SIGTERM without child termination is not mislabeled as a timeout',()=>{
+ const diagnostic=boundedCaptureDiagnostic(Object.assign(new Error('terminated externally'),{signal:'SIGTERM',killed:false,stderr:'stopped'}));
+ assert.equal(diagnostic.timeout,false);
+ assert.equal(diagnostic.category,'producer_execution_error');
+});
+
 test('oversized producer output is marked truncated and excerpt remains bounded',async()=>{
  const error=Object.assign(new Error('too much output'),{code:'ERR_CHILD_PROCESS_STDIO_MAXBUFFER',stdout:'x'.repeat(20_000),stderr:''});
  const {diagnostic}=await failedCapture(error);

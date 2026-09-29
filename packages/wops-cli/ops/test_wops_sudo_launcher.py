@@ -53,7 +53,10 @@ class SudoLauncherTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="wops-root-launcher-", dir="/root") as temporary:
             root = Path(temporary)
             node = root / "fixed-node"
-            main = root / "main.mjs"
+            cli_root = root / "cli"
+            source_dir = cli_root / "src"
+            source_dir.mkdir(parents=True)
+            main = source_dir / "main.mjs"
             launcher = root / "wops"
             marker = root / "should-not-execute"
             node.write_text(
@@ -91,6 +94,38 @@ class SudoLauncherTest(unittest.TestCase):
             self.assertIn(f"arg={main}", result.stdout)
             self.assertIn(f"arg={unsafe_argument}", result.stdout)
             self.assertFalse(marker.exists())
+            (source_dir / "imported-module.mjs").write_text("// fixture\n", encoding="utf-8")
+            (source_dir / "imported-module.mjs").chmod(0o666)
+            denied_unsafe_tree = subprocess.run(
+                [str(launcher), "server", "check"], check=False, capture_output=True, text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000"},
+                timeout=10,
+            )
+            self.assertEqual(denied_unsafe_tree.returncode, 126)
+            self.assertIn("installed CLI package is unavailable or unsafe", denied_unsafe_tree.stderr)
+
+            unsafe_node_dir = root / "unsafe-node-path"
+            unsafe_node_dir.mkdir(mode=0o777)
+            unsafe_node_dir.chmod(0o777)
+            node_link = unsafe_node_dir / "node"
+            node_link.symlink_to(node)
+            with self.assertRaisesRegex(installer.InstallError, "root-controlled and non-writable"):
+                installer.validate_prerequisites(node=node_link, main=main, destination=launcher)
+
+            runtime_node_dir = root / "runtime-node-path"
+            runtime_node_dir.mkdir(mode=0o755)
+            runtime_node_link = runtime_node_dir / "node"
+            runtime_node_link.symlink_to(node)
+            runtime_launcher = root / "wops-runtime-node"
+            installer.apply(node=runtime_node_link, main=main, destination=runtime_launcher)
+            runtime_node_dir.chmod(0o777)
+            denied_node_parent = subprocess.run(
+                [str(runtime_launcher), "server", "check"], check=False, capture_output=True, text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000"},
+                timeout=10,
+            )
+            self.assertEqual(denied_node_parent.returncode, 126)
+            self.assertIn("fixed server-check runtime is unavailable or unsafe", denied_node_parent.stderr)
 
 
 if __name__ == "__main__":
