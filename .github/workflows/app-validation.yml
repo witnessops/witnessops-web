@@ -118,11 +118,14 @@ jobs:
       - name: Populated migration upgrade
         id: migration
         run: node tests/publication/upgrade.mjs
+      - name: Install app browser binaries and system dependencies
+        id: browser_install
+        run: pnpm exec playwright install --with-deps chromium webkit
       - name: App browser, CLI authorization, Linux and PDF paths
         id: browser
-        run: |
-          pnpm exec playwright install --with-deps chromium webkit
-          pnpm test:app-browser
+        env:
+          APP_CI_TIMINGS: '1'
+        run: pnpm test:app-browser
       - name: Image parity and OCI regression
         id: parity
         run: |
@@ -135,6 +138,14 @@ jobs:
         env:
           APP_STEP_RESULTS: ${{ toJSON(steps) }}
         run: node tests/publication/safe-ci-diagnostics.mjs
+      - name: Preserve content-free browser timings
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-browser-timings
+          retention-days: 3
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/app-browser-timings/summary.json
       - name: Preserve safe app diagnostics
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
