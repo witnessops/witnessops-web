@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import vm from 'node:vm';
 import { inspectHandoff, formatHuman, IntakeError, MAX_PACKET_BYTES, MAX_RECEIPT_BYTES } from '../../scripts/morpheus-handoff/intake.ts';
+import { readPacket } from '../../scripts/morpheus-handoff/cli.ts';
 import { FIXED_EXCLUSIONS, handoff, receipt, encode, json, sha256, withReceipt, withRawReceipt } from './fixtures.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -306,6 +307,19 @@ test('CLI invalid file exits nonzero without normal output or private path', () 
   const file = join(folder, 'PRIVATE-SYNTHETIC-NAME.json'); writeFileSync(file, fixtureCase(p => { p.authority = 'approved'; }));
   const result = invoke([file]); assert.equal(result.status, 1); assert.equal(result.stdout, ''); assert.ok(result.stderr.length < 1000); assert.ok(!result.stderr.includes(folder)); assert.ok(!result.stderr.includes('PRIVATE-SYNTHETIC-NAME'));
 }));
+
+test('packet reader refuses missing O_NOFOLLOW before any file operation', () => {
+  const calls = [];
+  const unexpected = name => () => { calls.push(name); throw new Error('unexpected file operation'); };
+  assert.throws(() => readPacket('/PRIVATE-SYNTHETIC-NAME.json', {
+    constants: { O_RDONLY: 0, O_NOFOLLOW: undefined, O_NONBLOCK: 2048 },
+    openSync: unexpected('open'),
+    fstatSync: unexpected('stat'),
+    readSync: unexpected('read'),
+    closeSync: unexpected('close'),
+  }), error => error instanceof IntakeError && error.code === 'FILE_UNAVAILABLE' && error.location === '/input');
+  assert.deepEqual(calls, []);
+});
 
 test('CLI rejects a final symlink without consuming its target', () => temporary(folder => {
   const target = join(folder, 'target.json'), link = join(folder, 'link.json'); writeFileSync(target, encode(handoff())); symlinkSync(target, link);
