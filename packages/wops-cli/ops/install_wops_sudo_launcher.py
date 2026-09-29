@@ -45,8 +45,10 @@ def _trusted_path(path: Path, *, file: bool, allow_symlink: bool = False) -> Pat
 
 def render_launcher(node: Path = NODE, main: Path = MAIN, template: Path = TEMPLATE) -> bytes:
     source = template.read_text(encoding="utf-8")
-    rendered = source.replace("@NODE_PATH@", str(node)).replace("@MAIN_PATH@", str(main))
-    if "@NODE_PATH@" in rendered or "@MAIN_PATH@" in rendered:
+    cli_root = main.parent.parent
+    rendered = (source.replace("@NODE_PATH@", str(node)).replace("@MAIN_PATH@", str(main))
+                .replace("@CLI_ROOT@", str(cli_root)))
+    if any(token in rendered for token in ("@NODE_PATH@", "@MAIN_PATH@", "@CLI_ROOT@")):
         raise InstallError("Launcher template contains an unresolved fixed path.")
     return rendered.encode("utf-8")
 

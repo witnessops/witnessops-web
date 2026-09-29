@@ -2,7 +2,7 @@
 set -eu
 NODE='@NODE_PATH@'
 MAIN='@MAIN_PATH@'
-CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'
+CLI_ROOT='@CLI_ROOT@'
 
 fail() { printf '%s\n' "$1" >&2; exit 126; }
 

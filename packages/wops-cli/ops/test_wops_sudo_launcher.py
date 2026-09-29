@@ -15,6 +15,7 @@ class SudoLauncherTest(unittest.TestCase):
         rendered = installer.render_launcher().decode()
         self.assertIn("NODE='/usr/bin/node'", rendered)
         self.assertIn("MAIN='/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs'", rendered)
+        self.assertIn("CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'", rendered)
         self.assertNotIn("/usr/bin/env node", rendered)
         self.assertIn("Run wops auth commands as your normal user", rendered)
 
