@@ -493,7 +493,7 @@ def apply_mode(
     _verify_python_environment(python)
     if os.path.lexists(target):
         raise InstallError("Target already exists; replacement is not supported.")
-    parent_created = _ensure_secure_parent(target.parent, expected_uid)
+    parent_created = _ensure_secure_parent(target.parent, expected_uid) if require_root else False
     stage: Path | None = None
     try:
         stage = Path(tempfile.mkdtemp(prefix=".local-audit-1.2.2.install-", dir=target.parent))
