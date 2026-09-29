@@ -33,8 +33,8 @@ const serverHelp = `Usage:
 
 Runs one authorized, read-only Linux collection with an approved window of at
 most 30 minutes. The accepted root-owned Local Audit runtime must already be
-installed, and the root-owned sudo launcher must be installed with root-controlled
-Node.js 22 at /usr/bin/node. The command does not remediate the server. Retry after interruption
+installed, and the root-owned sudo launcher must be installed with pinned
+WitnessOps Node.js 22.23.3 at /opt/witnessops/node-22/bin/node. The command does not remediate the server. Retry after interruption
 to reconcile retained state; do not manually recollect or delete retained files.`;
 
 const args = process.argv.slice(2);

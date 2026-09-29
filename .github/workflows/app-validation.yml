@@ -89,6 +89,8 @@ jobs:
           "$WOPS_TEST_PYTHON" -I tests/server-check/producer_missing_sshd_test.py
       - name: Verify root launcher under restricted PATH
         run: sudo -n python3 -B packages/wops-cli/ops/test_wops_sudo_launcher.py
+      - name: Workstation upgrade acceptance (fixture only)
+        run: sudo -n python3 -B packages/wops-cli/ops/test_workstation_upgrade_acceptance.py
       - name: Prepare isolated database configuration
         run: |
           umask 077

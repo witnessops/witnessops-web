@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 NODE='@NODE_PATH@'
+NODE_SHA256='@NODE_SHA256@'
 MAIN='@MAIN_PATH@'
 CLI_ROOT='@CLI_ROOT@'
 
@@ -49,8 +50,8 @@ check_cli_tree() {
 }
 
 check_root_controlled_ancestors "$NODE"
-NODE_ENTRY_OWNER=$(/usr/bin/stat -c %u -- "$NODE") || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
-[ "$NODE_ENTRY_OWNER" = 0 ] || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
+NODE_ENTRY_OWNER=$(/usr/bin/stat -c %u -- "$NODE") || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+[ "$NODE_ENTRY_OWNER" = 0 ] || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
 MAIN_REAL=$(/usr/bin/readlink -f -- "$MAIN") || fail 'The installed CLI entrypoint is unavailable or unsafe.'
 [ "$MAIN_REAL" = "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
 [ -f "$MAIN" ] && [ ! -L "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
@@ -58,13 +59,15 @@ check_cli_tree
 check_root_controlled "$MAIN"
 check_root_controlled_ancestors "$MAIN"
 
-NODE_REAL=$(/usr/bin/readlink -f -- "$NODE") || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
-[ -f "$NODE_REAL" ] && [ -x "$NODE_REAL" ] || fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.'
+NODE_REAL=$(/usr/bin/readlink -f -- "$NODE") || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+[ "$NODE_REAL" = "$NODE" ] && [ -f "$NODE_REAL" ] && [ ! -L "$NODE" ] && [ -x "$NODE_REAL" ] || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
 check_root_controlled "$NODE_REAL"
 check_root_controlled_ancestors "$NODE_REAL"
+NODE_DIGEST_LINE=$(/usr/bin/sha256sum -- "$NODE") || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
+[ "${NODE_DIGEST_LINE%% *}" = "$NODE_SHA256" ] || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
 case "$(/usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin LANG=C "$NODE" --version 2>/dev/null || true)" in
-    v22.*) ;;
-    *) fail 'Install root-controlled Node.js 22 at /usr/bin/node before enabling sudo wops.' ;;
+    v22.23.3) ;;
+    *) fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.' ;;
 esac
 
 case "${SUDO_UID-}" in

@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 from pathlib import Path
-import re
 import stat
 import subprocess
 import tempfile
 
 
-NODE = Path("/usr/bin/node")
+NODE = Path("/opt/witnessops/node-22/bin/node")
+NODE_BINARY_SHA256 = "fde6a4bf8d0562f7751d1a2d6cb9b417c4cfe107bbcb0aa3e9a24e125e348f48"
+NODE_VERSION = "22.23.3"
 MAIN = Path("/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs")
 DESTINATION = Path("/usr/local/bin/wops")
 CLI_ROOT = MAIN.parent.parent
@@ -46,9 +48,9 @@ def _trusted_path(path: Path, *, file: bool, allow_symlink: bool = False) -> Pat
 def render_launcher(node: Path = NODE, main: Path = MAIN, template: Path = TEMPLATE) -> bytes:
     source = template.read_text(encoding="utf-8")
     cli_root = main.parent.parent
-    rendered = (source.replace("@NODE_PATH@", str(node)).replace("@MAIN_PATH@", str(main))
+    rendered = (source.replace("@NODE_PATH@", str(node)).replace("@NODE_SHA256@", NODE_BINARY_SHA256).replace("@MAIN_PATH@", str(main))
                 .replace("@CLI_ROOT@", str(cli_root)))
-    if any(token in rendered for token in ("@NODE_PATH@", "@MAIN_PATH@", "@CLI_ROOT@")):
+    if any(token in rendered for token in ("@NODE_PATH@", "@NODE_SHA256@", "@MAIN_PATH@", "@CLI_ROOT@")):
         raise InstallError("Launcher template contains an unresolved fixed path.")
     return rendered.encode("utf-8")
 
@@ -77,9 +79,14 @@ def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination:
         raise InstallError("Run the sudo launcher installer as root.")
     _trusted_path(node.parent, file=False)
     node_entry = node.lstat()
-    if not (stat.S_ISREG(node_entry.st_mode) or stat.S_ISLNK(node_entry.st_mode)) or node_entry.st_uid != 0:
+    if not stat.S_ISREG(node_entry.st_mode) or stat.S_ISLNK(node_entry.st_mode) or node_entry.st_uid != 0:
         raise InstallError(f"Required Node.js entrypoint is not root-controlled: {node}")
-    _trusted_path(node, file=True, allow_symlink=True)
+    _trusted_path(node, file=True)
+    try:
+        if hashlib.sha256(node.read_bytes()).hexdigest() != NODE_BINARY_SHA256:
+            raise InstallError("Required Node.js binary does not match the pinned WitnessOps runtime.")
+    except OSError as error:
+        raise InstallError("Required Node.js binary is unavailable.") from error
     _trusted_tree(main.parent.parent)
     main_real = _trusted_path(main, file=True)
     _trusted_path(destination.parent, file=False)
@@ -87,9 +94,9 @@ def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination:
         result = subprocess.run([str(node), "--version"], check=True, capture_output=True, text=True,
                                 timeout=5, env=SAFE_ENV)
     except (OSError, subprocess.SubprocessError) as error:
-        raise InstallError("Root-controlled Node.js 22 is required at /usr/bin/node.") from error
-    if not re.fullmatch(r"v22\.\d+\.\d+\s*", result.stdout):
-        raise InstallError("Root-controlled Node.js 22 is required at /usr/bin/node.")
+        raise InstallError("Root-controlled Node.js 22 is required at /opt/witnessops/node-22/bin/node.") from error
+    if result.stdout.strip() != f"v{NODE_VERSION}":
+        raise InstallError("Pinned Node.js 22.23.3 is required at /opt/witnessops/node-22/bin/node.")
     try:
         info = destination.lstat()
     except FileNotFoundError:
@@ -157,7 +164,7 @@ def main() -> int:
         parser.error(str(error))
     print("status=PASS")
     print("launcher=/usr/local/bin/wops")
-    print("node=/usr/bin/node (root-controlled Node.js 22)")
+    print(f"node={NODE} (pinned root-controlled Node.js {NODE_VERSION})")
     print("privileged_command=server check only")
     return 0
 

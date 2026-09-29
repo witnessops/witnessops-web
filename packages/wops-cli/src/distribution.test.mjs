@@ -19,6 +19,7 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.equal(listing.status, 0, listing.stderr);
     assert.match(listing.stdout, /package\/README\.md/);
     assert.match(listing.stdout, /package\/ops\/install_wops_sudo_launcher\.py/);
+    assert.match(listing.stdout, /package\/ops\/install_witnessops_node_22\.py/);
     assert.match(listing.stdout, /package\/ops\/wops-sudo-launcher\.sh\.in/);
     assert.doesNotMatch(listing.stdout, /\.test\.mjs/);
     assert.doesNotMatch(listing.stdout, /test_wops_sudo_launcher\.py/);

@@ -54,6 +54,38 @@ class LocalAuditInstallerTest(unittest.TestCase):
         python.chmod(0o755)
         return runtime
 
+    def upgrade_target(self, root: Path, fingerprint: str) -> tuple[Path, dict[str, bytes]]:
+        target = root / "local-audit-1.2.2"
+        old_report = {
+            "packageVersion": installer.PACKAGE_VERSION,
+            "setuptoolsVersion": installer.SETUPTOOLS_VERSION,
+            "cryptographyVersion": installer.CRYPTOGRAPHY_VERSION,
+            "collectorFingerprint": fingerprint,
+        }
+        old_runtime = self.fake_runtime(root / "old", old_report)
+        target.mkdir(mode=0o755)
+        old_runtime.rename(target / "runtime")
+        staging = target / "staging"
+        staging.mkdir(mode=0o700)
+        wops_staging = staging / "wops"
+        wops_staging.mkdir(mode=0o700)
+        attempt = wops_staging / "attempt-fixture"
+        attempt.mkdir(mode=0o700)
+        files = {
+            "authority.json": b'{"authority":"retained-fixture"}\n',
+            "pending.json": b'{"executionId":"fixture","captureStarted":true}\n',
+        }
+        for name, content in files.items():
+            path = attempt / name
+            path.write_bytes(content)
+            path.chmod(0o600)
+        return target, files
+
+    def fake_upgrade_build(self, report: dict | None = None):
+        def build(stage, _files, _final_runtime, _python, _uid, **_kwargs):
+            self.fake_runtime(stage, report)
+        return build
+
     def test_altered_archive_fails_before_any_installation_path_is_created(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -198,6 +230,80 @@ class LocalAuditInstallerTest(unittest.TestCase):
                 digest = installer.check_mode(producer, target)
             self.assertEqual(digest, installer.ARCHIVE_SHA256)
             self.assertFalse(target.exists())
+
+    def test_upgrade_swaps_only_runtime_and_preserves_retained_failed_attempt_bytes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            producer = self.copy_producer(root)
+            target, expected_files = self.upgrade_target(root, installer.PREVIOUS_COLLECTOR_FINGERPRINT)
+            attempt = target / "staging/wops/attempt-fixture"
+            before = {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files}
+            with patch.object(installer, "_build_runtime", side_effect=self.fake_upgrade_build()):
+                archive_digest, evidence_before, evidence_after, disposition, rollback_reference = installer.upgrade_mode(
+                    producer, target, expected_uid=os.getuid(), require_root=False
+                )
+            after = {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files}
+            self.assertEqual(before, after)
+            self.assertEqual({name: (attempt / name).read_bytes() for name in expected_files}, expected_files)
+            self.assertFalse((attempt / "capture.json").exists())
+            self.assertEqual(
+                installer.validate_runtime_tree(
+                    target / "runtime", os.getuid(), check_ancestors=False,
+                    expected_fingerprint=installer.COLLECTOR_FINGERPRINT,
+                ),
+                installer.COLLECTOR_FINGERPRINT,
+            )
+            self.assertEqual(archive_digest, installer.ARCHIVE_SHA256)
+            self.assertEqual(len(evidence_before), 64)
+            self.assertEqual(evidence_before, evidence_after)
+            self.assertEqual(disposition, "retained-as-rollback-artifact")
+            self.assertEqual(Path(rollback_reference).name, "runtime")
+            self.assertTrue(Path(rollback_reference).is_dir())
+            self.assertEqual(
+                installer.validate_runtime_tree(
+                    Path(rollback_reference), os.getuid(), check_ancestors=False,
+                    expected_fingerprint=installer.PREVIOUS_COLLECTOR_FINGERPRINT,
+                ),
+                installer.PREVIOUS_COLLECTOR_FINGERPRINT,
+            )
+            self.assertEqual({entry.name for entry in target.iterdir()}, {"runtime", "staging"})
+            self.assertEqual(len(list(target.parent.glob(".local-audit-1.2.2.upgrade-*"))), 1)
+
+    def test_upgrade_refuses_unknown_current_fingerprint_before_build(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target, _ = self.upgrade_target(root, "9" * 64)
+            old_runtime_hash = hashlib.sha256((target / "runtime/bin/python3").read_bytes()).hexdigest()
+            with patch.object(installer, "_build_runtime") as build:
+                with self.assertRaisesRegex(installer.InstallError, "version or collector fingerprint"):
+                    installer.upgrade_mode(target=target, expected_uid=os.getuid(), require_root=False)
+                build.assert_not_called()
+            self.assertEqual(hashlib.sha256((target / "runtime/bin/python3").read_bytes()).hexdigest(), old_runtime_hash)
+
+    def test_upgrade_rolls_back_if_published_runtime_fails_final_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target, expected_files = self.upgrade_target(root, installer.PREVIOUS_COLLECTOR_FINGERPRINT)
+            attempt = target / "staging/wops/attempt-fixture"
+            before = {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files}
+            wrong_report = {
+                "packageVersion": installer.PACKAGE_VERSION,
+                "setuptoolsVersion": installer.SETUPTOOLS_VERSION,
+                "cryptographyVersion": installer.CRYPTOGRAPHY_VERSION,
+                "collectorFingerprint": "f" * 64,
+            }
+            with patch.object(installer, "_build_runtime", side_effect=self.fake_upgrade_build(wrong_report)):
+                with self.assertRaisesRegex(installer.InstallError, "version or collector fingerprint"):
+                    installer.upgrade_mode(target=target, expected_uid=os.getuid(), require_root=False)
+            self.assertEqual(
+                installer.validate_runtime_tree(
+                    target / "runtime", os.getuid(), check_ancestors=False,
+                    expected_fingerprint=installer.PREVIOUS_COLLECTOR_FINGERPRINT,
+                ),
+                installer.PREVIOUS_COLLECTOR_FINGERPRINT,
+            )
+            self.assertEqual(before, {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files})
+            self.assertEqual(list(target.parent.glob(".local-audit-1.2.2.upgrade-*")), [])
 
 
 if __name__ == "__main__":
