@@ -37,7 +37,9 @@ export async function retireServerCheck(options={}){
    // A confirmed retirement whose archival was interrupted, possibly after the attempt
    // directory already moved under retired/<id>/. Re-read the server's terminal state for
    // that execution and finish archival; never retire or collect again from this path.
-   const status=await retirementRequest(auth,fetcher,{id:receipt.executionId});
+   // The generic transport message says no local retirement was recorded; here a receipt
+   // exists, so say what is retained. Specific server errors pass through unchanged.
+   let status;try{status=await retirementRequest(auth,fetcher,{id:receipt.executionId});}catch(error){if(error.message?.startsWith('Connection interrupted'))throw new Error('Connection interrupted while confirming a recorded retirement. The local retirement receipt and retained evidence are unchanged; retry this command to finish archival.');throw error;}
    if(status.id!==receipt.executionId||status.requestId!==request.requestId||status.state!=='retired'||status.retiredAt!==receipt.retiredAt||status.retiredBy!==receipt.retiredBy)throw new Error('Server retirement state does not match the local retirement receipt. No evidence was changed.');
    await io.archiveRetiredExecution(base,receipt.executionId,status);
    output(`Execution was already retired. Retained evidence archival completed at ${safe(path.join(base,'retired',receipt.executionId))}. No collection or upload occurred.`);return 0;

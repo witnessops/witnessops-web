@@ -91,6 +91,12 @@ test('retire refuses to resume from a local receipt the server does not confirm'
  await assert.rejects(retireServerCheck(h.options),/does not match the local retirement receipt/);
  assert.deepEqual(archived,[]);assert.equal(h.events.filter(x=>x.startsWith('POST:')).length,0);assert.ok(h.files.has(h.base+'/pending.json'));assert.equal(h.serverState(),'authorized');
 });
+test('an interrupted status read while resuming reports the retained receipt accurately',async()=>{
+ const h=retirementHarness('retired'),archived=interruptedAfterAttemptMoved(h),fetch=h.options.fetch;
+ h.options.fetch=async(url,init)=>{if(url.includes('?executionId='))throw new Error('network');return fetch(url,init);};
+ await assert.rejects(retireServerCheck(h.options),error=>/local retirement receipt and retained evidence are unchanged/.test(error.message)&&!/No local retirement was recorded/.test(error.message));
+ assert.deepEqual(archived,[]);assert.ok(h.files.has(h.base+'/pending.json'));assert.equal(h.events.filter(x=>x.startsWith('POST:')).length,0);
+});
 test('filesystem: the receipt of an archival interrupted after the attempt moved is found and archival completes',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'wops-retire-resume-test-')),uid=process.getuid(),id='33333333-3333-4333-8333-333333333333',requestId='44444444-4444-4444-8444-444444444444',base=path.join(root,'staging','wops','a'.repeat(64)),attempt=path.join(base,id),bucket=path.join(base,'retired',id),pending=Buffer.from(JSON.stringify({request:{requestId},captureStarted:true})),authority=Buffer.from(JSON.stringify({authorization_id:id})),status={id,state:'retired',requestId,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555'};
  try{await mkdir(attempt,{recursive:true,mode:0o700});for(const dir of [base,attempt])await chmod(dir,0o700);await writeFile(path.join(base,'pending.json'),pending,{mode:0o600});await writeFile(path.join(attempt,'authority.json'),authority,{mode:0o600});
