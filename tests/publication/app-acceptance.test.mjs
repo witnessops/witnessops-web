@@ -119,3 +119,17 @@ test('actual checksum commands remain verifiable after artifact extraction and d
     assert.equal(run(check,downloaded).status,0);writeFileSync(join(downloaded,'image.tar'),'changed bytes');assert.notEqual(run(check,downloaded).status,0);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+test('timing instrumentation preserves serial browser coverage and separates install time', () => {
+  const steps = workflow.jobs.app.steps;
+  const install = steps.find(s => s.id === 'browser_install');
+  const browser = steps.find(s => s.id === 'browser');
+  assert.equal(install.run, 'pnpm exec playwright install --with-deps chromium webkit');
+  assert.equal(browser.run, 'pnpm test:app-browser');
+  assert.equal(browser.env.APP_CI_TIMINGS, '1');
+  assert.ok(steps.indexOf(install) < steps.indexOf(browser));
+  const upload = steps.find(s => s.with?.name === 'app-browser-timings');
+  assert.equal(upload.if, 'always()');
+  assert.equal(upload.with.path, '${{ runner.temp }}/app-browser-timings/summary.json');
+  assert.equal(upload.with['retention-days'], 3);
+});

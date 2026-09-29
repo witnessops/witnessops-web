@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 export default defineConfig({
   testDir: ".", testMatch: "*.spec.ts", outputDir: join(tmpdir(), "wops-app-foundation-browser"),
-  forbidOnly: Boolean(process.env.CI), retries: 0, workers: 1, timeout: 45_000, reporter: "list",
+  forbidOnly: Boolean(process.env.CI), retries: 0, workers: 1, timeout: 45_000, reporter: process.env.APP_CI_TIMINGS === "1" ? [["list"], ["./safe-timing-reporter.ts"]] : "list",
   use: { baseURL: "http://127.0.0.1:3022", trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }, { name: "webkit", testIgnore: "report-pdf.spec.ts", use: { browserName: "webkit" } }],
   webServer: {
