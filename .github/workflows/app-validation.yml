@@ -118,14 +118,6 @@ jobs:
       - name: Populated migration upgrade
         id: migration
         run: node tests/publication/upgrade.mjs
-      - name: Install app browser binaries and system dependencies
-        id: browser_install
-        run: pnpm exec playwright install --with-deps chromium webkit
-      - name: App browser, CLI authorization, Linux and PDF paths
-        id: browser
-        env:
-          APP_CI_TIMINGS: '1'
-        run: pnpm test:app-browser
       - name: Image parity and OCI regression
         id: parity
         run: |
@@ -138,14 +130,6 @@ jobs:
         env:
           APP_STEP_RESULTS: ${{ toJSON(steps) }}
         run: node tests/publication/safe-ci-diagnostics.mjs
-      - name: Preserve content-free browser timings
-        if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: app-browser-timings
-          retention-days: 3
-          if-no-files-found: warn
-          path: ${{ runner.temp }}/app-browser-timings/summary.json
       - name: Preserve safe app diagnostics
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -154,6 +138,111 @@ jobs:
           retention-days: 3
           if-no-files-found: error
           path: ${{ runner.temp }}/app-safe-diagnostics/summary.json
+  browser:
+    name: App browser (${{ matrix.project }})
+    needs: supply_chain_gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, webkit]
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: app_test
+          POSTGRES_PASSWORD: disposable-ci-password
+          POSTGRES_DB: witnessops_test
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app_test -d witnessops_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify dependency admission before package tooling
+        env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          case "${EVENT_NAME}" in
+            pull_request) comparison_base="${PR_BASE}" ;;
+            push) comparison_base="${PUSH_BEFORE}" ;;
+            workflow_dispatch)
+              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+              comparison_base="${EVENT_SHA}^"
+              ;;
+            *) echo "Unsupported app admission event." >&2; exit 1 ;;
+          esac
+          if [ "${EVENT_NAME}" != workflow_dispatch ]; then
+            [[ "${comparison_base}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            [[ "${comparison_base}" != '0000000000000000000000000000000000000000' ]] || exit 1
+            [[ "${comparison_base}" != "${EVENT_SHA}" ]] || exit 1
+          fi
+          git cat-file -e "${comparison_base}^{commit}" || exit 1
+          python3 -I tools/supply-chain-gate/verify_install_admission.py
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Frozen install
+        run: pnpm install --frozen-lockfile
+      - name: Verify and prepare accepted producer (no operator checkout)
+        run: |
+          python tests/publication/producer_identity_test.py
+          python tests/server-check/producer/prepare.py "$RUNNER_TEMP/accepted-producer"
+          echo "WOPS_TEST_PYTHON=$RUNNER_TEMP/accepted-producer/venv/bin/python" >> "$GITHUB_ENV"
+      - name: Prepare isolated database configuration
+        run: |
+          umask 077
+          printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+      - name: Install app browser binaries and system dependencies
+        id: browser_install
+        run: pnpm exec playwright install --with-deps "${{ matrix.project }}"
+      - name: App browser, CLI authorization, Linux and PDF paths
+        id: browser
+        env:
+          APP_CI_TIMINGS: '1'
+        run: pnpm test:app-browser --project=${{ matrix.project }}
+      - name: Preserve content-free browser timings
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-browser-timings-${{ matrix.project }}
+          retention-days: 3
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/app-browser-timings/summary.json
+      - name: Collect allowlisted failure diagnostics
+        if: always()
+        env:
+          APP_STEP_RESULTS: ${{ toJSON(steps) }}
+        run: node tests/publication/safe-ci-diagnostics.mjs
+      - name: Preserve safe browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-browser-diagnostics-${{ matrix.project }}
+          retention-days: 3
+          if-no-files-found: error
+          path: ${{ runner.temp }}/app-safe-diagnostics/summary.json
+
   image:
     name: App image and authenticated runtime
     needs: supply_chain_gate
@@ -276,7 +365,7 @@ jobs:
 
   acceptance:
     name: App acceptance
-    needs: [supply_chain_gate, app, image]
+    needs: [supply_chain_gate, app, browser, image]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 2
@@ -289,7 +378,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, sys
-          required = ("supply_chain_gate", "app", "image")
+          required = ("supply_chain_gate", "app", "browser", "image")
           try:
               needs = json.loads(os.environ.get("APP_ACCEPTANCE_NEEDS", ""))
               accepted = isinstance(needs, dict) and set(needs) == set(required) and all(
@@ -301,5 +390,5 @@ jobs:
           if not accepted:
               print("App acceptance failed: every required prerequisite must succeed.", file=sys.stderr)
               sys.exit(1)
-          print("App acceptance passed: supply_chain_gate, app and image succeeded.")
+          print("App acceptance passed: supply_chain_gate, app, browser and image succeeded.")
           PY
