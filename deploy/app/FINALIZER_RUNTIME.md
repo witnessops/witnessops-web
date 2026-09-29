@@ -1,6 +1,6 @@
 # App finalizer runtime contract
 
-The image bundles Python 3.14.7 and the accepted Local Audit 1.2.2 source from implementation `fce41c194522e9d08d0683aa786bd4361c5ae0c2`. The immutable archive is verified before installation; its collector fingerprint remains `2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8`. The archive contains actual producer modules, not a simulated finalizer. Cryptography is 50.0.1. No private signing material is built into the image.
+The image bundles Python 3.14.7 and the accepted Local Audit 1.2.2 source based on implementation `fce41c194522e9d08d0683aa786bd4361c5ae0c2`, with the controlled `missing-sshd-is-an-unknown-ssh-probe` refresh recorded in `tests/server-check/producer/identity.json`. The immutable archive is verified before installation; its collector fingerprint is `ac93a93dc1d89fc4c2a467b83a5131482d21a84342f1ac176823adf8bb0d372a`. The archive contains actual producer modules, not a simulated finalizer. Cryptography is 50.0.1. No private signing material is built into the image.
 
 The lifecycle definition mounts durable host custody at `/var/lib/witnessops-finalizer` read/write and a separately provisioned key at `/run/witnessops-finalizer/key` read-only. Both must be UID 1001-owned, with no group/other access; custody must be a real directory (0700) and the key a regular private file. Bind sources must already exist. Provisioning these production paths or the key is a separate operator action, not performed by this code change.
 

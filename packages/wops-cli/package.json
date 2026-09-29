@@ -7,6 +7,8 @@
   "bin": { "wops": "src/main.mjs" },
   "files": [
     "README.md",
+    "ops/install_wops_sudo_launcher.py",
+    "ops/wops-sudo-launcher.sh.in",
     "src/commands.mjs",
     "src/listener-endpoints.mjs",
     "src/main.mjs",

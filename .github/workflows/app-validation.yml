@@ -83,6 +83,12 @@ jobs:
           python tests/publication/producer_identity_test.py
           python tests/server-check/producer/prepare.py "$RUNNER_TEMP/accepted-producer"
           echo "WOPS_TEST_PYTHON=$RUNNER_TEMP/accepted-producer/venv/bin/python" >> "$GITHUB_ENV"
+      - name: Verify producer refresh and missing-sshd capture regression
+        run: |
+          python tests/publication/producer_refresh_test.py
+          "$WOPS_TEST_PYTHON" -I tests/server-check/producer_missing_sshd_test.py
+      - name: Verify root launcher under restricted PATH
+        run: sudo -n python3 -B packages/wops-cli/ops/test_wops_sudo_launcher.py
       - name: Prepare isolated database configuration
         run: |
           umask 077
