@@ -32,6 +32,16 @@ export async function retireServerCheck(options={}){
   const pendingFile=path.join(base,'pending.json'),saved=await io.privateRead(pendingFile,65_536);if(!saved){output('No active retained server-check request for this host and workspace.');return 0;}
   let journal;try{journal=JSON.parse(saved.toString('utf8'));}catch{throw new Error('Retained pending journal is malformed. Operator review is required; no evidence was changed.');}
   const request=journal?.request;if(!request||!/^[a-f0-9-]{36}$/.test(request.requestId)||request.hostname!==host||!request.purpose||journal.captureDigest)throw new Error('Retained pending journal does not match this host or is not eligible for retirement. No evidence was changed.');
+  const receipt=await io.findRetirementReceipt(base,request.requestId);
+  if(receipt){
+   // A confirmed retirement whose archival was interrupted, possibly after the attempt
+   // directory already moved under retired/<id>/. Re-read the server's terminal state for
+   // that execution and finish archival; never retire or collect again from this path.
+   const status=await retirementRequest(auth,fetcher,{id:receipt.executionId});
+   if(status.id!==receipt.executionId||status.requestId!==request.requestId||status.state!=='retired'||status.retiredAt!==receipt.retiredAt||status.retiredBy!==receipt.retiredBy)throw new Error('Server retirement state does not match the local retirement receipt. No evidence was changed.');
+   await io.archiveRetiredExecution(base,receipt.executionId,status);
+   output(`Execution was already retired. Retained evidence archival completed at ${safe(path.join(base,'retired',receipt.executionId))}. No collection or upload occurred.`);return 0;
+  }
   const entries=await io.privateEntries(base),candidates=[];
   for(const entry of entries){if(entry.type!=='directory'||!/^[a-f0-9-]{36}$/.test(entry.name))continue;const dir=path.join(base,entry.name),bytes=await io.privateRead(path.join(dir,'authority.json'),65_536);if(!bytes)continue;const capture=await io.privateRead(path.join(dir,'capture.json'),25*1024*1024);if(capture)continue;let authority;try{authority=JSON.parse(bytes.toString('utf8'));}catch{continue;}const authorityAsset=authority?.target?.asset_id,assetMatches=request.assetId===null?/^[a-f0-9-]{36}$/.test(authorityAsset??''):authorityAsset===request.assetId;const declaration=authority?.authority_source?.operator_declaration;if(authority?.authorization_id===entry.name&&authority?.target?.allowed_hostnames?.[0]===host&&assetMatches&&JSON.stringify(authority?.target?.expected_listeners)===JSON.stringify(request.expectedListeners)&&declaration?.customer===context.workspace&&declaration?.purpose===request.purpose&&declaration?.expected_ssh_exposure===request.sshExposure)candidates.push({id:entry.name,authority});}
   if(candidates.length!==1)throw new Error(candidates.length?'Multiple retained executions match this pending request. Operator review is required.':'No exact retained authorized execution matches this pending request. No evidence was changed.');
