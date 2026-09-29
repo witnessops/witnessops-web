@@ -317,7 +317,12 @@ test('packet reader refuses missing O_NOFOLLOW before any file operation', () =>
     fstatSync: unexpected('stat'),
     readSync: unexpected('read'),
     closeSync: unexpected('close'),
-  }), error => error instanceof IntakeError && error.code === 'FILE_UNAVAILABLE' && error.location === '/input');
+  }), {
+    name: 'IntakeError',
+    code: 'FILE_UNAVAILABLE',
+    location: '/input',
+    message: 'FILE_UNAVAILABLE at /input',
+  });
   assert.deepEqual(calls, []);
 });
 
