@@ -1,3 +1,4 @@
+import { extractOpenAIUsage, type OpenAIUsageMetrics } from "./openai-usage";
 import type { DocsAssistantAnswer } from "./answer-contract";
 import { normalizeDocsAssistantAnswer } from "./answer-normalizer";
 import {
@@ -22,7 +23,12 @@ export type DocsAssistantFetch = typeof fetch;
 export const DOCS_ASSISTANT_REQUEST_TIMEOUT_MS = 12_000;
 export const DOCS_ASSISTANT_MAX_OUTPUT_TOKENS = 1_200;
 
-export interface DocsAssistantProviderEvent {
+export interface DocsAssistantProviderEvent extends OpenAIUsageMetrics {
+  model: string;
+  workload: "docs-assistant";
+  prompt_version: "docs-assistant.v1";
+  schema_version: "docs-assistant.answer.v1";
+  attempt: "initial";
   event: "openai_response" | "openai_error";
   request_id: string | null;
   status: number | null;
@@ -273,6 +279,10 @@ export async function executeDocsAssistantResponsesRequest(args: {
   });
   const controller = new AbortController();
   const startedAt = Date.now();
+  let requestId: string | null = null;
+  let status: number | null = null;
+  let errorClass: string | null = null;
+  let usage: OpenAIUsageMetrics = {};
   let timeoutTriggered = false;
   const timeout = setTimeout(() => {
     timeoutTriggered = true;
@@ -289,45 +299,51 @@ export async function executeDocsAssistantResponsesRequest(args: {
       body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
-    const requestId = response.headers.get("x-request-id");
-
-    logger({
-      event: response.ok ? "openai_response" : "openai_error",
-      request_id: requestId,
-      status: response.status,
-      duration_ms: Date.now() - startedAt,
-      error_class: response.ok ? null : "provider_http_error",
-    });
+    requestId = response.headers.get("x-request-id");
+    status = response.status;
 
     if (!response.ok) {
       throw new DocsAssistantProviderError("provider_http_error");
     }
 
     try {
-      return await response.json();
+      const rawResponse: unknown = await response.json();
+      usage = extractOpenAIUsage(rawResponse);
+      return rawResponse;
     } catch {
       throw new DocsAssistantProviderError("provider_invalid_response");
     }
   } catch (error) {
     if (error instanceof DocsAssistantProviderError) {
+      errorClass = error.errorClass;
       throw error;
     }
 
-    const errorClass =
+    errorClass =
       timeoutTriggered ||
       (error instanceof Error && error.name === "AbortError")
         ? "provider_timeout"
         : "provider_unavailable";
-    logger({
-      event: "openai_error",
-      request_id: null,
-      status: null,
-      duration_ms: Date.now() - startedAt,
-      error_class: errorClass,
-    });
     throw new DocsAssistantProviderError(errorClass);
   } finally {
     clearTimeout(timeout);
+    try {
+      logger({
+        ...usage,
+        model: args.config.model,
+        workload: "docs-assistant",
+        prompt_version: "docs-assistant.v1",
+        schema_version: "docs-assistant.answer.v1",
+        attempt: "initial",
+        event: errorClass ? "openai_error" : "openai_response",
+        request_id: requestId,
+        status,
+        duration_ms: Date.now() - startedAt,
+        error_class: errorClass,
+      });
+    } catch {
+      // Measurement failures must not change provider behavior or trigger retries.
+    }
   }
 }
 

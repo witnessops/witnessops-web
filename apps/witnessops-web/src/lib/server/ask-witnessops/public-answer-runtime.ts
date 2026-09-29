@@ -1,3 +1,4 @@
+import { extractOpenAIUsage, type OpenAIUsageMetrics } from "@/lib/docs-assistant/openai-usage";
 import "server-only";
 
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
@@ -260,7 +261,12 @@ export function normalizePublicAskResponse(response: unknown) {
   };
 }
 
-export type PublicAskProviderEvent = {
+export type PublicAskProviderEvent = OpenAIUsageMetrics & {
+  model: string;
+  workload: "public-ask";
+  prompt_version: "public-ask.v1";
+  schema_version: "witnessops_public_answer.v1";
+  attempt: "initial";
   event: "openai_response" | "openai_error";
   request_id: string | null;
   status: number | null;
@@ -280,6 +286,7 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
   let status: number | null = null;
   let requestId: string | null = null;
   let errorClass: string | null = null;
+  let usage: OpenAIUsageMetrics = {};
   const logger = args.logger ?? ((event) => console.info("[ask-witnessops:openai]", JSON.stringify(event)));
   try {
     const response = await (args.fetchImpl ?? globalThis.fetch)("https://api.openai.com/v1/responses", {
@@ -291,7 +298,9 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
     status = response.status;
     requestId = response.headers.get("x-request-id");
     if (!response.ok) { errorClass = "provider_http_error"; return null; }
-    const normalized = normalizePublicAskResponse(await response.json());
+    const rawResponse: unknown = await response.json();
+    usage = extractOpenAIUsage(rawResponse);
+    const normalized = normalizePublicAskResponse(rawResponse);
     const answer = normalized ? applyConversationContract(normalized, args) : null;
     if (!answer) errorClass = "provider_invalid_answer";
     return answer;
@@ -301,7 +310,23 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
   } finally {
     clearTimeout(timer);
     // Keep visitor questions, generated prose, contact details and API keys out of logs.
-    logger({ event: errorClass ? "openai_error" : "openai_response", request_id: requestId, status, duration_ms: Date.now() - start, error_class: errorClass });
+    try {
+      logger({
+        ...usage,
+        model: args.config.model,
+        workload: "public-ask",
+        prompt_version: "public-ask.v1",
+        schema_version: "witnessops_public_answer.v1",
+        attempt: "initial",
+        event: errorClass ? "openai_error" : "openai_response",
+        request_id: requestId,
+        status,
+        duration_ms: Date.now() - start,
+        error_class: errorClass,
+      });
+    } catch {
+      // Measurement failures must not change provider behavior or trigger retries.
+    }
   }
 }
 
