@@ -19,7 +19,7 @@ export default class SafeTimingReporter implements Reporter {
     this.attempts.push({
       test_id: testKey(test),
       status: statuses.has(result.status) ? result.status : "unknown",
-      duration_ms: count(result.duration),
+      duration_ms: count(Math.round(result.duration)),
       retry: count(result.retry),
     });
   }
