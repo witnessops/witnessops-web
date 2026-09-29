@@ -51,12 +51,12 @@ CFFI_WHEEL_SHA256 = {
     14: "afb8db5439b81cf9c9d0c80404b60c3cc9c3add93e114dcae767f1477cb53775",
 }
 TARGET = Path("/opt/witnessops/local-audit-1.2.2")
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-PRODUCER = REPOSITORY_ROOT / "tests/server-check/producer"
+PRODUCER = Path(__file__).resolve().parent / "producer"
 MAX_RUNTIME_FILES = 30_000
 MAX_EVIDENCE_ENTRIES = 100_000
 MAX_EVIDENCE_BYTES = 2 * 1024 * 1024 * 1024
 PREVIOUS_COLLECTOR_FINGERPRINT = "2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8"
+RUNTIME_LOCK_NAME = ".local-audit-1.2.2.runtime.lock"
 RUNTIME_PROBE = (
     "import json; from importlib.metadata import version; import cryptography; "
     "from witnessops_local_audit.package import source_fingerprint, finalize_product; "
@@ -589,6 +589,30 @@ def _rename_exchange(left: Path, right: Path) -> None:
         raise InstallError("Atomic runtime exchange failed; installed runtime was not intentionally changed.")
 
 
+def _acquire_runtime_exclusive_lock(target: Path, expected_uid: int) -> int:
+    lock_path = target.parent / RUNTIME_LOCK_NAME
+    try:
+        info = lock_path.lstat()
+        if (not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode)
+                or info.st_uid != expected_uid or stat.S_IMODE(info.st_mode) != 0o600):
+            raise InstallError("Shared runtime lock custody is unsafe; upgrade refused.")
+        descriptor = os.open(lock_path, os.O_RDWR | getattr(os, "O_NOFOLLOW", 0))
+        opened = os.fstat(descriptor)
+        if (opened.st_dev, opened.st_ino, opened.st_uid, stat.S_IMODE(opened.st_mode)) != (
+            info.st_dev, info.st_ino, expected_uid, 0o600
+        ):
+            os.close(descriptor)
+            raise InstallError("Shared runtime lock changed during inspection; upgrade refused.")
+    except OSError as error:
+        raise InstallError("Shared runtime lock is unavailable; install the current root launcher first.") from error
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        os.close(descriptor)
+        raise InstallError("A server check is using the Local Audit runtime; upgrade refused.") from error
+    return descriptor
+
+
 def _check_upgrade_layout(target: Path, expected_uid: int, *, require_root: bool) -> tuple[str, str]:
     if require_root and target != TARGET:
         raise InstallError("Only the fixed Local Audit runtime target is supported.")
@@ -642,6 +666,7 @@ def _upgrade_mode_locked(
     files, archive_digest = load_accepted_source(producer)
     parent_created = _ensure_secure_parent(target.parent, expected_uid) if require_root else False
     stage: Path | None = None
+    runtime_lock_fd: int | None = None
     exchanged = False
     retain_stage = False
     try:
@@ -659,6 +684,9 @@ def _upgrade_mode_locked(
         if temporary_staging.exists():
             shutil.rmtree(temporary_staging)
         stage.chmod(0o700)
+        # The installed launcher holds this same lock shared for the complete
+        # privileged CLI process. Do not exchange runtime code during a check.
+        runtime_lock_fd = _acquire_runtime_exclusive_lock(target, expected_uid)
         _rename_exchange(stage / "runtime", target / "runtime")
         exchanged = True
         _fsync_directory(target)
@@ -703,6 +731,8 @@ def _upgrade_mode_locked(
         stage = None
         return archive_digest, evidence_before, evidence_after, "retained-as-rollback-artifact", str(rollback_reference)
     finally:
+        if runtime_lock_fd is not None:
+            os.close(runtime_lock_fd)
         if stage is not None and not retain_stage:
             # Before exchange this is only the staged new runtime. After a
             # successful exchange stage/runtime is the old runtime; preserve

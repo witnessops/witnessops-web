@@ -6,12 +6,14 @@ import hashlib
 import io
 import json
 from pathlib import Path, PurePosixPath
+import shutil
 import tarfile
 
 
 ROOT = Path(__file__).resolve().parent
 ARCHIVE = ROOT / "local-audit-1.2.2.tar.gz"
 IDENTITY = ROOT / "identity.json"
+PACKAGED_PRODUCER = ROOT.parents[2] / "packages/wops-cli/ops/producer"
 REFRESH_ID = "missing-sshd-is-an-unknown-ssh-probe"
 BASE_ARCHIVE_SHA256 = "f5797a09d9cbaa87b55dd8511aef7316d1a3a5317df245a3d66f30e2b1a8a884"
 BASE_OPERATOR_SHA256 = "416c4a6ce45c9f8d7ca8039b42fa6989962bfae57cb373703640c8fc96ac36b1"
@@ -114,7 +116,11 @@ def main() -> None:
     archive_bytes = ARCHIVE.read_bytes()
     updated, refreshed_archive = refresh(identity, archive_bytes)
     ARCHIVE.write_bytes(refreshed_archive)
-    IDENTITY.write_text(json.dumps(updated, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+    identity_bytes = (json.dumps(updated, indent=2, sort_keys=False) + "\n").encode("utf-8")
+    IDENTITY.write_bytes(identity_bytes)
+    PACKAGED_PRODUCER.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ARCHIVE, PACKAGED_PRODUCER / ARCHIVE.name)
+    (PACKAGED_PRODUCER / IDENTITY.name).write_bytes(identity_bytes)
     print(f"refresh_id={REFRESH_ID}")
     print(f"artifact_sha256={updated['artifactSha256']}")
     print(f"collector_fingerprint={updated['collectorFingerprint']}")

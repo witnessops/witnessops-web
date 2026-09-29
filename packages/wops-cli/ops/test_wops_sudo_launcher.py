@@ -17,6 +17,8 @@ class SudoLauncherTest(unittest.TestCase):
     def test_production_template_uses_fixed_interpreter_and_entrypoint(self):
         rendered = installer.render_launcher().decode()
         self.assertIn("NODE='/opt/witnessops/node-22/bin/node'", rendered)
+        self.assertIn("RUNTIME_LOCK='/opt/witnessops/.local-audit-1.2.2.runtime.lock'", rendered)
+        self.assertIn("exec /usr/bin/flock --shared", rendered)
         self.assertIn("MAIN='/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs'", rendered)
         self.assertIn("CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'", rendered)
         self.assertNotIn("/usr/bin/env node", rendered)
@@ -65,10 +67,13 @@ class SudoLauncherTest(unittest.TestCase):
             main = source_dir / "main.mjs"
             launcher = root / "wops"
             marker = root / "should-not-execute"
+            runtime_lock = root / "runtime.lock"
             node.write_text(
                 "#!/bin/sh\n"
                 "[ -z \"${NODE_OPTIONS-}\" ] || { printf 'NODE_OPTIONS leaked\\n' >&2; exit 42; }\n"
                 "if [ \"${1-}\" = --version ]; then printf 'v22.23.3\\n'; exit 0; fi\n"
+                f"if /usr/bin/flock --exclusive --nonblock '{runtime_lock}' /bin/true; then printf 'runtime lock missing\\n' >&2; exit 43; fi\n"
+                "printf 'shared-runtime-lock-held\\n'\n"
                 "printf 'fixed-node-invoked\\n'\n"
                 "printf 'arg=%s\\n' \"$@\"\n",
                 encoding="utf-8",
@@ -78,7 +83,7 @@ class SudoLauncherTest(unittest.TestCase):
             main.write_text("// root-owned test entrypoint\n", encoding="utf-8")
             main.chmod(0o644)
             with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
-                installer.apply(node=node, main=main, destination=launcher)
+                installer.apply(node=node, main=main, destination=launcher, runtime_lock=runtime_lock)
             launcher_stat = launcher.stat()
             self.assertEqual(launcher_stat.st_uid, 0)
             self.assertEqual(stat.S_IMODE(launcher_stat.st_mode), 0o755)
@@ -99,6 +104,7 @@ class SudoLauncherTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("fixed-node-invoked", result.stdout)
+            self.assertIn("shared-runtime-lock-held", result.stdout)
             self.assertIn(f"arg={main}", result.stdout)
             self.assertIn(f"arg={unsafe_argument}", result.stdout)
             self.assertFalse(marker.exists())

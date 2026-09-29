@@ -2,8 +2,10 @@
 set -eu
 NODE='@NODE_PATH@'
 NODE_SHA256='@NODE_SHA256@'
+RUNTIME_LOCK='@RUNTIME_LOCK@'
 MAIN='@MAIN_PATH@'
 CLI_ROOT='@CLI_ROOT@'
+FLOCK='/usr/bin/flock'
 
 fail() { printf '%s\n' "$1" >&2; exit 126; }
 
@@ -63,6 +65,11 @@ NODE_REAL=$(/usr/bin/readlink -f -- "$NODE") || fail 'Install the pinned Witness
 [ "$NODE_REAL" = "$NODE" ] && [ -f "$NODE_REAL" ] && [ ! -L "$NODE" ] && [ -x "$NODE_REAL" ] || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
 check_root_controlled "$NODE_REAL"
 check_root_controlled_ancestors "$NODE_REAL"
+check_root_controlled "$FLOCK"
+check_root_controlled_ancestors "$FLOCK"
+check_root_controlled "$RUNTIME_LOCK"
+check_root_controlled_ancestors "$RUNTIME_LOCK"
+[ "$(/usr/bin/stat -c %a -- "$RUNTIME_LOCK")" = 600 ] || fail 'The shared Local Audit runtime lock is unavailable or unsafe.'
 NODE_DIGEST_LINE=$(/usr/bin/sha256sum -- "$NODE") || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
 [ "${NODE_DIGEST_LINE%% *}" = "$NODE_SHA256" ] || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
 case "$(/usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin LANG=C "$NODE" --version 2>/dev/null || true)" in
@@ -73,7 +80,7 @@ esac
 case "${SUDO_UID-}" in
     ''|*[!0-9]*) fail 'Use sudo from a signed-in normal account.' ;;
 esac
-exec /usr/bin/env -i \
+exec /usr/bin/flock --shared "$RUNTIME_LOCK" /usr/bin/env -i \
     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     LANG=C.UTF-8 \
     SUDO_UID="$SUDO_UID" \

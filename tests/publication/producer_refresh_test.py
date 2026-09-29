@@ -42,6 +42,14 @@ class ProducerRefreshTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hash does not match"):
             refresh.refresh(identity, archive + b"changed")
 
+    def test_packaged_upgrade_source_is_the_same_accepted_archive_and_identity(self):
+        packaged = ROOT.parents[2] / "packages/wops-cli/ops/producer"
+        self.assertEqual((packaged / "identity.json").read_bytes(), (ROOT / "identity.json").read_bytes())
+        self.assertEqual(
+            (packaged / "local-audit-1.2.2.tar.gz").read_bytes(),
+            (ROOT / "local-audit-1.2.2.tar.gz").read_bytes(),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

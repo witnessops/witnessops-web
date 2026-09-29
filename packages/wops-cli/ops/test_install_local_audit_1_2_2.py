@@ -65,6 +65,9 @@ class LocalAuditInstallerTest(unittest.TestCase):
         old_runtime = self.fake_runtime(root / "old", old_report)
         target.mkdir(mode=0o755)
         old_runtime.rename(target / "runtime")
+        runtime_lock = target.parent / installer.RUNTIME_LOCK_NAME
+        runtime_lock.write_bytes(b"")
+        runtime_lock.chmod(0o600)
         staging = target / "staging"
         staging.mkdir(mode=0o700)
         wops_staging = staging / "wops"
@@ -279,6 +282,26 @@ class LocalAuditInstallerTest(unittest.TestCase):
                     installer.upgrade_mode(target=target, expected_uid=os.getuid(), require_root=False)
                 build.assert_not_called()
             self.assertEqual(hashlib.sha256((target / "runtime/bin/python3").read_bytes()).hexdigest(), old_runtime_hash)
+
+    def test_upgrade_refuses_while_supported_launcher_holds_shared_runtime_lock(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target, expected_files = self.upgrade_target(root, installer.PREVIOUS_COLLECTOR_FINGERPRINT)
+            attempt = target / "staging/wops/attempt-fixture"
+            before = {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files}
+            runtime_before = hashlib.sha256((target / "runtime/bin/python3").read_bytes()).hexdigest()
+            lock_path = root / installer.RUNTIME_LOCK_NAME
+            descriptor = os.open(lock_path, os.O_RDWR)
+            try:
+                installer.fcntl.flock(descriptor, installer.fcntl.LOCK_SH | installer.fcntl.LOCK_NB)
+                with patch.object(installer, "_build_runtime", side_effect=self.fake_upgrade_build()):
+                    with self.assertRaisesRegex(installer.InstallError, "server check is using"):
+                        installer.upgrade_mode(target=target, expected_uid=os.getuid(), require_root=False)
+            finally:
+                os.close(descriptor)
+            self.assertEqual(runtime_before, hashlib.sha256((target / "runtime/bin/python3").read_bytes()).hexdigest())
+            self.assertEqual(before, {name: hashlib.sha256((attempt / name).read_bytes()).hexdigest() for name in expected_files})
+            self.assertEqual(list(root.glob(".local-audit-1.2.2.upgrade-*")), [])
 
     def test_upgrade_rolls_back_if_published_runtime_fails_final_verification(self):
         with tempfile.TemporaryDirectory() as temp:

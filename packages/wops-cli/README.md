@@ -53,23 +53,9 @@ sudo /opt/witnessops/node-22/bin/node \
 wops auth status
 ```
 
-The Local Audit runtime is a separate accepted producer. First install uses
-`install_local_audit_1_2_2.py --apply`. The one approved workstation transition
-from the original collector fingerprint uses its explicit `--upgrade` mode:
-
-```sh
-sudo python3 -B /usr/local/lib/node_modules/@witnessops/cli/ops/install_local_audit_1_2_2.py --upgrade
-```
-
-That operation validates the existing root-owned runtime and layout, accepts
-only the recorded previous fingerprint, atomically exchanges only `runtime/`,
-and verifies `staging/` is byte-identical before and after. The previous runtime
-is retained in a root-only sibling rollback directory and its exact reference
-is printed. Unknown fingerprints, unexpected entries, or changed evidence
-refuse the upgrade.
-
-Install the root-owned launcher separately after the new CLI package and Node
-runtime are in place:
+Install the root-owned launcher after the new CLI package and Node runtime are
+in place. This creates the shared root-only runtime lock used to prevent an
+upgrade during an active `sudo wops server check`:
 
 ```sh
 sudo python3 -B /usr/local/lib/node_modules/@witnessops/cli/ops/install_wops_sudo_launcher.py --check
@@ -78,11 +64,30 @@ sudo wops server check --help
 ```
 
 The launcher verifies the fixed Node binary digest, version and custody, then
-permits only `sudo wops server check`. Authentication commands remain normal
-user commands using the user's own Node and credential. The `--help` check does
-not authenticate, create an execution, invoke a collector, or upload evidence.
-An actual server check still requires active CLI authorization and a separate
+holds the shared runtime lock for the life of the check process. It permits
+only `sudo wops server check`. Authentication commands remain normal user
+commands using the user's own Node and credential. The `--help` check does not
+authenticate, create an execution, invoke a collector, or upload evidence. An
+actual server check still requires active CLI authorization and a separate
 operator confirmation.
+
+The accepted Local Audit installer and producer archive are included in this
+CLI package, so the upgrade does not need a repository checkout. First install
+uses `install_local_audit_1_2_2.py --apply`. The one approved workstation
+transition from the original collector fingerprint uses its explicit
+`--upgrade` mode after the launcher is installed:
+
+```sh
+sudo python3 -B /usr/local/lib/node_modules/@witnessops/cli/ops/install_local_audit_1_2_2.py --upgrade
+```
+
+That operation validates the existing root-owned runtime and layout, accepts
+only the recorded previous fingerprint, builds and validates a sibling runtime,
+then takes the exclusive runtime lock and atomically exchanges only `runtime/`.
+It verifies `staging/` is byte-identical before and after. The previous runtime
+is retained in a root-only sibling rollback directory and its exact reference
+is printed. Unknown fingerprints, unexpected entries, active checks, or changed
+evidence refuse the upgrade.
 
 To remove the launcher, run its `--remove` mode. To remove the Node runtime,
 run its `--remove` mode; removal refuses a tree that does not match the pinned

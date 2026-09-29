@@ -8,7 +8,9 @@
   "files": [
     "README.md",
     "ops/install_wops_sudo_launcher.py",
+    "ops/install_local_audit_1_2_2.py",
     "ops/install_witnessops_node_22.py",
+    "ops/producer/",
     "ops/wops-sudo-launcher.sh.in",
     "src/commands.mjs",
     "src/listener-endpoints.mjs",

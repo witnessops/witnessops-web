@@ -14,6 +14,8 @@ import tempfile
 NODE = Path("/opt/witnessops/node-22/bin/node")
 NODE_BINARY_SHA256 = "fde6a4bf8d0562f7751d1a2d6cb9b417c4cfe107bbcb0aa3e9a24e125e348f48"
 NODE_VERSION = "22.23.3"
+FLOCK = Path("/usr/bin/flock")
+RUNTIME_LOCK = Path("/opt/witnessops/.local-audit-1.2.2.runtime.lock")
 MAIN = Path("/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs")
 DESTINATION = Path("/usr/local/bin/wops")
 CLI_ROOT = MAIN.parent.parent
@@ -45,12 +47,14 @@ def _trusted_path(path: Path, *, file: bool, allow_symlink: bool = False) -> Pat
     return resolved
 
 
-def render_launcher(node: Path = NODE, main: Path = MAIN, template: Path = TEMPLATE) -> bytes:
+def render_launcher(
+    node: Path = NODE, main: Path = MAIN, template: Path = TEMPLATE, runtime_lock: Path = RUNTIME_LOCK
+) -> bytes:
     source = template.read_text(encoding="utf-8")
     cli_root = main.parent.parent
     rendered = (source.replace("@NODE_PATH@", str(node)).replace("@NODE_SHA256@", NODE_BINARY_SHA256).replace("@MAIN_PATH@", str(main))
-                .replace("@CLI_ROOT@", str(cli_root)))
-    if any(token in rendered for token in ("@NODE_PATH@", "@NODE_SHA256@", "@MAIN_PATH@", "@CLI_ROOT@")):
+                .replace("@CLI_ROOT@", str(cli_root)).replace("@RUNTIME_LOCK@", str(runtime_lock)))
+    if any(token in rendered for token in ("@NODE_PATH@", "@NODE_SHA256@", "@MAIN_PATH@", "@CLI_ROOT@", "@RUNTIME_LOCK@")):
         raise InstallError("Launcher template contains an unresolved fixed path.")
     return rendered.encode("utf-8")
 
@@ -74,7 +78,44 @@ def _trusted_tree(root: Path) -> None:
                 raise InstallError(f"CLI package tree contains an unsupported entry: {entry.path}")
 
 
-def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION) -> bytes:
+def _validate_runtime_lock(path: Path) -> None:
+    _trusted_path(path.parent, file=False)
+    try:
+        info = path.lstat()
+    except OSError as error:
+        raise InstallError("Shared Local Audit runtime lock is unavailable; apply the launcher first.") from error
+    if not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode) or info.st_uid != 0 or stat.S_IMODE(info.st_mode) != 0o600:
+        raise InstallError("Shared Local Audit runtime lock custody is unsafe.")
+    _trusted_path(path, file=True)
+
+
+def _ensure_runtime_lock(path: Path) -> None:
+    _trusted_path(path.parent, file=False)
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    except FileExistsError:
+        _validate_runtime_lock(path)
+        return
+    except OSError as error:
+        raise InstallError("Cannot create the shared Local Audit runtime lock safely.") from error
+    try:
+        os.fchown(descriptor, 0, 0)
+        os.fchmod(descriptor, 0o600)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    parent_fd = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(parent_fd)
+    finally:
+        os.close(parent_fd)
+    _validate_runtime_lock(path)
+
+
+def validate_prerequisites(
+    *, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION,
+    runtime_lock: Path = RUNTIME_LOCK, require_runtime_lock: bool = True,
+) -> bytes:
     if os.geteuid() != 0:
         raise InstallError("Run the sudo launcher installer as root.")
     _trusted_path(node.parent, file=False)
@@ -90,6 +131,8 @@ def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination:
     _trusted_tree(main.parent.parent)
     main_real = _trusted_path(main, file=True)
     _trusted_path(destination.parent, file=False)
+    if require_runtime_lock:
+        _validate_runtime_lock(runtime_lock)
     try:
         result = subprocess.run([str(node), "--version"], check=True, capture_output=True, text=True,
                                 timeout=5, env=SAFE_ENV)
@@ -102,16 +145,20 @@ def validate_prerequisites(*, node: Path = NODE, main: Path = MAIN, destination:
     except FileNotFoundError:
         info = None
     if info is not None:
-        desired = render_launcher(node, main)
+        desired = render_launcher(node, main, runtime_lock=runtime_lock)
         if stat.S_ISREG(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o022 and destination.read_bytes() == desired:
             return desired
         if not stat.S_ISLNK(info.st_mode) or destination.resolve(strict=True) != main_real:
             raise InstallError("Refusing to replace an unexpected existing /usr/local/bin/wops.")
-    return render_launcher(node, main)
+    return render_launcher(node, main, runtime_lock=runtime_lock)
 
 
-def apply(*, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION) -> None:
-    data = validate_prerequisites(node=node, main=main, destination=destination)
+def apply(
+    *, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION, runtime_lock: Path = RUNTIME_LOCK
+) -> None:
+    validate_prerequisites(node=node, main=main, destination=destination, runtime_lock=runtime_lock, require_runtime_lock=False)
+    _ensure_runtime_lock(runtime_lock)
+    data = validate_prerequisites(node=node, main=main, destination=destination, runtime_lock=runtime_lock)
     with tempfile.NamedTemporaryFile(prefix=".wops-launcher-", dir=destination.parent, delete=False) as stream:
         temporary = Path(stream.name)
         stream.write(data)
@@ -157,9 +204,10 @@ def main() -> int:
             print("status=PASS")
             print("launcher=removed")
             return 0
-        validate_prerequisites()
         if args.apply:
             apply()
+        else:
+            validate_prerequisites()
     except InstallError as error:
         parser.error(str(error))
     print("status=PASS")
