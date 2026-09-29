@@ -70,7 +70,25 @@ export class ServerCheckStore {
   const authority={schema:'witnessops.local_server_audit.authority.v1',authorization_id:id,case_id:id,authority_source:{kind:'operator_declared_scope',authority_identity:operator,artifact_sha256:sha256(Buffer.from(canonicalSource(declaration))),approved_at_utc:new Date(time).toISOString().replace('.000Z','Z'),operator_declaration:declaration},operator_id:operator,target:{asset_id:asset.id,allowed_hostnames:[request.hostname],expected_listeners:request.expectedListeners},profile_id:'linux_baseline_v1',authorization_window:{starts_at_utc:start,ends_at_utc:end},execution_mode:'operator_present_local',allowed_actions:['read_only_posture_collection'],prohibited_artifact_classes:['browser_cookies','clipboard','credentials','full_memory_dump','full_user_documents','oauth_tokens','password_manager_data','private_keys','process_command_lines','process_environment','screenshots']};
   const row=(await client.query('INSERT INTO server_check_executions(id,workspace_id,asset_id,user_id,request_id,request,authority,collector_hash,membership_generation) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[id,workspace,asset.id,user.id,request.requestId,request,authority,fingerprint,user.membershipGeneration])).rows[0];return this.view(row);
  });}
- private view(row:{id:string;state:string;authority:unknown;collector_hash:string;capture_digest:string|null;run_id:string|null;failure:string|null}){return {id:row.id,state:row.state,authority:row.authority,collectorHash:row.collector_hash,captureDigest:row.capture_digest,runId:row.run_id,failure:row.failure};}
+ private view(row:{id:string;state:string;authority:unknown;collector_hash:string;capture_digest:string|null;run_id:string|null;failure:string|null;retired_at?:Date|null;retired_by_user_id?:string|null}){return {id:row.id,state:row.state,authority:row.authority,collectorHash:row.collector_hash,captureDigest:row.capture_digest,runId:row.run_id,failure:row.failure,...(row.retired_at?{retiredAt:row.retired_at.toISOString()}:{}) ,...(row.retired_by_user_id?{retiredBy:row.retired_by_user_id}:{})};}
+ async retirementContext(credential:unknown){return this.auth().withServerWork(credential,async(client,_user,workspace)=>({workspaceId:workspace,workspace:(await client.query('SELECT name FROM workspaces WHERE id=$1',[workspace])).rows[0].name}));}
+ async retirementStatus(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
+  const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3',[id,workspace,user.id])).rows[0];
+  if(!row)throw new CliError('execution_not_found',404);
+  if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+  return {...this.view(row),requestId:row.request_id,createdAt:row.created_at.toISOString()};
+ });}
+ async retire(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
+  if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+  const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
+  if(!row)throw new CliError('execution_not_found',404);
+  if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+  if(row.state==='retired')return {...this.view(row),requestId:row.request_id};
+  if(row.state!=='authorized'||row.capture_bytes!==null||row.capture_digest!==null||row.run_id!==null||Number(row.capture_reserved_bytes)!==0||row.capture_reserved_digest!==null)throw new CliError('retirement_refused',409);
+  const retiredAt=new Date(this.now());
+  const saved=(await client.query("UPDATE server_check_executions SET state='retired',retired_at=$2,retired_by_user_id=$3 WHERE id=$1 RETURNING *",[id,retiredAt,user.id])).rows[0];
+  return {...this.view(saved),requestId:saved.request_id};
+ });}
  async upload(credential:unknown,id:string,bytes:Buffer,digest:string){
   requireId(id);
   if(!bytes.length||bytes.length>MAX_CAPTURE)throw new CliError('invalid_capture',413);
@@ -82,6 +100,7 @@ export class ServerCheckStore {
    const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
    if(!row)throw new CliError('execution_not_found',404);
    if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+   if(row.state==='retired')throw new CliError('execution_retired',409);
    if(row.capture_digest){if(row.capture_digest!==digest||!row.capture_bytes.equals(bytes))throw new CliError('capture_conflict',409);return;}
    if(row.capture_reserved_digest && row.capture_reserved_digest!==digest)throw new CliError('capture_conflict',409);
    const reserved=Number(row.capture_reserved_bytes);
@@ -102,6 +121,7 @@ export class ServerCheckStore {
    const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
    if(!row)throw new CliError('execution_not_found',404);
    if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
+   if(row.state==='retired')throw new CliError('execution_retired',409);
    if(row.capture_digest){if(row.capture_digest!==digest||!row.capture_bytes.equals(bytes))throw new CliError('capture_conflict',409);return this.view(row);}
    if(row.capture_reserved_digest!==digest||Number(row.capture_reserved_bytes)<bytes.length)throw new CliError('capture_conflict',409);
    const metadata=await this.finalizer.validate(id,bytes);

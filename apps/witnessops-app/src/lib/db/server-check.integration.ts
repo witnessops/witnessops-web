@@ -35,6 +35,33 @@ async function frozen(authority:unknown,partial=false){const dir=base+'/'+random
 test('product scope explicitly granted; old session scope and invalid credential denied',async()=>{await assert.rejects(store.context('invalid'));await assert.rejects(store.context(await credential('cli:session')),/server_scope_required/);assert.equal((await store.context(await credential())).workspaceId,workspace);});
 test('Viewer cannot receive product scope; role changes/revocation respected',async()=>{const token=await credential();await pool.query("UPDATE memberships SET role='viewer' WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await assert.rejects(store.context(token));await assert.rejects(credential());await pool.query("UPDATE memberships SET role='owner',status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await assert.rejects(store.context(token));await pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await auth.logout(token);await assert.rejects(store.context(token));});
 test('authority is immutable, request retry idempotent, wrong asset/hostname denied',async()=>{const token=await credential(),input=request(),one=await store.authorize(token,input),two=await store.authorize(token,input);assert.equal(one.id,two.id);await assert.rejects(store.authorize(token,{...input,purpose:'changed'}),/request_conflict/);await assert.rejects(store.authorize(token,{...request(),assetId:randomUUID()}));await assert.rejects(pool.query("UPDATE server_check_executions SET authority='{}' WHERE id=$1",[one.id]));});
+test('unused authorized execution retires immutably and repeated retirement/status remain readable',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request()),before=(await pool.query('SELECT request,authority,created_at FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
+ const retired=await store.retire(token,execution.id);assert.equal(retired.state,'retired');assert.equal(retired.captureDigest,null);assert.equal(retired.runId,null);assert.equal(retired.retiredBy,user.id);assert.ok(retired.retiredAt);assert.ok(Date.parse(retired.retiredAt));
+ const after=(await pool.query('SELECT request,authority,created_at,state,retired_at,retired_by_user_id FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];assert.deepEqual(after.request,before.request);assert.deepEqual(after.authority,before.authority);assert.equal(after.created_at.getTime(),before.created_at.getTime());
+ const repeated=await store.retire(token,execution.id);assert.equal(repeated.retiredAt,retired.retiredAt);assert.equal(repeated.retiredBy,user.id);
+ const status=await store.retirementStatus(token,execution.id);assert.equal(status.state,'retired');assert.equal(status.requestId,before.request.requestId);assert.equal((await store.status(token,execution.id)).state,'retired');
+ await assert.rejects(pool.query("UPDATE server_check_executions SET state='authorized',retired_at=NULL,retired_by_user_id=NULL WHERE id=$1",[execution.id]));
+ await assert.rejects(pool.query('DELETE FROM server_check_executions WHERE id=$1',[execution.id]));
+});
+test('retirement refuses capture reservations, uploaded captures and saved runs',async()=>{
+ const token=await credential(),reserved=await store.authorize(token,request());await pool.query('UPDATE server_check_executions SET capture_reserved_bytes=10,capture_reserved_digest=$2 WHERE id=$1',[reserved.id,'a'.repeat(64)]);await assert.rejects(store.retire(token,reserved.id),/retirement_refused/);
+ const uploaded=await store.authorize(token,request()),bytes=await frozen(uploaded.authority);await store.upload(token,uploaded.id,bytes,sha256(bytes));await assert.rejects(store.retire(token,uploaded.id),/retirement_refused/);
+ const saved=await store.authorize(token,request()),savedBytes=await frozen(saved.authority);await store.upload(token,saved.id,savedBytes,sha256(savedBytes));await store.status(token,saved.id);await assert.rejects(store.retire(token,saved.id),/retirement_refused/);
+});
+test('retirement is denied for a different workspace or user',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request());await assert.rejects(store.retire(await credential('cli:session server_check:create',foreign),execution.id),/execution_not_found/);
+ const otherIdentity={provider:'workos' as const,issuer:'https://workos.test/client_fixture',subject:'user_serverOther',email:'other@example.test',displayName:'Other User'};
+ const other=await resolveIdentity(pool,otherIdentity);await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'owner')",[other.id,workspace]);
+ const otherWeb:WebCliIdentity={identity:otherIdentity,session:{issuer:otherIdentity.issuer,subject:otherIdentity.subject,sessionId:'session_serverOther'}};
+ const login=await auth.create();await auth.bind(otherWeb,{code:login.userCode,workspaceId:workspace,displayedUserId:other.id,action:'authorize',scope:'cli:session server_check:create'});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');await assert.rejects(store.retire(issued.credential,execution.id),/execution_not_found/);
+});
+test('retired execution cannot accept capture or finalize a run',async()=>{
+ let finalizations=0,validations=0;const noFinalize:Finalizer={preflight:async()=>'a'.repeat(64),validate:async()=>{validations++;throw new Error('must not validate retired capture');},finalize:async()=>{finalizations++;throw new Error('must not finalize retired capture');},reconcileCapture:async()=>{throw new Error('must not reconcile retired capture');}};
+ const retiredStore=new ServerCheckStore(pool,noFinalize),token=await credential(),execution=await retiredStore.authorize(token,request());await retiredStore.retire(token,execution.id);
+ const bytes=Buffer.from('retired execution capture');await assert.rejects(retiredStore.upload(token,execution.id,bytes,sha256(bytes)),/execution_retired/);
+ const status=await retiredStore.status(token,execution.id);assert.equal(status.state,'retired');assert.equal(status.runId,null);assert.equal(finalizations,0);assert.equal(validations,0);
+});
 test('real producer freeze -> disposable off-host finalization -> independent app verification -> exactly one immutable run; reopen and retry',async()=>{
  const token=await credential(),execution=await store.authorize(token,request()),bytes=await frozen(execution.authority),digest=sha256(bytes);
  const uploaded=await store.upload(token,execution.id,bytes,digest);assert.equal(uploaded.state,'uploaded');assert.equal((await store.upload(token,execution.id,bytes,digest)).id,execution.id);

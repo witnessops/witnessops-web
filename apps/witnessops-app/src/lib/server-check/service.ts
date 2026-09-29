@@ -29,3 +29,28 @@ export function createServerCheckService(store:ServerCheckStore,origin:string){l
 };}
 let handler:ReturnType<typeof createServerCheckService>|undefined;
 export function serverCheck(request:Request,upload=false){handler??=createServerCheckService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return handler(request,upload);}
+export function createServerCheckRetirementService(store:ServerCheckStore,origin:string){let active=0;return async(request:Request)=>{
+ if(active>=2)return Response.json({code:'busy'},{status:429,headers});active++;
+ try{
+  admitRequest(request,origin,process.env.WITNESSOPS_APP_PROXY_MODE);
+  const credential=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')??'')?.[1];if(!credential)throw new CliError('invalid_credential',401);
+  if(request.method==='GET'){
+   const url=new URL(request.url),ids=url.searchParams.getAll('executionId');
+   if([...url.searchParams.keys()].some(key=>key!=='executionId')||ids.length>1)throw new CliError('invalid_request');
+   return Response.json(ids.length?await store.retirementStatus(credential,ids[0]):await store.retirementContext(credential),{headers});
+  }
+  if(request.method!=='POST')throw new CliError('method_not_supported',405);
+  if(request.headers.get('content-type')!=='application/json'||request.headers.has('content-encoding'))throw new CliError('invalid_request');
+  await store.authenticate(credential);
+  const reader=request.body?.getReader();if(!reader)throw new CliError('invalid_request');const chunks:Uint8Array[]=[];let size=0;
+  let timer:ReturnType<typeof setTimeout>;
+  const deadline=new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>{reject(new CliError('upload_timeout',408));void reader.cancel().catch(()=>undefined);},10_000);});
+  try{for(;;){const part=await Promise.race([reader.read(),deadline]);if(part.done)break;size+=part.value.byteLength;if(size>4096)throw new CliError('too_large',413);chunks.push(part.value);}}finally{clearTimeout(timer!);void reader.cancel().catch(()=>undefined);}
+  const raw=Buffer.concat(chunks).toString('utf8');if(findDuplicateJsonObjectKey(raw)!==null)throw new CliError('invalid_request');
+  let body:unknown;try{body=JSON.parse(raw);}catch{throw new CliError('invalid_request');}
+  if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).sort().join(',')!=='executionId'||typeof (body as {executionId?:unknown}).executionId!=='string')throw new CliError('invalid_request');
+  return Response.json(await store.retire(credential,(body as {executionId:string}).executionId),{headers});
+ }catch(error){return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
+};}
+let retirementHandler:ReturnType<typeof createServerCheckRetirementService>|undefined;
+export function serverCheckRetirement(request:Request){retirementHandler??=createServerCheckRetirementService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return retirementHandler(request);}
