@@ -103,6 +103,7 @@ class SudoLauncherTest(unittest.TestCase):
             )
             self.assertEqual(denied_unsafe_tree.returncode, 126)
             self.assertIn("installed CLI package is unavailable or unsafe", denied_unsafe_tree.stderr)
+            (source_dir / "imported-module.mjs").chmod(0o644)
 
             unsafe_node_dir = root / "unsafe-node-path"
             unsafe_node_dir.mkdir(mode=0o777)
