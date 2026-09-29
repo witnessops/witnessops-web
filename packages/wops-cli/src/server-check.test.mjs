@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {mkdtemp,mkdir,writeFile,readFile,lstat,rm,chmod} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,lstat,rm,chmod,rename} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {archiveRetiredExecution,originatingUid} from './server-local.mjs';
+import {archiveRetiredExecution,findRetirementReceipt,originatingUid} from './server-local.mjs';
 import {serverCheck,retireServerCheck,listeners,fixedWindow} from './server-check.mjs';
 const uuid='11111111-1111-4111-8111-111111111111',run='22222222-2222-4222-8222-222222222222',hash='a'.repeat(64);
 test('sudo requires Linux UID0 and numeric originating UID; HOME is not authority',()=>{
@@ -67,6 +67,47 @@ test('already retired execution is readable/idempotent and local archival resume
 test('normal check recovers a local retirement receipt and normalizes it before resuming archival',async()=>{
  const h=retirementHarness('retired');h.options.local.findRetirementReceipt=async()=>({schema:'witnessops.cli.execution-retirement.v1',executionId:h.id,requestId:h.requestId,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555'});
  await serverCheck(['server','check'],h.options);assert.equal(h.events.filter(value=>value==='archive').length,1);assert.equal(h.authorizeRequests().length,1);assert.notEqual(h.authorizeRequests()[0].requestId,h.requestId);assert.deepEqual(h.counts(),{captures:1,uploads:1});
+});
+// Interrupted archival: the attempt directory already moved under retired/<id>/ and the
+// receipt is written, but pending.json is still active (archiveRetiredExecution moves the
+// attempt first). The retire command must finish from the receipt, confirmed by the server.
+function interruptedAfterAttemptMoved(h){
+ h.files.set(h.base+'/retired/'+h.id+'/'+h.id+'/authority.json',h.files.get(h.base+'/'+h.id+'/authority.json'));h.files.delete(h.base+'/'+h.id+'/authority.json');
+ h.options.local.privateEntries=async()=>[{name:'pending.json',type:'file'},{name:'retired',type:'directory'}];
+ h.options.local.findRetirementReceipt=async(_base,requestId)=>requestId===h.requestId?{schema:'witnessops.cli.execution-retirement.v1',executionId:h.id,requestId:h.requestId,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555',pendingSha256:'a'.repeat(64),authoritySha256:'b'.repeat(64)}:null;
+ const archived=[];h.options.local.archiveRetiredExecution=async(_base,executionId,server)=>{archived.push({executionId,server});};
+ h.options.ask=async()=>{throw new Error('retirement resume must not prompt');};
+ return archived;
+}
+test('retire resumes archival interrupted after the attempt moved, confirmed by server status',async()=>{
+ const h=retirementHarness('retired'),archived=interruptedAfterAttemptMoved(h);
+ assert.equal(await retireServerCheck(h.options),0);
+ assert.deepEqual(archived,[{executionId:h.id,server:{id:h.id,state:'retired',requestId:h.requestId,authority:archived[0].server.authority,captureDigest:null,runId:null,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555'}}]);
+ assert.deepEqual(h.events,['GET:/api/cli/server-check-retirement','GET:/api/cli/server-check-retirement']);
+ assert.ok(h.output.join('\n').includes('already retired'));assert.deepEqual(h.counts(),{captures:0,uploads:0});
+});
+test('retire refuses to resume from a local receipt the server does not confirm',async()=>{
+ const h=retirementHarness('authorized'),archived=interruptedAfterAttemptMoved(h);
+ await assert.rejects(retireServerCheck(h.options),/does not match the local retirement receipt/);
+ assert.deepEqual(archived,[]);assert.equal(h.events.filter(x=>x.startsWith('POST:')).length,0);assert.ok(h.files.has(h.base+'/pending.json'));assert.equal(h.serverState(),'authorized');
+});
+test('an interrupted status read while resuming reports the retained receipt accurately',async()=>{
+ const h=retirementHarness('retired'),archived=interruptedAfterAttemptMoved(h),fetch=h.options.fetch;
+ h.options.fetch=async(url,init)=>{if(url.includes('?executionId='))throw new Error('network');return fetch(url,init);};
+ await assert.rejects(retireServerCheck(h.options),error=>/local retirement receipt and retained evidence are unchanged/.test(error.message)&&!/No local retirement was recorded/.test(error.message));
+ assert.deepEqual(archived,[]);assert.ok(h.files.has(h.base+'/pending.json'));assert.equal(h.events.filter(x=>x.startsWith('POST:')).length,0);
+});
+test('filesystem: the receipt of an archival interrupted after the attempt moved is found and archival completes',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'wops-retire-resume-test-')),uid=process.getuid(),id='33333333-3333-4333-8333-333333333333',requestId='44444444-4444-4444-8444-444444444444',base=path.join(root,'staging','wops','a'.repeat(64)),attempt=path.join(base,id),bucket=path.join(base,'retired',id),pending=Buffer.from(JSON.stringify({request:{requestId},captureStarted:true})),authority=Buffer.from(JSON.stringify({authorization_id:id})),status={id,state:'retired',requestId,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555'};
+ try{await mkdir(attempt,{recursive:true,mode:0o700});for(const dir of [base,attempt])await chmod(dir,0o700);await writeFile(path.join(base,'pending.json'),pending,{mode:0o600});await writeFile(path.join(attempt,'authority.json'),authority,{mode:0o600});
+  await archiveRetiredExecution(base,id,status,{root,ownerUid:uid});
+  // Recreate the crash point: receipt written and attempt moved, journal not yet moved.
+  await rename(path.join(bucket,'pending.json'),path.join(base,'pending.json'));
+  const receipt=await findRetirementReceipt(base,requestId,{ownerUid:uid});assert.equal(receipt.executionId,id);assert.equal(receipt.requestId,requestId);
+  await archiveRetiredExecution(base,receipt.executionId,status,{root,ownerUid:uid});
+  assert.equal(await lstat(path.join(base,'pending.json')).then(()=>true,()=>false),false);assert.deepEqual(await readFile(path.join(bucket,'pending.json')),pending);assert.deepEqual(await readFile(path.join(bucket,id,'authority.json')),authority);
+  const saved=JSON.parse(await readFile(path.join(bucket,'retirement.json'),'utf8'));assert.equal(saved.pendingSha256,createHash('sha256').update(pending).digest('hex'));assert.equal(saved.authoritySha256,createHash('sha256').update(authority).digest('hex'));
+ }finally{await rm(root,{recursive:true,force:true});}
 });
 test('filesystem retirement archive preserves original evidence bytes and records their hashes',async()=>{
  const root=await mkdtemp(path.join(tmpdir(),'wops-retire-test-')),uid=process.getuid(),id='33333333-3333-4333-8333-333333333333',requestId='44444444-4444-4444-8444-444444444444',base=path.join(root,'staging','wops','a'.repeat(64)),attempt=path.join(base,id),pending=Buffer.from(JSON.stringify({request:{requestId},captureStarted:true})),authority=Buffer.from(JSON.stringify({authorization_id:id})),receipt={id,state:'retired',requestId,retiredAt:'2026-09-29T00:00:00.000Z',retiredBy:'55555555-5555-4555-8555-555555555555'};
