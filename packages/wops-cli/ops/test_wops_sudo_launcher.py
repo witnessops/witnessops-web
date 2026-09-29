@@ -133,8 +133,11 @@ class SudoLauncherTest(unittest.TestCase):
             runtime_node.write_bytes(node.read_bytes())
             runtime_node.chmod(0o755)
             runtime_launcher = root / "wops-runtime-node"
+            runtime_lock = root / "runtime-node.lock"
             with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
-                installer.apply(node=runtime_node, main=main, destination=runtime_launcher)
+                installer.apply(
+                    node=runtime_node, main=main, destination=runtime_launcher, runtime_lock=runtime_lock
+                )
             runtime_node_dir.chmod(0o777)
             denied_node_parent = subprocess.run(
                 [str(runtime_launcher), "server", "check"], check=False, capture_output=True, text=True,
