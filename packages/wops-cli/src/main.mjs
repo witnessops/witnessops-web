@@ -9,6 +9,7 @@ Usage:
   wops auth status
   wops auth logout
   sudo wops server check [--starts-at UTC --ends-at UTC]
+  sudo wops server check retire
 
 Run authentication commands as your normal user. A server check requires Linux,
 sudo, explicit collection authority, and the operator-prepared Local Audit
@@ -30,12 +31,17 @@ workspace. A local credential alone does not confirm an active server session.`;
 const serverHelp = `Usage:
   sudo wops server check
   sudo wops server check --starts-at YYYY-MM-DDTHH:MM:SSZ --ends-at YYYY-MM-DDTHH:MM:SSZ
+  sudo wops server check retire
 
 Runs one authorized, read-only Linux collection with an approved window of at
 most 30 minutes. The accepted root-owned Local Audit runtime must already be
 installed, and the root-owned sudo launcher must be installed with pinned
 WitnessOps Node.js 22.23.3 at /opt/witnessops/node-22/bin/node. The command does not remediate the server. Retry after interruption
-to reconcile retained state; do not manually recollect or delete retained files.`;
+to reconcile retained state; do not manually recollect or delete retained files.
+
+Retirement reads execution status first, requires explicit confirmation, and is
+allowed only before capture upload or finalization. It never runs collection.
+Original local request and authority evidence are retained in a root-only retired namespace.`;
 
 const args = process.argv.slice(2);
 const help = args.length === 1 && ['help', '--help', '-h'].includes(args[0])

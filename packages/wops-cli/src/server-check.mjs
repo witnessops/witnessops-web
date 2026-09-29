@@ -7,7 +7,53 @@ import path from 'node:path';
 import * as local from './server-local.mjs';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const safe=value=>String(value??'').replace(/[\x00-\x1f\x7f-\x9f]/g,'').slice(0,256);
+const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
 export const listeners=parseListenerEndpoints;
+const retirementEndpoint='server-check-retirement';
+async function retirementRequest(auth,fetcher,{id,body}={}){
+ try{
+  const url=auth.server+'/api/cli/'+retirementEndpoint+(id?'?executionId='+encodeURIComponent(id):'');
+  const response=await fetcher(url,{method:body===undefined?'GET':'POST',redirect:'error',signal:AbortSignal.timeout(15_000),headers:{Origin:auth.server,Authorization:'Bearer '+auth.credential,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const reader=response.body?.getReader();if(!reader)throw new Error();const chunks=[];let size=0;
+  try{for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>65_536)throw new Error();chunks.push(part.value);}}finally{await reader.cancel();}
+  const data=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  if(!response.ok){const messages={server_scope_required:'This CLI session is not authorized to manage server checks. Run wops auth status and verify server-check access.',access_denied:'Current workspace access is unavailable.',execution_not_found:'The retained execution is not available in this workspace.',retirement_refused:'This execution has capture or run state and cannot be retired.',execution_retired:'This execution is already terminal.'};throw new Error(messages[data.code]??'Server retirement status is unavailable. No local evidence was changed.');}
+  return data;
+ }catch(error){if(error.message?.startsWith('This CLI')||error.message?.startsWith('Current workspace')||error.message?.startsWith('The retained')||error.message?.startsWith('This execution')||error.message?.startsWith('Server retirement'))throw error;throw new Error('Connection interrupted. No local retirement was recorded; retained evidence is unchanged.');}
+}
+export async function retireServerCheck(options={}){
+ const io=options.local??local,output=options.output??console.log,uid=io.originatingUid();let auth;
+ try{auth=await io.readOriginAuth(uid);}catch{throw new Error('No safe originating-user session. Run wops auth status as your normal account; do not retire using a root credential.');}
+ const fetcher=options.fetch??fetch,context=await retirementRequest(auth,fetcher,{}),host=options.hostname??hostname();
+ if(!/^[a-f0-9-]{36}$/.test(context.workspaceId)||typeof context.workspace!=='string'||!context.workspace)throw new Error('Invalid workspace response. No local evidence was changed.');
+ const base=local.ROOT+'/staging/wops/'+digest(Buffer.from(uid+':'+auth.server+':'+context.workspaceId+':'+host));
+ await io.privateDirectory(local.ROOT+'/staging');await io.privateDirectory(local.ROOT+'/staging/wops');await io.privateDirectory(base);
+ return io.lock(base,async()=>{
+  const pendingFile=path.join(base,'pending.json'),saved=await io.privateRead(pendingFile,65_536);if(!saved){output('No active retained server-check request for this host and workspace.');return 0;}
+  let journal;try{journal=JSON.parse(saved.toString('utf8'));}catch{throw new Error('Retained pending journal is malformed. Operator review is required; no evidence was changed.');}
+  const request=journal?.request;if(!request||!/^[a-f0-9-]{36}$/.test(request.requestId)||request.hostname!==host||!request.purpose||journal.captureDigest)throw new Error('Retained pending journal does not match this host or is not eligible for retirement. No evidence was changed.');
+  const entries=await io.privateEntries(base),candidates=[];
+  for(const entry of entries){if(entry.type!=='directory'||!/^[a-f0-9-]{36}$/.test(entry.name))continue;const dir=path.join(base,entry.name),bytes=await io.privateRead(path.join(dir,'authority.json'),65_536);if(!bytes)continue;const capture=await io.privateRead(path.join(dir,'capture.json'),25*1024*1024);if(capture)continue;let authority;try{authority=JSON.parse(bytes.toString('utf8'));}catch{continue;}const authorityAsset=authority?.target?.asset_id,assetMatches=request.assetId===null?/^[a-f0-9-]{36}$/.test(authorityAsset??''):authorityAsset===request.assetId;const declaration=authority?.authority_source?.operator_declaration;if(authority?.authorization_id===entry.name&&authority?.target?.allowed_hostnames?.[0]===host&&assetMatches&&JSON.stringify(authority?.target?.expected_listeners)===JSON.stringify(request.expectedListeners)&&declaration?.customer===context.workspace&&declaration?.purpose===request.purpose&&declaration?.expected_ssh_exposure===request.sshExposure)candidates.push({id:entry.name,authority});}
+  if(candidates.length!==1)throw new Error(candidates.length?'Multiple retained executions match this pending request. Operator review is required.':'No exact retained authorized execution matches this pending request. No evidence was changed.');
+  const candidate=candidates[0],status=await retirementRequest(auth,fetcher,{id:candidate.id});
+  const authority=status.authority,declaration=authority?.authority_source?.operator_declaration;
+  if(status.id!==candidate.id||status.requestId!==request.requestId||JSON.stringify(canonical(authority))!==JSON.stringify(canonical(candidate.authority))||authority?.target?.allowed_hostnames?.[0]!==host||declaration?.customer!==context.workspace||declaration?.purpose!==request.purpose)throw new Error('Server execution identity does not match retained local evidence. No evidence was changed.');
+  if(status.captureDigest||status.runId)throw new Error('Server reports capture or run state. This execution cannot be retired. No evidence was changed.');
+  if(status.state!=='authorized'&&status.state!=='retired')throw new Error('Server execution is not eligible for retirement. No evidence was changed.');
+  if(status.state==='authorized'){
+   output(`Retire an unused authorized server check?\nExecution: ${safe(status.id)}\nHostname: ${safe(host)}\nWorkspace: ${safe(context.workspace)}\nReason: ${safe(declaration.purpose)}\nNo collection will occur. Original local evidence will be retained under the retired namespace.`);
+   const rl=options.ask?null:createInterface({input:process.stdin,output:process.stdout}),ask=options.ask??(question=>rl.question(question));let confirm;
+   try{confirm=await ask('Retire this execution? [y/N] ');}finally{rl?.close();}
+   if(String(confirm).toLowerCase()!=='y'){output('Cancelled. Server state and local evidence are unchanged.');return 0;}
+   const retired=await retirementRequest(auth,fetcher,{body:{executionId:candidate.id}});
+   if(retired.id!==candidate.id||retired.requestId!==request.requestId||retired.state!=='retired'||!retired.retiredAt||!retired.retiredBy)throw new Error('Server did not return the expected terminal retirement state. Local evidence was not moved.');
+   await io.archiveRetiredExecution(base,candidate.id,retired);
+   output(`✓ Execution retired. Evidence preserved at ${safe(path.join(base,'retired',candidate.id))}. No collection or upload occurred.`);return 0;
+  }
+  await io.archiveRetiredExecution(base,candidate.id,status);
+  output(`Execution was already retired. Retained evidence archival completed at ${safe(path.join(base,'retired',candidate.id))}. No collection or upload occurred.`);return 0;
+ });
+}
 export function fixedWindow(args){
  if(args.length===2)return undefined;
  if(args.length!==6||args[2]!=='--starts-at'||args[4]!=='--ends-at')throw new Error('Use paired --starts-at and --ends-at UTC timestamps. No remote, runtime, profile or signer overrides are supported.');
@@ -17,6 +63,7 @@ export function fixedWindow(args){
 }
 export async function serverCheck(args,options={}){
  if(args[0]!=='server'||args[1]!=='check')throw new Error('Use sudo wops server check. No remote, runtime, profile or signer overrides are supported.');
+ if(args.length===3&&args[2]==='retire')return retireServerCheck(options);
  const window=fixedWindow(args);
  const io=options.local??local,output=options.output??console.log,uid=io.originatingUid();
  let auth;try{auth=await io.readOriginAuth(uid);}catch{throw new Error('No safe originating-user session. Run wops auth login as your normal account using the default config directory.');}
@@ -31,6 +78,7 @@ export async function serverCheck(args,options={}){
  const base=local.ROOT+'/staging/wops/'+digest(Buffer.from(uid+':'+auth.server+':'+context.workspaceId+':'+host));await io.privateDirectory(base);
  return io.lock(base,async()=>{
   const journal=path.join(base,'pending.json');let saved=await io.privateRead(journal,65536);let state=saved?JSON.parse(saved):null;
+  if(state){const retired=await io.findRetirementReceipt(base,state.request?.requestId);if(retired){await io.archiveRetiredExecution(base,retired.executionId,{id:retired.executionId,state:'retired',requestId:retired.requestId,retiredAt:retired.retiredAt,retiredBy:retired.retiredBy});saved=null;state=null;output('Previously retired request evidence was archived. A new check request will require fresh confirmation.');}}
   if(!state){
    const candidates=context.assets.filter(x=>x.hostname===host);if(candidates.length>1)throw new Error('Multiple matching assets. Resolve the asset selection in WitnessOps before running this check.');
    output(`WitnessOps One Server Security Check\nServer: ${safe(host)}\nWorkspace: ${safe(context.workspace)}\nCollects read-only local state and uploads it for off-host signing. No permanent agent, patches or configuration changes.`);

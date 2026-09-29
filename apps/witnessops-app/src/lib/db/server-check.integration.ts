@@ -25,16 +25,44 @@ const base=process.env.WOPS_SERVER_TEST_DIRECTORY!;if(!base)throw new Error('Dis
 const custody=base+'/custody/'+randomUUID();
 const python=process.env.WOPS_TEST_PYTHON??base+'/runtime/bin/python';
 const schema='server_test_'+randomUUID().replaceAll('-',''),admin=new Pool({connectionString:env.TEST_DATABASE_URL,max:1});
-let pool:Pool,auth:CliAuthStore,user:AppUser,workspace:string,foreign:string,store:ServerCheckStore,finalizer:LocalAuditFinalizer;
+let pool:Pool,auth:CliAuthStore,user:AppUser,workspace:string,foreign:string,store:ServerCheckStore,finalizer:LocalAuditFinalizer,retirementToken:string|undefined;
 const web:WebCliIdentity={identity:{provider:'workos',issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',email:'owner@example.test',displayName:'Test Owner'},session:{issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',sessionId:'session_serverOwner'}};
 before(async()=>{await mkdir(custody,{mode:0o700});await admin.query(`CREATE SCHEMA ${schema}`);pool=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:5});await migrate(pool);auth=new CliAuthStore(pool);user=await resolveIdentity(pool,web.identity);await pool.query("UPDATE users SET early_access_state='active'");const ws=new WorkspaceStore(pool);workspace=await ws.create(user,'Test Workspace',randomUUID());foreign=await ws.create(user,'Other Workspace',randomUUID());finalizer=new LocalAuditFinalizer({python:python,key:base+'/key.hex',signer:'disposable_cli_test',root:custody});store=new ServerCheckStore(pool,finalizer);});
 after(async()=>{await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();});
 async function credential(scope='cli:session server_check:create',ws=workspace){const login=await auth.create();await auth.bind(web,{code:login.userCode,workspaceId:ws,displayedUserId:user.id,action:'authorize',scope});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');return issued.credential;}
+async function reusableRetirementCredential(){retirementToken??=await credential();return retirementToken;}
 const request=()=>({requestId:randomUUID(),assetId:null,hostname:'demo-host',purpose:'Disposable test baseline',sshExposure:'private',expectedListeners:[{transport:'tcp',address:'127.0.0.1',port:22}]});
 async function frozen(authority:unknown,partial=false){const dir=base+'/'+randomUUID();await mkdir(dir,{mode:0o700});await writeFile(dir+'/authority.json',JSON.stringify(authority),{mode:0o600});await exec(python,['-I',path.resolve('../../tests/server-check/capture-fixture.py'),dir+'/authority.json',dir+'/capture.json',...(partial?['partial']:[])],{timeout:10000});return readFile(dir+'/capture.json');}
 test('product scope explicitly granted; old session scope and invalid credential denied',async()=>{await assert.rejects(store.context('invalid'));await assert.rejects(store.context(await credential('cli:session')),/server_scope_required/);assert.equal((await store.context(await credential())).workspaceId,workspace);});
 test('Viewer cannot receive product scope; role changes/revocation respected',async()=>{const token=await credential();await pool.query("UPDATE memberships SET role='viewer' WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await assert.rejects(store.context(token));await assert.rejects(credential());await pool.query("UPDATE memberships SET role='owner',status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await assert.rejects(store.context(token));await pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);await auth.logout(token);await assert.rejects(store.context(token));});
-test('authority is immutable, request retry idempotent, wrong asset/hostname denied',async()=>{const token=await credential(),input=request(),one=await store.authorize(token,input),two=await store.authorize(token,input);assert.equal(one.id,two.id);await assert.rejects(store.authorize(token,{...input,purpose:'changed'}),/request_conflict/);await assert.rejects(store.authorize(token,{...request(),assetId:randomUUID()}));await assert.rejects(pool.query("UPDATE server_check_executions SET authority='{}' WHERE id=$1",[one.id]));});
+test('authority is immutable, request retry idempotent, wrong asset/hostname denied',async()=>{const token=await credential();retirementToken=token;const input=request(),one=await store.authorize(token,input),two=await store.authorize(token,input);assert.equal(one.id,two.id);await assert.rejects(store.authorize(token,{...input,purpose:'changed'}),/request_conflict/);await assert.rejects(store.authorize(token,{...request(),assetId:randomUUID()}));await assert.rejects(pool.query("UPDATE server_check_executions SET authority='{}' WHERE id=$1",[one.id]));});
+test('unused authorized execution retires immutably and repeated retirement/status remain readable',async()=>{
+ const token=await reusableRetirementCredential(),execution=await store.authorize(token,request()),before=(await pool.query('SELECT request,authority,created_at FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
+ const retired=await store.retire(token,execution.id);assert.equal(retired.state,'retired');assert.equal(retired.captureDigest,null);assert.equal(retired.runId,null);assert.equal(retired.retiredBy,user.id);assert.ok(retired.retiredAt);assert.ok(Date.parse(retired.retiredAt));
+ const after=(await pool.query('SELECT request,authority,created_at,state,retired_at,retired_by_user_id FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];assert.deepEqual(after.request,before.request);assert.deepEqual(after.authority,before.authority);assert.equal(after.created_at.getTime(),before.created_at.getTime());
+ const repeated=await store.retire(token,execution.id);assert.equal(repeated.retiredAt,retired.retiredAt);assert.equal(repeated.retiredBy,user.id);
+ const status=await store.retirementStatus(token,execution.id);assert.equal(status.state,'retired');assert.equal(status.requestId,before.request.requestId);assert.equal((await store.status(token,execution.id)).state,'retired');
+ await assert.rejects(pool.query("UPDATE server_check_executions SET state='authorized',retired_at=NULL,retired_by_user_id=NULL WHERE id=$1",[execution.id]));
+ await assert.rejects(pool.query('DELETE FROM server_check_executions WHERE id=$1',[execution.id]));
+});
+test('retirement refuses capture reservations, uploaded captures and saved runs',async()=>{
+ const token=await reusableRetirementCredential(),reserved=await store.authorize(token,request());await pool.query('UPDATE server_check_executions SET capture_reserved_bytes=10,capture_reserved_digest=$2 WHERE id=$1',[reserved.id,'a'.repeat(64)]);await assert.rejects(store.retire(token,reserved.id),/retirement_refused/);
+ const uploaded=await store.authorize(token,request()),bytes=await frozen(uploaded.authority);await store.upload(token,uploaded.id,bytes,sha256(bytes));await assert.rejects(store.retire(token,uploaded.id),/retirement_refused/);
+ const saved=await store.authorize(token,request()),savedBytes=await frozen(saved.authority);await store.upload(token,saved.id,savedBytes,sha256(savedBytes));await store.status(token,saved.id);await assert.rejects(store.retire(token,saved.id),/retirement_refused/);
+});
+test('retirement is denied for a different workspace or user',async()=>{
+ const token=await reusableRetirementCredential(),execution=await store.authorize(token,request());await assert.rejects(store.retire(await credential('cli:session server_check:create',foreign),execution.id),/execution_not_found/);
+ const otherIdentity={provider:'workos' as const,issuer:'https://workos.test/client_fixture',subject:'user_serverOther',email:'other@example.test',displayName:'Other User'};
+ const other=await resolveIdentity(pool,otherIdentity);await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'owner')",[other.id,workspace]);
+ const otherWeb:WebCliIdentity={identity:otherIdentity,session:{issuer:otherIdentity.issuer,subject:otherIdentity.subject,sessionId:'session_serverOther'}};
+ const login=await auth.create();await auth.bind(otherWeb,{code:login.userCode,workspaceId:workspace,displayedUserId:other.id,action:'authorize',scope:'cli:session server_check:create'});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');await assert.rejects(store.retire(issued.credential,execution.id),/execution_not_found/);
+});
+test('retired execution cannot accept capture or finalize a run',async()=>{
+ let finalizations=0,validations=0;const noFinalize:Finalizer={preflight:async()=>'a'.repeat(64),validate:async()=>{validations++;throw new Error('must not validate retired capture');},finalize:async()=>{finalizations++;throw new Error('must not finalize retired capture');},reconcileCapture:async()=>{throw new Error('must not reconcile retired capture');}};
+ const retiredStore=new ServerCheckStore(pool,noFinalize),token=await reusableRetirementCredential(),execution=await retiredStore.authorize(token,request());await retiredStore.retire(token,execution.id);
+ const bytes=Buffer.from('retired execution capture');await assert.rejects(retiredStore.upload(token,execution.id,bytes,sha256(bytes)),/execution_retired/);
+ const status=await retiredStore.status(token,execution.id);assert.equal(status.state,'retired');assert.equal(status.runId,null);assert.equal(finalizations,0);assert.equal(validations,0);
+});
 test('real producer freeze -> disposable off-host finalization -> independent app verification -> exactly one immutable run; reopen and retry',async()=>{
  const token=await credential(),execution=await store.authorize(token,request()),bytes=await frozen(execution.authority),digest=sha256(bytes);
  const uploaded=await store.upload(token,execution.id,bytes,digest);assert.equal(uploaded.state,'uploaded');assert.equal((await store.upload(token,execution.id,bytes,digest)).id,execution.id);
@@ -120,7 +148,7 @@ test('CLI command uses normal Owner service, frozen fixture and real finalizer/i
  let captures=0;const beforeCount=Number((await pool.query("SELECT count(*) FROM runs WHERE workspace_id=$1",[workspace])).rows[0].count);
  const code=await serverCheck(['server','check'],{hostname:'demo-host',output:(s:string)=>lines.push(s),remove:async(f:string)=>{files.delete(f);},ask:async(q:string)=>q.startsWith('Reason')?'CLI fixture acceptance':q.startsWith('Intended SSH')?'private':q.startsWith('Intended listener')?'tcp://127.0.0.1:22':'y',
   fetch:async(url:string,init:RequestInit)=>{const headers=new Headers(init.headers);headers.set('host','127.0.0.1:3020');return service(new Request(url,{...init,headers}),url.endsWith('/server-check-capture'));},
-  local:{originatingUid:()=>1000,readOriginAuth:async()=>({server:origin,credential:token}),trustedRuntime:()=>finalizer.preflight(),privateDirectory:async()=>{},privateRead:async(f:string)=>files.get(f)??null,privateWrite:async(f:string,b:string)=>{files.set(f,Buffer.from(b));},lock:async(_d:string,action:()=>Promise<number>)=>action(),capture:async(a:unknown,d:string)=>{captures++;files.set(d+'/capture.json',await frozen(a,true));}}
+  local:{originatingUid:()=>1000,readOriginAuth:async()=>({server:origin,credential:token}),trustedRuntime:()=>finalizer.preflight(),privateDirectory:async()=>{},privateRead:async(f:string)=>files.get(f)??null,privateWrite:async(f:string,b:string)=>{files.set(f,Buffer.from(b));},findRetirementReceipt:async()=>null,archiveRetiredExecution:async()=>{},lock:async(_d:string,action:()=>Promise<number>)=>action(),capture:async(a:unknown,d:string)=>{captures++;files.set(d+'/capture.json',await frozen(a,true));}}
  });
  assert.equal(code,0);assert.equal(captures,1);assert.equal(Number((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1',[workspace])).rows[0].count),beforeCount+1);assert.match(lines.join('\n'),/Result: Partial/);assert.match(lines.join('\n'),/Verification valid/);assert.ok(!lines.join().includes(token));console.log(lines.join('\n'));
 });
@@ -173,7 +201,7 @@ test('real HTTP lost upload acknowledgement reconciles the same execution and on
   ask:async(q:string)=>q.startsWith('Reason')?'Timeout test':q.startsWith('Intended SSH')?'private':q.startsWith('Intended listener')?'tcp://127.0.0.1:22':'y',
   fetch:(url:string,init:RequestInit)=>fetch(url,{...init,signal:AbortSignal.timeout(5000)}),
   local:{originatingUid:()=>1000,readOriginAuth:async()=>({server:origin,credential:token}),trustedRuntime:()=>finalizer.preflight(),privateDirectory:async()=>{},
-   privateRead:async(f:string)=>files.get(f)??null,privateWrite:async(f:string,b:string)=>{files.set(f,Buffer.from(b));},
+   privateRead:async(f:string)=>files.get(f)??null,privateWrite:async(f:string,b:string)=>{files.set(f,Buffer.from(b));},findRetirementReceipt:async()=>null,archiveRetiredExecution:async()=>{},
    lock:async(_d:string,action:()=>Promise<number>)=>action(),capture:async(a:unknown,d:string)=>{captures++;files.set(d+'/capture.json',await frozen(a,true));}}};
  try{
   await assert.rejects(serverCheck(['server','check'],options),/reconcile/);
@@ -273,7 +301,7 @@ test('additive migration charges legacy authorized, rejected and completed execu
   await old.query('ALTER TABLE runs DISABLE TRIGGER USER; ALTER TABLE linux_check_sources DISABLE TRIGGER USER');
   for(const table of ['users','workspaces','assets','runs','linux_check_sources'])await old.query(`INSERT INTO ${table} SELECT * FROM ${schema}.${table}`);
   const columns=(await old.query("SELECT column_name FROM information_schema.columns WHERE table_schema=$1 AND table_name='server_check_executions' ORDER BY ordinal_position",[oldSchema])).rows.map(r=>r.column_name).join(',');
-  await old.query(`INSERT INTO server_check_executions(${columns}) SELECT ${columns} FROM ${schema}.server_check_executions`);
+  await old.query(`INSERT INTO server_check_executions(${columns}) SELECT ${columns} FROM ${schema}.server_check_executions WHERE state<>'retired'`);
   await old.query('ALTER TABLE runs ENABLE TRIGGER USER; ALTER TABLE linux_check_sources ENABLE TRIGGER USER; COMMIT');
   const rows=(await old.query('SELECT id,state,capture_digest FROM server_check_executions ORDER BY id')).rows;
   assert.ok(rows.some(r=>r.state==='authorized'));assert.ok(rows.some(r=>r.state==='run_created'));
