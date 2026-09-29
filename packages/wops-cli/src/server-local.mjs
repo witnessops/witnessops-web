@@ -51,7 +51,10 @@ export async function archiveRetiredExecution(base,executionId,serverReceipt,{ro
  const expectedBase=path.join(root,'staging','wops');if(!base.startsWith(expectedBase+'/')||path.dirname(base)!==expectedBase)throw new Error('Unsafe retained execution location.');
  const pendingSource=path.join(base,'pending.json'),attemptSource=path.join(base,executionId),retiredRoot=path.join(base,'retired'),bucket=path.join(retiredRoot,executionId),pendingDestination=path.join(bucket,'pending.json'),attemptDestination=path.join(bucket,executionId),receiptPath=path.join(bucket,'retirement.json');
  await privateDirectory(base,ownerUid);await privateDirectory(retiredRoot,ownerUid);await privateDirectory(bucket,ownerUid);
- for(const entry of await readdir(bucket)){if(![executionId,'pending.json','retirement.json'].includes(entry))throw new Error('Unexpected retained retirement entry.');}
+ for(const entry of await readdir(bucket)){
+  if(![executionId,'pending.json','retirement.json','retirement.json.new'].includes(entry))throw new Error('Unexpected retained retirement entry.');
+  if(entry==='retirement.json.new'){const temporaryInfo=await lstat(path.join(bucket,entry));if(!temporaryInfo.isFile()||temporaryInfo.isSymbolicLink()||temporaryInfo.uid!==ownerUid||(temporaryInfo.mode&0o777)!==0o600||temporaryInfo.size>16_384)throw new Error('Unsafe temporary retirement receipt.');}
+ }
  const pendingBytes=await privateRead(pendingSource,65_536,ownerUid)??await privateRead(pendingDestination,65_536,ownerUid);if(!pendingBytes)throw new Error('Retained pending journal is missing.');
  let journal;try{journal=JSON.parse(pendingBytes.toString('utf8'));}catch{throw new Error('Retained pending journal is malformed.');}
  if(journal?.request?.requestId!==serverReceipt.requestId||journal.captureDigest)throw new Error('Retained pending journal does not match the retired execution.');
@@ -64,8 +67,20 @@ export async function archiveRetiredExecution(base,executionId,serverReceipt,{ro
  await privateTree(evidenceDir,ownerUid);if(await privateRead(path.join(evidenceDir,'capture.json'),65_536,ownerUid))throw new Error('A local capture exists; retirement archive refused.');
  const authorityHash=await treeAuthorityDigest(evidenceDir,ownerUid),receipt={schema:'witnessops.cli.execution-retirement.v1',executionId,requestId:serverReceipt.requestId,retiredAt:serverReceipt.retiredAt,retiredBy:serverReceipt.retiredBy,pendingSha256:pendingHash,authoritySha256:authorityHash};
  const existingReceipt=await privateRead(receiptPath,16_384,ownerUid);
- if(existingReceipt){let parsed;try{parsed=JSON.parse(existingReceipt.toString('utf8'));}catch{throw new Error('Malformed local retirement receipt.');}if(JSON.stringify(parsed)!==JSON.stringify(receipt))throw new Error('Existing local retirement receipt differs.');}
- else{const temporary=receiptPath+'.new',fd=await open(temporary,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);try{await fd.writeFile(JSON.stringify(receipt));await fd.sync();}finally{await fd.close();}await rename(temporary,receiptPath);await syncDirectory(bucket);}
+ if(existingReceipt){let parsed;try{parsed=JSON.parse(existingReceipt.toString('utf8'));}catch{throw new Error('Malformed local retirement receipt.');}if(JSON.stringify(parsed)!==JSON.stringify(receipt))throw new Error('Existing local retirement receipt differs.');const temporary=receiptPath+'.new',temporaryInfo=await lstat(temporary).catch(error=>error.code==='ENOENT'?null:Promise.reject(error));if(temporaryInfo){if(!temporaryInfo.isFile()||temporaryInfo.isSymbolicLink()||temporaryInfo.uid!==ownerUid||(temporaryInfo.mode&0o777)!==0o600||temporaryInfo.size>16_384)throw new Error('Unsafe temporary retirement receipt.');await unlink(temporary);await syncDirectory(bucket);}}
+ else{
+  const temporary=receiptPath+'.new',expected=Buffer.from(JSON.stringify(receipt));
+  const temporaryInfo=await lstat(temporary).catch(error=>error.code==='ENOENT'?null:Promise.reject(error));
+  if(temporaryInfo){
+   if(!temporaryInfo.isFile()||temporaryInfo.isSymbolicLink()||temporaryInfo.uid!==ownerUid||(temporaryInfo.mode&0o777)!==0o600||temporaryInfo.size>16_384)throw new Error('Unsafe temporary retirement receipt.');
+   const interrupted=await privateRead(temporary,16_384,ownerUid);
+   if(interrupted?.equals(expected)){await rename(temporary,receiptPath);await syncDirectory(bucket);}
+   else await unlink(temporary);
+  }
+  if(!await privateRead(receiptPath,16_384,ownerUid)){
+   const fd=await open(temporary,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);try{await fd.writeFile(expected);await fd.sync();}finally{await fd.close();}await rename(temporary,receiptPath);await syncDirectory(bucket);
+  }
+ }
  const pendingSourceExists=await lstat(pendingSource).then(()=>true).catch(error=>error.code==='ENOENT'?false:Promise.reject(error));
  const pendingDestinationExists=await lstat(pendingDestination).then(()=>true).catch(error=>error.code==='ENOENT'?false:Promise.reject(error));
  if(pendingSourceExists&&pendingDestinationExists)throw new Error('Both active and retired pending journals exist.');
