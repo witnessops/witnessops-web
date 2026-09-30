@@ -56,6 +56,13 @@ These use the local migration connection and reject non-loopback databases. They
 
 Automatic retention/deletion is not implemented for product data, events or feedback. Signing out does not delete them. Privacy copy states that boundary and directs data requests to the existing contact channel. There is no analytics vendor, scheduler or automatic public-result import. Sandbox billing is separately opt-in.
 
+An explicit offline operator [workspace content removal candidate](./DATA_REMOVAL.md)
+provides read-only preview and separately confirmed removal for bounded database-only
+cases. It archives the workspace and preserves ordinary source immutability outside
+the maintenance transaction. It is not automatic retention, full account erasure,
+backup/provider deletion or evidence of hosted adoption. Unsupported custody,
+delivery and contractual cases fail closed; read the scope before using it.
+
 `WORKOS_COOKIE_DOMAIN` must remain unset. AuthKit owns sealed HttpOnly, SameSite=Lax cookies, PKCE/state checking, signature/subject validation and refresh. HTTPS callbacks use Secure; HTTP is admitted only for the local loopback origin. Callback and sign-out return origins come from server configuration, not request headers or user input. Sign-out is a Next server action with explicit same-origin admission. The app CSP permits that form's WorkOS logout destination; public web CSP is unchanged. The public site does not use the app session. Browser cookies have no port boundary, so local apps on the same loopback hostname receive the host cookie; use only trusted local services. Production requires the separate app hostname and a host-only cookie, without a parent-domain cookie.
 
 ## Data and access
