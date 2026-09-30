@@ -19,7 +19,7 @@ RUN mkdir -p /opt/witnessops && python3 /build/producer/prepare.py /opt/witnesso
 
 FROM node:22.23.2-alpine3.24@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
 # The pinned upstream image still carries the previous OpenSSL patch.
-RUN apk add --no-cache --upgrade libcrypto3=3.5.8-r0 libssl3=3.5.8-r0 python3=3.14.7-r1 \
+RUN apk add --no-cache --upgrade libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 python3=3.14.7-r1 \
     && rm -rf /usr/local/lib/node_modules /opt/yarn-v1.22.22 \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
       /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/docker-entrypoint.sh \
