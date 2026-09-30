@@ -21,7 +21,7 @@ test("public request contains service facts without prices, timing, URLs, creden
   assert.equal(request.max_output_tokens, 1_200);
   assert.equal("tools" in request, false);
   assert.equal(body.includes("test-only-placeholder"), false);
-  assert.match(body, /Agent Action Security Review/);
+  assert.match(body, /AI Agent Tools & Access Review/);
   assert.match(body, /Customer Security Review Sprint/);
   assert.match(body, /One Server Security Check/);
   for (const service of BUYER_SERVICES) {
@@ -127,7 +127,7 @@ test("model-authored fees, deadlines, destinations, completed actions and certif
 
 test("legitimate exclusions and bounded proof explanations survive the output filter", () => {
   for (const text of [
-    "The Agent Action Security Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
+    "The AI Agent Tools & Access Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
     "The review does not provide certification or a security guarantee.",
     "You receive evidence-linked findings, not certification or a security guarantee.",
     "This is not a certification that your agent is safe.",
@@ -320,8 +320,8 @@ for (const question of ['What does Professional Public Footprint Audit cost?', '
 
 test('current explicit service, page hint, then historical referent; ambiguity never uses catalogue order', async () => {
   const { catalogueClarification } = await import('./public-answer-runtime');
-  const agent = 'Agent Action Security Review', server = 'One Server Security Check';
-  for (const [older,current,id,price] of [[agent,server,'one-server-security-check','€950'],[server,agent,'bounded-workflow-review','€2,500']]) {
+  const agent = 'AI Agent Tools & Access Review', server = 'One Server Security Check';
+  for (const [older,current,id,price] of [[agent,server,'one-server-security-check','€950'],[server,agent,'agent-tools-access-review','€2,500']]) {
     const answer = catalogueClarification({question:`What does ${current} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:older}]})!;
     assert.equal(answer.recommendation?.service_id,id); assert.match(answer.text,new RegExp(price));
   }
@@ -374,4 +374,17 @@ test("product guidance includes current access and evidence boundaries without s
     assert.equal(answer.recommendation, null);
     assert.match(answer.presented_sources[0].canonical_href, /witnessops\.com\/docs\/getting-started\//);
   }
+});
+
+ test("public Ask records usage even for rejected prose without leaking content", async () => {
+  const events: PublicAskProviderEvent[] = [];
+  await runPublicAskRuntime({question: "PRIVATE QUESTION", config, history: [{role: "user", content: "PRIVATE HISTORY"}],
+    logger: event => events.push(event), fetchImpl: async () => new Response(JSON.stringify({output_text: "PRIVATE ANSWER", usage: {
+      input_tokens: 1500, output_tokens: 25, input_tokens_details: {cached_tokens: 1024, cache_write_tokens: 0, private: "PRIVATE"}}}),
+      {headers: {"x-request-id": "req_usage"}})});
+  assert.equal(events.length, 1);
+  assert.deepEqual(events[0], {input_tokens: 1500, output_tokens: 25, cached_tokens: 1024, cache_write_tokens: 0,
+    model: "gpt-5.4-mini", workload: "public-ask", prompt_version: "public-ask.v1", schema_version: "witnessops_public_answer.v1",
+    attempt: "initial", event: "openai_error", request_id: "req_usage", status: 200, duration_ms: events[0].duration_ms, error_class: "provider_invalid_answer"});
+  assert.doesNotMatch(JSON.stringify(events), /PRIVATE|test-only-placeholder/);
 });

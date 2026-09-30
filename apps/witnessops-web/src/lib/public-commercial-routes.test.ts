@@ -50,16 +50,16 @@ test("English review intake can preserve the current workflow offer without revi
   assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
   assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
 
-  const offer = buyerServiceByPublicOfferId("bounded-workflow-review");
-  assert.equal(offer?.name.en, "Agent Action Security Review");
-  assert.equal(offer?.price.en, "€2,500 fixed · excluding VAT");
+  const offer = buyerServiceByPublicOfferId("agent-tools-access-review");
+  assert.equal(offer?.name.en, "AI Agent Tools & Access Review");
+  assert.equal(offer?.price.en, "Starting at €2,500 · excluding VAT");
   assert.equal(
     offer?.timing.en,
-    "Within 10 working days after evidence rules are agreed",
+    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
-  assert.equal(offer?.requestCta?.en, "Scope this review");
-  assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(offer?.requestCta?.en, "Request a scope and fixed quote");
+  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
+  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
   assert.equal(offer?.productId, undefined);
   assert.equal(
     buyerServiceByPublicOfferId("customer-security-review-sprint")?.name.en,
@@ -75,6 +75,14 @@ test("English review intake can preserve the current workflow offer without revi
     undefined,
   );
   assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
+  assert.equal(buyerServiceByPublicOfferId("bounded-workflow-review"), undefined);
+  assert.equal(buyerServiceFromRequestOffer("bounded-workflow-review", PRIMARY_OFFER.name.en), undefined);
+  assert.equal(buyerServiceFromRequestOffer(undefined, "Agent Action Security Review"), undefined);
+  for (const locale of ["", "pl/"]) {
+    const page = readFileSync(resolve(__dirname, `../app/${locale}review/request/page.tsx`), "utf8");
+    assert.match(page, /offerId === LEGACY_AGENT_ACTION_OFFER\.id/);
+    assert.match(page, /PRIMARY_OFFER\.id/);
+  }
 
   assert.equal(
     buyerServiceFromRequestOffer(
@@ -97,12 +105,12 @@ test("English review intake can preserve the current workflow offer without revi
   );
 
   assert.equal(
-    buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    buyerPublicOfferRequestHref("en", "agent-tools-access-review"),
+    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
   );
   assert.equal(
     buyerServiceRequestHref("pl", offer!),
-    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/pl/review/request?offerId=agent-tools-access-review&offer=Przegl%C4%85d+narz%C4%99dzi+i+dost%C4%99pu+agenta+AI",
   );
 });
 

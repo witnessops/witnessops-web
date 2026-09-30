@@ -1,5 +1,6 @@
+import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { expect, test, type Page, type Route } from "@playwright/test";
-import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { BUYER_SERVICES, buyerServiceRequestHref, buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { activeHeroSupport, checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -45,14 +46,14 @@ const askWorkflowFallback = {
     schema: "witnessops.ask.commercial-fit.v1",
     result: "likely",
     intent: "workflow",
-    offer_id: "bounded-workflow-review",
+    offer_id: "agent-tools-access-review",
     source: "ask",
     offer: {
-      name: "Agent Action Security Review",
-      price_label: "€2,500 fixed · excluding VAT",
-      unit_label: "One consequential agent or automation action",
-      fit_check_label: "Non-secret fit check first",
-      delivery_label: "Within 10 working days after evidence rules are agreed",
+      name: "AI Agent Tools & Access Review",
+      price_label: "Starting at €2,500 · excluding VAT",
+      unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+      fit_check_label: "Non-secret fit and scoping request first",
+      delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
@@ -145,7 +146,8 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       } else {
         expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
         expect(headlineMetrics.fontSize).toBeLessThanOrEqual(49);
-        expect(headlineMetrics.lineCount).toBeLessThanOrEqual(4);
+        // Homepage A has a longer approved thesis; keep readable type and bounded wrapping.
+        expect(headlineMetrics.lineCount).toBeLessThanOrEqual(scenario.viewport.width <= 320 ? 5 : 4);
       }
       expect(headlineMetrics.lineHeightRatio).toBeGreaterThanOrEqual(0.94);
       expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.2);
@@ -226,16 +228,17 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       const page = await context.newPage();
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/check" : "/pl/review/request");
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/catalog/workflows#sample-review");
-      await expect(page.locator('main[data-home-direction="security-verification"]')).toHaveCount(1);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id) : "/pl/review/request");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/review/sample-cases/ai-agent-action-proof-run");
+      await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
         await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
       } else {
-        // The English homepage uses decorative art, not a fabricated finding.
+        // The English specimen explains the structure; it must not invent a finding.
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
-        await expect(page.locator('main [aria-hidden="true"] img')).toHaveAttribute("alt", "");
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Verify your email to create your own workspace.");
+        await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
+        await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
+        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
         await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
@@ -291,8 +294,8 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       await expect(surface).not.toContainText(askWorkflowFallback.template.body);
       await expect(surface).toContainText("The AI is temporarily unavailable. This is public guide information.");
       const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
-      await expect(fit).toContainText("€2,500 fixed · excluding VAT");
-      await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
+      await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
+      await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
       await expect(surface).toContainText("No evidence was reviewed");
       await expect(fit).toContainText("Fit signal only.");
       expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
@@ -420,9 +423,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
     { name: "homepage-mobile-390", path: "/", width: 390, height: 844 },
-    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
-    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
-    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
@@ -441,7 +444,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const response = await page.goto(capture.path, { waitUntil: "networkidle" });
       expect(response?.status(), capture.path).toBe(200);
       if (capture.path === "/catalog/workflow-s") {
-        expect(new URL(page.url()).pathname).toBe("/catalog/workflows");
+        expect(new URL(page.url()).pathname).toBe("/catalog");
       }
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);

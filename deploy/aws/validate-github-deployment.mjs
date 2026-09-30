@@ -65,6 +65,7 @@ const EXPECTED_RESOURCE_TYPES = new Map([
   ["ManagedNodeServiceRole", "AWS::IAM::Role"],
   ["StagingDeploymentDocument", "AWS::SSM::Document"],
   ["ProductionDeploymentDocument", "AWS::SSM::Document"],
+  ["ProductionStatusDocument", "AWS::SSM::Document"],
   ["GitHubStagingDeployerRole", "AWS::IAM::Role"],
   ["GitHubProductionDeployerRole", "AWS::IAM::Role"],
 ]);
@@ -285,7 +286,7 @@ function validateDeploymentRole(role, lane, documentLogicalId) {
   const sendStatements = policyStatements(role, "Allow").filter((statement) =>
     statementActions(statement).includes("ssm:SendCommand"),
   );
-  assert(sendStatements.length === 2, `${lane} deployer needs separate document and node grants`);
+  assert(sendStatements.length === (lane === "production" ? 3 : 2), `${lane} deployer needs exact document and node grants`);
   const expectedDocumentResource = {
     "Fn::Sub":
       "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${" +
@@ -296,6 +297,16 @@ function validateDeploymentRole(role, lane, documentLogicalId) {
     isDeepStrictEqual(statement.Resource, expectedDocumentResource),
   );
   assert(documentStatement, `${lane} deployer is not pinned to ${documentLogicalId}`);
+  if (lane === "production") {
+    const statusStatement = sendStatements.find((statement) =>
+      isDeepStrictEqual(statement.Resource, {
+        "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${ProductionStatusDocument}",
+      }),
+    );
+    assert(statusStatement, "production role lacks the exact status document grant");
+    assert(isDeepStrictEqual(statusStatement.Condition, documentStatement.Condition),
+      "production status document grant differs from the exact region boundary");
+  }
   const expectedNodeResource = {
     "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:managed-instance/*",
   };
@@ -421,6 +432,30 @@ function validateSsmDocument(resource, lane, contractDocument) {
     command === expectedCommand,
     `${lane} document command differs from the exact adapter invocation`,
   );
+}
+
+function validateStatusDocument(resource, contractDocument) {
+  assert(resource?.Type === "AWS::SSM::Document", "production status document is missing");
+  const properties = resource.Properties;
+  assert(properties.DocumentType === "Command" && properties.DocumentFormat === "JSON");
+  assert(isDeepStrictEqual(properties.Name, { "Fn::Sub": "${AWS::StackName}-status-production-v1" }),
+    "status document name differs from the workflow's fixed derivation");
+  assert(properties.TargetType === "/" && properties.UpdateMethod === "NewVersion");
+  assert(properties.VersionName === contractDocument?.version_name);
+  assert(properties.Content?.schemaVersion === "2.2");
+  assert(isDeepStrictEqual(properties.Content?.parameters, {}), "status document accepts inputs");
+  const steps = properties.Content?.mainSteps;
+  assert(Array.isArray(steps) && steps.length === 1, "status document must have one step");
+  assert(steps[0].action === "aws:runShellScript");
+  assert(isDeepStrictEqual(steps[0].precondition, { StringEquals: ["platformType", "Linux"] }));
+  assert(isDeepStrictEqual(steps[0].inputs, {
+    timeoutSeconds: "120",
+    runCommand: [`exec ${EXPECTED_ADAPTER_PATH} --status-production`],
+  }), "status document differs from the fixed read-only adapter invocation");
+  assert(isDeepStrictEqual(properties.Tags, [
+    { Key: "WitnessOpsApplication", Value: "witnessops-web" },
+    { Key: "WitnessOpsDeploymentLane", Value: "production" },
+  ]), "status document target tags differ from production");
 }
 
 export function readJson(filePath) {
@@ -553,7 +588,7 @@ export function validateGithubDeploymentContract(contract) {
   assert(Array.isArray(contractDocuments), "SSM document contract is missing");
   exactStringSet(
     contractDocuments.map((document) => document?.id),
-    ["staging", "production"],
+    ["staging", "production", "production_status"],
     "SSM document contract inventory",
   );
   for (const lane of ["staging", "production"]) {
@@ -565,6 +600,10 @@ export function validateGithubDeploymentContract(contract) {
       `${lane} document contract adapter path mismatch`,
     );
   }
+  const statusDocument = contractDocuments.find((item) => item.id === "production_status");
+  assert(statusDocument.lane === "production" && statusDocument.version_name === "v1_0_0");
+  assert(statusDocument.adapter_path === EXPECTED_ADAPTER_PATH);
+  assert(isDeepStrictEqual(statusDocument.inputs, []), "status document contract accepts inputs");
   assert(
     contract.host_adapter?.phase === "phase_3_not_implemented_or_installed_by_this_contract",
     "Phase 1 falsely claims the host adapter is installed",
@@ -806,6 +845,7 @@ export function validateCloudFormationTemplate(contract, template) {
     "production",
     contractDocuments.get("production"),
   );
+  validateStatusDocument(resources.ProductionStatusDocument, contractDocuments.get("production_status"));
 
   const logGroup = resources.RunCommandLogGroup;
   assert(logGroup?.Type === "AWS::Logs::LogGroup", "Run Command log group is missing");

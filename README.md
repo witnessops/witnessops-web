@@ -122,6 +122,7 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 
 ## Contributors
 
+- Morpheus build handoffs: `pnpm morpheus:handoff:inspect -- /absolute/path/to/handoff.json` provides a read-only intake for separate human review. A valid packet grants no implementation authority. See [Morpheus handoff intake](docs/MORPHEUS-HANDOFF-INTAKE.md).
 - Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke). Browser installation is not required by this health command.
 - Separate A4 PDF pagination gate: install Chromium with `pnpm exec playwright install chromium --with-deps`, then run `pnpm build && pnpm test:pdf-pagination`. The dedicated **PDF Pagination Gate** CI workflow builds the app and runs the same four fixture-based cases. Playwright starts the built app on loopback port 3019, refuses an already-running server, and stops its server after success or failure. No public hostname collection is performed. This browser gate is separate from `pnpm health`.
 - App database and Chromium/WebKit browser suites are separate from `pnpm health`; use the explicit commands and prerequisites in the [app README](./apps/witnessops-app/README.md). Provider-backed and deployment acceptance remain separate.

@@ -17,7 +17,7 @@
     "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
     "release": "pnpm --filter witnessops-web build",
     "ui-proof:hero": "pnpm --filter witnessops-web build && playwright test homepage-hero.spec.ts",
-    "ui-proof:hero:ci": "playwright test homepage-hero.spec.ts review-request.spec.ts catalogue.spec.ts offer-details.spec.ts shared-shell.spec.ts navigation-integrity.spec.ts api-key-rotation-proof.spec.ts",
+    "ui-proof:hero:ci": "playwright test homepage-hero.spec.ts review-request.spec.ts catalogue.spec.ts offer-details.spec.ts shared-shell.spec.ts navigation-integrity.spec.ts api-key-rotation-proof.spec.ts sample-work-title.spec.ts",
     "ui-proof:skill-conformance": "playwright test agent-verification-funnel.spec.ts library.spec.ts",
     "ui-proof:navigation": "playwright test navigation-integrity.spec.ts",
     "ui-proof:open": "playwright show-report artifacts/ui-proof/playwright-report",
@@ -52,7 +52,7 @@
     "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh",
     "deploy:k3s:test-parity": "bash deploy/scripts/test-k3s-parity.sh",
     "deploy:k3s:hygiene": "bash deploy/scripts/k3s-disk-hygiene.sh",
-    "deploy:aws:test": "node --test deploy/aws/validate-github-deployment.test.mjs deploy/aws/validate-acceptance.test.mjs deploy/scripts/no-automatic-image-publication.test.mjs deploy/scripts/retired-production-deploy.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
+    "deploy:aws:test": "node --import tsx --test tests/publication/browser-timing.test.ts && node --test deploy/aws/validate-github-deployment.test.mjs deploy/aws/validate-production-status.test.mjs deploy/aws/validate-acceptance.test.mjs deploy/scripts/no-automatic-image-publication.test.mjs deploy/scripts/retired-production-deploy.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
     "deploy:aws:validate": "node deploy/aws/validate-acceptance.mjs",
     "deploy:aws:validate-github": "node deploy/aws/validate-github-deployment.mjs",
     "deploy:aws:candidate": "bash deploy/aws/candidate-acceptance.sh",
@@ -62,7 +62,9 @@
     "test:app-browser": "playwright test --config tests/app-foundation/playwright.config.ts",
     "cli:test": "pnpm --filter @witnessops/cli test",
     "cli:artifact": "node scripts/build-cli-artifact.mjs",
-    "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py"
+    "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py",
+    "morpheus:handoff:inspect": "node --import tsx scripts/morpheus-handoff/cli.ts",
+    "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

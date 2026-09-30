@@ -11,6 +11,7 @@ on:
           - publish-image
           - deploy-staging
           - deploy-production
+          - status-production
       image_digest:
         description: sha256 manifest digest for deploy operations
         type: string

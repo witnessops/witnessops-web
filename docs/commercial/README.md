@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) is the canonical primary paid entry point: one consequential agent or automation action, €2,500 fixed · excluding VAT, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method. [External Attack Surface Review](./10-public-exposure-review-offer.md) remains separate secondary catalogue work at €1,900 · excluding VAT with its existing scope, caps, start gates, and retest. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
+**Current primary offer:** [AI Agent Tools & Access Review](./17-ai-agent-tools-access-review-offer.md), starting at €2,500 excluding VAT with a fixed quote after scope. It covers a dated, source-bounded tool inventory on one agreed device, one selected connection and one consequential action path. Payment is due before start by default; the target is 10 working days after the documented start gates. The [former Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) remains a superseded historical one-action contract. [External Attack Surface Review](./10-public-exposure-review-offer.md) remains separate at €1,900 excluding VAT.
 
 ## Start here
 
@@ -15,6 +15,15 @@ Written for learning the offers while you sell and deliver them.
 3. **[Operator playbook](./07-operator-playbook-complete.md)** — end-to-end lifecycle  
 
 Then use the paste templates below.
+
+## Offer identity and naming
+
+Use the [adopted policy](./OFFER_IDENTITY_AND_NAMING_POLICY.md) and its
+[research and worked examples](./OFFER_NAMING_RESEARCH_20260921.md) when reviewing
+naming or offer-identity changes. Adoption selects no new name, SKU, price or scope
+and grants no publication, billing, collection or migration authority. Existing
+accepted offer records remain authoritative. The dated naming market note below is
+retained as superseded research, not a current general naming policy.
 
 ## Document index
 
@@ -32,18 +41,19 @@ Then use the paste templates below.
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
 | 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
 | 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
-| 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
+| 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Historical sampled research; naming instructions superseded |
 | 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
 | 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
 | 15 | [Agent Risk & Control Review offer](./15-agent-risk-control-review-offer.md) | Superseded 2026-08-26 positioning retained as a historical commercial record |
-| 16 | [Agent Action Security Review offer](./16-agent-workflow-reconstruction-offer.md) | Canonical primary paid entry point, delivery method, contract, and authority boundary |
+| 16 | [Agent Action Security Review offer](./16-agent-workflow-reconstruction-offer.md) | Superseded one-action contract and historical request identity |
+| 17 | [AI Agent Tools & Access Review offer](./17-ai-agent-tools-access-review-offer.md) | Current primary contract and source-bounded delivery terms |
 
 ## Public anchors
 
 | Surface | URL |
 | --- | --- |
 | Catalog | https://witnessops.com/catalog |
-| Agent Action Security Review | https://witnessops.com/catalog/workflows |
+| AI Agent Tools & Access Review | https://witnessops.com/catalog/workflows |
 | Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
 | CSR service | https://witnessops.com/customer-security-review |
 | CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |

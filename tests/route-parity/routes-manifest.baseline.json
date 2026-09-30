@@ -49,25 +49,25 @@
     },
     {
       "source": "/catalog/workflow-s",
-      "destination": "/catalog/workflows",
+      "destination": "/catalog",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-s(?:/)?$"
     },
     {
       "source": "/catalog/workflow-m",
-      "destination": "/catalog/workflows",
+      "destination": "/catalog",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-m(?:/)?$"
     },
     {
       "source": "/catalog/workflow-l",
-      "destination": "/catalog/workflows",
+      "destination": "/catalog",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-l(?:/)?$"
     },
     {
       "source": "/catalog/workflow-rerun",
-      "destination": "/catalog/workflows",
+      "destination": "/catalog",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-rerun(?:/)?$"
     }

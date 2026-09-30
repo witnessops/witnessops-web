@@ -95,7 +95,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
-    'label: "Agent Action Security Review (EN)"',
+    'label: "AI Agent Tools & Access Review (EN)"',
     'href: "/pl/catalog/offsec-external-exposure"',
     'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
@@ -106,7 +106,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
 
-  assert.equal(PRIMARY_OFFER.name.pl, "Agent Action Security Review");
+  assert.equal(PRIMARY_OFFER.name.pl, "Przegląd narzędzi i dostępu agenta AI");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.match(source, /reviewRequestHrefForLocation\(/);
   assert.match(source, /primaryHref=\{reviewRequestHref\}/);
@@ -124,7 +124,7 @@ test("library surface includes English and Polish library paths", () => {
 
 test("footer uses the bounded public funnel without deleting repair services", () => {
   const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["Agent Action Security Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  for (const label of ["AI Agent Tools & Access Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
   assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });
 
@@ -201,7 +201,7 @@ test("footer suppresses Build STATIC and keeps Polish resources local", () => {
 
 test("selected-offer enquiry links are removed from footer navigation duplicates", () => {
   assert.equal(isFooterRequestHref("/review/request"), true);
-  assert.equal(isFooterRequestHref("/review/request?offerId=bounded-workflow-review"), true);
+  assert.equal(isFooterRequestHref("/review/request?offerId=agent-tools-access-review"), true);
   assert.equal(isFooterRequestHref("/pl/review/request?productId=OFFSEC-LOCAL-AUDIT"), true);
   assert.equal(isFooterRequestHref("/review/sample-cases"), false);
   assert.equal(isFooterRequestHref("/review/request/confirmed"), false);

@@ -1,0 +1,87 @@
+#!/bin/sh
+set -eu
+NODE='@NODE_PATH@'
+NODE_SHA256='@NODE_SHA256@'
+RUNTIME_LOCK='@RUNTIME_LOCK@'
+MAIN='@MAIN_PATH@'
+CLI_ROOT='@CLI_ROOT@'
+FLOCK='/usr/bin/flock'
+
+fail() { printf '%s\n' "$1" >&2; exit 126; }
+
+# Unprivileged CLI commands keep using the normal user's Node and credential.
+if [ "$(/usr/bin/id -u)" -ne 0 ]; then
+    PATH=${PATH-}
+    export PATH
+    command -v node >/dev/null 2>&1 || fail 'Node.js is unavailable in this user session.'
+    exec node "$MAIN" "$@"
+fi
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+# Root execution is limited to the single supported collection command.
+if [ "${1-}" != server ] || [ "${2-}" != check ]; then
+    fail 'Run wops auth commands as your normal user; privileged mode supports only wops server check.'
+fi
+
+check_root_controlled() {
+    item=$1
+    [ -e "$item" ] || fail 'The fixed server-check runtime is unavailable or unsafe.'
+    owner=$(/usr/bin/stat -L -c %u -- "$item") || fail 'The fixed server-check runtime is unavailable or unsafe.'
+    mode=$(/usr/bin/stat -L -c %a -- "$item") || fail 'The fixed server-check runtime is unavailable or unsafe.'
+    [ "$owner" = 0 ] || fail 'The fixed server-check runtime is unavailable or unsafe.'
+    [ "$((0$mode & 022))" -eq 0 ] || fail 'The fixed server-check runtime is unavailable or unsafe.'
+}
+
+check_root_controlled_ancestors() {
+    item=$(/usr/bin/dirname -- "$1")
+    while [ "$item" != / ]; do
+        [ -d "$item" ] && [ ! -L "$item" ] || fail 'The installed runtime path is unavailable or unsafe.'
+        check_root_controlled "$item"
+        item=$(/usr/bin/dirname -- "$item")
+    done
+}
+
+check_cli_tree() {
+    [ -d "$CLI_ROOT" ] && [ ! -L "$CLI_ROOT" ] || fail 'The installed CLI package is unavailable or unsafe.'
+    check_root_controlled "$CLI_ROOT"
+    check_root_controlled_ancestors "$CLI_ROOT"
+    unsafe_entry=$(/usr/bin/find "$CLI_ROOT" -xdev \( -type l -o \( ! -type d ! -type f \) -o ! -user 0 -o -perm /022 \) -print -quit) || fail 'The installed CLI package is unavailable or unsafe.'
+    [ -z "$unsafe_entry" ] || fail 'The installed CLI package is unavailable or unsafe.'
+}
+
+check_root_controlled_ancestors "$NODE"
+NODE_ENTRY_OWNER=$(/usr/bin/stat -c %u -- "$NODE") || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+[ "$NODE_ENTRY_OWNER" = 0 ] || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+MAIN_REAL=$(/usr/bin/readlink -f -- "$MAIN") || fail 'The installed CLI entrypoint is unavailable or unsafe.'
+[ "$MAIN_REAL" = "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
+[ -f "$MAIN" ] && [ ! -L "$MAIN" ] || fail 'The installed CLI entrypoint is unavailable or unsafe.'
+check_cli_tree
+check_root_controlled "$MAIN"
+check_root_controlled_ancestors "$MAIN"
+
+NODE_REAL=$(/usr/bin/readlink -f -- "$NODE") || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+[ "$NODE_REAL" = "$NODE" ] && [ -f "$NODE_REAL" ] && [ ! -L "$NODE" ] && [ -x "$NODE_REAL" ] || fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.'
+check_root_controlled "$NODE_REAL"
+check_root_controlled_ancestors "$NODE_REAL"
+check_root_controlled "$FLOCK"
+check_root_controlled_ancestors "$FLOCK"
+check_root_controlled "$RUNTIME_LOCK"
+check_root_controlled_ancestors "$RUNTIME_LOCK"
+[ "$(/usr/bin/stat -c %a -- "$RUNTIME_LOCK")" = 600 ] || fail 'The shared Local Audit runtime lock is unavailable or unsafe.'
+NODE_DIGEST_LINE=$(/usr/bin/sha256sum -- "$NODE") || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
+[ "${NODE_DIGEST_LINE%% *}" = "$NODE_SHA256" ] || fail 'The pinned WitnessOps Node.js runtime is unavailable or unsafe.'
+case "$(/usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin LANG=C "$NODE" --version 2>/dev/null || true)" in
+    v22.23.3) ;;
+    *) fail 'Install the pinned WitnessOps Node.js runtime before enabling sudo wops.' ;;
+esac
+
+case "${SUDO_UID-}" in
+    ''|*[!0-9]*) fail 'Use sudo from a signed-in normal account.' ;;
+esac
+exec /usr/bin/flock --shared "$RUNTIME_LOCK" /usr/bin/env -i \
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LANG=C.UTF-8 \
+    SUDO_UID="$SUDO_UID" \
+    "$NODE" "$MAIN" "$@"

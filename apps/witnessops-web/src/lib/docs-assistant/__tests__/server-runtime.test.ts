@@ -210,3 +210,17 @@ test("docs assistant logs provider request IDs without prompt or response bodies
   assert.equal("question" in (events[0] ?? {}), false);
   assert.equal(JSON.stringify(answer).includes("upstream detail"), false);
 });
+
+test("docs provider retains only numeric usage and metadata", async () => {
+  const { executeDocsAssistantResponsesRequest } = await import("../server-runtime");
+  const events: Array<Record<string, unknown>> = [];
+  await executeDocsAssistantResponsesRequest({payload: {question: "PRIVATE QUESTION"}, config: testConfig(),
+    logger: event => events.push({...event}), fetchImpl: async () => new Response(JSON.stringify({output_text: "PRIVATE ANSWER",
+      output: [{type: "file_search_call", results: ["PRIVATE DOCUMENT"]}],
+      usage: {input_tokens: 2000, output_tokens: 100, input_tokens_details: {cached_tokens: 0}}}), {headers: {"x-request-id": "req_docs_usage"}})});
+  assert.equal(events.length, 1);
+  assert.deepEqual(events[0], {input_tokens: 2000, output_tokens: 100, cached_tokens: 0, model: "gpt-5.4-mini", workload: "docs-assistant",
+    prompt_version: "docs-assistant.v1", schema_version: "docs-assistant.answer.v1", attempt: "initial", event: "openai_response",
+    request_id: "req_docs_usage", status: 200, duration_ms: events[0].duration_ms, error_class: null});
+  assert.doesNotMatch(JSON.stringify(events), /PRIVATE|test-key/);
+});

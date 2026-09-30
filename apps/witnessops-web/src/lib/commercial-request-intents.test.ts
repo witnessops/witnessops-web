@@ -65,6 +65,10 @@ test("commercial request labels localize the Polish handoff", () => {
     "Zgłoszenie Agent Action Security Review",
   );
   assert.equal(
+    getCommercialRequestLabel("agent-tools-access-review", "pl"),
+    "Zgłoszenie: Przegląd narzędzi i dostępu agenta AI",
+  );
+  assert.equal(
     getCommercialRequestLabel("professional-public-footprint-audit", "pl"),
     "Zgłoszenie audytu publicznego śladu zawodowego",
   );

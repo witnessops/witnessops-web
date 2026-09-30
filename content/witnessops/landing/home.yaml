@@ -54,8 +54,8 @@ hero:
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "See a sample finding"
-    href: "/catalog/workflows#sample-review"
+    label: "See a historical action example"
+    href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
   proof_badges: []
   media:
@@ -194,7 +194,7 @@ footer:
   brand_line: "WitnessOps"
   subline: "Security verification with clear findings, supporting evidence and practical next steps."
   links:
-    - label: "Agent Action Security Review"
+    - label: "AI Agent Tools & Access Review"
       href: "/catalog/workflows"
     - label: "External Attack Surface Review"
       href: "/catalog/offsec-external-exposure"

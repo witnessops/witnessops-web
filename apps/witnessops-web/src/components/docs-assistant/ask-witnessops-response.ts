@@ -99,10 +99,10 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
       answer.commercial_fit.result === "needs_boundary")
   ) {
     const offer = answer.commercial_fit.offer;
-    const currentOffer = `${offer.name} is the primary paid path: ${offer.price_label}; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
+    const currentOffer = `${offer.name} is the primary review: ${offer.price_label}, with a fixed quote after scope; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
 
     if (answer.commercial_fit.result === "needs_boundary") {
-      return `${currentOffer} This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential agent or automation action; the fit-check path is shown above.`;
+      return `${currentOffer} This public guide cannot inspect a device. Narrow the non-secret description to an agreed device/source boundary, one agent connection and one consequential action; the fit-check path is shown above.`;
     }
 
     return `${currentOffer} This public guide cannot inspect or verify the action here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;

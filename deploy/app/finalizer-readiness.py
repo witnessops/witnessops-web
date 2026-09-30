@@ -8,7 +8,7 @@ import tempfile
 from importlib.metadata import version
 from witnessops_local_audit.package import source_fingerprint
 
-FINGERPRINT = '2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8'
+FINGERPRINT = 'ac93a93dc1d89fc4c2a467b83a5131482d21a84342f1ac176823adf8bb0d372a'
 REGISTRY = '4f3ef3b9468a9de3e0a4d3ec573db25bbff86c9c458901931d01e36f4493e939'
 
 def check():

@@ -39,8 +39,8 @@ export default function CatalogWorkflowsPage() {
       <BuyerServiceDetail
         locale="en"
         service={service}
-        claim="WitnessOps reviews one consequential agent or automation action across authority → identity → permissions → tools → execution → evidence. The review identifies over-privileged identities, weak or implicit approval paths, tool access beyond intended scope, broken approval-to-action binding, missing execution evidence, and actions that cannot be independently demonstrated afterward."
-        verificationPath={`${PRIMARY_OFFER.deliveryMethod.en} is the delivery method used to reconstruct the action and test the evidence chain. Where useful, the technical package includes an evidence-gap analysis, proposed receipt shape, and sample pack with supported receipt JSON. Extract that JSON to test it through /verify; /verify does not accept the whole pack. A receipt proves only what its named verifier and referenced evidence support; it does not certify compliance or agent safety.`}
+        claim="WitnessOps records which agent tools appear in an agreed dated system-level inventory, reviews one named agent setup and selected tool connection, then traces the authority and effective downstream permissions of one consequential action. The report distinguishes observed evidence, absence within a named source, failed or unavailable sources, and sources not inspected. It does not claim complete agent discovery or that a proposed action occurred, and does not guarantee security."
+        verificationPath="Findings cite the inspected sources, observation time, method and limitations. A configuration can show declared capability, while downstream permission and execution records are needed to support claims about effective access or an action that occurred. The historical synthetic one-action sample is an example of evidence reasoning, not a sample of this full review."
         notIncluded={[...PRIMARY_OFFER.notIncluded.en]}
         promoteCommercialContract
       />

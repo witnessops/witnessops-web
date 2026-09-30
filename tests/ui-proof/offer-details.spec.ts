@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 const offers = [
   {
     path: "/catalog/workflows",
-    service: "bounded-workflow-review",
-    name: "Agent Action Security Review",
-    price: "€2,500 fixed · excluding VAT",
-    timing: "Within 10 working days after evidence rules are agreed",
+    service: "agent-tools-access-review",
+    name: "AI Agent Tools & Access Review",
+    price: "Starting at €2,500 · excluding VAT",
+    timing: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     request: "/review/request",
   },
   {
@@ -134,8 +134,8 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main).toContainText(offer.name);
       await expect(main.locator("h1")).toBeVisible();
       await expect(main).toHaveAttribute("data-price-contract", /.+/);
-      if (offer.service === "bounded-workflow-review") {
-        await expect(main.locator('[data-promoted-commercial-contract="bounded-workflow-review"]')).toBeInViewport();
+      if (offer.service === "agent-tools-access-review") {
+        await expect(main.locator('[data-promoted-commercial-contract="agent-tools-access-review"]')).toBeInViewport();
       }
       await main.locator("summary").filter({ hasText: offer.path.startsWith("/pl") ? "Jak przebiega współpraca" : "How the engagement works" }).click();
       const numberedSteps = main.locator("ol").first();
@@ -170,26 +170,21 @@ test("reachable offer details use the canonical buyer contract and visual system
           /\/pl\/catalog\/offsec-external-exposure$/,
         );
       }
-      if (offer.service === "bounded-workflow-review") {
+      if (offer.service === "agent-tools-access-review") {
         const promotedContract = main.locator(
-          '[data-promoted-commercial-contract="bounded-workflow-review"]',
+          '[data-promoted-commercial-contract="agent-tools-access-review"]',
         );
         await expect(promotedContract).toBeVisible();
-        await expect(promotedContract).toContainText("€2,500 fixed · excluding VAT");
+        await expect(promotedContract).toContainText("Starting at €2,500 · excluding VAT");
         await expect(promotedContract).toContainText(
-          "Within 10 working days after evidence rules are agreed",
+          "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
         );
-        await expect(main).toContainText("One consequential agent or automation action");
-        await expect(main).toContainText("Non-secret fit check first");
+        await expect(main).toContainText("One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
+        await expect(main).toContainText("Start with a short description. We confirm fit and scope before work begins.");
         await expect(main).toContainText(
-          "Within 10 working days after evidence rules are agreed",
+          "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
         );
-        await expect(main).toContainText(
-          "authority → identity → permissions → tools → execution → evidence",
-        );
-        await expect(main).toContainText(
-          "Agent Workflow Reconstruction is the delivery method",
-        );
+        await expect(main).toContainText("One action path: approval, executing identity, effective downstream permissions and available execution evidence.");
         await expect(main).not.toContainText("Agent Risk & Control Review");
         await expect(main).not.toContainText("From €1,500");
         await expect(main).not.toContainText(
@@ -287,11 +282,11 @@ test("reachable offer details use the canonical buyer contract and visual system
             "OFFSEC-EXTERNAL-EXPOSURE",
           );
         }
-        if (offer.service === "bounded-workflow-review") {
+        if (offer.service === "agent-tools-access-review") {
           const request = new URL(href ?? "", "http://witnessops.test");
-          expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
+          expect(request.searchParams.get("offerId")).toBe("agent-tools-access-review");
           expect(request.searchParams.get("offer")).toBe(
-            "Agent Action Security Review",
+            "AI Agent Tools & Access Review",
           );
         }
         expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);

@@ -14,7 +14,7 @@ const polishPage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const expectedOrder = [
   "automation-repair-handover",
   "customer-security-review-sprint",
-  "bounded-workflow-review",
+  "agent-tools-access-review",
   "one-server-security-check",
   "external-exposure-assessment",
   "launch-readiness-check",
@@ -111,13 +111,13 @@ test("professional public footprint audit keeps its request-only bilingual contr
 
 test("catalogue details keep the primary canonical route and localized secondary routes", () => {
   const workflow = BUYER_SERVICES.find(
-    (service) => service.id === "bounded-workflow-review",
+    (service) => service.id === "agent-tools-access-review",
   );
   assert.equal(workflow?.detailHref.en, "/catalog/workflows");
   assert.equal(workflow?.detailHref.pl, "/catalog/workflows");
 
   for (const service of BUYER_SERVICES.filter(
-    (candidate) => candidate.id !== "bounded-workflow-review",
+    (candidate) => candidate.id !== "agent-tools-access-review",
   )) {
     assert.ok(service.detailHref.en);
     assert.ok(service.detailHref.pl);

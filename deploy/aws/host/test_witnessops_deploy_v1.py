@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import contextlib
 import http.server
 import importlib.machinery
 import io
 import json
+import os
 from pathlib import Path
 import tarfile
 import tempfile
@@ -96,6 +98,98 @@ class ConfigTests(TestCase):
         self.addCleanup(directory.cleanup)
         with self.assertRaisesRegex(adapter.AdapterError, "group/world writable"):
             adapter.load_config(path, enforce_root=False)
+
+
+class ProductionStatusTests(TestCase):
+    def test_status_rejects_arbitrary_inputs(self):
+        for extra in (["--config", "/tmp/other.json"], ["--lane", "staging"],
+                      ["--image-digest", digest(b"other")], ["--shell", "id"]):
+            with self.subTest(extra=extra), mock.patch.object(
+                adapter.sys, "argv", ["witnessops-deploy-v1", "--status-production", *extra]
+            ), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                adapter.parse_args()
+
+    def test_read_only_status_uses_live_deployment_and_matching_receipt(self):
+        current = digest(b"current")
+        previous = digest(b"previous")
+        ref = f"{valid_config()['registry']}/witnessops-web@{current}"
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            config_path = state / "deploy-v1.json"
+            config_path.write_text(json.dumps(valid_config()))
+            (state / "last-production.json").write_text(json.dumps({
+                "schema_version": "witnessops.host-deploy.v1", "lane": "production",
+                "result": "pass", "image_digest": current, "previous_digest": previous,
+            }))
+            state.chmod(0o750)
+            (state / "last-production.json").chmod(0o640)
+            real_lstat = Path.lstat
+            def root_owned_state(path):
+                info = real_lstat(path)
+                if path in (state, state / "last-production.json", Path(adapter.__file__), config_path):
+                    values = list(info)
+                    values[4] = 0
+                    if path == Path(adapter.__file__):
+                        values[0] = (values[0] & ~0o777) | 0o755
+                    return os.stat_result(values)
+                return info
+            with mock.patch.object(adapter, "STATE_DIR", state), mock.patch.object(
+                adapter, "CONFIG_PATH", config_path
+            ), mock.patch.object(
+                adapter, "load_config", return_value=valid_config()
+            ), mock.patch.object(Path, "lstat", root_owned_state), mock.patch.object(
+                adapter, "deployment", return_value={}
+            ), mock.patch.object(adapter, "validate_runtime_contract", return_value=(0, ref)), mock.patch.object(
+                adapter, "containerd_config_digest", return_value=digest(b"config")
+            ), mock.patch.object(adapter, "validate_running_identity") as running, mock.patch.object(
+                adapter, "open_deployment_lock", side_effect=AssertionError("mutation lock used")
+            ), mock.patch.object(adapter, "patch_image", side_effect=AssertionError("patch used")), mock.patch.object(
+                adapter, "fetch_oci_archive", side_effect=AssertionError("pull used")
+            ), mock.patch.object(adapter.os, "geteuid", return_value=0):
+                result = adapter.status_production()
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["current_digest"], current)
+            self.assertEqual(result["previous_digest"], previous)
+            running.assert_called_once()
+
+    def test_previous_is_unknown_when_receipt_does_not_match_runtime(self):
+        current = digest(b"current")
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / "last-production.json").write_text(json.dumps({
+                "schema_version": "witnessops.host-deploy.v1", "lane": "production",
+                "result": "pass", "image_digest": digest(b"old"),
+                "previous_digest": digest(b"previous"),
+            }))
+            with mock.patch.object(adapter, "STATE_DIR", state), mock.patch.object(
+                adapter, "validate_secure_file"
+            ):
+                self.assertIsNone(adapter.recorded_previous_digest(current))
+
+    def test_previous_is_unknown_when_receipt_missing_or_noop(self):
+        current = digest(b"current")
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            with mock.patch.object(adapter, "STATE_DIR", state):
+                self.assertIsNone(adapter.recorded_previous_digest(current))
+            (state / "last-production.json").write_text(json.dumps({
+                "schema_version": "witnessops.host-deploy.v1", "lane": "production",
+                "result": "pass", "image_digest": current, "previous_digest": current,
+            }))
+            with mock.patch.object(adapter, "STATE_DIR", state), mock.patch.object(
+                adapter, "validate_secure_file"
+            ):
+                self.assertIsNone(adapter.recorded_previous_digest(current))
+
+    def test_wrong_repository_fails_closed(self):
+        ref = f"other.example/witnessops-web@{digest(b'current')}"
+        with mock.patch.object(adapter, "load_config", return_value=valid_config()), mock.patch.object(
+            adapter, "validate_secure_file"
+        ), mock.patch.object(adapter, "deployment", return_value={}), mock.patch.object(
+            adapter, "validate_runtime_contract", return_value=(0, ref)
+        ), mock.patch.object(adapter.os, "geteuid", return_value=0):
+            with self.assertRaisesRegex(adapter.AdapterError, "repository differs"):
+                adapter.status_production()
 
 
 class OciTests(TestCase):

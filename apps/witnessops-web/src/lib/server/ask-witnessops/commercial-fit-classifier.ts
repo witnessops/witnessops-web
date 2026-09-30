@@ -49,11 +49,13 @@ const LIKELY_FIT_AUTHORITY_CLASSES = new Set([
 
 
 const NAMED_OFFER_PATTERN =
-  /\b(agent action security review|agent workflow reconstruction|agent risk (?:&|and) control review|what does witnessops do|what can witnessops do)\b/i;
+  /\b(ai agent tools (?:&|and) access review|what does witnessops do|what can witnessops do)\b/i;
+const HISTORICAL_OFFER_PATTERN =
+  /\b(agent action security review|agent workflow reconstruction|agent risk (?:&|and) control review)\b/i;
 const OFFER_DETAIL_PATTERN =
   /\b(how much|price|pricing|cost|fee|deliverables?|what (?:is|isn't|is not) included|review scope)\b/i;
 const OFFER_CONTEXT_PATTERN =
-  /\b(witnessops|agent action security review|agent workflow reconstruction|agent risk|control review|workflow review|review (?:of )?one (?:consequential )?(?:agentic |automated |ai[- ]?agent )?(?:action|workflow))\b/i;
+  /\b(witnessops|ai agent tools (?:&|and) access review|agent tools|agent access|workflow review)\b/i;
 const AGENT_PATTERN =
   /\b(ai[- ]?agent|agentic|agent workflow|automated workflow|automation|autonomous agent|copilot)\b/i;
 const CONSEQUENTIAL_ACTION_PATTERN =
@@ -162,6 +164,11 @@ export function classifyCommercialFit(args: {
     authorityClass === "unsupported_verification_claim"
   ) {
     return assessment("not_fit", "other");
+  }
+
+  // An explicit historical offer name must not select the distinct new offer.
+  if (HISTORICAL_OFFER_PATTERN.test(question) && !NAMED_OFFER_PATTERN.test(question)) {
+    return assessment("unknown", "other");
   }
 
   const specimenId = matchingSpecimenId(question);

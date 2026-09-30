@@ -35,11 +35,15 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     { label: "Free check", href: "/check" },
     { label: "Docs", href: "/docs" },
   ];
-  const effectiveCta = {
+  const effectiveCta = polish ? {
     label: signupUrl ? "Sign up" : "Free check",
     href: signupUrl || "/check",
     variant: "primary",
-  };
+  } : signupUrl ? {
+    label: "Sign up",
+    href: signupUrl,
+    variant: "secondary",
+  } : null;
   const effectiveAnnouncement = announcement;
   const brandLabel = "WitnessOps";
 
@@ -88,8 +92,8 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
   }
 
-  const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta.variant)} ${
-    currentPath === effectiveCta.href
+  const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta?.variant ?? "secondary")} ${
+    currentPath === effectiveCta?.href
       ? "ring-2 ring-brand-accent ring-offset-2 ring-offset-surface-bg"
       : ""
   }`;
@@ -110,6 +114,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
         </div>
       )}
       <nav
+        data-public-signup-variant={polish ? undefined : "secondary"}
         data-public-presentation={usesPublicPresentation(currentPath) ? "quiet" : undefined}
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
@@ -165,11 +170,11 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                   </Link>
                 ),
               )}
-              {isExternalHref(effectiveCta.href) ? (
+              {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
                   data-public-primary-cta
-                  aria-current={currentPath === effectiveCta.href ? "page" : undefined}
+                  aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
                   className={desktopCtaClassName}
@@ -181,13 +186,13 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                 <Link
                   href={effectiveCta.href}
                   data-public-primary-cta
-                  aria-current={currentPath === effectiveCta.href ? "page" : undefined}
+                  aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
                   className={desktopCtaClassName}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}
                 </Link>
-              )}
+              ))}
             </div>
             <MobileNavbarMenu
               loginUrl={appUrl ? new URL("/login", appUrl).href : null}

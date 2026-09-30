@@ -294,7 +294,7 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
   if (!sku) notFound();
   const disposition = catalogSkuDisposition(sku.id);
   if (disposition === "replacement_available") {
-    permanentRedirect("/catalog/workflows");
+    permanentRedirect("/catalog");
   }
   if (!isCurrentPublicCatalogSku(sku.id)) notFound();
 

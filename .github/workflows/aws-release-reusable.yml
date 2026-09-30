@@ -87,6 +87,15 @@ jobs:
               publication_run_attempt="${GITHUB_RUN_ATTEMPT}"
               expected_current_digest=""
               ;;
+            status-production)
+              [[ -z "${IMAGE_DIGEST}${SOURCE_COMMIT}${CONFIG_DIGEST}${PUBLICATION_RUN_ID}${PUBLICATION_RUN_ATTEMPT}${EXPECTED_CURRENT_DIGEST}" ]]
+              source_commit=""
+              image_digest=""
+              config_digest=""
+              publication_run_id=""
+              publication_run_attempt=""
+              expected_current_digest=""
+              ;;
             deploy-staging|deploy-production)
               [[ "${IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]
               [[ "${SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]]
@@ -704,3 +713,84 @@ jobs:
           [[ "${status}" == "Success" ]]
           printf '### Production command\n\n- Status: \`Success\`\n- Command ID: \`%s\`\n' \
             "${command_id}" >> "${GITHUB_STEP_SUMMARY}"
+
+  status_production:
+    name: Read production image status
+    if: needs.validate.outputs.operation == 'status-production'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: aws-production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the exact status receipt validator
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Validate the configured production node and status document name
+        env:
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+          DEPLOY_DOCUMENT_NAME: ${{ vars.AWS_SSM_DOCUMENT_NAME }}
+        run: |
+          set -euo pipefail
+          [[ "${MANAGED_NODE_ID}" =~ ^mi-[0-9a-f]{17}$ ]]
+          [[ "${DEPLOY_DOCUMENT_NAME}" =~ ^[A-Za-z0-9_.-]+-deploy-production-v1$ ]]
+
+      - name: Configure the reviewer-gated production identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: github-${{ github.run_id }}-${{ github.run_attempt }}
+          mask-aws-account-id: true
+
+      - name: Invoke only the parameterless production status document
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+          DEPLOY_DOCUMENT_NAME: ${{ vars.AWS_SSM_DOCUMENT_NAME }}
+          LOG_GROUP: ${{ vars.AWS_RUN_COMMAND_LOG_GROUP }}
+        run: |
+          set -euo pipefail
+          status_document_name="${DEPLOY_DOCUMENT_NAME%-deploy-production-v1}-status-production-v1"
+          command_id="$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${MANAGED_NODE_ID}" \
+            --document-name "${status_document_name}" \
+            --cloud-watch-output-config "CloudWatchOutputEnabled=true,CloudWatchLogGroupName=${LOG_GROUP}" \
+            --query 'Command.CommandId' \
+            --output text)"
+          [[ "${command_id}" =~ ^[0-9a-f-]{36}$ ]]
+          aws ssm wait command-executed \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}" || true
+          export COMMAND_ID="${command_id}"
+          if ! aws ssm get-command-invocation \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}" \
+            --output json > "${RUNNER_TEMP}/production-status-invocation.json" 2>/dev/null; then
+            node deploy/aws/validate-production-status.mjs \
+              --lookup-failed "${RUNNER_TEMP}/production-status-receipt.json"
+            exit 1
+          fi
+          node deploy/aws/validate-production-status.mjs \
+            "${RUNNER_TEMP}/production-status-invocation.json" \
+            "${RUNNER_TEMP}/production-status-receipt.json"
+          digest="$(jq -r .current_digest "${RUNNER_TEMP}/production-status-receipt.json")"
+          printf '### Production status\n\n- Current digest: `%s`\n' \
+            "${digest}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Retain the bounded non-secret status receipt
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-production-status-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/production-status-receipt.json

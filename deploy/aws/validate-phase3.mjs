@@ -268,6 +268,8 @@ const EXPECTED_PULL_REQUEST_PATHS = [
   "deploy/aws/README.md",
   "deploy/aws/validate-phase3.mjs",
   "deploy/aws/validate-phase3.test.mjs",
+  "deploy/aws/validate-production-status.mjs",
+  "deploy/aws/validate-production-status.test.mjs",
   "deploy/aws/validate-ecr-scan-findings.mjs",
   "deploy/aws/validate-ecr-scan-findings.test.mjs",
   "deploy/aws/validate-github-deployment.mjs",
@@ -371,6 +373,12 @@ export function validatePhase3Sources(sources) {
   assert(contract.workflows.reusable_trigger === "workflow_call_only");
   assert(contract.workflows.reusable_exact_caller_required === true);
   assert(contract.workflows.automatic_publish_or_deploy === false);
+  exactSet(contract.workflows.operations,
+    ["publish-image", "deploy-staging", "deploy-production", "status-production"],
+    "AWS operation inventory");
+  assert(contract.workflows.production_status_document === "ProductionStatusDocument");
+  assert(contract.activation_gates.status_document_and_iam_apply_required === true);
+  assert(contract.activation_gates.updated_host_adapter_install_required === true);
   assert(contract.workflows.exact_ecr_repository_uri_required === true);
   assert(contract.workflows.deployment_requires_publication_run_identity === true);
   assert(
@@ -413,6 +421,11 @@ export function validatePhase3Sources(sources) {
   }
 
   assert(adapter.startsWith("#!/usr/bin/env python3"), "adapter interpreter is not pinned");
+  const statusAdapter = adapter.slice(adapter.indexOf("def status_production()"), adapter.indexOf("\ndef execute(", adapter.indexOf("def status_production()")));
+  assert(statusAdapter.includes('deployment(config, "production", binary=STATUS_K3S)'), "status does not inspect production deployment");
+  assert(statusAdapter.includes("validate_running_identity("), "status does not verify running pods");
+  assert(!/\b(?:patch_image|fetch_oci_archive|import_image|open_deployment_lock|write_receipt|mkdir|chmod|os\.replace)\(/.test(statusAdapter),
+    "status adapter contains a mutation operation");
   for (const required of [
     'CONFIG_PATH = Path("/etc/witnessops/deploy-v1.json")',
     'LOCK_PATH = Path("/run/lock/witnessops-deploy-v1.lock")',
@@ -512,6 +525,7 @@ export function validatePhase3Sources(sources) {
   assert(!dockerfile.includes(":latest"), "AWS Dockerfile uses a mutable latest reference");
 
   assert(caller.includes("\n  workflow_dispatch:"), "caller is not manual-dispatch only");
+  assert(caller.includes("          - status-production"), "caller lacks the bounded status operation");
   forbiddenAutomaticTriggers(caller, "caller");
   assert(
     caller.includes("uses: ./.github/workflows/aws-release-reusable.yml"),
@@ -582,7 +596,7 @@ export function validatePhase3Sources(sources) {
   }
   assert(
     reusable.match(/aws-actions\/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708/g)
-      ?.length === 3,
+      ?.length === 4,
     "AWS credential action is unpinned or has the wrong job inventory",
   );
   assert(!reusable.includes("secrets:"), "reusable workflow accepts or forwards GitHub secrets");
@@ -612,6 +626,26 @@ export function validatePhase3Sources(sources) {
     reusable.includes("needs.validate.outputs.operation == 'deploy-production'"),
     "production job is not bound to the exact operation",
   );
+  const productionJob = reusable.slice(reusable.indexOf("\n  deploy_production:"), reusable.indexOf("\n  status_production:"));
+  assert(productionJob.includes("environment: aws-production"), "production deployment job lacks aws-production");
+  const statusJob = reusable.slice(reusable.indexOf("\n  status_production:"));
+  assert(statusJob.startsWith("\n  status_production:\n"), "production status job is missing");
+  for (const required of [
+    "needs.validate.outputs.operation == 'status-production'",
+    "needs: validate",
+    "environment: aws-production",
+    "MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}",
+    "DEPLOY_DOCUMENT_NAME: ${{ vars.AWS_SSM_DOCUMENT_NAME }}",
+    "${DEPLOY_DOCUMENT_NAME%-deploy-production-v1}-status-production-v1",
+    "--instance-ids \"${MANAGED_NODE_ID}\"",
+    "--document-name \"${status_document_name}\"",
+    "node deploy/aws/validate-production-status.mjs",
+  ]) assert(statusJob.includes(required), `production status job lacks ${required}`);
+  assert(!statusJob.includes("--parameters") && !statusJob.includes("--image-digest") &&
+    !statusJob.includes("deploy/aws/verify-scan-evidence.mjs"),
+    "status job accepts deploy inputs or scan/deploy behavior");
+  assert(reusable.includes('[[ -z "${IMAGE_DIGEST}${SOURCE_COMMIT}${CONFIG_DIGEST}${PUBLICATION_RUN_ID}${PUBLICATION_RUN_ATTEMPT}${EXPECTED_CURRENT_DIGEST}" ]]'),
+    "status operation accepts deployment inputs");
   assert(
     reusable.match(/needs: \[validate, validate_scan_evidence\]/g)?.length === 2,
     "deployment jobs are not both bound to successful scan evidence",

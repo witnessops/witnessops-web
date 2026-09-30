@@ -1803,3 +1803,28 @@ test('Operator removal preserves external custody, contracts, billing and delive
     assert.ok((await pool.query('SELECT source_snapshot FROM runs WHERE id=$1',[run])).rows[0].source_snapshot);
   }
 });
+
+test('Operator content removal retains retired execution custody and refuses apply', async () => {
+  const owner = await resolveIdentity(pool, identity('removal_retired_custody'));
+  const workspace = await store.create(owner, 'Retired custody removal fixture', randomUUID());
+  const asset = await store.addAsset(owner,workspace,source.target,'hostname');
+  const run = await store.beginRun(owner,workspace,asset.id);
+  await store.completeRun(owner,workspace,run,source);
+  const execution = randomUUID();
+  await pool.query("INSERT INTO server_check_executions(id,workspace_id,asset_id,user_id,request_id,request,authority,collector_hash) VALUES($1,$2,$3,$4,$5,'{}','{}',$6)", [execution,workspace,asset.id,owner.id,randomUUID(),'a'.repeat(64)]);
+  const retired = (await pool.query("UPDATE server_check_executions SET state='retired',retired_at=now(),retired_by_user_id=$2 WHERE id=$1 RETURNING *", [execution,owner.id])).rows[0];
+  assert.equal(retired.state,'retired');
+  assert.equal(retired.capture_bytes,null);
+  assert.equal(retired.capture_digest,null);
+  assert.equal(retired.run_id,null);
+  const preview = await removeWorkspaceContent(pool,{workspaceId:workspace});
+  assert.equal(preview.counts.server_check_executions,1);
+  assert.deepEqual(preview.blockers,['server_execution_custody_requires_separate_filesystem_reconciliation']);
+  await assert.rejects(removeWorkspaceContent(pool,{workspaceId:workspace,apply:true,expectedDigest:preview.planDigest,requestReference:'retired-custody-fixture'}), /Removal blocked: server_execution_custody_requires_separate_filesystem_reconciliation/);
+  const after = await removeWorkspaceContent(pool,{workspaceId:workspace});
+  assert.equal(after.planDigest,preview.planDigest);
+  assert.equal(after.workspaceStatus,'active');
+  assert.equal(after.counts.server_check_executions,1);
+  assert.deepEqual((await pool.query('SELECT * FROM server_check_executions WHERE id=$1',[execution])).rows[0],retired);
+  assert.ok((await pool.query('SELECT source_snapshot FROM runs WHERE id=$1',[run])).rows[0].source_snapshot);
+});

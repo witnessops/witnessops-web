@@ -1,0 +1,152 @@
+from __future__ import annotations
+
+import os
+import hashlib
+import pwd
+from pathlib import Path
+import stat
+import subprocess
+import tempfile
+from unittest.mock import patch
+import unittest
+
+import install_wops_sudo_launcher as installer
+
+
+class SudoLauncherTest(unittest.TestCase):
+    def test_production_template_uses_fixed_interpreter_and_entrypoint(self):
+        rendered = installer.render_launcher().decode()
+        self.assertIn("NODE='/opt/witnessops/node-22/bin/node'", rendered)
+        self.assertIn("RUNTIME_LOCK='/opt/witnessops/.local-audit-1.2.2.runtime.lock'", rendered)
+        self.assertIn("exec /usr/bin/flock --shared", rendered)
+        self.assertIn("MAIN='/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs'", rendered)
+        self.assertIn("CLI_ROOT='/usr/local/lib/node_modules/@witnessops/cli'", rendered)
+        self.assertNotIn("/usr/bin/env node", rendered)
+        self.assertIn("Run wops auth commands as your normal user", rendered)
+
+    def test_launcher_installer_refuses_unprivileged_application(self):
+        if os.geteuid() == 0:
+            self.skipTest("root-only installer refusal is covered by non-root execution")
+        with self.assertRaisesRegex(installer.InstallError, "as root"):
+            installer.validate_prerequisites()
+
+    def test_normal_cli_keeps_the_users_node_path(self):
+        with tempfile.TemporaryDirectory(prefix="wops-user-launcher-") as temporary:
+            root = Path(temporary)
+            if os.geteuid() == 0:
+                root.chmod(0o755)
+            node = root / "node"
+            main = root / "main.mjs"
+            launcher = root / "wops"
+            node.write_text("#!/bin/sh\nprintf 'user-node-invoked\\n'\nprintf 'arg=%s\\n' \"$@\"\n", encoding="utf-8")
+            node.chmod(0o755)
+            main.write_text("// test entrypoint\n", encoding="utf-8")
+            launcher.write_bytes(installer.render_launcher(node=node, main=main))
+            launcher.chmod(0o755)
+            result = subprocess.run(
+                [str(launcher), "auth", "status"], check=False, capture_output=True, text=True,
+                env={"PATH": str(root) + ":/usr/bin", "LANG": "C"}, timeout=10,
+                preexec_fn=(lambda: (os.setgid(pwd.getpwnam("nobody").pw_gid), os.setuid(pwd.getpwnam("nobody").pw_uid)))
+                if os.geteuid() == 0 else None,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("user-node-invoked", result.stdout)
+            self.assertIn(f"arg={main}", result.stdout)
+            self.assertIn("arg=auth", result.stdout)
+            self.assertIn("arg=status", result.stdout)
+
+    def test_fixed_launcher_runs_under_sudo_like_restricted_path(self):
+        if os.geteuid() != 0:
+            self.skipTest("acceptance test creates root-owned fixtures and must run as root")
+        with tempfile.TemporaryDirectory(prefix="wops-root-launcher-", dir="/root") as temporary:
+            root = Path(temporary)
+            node = root / "fixed-node"
+            cli_root = root / "cli"
+            source_dir = cli_root / "src"
+            source_dir.mkdir(parents=True)
+            main = source_dir / "main.mjs"
+            launcher = root / "wops"
+            marker = root / "should-not-execute"
+            runtime_lock = root / "runtime.lock"
+            node.write_text(
+                "#!/bin/sh\n"
+                "[ -z \"${NODE_OPTIONS-}\" ] || { printf 'NODE_OPTIONS leaked\\n' >&2; exit 42; }\n"
+                "if [ \"${1-}\" = --version ]; then printf 'v22.23.3\\n'; exit 0; fi\n"
+                f"if /usr/bin/flock --exclusive --nonblock '{runtime_lock}' /bin/true; then printf 'runtime lock missing\\n' >&2; exit 43; fi\n"
+                "printf 'shared-runtime-lock-held\\n'\n"
+                "printf 'fixed-node-invoked\\n'\n"
+                "printf 'arg=%s\\n' \"$@\"\n",
+                encoding="utf-8",
+            )
+            node.chmod(0o755)
+            node_digest = hashlib.sha256(node.read_bytes()).hexdigest()
+            main.write_text("// root-owned test entrypoint\n", encoding="utf-8")
+            main.chmod(0o644)
+            with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
+                installer.apply(node=node, main=main, destination=launcher, runtime_lock=runtime_lock)
+            launcher_stat = launcher.stat()
+            self.assertEqual(launcher_stat.st_uid, 0)
+            self.assertEqual(stat.S_IMODE(launcher_stat.st_mode), 0o755)
+            unsafe_argument = f"; touch {marker}"
+            denied = subprocess.run(
+                [str(launcher), "auth", "status"], check=False, capture_output=True, text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000"}, timeout=10,
+            )
+            self.assertEqual(denied.returncode, 126)
+            self.assertIn("Run wops auth commands as your normal user", denied.stderr)
+            result = subprocess.run(
+                [str(launcher), "server", "check", "--help", unsafe_argument],
+                check=False,
+                capture_output=True,
+                text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000", "NODE_OPTIONS": "--require=/tmp/user-controlled.js"},
+                timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("fixed-node-invoked", result.stdout)
+            self.assertIn("shared-runtime-lock-held", result.stdout)
+            self.assertIn(f"arg={main}", result.stdout)
+            self.assertIn(f"arg={unsafe_argument}", result.stdout)
+            self.assertFalse(marker.exists())
+            (source_dir / "imported-module.mjs").write_text("// fixture\n", encoding="utf-8")
+            (source_dir / "imported-module.mjs").chmod(0o666)
+            denied_unsafe_tree = subprocess.run(
+                [str(launcher), "server", "check"], check=False, capture_output=True, text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000"},
+                timeout=10,
+            )
+            self.assertEqual(denied_unsafe_tree.returncode, 126)
+            self.assertIn("installed CLI package is unavailable or unsafe", denied_unsafe_tree.stderr)
+            (source_dir / "imported-module.mjs").chmod(0o644)
+
+            unsafe_node_dir = root / "unsafe-node-path"
+            unsafe_node_dir.mkdir(mode=0o777)
+            unsafe_node_dir.chmod(0o777)
+            node_link = unsafe_node_dir / "node"
+            node_link.symlink_to(node)
+            with self.assertRaisesRegex(installer.InstallError, "root-controlled and non-writable"):
+                installer.validate_prerequisites(node=node_link, main=main, destination=launcher)
+
+            runtime_node_dir = root / "runtime-node-path"
+            runtime_node_dir.mkdir(mode=0o755)
+            runtime_node = runtime_node_dir / "node"
+            runtime_node.write_bytes(node.read_bytes())
+            runtime_node.chmod(0o755)
+            runtime_launcher = root / "wops-runtime-node"
+            runtime_lock = root / "runtime-node.lock"
+            with patch.object(installer, "NODE_BINARY_SHA256", node_digest):
+                installer.apply(
+                    node=runtime_node, main=main, destination=runtime_launcher, runtime_lock=runtime_lock
+                )
+            runtime_node_dir.chmod(0o777)
+            denied_node_parent = subprocess.run(
+                [str(runtime_launcher), "server", "check"], check=False, capture_output=True, text=True,
+                env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C", "SUDO_UID": "1000"},
+                timeout=10,
+            )
+            self.assertEqual(denied_node_parent.returncode, 126)
+            self.assertIn("fixed server-check runtime is unavailable or unsafe", denied_node_parent.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

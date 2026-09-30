@@ -35,7 +35,7 @@ interface FooterProps {
 const POLISH_FOOTER = {
   subline: "Weryfikacja bezpieczeństwa z jasnymi ustaleniami, materiałami źródłowymi i praktycznymi kolejnymi krokami.",
   links: [
-    { label: "Agent Action Security Review (EN)", href: "/catalog/workflows" },
+    { label: "AI Agent Tools & Access Review (EN)", href: "/catalog/workflows" },
     { label: "External Attack Surface Review", href: "/pl/catalog/offsec-external-exposure" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
@@ -55,7 +55,6 @@ const SERVICE_NAV_HREFS = new Set([
   "/catalog/offsec-external-exposure",
   "/pl/catalog/offsec-external-exposure",
   PRIMARY_OFFER.route,
-  PRIMARY_OFFER.route + "#sample-review",
   "/why-witnessops",
   "/pl/why-witnessops",
 ]);

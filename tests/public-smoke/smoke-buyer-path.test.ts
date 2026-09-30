@@ -3,11 +3,16 @@ import test from "node:test";
 
 import {
   buyerPathSmokeRoutes,
+  escapeAmpersandsForHtml,
   evaluateBuyerPathRoute,
   normalizeBaseUrl,
   runBuyerPathSmoke,
   type BuyerPathSmokeRoute,
 } from "../../scripts/smoke-buyer-path";
+
+test("HTML smoke markers escape every ampersand", () => {
+  assert.equal(escapeAmpersandsForHtml("A & B & C"), "A &amp; B &amp; C");
+});
 
 function routeContract(path: string): BuyerPathSmokeRoute {
   const route = buyerPathSmokeRoutes.find((candidate) => candidate.path === path);
@@ -130,9 +135,9 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.requiredMarkers.includes("Start a free check"));
   assert.ok(english.requiredMarkers.includes("The app cannot"));
   assert.ok(english.requiredMarkers.includes("Record one bounded check"));
-  assert.ok(english.requiredMarkers.includes("Free checks need no account. Verify your email to create your own workspace."));
+  assert.ok(english.requiredMarkers.includes("Not a review."));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Zweryfikuj działanie AI"));
+  assert.ok(polish.requiredMarkers.includes("Sprawdź narzędzia i dostęp agenta AI"));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
 });
 
@@ -148,13 +153,13 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
 });
 
 test("catalogue smoke preserves the primary and secondary offer hierarchy", () => {
-  for (const path of ["/catalog", "/pricing"] as const) {
+  for (const path of ["/catalog"] as const) {
     const route = routeContract(path);
     for (const marker of [
       "Scope a review",
-      "Agent Action Security Review",
-      "€2,500 fixed · excluding VAT",
-      "Within 10 working days after evidence rules are agreed",
+      "AI Agent Tools &amp; Access Review",
+      "Starting at €2,500 · excluding VAT",
+      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
       "External Attack Surface Review",
       "€1,900 · excluding VAT",
     ]) {
@@ -197,26 +202,26 @@ test("request smoke markers use the current fit and start-work boundaries", () =
 
 test("primary offer smoke covers selected English and Polish intake", () => {
   const english = routeContract(
-    "/review/request?offerId=bounded-workflow-review",
+    "/review/request?offerId=agent-tools-access-review",
   );
   assert.ok(
     english.requiredMarkers.includes("Tell us what you want to check"),
   );
-  assert.ok(english.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
+  assert.ok(english.requiredMarkers.includes("Starting at €2,500 · excluding VAT"));
   assert.ok(
     english.requiredMarkers.includes(
-      "one consequential agent or automation action",
+      "agent setup, selected tool connection, device class and one consequential action",
     ),
   );
-  assert.ok(english.requiredMarkers.includes("Non-secret fit check first"));
+  assert.ok(english.requiredMarkers.includes("Fixed quote after scope"));
   assert.ok(
     english.requiredMarkers.includes(
-      "Within 10 working days after evidence rules are agreed",
+      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     ),
   );
   assert.ok(
     english.requiredMarkers.includes(
-      'name="intent" value="bounded-workflow-review"',
+      'name="intent" value="agent-tools-access-review"',
     ),
   );
   assert.ok(
@@ -225,20 +230,20 @@ test("primary offer smoke covers selected English and Polish intake", () => {
   assert.ok(english.prohibitedMarkers?.includes("From €1,500"));
 
   const polish = routeContract(
-    "/pl/review/request?offerId=bounded-workflow-review",
+    "/pl/review/request?offerId=agent-tools-access-review",
   );
   assert.ok(
     polish.requiredMarkers.includes("Opisz, co chcesz sprawdzić"),
   );
-  assert.ok(polish.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
+  assert.ok(polish.requiredMarkers.includes("Od €2 500 · bez VAT"));
   assert.ok(
     polish.requiredMarkers.includes(
-      "Jedno istotne działanie agenta lub automatyzacji",
+      "Jedno uzgodnione urządzenie i system operacyjny",
     ),
   );
   assert.ok(
     polish.requiredMarkers.includes(
-      'name="intent" value="bounded-workflow-review"',
+      'name="intent" value="agent-tools-access-review"',
     ),
   );
   assert.ok(
@@ -253,10 +258,10 @@ test("active primary surface smoke rejects former offer positioning", () => {
     "/catalog",
     "/catalog/workflows",
     "/pricing",
-    "/review/request?offerId=bounded-workflow-review",
+    "/review/request?offerId=agent-tools-access-review",
     "/pl",
     "/pl/catalog",
-    "/pl/review/request?offerId=bounded-workflow-review",
+    "/pl/review/request?offerId=agent-tools-access-review",
     "/review/sample-cases/ai-agent-action-proof-run",
   ]) {
     const route = routeContract(path);
@@ -294,7 +299,7 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 
 test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
   for (const [path, marker] of [
-    ["/", "Free checks need no account. Verify your email to create your own workspace."],
+    ["/", "Not a review."],
     ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
     ["/pricing", "No payment is taken here."],
     ["/review/request", "No work or target-facing check starts from this form."],

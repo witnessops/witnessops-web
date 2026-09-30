@@ -150,6 +150,13 @@
         "version_name": "v1_0_0",
         "lane": "production",
         "adapter_path": "/usr/local/sbin/witnessops-deploy-v1"
+      },
+      {
+        "id": "production_status",
+        "version_name": "v1_0_0",
+        "lane": "production",
+        "adapter_path": "/usr/local/sbin/witnessops-deploy-v1",
+        "inputs": []
       }
     ],
     "document_inputs": {

@@ -25,7 +25,7 @@ const exclusions = [
 async function checkMigrations(client) {
   const dir = new URL('../db/migrations/', import.meta.url);
   const names = (await readdir(dir)).filter(n => /^\d{4}_[a-z_]+\.sql$/.test(n)).sort();
-  if (names.length !== 21 || names.at(-1) !== '0022_capture_admission.sql') {
+  if (names.length !== 22 || names.at(-1) !== '0023_retired_server_check_executions.sql') {
     throw new Error('Removal scope needs review for this schema version');
   }
   const expected = [];

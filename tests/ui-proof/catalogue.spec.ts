@@ -13,7 +13,7 @@ const scenarios = [
 ] as const;
 
 const expectedServiceOrder = [
-  "bounded-workflow-review", "one-server-security-check", "external-exposure-assessment",
+  "agent-tools-access-review", "one-server-security-check", "external-exposure-assessment",
   "automation-repair-handover", "customer-security-review-sprint", "launch-readiness-check",
   "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit",
 ] as const;
@@ -87,16 +87,16 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       expect(Math.abs(geometry.grid - geometry.card)).toBeLessThanOrEqual(2);
     }
     const primaryOfferCard = serviceCards.first();
-    await expect(primaryOfferCard).toContainText("Agent Action Security Review");
+    await expect(primaryOfferCard).toContainText(scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
     await expect(primaryOfferCard).toContainText(
       scenario.path.startsWith("/pl")
-        ? "€2 500: cena stała · bez VAT"
-        : "€2,500 fixed · excluding VAT",
+        ? "Od €2 500 · bez VAT"
+        : "Starting at €2,500 · excluding VAT",
     );
     await expect(primaryOfferCard).toContainText(
       scenario.path.startsWith("/pl")
-        ? "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych"
-        : "Within 10 working days after evidence rules are agreed",
+        ? "Cel: 10 dni roboczych po potwierdzeniu zakresu"
+        : "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     );
     await expect(primaryOfferCard).not.toContainText("Agent Risk & Control Review");
     await expect(primaryOfferCard).not.toContainText("From €1,500");
@@ -127,11 +127,11 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("productId"),
         ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
       }
-      if (expectedServiceOrder[index] === "bounded-workflow-review") {
+      if (expectedServiceOrder[index] === "agent-tools-access-review") {
         const request = new URL(primaryHref ?? "", "http://witnessops.test");
-        expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
+        expect(request.searchParams.get("offerId")).toBe("agent-tools-access-review");
         expect(request.searchParams.get("offer")).toBe(
-          "Agent Action Security Review",
+          scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review",
         );
       }
       if (expectedServiceOrder[index] === "customer-security-review-sprint") {
@@ -151,7 +151,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         );
       } else {
         await expect(links).toHaveCount(2);
-        if (expectedServiceOrder[index] === "bounded-workflow-review") {
+        if (expectedServiceOrder[index] === "agent-tools-access-review") {
           await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");
         }
       }
@@ -228,22 +228,22 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
 
-  const card = page.locator(
-    '[data-pricing-service="external-exposure-assessment"]',
-  );
+  await page.getByRole("link", { name: "Explore the full catalogue" }).click();
+  await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
+  const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
   await expect(card).toContainText(
     "€1,900 · excluding VAT",
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
-  await expect(card).toContainText("payment alone does not authorise testing");
+  await expect(card).toContainText(/payment alone does not authorise testing/i);
   await expect(card).toContainText("This is not a penetration test");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
-  ).toHaveText("See sample");
+  ).toHaveText("See a sample review →");
 
   const fitHref = await card
-    .getByRole("link", { name: "Scope this review" })
+    .getByRole("link", { name: "Request this review" }).first()
     .getAttribute("href");
   expect(
     new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(

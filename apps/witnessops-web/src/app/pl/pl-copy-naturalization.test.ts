@@ -15,12 +15,12 @@ const buyerHomepage = readFileSync(
 test("Polish homepage leads with security and verification", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
   assert.match(buyerHomepage, /Znajdź luki w bezpieczeństwie swoich systemów/);
-  assert.match(buyerHomepage, /Zweryfikuj działanie AI/);
+  assert.match(buyerHomepage, /Sprawdź narzędzia i dostęp agenta AI/);
   assert.match(buyerHomepage, /Zweryfikuj lub napraw proces/);
   assert.match(buyerHomepage, /Co wymaga sprawdzenia\?/);
   assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
   assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
-  assert.equal(PRIMARY_OFFER.price.pl, "€2 500: cena stała · bez VAT");
+  assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
 });
 
 test("public catalogue uses the approved service names in Polish", () => {
@@ -30,7 +30,7 @@ test("public catalogue uses the approved service names in Polish", () => {
     [
       "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
-      "Agent Action Security Review",
+      "Przegląd narzędzi i dostępu agenta AI",
       "One Server Security Check",
       "External Attack Surface Review",
       "Launch Readiness Check",

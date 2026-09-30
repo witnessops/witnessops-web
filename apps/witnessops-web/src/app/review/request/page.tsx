@@ -9,7 +9,9 @@ import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
+  LEGACY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
@@ -41,20 +43,20 @@ export const metadata: Metadata = {
 
 const proofOutputs = [
   {
-    title: "Authority map",
-    summary: "Who can authorize the action, which identity executes it, and where production authority stops.",
+    title: "Dated source coverage",
+    summary: "Which agreed device and system-level inventory were inspected, when and with what coverage or failure.",
   },
   {
-    title: "Execution path",
-    summary: "The one consequential action, connected tools, APIs, MCP integrations, and affected systems.",
+    title: "Observed agent and connection map",
+    summary: "Tooling visible in the agreed source, one named agent setup and one selected tool connection.",
   },
   {
-    title: "Permission boundary",
-    summary: "The identity’s effective access, privilege boundary, scope controls, and possible blast radius.",
+    title: "One action path",
+    summary: "Approval, executing identity, downstream effective permissions and available execution evidence.",
   },
   {
-    title: "Evidence chain and control gaps",
-    summary: "What binds authorization to execution and resulting state, what cannot be independently demonstrated, and the practical fixes.",
+    title: "Findings and unknowns",
+    summary: "Prioritized sourced findings, practical fixes and explicit gaps or unavailable sources.",
   },
 ];
 
@@ -103,9 +105,9 @@ const nextSteps = [
 ];
 
 const primaryOfferNextSteps = [
-  `${PRIMARY_OFFER.fitCheckQuestion.en} We check the failure impact, systems, tools, and security boundaries without asking for secrets.`,
-  "If it fits, we agree the one action, authority, executing identity, permissions, tool access, evidence rules, exclusions, and evidence handling before accepting source material.",
-  `${PRIMARY_OFFER.timing.en} for the ${PRIMARY_OFFER.price.en} engagement.`,
+  `${PRIMARY_OFFER.fitCheckQuestion.en} Name the device class and decision you face. Do not send source files or secrets.`,
+  "If it fits, we name the device, dated system inventory, agent setup, connection, action evidence, authority, recipients and handling in a fixed quote and accepted agreement.",
+  `${PRIMARY_OFFER.price.en}, with a fixed quote after scope. Payment in full before start by default. ${PRIMARY_OFFER.timing.en}.`,
 ];
 
 const selectedServiceNextSteps = [
@@ -118,16 +120,6 @@ const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
   "After payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, the three-working-day delivery clock starts.",
-];
-
-const sampleArtifacts = [
-  "ACTION_BOUNDARY.json",
-  "AUTHORITY_MAP.json",
-  "EVIDENCE_MANIFEST.json",
-  "RECEIPT.json",
-  "VERIFY_RESULT.json",
-  "CHALLENGE_PATH.md",
-  "MANIFEST.sha256",
 ];
 
 const publicExposureArtifacts = [
@@ -146,6 +138,15 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     Array.isArray(value) ? value[0] : value;
   const productId = one(params.productId);
   const offerId = one(params.offerId);
+  if (offerId === LEGACY_AGENT_ACTION_OFFER.id) {
+    const currentHref = `/review/request?offerId=${PRIMARY_OFFER.id}`;
+    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
+      <h1 className="text-4xl font-semibold">This offer has been superseded</h1>
+      <p className="mt-5 leading-7">{LEGACY_AGENT_ACTION_OFFER.name.en} was a separate one-action, fixed-price offer. This link no longer selects it for new requests. Existing requests and customer agreements retain their original terms.</p>
+      <p className="mt-5 leading-7">The current {PRIMARY_OFFER.name.en} includes a source-bounded device inventory and one deeper action review, with a fixed quote after scope.</p>
+      <Link className="mt-6 inline-block underline" href={currentHref}>Request fit and scope for the current review</Link>
+    </main>;
+  }
   const offer = one(params.offer);
   const campaignAttribution = linkedinPremiumCampaignAttribution(params);
   const requestedSku = productId ? getSku(productId) : undefined;
@@ -193,16 +194,14 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         : reviewFitOutputs;
   const activeArtifacts = publicExposureOrder
     ? publicExposureArtifacts
-    : primaryOfferOrder
-      ? sampleArtifacts.slice(0, 5)
-      : [];
+    : [];
 
   if (!selectedOffer && !sku) {
     return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
       <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Ask about your case</p>
       <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">One question. Non-secret details only.</h1>
       <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Tell us what needs to happen and by when. We’ll confirm whether the app, a named review, or neither is the right next step.</p>
-      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
+      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} defaultEnquiryPath={one(params.enquiryPath) === "early-bird" ? INTERNET_FOOTPRINT_REVIEW_OFFER.name.en : undefined} /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
       <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_CONTACT_EMAIL}</a></p>
     </main>;
@@ -237,7 +236,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           {publicExposureOrder
             ? "Name the authorised internet-facing system and why its external attack surface matters now. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test."
             : primaryOfferOrder
-              ? `Describe one agent action. We’ll confirm fit and scope together. No secrets or evidence yet.`
+              ? `Name the agent setup, selected tool connection, device class and one consequential action. We’ll confirm fit and scope together. No secrets or evidence yet.`
             : selectedServiceOrder
               ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
               : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
@@ -358,7 +357,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
                 {publicExposureOrder
                   ? `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance.`
                   : primaryOfferOrder
-                    ? `${PRIMARY_OFFER.price.en} for ${PRIMARY_OFFER.unit.en.toLowerCase()}. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.timing.en}.`
+                    ? `${PRIMARY_OFFER.price.en} for a one-device reference scope. Fixed quote after scope; payment in full before start by default. ${PRIMARY_OFFER.timing.en}. This form is not a booking, checkout or authority to inspect.`
                     : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
               </p>
               <p>No work or target-facing check starts from this form.</p>

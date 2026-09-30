@@ -36,7 +36,7 @@ export function admitRequest(request: Request, origin: string, proxyMode?: strin
   if (request.headers.has("origin") && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
   if (![null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) throw new ApiError(403, "Use the app origin.");
   if (request.method !== "GET" && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
-  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks"].includes(url.pathname) || [...url.searchParams.keys()].join() !== "id")) throw new ApiError(400, "Unexpected query parameters.");
+  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks", "/api/cli/server-check-retirement"].includes(url.pathname) || [...url.searchParams.keys()].join() !== (url.pathname === "/api/cli/server-check-retirement" ? "executionId" : "id"))) throw new ApiError(400, "Unexpected query parameters.");
 }
 const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex, nofollow" };
 function json(value: unknown, status = 200) { return Response.json(value, { status, headers }); }

@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
+import { getWorkspaceAppUrl } from "../../apps/witnessops-web/src/lib/workspace-access";
+
+const signupUrl = getWorkspaceAppUrl("/signup");
+
 const acceptedRoutes = [
   "/",
   "/pl",
@@ -208,6 +212,10 @@ test("accepted public routes retain one consistent, accessible shared shell", as
           navTokens: tokens(navStyle),
           footerTokens: tokens(footerStyle),
           mainTokens: tokens(mainStyle),
+          desktopCtaLabel: visibleDesktopCta?.textContent?.trim() ?? null,
+          desktopCtaHref: visibleDesktopCta?.getAttribute("href") ?? null,
+          desktopCtaBorder: desktopCtaStyle?.borderTopColor ?? null,
+          desktopCtaBorderWidth: desktopCtaStyle?.borderTopWidth ?? null,
           desktopCtaBackground: desktopCtaStyle?.backgroundColor ?? null,
           desktopCtaColor: desktopCtaStyle?.color ?? null,
         };
@@ -262,7 +270,19 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         contrastRatio(shell.footerColor, shell.footerBackground),
         `${route} footer contrast`,
       ).toBeGreaterThanOrEqual(4.5);
-      if (viewport.width >= 1024) {
+      if (viewport.width >= 1024 && !route.startsWith("/pl")) {
+        if (signupUrl) {
+          expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Sign up");
+          expect(shell.desktopCtaHref, `${route} desktop CTA destination`).toBe(signupUrl);
+          expect(shell.desktopCtaBackground, `${route} outlined CTA background`).toBe("rgba(0, 0, 0, 0)");
+          expect(Number.parseFloat(shell.desktopCtaBorderWidth!), `${route} CTA outline`).toBeGreaterThanOrEqual(1);
+          // Transparent controls composite onto the navigation, not opaque black.
+          expect(contrastRatio(shell.desktopCtaColor!, shell.navBackground), `${route} CTA text contrast`).toBeGreaterThanOrEqual(4.5);
+          expect(contrastRatio(shell.desktopCtaBorder!, shell.navBackground), `${route} CTA border remains distinct`).toBeGreaterThan(1);
+        } else {
+          expect(shell.desktopCtaHref, `${route} no unconfigured signup CTA`).toBeNull();
+        }
+      } else if (viewport.width >= 1024) {
         expect(shell.desktopCtaBackground, `${route} desktop CTA background`).toBe(
           canonicalChrome.primary,
         );
@@ -533,7 +553,11 @@ test("unconfigured production pages expose no app destinations", async ({ page }
       // Include hidden desktop/mobile menu links, not just visible CTAs.
       await expect(page.locator('a[href*="app.witnessops.com"], a[href*="127.0.0.1:3020"]')).toHaveCount(0);
       await expect(page.locator('footer a').filter({ hasText: /^(Sign up|Log in|Assets|Reports|Settings)$/ })).toHaveCount(0);
-      if (width < 1024) await openMobileMenu(page);
+      if (width < 1024) {
+        await openMobileMenu(page);
+        await expect(page.locator("[data-mobile-account-actions]")).toHaveCount(0);
+      }
+      await page.getByRole("navigation", { name: "Primary navigation", exact: true }).getByRole("button", { name: "Product", exact: true }).click();
       await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();
     }
   }

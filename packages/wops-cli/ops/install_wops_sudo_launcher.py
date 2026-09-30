@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+"""Install the root-owned sudo entrypoint after validating fixed Node/CLI custody."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import os
+from pathlib import Path
+import stat
+import subprocess
+import tempfile
+
+
+NODE = Path("/opt/witnessops/node-22/bin/node")
+NODE_BINARY_SHA256 = "fde6a4bf8d0562f7751d1a2d6cb9b417c4cfe107bbcb0aa3e9a24e125e348f48"
+NODE_VERSION = "22.23.3"
+FLOCK = Path("/usr/bin/flock")
+RUNTIME_LOCK = Path("/opt/witnessops/.local-audit-1.2.2.runtime.lock")
+MAIN = Path("/usr/local/lib/node_modules/@witnessops/cli/src/main.mjs")
+DESTINATION = Path("/usr/local/bin/wops")
+CLI_ROOT = MAIN.parent.parent
+TEMPLATE = Path(__file__).with_name("wops-sudo-launcher.sh.in")
+SAFE_ENV = {"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C"}
+
+
+class InstallError(RuntimeError):
+    pass
+
+
+def _trusted_path(path: Path, *, file: bool, allow_symlink: bool = False) -> Path:
+    try:
+        resolved = path.resolve(strict=True)
+    except OSError as error:
+        raise InstallError(f"Required root-controlled path is unavailable: {path}") from error
+    if not allow_symlink and resolved != path.absolute():
+        raise InstallError(f"Required path must not resolve through a symlink: {path}")
+    info = resolved.lstat()
+    expected = stat.S_ISREG(info.st_mode) if file else stat.S_ISDIR(info.st_mode)
+    if not expected or info.st_uid != 0 or info.st_mode & 0o022:
+        raise InstallError(f"Required path is not root-controlled and non-writable: {path}")
+    current = resolved.parent
+    while current != Path("/"):
+        parent = current.lstat()
+        if not stat.S_ISDIR(parent.st_mode) or parent.st_uid != 0 or parent.st_mode & 0o022:
+            raise InstallError(f"Path ancestor is not root-controlled and non-writable: {current}")
+        current = current.parent
+    return resolved
+
+
+def render_launcher(
+    node: Path = NODE, main: Path = MAIN, template: Path = TEMPLATE, runtime_lock: Path = RUNTIME_LOCK
+) -> bytes:
+    source = template.read_text(encoding="utf-8")
+    cli_root = main.parent.parent
+    rendered = (source.replace("@NODE_PATH@", str(node)).replace("@NODE_SHA256@", NODE_BINARY_SHA256).replace("@MAIN_PATH@", str(main))
+                .replace("@CLI_ROOT@", str(cli_root)).replace("@RUNTIME_LOCK@", str(runtime_lock)))
+    if any(token in rendered for token in ("@NODE_PATH@", "@NODE_SHA256@", "@MAIN_PATH@", "@CLI_ROOT@", "@RUNTIME_LOCK@")):
+        raise InstallError("Launcher template contains an unresolved fixed path.")
+    return rendered.encode("utf-8")
+
+
+def _trusted_tree(root: Path) -> None:
+    root = _trusted_path(root, file=False)
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        try:
+            entries = list(os.scandir(directory))
+        except OSError as error:
+            raise InstallError(f"Cannot inspect root-controlled CLI package: {directory}") from error
+        for entry in entries:
+            info = entry.stat(follow_symlinks=False)
+            if info.st_uid != 0 or info.st_mode & 0o022:
+                raise InstallError(f"CLI package tree is not root-controlled and non-writable: {entry.path}")
+            if stat.S_ISDIR(info.st_mode):
+                pending.append(Path(entry.path))
+            elif not stat.S_ISREG(info.st_mode):
+                raise InstallError(f"CLI package tree contains an unsupported entry: {entry.path}")
+
+
+def _validate_runtime_lock(path: Path) -> None:
+    _trusted_path(path.parent, file=False)
+    try:
+        info = path.lstat()
+    except OSError as error:
+        raise InstallError("Shared Local Audit runtime lock is unavailable; apply the launcher first.") from error
+    if not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode) or info.st_uid != 0 or stat.S_IMODE(info.st_mode) != 0o600:
+        raise InstallError("Shared Local Audit runtime lock custody is unsafe.")
+    _trusted_path(path, file=True)
+
+
+def _ensure_runtime_lock(path: Path) -> None:
+    _trusted_path(path.parent, file=False)
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    except FileExistsError:
+        _validate_runtime_lock(path)
+        return
+    except OSError as error:
+        raise InstallError("Cannot create the shared Local Audit runtime lock safely.") from error
+    try:
+        os.fchown(descriptor, 0, 0)
+        os.fchmod(descriptor, 0o600)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    parent_fd = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(parent_fd)
+    finally:
+        os.close(parent_fd)
+    _validate_runtime_lock(path)
+
+
+def validate_prerequisites(
+    *, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION,
+    runtime_lock: Path = RUNTIME_LOCK, require_runtime_lock: bool = True,
+) -> bytes:
+    if os.geteuid() != 0:
+        raise InstallError("Run the sudo launcher installer as root.")
+    _trusted_path(node.parent, file=False)
+    node_entry = node.lstat()
+    if not stat.S_ISREG(node_entry.st_mode) or stat.S_ISLNK(node_entry.st_mode) or node_entry.st_uid != 0:
+        raise InstallError(f"Required Node.js entrypoint is not root-controlled: {node}")
+    _trusted_path(node, file=True)
+    try:
+        if hashlib.sha256(node.read_bytes()).hexdigest() != NODE_BINARY_SHA256:
+            raise InstallError("Required Node.js binary does not match the pinned WitnessOps runtime.")
+    except OSError as error:
+        raise InstallError("Required Node.js binary is unavailable.") from error
+    _trusted_tree(main.parent.parent)
+    main_real = _trusted_path(main, file=True)
+    _trusted_path(destination.parent, file=False)
+    if require_runtime_lock:
+        _validate_runtime_lock(runtime_lock)
+    try:
+        result = subprocess.run([str(node), "--version"], check=True, capture_output=True, text=True,
+                                timeout=5, env=SAFE_ENV)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise InstallError("Root-controlled Node.js 22 is required at /opt/witnessops/node-22/bin/node.") from error
+    if result.stdout.strip() != f"v{NODE_VERSION}":
+        raise InstallError("Pinned Node.js 22.23.3 is required at /opt/witnessops/node-22/bin/node.")
+    try:
+        info = destination.lstat()
+    except FileNotFoundError:
+        info = None
+    if info is not None:
+        desired = render_launcher(node, main, runtime_lock=runtime_lock)
+        if stat.S_ISREG(info.st_mode) and info.st_uid == 0 and not info.st_mode & 0o022 and destination.read_bytes() == desired:
+            return desired
+        if not stat.S_ISLNK(info.st_mode) or destination.resolve(strict=True) != main_real:
+            raise InstallError("Refusing to replace an unexpected existing /usr/local/bin/wops.")
+    return render_launcher(node, main, runtime_lock=runtime_lock)
+
+
+def apply(
+    *, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION, runtime_lock: Path = RUNTIME_LOCK
+) -> None:
+    validate_prerequisites(node=node, main=main, destination=destination, runtime_lock=runtime_lock, require_runtime_lock=False)
+    _ensure_runtime_lock(runtime_lock)
+    data = validate_prerequisites(node=node, main=main, destination=destination, runtime_lock=runtime_lock)
+    with tempfile.NamedTemporaryFile(prefix=".wops-launcher-", dir=destination.parent, delete=False) as stream:
+        temporary = Path(stream.name)
+        stream.write(data)
+        stream.flush()
+        os.fsync(stream.fileno())
+    try:
+        os.chown(temporary, 0, 0)
+        os.chmod(temporary, 0o755)
+        os.replace(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def remove_launcher(*, node: Path = NODE, main: Path = MAIN, destination: Path = DESTINATION) -> None:
+    if os.geteuid() != 0:
+        raise InstallError("Run the sudo launcher installer as root.")
+    try:
+        info = destination.lstat()
+    except FileNotFoundError:
+        return
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise InstallError("Refusing to remove an unexpected /usr/local/bin/wops.")
+    if destination.read_bytes() != render_launcher(node, main):
+        raise InstallError("Refusing to remove an unexpected /usr/local/bin/wops.")
+    destination.unlink()
+    descriptor = os.open(destination.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    modes = parser.add_mutually_exclusive_group(required=True)
+    modes.add_argument("--check", action="store_true")
+    modes.add_argument("--apply", action="store_true")
+    modes.add_argument("--remove", action="store_true")
+    args = parser.parse_args()
+    try:
+        if args.remove:
+            remove_launcher()
+            print("status=PASS")
+            print("launcher=removed")
+            return 0
+        if args.apply:
+            apply()
+        else:
+            validate_prerequisites()
+    except InstallError as error:
+        parser.error(str(error))
+    print("status=PASS")
+    print("launcher=/usr/local/bin/wops")
+    print(f"node={NODE} (pinned root-controlled Node.js {NODE_VERSION})")
+    print("privileged_command=server check only")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1242,7 +1242,7 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: 8px; font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
 
 /* Shared public navigation follows the approved presentation palette. */
-body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar a[data-public-primary-cta] {
+body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {
   background: var(--color-text-primary);
   color: var(--color-text-inverse);
   border-color: var(--color-text-primary);
@@ -1273,11 +1273,11 @@ body:has(nav[data-public-presentation="quiet"]) :is(.public-cta-button, [data-pu
   box-shadow: none !important;
   filter: none !important;
 }
-body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta], .simple-enquiry-form button[type="submit"]):hover:not(:disabled) {
+body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta]:not(.bg-transparent), .simple-enquiry-form button[type="submit"]):hover:not(:disabled) {
   background: var(--public-control-hover) !important;
   border-color: var(--public-control-hover) !important;
 }
-body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta], .simple-enquiry-form button[type="submit"]):active:not(:disabled) {
+body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta]:not(.bg-transparent), .simple-enquiry-form button[type="submit"]):active:not(:disabled) {
   background: var(--public-control-pressed) !important;
   border-color: var(--public-control-pressed) !important;
 }

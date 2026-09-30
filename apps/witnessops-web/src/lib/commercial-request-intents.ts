@@ -1,6 +1,7 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  LEGACY_AGENT_ACTION_OFFER,
   AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
 
@@ -13,8 +14,9 @@ export const ACCESS_CHANGE_PROOF_RUN_INTENT =
 export const EXTERNAL_EXPOSURE_ASSESSMENT_INTENT =
   "OFFSEC-EXTERNAL-EXPOSURE" as const;
 
-export const BOUNDED_WORKFLOW_REVIEW_INTENT =
-  PRIMARY_OFFER.id;
+/** Historical one-action requests retain their original intent and label. */
+export const BOUNDED_WORKFLOW_REVIEW_INTENT = LEGACY_AGENT_ACTION_OFFER.id;
+export const AGENT_TOOLS_ACCESS_REVIEW_INTENT = PRIMARY_OFFER.id;
 
 export const CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT =
   "customer-security-review-sprint" as const;
@@ -48,6 +50,7 @@ export const MANUAL_COMMERCIAL_REQUEST_INTENTS = [
   ACCESS_CHANGE_PROOF_RUN_INTENT,
   EXTERNAL_EXPOSURE_ASSESSMENT_INTENT,
   BOUNDED_WORKFLOW_REVIEW_INTENT,
+  AGENT_TOOLS_ACCESS_REVIEW_INTENT,
   CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT,
   ONE_SERVER_SECURITY_CHECK_INTENT,
   LAUNCH_READINESS_CHECK_INTENT,
@@ -101,7 +104,9 @@ export function getCommercialRequestLabel(
       case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
         return `Zgłoszenie ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`;
       case BOUNDED_WORKFLOW_REVIEW_INTENT:
-        return `Zgłoszenie ${PRIMARY_OFFER.name.pl}`;
+        return `Zgłoszenie ${LEGACY_AGENT_ACTION_OFFER.name.pl}`;
+      case AGENT_TOOLS_ACCESS_REVIEW_INTENT:
+        return `Zgłoszenie: ${PRIMARY_OFFER.name.pl}`;
       case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
         return "Zgłoszenie Customer Security Review Sprint";
       case ONE_SERVER_SECURITY_CHECK_INTENT:
@@ -131,6 +136,8 @@ export function getCommercialRequestLabel(
     case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
       return `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} request`;
     case BOUNDED_WORKFLOW_REVIEW_INTENT:
+      return `${LEGACY_AGENT_ACTION_OFFER.name.en} request`;
+    case AGENT_TOOLS_ACCESS_REVIEW_INTENT:
       return `${PRIMARY_OFFER.name.en} request`;
     case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
       return "Customer Security Review Sprint request";

@@ -10,6 +10,7 @@ export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: read
   { path: "/api/members", methods: ["GET", "POST"], summary: "Current member roster and Owner-only invitations and role management" },
   { path: "/api/invitations", methods: ["GET", "POST"], summary: "Verified-recipient preview and explicit membership acceptance" },
   { path: "/api/cli/server-checks", methods: ["GET", "POST"], summary: "Scoped Owner/Contributor execution authority and reconciliation; local capture only" },
+  { path: "/api/cli/server-check-retirement", methods: ["GET", "POST"], summary: "Read-only status and explicit terminal retirement of an unused authorized execution" },
   { path: "/api/cli/server-check-capture", methods: ["POST"], summary: "Bounded immutable capture upload tied to an authorized execution" },
   { path: "/api/cli/login", methods: ["POST"], summary: "Create bounded app-mediated CLI login; no identity or product access granted" },
   { path: "/api/cli/poll", methods: ["POST"], summary: "One-time CLI credential redemption using a secret device credential" },

@@ -201,30 +201,44 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
-test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
+test("historical one-action links cannot select the distinct current offer", async ({ page }) => {
+  for (const [path, oldLabel, newLabel] of [
+    ["/review/request?offerId=bounded-workflow-review", "This offer has been superseded", "AI Agent Tools & Access Review"],
+    ["/pl/review/request?offerId=bounded-workflow-review", "Ta oferta została zastąpiona", "Przegląd narzędzi i dostępu agenta AI"],
+  ] as const) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator("main")).toContainText(oldLabel);
+    await expect(page.locator("main")).toContainText(newLabel);
+    await expect(page.locator("main form")).toHaveCount(0);
+    await expect(page.locator("main a[href*='offerId=agent-tools-access-review']")).toBeVisible();
+  }
+});
+
+test("AI Agent Tools & Access Review gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {
       locale: "en",
       path: "/review/request",
-      fitTitle: "Start your Agent Action Security Review.",
+      fitTitle: "Start your AI Agent Tools & Access Review.",
       contractMarkers: [
-        "Agent Action Security Review",
-        "€2,500 fixed · excluding VAT",
-        "one consequential agent or automation action",
-        "Non-secret fit check first",
-        "Within 10 working days after evidence rules are agreed",
+        "AI Agent Tools & Access Review",
+        "Starting at €2,500 · excluding VAT",
+        "one consequential action",
+        "Submitting this form starts fit and scoping only",
+        "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
       ],
     },
     {
       locale: "pl",
       path: "/pl/review/request",
-      fitTitle: "Rozpocznij Agent Action Security Review.",
+      fitTitle: "Rozpocznij Przegląd narzędzi i dostępu agenta AI.",
       contractMarkers: [
-        "Agent Action Security Review",
-        "€2 500: cena stała · bez VAT",
-        "jedno istotne działanie agenta lub automatyzacji",
-        "Nie wklejaj sekretów",
-        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
+        "Przegląd narzędzi i dostępu agenta AI",
+        "Od €2 500 · bez VAT",
+        "jedno istotne działanie",
+        "Na razie bez sekretów i materiałów",
+        "Cel: 10 dni roboczych po potwierdzeniu zakresu",
       ],
     },
   ] as const) {
@@ -248,8 +262,8 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     });
 
     const query = new URLSearchParams({
-      offerId: "bounded-workflow-review",
-      offer: "Agent Action Security Review",
+      offerId: "agent-tools-access-review",
+      offer: "AI Agent Tools & Access Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -264,7 +278,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
     await expect(page.locator("main")).not.toContainText("From €1,500");
     await expect(form.locator('input[name="intent"]')).toHaveValue(
-      "bounded-workflow-review",
+      "agent-tools-access-review",
     );
 
     const controlOrder = await form
@@ -311,10 +325,10 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await form.locator("#evidenceAvailable").fill("Production, credential, account, and permission boundaries.");
     await submit.click();
 
-    expect(submittedPayload?.intent).toBe("bounded-workflow-review");
+    expect(submittedPayload?.intent).toBe("agent-tools-access-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
-    expect(submittedPayload?.scope).toContain("Consequential action:");
+    expect(submittedPayload?.scope).toContain("Request: AI Agent Tools & Access Review");
+    expect(submittedPayload?.scope).toContain("Agent setup, connection and action:");
     expect(submittedPayload?.scope).toContain("Failure impact:");
     expect(submittedPayload?.scope).toContain("Systems, tools, and approver:");
     expect(submittedPayload?.scope).toContain(
@@ -335,9 +349,9 @@ test("primary request selection canonicalizes aliases and conflicting query text
   const page = await context.newPage();
 
   for (const query of [
-    "offer=Agent+Action+Security+Review",
-    "offerId=bounded-workflow-review&offer=Public+Exposure+Review",
-    "offerId=bounded-workflow-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
+    "offer=AI+Agent+Tools+%26+Access+Review",
+    "offerId=agent-tools-access-review&offer=Public+Exposure+Review",
+    "offerId=agent-tools-access-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
   ]) {
     const response = await page.goto(`/review/request?${query}`, {
       waitUntil: "networkidle",
@@ -345,14 +359,14 @@ test("primary request selection canonicalizes aliases and conflicting query text
     expect(response?.status(), query).toBe(200);
     const main = page.locator("main");
     await expect(
-      page.getByText("Selected offer: Agent Action Security Review"),
+      page.getByText("Selected offer: AI Agent Tools & Access Review"),
     ).toBeVisible();
-    await expect(main).toContainText("€2,500 fixed · excluding VAT");
+    await expect(main).toContainText("Starting at €2,500 · excluding VAT");
     await expect(main).toContainText(
-      "Within 10 working days after evidence rules are agreed",
+      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
     );
     await expect(main.locator('form input[name="intent"]')).toHaveValue(
-      "bounded-workflow-review",
+      "agent-tools-access-review",
     );
     await expect(main).not.toContainText("Agent Risk & Control Review");
     await expect(main).not.toContainText("From €1,500");

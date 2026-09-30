@@ -65,7 +65,7 @@ test("commercial routes with defensible replacements redirect directly", async (
   ]) {
     assert.deepEqual(bySource.get(source), {
       source,
-      destination: "/catalog/workflows",
+      destination: "/catalog",
       permanent: true,
     });
   }

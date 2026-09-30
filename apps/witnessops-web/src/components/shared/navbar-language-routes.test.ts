@@ -10,7 +10,7 @@ test("primary navigation exposes the simplified website destinations", () => {
   for (const href of ["/early-access", "/catalog", "/pricing", "/check", "/docs"]) {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /label: signupUrl \? "Sign up" : "Free check"/);
 });
 
@@ -42,18 +42,20 @@ test("language switch preserves every approved paired buyer route", () => {
   }
 });
 
-test("request language switch preserves the selected workflow offer query", () => {
-  const offerQuery =
-    "offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
-
-  assert.equal(
-    localizedHref("/review/request", offerQuery, "pl"),
-    `/pl/review/request?${offerQuery}`,
-  );
-  assert.equal(
-    localizedHref("/pl/review/request", offerQuery, "en"),
-    `/review/request?${offerQuery}`,
-  );
+test("request language switch preserves current and historical offer queries", () => {
+  for (const offerQuery of [
+    "offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    "offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+  ]) {
+    assert.equal(
+      localizedHref("/review/request", offerQuery, "pl"),
+      `/pl/review/request?${offerQuery}`,
+    );
+    assert.equal(
+      localizedHref("/pl/review/request", offerQuery, "en"),
+      `/review/request?${offerQuery}`,
+    );
+  }
 });
 
 test("PL-only docs leaves switch to real English routes", () => {
@@ -139,13 +141,25 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("every public route uses the orange primary action chrome", () => {
+test("English public navigation uses the existing outlined secondary action", () => {
   assert.doesNotMatch(navbar, /homepageNativeChrome/);
   assert.match(navbar, /getDesktopCtaClassName/);
   assert.match(
     navbar,
-    /border border-brand-accent bg-brand-accent text-text-inverse/,
+    /label: "Sign up",\s+href: signupUrl,\s+variant: "secondary"/,
   );
   assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
+});
+
+ test("grouped navigation respects the CTA variant and preserves catalogue destinations", () => {
+  const mobile = readFileSync(resolve(__dirname, "mobile-navbar-menu.tsx"), "utf-8");
+  const groups = readFileSync(resolve(__dirname, "public-nav-groups.ts"), "utf-8");
+  assert.match(mobile, /variant=\{cta.variant as/);
+  assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
+  assert.match(navbar, /: signupUrl \? \{/);
+  assert.match(navbar, /variant: "secondary",\s+} : null/);
+  assert.doesNotMatch(navbar, /label: "Start a free check"/);
+  assert.match(groups, /label: "Sample work", href: "\/library"/);
+  assert.match(groups, /label: "All services", href: "\/catalog"/);
 });

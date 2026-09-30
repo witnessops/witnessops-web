@@ -1,3 +1,4 @@
+import { extractOpenAIUsage, type OpenAIUsageMetrics } from "@/lib/docs-assistant/openai-usage";
 import "server-only";
 
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
@@ -39,6 +40,12 @@ const PUBLIC_SOURCES = [
     public_label: "WitnessOps services",
     canonical_href: "https://witnessops.com/catalog",
     excerpt: "WitnessOps provides security reviews and verification for AI, automation and operational systems. Review permissions, approvals, execution and observed results around an agreed action or system. Automation Repair & Handover is also available for broken, unreliable or inherited workflows: paid diagnosis first, followed by a bounded repair only if feasible. Setup, migration, selective builds and capped care are separately scoped options. Match the service to the buyer’s actual need. Start with a non-secret description; scope and authorization must be agreed before work. Public chat gives guidance only and cannot inspect a visitor's systems, execute work, submit requests or save a lead. For account or product support use Contact support on /support. For expert work use the Prepare my request form or Ask an expert. Submission and mailbox confirmation are separate actions; chat alone does not send a request.",
+  },
+  {
+    source_id: "public.historical-agent-action-offer",
+    public_label: "Historical Agent Action Security Review",
+    canonical_href: "https://github.com/witnessops/witnessops-web/blob/main/docs/commercial/16-agent-workflow-reconstruction-offer.md",
+    excerpt: "Agent Action Security Review was a separate fixed-price, one-action offer with identity bounded-workflow-review. It has been superseded as the primary public offer. Historical requests, customer agreements and issued terms retain their original meaning. AI Agent Tools & Access Review is a distinct current offer with a dated source-bounded tool inventory plus one deeper action path and a fixed quote after scope. Do not present the historical offer as currently selectable or reinterpret its old request ID as the new offer.",
   },
   ...BUYER_SERVICES.map((service) => ({
     source_id: `service.${service.id}`,
@@ -106,6 +113,7 @@ const INSTRUCTIONS = [
   "Conversation contract: answer the immediate question, state what matters or remains uncertain, then ask ONE useful question OR offer ONE next action. Do not label these parts. Ask at most three meaningful qualification questions for the same problem. Skip facts already supplied, including live/planned status and deadline. Later visitor corrections override earlier assumptions; never resume a corrected assumption. A successful workflow run does not establish that the downstream business result happened. For an uncertain visitor ask whether it stopped, gave a wrong result or is pre-launch, not for architecture.",
   "For an unsupported claim that this chat verified an agent is safe, explain that no review or test occurred here, offer truthful wording that the visitor is exploring a review, and ask whether the agent is live or pre-launch if still unknown. Do not dump exclusions. Once enough context is available, suggest preparing a request instead of another qualification question. A requested deadline is a visitor need, never confirmed availability.",
   "Pick a service_id only when that specific service fits the question; otherwise use null. Match named services accurately, not every question to the primary offer. A broad request needs a smaller agreed boundary before work.",
+  "Agent Action Security Review, Agent Workflow Reconstruction and Agent Risk & Control Review are historical names. If a visitor explicitly asks about one, explain its superseded status from public.historical-agent-action-offer with service_id null. Do not attach the current review card as if the old offer were still selectable. For the current AI Agent Tools & Access Review, describe only observed tooling in agreed sources and one deeper action path; no complete agent discovery, fixed public fee or automatic start.",
   "Prices and delivery times are deliberately absent from your context: when you select service_id, the server automatically displays them with destination links in a recommendation card immediately below your answer. Do not guess, recall or repeat any price, currency, numeric fee, delivery deadline, URL, email address or markdown link in answer. For a pricing or timing question about a matching listed service, select that service and say simply that the price and delivery details are below. Setup-only, migration-only, new-build and care questions have no listed price card: use service_id null and explain that scope and quote are agreed separately. When service_id is null, no price card will be displayed: never refer to prices, timing or details below. For separately quoted work, say the scope and quote must be agreed. Never say a published service fee is unavailable or offer to find, retrieve or link it. Do not disclose unpublished prices.",
   "Keep facts and suggestions distinct. Source IDs identify supplied material, not proof of correctness. Cite only source_ids that support your answer, including the selected service's source when recommending it.",
   "Never claim certification, guaranteed security, compliance, source-system truth, an actual provider action from the synthetic specimen, completed verification or customer-specific findings. Generated chat prose cannot itself inspect systems or execute, book, email, log leads, deploy or authorize work. The separate application-owned Free Check controls can start the bounded /check collection after explicit visitor authorization. Never claim any of those actions happened.",
@@ -253,7 +261,12 @@ export function normalizePublicAskResponse(response: unknown) {
   };
 }
 
-export type PublicAskProviderEvent = {
+export type PublicAskProviderEvent = OpenAIUsageMetrics & {
+  model: string;
+  workload: "public-ask";
+  prompt_version: "public-ask.v1";
+  schema_version: "witnessops_public_answer.v1";
+  attempt: "initial";
   event: "openai_response" | "openai_error";
   request_id: string | null;
   status: number | null;
@@ -273,6 +286,7 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
   let status: number | null = null;
   let requestId: string | null = null;
   let errorClass: string | null = null;
+  let usage: OpenAIUsageMetrics = {};
   const logger = args.logger ?? ((event) => console.info("[ask-witnessops:openai]", JSON.stringify(event)));
   try {
     const response = await (args.fetchImpl ?? globalThis.fetch)("https://api.openai.com/v1/responses", {
@@ -284,7 +298,9 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
     status = response.status;
     requestId = response.headers.get("x-request-id");
     if (!response.ok) { errorClass = "provider_http_error"; return null; }
-    const normalized = normalizePublicAskResponse(await response.json());
+    const rawResponse: unknown = await response.json();
+    usage = extractOpenAIUsage(rawResponse);
+    const normalized = normalizePublicAskResponse(rawResponse);
     const answer = normalized ? applyConversationContract(normalized, args) : null;
     if (!answer) errorClass = "provider_invalid_answer";
     return answer;
@@ -294,7 +310,23 @@ export async function runPublicAskRuntime(args: NormalizedAskRequest & {
   } finally {
     clearTimeout(timer);
     // Keep visitor questions, generated prose, contact details and API keys out of logs.
-    logger({ event: errorClass ? "openai_error" : "openai_response", request_id: requestId, status, duration_ms: Date.now() - start, error_class: errorClass });
+    try {
+      logger({
+        ...usage,
+        model: args.config.model,
+        workload: "public-ask",
+        prompt_version: "public-ask.v1",
+        schema_version: "witnessops_public_answer.v1",
+        attempt: "initial",
+        event: errorClass ? "openai_error" : "openai_response",
+        request_id: requestId,
+        status,
+        duration_ms: Date.now() - start,
+        error_class: errorClass,
+      });
+    } catch {
+      // Measurement failures must not change provider behavior or trigger retries.
+    }
   }
 }
 
