@@ -95,7 +95,7 @@ SITUATION (catalog card)
 | --- | --- | --- |
 | Access-removed package | `/review/sample-cases/access-removed-proof` | Method sample |
 | SBOM field checklist | `/review/sample-cases/sbom-cisa-2026-minimum-elements` | Method sample |
-| KEV / deps scripts | operator tooling (e.g. wops-local-llm) | Not catalog |
+| KEV / deps scripts | operator tooling (e.g. witnessops-security-cli) | Not catalog |
 
 ---
 
