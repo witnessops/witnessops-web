@@ -21,6 +21,7 @@ A tool the agent can call is a skill with a side effect.
 - Do not enable "all tools".
 - Do not fetch a remote tool schema and treat it as trusted.
 - Do not let a tool expand the authorised scope.
+- For filesystem-capable tools, apply the [Tool Admission Checklist](https://github.com/witnessops/witnessops-codex-ops/blob/main/runbooks/TOOL_ADMISSION_CHECKLIST.md#3-execution-boundary) filesystem-scope invariant; tool permission alone does not authorize arbitrary paths.
 - If a tool can send data off-box, say so before first call.
 
 ## Outputs
