@@ -512,7 +512,7 @@ export function validatePhase3Sources(sources) {
     "NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com",
     "WITNESSOPS_VERIFY_BASE_URL=https://witnessops.com",
     "gcompat=1.1.0-r4",
-    "python3=3.14.7-r1",
+    "python3=3.14.8-r0",
     "make=4.4.1-r4",
     "g++=15.2.0-r5",
     "libcrypto3=3.5.9-r0",
