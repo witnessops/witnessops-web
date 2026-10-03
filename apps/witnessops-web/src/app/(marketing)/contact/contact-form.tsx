@@ -95,7 +95,7 @@ export function ContactForm({
   campaignAttribution?: string;
   compact?: boolean;
   landing?: boolean;
-  defaultEnquiryPath?: typeof INTERNET_FOOTPRINT_REVIEW_OFFER.name.en;
+  defaultEnquiryPath?: typeof INTERNET_FOOTPRINT_REVIEW_OFFER.name.en | "External Exposure Receipt";
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -907,7 +907,7 @@ export function ContactForm({
       {landing && <div>
         <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
         <select id="enquiryPath" name="enquiryPath" defaultValue={defaultEnquiryPath ?? "Free check"} className={inputClass} style={inputStyle}>
-          {["Free check", PRIMARY_OFFER.name.en, "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [INTERNET_FOOTPRINT_REVIEW_OFFER.name.en] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+          {["Free check", PRIMARY_OFFER.name.en, "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [defaultEnquiryPath] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
         </select>
       </div>}
 
