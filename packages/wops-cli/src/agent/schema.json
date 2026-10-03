@@ -1,0 +1,493 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wops:agent-observation:v1",
+  "title": "WitnessOps bounded local Agent/MCP observation",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "wops.agent-observation.v1"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collector": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "wops"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "collection_status": {
+      "enum": [
+        "completed",
+        "partial",
+        "unsupported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "const": "current-user"
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable_names": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "codex",
+              "claude",
+              "gemini",
+              "aider"
+            ]
+          },
+          "maxItems": 4
+        },
+        "mcp_config_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "path_entries": {
+              "const": 32
+            },
+            "config_files": {
+              "const": 4
+            },
+            "config_bytes": {
+              "const": 65536
+            },
+            "declarations_per_file": {
+              "const": 128
+            }
+          },
+          "required": [
+            "path_entries",
+            "config_files",
+            "config_bytes",
+            "declarations_per_file"
+          ],
+          "additionalProperties": false
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxItems": 1024
+        },
+        "not_inspected": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxItems": 1024
+        },
+        "privacy_boundary": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxItems": 1024
+        }
+      },
+      "required": [
+        "host",
+        "platform",
+        "executable_names",
+        "mcp_config_count",
+        "limits",
+        "limitations",
+        "not_inspected",
+        "privacy_boundary"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^check-[1-9][0-9]*$"
+          },
+          "area": {
+            "enum": [
+              "agent-path-scan",
+              "mcp-config",
+              "collection"
+            ]
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "filesystem-metadata",
+                  "json-config",
+                  "scope"
+                ]
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "path"
+            ],
+            "additionalProperties": false
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "observed",
+              "not-found",
+              "failed",
+              "not-requested"
+            ]
+          },
+          "declaration_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 128
+          }
+        },
+        "required": [
+          "id",
+          "area",
+          "source",
+          "observed_at",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 134
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^obs-[1-9][0-9]*$"
+              },
+              "check_id": {
+                "type": "string",
+                "pattern": "^check-[1-9][0-9]*$"
+              },
+              "category": {
+                "const": "agent-tool-entry"
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "filesystem-metadata",
+                      "json-config",
+                      "scope"
+                    ]
+                  },
+                  "path": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "path"
+                ],
+                "additionalProperties": false
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "codex",
+                      "claude",
+                      "gemini",
+                      "aider"
+                    ]
+                  },
+                  "entry_kind": {
+                    "enum": [
+                      "regular-file",
+                      "symbolic-link",
+                      "other"
+                    ]
+                  },
+                  "executable_mode_bit": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "entry_kind",
+                  "executable_mode_bit"
+                ],
+                "additionalProperties": false
+              },
+              "meaning": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unknowns": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 1024
+              }
+            },
+            "required": [
+              "id",
+              "check_id",
+              "category",
+              "observed_at",
+              "statement",
+              "source",
+              "details",
+              "meaning",
+              "unknowns"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^obs-[1-9][0-9]*$"
+              },
+              "check_id": {
+                "type": "string",
+                "pattern": "^check-[1-9][0-9]*$"
+              },
+              "category": {
+                "const": "mcp-declaration"
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "filesystem-metadata",
+                      "json-config",
+                      "scope"
+                    ]
+                  },
+                  "path": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "path"
+                ],
+                "additionalProperties": false
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "entry_index": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 128
+                  },
+                  "command_field_present": {
+                    "type": "boolean"
+                  },
+                  "url_field_present": {
+                    "type": "boolean"
+                  },
+                  "disabled": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "entry_index",
+                  "command_field_present",
+                  "url_field_present",
+                  "disabled"
+                ],
+                "additionalProperties": false
+              },
+              "meaning": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unknowns": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 1024
+              }
+            },
+            "required": [
+              "id",
+              "check_id",
+              "category",
+              "observed_at",
+              "statement",
+              "source",
+              "details",
+              "meaning",
+              "unknowns"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "maxItems": 640
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "maxItems": 1024
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "pattern": "^check-[1-9][0-9]*$"
+          },
+          "area": {
+            "enum": [
+              "agent-path-scan",
+              "mcp-config",
+              "collection"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "permission-denied",
+              "not-found",
+              "symlink-not-inspected",
+              "non-directory-or-symlink",
+              "read-failed",
+              "changed-during-open",
+              "changed-during-lookup",
+              "not-regular-file",
+              "size-limit",
+              "changed-during-read",
+              "invalid-utf8",
+              "invalid-json",
+              "depth-limit",
+              "duplicate-json-key",
+              "path-unavailable",
+              "path-entry-limit",
+              "unsupported-path",
+              "unsupported-config-shape",
+              "declaration-limit",
+              "invalid-declaration",
+              "unsupported-platform",
+              "elevated-user"
+            ]
+          },
+          "impact": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "check_id",
+          "area",
+          "reason",
+          "impact"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 134
+    }
+  },
+  "required": [
+    "schema",
+    "snapshot_id",
+    "observed_at",
+    "completed_at",
+    "collector",
+    "collection_status",
+    "scope",
+    "checks",
+    "observations",
+    "unknowns",
+    "failures"
+  ],
+  "additionalProperties": false
+}
