@@ -6,6 +6,7 @@ import test from "node:test";
 const webRoot = resolve(__dirname, "../..");
 
 const PUBLIC_CLAIM_SOURCES = [
+  "src/app/exposure-receipt/page.tsx",
   "src/app/(library)/library/page.tsx",
   "src/app/(marketing)/pricing/page.tsx",
   "src/app/(marketing)/catalog/page.tsx",
