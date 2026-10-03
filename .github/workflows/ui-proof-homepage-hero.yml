@@ -7,6 +7,8 @@ on:
       - "apps/witnessops-web/src/components/marketing/hero.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.module.css"
+      - "apps/witnessops-web/src/components/marketing/simple-homepage.tsx"
+      - "apps/witnessops-web/src/components/marketing/simple-homepage.module.css"
       - "apps/witnessops-web/src/components/marketing/buyer-catalogue.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-service-detail.tsx"
       - "apps/witnessops-web/src/components/marketing/footer.tsx"
