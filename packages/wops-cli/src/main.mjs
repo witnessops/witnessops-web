@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { run } from './commands.mjs';
 import { serverCheck } from './server-check.mjs';
+import { agentCommand } from './commands/agent.mjs';
 
 const generalHelp = `WitnessOps CLI
 
@@ -8,6 +9,7 @@ Usage:
   wops auth login [--server URL]
   wops auth status
   wops auth logout
+  wops agent inspect [--mcp-config FILE]... [--output FILE]
   sudo wops server check [--starts-at UTC --ends-at UTC]
   sudo wops server check retire
 
@@ -18,6 +20,7 @@ manually recollect or delete retained files.
 
 More help:
   wops auth --help
+  wops agent inspect --help
   wops server check --help`;
 
 const authHelp = `Usage:
@@ -55,5 +58,5 @@ const help = args.length === 1 && ['help', '--help', '-h'].includes(args[0])
       ? serverHelp
       : null;
 
-try { process.exitCode = help === null ? await (args[0] === 'server' ? serverCheck : run)(args) : (console.log(help), 0); }
+try { process.exitCode = help === null ? await (args[0] === 'agent' ? agentCommand : args[0] === 'server' ? serverCheck : run)(args) : (console.log(help), 0); }
 catch (error) { console.error(error.message); process.exitCode = 1; }
