@@ -3,6 +3,10 @@ name: Homepage Hero UI Proof
 on:
   pull_request:
     paths:
+      - "apps/witnessops-web/src/**"
+      - "packages/ui/tokens/witnessops.css"
+      - "content/witnessops/skills/**"
+      - "apps/witnessops-web/public/samples/api-key-rotation/v1/**"
       - "apps/witnessops-web/src/components/hero/**"
       - "apps/witnessops-web/src/components/marketing/hero.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.tsx"
