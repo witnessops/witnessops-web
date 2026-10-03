@@ -14,12 +14,17 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero).toContainText("Verify what is exposed, what changed, what acted, and what the evidence actually supports.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
+    await expect(page.locator("[data-home-offer]")).toHaveCount(2);
+    await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
+    await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
+    await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
+    await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
     await expect(trigger).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const example = page.getByRole("figure", { name: "Fictional example finding" });
-    await expect(example).toContainText("Fictional example. No system was tested.");
-    const sampleLink = hero.getByRole("link", { name: "See a sample finding" });
+    const sampleLink = hero.getByRole("link", { name: "Scope an agent review", exact: true });
+    await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?/);
+    await expect(hero.getByRole("link", { name: "Start with the €500 footprint review", exact: true })).toHaveAttribute("href", "/review/request");
     await sampleLink.focus();
     // Keep the remaining hero action reachable beside the launcher.
     const collision = await page.locator('[data-focus-obscured="true"]').count();
