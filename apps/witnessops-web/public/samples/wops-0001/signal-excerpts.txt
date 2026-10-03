@@ -1,0 +1,43 @@
+WOPS-0001 — selected signal-run observations
+Capture: 2026-09-26, Europe/Warsaw; signal run 16:10:17–16:10:34.
+This is an edited excerpt, not a complete capture. Each block names its source
+role and original line range. Blocks from separate files are not contiguous.
+PID labels are consistent within this run. Runtime addresses and UID are redacted;
+HANDLER_A and HANDLER_B denote two distinct recorded addresses. Other rows are omitted.
+
+## Handler changes and signal delivery — desktop parent trace
+[Original source lines 107-107; other lines omitted]
+16:10:17.810029 rt_sigaction(SIGCHLD, {sa_handler=[HANDLER_A], sa_mask=~[RTMIN RT_1], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=[ADDRESS_REDACTED]}, NULL, 8) = 0 <0.000002>
+
+[Original source lines 182-182; other lines omitted]
+16:10:17.825982 rt_sigaction(SIGCHLD, {sa_handler=[HANDLER_B], sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=[ADDRESS_REDACTED]}, NULL, 8) = 0 <0.000002>
+
+[Original source lines 196-196; other lines omitted]
+16:10:17.951436 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=[BASH_CHILD], si_uid=[UID_REDACTED], si_status=0, si_utime=0, si_stime=0} ---
+
+[Original source lines 329-329; other lines omitted]
+16:10:24.580409 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=[GIT_CHILD], si_uid=[UID_REDACTED], si_status=0, si_utime=0, si_stime=0} ---
+
+## Bash child exit — separate child trace
+[Original source lines 651-651; other lines omitted]
+16:10:17.951324 exit_group(0)           = ?
+
+## Git child exit — separate child trace
+[Original source lines 57-57; other lines omitted]
+16:10:24.580325 exit_group(0)           = ?
+
+## Later 16-second snapshot — separate snapshot, not an exit event
+[Original source lines 1-1; other lines omitted]
+    PID    PPID STAT COMMAND
+
+[Original source lines 4-4; other lines omitted]
+ [BASH_CHILD]  [DESKTOP_PARENT] Z    bash
+
+[Original source lines 8-8; other lines omitted]
+ [GIT_CHILD]  [DESKTOP_PARENT] Z    git
+
+## Startup timeout — separate application log
+[Original source lines 1-1; other lines omitted]
+Failed to load shell env caller=startup detail="Timed out after 5000ms." durationMs=5016 path=[PATH_REDACTED] pathEntryCount=10 resultSource=load status=timed_out timeoutMs=5000
+
+Publication boundary: not a production verification result.

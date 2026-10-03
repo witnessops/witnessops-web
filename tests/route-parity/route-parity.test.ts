@@ -6,7 +6,7 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/early-access", "/pl/catalog/automation-repair", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
+const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/early-access", "/pl/catalog/automation-repair", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot", "/review/sample-cases/wops-0001"] as const;
 
 function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -64,7 +64,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
   );
 
   const manifest = { ...(actual as Record<string, string>) };
-  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page"]) {
+  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/sample-cases/wops-0001/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }
