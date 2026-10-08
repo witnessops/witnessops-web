@@ -30,10 +30,10 @@ test("selection preserves the historical registry and its ordering", () => {
 });
 test("no fallback reintroduces a retired offer when an approved review is missing", () => {
   assert.throws(() => publicPaidReviews([ai, legacy]), /external-exposure-assessment/);
-  assert.throws(() => publicPaidReviews([external, legacy]), /agent-tools-access-review/);
+  assert.throws(() => publicPaidReviews([external, legacy]), /agent-action-security-review/);
 });
 test("duplicate current identities fail instead of selecting arbitrary commercial terms", () => {
-  assert.throws(() => publicPaidReviews([ai, external, { ...ai, price: "€500" }]), /agent-tools-access-review/);
+  assert.throws(() => publicPaidReviews([ai, external, { ...ai, price: "€500" }]), /agent-action-security-review/);
   assert.throws(() => publicPaidReviews([ai, external, { ...external, price: "€500" }]), /external-exposure-assessment/);
 });
 test("only exact current service IDs pass the public-paid-review type guard", () => {

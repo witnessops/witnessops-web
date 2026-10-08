@@ -58,7 +58,7 @@ export type BuyerPublicOfferId = Extract<
 const BUYER_PUBLIC_OFFER_IDS = [
   "automation-repair-handover",
   "customer-security-review-sprint",
-  "agent-tools-access-review",
+  // Retained legacy IDs remain in the historical registry, not new public selection.
   "agent-action-security-review",
   "professional-public-footprint-audit",
 ] as const satisfies readonly BuyerPublicOfferId[];
@@ -413,7 +413,7 @@ export function buyerServiceRequestHref(
   locale: BuyerLocale,
   service: BuyerService,
 ): string {
-  if (service.productId) {
+  if (service.id === "external-exposure-assessment" && service.productId) {
     return buyerOfferRequestHref(locale, service.productId);
   }
   if (isBuyerPublicOfferId(service.id)) {
@@ -476,11 +476,9 @@ export function buyerServiceFromRequestOffer(
     return buyerServiceByPublicOfferId(offerId);
   }
 
-  if (offer === AUTOMATION_REPAIR_OFFER.name.en || offer === AUTOMATION_REPAIR_OFFER.name.pl) return buyerServiceById(AUTOMATION_REPAIR_OFFER.id);
-
-  return offer === PRIMARY_OFFER.name.en
-    ? buyerServiceById(PRIMARY_OFFER.id)
-    : undefined;
+  // Names and legacy aliases are never selection authority. New intake needs an
+  // explicit current offerId, and must not reinterpret historic customer terms.
+  return undefined;
 }
 
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {

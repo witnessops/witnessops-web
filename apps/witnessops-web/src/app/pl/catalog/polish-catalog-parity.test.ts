@@ -14,6 +14,7 @@ const polishPage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const expectedOrder = [
   "automation-repair-handover",
   "customer-security-review-sprint",
+  "agent-action-security-review",
   "agent-tools-access-review",
   "one-server-security-check",
   "external-exposure-assessment",
@@ -26,7 +27,7 @@ const expectedOrder = [
 test("English and Polish catalogue pages render one shared offer contract", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 9);
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));

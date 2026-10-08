@@ -41,7 +41,7 @@ test("review request route issues current AI review verification without legacy 
       body: JSON.stringify({
         name: "K. Witness",
         email: "security@witnessops.com",
-        intent: "agent-tools-access-review",
+        intent: "agent-action-security-review",
         scope:
           "AI agent action: coding agent applied a configuration change after approval.",
       }),
@@ -66,7 +66,7 @@ test("review request route issues current AI review verification without legacy 
   assert.ok(payload.issuanceId.startsWith("iss_"));
 
   const intake = await getIntakeById(payload.intakeId);
-  assert.equal(intake?.submission.intent, "agent-tools-access-review");
+  assert.equal(intake?.submission.intent, "agent-action-security-review");
   assert.equal(
     intake?.submission.scope,
     "AI agent action: coding agent applied a configuration change after approval.",
@@ -86,7 +86,7 @@ test("review request route issues current AI review verification without legacy 
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Confirm your AI Agent Tools & Access Review request\.$/m,
+    /^Confirm your Agent Action Security Review request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
@@ -102,7 +102,7 @@ test("review request route issues current AI review verification without legacy 
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
-  assert.match(mailRaw, /Confirm your AI Agent Tools & Access Review request/);
+  assert.match(mailRaw, /Confirm your Agent Action Security Review request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });

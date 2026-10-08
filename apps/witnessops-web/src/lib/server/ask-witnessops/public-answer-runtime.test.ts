@@ -140,10 +140,16 @@ test("legitimate exclusions and bounded proof explanations survive the output fi
   ]) assert.ok(normalizePublicAskResponse(response(text)), text);
 });
 
+test("ambiguous bare no-prefix exclusion lists fail closed without erasing a later security claim", () => {
+  assert.equal(normalizePublicAskResponse(response(
+    "No exploitation, secret collection, compliance certification, or host-security guarantee. One named host, read-only, authorised collection only."
+  )), null);
+});
+
 test("excluded claim nouns accept ordinary articles and list grammar without knowing every excluded service", () => {
   for (const text of [
     "You get a read-only security report for one authorised Linux host, with findings, evidence references and unresolved issues, plus clear next steps. It’s bounded to one named server and does not include exploitation, secret collection, compliance certification or any security guarantee.",
-    "No exploitation, secret collection, compliance certification, or host-security guarantee. One named host, read-only, authorised collection only.",
+
     "It doesn't provide remediation work, a certification or any security guarantees.",
     "It doesn’t provide credentials, security certifications, or a host security guarantee.",
     "The scope excludes live changes, compliance certification and security guarantees.",

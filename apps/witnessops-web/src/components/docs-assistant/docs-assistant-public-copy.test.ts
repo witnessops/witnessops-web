@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER, PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 function source(filename: string): string {
   return readFileSync(resolve(__dirname, filename), "utf-8");
@@ -73,7 +73,7 @@ test("generated recommendations have a distinct review card and canonical naviga
   const card = source("ask-witnessops-commercial-fit-card.tsx");
 
   assert.match(card, /answer\.schema === "witnessops\.ask\.generated-answer\.v1"/);
-  assert.match(card, /if \(!recommendation\) return null/);
+  assert.match(card, /if \(!recommendation \|\| !isPublicPaidReviewId\(recommendation\.service_id\)\) return null/);
   assert.match(card, /aria-label="Suggested service"/);
   assert.match(card, /service\.name\[language\]/);
   assert.match(card, /service\.price\[language\]/);
@@ -96,21 +96,17 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(card, /offer\.delivery_label/);
   assert.match(card, /Fit signal only/);
   assert.match(card, /Public Workflow labels are request-shape references/);
-  assert.match(response, /import \{ PRIMARY_OFFER \}/);
-  assert.match(response, /offerId=\$\{PRIMARY_OFFER\.id\}&source=ask/);
+  assert.match(response, /import \{ PUBLIC_AGENT_ACTION_OFFER \}/);
+  assert.match(response, /offerId=\$\{PUBLIC_AGENT_ACTION_OFFER\.id\}&source=ask/);
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
-  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(
-    PRIMARY_OFFER.unit.en,
-    "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-  );
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
-  assert.equal(
-    PRIMARY_OFFER.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
+  // The older inventory contract retains its separate historical identity.
+  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
 });
 
 test("Ask WitnessOps loading copy stays provider-neutral", () => {
