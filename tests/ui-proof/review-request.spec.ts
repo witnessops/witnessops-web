@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 const scenarios = [
-  { path: "/review/request", locale: "en", width: 1440, height: 1100 },
-  { path: "/review/request", locale: "en", width: 768, height: 1024 },
-  { path: "/review/request", locale: "en", width: 390, height: 844 },
-  { path: "/review/request", locale: "en", width: 320, height: 740 },
-  { path: "/pl/review/request", locale: "pl", width: 1440, height: 1100 },
-  { path: "/pl/review/request", locale: "pl", width: 768, height: 1024 },
-  { path: "/pl/review/request", locale: "pl", width: 390, height: 844 },
-  { path: "/pl/review/request", locale: "pl", width: 320, height: 740 },
+  { path: "/review/request?offerId=agent-tools-access-review", locale: "en", width: 1440, height: 1100 },
+  { path: "/review/request?offerId=agent-tools-access-review", locale: "en", width: 768, height: 1024 },
+  { path: "/review/request?offerId=agent-tools-access-review", locale: "en", width: 390, height: 844 },
+  { path: "/review/request?offerId=agent-tools-access-review", locale: "en", width: 320, height: 740 },
+  { path: "/pl/review/request?offerId=agent-tools-access-review", locale: "pl", width: 1440, height: 1100 },
+  { path: "/pl/review/request?offerId=agent-tools-access-review", locale: "pl", width: 768, height: 1024 },
+  { path: "/pl/review/request?offerId=agent-tools-access-review", locale: "pl", width: 390, height: 844 },
+  { path: "/pl/review/request?offerId=agent-tools-access-review", locale: "pl", width: 320, height: 740 },
 ] as const;
 
 const requiredFields = [
@@ -16,6 +16,25 @@ const requiredFields = [
   "email",
   "workflow",
 ] as const;
+
+test("bare review request shows only two paid choices without a default form or new issuance", async ({ page }) => {
+  let posts = 0;
+  await page.route("**/api/review/request", async route => {
+    posts += 1;
+    await route.fulfill({ status: 500 });
+  });
+  for (const route of ["/review/request", "/pl/review/request"]) {
+    const response = await page.goto(route);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('main[data-request-selection="fit"]')).toBeVisible();
+    await expect(page.locator("main form")).toHaveCount(0);
+    await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
+    await expect(page.locator('[data-review-choice="agent-tools-access-review"] a')).toHaveAttribute("href", /offerId=agent-tools-access-review/);
+    await expect(page.locator('[data-review-choice="external-exposure-assessment"] a')).toHaveAttribute("href", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+    await expect(page.locator("main")).toContainText(route.startsWith("/pl") ? "Zgłoszenie nie upoważnia" : "No review or target-facing check starts");
+  }
+  expect(posts).toBe(0);
+});
 
 test("review request routes remain responsive, accessible, and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
@@ -57,6 +76,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       viewport.clientWidth + 1,
     );
 
+    await expect(page.locator('main[data-request-selection="agent-tools-access-review"]')).toBeVisible();
     const form = page.locator("main form");
     await expect(form).toBeVisible();
     await expect(form).toHaveAttribute("method", "post");
@@ -71,7 +91,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       .evaluateAll((controls) =>
         controls.map((control) => control.getAttribute("name") || control.id || control.tagName.toLowerCase()),
       );
-    expect(controlOrder).toEqual(scenario.locale === "en" ? ["name", "email", "enquiryPath", "workflow", "button"] : [
+    expect(controlOrder).toEqual([
       "name",
       "email",
       "org",
@@ -83,7 +103,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "button",
     ]);
 
-    if (scenario.locale === "pl") await expect(form.locator("#org")).not.toHaveAttribute("required", "");
+    await expect(form.locator("#org")).not.toHaveAttribute("required", "");
     for (const fieldName of requiredFields) {
       const field = form.locator(`#${fieldName}`);
       await expect(field).toHaveAttribute("required", "");
@@ -117,7 +137,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     }
 
     await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
-    for (const name of scenario.locale === "pl" ? ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"] : []) {
+    for (const name of ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"]) {
       await expect(form.locator(`#${name}`)).not.toHaveAttribute("required", "");
     }
 
@@ -145,7 +165,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     await form.locator("#approvalBoundary").fill("Approved action with a named stopping point");
     await form.locator("#evidenceAvailable").fill("Ticket and commit record types only");
     } else {
-      await form.locator("#enquiryPath").selectOption("Not sure");
+      await expect(form.locator("#enquiryPath")).toHaveCount(0);
     }
     await submit.click();
 
@@ -157,7 +177,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "org",
       "scope",
     ]);
-    expect(submittedPayload?.intent).toBe("review");
+    expect(submittedPayload?.intent).toBe("agent-tools-access-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
     expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
     expect(submittedPayload?.scope).toContain("First-message boundary: no files, secrets");
