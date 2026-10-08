@@ -4,7 +4,7 @@ import "server-only";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { askLanguage, conversationNextQuestion, wasQuestionAsked, explicitVisitorCorrections, visitorQualificationFacts, asksKnownQualification } from "@/lib/docs-assistant/conversation-guidance";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
-import { publicPaidReviews } from "@/lib/public-paid-reviews";
+import { publicPaidReviews, isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsRuntimeEnabledConfig } from "@/lib/docs-assistant/runtime-config";
 import type { NormalizedAskRequest } from "./ask-request-normalizer";
 
@@ -369,6 +369,13 @@ export function applyConversationContract(answer: NonNullable<ReturnType<typeof 
 /** Published terms do not depend on a provider response. Input safety gates run first. */
 export function catalogueClarification(args: NormalizedAskRequest) {
   if (!/[€]|\b(price|pricing|cost|guarantee|today|fee|availability|deadline|fit|cena|koszt|dzisiaj|gwarancja)\b/i.test(args.question)) return null;
+  // A separately named historical or private catalogue service never falls back
+  // to the prior conversation or page context as a different paid review.
+  const q = args.question.toLowerCase();
+  const historicalNamed = BUYER_SERVICES.some(service =>
+    !isPublicPaidReviewId(service.id) &&
+    [service.name.en, service.name.pl].some(name => q.includes(name.toLowerCase())));
+  if (historicalNamed || /\bprivate pilot\b|\bearly bird\b/i.test(q)) return null;
   const matches = (text: string) => PUBLIC_SALES_SERVICES.filter(service =>
     [service.name.en, service.name.pl].some(name => text.toLowerCase().includes(name.toLowerCase())));
   // Resolve each level independently. Multiple explicit names are ambiguous,
