@@ -12,11 +12,11 @@ export type ReviewSearchParams = Record<string, string | string[] | undefined>;
 
 const copy = {
   en: {
-    title: "Choose a security review", description: "Choose the AI Agent Tools & Access Review or External Attack Surface Review. Agree scope, authority, price and handling before work begins.",
+    title: "Choose a security review", description: "Choose the Agent Action Security Review or External Attack Surface Review. Agree scope, authority, price and handling before work begins.",
     choose: "Which review fits your decision?", chooseBody: "Choose one of the two paid reviews. A fit enquiry is not a booking or permission to inspect a system.",
     unavailable: "This link does not select a current offer", unavailableBody: "The selection is retired, unknown or ambiguous. Nothing has been substituted. Choose a current review below. Earlier requests and accepted agreements retain their original terms.",
     request: "Tell us what you need to understand", aiCta: "Scope an AI review", externalCta: "Scope an external review",
-    aiIntro: "Name the agent setup, selected connection, device class and one consequential action. Describe the decision or deadline without sending source material or secrets.",
+    aiIntro: "Name one consequential agent or automation action, its likely approval/permission boundary and your decision or deadline. No source material or secrets.",
     externalIntro: "Name one authorised internet-facing system, the decision or deadline and your authority to commission the review. This is not a penetration test.",
     scope: "Scope and start conditions", next: "We confirm fit, capacity, the exact boundary, authority, price, timing, inputs, handling and recipients before work starts.",
     boundary: "No review or target-facing check starts from this form. Payment and mailbox verification alone do not authorise inspection.",
@@ -24,11 +24,11 @@ const copy = {
     email: "Not sure which fits? Send a non-secret fit question by email:", details: "See scope and deliverables",
   },
   pl: {
-    title: "Wybierz przegląd bezpieczeństwa", description: "Wybierz przegląd narzędzi i dostępu agenta AI albo External Attack Surface Review. Najpierw uzgodnimy zakres, upoważnienie, cenę i obsługę materiałów.",
+    title: "Wybierz przegląd bezpieczeństwa", description: "Wybierz Agent Action Security Review albo External Attack Surface Review. Najpierw uzgodnimy zakres, upoważnienie, cenę i obsługę materiałów.",
     choose: "Który przegląd pomoże w Twojej decyzji?", chooseBody: "Wybierz jeden z dwóch płatnych przeglądów. Pytanie o dopasowanie nie rezerwuje pracy ani nie upoważnia do inspekcji systemu.",
     unavailable: "Ten link nie wybiera aktualnej oferty", unavailableBody: "Wybór jest historyczny, nieznany lub niejednoznaczny. Nie zastąpiliśmy go inną usługą. Wybierz aktualny przegląd poniżej. Wcześniejsze zgłoszenia i zaakceptowane umowy zachowują swoje warunki.",
     request: "Opisz, co chcesz zrozumieć", aiCta: "Omów przegląd agenta AI", externalCta: "Omów przegląd ekspozycji",
-    aiIntro: "Wskaż konfigurację agenta, wybrane połączenie, rodzaj urządzenia i jedno istotne działanie. Opisz decyzję lub termin bez przesyłania materiałów źródłowych i sekretów.",
+    aiIntro: "Opisz jedno ważne działanie agenta lub automatyzacji, granice zatwierdzenia i uprawnień oraz termin decyzji. Bez plików ani sekretów.",
     externalIntro: "Wskaż jeden autoryzowany system dostępny z internetu, decyzję lub termin i podstawę upoważnienia do przeglądu. To nie jest test penetracyjny.",
     scope: "Zakres i warunki rozpoczęcia", next: "Przed pracą potwierdzimy dopasowanie, dostępność, dokładny zakres, upoważnienie, cenę, termin, wymagane dane, obsługę materiałów i odbiorców.",
     boundary: "Ten formularz nie rozpoczyna przeglądu ani sprawdzeń wobec celu. Sama płatność i weryfikacja skrzynki nie upoważniają do inspekcji.",

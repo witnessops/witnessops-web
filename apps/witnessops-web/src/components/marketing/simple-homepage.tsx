@@ -11,14 +11,14 @@ const copy = {
     body: "WitnessOps provides focused security reviews for AI agents and internet-facing systems. Get written findings, evidence you can inspect, and clear priorities for what to do next.",
     aiCta: "Scope an AI review", externalCta: "Scope an external review",
     offers: "Two reviews. Scope before work.",
-    ai: "One agreed device, one selected connection and one consequential action. Manual, read-only inspection—not execution or repair.",
+    ai: "One consequential agent or automation action: who approves it, which identity acts, what it can reach and what the available evidence establishes. Read-only—no execution or repair.",
     external: "One authorised internet-facing system, inspected from the outside with approved low-impact checks. Not a penetration test.",
     details: "See scope and deliverables", compare: "Compare scopes and prices",
     free: "Free hostname check", freeBody: "A public hostname snapshot. No account needed.",
     freeBoundary: "Not a review.", freeCta: "Start a free check",
     receive: "What you receive", receiveBody: "Written findings with their supporting evidence, practical priorities and explicit unknowns. Scope and evidence handling are agreed before work begins. An enquiry does not authorise collection or start a review.",
     evidence: "Inspect the shape of the evidence", evidenceBody: "Examples explain the deliverables; they do not stand in for customer results or establish that a system is secure.",
-    aiSample: "Historical synthetic one-action example", aiSampleNote: "Not a complete specimen of the current AI Tools & Access Review.",
+    aiSample: "Historical synthetic one-action example", aiSampleNote: "Historical synthetic action example, not customer evidence or a completed security review.",
     externalSample: "Synthetic external-review example", externalSampleNote: "Illustrative package, not a customer engagement.",
     limitsTitle: "Useful findings. Explicit limits.", limits: "Neither review certifies safety or compliance. Missing evidence remains a gap, not a successful check. A receipt or verifier supports only its named evidence and claims.",
     enquiry: "Which review fits your decision?", enquiryBody: "Start with a short, non-secret description of the agent or internet-facing system and the decision you need to make. We will confirm fit, scope, price and timing before work begins.",
@@ -30,14 +30,14 @@ const copy = {
     body: "WitnessOps prowadzi przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu. Otrzymasz pisemne ustalenia, materiały do sprawdzenia i jasne priorytety dalszych działań.",
     aiCta: "Omów przegląd agenta AI", externalCta: "Omów przegląd ekspozycji",
     offers: "Dwa przeglądy. Najpierw uzgodniony zakres.",
-    ai: "Jedno uzgodnione urządzenie, jedno wybrane połączenie i jedno istotne działanie. Ręczna inspekcja tylko do odczytu—bez wykonania działania i napraw.",
+    ai: "Jedno ważne działanie agenta lub automatyzacji: upoważnienie, tożsamość, uprawnienia i dostępne dowody. Tylko odczyt — bez wykonania działania i napraw.",
     external: "Jeden autoryzowany system dostępny z internetu, sprawdzany od zewnątrz uzgodnionymi metodami o niskim wpływie. To nie jest test penetracyjny.",
     details: "Zobacz zakres i wyniki", compare: "Porównaj zakres i cenę",
     free: "Bezpłatne sprawdzenie hosta", freeBody: "Publiczny obraz jednego hosta. Bez konta.",
     freeBoundary: "To nie jest przegląd.", freeCta: "Sprawdź host bezpłatnie",
     receive: "Co otrzymasz", receiveBody: "Pisemne ustalenia wraz ze źródłami, praktyczne priorytety i jawne niewiadome. Zakres i zasady obsługi materiałów uzgadniamy przed pracą. Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu.",
     evidence: "Zobacz, jak przedstawiamy materiały", evidenceBody: "Przykłady objaśniają wyniki pracy. Nie zastępują rzeczywistych wyników klienta i nie dowodzą bezpieczeństwa systemu.",
-    aiSample: "Historyczny syntetyczny przykład jednego działania", aiSampleNote: "To nie jest pełny przykład obecnego przeglądu narzędzi i dostępu agenta AI.",
+    aiSample: "Historyczny syntetyczny przykład jednego działania", aiSampleNote: "Historyczny przykład syntetyczny, nie materiały klienta ani ukończony przegląd bezpieczeństwa.",
     externalSample: "Syntetyczny przykład przeglądu ekspozycji", externalSampleNote: "Pakiet ilustracyjny, nie realizacja dla klienta.",
     limitsTitle: "Przydatne ustalenia. Jawne ograniczenia.", limits: "Żaden przegląd nie certyfikuje bezpieczeństwa ani zgodności. Brak materiałów pozostaje luką, nie pozytywnym wynikiem. Zapis lub weryfikator wspiera wyłącznie wskazane materiały i twierdzenia.",
     enquiry: "Który przegląd pomoże w Twojej decyzji?", enquiryBody: "Zacznij od krótkiego, niepoufnego opisu agenta lub systemu dostępnego z internetu oraz decyzji, którą musisz podjąć. Przed pracą potwierdzimy dopasowanie, zakres, cenę i termin.",
@@ -67,7 +67,7 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
     </div></div></section>
     <section className={styles.offers} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
       <h2 id="home-reviews-heading" className={styles.eyebrow}>{text.offers}</h2>
-      <div className={styles.cards}>{services.map((service, index) => <article key={service.id} data-home-offer={index === 0 ? "agent-tools-access" : "external-exposure"}>
+      <div className={styles.cards}>{services.map((service, index) => <article key={service.id} data-home-offer={index === 0 ? "agent-action-security" : "external-exposure"}>
         <h3>{service.name[locale]}</h3><p>{index === 0 ? text.ai : text.external}</p>
         <p className={styles.price}>{service.price[locale]}</p><p className={styles.timing}>{service.timing[locale]}</p>
         <TextLink href={buyerServiceRequestHref(locale, service)}>{index === 0 ? text.aiCta : text.externalCta}</TextLink>

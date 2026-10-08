@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
-const pricingDescription = `Compare ${PRIMARY_OFFER.name.en} and ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}. See their scope, evidence, prices and start conditions before requesting a review.`;
+const pricingDescription = `Compare ${PUBLIC_AGENT_ACTION_OFFER.name.en} and ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}. See their scope, evidence, prices and start conditions before requesting a review.`;
 
 export const metadata: Metadata = {
   title: "Review Pricing",

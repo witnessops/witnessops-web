@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const DOCS_PUBLIC_HREF = "/docs";
@@ -35,7 +35,7 @@ interface FooterProps {
 const POLISH_FOOTER = {
   subline: "Weryfikacja bezpieczeństwa z jasnymi ustaleniami, materiałami źródłowymi i praktycznymi kolejnymi krokami.",
   links: [
-    { label: "AI Agent Tools & Access Review (EN)", href: "/catalog/workflows" },
+    { label: "Agent Action Security Review (EN)", href: "/catalog/workflows" },
     { label: "External Attack Surface Review", href: "/pl/catalog/offsec-external-exposure" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
@@ -54,7 +54,7 @@ const POLISH_FOOTER = {
 const SERVICE_NAV_HREFS = new Set([
   "/catalog/offsec-external-exposure",
   "/pl/catalog/offsec-external-exposure",
-  PRIMARY_OFFER.route,
+  PUBLIC_AGENT_ACTION_OFFER.route,
   "/why-witnessops",
   "/pl/why-witnessops",
 ]);
