@@ -249,7 +249,13 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
       if (path === "/pl") {
-        await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(1);
+        const external = buyerServiceById("external-exposure-assessment");
+        await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
+        await expect(page.locator("main").getByRole("link", { name: "Omów przegląd ekspozycji" }).first()).toHaveAttribute(
+          "href",
+          buyerServiceRequestHref("pl", external),
+        );
+        await expect(page.locator('main a[href="/check"]')).toHaveCount(1);
         await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
       } else {
         await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence.Explicit limits.");
