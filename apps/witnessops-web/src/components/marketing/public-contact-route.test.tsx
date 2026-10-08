@@ -29,6 +29,7 @@ test("English contact route leaves the service choice open", () => {
     html,
     /href="\/review\/request"/,
   );
+  assert.match(html, /Discuss a review:/);
   assert.match(html, /engage@mail\.witnessops\.com/);
   assert.match(html, /underline decoration-brand-accent\/50/);
   assert.doesNotMatch(html, /Tell us what happened/);
@@ -49,7 +50,7 @@ test("compact footer contact route exposes a clear primary action", () => {
   assert.match(html, /w-full/);
   assert.match(html, /border-brand-accent bg-brand-accent/);
   assert.match(html, /text-text-inverse/);
-  assert.match(html, /Or email:/);
+  assert.match(html, /Discuss a review:/);
   assert.match(html, /Do not send passwords/);
   assert.doesNotMatch(html, /No secrets/);
 });

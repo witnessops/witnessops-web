@@ -8,7 +8,7 @@ for (const width of [1280, 768, 390, 320]) {
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.goto("/", { waitUntil: "networkidle" });
-    await expect(page.locator("h1")).toHaveText("Understand what your agents can do and what your systems expose.");
+    await expect(page.locator("h1")).toHaveText("Proof other people can check.");
     await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     const form = page.locator("main form");

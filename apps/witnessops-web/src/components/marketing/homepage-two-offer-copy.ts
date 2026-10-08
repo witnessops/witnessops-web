@@ -1,16 +1,32 @@
 /**
- * Buyer copy anchors from docs/commercial/18-two-offer-portfolio.md.
- * Presentation only: these strings do not select an intake identity.
+ * English homepage presentation from the founder-approved 2026-10-08 copy handoff.
+ * These strings do not select an intake identity or amend offer contracts.
+ * Polish strings are the existing homepage copy. No Polish translation of that
+ * handoff is approved.
  */
 export const HOMEPAGE_TWO_OFFER_COPY = {
   en: {
-    headline: "Understand what your agents can do and what your systems expose.",
+    headline: "Proof other people can check.",
     support:
-      "WitnessOps provides focused security reviews for AI agents and internet-facing systems. Get written findings, evidence you can inspect, and clear priorities for what to do next.",
-    aiHeadline: "Know what your AI agent can reach—before you rely on it.",
+      "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.",
+    aiQuestion: "What can your AI agent actually do in production?",
+    aiHeadline: "What can your AI agent actually do in production?",
+    aiDescription:
+      "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations and a readout.",
+    // Approved homepage display. Matches the public agent-action price label.
+    aiPrice: "€2,500 fixed · excluding VAT",
     aiCta: "Scope an AI review",
-    externalHeadline: "See what your internet-facing system exposes—and what needs attention.",
+    externalQuestion: "What can the internet see that you didn’t mean to expose?",
+    externalHeadline: "What can the internet see that you didn’t mean to expose?",
+    externalDescription:
+      "Review one authorised internet-facing system. Receive an external attack-surface map, findings with supporting evidence, remediation priorities and one focused retest.",
+    // Approved homepage display. The registry label stays "€1,900 · excluding VAT".
+    externalPrice: "€1,900 fixed · excluding VAT",
+    externalScopeNote:
+      "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.",
     externalCta: "Scope an external review",
+    evidenceHeadline: "Evidence survives the dashboard.",
+    contactLead: "Discuss a review:",
     reviewsEyebrow: "Two paid reviews",
     reviewsTitle: "One agent action or one internet-facing system.",
     reviewsBody: "The free hostname check stays a separate tool, not a third review.",
