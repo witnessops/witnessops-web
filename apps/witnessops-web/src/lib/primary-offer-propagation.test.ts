@@ -18,7 +18,6 @@ import {
 } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
@@ -214,6 +213,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
   assert.equal(pricingMetadata.title, "Review Pricing");
   assert.ok(String(pricingMetadata.description).includes(PRIMARY_OFFER.name.en));
+  assert.ok(String(pricingMetadata.description).includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
   assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
@@ -242,15 +242,14 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   );
   assert.deepEqual(
     [...pricing.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
-    ["footprint", "agent-tools-access"],
-    "Pricing foreground contains exactly the two selected reviews",
+    ["agent-tools-access", "external-exposure"],
+    "Pricing foreground contains exactly the two founder-approved reviews",
   );
-  const footprintCard = renderedArticle(pricing, "data-pricing-review", "footprint");
-  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en));
-  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.price.en));
-  assert.doesNotMatch(footprintCard, /working days|response time|delivery time|FIRST 10|No\. 00/i);
-  assert.match(footprintCard, /href="\/review\/request\?enquiryPath=early-bird"/);
-  assert.doesNotMatch(pricing, /€49|€149|External Attack Surface Review|One Server Security Check/);
+  const externalCard = renderedArticle(pricing, "data-pricing-review", "external-exposure");
+  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
+  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.price.en));
+  assert.match(externalCard, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(primaryCard, /Start with a broken workflow/);
   assert.match(primaryCard, /AI Agent Tools &amp; Access Review/);
   assert.match(primaryCard, /Starting at €2,500/);
@@ -351,7 +350,7 @@ test("active presentation sources do not restore stale buyer-facing product name
   assert.deepEqual(failures, []);
 });
 
-test("External Attack Surface Review remains available only as the secondary catalogue offer", () => {
+test("External Attack Surface Review retains its legacy registry role while current discovery includes it", () => {
   const secondary = buyerServiceById("external-exposure-assessment");
   assert.equal(secondary.name.en, "External Attack Surface Review");
   assert.equal(secondary.name, EXTERNAL_ATTACK_SURFACE_OFFER.name);
