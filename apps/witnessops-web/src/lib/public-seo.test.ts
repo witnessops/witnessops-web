@@ -10,6 +10,8 @@ import {
   organizationJsonLd,
   publicExposureBreadcrumbJsonLd,
   publicExposureServiceJsonLd,
+  primaryOfferBreadcrumbJsonLd,
+  primaryOfferServiceJsonLd,
   websiteJsonLd,
 } from "./public-seo";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
@@ -75,4 +77,17 @@ test("structured trust data is factual and syntactically serializable", () => {
   assert.equal(service.offers.priceSpecification.valueAddedTaxIncluded, false);
   assert.equal("inLanguage" in service, false);
   assert.equal(breadcrumbs.itemListElement.length, 3);
+});
+
+test("current public Agent Action JSON-LD has a single fixed-price Offer, not the inventory aggregate", () => {
+  const current = primaryOfferServiceJsonLd();
+  const breadcrumbs = primaryOfferBreadcrumbJsonLd();
+  assert.equal(current.name, "Agent Action Security Review");
+  assert.equal(current.serviceType, "Agent Action Security Review");
+  assert.equal(current.offers["@type"], "Offer");
+  assert.equal(current.offers.price, "2500");
+  assert.equal(current.offers.priceCurrency, "EUR");
+  assert.equal(current.url, "https://witnessops.com/catalog/workflows");
+  assert.doesNotMatch(JSON.stringify(current), /agent tools and access review|Starting at/);
+  assert.equal(breadcrumbs.itemListElement.at(-1)?.name, "Agent Action Security Review");
 });

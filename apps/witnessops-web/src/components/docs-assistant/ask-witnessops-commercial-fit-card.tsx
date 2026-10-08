@@ -2,7 +2,8 @@ import Link from "next/link";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import type { AskLanguage } from "@/lib/docs-assistant/conversation-guidance";
 
-import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
 interface Props {
@@ -27,7 +28,7 @@ export function AskWitnessOpsCommercialFitCard({
 }: Props) {
   if (answer.schema === "witnessops.ask.generated-answer.v1") {
     const recommendation = answer.recommendation;
-    if (!recommendation) return null;
+    if (!recommendation || !isPublicPaidReviewId(recommendation.service_id)) return null;
     const service = BUYER_SERVICES.find((item) => item.id === recommendation.service_id)!;
     const pl = language === "pl";
     return (
@@ -63,7 +64,7 @@ export function AskWitnessOpsCommercialFitCard({
   }
   const fit = answer.commercial_fit;
   const offer = fit.offer;
-  if (!offer || (fit.result !== "likely" && fit.result !== "needs_boundary")) {
+  if (!offer || fit.offer_id !== PUBLIC_AGENT_ACTION_OFFER.id || (fit.result !== "likely" && fit.result !== "needs_boundary")) {
     return null;
   }
 
@@ -71,17 +72,17 @@ export function AskWitnessOpsCommercialFitCard({
   const usesWorkflowRequestShape = /\bWorkflow [SML]\b/.test(
     answer.template.body,
   );
-  const fitCheckHref = `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask&result=${fit.result}`;
+  const fitCheckHref = `${PUBLIC_AGENT_ACTION_OFFER.requestRoute}?offerId=${PUBLIC_AGENT_ACTION_OFFER.id}&source=ask&result=${fit.result}`;
   const heading = likely
     ? fit.intent === "offer"
       ? "This is the current review scope."
       : "This is a paid-review candidate."
-    : "This needs an agreed device and action boundary.";
+    : "This needs one agreed action and authority boundary.";
   const body = likely
     ? fit.intent === "offer"
-      ? "WitnessOps reviews agent tools observed in agreed sources, one selected connection and one consequential action path."
-      : `Your non-secret description may fit ${PRIMARY_OFFER.name.en}: a bounded device/source inventory plus one deeper action path.`
-    : "It may fit once the device/source boundary, selected agent connection and one consequential action are clear.";
+      ? "WitnessOps reconstructs one consequential agent action: its approval, executing identity, permissions and evidence."
+      : `Your non-secret description may fit ${PUBLIC_AGENT_ACTION_OFFER.name.en}: one bounded consequential action, not a device-wide inventory.`
+    : "It may fit once one consequential action, its approval boundary and available evidence are clear.";
 
   const cardClassName = compact
     ? "mt-4 border border-brand-accent/45 p-3"

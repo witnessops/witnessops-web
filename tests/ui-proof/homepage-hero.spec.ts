@@ -1,4 +1,4 @@
-import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { BUYER_SERVICES, buyerServiceRequestHref, buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { access, mkdir, rm } from "node:fs/promises";
@@ -46,14 +46,14 @@ const askWorkflowFallback = {
     schema: "witnessops.ask.commercial-fit.v1",
     result: "likely",
     intent: "workflow",
-    offer_id: "agent-tools-access-review",
+    offer_id: "agent-action-security-review",
     source: "ask",
     offer: {
-      name: "AI Agent Tools & Access Review",
-      price_label: "Starting at €2,500 · excluding VAT",
-      unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-      fit_check_label: "Non-secret fit and scoping request first",
-      delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+      name: "Agent Action Security Review",
+      price_label: "€2,500 fixed · excluding VAT",
+      unit_label: "One consequential agent or automation action",
+      fit_check_label: "Non-secret fit check first",
+      delivery_label: "Within 10 working days after evidence rules are agreed",
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
@@ -239,17 +239,17 @@ test("English and Polish homepages preserve two paid choices, free check, and hi
             : "Understand what your agents can do and what your systems expose.",
         );
         await expect(main.locator("[data-home-offer]")).toHaveCount(2);
-        await expect(main.locator('[data-home-offer="agent-tools-access"]')).toContainText(pl ? "Od €2 500" : "Starting at €2,500");
+        await expect(main.locator('[data-home-offer="agent-action-security"]')).toContainText(pl ? "€2 500: cena stała" : "€2,500 fixed");
         await expect(main.locator('[data-home-offer="external-exposure"]')).toContainText(pl ? "€1 900" : "€1,900");
         await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute(
-          "href", buyerPublicOfferRequestHref(locale, PRIMARY_OFFER.id),
+          "href", buyerPublicOfferRequestHref(locale, PUBLIC_AGENT_ACTION_OFFER.id),
         );
         const externalCta = page.locator('[data-ui-proof-id="homepage-external-cta"]');
         await expect(externalCta).toHaveAttribute("href", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
         await expect(main.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute(
           "href", "/review/sample-cases/ai-agent-action-proof-run",
         );
-        await expect(main).toContainText(pl ? "To nie jest pełny przykład obecnego przeglądu" : "Not a complete specimen of the current AI Tools & Access Review");
+        await expect(main).toContainText(pl ? "Historyczny przykład syntetyczny" : "Historical synthetic action example");
         await expect(main).toContainText(pl ? "Syntetyczny przykład przeglądu ekspozycji" : "Synthetic external-review example");
         await expect(main.locator('a[href="/check"]')).toHaveCount(1);
         await expect(main).toContainText(pl ? "To nie jest przegląd." : "Not a review.");
@@ -305,8 +305,8 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       await expect(surface).not.toContainText(askWorkflowFallback.template.body);
       await expect(surface).toContainText("The AI is temporarily unavailable. This is public guide information.");
       const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
-      await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
-      await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+      await expect(fit).toContainText("€2,500 fixed · excluding VAT");
+      await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
       await expect(surface).toContainText("No evidence was reviewed");
       await expect(fit).toContainText("Fit signal only.");
       expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
@@ -434,9 +434,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
     { name: "homepage-mobile-390", path: "/", width: 390, height: 844 },
-    { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
-    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
-    { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=agent-action-security-review", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-action-security-review", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=agent-action-security-review", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
