@@ -1,6 +1,7 @@
 import type { AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 
 export interface AskWitnessOpsRecommendation {
   readonly service_id: BuyerService["id"];
@@ -329,6 +330,7 @@ function asRecommendation(value: unknown): AskWitnessOpsRecommendation | null {
   if (value === null || value === undefined) return null;
   if (typeof value !== "object") throw new Error("Invalid review recommendation.");
   const record = value as Record<string, unknown>;
+  if (!isPublicPaidReviewId(record.service_id)) throw new Error("Invalid review recommendation.");
   const service = BUYER_SERVICES.find((item) => item.id === record.service_id);
   if (!service) throw new Error("Invalid review recommendation.");
   const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
