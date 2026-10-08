@@ -2,7 +2,8 @@ import Link from "next/link";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import type { AskLanguage } from "@/lib/docs-assistant/conversation-guidance";
 
-import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
 interface Props {
@@ -27,8 +28,9 @@ export function AskWitnessOpsCommercialFitCard({
 }: Props) {
   if (answer.schema === "witnessops.ask.generated-answer.v1") {
     const recommendation = answer.recommendation;
-    if (!recommendation) return null;
-    const service = BUYER_SERVICES.find((item) => item.id === recommendation.service_id)!;
+    if (!recommendation || !isPublicPaidReviewId(recommendation.service_id)) return null;
+    const service = BUYER_SERVICES.find((item) => item.id === recommendation.service_id);
+    if (!service) return null;
     const pl = language === "pl";
     return (
       <section
@@ -39,7 +41,6 @@ export function AskWitnessOpsCommercialFitCard({
         <h3 className="mt-2 text-base font-semibold text-text-primary">{service.name[language]}</h3>
         <p className="mt-2 text-sm font-semibold text-text-primary">{service.pricingVisible === false ? service.availability?.label[language] : service.price[language]}</p>
         <p className="mt-1 text-xs leading-relaxed text-text-muted">{service.timing[language]}</p>
-        {recommendation.service_id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-2 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice[language]}. {pl ? "Możesz zakończyć po diagnozie." : "You can stop after diagnosis."}</p> : null}
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           {showRequestAction && (onRequestScope ? (
             <button type="button" onClick={() => { onOfferSelected?.(); onRequestScope(); }} data-ask-primary-cta
