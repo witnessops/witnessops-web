@@ -4,8 +4,14 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import {
+  AppRouterContext,
+  type AppRouterInstance,
+} from "next/dist/shared/lib/app-router-context.shared-runtime";
 
+import HomePage from "@/app/page";
 import PricingPage from "@/app/(marketing)/pricing/page";
+import { HOMEPAGE_TWO_OFFER_COPY } from "@/components/marketing/homepage-two-offer-copy";
 
 const webRoot = resolve(__dirname, "../..");
 
@@ -18,6 +24,8 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
+  "src/components/marketing/homepage-two-offer-copy.ts",
+  "src/components/marketing/simple-homepage.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -110,10 +118,12 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "No proof run starts",
   "No customer evidence",
   "not a penetration test or certification",
+  "is not a penetration test",
   "not a compliance certificate",
   "compliance certification",
   "named limits",
   "non-secret fit check",
+  "does not authorise collection or start a review",
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
@@ -123,6 +133,8 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
+  "src/components/marketing/homepage-two-offer-copy.ts",
+  "src/components/marketing/simple-homepage.tsx",
   "src/components/marketing/offsec-suite-sample.tsx",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
@@ -142,15 +154,54 @@ function normalize(value: string): string {
   return value.toLowerCase();
 }
 
+function findProhibitedClaims(content: string): string[] {
+  const normalized = normalize(content);
+  return PROHIBITED_PUBLIC_CLAIMS.filter((phrase) =>
+    normalized.includes(phrase.toLowerCase()),
+  );
+}
+
+function hasRequiredBoundaryMarker(content: string): boolean {
+  const normalized = normalize(content);
+  return REQUIRED_BOUNDARY_MARKERS.some((marker) =>
+    normalized.includes(marker.toLowerCase()),
+  );
+}
+
+// ContactForm calls useRouter(), so the live homepage render needs a mounted
+// app-router context. Navigation is never exercised during static rendering.
+const staticRenderRouter = {
+  back: () => undefined,
+  forward: () => undefined,
+  refresh: () => undefined,
+  hmrRefresh: () => undefined,
+  push: () => undefined,
+  replace: () => undefined,
+  prefetch: () => undefined,
+} as unknown as AppRouterInstance;
+
+function renderHomepageHtml(): string {
+  return renderToStaticMarkup(
+    createElement(
+      AppRouterContext.Provider,
+      { value: staticRenderRouter },
+      createElement(HomePage),
+    ),
+  );
+}
+
+const RENDERED_HOMEPAGE_SOURCE = "rendered:/ (HomePage)";
+
 test("public claim surfaces do not contain hard-blocked overclaim phrases", () => {
   const failures: string[] = [];
+  const scanTargets = [
+    ...readPublicClaimSources(),
+    { path: RENDERED_HOMEPAGE_SOURCE, content: renderHomepageHtml() },
+  ];
 
-  for (const source of readPublicClaimSources()) {
-    const content = normalize(source.content);
-    for (const phrase of PROHIBITED_PUBLIC_CLAIMS) {
-      if (content.includes(phrase.toLowerCase())) {
-        failures.push(`${source.path}: ${phrase}`);
-      }
+  for (const source of scanTargets) {
+    for (const phrase of findProhibitedClaims(source.content)) {
+      failures.push(`${source.path}: ${phrase}`);
     }
   }
 
@@ -161,15 +212,17 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
   const failures: string[] = [];
   const pricingSource = "src/app/(marketing)/pricing/page.tsx";
   const pricingHtml = renderToStaticMarkup(createElement(PricingPage));
+  const homepageHtml = renderHomepageHtml();
 
-  for (const source of readPublicClaimSources()) {
-    const content = normalize(
-      source.path === pricingSource ? pricingHtml : source.content,
-    );
-    const hasBoundary = REQUIRED_BOUNDARY_MARKERS.some((marker) =>
-      content.includes(marker.toLowerCase()),
-    );
-    if (!hasBoundary) {
+  const scanTargets = [
+    ...readPublicClaimSources(),
+    { path: RENDERED_HOMEPAGE_SOURCE, content: homepageHtml },
+  ];
+
+  for (const source of scanTargets) {
+    const content =
+      source.path === pricingSource ? pricingHtml : source.content;
+    if (!hasRequiredBoundaryMarker(content)) {
       failures.push(source.path);
     }
   }
@@ -177,6 +230,69 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
   assert.match(pricingHtml, /do not grant compliance certification/);
   assert.match(pricingHtml, /does not authorise collection or start a review/);
   assert.deepEqual(failures, []);
+});
+
+test("the rendered homepage keeps its approved evidence boundaries verbatim", () => {
+  const homepageHtml = renderHomepageHtml();
+
+  assert.match(
+    homepageHtml,
+    /An enquiry does not authorise collection or start a review\./,
+  );
+  assert.match(homepageHtml, /This is not a penetration test\./);
+  assert.match(homepageHtml, /Historical synthetic one-action example/);
+  assert.match(
+    homepageHtml,
+    /No customer, execution, verification, authorisation failure or result is shown\./,
+  );
+  assert.match(
+    homepageHtml,
+    /This is the shape of a record, not a record\./,
+  );
+});
+
+test("prohibited homepage copy fails validation", () => {
+  // A single prohibited phrase slipped into otherwise-approved homepage copy
+  // must be caught by the same scan the positive test uses.
+  const poisonedCopy = JSON.stringify({
+    ...HOMEPAGE_TWO_OFFER_COPY.en,
+    support:
+      "WitnessOps guarantees compliance and provides whole-environment assurance.",
+  });
+  assert.deepEqual(findProhibitedClaims(poisonedCopy), [
+    "guarantees compliance",
+    "provides whole-environment assurance",
+  ]);
+
+  const poisonedHomepage = `${renderHomepageHtml()} This report is audit-ready.`;
+  assert.deepEqual(findProhibitedClaims(poisonedHomepage), ["audit-ready"]);
+
+  // Homepage copy without its boundary language must fail the boundary
+  // requirement: headline, questions and prices alone are not enough.
+  const copyWithoutBoundaries = [
+    HOMEPAGE_TWO_OFFER_COPY.en.headline,
+    HOMEPAGE_TWO_OFFER_COPY.en.support,
+    HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion,
+    HOMEPAGE_TWO_OFFER_COPY.en.aiPrice,
+    HOMEPAGE_TWO_OFFER_COPY.en.externalQuestion,
+    HOMEPAGE_TWO_OFFER_COPY.en.externalPrice,
+    HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline,
+  ].join("\n");
+  assert.equal(hasRequiredBoundaryMarker(copyWithoutBoundaries), false);
+
+  // Stripping every boundary marker from the rendered homepage must flip the
+  // boundary check to failing, proving the positive result is not vacuous.
+  let strippedHomepage = normalize(renderHomepageHtml());
+  for (
+    let pass = 0;
+    pass < 5 && hasRequiredBoundaryMarker(strippedHomepage);
+    pass += 1
+  ) {
+    for (const marker of REQUIRED_BOUNDARY_MARKERS) {
+      strippedHomepage = strippedHomepage.split(marker.toLowerCase()).join("");
+    }
+  }
+  assert.equal(hasRequiredBoundaryMarker(strippedHomepage), false);
 });
 
 test("homepage synthetic preview preserves English and Polish customer-evidence boundaries", () => {
