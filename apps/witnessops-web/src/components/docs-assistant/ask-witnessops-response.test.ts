@@ -26,20 +26,20 @@ const likelyCommercialFit = {
   schema: "witnessops.ask.commercial-fit.v1" as const,
   result: "likely" as const,
   intent: "workflow" as const,
-  offer_id: "agent-tools-access-review" as const,
+  offer_id: "agent-action-security-review" as const,
   source: "ask" as const,
   offer: {
-    name: "AI Agent Tools & Access Review" as const,
-    price_label: "Starting at €2,500 · excluding VAT" as const,
-    unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action" as const,
-    fit_check_label: "Non-secret fit and scoping request first" as const,
+    name: "Agent Action Security Review" as const,
+    price_label: "€2,500 fixed · excluding VAT" as const,
+    unit_label: "One consequential agent or automation action" as const,
+    fit_check_label: "Non-secret fit check first" as const,
     delivery_label:
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed" as const,
+      "Within 10 working days after evidence rules are agreed" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
 
-function generatedPayload(serviceId: string = "one-server-security-check") {
+function generatedPayload(serviceId: string = "external-exposure-assessment") {
   const service = BUYER_SERVICES.find((item) => item.id === serviceId)!;
   const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   requestUrl.searchParams.set("source", "ask");
@@ -92,8 +92,8 @@ test("generated answers show provider prose and a canonical non-primary review w
     const answer = await fetchAskWitnessOps("What do I receive from a Linux server review?");
     assert.equal(askWitnessOpsAnswerText(answer), payload.template.body);
     assert.equal(askWitnessOpsModeLabel(answer), "AI-generated answer");
-    assert.equal(answer.recommendation?.service_id, "one-server-security-check");
-    assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-LOCAL-AUDIT/);
+    assert.equal(answer.recommendation?.service_id, "external-exposure-assessment");
+    assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
     assert.equal(answer.receipt_id, undefined);
     assert.equal(answer.receipt_status, undefined);
   } finally {
@@ -111,8 +111,8 @@ test("follow-up requests include bounded caller context and the canonical page s
       requestBody = JSON.parse(String(init?.body));
       return new Response(JSON.stringify(generatedPayload()));
     };
-    await fetchAskWitnessOps("How long does that take?", { history, page_service_id: "one-server-security-check" });
-    assert.deepEqual(requestBody, { question: "How long does that take?", history, page_service_id: "one-server-security-check" });
+    await fetchAskWitnessOps("How long does that take?", { history, page_service_id: "external-exposure-assessment" });
+    assert.deepEqual(requestBody, { question: "How long does that take?", history, page_service_id: "external-exposure-assessment" });
     await fetchAskWitnessOps("A new question");
     assert.deepEqual(requestBody, { question: "A new question" });
   } finally {
@@ -158,15 +158,14 @@ test("generated review recommendations cannot change canonical prices or links",
   }
 });
 
-test("request-only service recommendations preserve hidden-price availability", async () => {
+test("non-selected services cannot be presented as new paid recommendations", async () => {
   const originalFetch = globalThis.fetch;
-  const payload = generatedPayload("professional-public-footprint-audit");
   try {
-    globalThis.fetch = async () => new Response(JSON.stringify(payload));
-    const answer = await fetchAskWitnessOps("Can you review my public professional footprint?");
-    assert.equal(answer.recommendation?.price_label, "Available by request");
-    payload.recommendation.price_label = BUYER_SERVICES.find((item) => item.id === "professional-public-footprint-audit")!.price.en;
-    await assert.rejects(() => fetchAskWitnessOps("How much?"), /outdated review recommendation/);
+    for (const id of ["professional-public-footprint-audit", "agent-tools-access-review", "one-server-security-check", "automation-repair-handover"]) {
+      const payload = generatedPayload(id);
+      globalThis.fetch = async () => new Response(JSON.stringify(payload));
+      await assert.rejects(() => fetchAskWitnessOps("What is the available paid review?"), /recommendation/i, id);
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -294,9 +293,9 @@ test("commercial fit keeps successful public guidance coherent with the live off
   };
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
-  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Tools & Access Review/);
-  assert.match(askWitnessOpsAnswerText(answer), /Starting at €2,500/);
-  assert.match(askWitnessOpsAnswerText(answer), /One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action/);
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 fixed/);
+  assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
 });
 
@@ -315,11 +314,11 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     answer_mode: "ai_assisted" as const,
   };
 
-  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Tools & Access Review/);
-  assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit and scoping request first/);
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
   assert.match(
     askWitnessOpsAnswerText(answer),
-    /Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed/,
+    /Within 10 working days after evidence rules are agreed/,
   );
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
   assert.equal(
@@ -415,7 +414,7 @@ test("ask witnessops fit-check routes carry the controlled product and source", 
       route_id: "route.fit-check",
       href: "/review/request",
     }),
-    "/review/request?offerId=agent-tools-access-review&source=ask",
+    "/review/request?offerId=agent-action-security-review&source=ask",
   );
   assert.equal(
     askWitnessOpsRouteHref({ route_id: "route.support", href: "/support" }),

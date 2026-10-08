@@ -14,22 +14,24 @@ function response(answer: string, serviceId: string | null = null, sourceIds = [
   return { status: "completed", output_text: JSON.stringify({ answer, service_id: serviceId, source_ids: sourceIds }) };
 }
 
-test("public request contains service facts without prices, timing, URLs, credentials, tools or storage", () => {
+test("public request supplies only the two paid review names, with prices and provider data absent", () => {
   const request = buildPublicAskResponsesRequest({ question: "Which review fits our company?", config });
   const body = JSON.stringify(request);
   assert.equal(request.store, false);
   assert.equal(request.max_output_tokens, 1_200);
   assert.equal("tools" in request, false);
   assert.equal(body.includes("test-only-placeholder"), false);
-  assert.match(body, /AI Agent Tools & Access Review/);
-  assert.match(body, /Customer Security Review Sprint/);
-  assert.match(body, /One Server Security Check/);
+  assert.match(body, /Agent Action Security Review/);
+  assert.match(body, /External Attack Surface Review/);
+  assert.match(body, /agent-action-security-review/);
+  assert.doesNotMatch(body, /AI Agent Tools & Access Review is a distinct current offer/);
+  assert.doesNotMatch(body, /Customer Security Review Sprint|One Server Security Check is the relevant/);
+  assert.doesNotMatch(body, /Private Pilot|€950|Early Bird|€500/);
   for (const service of BUYER_SERVICES) {
     assert.equal(body.includes(service.price.en), false, service.id);
     assert.equal(body.includes(service.timing.en), false, service.id);
   }
   assert.doesNotMatch(body, /[€$£]|https?:\/\/|\b30 days\b|\b60-minute\b/);
-  assert.match(body, /Available by request/);
   assert.equal(body.includes("vector_store"), false);
 });
 
@@ -38,9 +40,9 @@ test("pronoun follow-ups receive recent context as untrusted data and canonical 
     { role: "user" as const, content: "I need help with one customer questionnaire." },
     { role: "assistant" as const, content: "The Customer Security Review Sprint fits that situation." },
   ];
-  const request = buildPublicAskResponsesRequest({ question: "How long does that take?", history, page_service_id: "customer-security-review-sprint", config });
+  const request = buildPublicAskResponsesRequest({ question: "How long does that take?", history, page_service_id: "external-exposure-assessment", config });
   assert.deepEqual(request.input.map((message) => message.role), ["developer", "user", "user"]);
-  assert.match(request.input[0].content, /PAGE SERVICE HINT.*\n.*customer-security-review-sprint/);
+  assert.match(request.input[0].content, /PAGE SERVICE HINT.*\n.*external-exposure-assessment/);
   assert.match(request.input[0].content, /explicit service named by the visitor takes priority/);
   assert.match(request.input[1].content, /UNTRUSTED RECENT CONVERSATION/);
   assert.ok(request.input[1].content.includes(JSON.stringify(history)));
@@ -65,10 +67,10 @@ test("omitting context leaves no history or page hint in the provider input", ()
   assert.doesNotMatch(JSON.stringify(request.input), /UNTRUSTED RECENT CONVERSATION|PAGE SERVICE HINT/);
 });
 
-test("generated prose stays distinct while sources and recommendation fields come from the catalogue", () => {
-  const service = BUYER_SERVICES.find((item) => item.id === "one-server-security-check")!;
+test("generated prose retains only an approved public review and its exact canonical link", () => {
+  const service = BUYER_SERVICES.find((item) => item.id === "external-exposure-assessment")!;
   const answer = normalizePublicAskResponse(response(
-    "For a single Linux host, the One Server Security Check is the relevant review.",
+    "For one authorised public-facing system, an External Attack Surface Review may be appropriate.",
     service.id,
     [`service.${service.id}`],
   ));
@@ -76,20 +78,21 @@ test("generated prose stays distinct while sources and recommendation fields com
   assert.equal(answer.recommendation?.price_label, service.price.en);
   assert.equal(answer.recommendation?.delivery_label, service.timing.en);
   assert.equal(answer.recommendation?.detail_href, service.detailHref.en);
-  assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-LOCAL-AUDIT/);
+  assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.match(answer.recommendation?.request_href ?? "", /source=ask/);
   assert.deepEqual(answer.presented_sources, [{
-    source_id: "service.one-server-security-check",
+    source_id: "service.external-exposure-assessment",
     public_label: service.name.en,
-    canonical_href: "https://witnessops.com/catalog/offsec-local-audit",
+    canonical_href: "https://witnessops.com/catalog/offsec-external-exposure",
     href_class: "same_site",
   }]);
 });
 
-test("a service with unpublished pricing is presented as available by request", () => {
+test("previously request-only service is not a public new-sales recommendation", () => {
   const id = "professional-public-footprint-audit";
-  const answer = normalizePublicAskResponse(response("This audit can review your public professional record with your consent.", id, [`service.${id}`]));
-  assert.equal(answer?.recommendation?.price_label, "Available by request");
+  const answer = normalizePublicAskResponse(response(
+    "This audit can review your public professional record with your consent.", id, [`service.${id}`]));
+  assert.equal(answer, null);
 });
 
 test("unknown citations, services, unbound service selections and extra fields fail closed", () => {
@@ -127,7 +130,7 @@ test("model-authored fees, deadlines, destinations, completed actions and certif
 
 test("legitimate exclusions and bounded proof explanations survive the output filter", () => {
   for (const text of [
-    "The AI Agent Tools & Access Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
+    "The Agent Action Security Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
     "The review does not provide certification or a security guarantee.",
     "You receive evidence-linked findings, not certification or a security guarantee.",
     "This is not a certification that your agent is safe.",
@@ -213,49 +216,48 @@ test("provider calls time out and return no generated answer", async () => {
 });
 
 
-test("repair recommendation is canonical and does not turn diagnosis into an accepted repair", () => {
-  const result = normalizePublicAskResponse(response("Start with paid diagnosis of one failing path. Repair follows only after a bounded quote is accepted; you can stop after diagnosis.", "automation-repair-handover", ["service.automation-repair-handover"]));
-  assert.equal(result?.recommendation?.service_id, "automation-repair-handover");
-  assert.equal(result?.recommendation?.price_label, "€250 diagnosis · excluding VAT");
-  assert.equal(result?.recommendation?.detail_href, "/catalog/automation-repair");
-  assert.match(result?.recommendation?.request_href ?? "", /offerId=automation-repair-handover/);
+test("historical automation repair is not promoted as a public paid review", () => {
+  assert.equal(normalizePublicAskResponse(response(
+    "A repair needs an agreed scope and quote.",
+    "automation-repair-handover", ["service.automation-repair-handover"])), null);
   assert.equal(normalizePublicAskResponse(response("Repair is free.", "invented-repair", ["public.overview"])), null);
 });
 
-test("repair context distinguishes secondary jobs and keeps the security review optional", () => {
+test("context keeps unrelated repair or setup outside the two public paid offers", () => {
   const request = buildPublicAskResponsesRequest({ question: "Can you take over my Apps Script automation?", config });
   const context = request.input[0].content;
-  assert.match(context, /Apps Script/);
-  assert.match(context, /Never promise a fix/);
-  assert.match(context, /select service_id null so the diagnosis price is not misrepresented/);
-  assert.match(context, /Security review is an optional separate service/);
+  assert.match(context, /broken or inherited workflows/);
+  assert.match(context, /Choose service_id null/);
+  assert.match(context, /two selected public paid reviews|TWO selected public paid reviews/i);
   assert.doesNotMatch(context, /€250|€750|€300/);
 });
 
-
-test("answers without a selected service cannot invent a price card", () => {
+test("answers without a selected review cannot invent pricing or hidden service sources", () => {
   assert.equal(normalizePublicAskResponse(response("Setup is separate. The price and delivery details are below.")), null);
-  assert.ok(normalizePublicAskResponse(response("Setup is separately scoped and quoted. It is not included in repair diagnosis.", null, ["service.automation-repair-handover"])));
+  assert.ok(normalizePublicAskResponse(response("Setup is separately scoped and quoted; an enquiry alone does not authorise work.", null, ["public.overview"])));
+  assert.equal(normalizePublicAskResponse(response("Paid repair is available.", null, ["service.automation-repair-handover"])), null);
 });
 
-
-test("AI overview shares the security-led site identity without hiding repair", () => {
+test("AI overview accurately describes the two currently public paid reviews", () => {
   const request = buildPublicAskResponsesRequest({ question: "What does WitnessOps do?", config });
-  assert.match(request.input[0].content, /WitnessOps provides security reviews and verification for AI/);
-  assert.doesNotMatch(request.input[0].content, /WitnessOps leads with Automation Repair/);
-  assert.match(request.input[0].content, /Automation Repair & Handover is also available/);
+  assert.match(request.input[0].content, /public paid portfolio consists of Agent Action Security Review/);
+  assert.match(request.input[0].content, /External Attack Surface Review/);
+  assert.doesNotMatch(request.input[0].content, /Automation Repair & Handover is also available/);
 });
 
-test("every AI service card retains canonical price, timing and selected inquiry route", () => {
-  for (const service of BUYER_SERVICES) {
-    const answer = normalizePublicAskResponse(response("The service details are below.", service.id, [`service.${service.id}`]));
+test("every current public paid review card retains canonical price, timing and intake; old services are rejected", () => {
+  for (const service of BUYER_SERVICES.filter(s => ["agent-action-security-review", "external-exposure-assessment"].includes(s.id))) {
+    const answer = normalizePublicAskResponse(response("The selected review details are below.", service.id, [`service.${service.id}`]));
     assert.ok(answer?.recommendation, service.id);
     assert.equal(answer.recommendation.name, service.name.en);
-    assert.equal(answer.recommendation.price_label, service.pricingVisible === false ? service.availability?.label.en ?? "Available by request" : service.price.en);
+    assert.equal(answer.recommendation.price_label, service.price.en);
     assert.equal(answer.recommendation.delivery_label, service.timing.en);
     const expected = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
     expected.searchParams.set("source", "ask");
     assert.equal(answer.recommendation.request_href, expected.pathname + expected.search);
+  }
+  for (const service of BUYER_SERVICES.filter(s => !["agent-action-security-review", "external-exposure-assessment"].includes(s.id))) {
+    assert.equal(normalizePublicAskResponse(response("A previous offer was mentioned.", service.id, [`service.${service.id}`])), null, service.id);
   }
 });
 
@@ -270,13 +272,14 @@ for (const correction of ['No, nothing changed.', 'No, it is already live.', 'No
     assert.doesNotMatch(block!.content,/What outcome|What is the deadline/);
   });
 }
-test('catalogue guarantee clarification needs no generated fees or provider availability', async () => {
-  const {catalogueClarification}=await import('./public-answer-runtime');
-  const answer=catalogueClarification({question:'Can you guarantee today for €250?',history:[{role:'user',content:'Our n8n workflow stopped reaching HubSpot.'},{role:'user',content:'Missing. It is live and we need it today.'}]});
-  assert.match(answer!.text,/^No\./);assert.match(answer!.text,/€250/);assert.match(answer!.text,/€750/);assert.match(answer!.text,/confirm fit and availability/);
-  assert.equal(catalogueClarification({question:'Can you guarantee today for €250?'}),null);
+test("non-selected repair prices are not offered by catalogue clarification", async () => {
+  const { catalogueClarification } = await import("./public-answer-runtime");
+  const context = {question:"Can you guarantee today for €250?",history:[{role:"user" as const,content:"Our n8n workflow stopped reaching HubSpot."}]};
+  assert.equal(catalogueClarification(context), null);
+  const external = catalogueClarification({question:"What does External Attack Surface Review cost?"});
+  assert.equal(external?.recommendation?.service_id, "external-exposure-assessment");
+  assert.match(external?.text ?? "", /€1,900/);
 });
-
 
 test("provider context carries only visitor qualification facts and no retired Free Check action", () => {
   const request=buildPublicAskResponsesRequest({question:"What should we prepare?",history:[{role:"user",content:"Missing. It is live and we need it today."},{role:"assistant",content:"It is staging."}],config});
@@ -307,33 +310,38 @@ test("Free Check source and shaped replies describe authorized one-action intake
   }
 });
 
-for (const question of ['What does Professional Public Footprint Audit cost?', 'What is the availability of Professional Public Footprint Audit?']) {
-  test(`catalogue public visibility: ${question}`, async () => {
-    const { catalogueClarification } = await import('./public-answer-runtime');
-    const answer = catalogueClarification({question})!;
-    assert.equal(answer.recommendation?.service_id, 'professional-public-footprint-audit');
-    assert.match(answer.text, /Available by request/);
-    assert.ok(answer.text.includes(answer.recommendation!.price_label));
-    assert.doesNotMatch(JSON.stringify(answer), /€4,900/);
+for (const question of ["What does Professional Public Footprint Audit cost?", "What is the availability of Professional Public Footprint Audit?"]) {
+  test(`non-selected commercial service does not get a buyer card: ${question}`, async () => {
+    const { catalogueClarification } = await import("./public-answer-runtime");
+    assert.equal(catalogueClarification({question}), null);
   });
 }
 
-test('current explicit service, page hint, then historical referent; ambiguity never uses catalogue order', async () => {
-  const { catalogueClarification } = await import('./public-answer-runtime');
-  const agent = 'AI Agent Tools & Access Review', server = 'One Server Security Check';
-  for (const [older,current,id,price] of [[agent,server,'one-server-security-check','€950'],[server,agent,'agent-tools-access-review','€2,500']]) {
-    const answer = catalogueClarification({question:`What does ${current} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:older}]})!;
-    assert.equal(answer.recommendation?.service_id,id); assert.match(answer.text,new RegExp(price));
+test("new public offers use explicit name then public page hint then safe history", async () => {
+  const { catalogueClarification } = await import("./public-answer-runtime");
+  const agent = "Agent Action Security Review", external = "External Attack Surface Review";
+  for (const [older,current,id,price] of [
+    [agent, external, "external-exposure-assessment", "€1,900"],
+    [external, agent, "agent-action-security-review", "€2,500"],
+  ]) {
+    const answer = catalogueClarification({
+      question: `What does ${current} cost?`,
+      page_service_id: "automation-repair-handover",
+      history: [{role:"user" as const, content:older}],
+    });
+    assert.equal(answer?.recommendation?.service_id, id);
+    assert.match(answer?.text ?? "", new RegExp(price));
   }
-  assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:server}]})!.recommendation?.service_id,'one-server-security-check');
-  assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!.recommendation?.service_id,'one-server-security-check');
-  const hidden = catalogueClarification({question:'What does Professional Public Footprint Audit cost?',history:[{role:'user',content:agent}]})!;
-  assert.equal(hidden.recommendation?.service_id,'professional-public-footprint-audit'); assert.doesNotMatch(hidden.text,/€4,900/);
-  for (const args of [{question:`What do ${agent} and ${server} cost?`},{question:'How much does that cost?',history:[{role:'user' as const,content:`${agent} and ${server}`}]}]) {
-    const answer = catalogueClarification(args)!; assert.equal(answer.recommendation,null); assert.match(answer.text,/Which service/);
+  assert.equal(catalogueClarification({question:"How much does that cost?",history:[{role:"user",content:external}]})?.recommendation?.service_id,"external-exposure-assessment");
+  assert.equal(catalogueClarification({question:"How much does that cost?",page_service_id:"external-exposure-assessment",history:[{role:"user",content:agent}]})?.recommendation?.service_id,"external-exposure-assessment");
+  assert.equal(catalogueClarification({question:"What does Professional Public Footprint Audit cost?",history:[{role:"user",content:agent}]}),null);
+  assert.equal(catalogueClarification({question:"How much for AI Agent Tools & Access Review?",history:[{role:"user",content:external}]}),null);
+  for (const args of [{question:`What do ${agent} and ${external} cost?`},{question:"How much does that cost?",history:[{role:"user" as const,content:`${agent} and ${external}` }]}]) {
+    const answer = catalogueClarification(args);
+    assert.equal(answer?.recommendation,null);
+    assert.match(answer?.text ?? "", /Which service/);
   }
 });
-
 
 test("public onboarding answers use allowlisted docs and cannot grant workspace access", () => {
   const request = buildPublicAskResponsesRequest({ question: "How do I sign up and authenticate the CLI?", config });

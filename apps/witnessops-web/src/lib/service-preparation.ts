@@ -7,6 +7,18 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
     en: { inputs: "For diagnosis: expected result, workflow export or source, and one failing example. Share these only after scope and handling are agreed.", access: "Appropriate test or limited access, arranged separately. We preserve the original workflow before changes; never paste credentials into the request.", after: "Stop after diagnosis or approve a bounded repair. Accepted repairs include updated source, acceptance results and operating/recovery instructions. Ongoing care is a separate capped engagement." },
     pl: { inputs: "Do diagnozy: oczekiwany wynik, eksport lub źródło procesu i jeden przykład błędu. Przekaż je dopiero po uzgodnieniu zakresu i sposobu obsługi materiałów.", access: "Odpowiedni dostęp testowy lub ograniczony ustalamy osobno. Zachowujemy oryginalny proces przed zmianami. Nigdy nie wklejaj danych logowania do formularza.", after: "Możesz zakończyć na diagnozie lub zaakceptować naprawę. Otrzymasz aktualne źródło, wyniki testów i instrukcje obsługi oraz odzyskiwania. Stała opieka wymaga osobnego zakresu z limitem godzin." },
   },
+  "agent-action-security-review": {
+    en: {
+      inputs: "Start with one consequential agent or automation action, likely systems/tools, your decision date and non-secret source types. No customer evidence, files or credentials in the form.",
+      access: "Read-only access and evidence-handling are agreed only after written scope and authority; no execution or platform installation.",
+      after: "Receive one action/authority map, evidence-linked findings, prioritized fixes and readout. Your team decides and implements any changes.",
+    },
+    pl: {
+      inputs: "Na początek nazwij jedno istotne działanie, możliwe systemy i narzędzia, termin decyzji i niepoufne rodzaje źródeł. Bez materiałów klientów i haseł w formularzu.",
+      access: "Dostęp tylko do odczytu i obsługę źródeł uzgadniamy dopiero po pisemnym przyjęciu zakresu i upoważnienia. Bez wykonania działania ani instalacji.",
+      after: "Otrzymasz mapę działania i upoważnień, ustalenia ze źródłami, priorytety zmian i omówienie. Zmiany realizuje Twój zespół.",
+    },
+  },
   "agent-tools-access-review": {
     en: {
       inputs: "Start with the agent setup, tool connection, device class, consequential action and decision date. Name possible source types only; do not send inventory exports or configurations in this form.",

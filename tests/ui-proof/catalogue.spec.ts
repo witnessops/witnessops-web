@@ -12,7 +12,7 @@ const scenarios = [
   { path: "/pl/catalog", width: 320, height: 740 },
 ] as const;
 
-const expectedServiceOrder = ["agent-tools-access-review", "external-exposure-assessment"] as const;
+const expectedServiceOrder = ["agent-action-security-review", "external-exposure-assessment"] as const;
 
 test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
@@ -59,9 +59,9 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     }
     const polish = scenario.path.startsWith("/pl");
     const primaryOfferCard = serviceCards.first();
-    await expect(primaryOfferCard).toContainText(polish ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
-    await expect(primaryOfferCard).toContainText(polish ? "Od €2 500 · bez VAT" : "Starting at €2,500 · excluding VAT");
-    await expect(primaryOfferCard).toContainText(polish ? "Cel: 10 dni roboczych po potwierdzeniu zakresu" : "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+    await expect(primaryOfferCard).toContainText(polish ? "Agent Action Security Review" : "Agent Action Security Review");
+    await expect(primaryOfferCard).toContainText(polish ? "€2 500: cena stała · bez VAT" : "€2,500 fixed · excluding VAT");
+    await expect(primaryOfferCard).toContainText(polish ? "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych" : "Within 10 working days after evidence rules are agreed");
     await expect(primaryOfferCard).not.toContainText("Agent Risk & Control Review");
     await expect(primaryOfferCard).not.toContainText("From €1,500");
 
@@ -86,9 +86,9 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
         await expect(links).toHaveCount(3);
         await expect(links.nth(2)).toHaveAttribute("href", "/review/sample-cases/external-exposure-assessment");
       } else {
-        expect(request.searchParams.get("offerId")).toBe("agent-tools-access-review");
+        expect(request.searchParams.get("offerId")).toBe("agent-action-security-review");
         expect(request.searchParams.has("productId")).toBe(false);
-        expect(request.searchParams.get("offer")).toBe(polish ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
+        expect(request.searchParams.get("offer")).toBe(polish ? "Agent Action Security Review" : "Agent Action Security Review");
         await expect(primary).toHaveText(polish ? "Omów przegląd agenta AI" : "Scope an AI review");
         await expect(links).toHaveCount(2);
         await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");

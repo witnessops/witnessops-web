@@ -11,7 +11,7 @@ for (const locale of ["en", "pl"] as const) {
   test(`${locale} catalogue renders only AI and external, preserving source terms and request identities`, () => {
     const html = renderToStaticMarkup(createElement(BuyerCatalogue, { locale }));
     const ids = [...html.matchAll(/data-buyer-service="([^"]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(ids, ["agent-tools-access-review", "external-exposure-assessment"]);
+    assert.deepEqual(ids, ["agent-action-security-review", "external-exposure-assessment"]);
     for (const service of publicPaidReviews(BUYER_SERVICES)) {
       assert.ok(html.includes(service.price[locale]));
       assert.ok(html.includes(buyerServiceRequestHref(locale, service).replaceAll("&", "&amp;")));
@@ -24,9 +24,10 @@ for (const locale of ["en", "pl"] as const) {
 
 test("pricing renders the same two reviews through shared catalogue presentation", () => {
   const html = renderToStaticMarkup(createElement(PricingPage));
-  assert.deepEqual([...html.matchAll(/data-pricing-service="([^"]+)"/g)].map((match) => match[1]), ["agent-tools-access-review", "external-exposure-assessment"]);
-  assert.match(html, /Starting at €2,500/);
+  assert.deepEqual([...html.matchAll(/data-pricing-service="([^"]+)"/g)].map((match) => match[1]), ["agent-action-security-review", "external-exposure-assessment"]);
+  assert.match(html, /€2,500 fixed/);
   assert.match(html, /€1,900 · excluding VAT/);
+  assert.doesNotMatch(html, /AI Agent Tools &amp; Access Review|Private Pilot|€950/);
   assert.doesNotMatch(html, /enquiryPath=early-bird|Internet Footprint Review|€500/);
   assert.match(html, /does not authorise collection or start a review/);
 });

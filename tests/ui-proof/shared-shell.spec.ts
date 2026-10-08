@@ -486,10 +486,10 @@ test("mobile review request keeps the conversion form clear and legible", async 
   ]) {
     const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
     const page = await context.newPage();
-    const response = await page.goto("/review/request", { waitUntil: "networkidle" });
+    const response = await page.goto("/review/request?offerId=agent-tools-access-review", { waitUntil: "networkidle" });
 
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole("heading", { name: "One question. Non-secret details only." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tell us what you need to understand" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {
@@ -509,6 +509,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     expect(headerGeometry.navHeight).toBeLessThanOrEqual(64);
     expect(headerGeometry.gap).toBeGreaterThanOrEqual(8);
 
+    await page.locator("#name").scrollIntoViewIfNeeded();
     const formState = await page.locator("#name").evaluate((input) => {
       const style = getComputedStyle(input);
       const box = input.getBoundingClientRect();

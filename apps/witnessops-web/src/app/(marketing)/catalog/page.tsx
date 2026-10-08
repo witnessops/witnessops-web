@@ -6,7 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 export const metadata: Metadata = {
   title: "AI Agent and External Attack Surface Reviews",
   description:
-    "Compare the AI Agent Tools & Access Review and External Attack Surface Review. Scope, evidence, prices and start conditions before work begins.",
+    "Compare the Agent Action Security Review and External Attack Surface Review. Scope, evidence, fixed prices and start conditions before work begins.",
   alternates: languageAlternates("/catalog", {
     en: "/catalog",
     pl: "/pl/catalog",

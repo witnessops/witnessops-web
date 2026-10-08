@@ -22,9 +22,9 @@ const copy = {
     externalCta: "Scope an external review",
     detailCta: "See scope and deliverables",
     sampleCta: "Synthetic sample",
-    aiGroup: "Review AI agent tools and access",
+    aiGroup: "Review an agent action and its safeguards",
     externalGroup: "Review external exposure",
-    aiSummary: "One agreed device, one selected connection and one consequential action.",
+    aiSummary: "One consequential agent or automation action, its approvals, effective permissions and evidence.",
     externalSummary: "One authorised internet-facing system. Not a penetration test.",
     principlesTitle: "Scope before work. Evidence beside findings.",
     principles: [
@@ -52,9 +52,9 @@ const copy = {
     externalCta: "Omów przegląd ekspozycji",
     detailCta: "Zobacz zakres i wyniki",
     sampleCta: "Syntetyczny przykład",
-    aiGroup: "Sprawdź narzędzia i dostęp agenta AI",
+    aiGroup: "Sprawdź jedno ważne działanie agenta",
     externalGroup: "Sprawdź ekspozycję zewnętrzną",
-    aiSummary: "Jedno uzgodnione urządzenie, jedno wybrane połączenie i jedno istotne działanie.",
+    aiSummary: "Jedno istotne działanie, zatwierdzenia, faktyczne uprawnienia i dowody.",
     externalSummary: "Jeden autoryzowany system dostępny z internetu. To nie jest test penetracyjny.",
     principlesTitle: "Najpierw zakres. Ustalenia ze źródłami.",
     principles: [
@@ -93,7 +93,7 @@ export function BuyerCatalogue({
         </header>
 
         {services.map((service) => {
-          const ai = service.id === "agent-tools-access-review";
+          const ai = service.id === "agent-action-security-review";
           const groupId = ai ? "ai-reviews" : "system-reviews";
           const detailHref = service.detailHref[locale];
           const serviceRequestHref = buyerServiceRequestHref(locale, service);
@@ -105,7 +105,7 @@ export function BuyerCatalogue({
                 <article
                   id={service.id}
                   data-buyer-service={service.id}
-                  data-pricing-review={pricing ? (ai ? "agent-tools-access" : "external-exposure") : undefined}
+                  data-pricing-review={pricing ? (ai ? "agent-action-security" : "external-exposure") : undefined}
                   data-pricing-service={pricing ? service.id : undefined}
                   data-price-contract={service.commercialContract.price}
                   data-timing-contract={service.commercialContract.timing}

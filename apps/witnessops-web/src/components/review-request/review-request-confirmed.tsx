@@ -13,6 +13,7 @@ import {
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import {
   readReviewRequestConfirmation,
@@ -25,6 +26,7 @@ import { ReviewRequestRecord } from "./review-request-record";
 const serviceIdByRequestKind: Partial<
   Record<ReviewRequestKind, BuyerService["id"]>
 > = {
+  "agent-action-security-review": "agent-action-security-review",
   "agent-tools-access-review": "agent-tools-access-review",
   "customer-security-review-sprint": "customer-security-review-sprint",
   "one-server-security-check": "one-server-security-check",
@@ -49,6 +51,11 @@ const copy = {
       "We assess whether this request fits one bounded review.",
       "We confirm scope, authority, evidence handling, timing, and fee by email.",
       "Work begins only after those terms are explicitly agreed.",
+    ],
+    agentActionNextSteps: [
+      "We assess one consequential agent or automation action: who approves it, which identity acts, what systems it can reach and which evidence types may support the review.",
+      `If it fits, ${PUBLIC_AGENT_ACTION_OFFER.price.en}. We confirm the single-action scope, written authority, evidence rules and secure handling before any materials are accepted.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. This request and mailbox confirmation do not start work.`,
     ],
     primaryOfferNextSteps: [
       "We assess the agent setup, selected connection, device/source boundary and one consequential action without asking for secrets.",
@@ -85,6 +92,11 @@ const copy = {
       "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
       "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
+    ],
+    agentActionNextSteps: [
+      "Sprawdzimy jedno istotne działanie agenta lub automatyzacji: kto je zatwierdza, jaka tożsamość działa, jakie systemy obejmuje i jakich rodzajów dowodów można użyć.",
+      `Jeśli zakres pasuje, ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Zakres jednego działania, pisemne upoważnienie, zasady dowodowe i bezpieczną obsługę materiałów uzgadniamy przed pracą.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl}. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
       "Bez sekretów ocenimy konfigurację agenta, wybrane połączenie, granicę urządzenia i źródeł oraz jedno istotne działanie.",
@@ -172,6 +184,8 @@ export function ReviewRequestConfirmed({
 
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
+  const agentActionRequest =
+    confirmation.requestKind === "agent-action-security-review";
   const primaryOfferRequest =
     confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
@@ -180,6 +194,8 @@ export function ReviewRequestConfirmed({
     confirmation.requestKind === "access-change-proof-run";
   const nextSteps = publicExposureReview
     ? text.publicExposureNextSteps
+    : agentActionRequest
+      ? text.agentActionNextSteps
     : primaryOfferRequest
       ? text.primaryOfferNextSteps
       : text.nextSteps;
@@ -188,7 +204,7 @@ export function ReviewRequestConfirmed({
         href: "/review/sample-cases/external-exposure-assessment",
         label: text.publicExposureSpecimen,
       }
-    : confirmation.requestKind === "agent-risk-control-review" || aiAgentActionProofRun
+    : confirmation.requestKind === "agent-risk-control-review" || agentActionRequest || aiAgentActionProofRun
       ? {
           href: "/review/sample-cases/ai-agent-action-proof-run",
           label: text.specimen,

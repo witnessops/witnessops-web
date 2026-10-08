@@ -1,5 +1,15 @@
 # Two-Offer V1 — founder-approved new-sales direction
 
+> **CURRENT FOUNDER AMENDMENT — 8 October 2026, later commercial instruction.**
+> The public sales portfolio is **Agent Action Security Review — EUR 2,500 fixed,
+> excluding VAT**, and **External Attack Surface Review — EUR 1,900 fixed,
+> excluding VAT**. The separate private pilot stays off the public website.
+> The original V1 table below preserves the earlier decision and is **superseded
+> only for the AI offer's name, commercial scope and price model**. It must not
+> be used as authority to merge or publish the existing PR #450–#454 stack.
+> See the final amendment section for the exact boundary and unresolved mapping.
+
+
 - Decision date: 2026-10-08.
 - Authority: founder acceptance of the Two-Offer Draft V1, followed by approval to prepare bounded implementation PRs.
 - Status: accepted direction; staged source implementation. Not a deployment record.
@@ -120,3 +130,142 @@ Before accepting customer work, confirm supplier identity, tax treatment,
 contractual/payment route, cancellation/rescheduling/refund terms, capacity,
 authority, handling and named recipients. This approval activates none of them.
 Do not infer external raw-evidence retention from the AI contract's default.
+
+## Founder amendment — 8 October 2026 (later commercial instruction)
+
+**Authority and precedence.** After the earlier Two-Offer V1 acceptance, the
+founder explicitly selected **Agent Action Security Review (EUR 2,500)** and
+**External Attack Surface Review (EUR 1,900)** as the only two paid reviews to
+improve on the public website. The founder also specified that the private
+pilot must not appear on the website, then authorised reconciliation of this
+difference in the existing decision before any staged-PR merge. This
+amendment is the current commercial instruction; the earlier table, source
+identity and PR descriptions remain evidence of what was previously approved,
+not authorization to present a third or different paid offer.
+
+### Current new-sales commercial selection
+
+| Public paid review | Commercial source contract | Approved buyer promise |
+| --- | --- | --- |
+| **Agent Action Security Review** | [Historical one-action contract](./16-agent-workflow-reconstruction-offer.md), selected again for commercial presentation; original `bounded-workflow-review` identity remains historical pending technical mapping | **EUR 2,500 fixed, excluding VAT**; one bounded consequential agent/automation action; authority, executing identity, approval/permission boundary, action/evidence path, prioritized findings and readout; delivery within 10 working days after evidence rules and customer-specific start conditions are agreed. |
+| **External Attack Surface Review** | [Existing external contract](./10-public-exposure-review-offer.md); `external-exposure-assessment`, product `OFFSEC-EXTERNAL-EXPOSURE` | **EUR 1,900 fixed, excluding VAT**; one authorised public-facing system, agreed low-impact unauthenticated scope and existing caps/exclusions; three working days after all documented start gates; one focused retest within 30 calendar days of initial report handover, subject to accepted new-engagement terms. |
+
+The AI decision explicitly selects the **one-action, fixed-price scope**.
+It does **not** silently rename or relabel the distinct
+[AI Agent Tools & Access Review](./17-ai-agent-tools-access-review-offer.md):
+that newer contract starts at EUR 2,500 **after a fixed quote** and adds a
+dated, source-bounded system-level inventory on one device. Those additional
+deliverables and the different price model are not automatically included in
+the newly selected public Agent Action Security Review. Keep both prior
+contracts and issued-term records attributable to their original identities.
+
+The **private pilot** remains an internal, individually approved engagement
+path only. Do not promote its name, price, discount, availability, selection,
+CTA or SEO metadata on public website surfaces. Preserve its private CRM and
+historical records without turning it into a third public product.
+The former EUR 500 Internet Footprint option and all other paid services are
+likewise excluded from **new-sales promotion and selection**, not deleted from
+historical storage. Preserve the free hostname check, technical documentation,
+authenticated app, verifier, samples and correctly labelled historical material.
+
+### Technical identity and publication hold
+
+**New-intake ID decision (founder-authorized next safe GO, 8 October 2026):**
+use the distinct canonical **`agent-action-security-review`** service identity,
+`offerId` and new-issuance `intent` for the fixed-price one-action review.
+The historical **`bounded-workflow-review`** stays historical-only; the
+separate inventory-based **`agent-tools-access-review`** keeps its existing
+source/customer meaning but is excluded from current *new public sales*.
+External Attack Surface Review retains service `external-exposure-assessment`
+and `productId=OFFSEC-EXTERNAL-EXPOSURE`; its product ID is not an offerId.
+No third product, provider SKU, pilot or discount is introduced. The new ID
+maps to the original one-action buyer *scope and price*, not the different
+inventory-plus-action contract. Old confirmations/issued agreements must not be
+rewritten or silently redirected. This is a **new-issuance namespace boundary**,
+not a declaration that any new intake route is active.
+
+**Stage state:** PR #450 now contains the additive
+`PUBLIC_AGENT_ACTION_OFFER` source contract (copied from the original fixed
+one-action terms with a **new identity**), the collision-free public selector and
+focused tests. No new public request, issued term, route or payment is active.
+The consumer PR #451–#454 stack still targets the earlier inventory-plus-action
+offer and is **not** merge-ready until reconciled against the updated #450 head.
+
+### Ordered consumer reconciliation (pending, not authorized for publication)
+
+1. **Catalogue truth and internal labels:** Add the new distinct service to
+   `buyer-services.ts` and its EN/PL `service-landings.ts` entries; preserve the
+   previous `PRIMARY_OFFER` inventory contract and both historical records.
+   New-public offer allowlists must **exclude** `agent-tools-access-review`,
+   `bounded-workflow-review` and the €950 private pilot. Do not make old records
+   disappear from historical lookups or the manual confirmation reader.
+2. **Buyer visibility:** Use the new public service in
+   `simple-homepage.tsx`, `buyer-catalogue.tsx`, shared pricing and the
+   `/catalog/workflows` detail route (including localized copy, canonical
+   metadata and truthful fixed-price structured data). Do not reuse the
+   inventory offer's dated full-device-inventory scope under the one-action name.
+   Retain the €1,900 external offer and its complete scope/retreat terms.
+3. **Explicit NEW selection:** Update `new-review-request-policy.ts`,
+   `two-offer-request.tsx` and the EN/PL form paths to accept exactly
+   `offerId=agent-action-security-review` or
+   `productId=OFFSEC-EXTERNAL-EXPOSURE`. The server's raw JSON intake must
+   reject old/unknown/ambiguous/wrong-role intents before issuance, on all
+   public aliases. No display-only label, free text, pilot mention or URL alias
+   may choose a review.
+4. **Post-verify continuity:** Add the *new* intent and separate request label
+   to the manual commercial request/confirmation path without changing the
+   historical `bounded-workflow-review` label or `agent-tools-access-review`
+   issued record interpretation. Recheck archived confirmations and
+   token/recipient attribution with explicit negative cases.
+5. **Source truth / acceptance:** Reconcile the FAQ, offer-specific CTAs,
+   shell/help references and existing source/route/UI/SEO tests; verify EN/PL,
+   keyboard/mobile navigation, synthetic sample labels and zero **public** pilot
+   promotion. Pin the exact updated stack heads and pass full `pnpm health`,
+   `pnpm smoke:buyer-path:test`, the public UI tests and head-specific image,
+   PDF, security and lifecycle gates. Isolated module/syntax success cannot
+   establish end-to-end acceptance. Preserve separate release approval.
+
+**Branch history:** Preserve existing draft PR and historical commit records.
+No automatic force-rebase, merge to main, publication or offer activation may
+be inferred from the new foundation.
+
+This is an approved **commercial choice with a selected technical ID**, **not**
+permission to bypass release gates or silently remap historical records,
+historical-record rewrite, merge or release. In particular:
+
+- `bounded-workflow-review` is an existing **retired historical request ID**.
+  Do **not** simply reactivate that value for NEW issuance or reinterpret
+  historical confirmation kinds without a reviewed compatibility strategy.
+- `agent-tools-access-review` selects the distinct inventory-plus-action
+  review. Do **not** attach the old fixed EUR 2,500 terms to that ID or alias
+  the two offers merely because the public route is shared.
+- Apply the explicit collision-free `agent-action-security-review` NEW-intake mapping in a
+  separate bounded implementation phase; preserve the reviewed distinction from historical IDs. Assess stored requests, confirmed
+  messages, existing agreements, redirects, optional labels, EN/PL routes,
+  raw API intent checks, CRM projections, source truth, analytics and rollback.
+  New intake must fail closed for missing, ambiguous, wrong-role or retired
+  identifiers; no URL parameter or free text grants work authority.
+- **HOLD the current stacked PR #450–#454 source implementation** before
+  merger or deployment: its AI selector, homepage, catalogue, pricing and
+  intake tests implement the earlier AI offer identity and would contradict
+  this later commercial instruction. Preserve those branches and security
+  fixes separately; do not infer the stack is safe to merge from green tests
+  for the previous contract.
+- After the identity plan, reconcile only the two selected public offers'
+  presentation and EN/PL intake, buyer FAQ, metadata and supported navigation;
+  retain the external contract's caps, consent, evidence boundaries and the
+  agreed retest anchor. Explicitly check zero public pilot promotion.
+- Acceptance requires scoped diff/independent review, unit/route and negative
+  issuance tests, keyboard/mobile/public UI checks, `pnpm health`,
+  `pnpm smoke:buyer-path:test`, SEO checks, and separately captured exact-head
+  CI evidence. A source commit or passing fixture does not prove publication
+  or production behavior.
+
+**Status:** commercial direction and collision-free NEW-intake **identity selected**
+under the later founder GO; the **policy selector and additive public one-action
+contract source are committed in draft PR #450**, but are **not wired to live
+intake or released**. Consumer implementation and exact-head acceptance remain
+**not accepted**.
+Historical/issued terms remain unchanged. **No main-branch mutation, merge,
+deployment, billing activation, customer email, collection, deindexing, sitemap
+submission or workstation operation is authorized by this amendment.**

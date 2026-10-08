@@ -18,10 +18,12 @@ function request(path: string, body: Record<string, unknown>) {
 for (const [path, handler] of [["/api/review/request", reviewPost], ["/api/engage", engagePost], ["/api/contact", contactPost]] as const) {
   for (const [label, body] of [
     ["retired intent", { intent: "bounded-workflow-review" }],
+    ["retired inventory review", { intent: "agent-tools-access-review" }],
+    ["private pilot", { intent: "private-ai-agent-pilot" }],
     ["unknown intent", { intent: "invented-offer" }],
     ["alias stripped by schema", { intent: "review", productId: "OFFSEC-LOCAL-AUDIT" }],
     ["stale landing fallback", { intent: "review", scope: "Request: fit\nEnquiry path: Early Bird — Internet Footprint Review" }],
-    ["conflicting serialised identity", { intent: "agent-tools-access-review", scope: "Selected product / intent: OFFSEC-EXTERNAL-EXPOSURE" }],
+    ["conflicting serialised identity", { intent: "agent-action-security-review", scope: "Selected product / intent: OFFSEC-EXTERNAL-EXPOSURE" }],
   ] as const) {
     test(`${path} rejects ${label} before issuance`, async () => {
       const response = await handler(request(path, body));
@@ -32,7 +34,7 @@ for (const [path, handler] of [["/api/review/request", reviewPost], ["/api/engag
       assert.equal(result.issuanceId, undefined);
     });
   }
-  for (const intent of ["agent-tools-access-review", "OFFSEC-EXTERNAL-EXPOSURE", "review", "ask-ai-contact"]) {
+  for (const intent of ["agent-action-security-review", "OFFSEC-EXTERNAL-EXPOSURE", "review", "ask-ai-contact"]) {
     test(`${path} ${intent} reaches ordinary validation without issuance`, async () => {
       const response = await handler(request(path, { intent }));
       assert.equal(response.status, 400);

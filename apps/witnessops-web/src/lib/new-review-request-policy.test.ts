@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { resolveNewReviewSelection, validateNewReviewIntake } from "./new-review-request-policy";
 
-const ai = "agent-tools-access-review";
+const ai = "agent-action-security-review";
 const external = "OFFSEC-EXTERNAL-EXPOSURE";
 
 test("a bare enquiry is fit only, not an automatically selected paid review", () => {
@@ -20,7 +20,7 @@ test("campaign attribution does not select or change a review", () => {
 });
 test("unknown, empty, retired and wrong-role identifiers do not fall back to a current offer", () => {
   for (const params of [
-    { offerId: "bounded-workflow-review" }, { offerId: "automation-repair-handover" },
+    { offerId: "bounded-workflow-review" }, { offerId: "agent-tools-access-review" }, { offerId: "automation-repair-handover" },
     { productId: "OFFSEC-LOCAL-AUDIT" }, { offerId: "external-exposure-assessment" },
     { productId: ai }, { offerId: "" }, { productId: null }, { offerId: `${ai} ` },
     { offer: "AI Agent Tools & Access Review" }, { enquiryPath: "early-bird" },
@@ -40,7 +40,7 @@ test("new intake accepts exactly the two paid intent roles and non-offer fit con
   assert.deepEqual(validateNewReviewIntake({}), { ok: true, intent: "review" });
 });
 test("new issuance refuses every old offer tested, without altering historical interpretation", () => {
-  for (const intent of ["bounded-workflow-review", "automation-repair-handover", "OFFSEC-LOCAL-AUDIT", "OFFSEC-LAUNCH-READY", "OFFSEC-CUSTODY-OPS", "OFFSEC-INCIDENT-READY", "customer-security-review-sprint", "professional-public-footprint-audit", "ai-agent-action-proof-run", "access-change-proof-run", "Third-party assessment", "early-bird", "external-exposure-assessment", "unknown"]) {
+  for (const intent of ["bounded-workflow-review", "agent-tools-access-review", "private-ai-agent-pilot", "automation-repair-handover", "OFFSEC-LOCAL-AUDIT", "OFFSEC-LAUNCH-READY", "OFFSEC-CUSTODY-OPS", "OFFSEC-INCIDENT-READY", "customer-security-review-sprint", "professional-public-footprint-audit", "ai-agent-action-proof-run", "access-change-proof-run", "Third-party assessment", "early-bird", "external-exposure-assessment", "unknown"]) {
     assert.equal(validateNewReviewIntake({ intent }).ok, false, intent);
   }
 });
