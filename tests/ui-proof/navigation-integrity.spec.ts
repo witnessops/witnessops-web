@@ -59,7 +59,8 @@ const askWorkflowAuthority = {
   }],
 } as const;
 
-const agentService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
+const inventoryService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
+const agentService = BUYER_SERVICES.find(service => service.id === "agent-action-security-review")!;
 const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
 agentRequest.searchParams.set("source", "ask");
 const askWorkflowFitResponse = {
@@ -81,7 +82,7 @@ const askWorkflowFitResponse = {
     name: agentService.name.en,
     price_label: agentService.price.en,
     delivery_label: agentService.timing.en,
-    detail_href: agentService.detailHref.en,
+    detail_href: agentService.detailHref.en ?? "/catalog",
     request_href: `${agentRequest.pathname}${agentRequest.search}`,
   },
 } as const;
@@ -288,7 +289,7 @@ test("support sends paid-work buyers to the current agent tools review", async (
     { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
     {
       path: "/pl/support",
-      requestPath: buyerServiceRequestHref("pl", agentService),
+      requestPath: buyerServiceRequestHref("pl", inventoryService),
     },
   ]) {
     const context = await browser.newContext({
@@ -394,8 +395,8 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await page.getByRole("textbox", { name: "Ask WitnessOps question" }).fill("We're launching an AI agent.");
   await page.getByRole("button", { name: "Ask AI", exact: true }).click();
   const fit = page.getByRole("region", { name: "Suggested service", exact: true });
-  await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+  await expect(fit).toContainText(agentService.price.en);
+  await expect(fit).toContainText(agentService.timing.en);
   await expect(page.locator("#ask-witnessops-dialog")).toContainText("NO EVIDENCE REVIEWED");
   await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
   await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
@@ -405,7 +406,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await expectPath(page, "/catalog");
   const contact = page.locator("[data-ask-contact-region]");
   await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
-  await expect(contact).toContainText("AI Agent Tools & Access Review");
+  await expect(contact).toContainText(agentService.name.en);
   await expect(contact.getByLabel("Work email")).toBeFocused();
   await expect(contact.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toBeChecked();
   await expect(contact.getByLabel(/^Draft request/)).toHaveValue("We're launching an AI agent.");

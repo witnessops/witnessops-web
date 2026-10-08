@@ -47,12 +47,12 @@ function askRequest(question: string, ip: string, context: Record<string, unknow
   });
 }
 
-const CURRENT_PRIMARY_OFFER = {
-  name: "AI Agent Tools & Access Review",
-  price_label: "Starting at €2,500 · excluding VAT",
-  unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-  fit_check_label: "Non-secret fit and scoping request first",
-  delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+const CURRENT_AGENT_ACTION_OFFER = {
+  name: "Agent Action Security Review",
+  price_label: "€2,500 fixed · excluding VAT",
+  unit_label: "One consequential agent or automation action",
+  fit_check_label: "Non-secret fit check first",
+  delivery_label: "Within 10 working days after evidence rules are agreed",
 } as const;
 
 test("public Ask rejects malformed UTF-8 before JSON parsing", async () => {
@@ -190,7 +190,7 @@ test("public Ask sends bounded follow-up history without changing current-questi
   let input: Array<{ role: string; content: string }> = [];
   globalThis.fetch = (async (_url, init) => {
     input = JSON.parse(String(init?.body)).input;
-    return generatedResponse("The delivery details for this review are below.", "one-server-security-check");
+    return generatedResponse("The delivery details for this review are below.", "external-exposure-assessment");
   }) as typeof fetch;
   try {
     const result = await POST(askRequest("How long does that take?", "203.0.113.150", {
@@ -199,7 +199,7 @@ test("public Ask sends bounded follow-up history without changing current-questi
     }));
     const body = await result.json();
     assert.equal(body.answer_mode, "ai_assisted");
-    assert.equal(body.recommendation.service_id, "one-server-security-check");
+    assert.equal(body.recommendation.service_id, "external-exposure-assessment");
     assert.equal(body.authority_answer.policy_decision.question_class_id, "outside_approved_public_context");
     assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user", "user"]);
     assert.match(input[2].content, /^KNOWN VISITOR QUALIFICATION FACTS/);
@@ -260,7 +260,7 @@ test("a legitimate assistant limitation does not poison a follow-up", async () =
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   let calls = 0;
-  globalThis.fetch = (async () => { calls += 1; return generatedResponse("The scope covers one consequential action.", "agent-tools-access-review"); }) as typeof fetch;
+    globalThis.fetch = (async () => { calls += 1; return generatedResponse("The scope covers one consequential action.", "agent-action-security-review"); }) as typeof fetch;
   try {
     const result = await POST(askRequest("What is included?", "203.0.113.165", {
       history: [{ role: "user", content: "What review fits an agent action?" }, { role: "assistant", content: "The AI Agent Tools & Access Review covers one action. It does not provide certification or a security guarantee." }],
@@ -315,25 +315,24 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   const cases = [
-    { question: "How much is AI Agent Tools & Access Review?", id: "agent-tools-access-review", price: "Starting at €2,500 · excluding VAT", words: "The listed price below covers a single consequential action." },
-    { question: "Can you help with a Customer Security Review Sprint?", id: "customer-security-review-sprint", price: "From €1,600 · excluding VAT", words: "The Customer Security Review Sprint prepares proposed answers and evidence references for one questionnaire and product." },
-    { question: "What does One Server Security Check cost?", id: "one-server-security-check", price: "€950 standard · excluding VAT", words: "For a Linux host, the One Server Security Check gives you a read-only snapshot with findings and next steps." },
-    { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: a customer questionnaire, one agent action, or a server concern? A non-secret outline is enough." },
-    { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with Karol Stefanski to agree the scope and review the findings." },
+    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 fixed · excluding VAT", words: "The listed price below covers one consequential action.", deterministic: true },
+    { question: "What does the External Attack Surface Review cost?", id: "external-exposure-assessment", price: "€1,900 · excluding VAT", words: "The listed price below covers one authorised public-facing system.", deterministic: true },
+    { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
+    { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
+    { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with Karol Stefanski to agree the scope and review the findings.", deterministic: false },
   ];
   try {
     for (const [index, item] of cases.entries()) {
       let calls = 0;
       globalThis.fetch = (async () => {
         calls += 1;
-        return generatedResponse(item.words, item.id, item.question === "Who would I work with?" ? ["public.reviewer"] : undefined);
+        return generatedResponse(item.words, null, item.question === "Who would I work with?" ? ["public.reviewer"] : undefined);
       }) as typeof fetch;
       const result = await POST(askRequest(item.question, `203.0.113.${140 + index}`));
       const body = await result.json();
-      const publishedPrice = item.question === "What does One Server Security Check cost?";
-      assert.equal(calls, publishedPrice ? 0 : 1, item.question);
-      assert.equal(body.answer_mode, publishedPrice ? "deterministic_fallback" : "ai_assisted", item.question);
-      if (publishedPrice) assert.match(body.template.body, /€950.*confirm fit and availability/);
+      assert.equal(calls, item.deterministic ? 0 : 1, item.question);
+      assert.equal(body.answer_mode, item.deterministic ? "deterministic_fallback" : "ai_assisted", item.question);
+      if (item.deterministic) assert.match(body.template.body, /confirm fit and availability/);
       else assert.equal(body.template.body, item.words);
       assert.equal(body.recommendation?.service_id ?? null, item.id);
       assert.equal(body.recommendation?.price_label, item.price);
@@ -411,7 +410,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
   let calls = 0;
   globalThis.fetch = (async () => {
     calls += 1;
-    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The AI Agent Tools & Access Review can map approval, permissions and execution evidence.", "agent-tools-access-review");
+    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The Agent Action Security Review can map approval, permissions and execution evidence.", "agent-action-security-review");
   }) as typeof fetch;
 
   try {
@@ -449,9 +448,9 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
     assert.equal(payload.commercial_fit?.intent, "workflow");
     assert.equal(
       payload.commercial_fit?.offer_id,
-      "agent-tools-access-review",
+      "agent-action-security-review",
     );
-    assert.deepEqual(payload.commercial_fit?.offer, CURRENT_PRIMARY_OFFER);
+    assert.deepEqual(payload.commercial_fit?.offer, CURRENT_AGENT_ACTION_OFFER);
     assert.equal(
       payload.commercial_fit?.matching_specimen_id,
       "ai-agent-action-proof-run",
@@ -464,7 +463,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
 test("public Ask recognizes the paid offer and price", async () => {
   const response = await POST(
     askRequest(
-      "What is included in AI Agent Tools & Access Review and how much does it cost?",
+      "What is included in Agent Action Security Review and how much does it cost?",
       "203.0.113.89",
     ),
   );
@@ -488,7 +487,7 @@ test("public Ask recognizes the paid offer and price", async () => {
   assert.equal(payload.route, null);
   assert.equal(payload.commercial_fit?.result, "likely");
   assert.equal(payload.commercial_fit?.intent, "offer");
-  assert.deepEqual(payload.commercial_fit?.offer, CURRENT_PRIMARY_OFFER);
+  assert.deepEqual(payload.commercial_fit?.offer, CURRENT_AGENT_ACTION_OFFER);
 });
 
 test("public Ask never sends a secret-bearing buyer question to the provider", async () => {
@@ -754,7 +753,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "Starting at €2,500 · excluding VAT",
+    "€2,500 fixed · excluding VAT",
   );
 
   const multiResponse = await POST(
@@ -769,7 +768,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "Starting at €2,500 · excluding VAT",
+    "€2,500 fixed · excluding VAT",
   );
 
   const unrelatedResponse = await POST(
@@ -875,7 +874,7 @@ test('repair guarantee clarification bypasses provider improvisation after input
   globalThis.fetch=async()=>{calls++;throw new Error('Provider unavailable');};
   try {
     const req=new Request('http://localhost/api/ask-witnessops',{method:'POST',headers:{'Content-Type':'application/json','x-forwarded-for':'203.0.113.187'},body:JSON.stringify({question:'Can you guarantee today for €250?',history:[{role:'user',content:'Our n8n workflow stopped reaching HubSpot.'},{role:'user',content:'Missing. It is live and we need it today.'}]})});
-    const r=await POST(req);const d=await r.json();assert.equal(d.status,'success');assert.equal(d.answer_mode,'deterministic_fallback');assert.equal(d.model,undefined);assert.match(d.template.body,/^No\./);assert.match(d.template.body,/€750/);assert.equal(calls,0);
+    const r=await POST(req);const d=await r.json();assert.equal(d.status,'closed');assert.doesNotMatch(JSON.stringify(d),/€750|€250/);assert.equal(calls,1);
   } finally {globalThis.fetch=original;}
 });
 
@@ -885,8 +884,7 @@ for (const question of ['What does Professional Public Footprint Audit cost?', '
     globalThis.fetch=async()=>{calls++;throw new Error('Provider unavailable');};
     try {
       const body=await (await POST(askRequest(question,'203.0.113.192'))).json();
-      assert.equal(body.status,'success');assert.match(body.template.body,/Available by request/);assert.doesNotMatch(JSON.stringify(body),/€4,900/);assert.equal(calls,0);
-      assert.equal(body.recommendation.price_label,'Available by request');
+      assert.equal(body.status,'closed');assert.equal(body.recommendation ?? null, null);assert.doesNotMatch(JSON.stringify(body),/€4,900|Available by request/);assert.equal(calls,1);
     } finally {globalThis.fetch=original;}
   });
 }

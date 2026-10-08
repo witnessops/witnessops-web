@@ -1,5 +1,6 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { BUYER_SERVICES, buyerServiceById, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
@@ -46,21 +47,21 @@ const askWorkflowFallback = {
     schema: "witnessops.ask.commercial-fit.v1",
     result: "likely",
     intent: "workflow",
-    offer_id: "agent-tools-access-review",
+    offer_id: PUBLIC_AGENT_ACTION_OFFER.id,
     source: "ask",
     offer: {
-      name: "AI Agent Tools & Access Review",
-      price_label: "Starting at €2,500 · excluding VAT",
-      unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-      fit_check_label: "Non-secret fit and scoping request first",
-      delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+      name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+      price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+      unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
+      fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
+      delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
   presented_sources: [],
 } as const;
 
-const questionnaireService = BUYER_SERVICES.find(service => service.id === "customer-security-review-sprint")!;
+const questionnaireService = BUYER_SERVICES.find(service => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID)!;
 const questionnaireRequest = new URL(buyerServiceRequestHref("en", questionnaireService), "https://witnessops.com");
 questionnaireRequest.searchParams.set("source", "ask");
 const questionnaireRequestHref = `${questionnaireRequest.pathname}${questionnaireRequest.search}`;
@@ -77,11 +78,11 @@ const generatedQuestionnaireAnswer = {
   },
   route: { route_id: "route.fit-check", href: questionnaireRequestHref },
   recommendation: {
-    service_id: "customer-security-review-sprint",
-    name: "Customer Security Review Sprint",
-    price_label: "From €1,600 · excluding VAT",
-    delivery_label: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
-    detail_href: "/customer-security-review",
+    service_id: questionnaireService.id,
+    name: questionnaireService.name.en,
+    price_label: questionnaireService.price.en,
+    delivery_label: questionnaireService.timing.en,
+    detail_href: questionnaireService.detailHref.en ?? "/catalog",
     request_href: questionnaireRequestHref,
   },
   commercial_fit: {
@@ -306,8 +307,8 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       await expect(surface).not.toContainText(askWorkflowFallback.template.body);
       await expect(surface).toContainText("The AI is temporarily unavailable. This is public guide information.");
       const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
-      await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
-      await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+      await expect(fit).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
+      await expect(fit).toContainText(PUBLIC_AGENT_ACTION_OFFER.timing.en);
       await expect(surface).toContainText("No evidence was reviewed");
       await expect(fit).toContainText("Fit signal only.");
       expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
@@ -370,10 +371,10 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
       await expect(surface.locator("summary").filter({ hasText: "About this AI" })).toBeVisible();
       const recommendation = surface.getByRole("region", { name: "Suggested service" });
-      await expect(recommendation).toContainText("Customer Security Review Sprint");
-      await expect(recommendation).toContainText("From €1,600 · excluding VAT");
+      await expect(recommendation).toContainText(questionnaireService.name.en);
+      await expect(recommendation).toContainText(questionnaireService.price.en);
       await expect(recommendation).toContainText(generatedQuestionnaireAnswer.recommendation.delivery_label);
-      await expect(recommendation.getByRole("link", { name: "See scope" })).toHaveAttribute("href", "/customer-security-review");
+      await expect(recommendation.getByRole("link", { name: "See scope" })).toHaveCount(0);
       await expect(surface.getByRole("region", { name: "Commercial fit", exact: true })).toHaveCount(0);
       await expect(surface.getByRole("button", { name: "What should we prepare?", exact: true })).toHaveCount(0);
       await composer.fill(followUpQuestion);
@@ -412,7 +413,7 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await surface.getByRole("button", { name: "Send confirmation code" }).click();
       await expect(surface.getByLabel("Email code", { exact: true })).toBeFocused();
       expect(contact?.intent).toBe("ask-ai-contact");
-      expect(contact?.scope).toContain("Offer: customer-security-review-sprint");
+      expect(contact?.scope).toContain(`Offer: ${questionnaireService.id}`);
       expect(contact?.scope).toContain(width < 1024 ? "Visitor-approved question: Help us scope one non-secret customer questionnaire." : "Visitor note: One questionnaire for one product.");
       expect(contact?.scope).toContain(width < 1024 ? "Question sharing: visitor opted in" : "Question sharing: not requested");
       for (const excluded of [firstQuestion, followUpQuestion, generatedQuestionnaireAnswer.template.body, followUpAnswer.template.body]) expect(contact?.scope).not.toContain(excluded);

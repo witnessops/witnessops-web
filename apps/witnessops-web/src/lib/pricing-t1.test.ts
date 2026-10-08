@@ -24,4 +24,12 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   const faq = readFileSync(resolve(__dirname, "../../../../content/witnessops/docs/faq.mdx"), "utf8");
   assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan."));
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
+  assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
+  assert.match(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.match(faq, /€2,500 fixed, excluding VAT/);
+  assert.match(faq, /30 calendar days of initial report handover/);
+  assert.match(faq, /€550, excluding VAT/);
+  assert.match(faq, /agent-tools-access-review/);
+  assert.doesNotMatch(faq, /primary paid entry point is \[AI Agent Tools/);
+  assert.doesNotMatch(faq, /Private Pilot|Internet Footprint Review|€500/);
 });
