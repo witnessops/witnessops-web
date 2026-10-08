@@ -107,12 +107,20 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
       const box = await link.boundingBox();
       expect(box?.height, `${scenario.path} article CTA ${index} height`).toBeGreaterThanOrEqual(44);
       expect((await link.textContent())?.trim().length ?? 0).toBeGreaterThan(0);
+      // Programmatic focus alone does not consistently trigger :focus-visible.
+      // Navigate with a keyboard to test the actual focus affordance.
       await link.focus();
-      const hasVisibleFocus = await link.evaluate((element) => {
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      await expect(link, \`\${scenario.path} article CTA \${index} keyboard focus\`).toBeFocused();
+      const focus = await link.evaluate((element) => {
         const style = window.getComputedStyle(element);
-        return style.outlineStyle !== "none" || style.boxShadow !== "none";
+        return {
+          outline: style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2,
+          shadow: style.boxShadow !== "none",
+        };
       });
-      expect(hasVisibleFocus, `${scenario.path} article CTA ${index} focus indicator`).toBe(true);
+      expect(focus.outline || focus.shadow, \`\${scenario.path} article CTA \${index} visible keyboard focus\`).toBe(true);
     }
     const clippedCards = await page.locator("main article").evaluateAll((articles) => articles.filter((article) => {
       const box = article.getBoundingClientRect();
