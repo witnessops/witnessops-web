@@ -468,87 +468,56 @@ test("External Attack Surface Review request preserves SKU, locale, and fit boun
   }
 });
 
-test("product query routes preserve exposure scope and unresolved pilot fallback", async ({ browser }) => {
-  const routeScenarios = [
-    {
-      path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Tell us what you want to check",
-      intent: "OFFSEC-EXTERNAL-EXPOSURE",
-      selectedOffer: /Selected offer:/,
-      boundary: "No work or target-facing check starts from this form.",
-      authorizationBoundary: null,
-    },
-    {
-      path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Opisz, co chcesz sprawdzić",
-      intent: "OFFSEC-EXTERNAL-EXPOSURE",
-      selectedOffer: /Wybrana oferta:/,
-      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
-      authorizationBoundary:
-        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu.",
-    },
-    {
-      path: "/review/request?productId=OFFSEC-PILOT",
-      heading: "One question. Non-secret details only.",
-      intent: "review",
-      selectedOffer: null,
-      boundary: "No work or target-facing check starts from this form.",
-      authorizationBoundary: null,
-    },
-    {
-      path: "/pl/review/request?productId=OFFSEC-PILOT",
-      heading: "Opowiedz, co wymaga sprawdzenia",
-      intent: "review",
-      selectedOffer: null,
-      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
-      authorizationBoundary: null,
-    },
+test("product query routes preserve exposure scope and reject the unresolved pilot without substitution", async ({ browser }) => {
+  const scenarios = [
+    { path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE", locale: "en", selected: true },
+    { path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE", locale: "pl", selected: true },
+    { path: "/review/request?productId=OFFSEC-PILOT", locale: "en", selected: false },
+    { path: "/pl/review/request?productId=OFFSEC-PILOT", locale: "pl", selected: false },
   ] as const;
 
-  for (const viewport of [
-    { width: 1440, height: 1000 },
-    { width: 390, height: 844 },
-  ]) {
-    for (const scenario of routeScenarios) {
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    for (const scenario of scenarios) {
       const context = await browser.newContext({ viewport });
-      const page = await context.newPage();
-      const consoleErrors: string[] = [];
-      const pageErrors: string[] = [];
-      page.on("console", (message) => {
-        if (message.type() === "error") consoleErrors.push(message.text());
-      });
-      page.on("pageerror", (error) => pageErrors.push(error.message));
-
-      const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
-      expect(response?.status(), scenario.path).toBe(200);
-      await expect(page.locator("main h1")).toContainText(scenario.heading);
-
-      const form = page.locator("main form");
-      await expect(form).toBeVisible();
-      await expect(form.locator('input[name="intent"]')).toHaveValue(
-        scenario.intent,
-      );
-      await expect(page.locator("main")).toContainText(scenario.boundary);
-      if (scenario.authorizationBoundary) {
-        await expect(page.locator("main")).toContainText(
-          scenario.authorizationBoundary,
-        );
+      try {
+        const page = await context.newPage();
+        const consoleErrors: string[] = [];
+        const pageErrors: string[] = [];
+        let posts = 0;
+        page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
+        page.on("pageerror", error => pageErrors.push(error.message));
+        await page.route("**/api/review/request", async route => {
+          posts++;
+          await route.fulfill({ status: 500 });
+        });
+        const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+        expect(response?.status(), scenario.path).toBe(200);
+        const main = page.locator("main");
+        await expect(main.getByRole("heading", { level: 1 })).toBeVisible();
+        if (scenario.selected) {
+          await expect(main).toHaveAttribute("data-request-selection", "external-exposure-assessment");
+          await expect(main).toContainText("External Attack Surface Review");
+          await expect(main).toContainText(scenario.locale === "pl" ? "To nie jest test penetracyjny." : "This is not a penetration test.");
+          const form = main.locator("form");
+          await expect(form).toBeVisible();
+          await expect(form.locator('input[name="intent"]')).toHaveValue("OFFSEC-EXTERNAL-EXPOSURE");
+          await expect(main).toContainText(scenario.locale === "pl" ? "Ten formularz nie rozpoczyna przeglądu" : "No review or target-facing check starts from this form");
+        } else {
+          await expect(main).toHaveAttribute("data-request-selection", "unavailable");
+          await expect(main).toContainText(scenario.locale === "pl" ? "Ten link nie wybiera aktualnej oferty" : "This link does not select a current offer");
+          await expect(main.locator("form")).toHaveCount(0);
+          await expect(main.locator("[data-review-choice]")).toHaveCount(2);
+          await expect(main.locator('[data-review-choice="agent-tools-access-review"] a')).toHaveAttribute("href", /offerId=agent-tools-access-review/);
+          await expect(main.locator('[data-review-choice="external-exposure-assessment"] a')).toHaveAttribute("href", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+        }
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow, scenario.path).toBeLessThanOrEqual(1);
+        expect(posts).toBe(0);
+        expect(consoleErrors).toEqual([]);
+        expect(pageErrors).toEqual([]);
+      } finally {
+        await context.close();
       }
-
-      if (scenario.selectedOffer) {
-        await expect(page.getByText(scenario.selectedOffer).first()).toBeVisible();
-      } else {
-        await expect(page.getByText(/Selected offer:|Wybrana oferta:/)).toHaveCount(0);
-        await expect(form.locator(scenario.path.startsWith("/pl/") ? "#agentPath" : "#enquiryPath")).toHaveCount(1);
-      }
-
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      );
-      expect(overflow, scenario.path).toBeLessThanOrEqual(1);
-      expect(consoleErrors).toEqual([]);
-      expect(pageErrors).toEqual([]);
-      await context.close();
     }
   }
 });
