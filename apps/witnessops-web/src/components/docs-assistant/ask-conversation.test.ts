@@ -61,8 +61,12 @@ test("a proposed human brief contains only accepted visitor words and is bounded
 
 test("page context resolves exact canonical offer paths only", () => {
   for (const service of BUYER_SERVICES) {
+    // The retired inventory review shares /catalog/workflows with the current
+    // bounded one-action review; page context must prefer the current contract.
+    if (service.id === "agent-tools-access-review") continue;
     if (service.detailHref.en) assert.equal(askPageService(`${service.detailHref.en}/`)?.id, service.id);
   }
+  assert.equal(askPageService("/catalog/workflows")?.id, "agent-action-security-review");
   for (const path of ["/", "/catalog", "/admin", "/catalog/unknown", "https://witnessops.com/catalog", "/catalog?offerId=agent-action-security-review"]) {
     assert.equal(askPageService(path), undefined);
   }
