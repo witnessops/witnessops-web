@@ -37,7 +37,7 @@ const copy = {
     unsureTitle: "Which of these two reviews fits?",
     unsureBody: "Describe the decision you need to make. We will confirm whether the AI review, the external review, or neither is the right fit. No work starts from the enquiry.",
     enquiryCta: "Ask about fit",
-    catalogueCta: "Compare scopes and prices",
+    catalogueCta: "Compare scopes and prices", faqCta: "Buyer FAQ: scope, timing and retest",
   },
   pl: {
     eyebrow: "Przeglądy WitnessOps",
@@ -67,7 +67,7 @@ const copy = {
     unsureTitle: "Który z tych dwóch przeglądów pasuje?",
     unsureBody: "Opisz decyzję, którą musisz podjąć. Potwierdzimy, czy pasuje przegląd agenta AI, ekspozycji zewnętrznej, czy żaden z nich. Zgłoszenie nie rozpoczyna pracy.",
     enquiryCta: "Zapytaj o dopasowanie",
-    catalogueCta: "Porównaj zakres i cenę",
+    catalogueCta: "Porównaj zakres i cenę", faqCta: "FAQ kupującego: zakres, terminy i retest",
   },
 } as const;
 
@@ -143,7 +143,10 @@ export function BuyerCatalogue({
           <div><h2 className="text-2xl font-semibold">{text.unsureTitle}</h2><p className="mt-2 max-w-2xl text-sm leading-7 text-text-secondary">{text.unsureBody}</p></div>
           <Link href={buyerRequestHref(locale)} className="inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{text.enquiryCta}</Link>
         </section>
-        {pricing ? <Link href={locale === "pl" ? "/pl/catalog" : "/catalog"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.catalogueCta}</Link> : null}
+        <nav aria-label={locale === "pl" ? "Pytania przed wyborem" : "Questions before choosing"} className="mt-6 flex flex-wrap gap-4">
+          {pricing ? <Link href={locale === "pl" ? "/pl/catalog" : "/catalog"} className="inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.catalogueCta}</Link> : null}
+          <Link href={locale === "pl" ? "/pl/buyer-faq" : "/buyer-faq"} className="inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.faqCta}</Link>
+        </nav>
       </div>
     </main>
   );
