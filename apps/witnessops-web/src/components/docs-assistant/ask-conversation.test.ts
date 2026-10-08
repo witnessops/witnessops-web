@@ -61,9 +61,13 @@ test("a proposed human brief contains only accepted visitor words and is bounded
 
 test("page context resolves exact canonical offer paths only", () => {
   for (const service of BUYER_SERVICES) {
+    // The retired inventory review shares /catalog/workflows with the current
+    // bounded one-action review; page context must prefer the current contract.
+    if (service.id === "agent-tools-access-review") continue;
     if (service.detailHref.en) assert.equal(askPageService(`${service.detailHref.en}/`)?.id, service.id);
   }
-  for (const path of ["/", "/catalog", "/admin", "/catalog/unknown", "https://witnessops.com/catalog", "/catalog?offerId=agent-tools-access-review"]) {
+  assert.equal(askPageService("/catalog/workflows")?.id, "agent-action-security-review");
+  for (const path of ["/", "/catalog", "/admin", "/catalog/unknown", "https://witnessops.com/catalog", "/catalog?offerId=agent-action-security-review"]) {
     assert.equal(askPageService(path), undefined);
   }
 });
@@ -115,15 +119,15 @@ for (const continuation of ['Already issuing refunds.', 'We are checking before 
 
 function paidFallback(): AskWitnessOpsUiAnswer {
   return { ...answer(), schema: "witnessops.ask.assembled-answer.v1", answer_mode: "deterministic_fallback", fallback_reason: "ai_unavailable",
-    commercial_fit: { ...answer().commercial_fit, result: "likely", offer_id: "agent-tools-access-review", offer: {
-      name: "AI Agent Tools & Access Review", price_label: "Starting at €2,500 · excluding VAT", unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-      fit_check_label: "Non-secret fit and scoping request first", delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+    commercial_fit: { ...answer().commercial_fit, result: "likely", offer_id: "agent-action-security-review", offer: {
+      name: "Agent Action Security Review", price_label: "€2,500 fixed · excluding VAT", unit_label: "One consequential agent or automation action",
+      fit_check_label: "Non-secret fit check first", delivery_label: "Within 10 working days after evidence rules are agreed",
     } } };
 }
 
 test("assembled paid fallback remains visible without becoming history or a proposed human brief", () => {
   const fallback = paidFallback();
-  assert.equal(askServiceCardIdentity(fallback), "agent-tools-access-review");
+  assert.equal(askServiceCardIdentity(fallback), "agent-action-security-review");
   assert.equal(shouldShowServiceCard(fallback), true);
   assert.equal(shouldShowServiceCard(fallback, fallback), true, "unretained current outage must retain its scope action");
   assert.equal(rememberAskTurn("Our failed question must not be shared.", fallback), false);
@@ -134,13 +138,13 @@ test("assembled paid fallback remains visible without becoming history or a prop
 
 test("card identity deduplicates generated recommendations and distinguishes assembled offers", () => {
   const fallback = paidFallback();
-  const generated = { ...answer(), recommendation: { service_id: "agent-tools-access-review", name: "AI Agent Tools & Access Review",
+  const generated = { ...answer(), recommendation: { service_id: "agent-action-security-review", name: "Agent Action Security Review",
     price_label: "€2,500", delivery_label: "By agreement", detail_href: "/catalog/workflows", request_href: "/review/request" } } satisfies AskWitnessOpsUiAnswer;
   assert.equal(shouldShowServiceCard(generated), true);
   assert.equal(shouldShowServiceCard(generated, generated), false);
   assert.equal(shouldShowServiceCard(generated, fallback), false);
   assert.equal(shouldShowServiceCard(fallback, generated), true);
-  const other = { ...generated, recommendation: { ...generated.recommendation, service_id: "customer-security-review-sprint" } } satisfies AskWitnessOpsUiAnswer;
+  const other = { ...generated, recommendation: { ...generated.recommendation, service_id: "external-exposure-assessment" } } satisfies AskWitnessOpsUiAnswer;
   assert.equal(shouldShowServiceCard(other, generated), true);
   const assembled = { ...fallback, fallback_reason: undefined };
   assert.equal(shouldShowServiceCard(assembled), true);

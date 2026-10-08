@@ -18,7 +18,7 @@ import {
 } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  INTERNET_FOOTPRINT_REVIEW_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
@@ -28,6 +28,7 @@ import {
 } from "@/lib/public-seo";
 import { classifyCommercialFit } from "@/lib/server/ask-witnessops/commercial-fit-classifier";
 import { getServiceLanding } from "@/lib/service-landings";
+import { publicPaidReviews } from "@/lib/public-paid-reviews";
 
 const ACTIVE_PRIMARY_PRESENTATION_SOURCES = [
   "../app/(marketing)/catalog/workflows/page.tsx",
@@ -98,74 +99,58 @@ function renderedArticle(html: string, attribute: string, value: string) {
   return html.slice(start, end + "</article>".length);
 }
 
-test("one canonical record defines the primary paid entry point", () => {
-  const featured = BUYER_SERVICES.filter(
-    (service) => service.homepageFeatured === true,
-  );
-  const primaries = BUYER_SERVICES.filter(
-    (service) => service.commercialRole === "primary",
-  );
-  assert.equal(featured.length, 1, "Exactly one offer may define the homepage");
-  assert.equal(primaries.length, 1, "Exactly one offer may be commercially primary");
+test("one canonical current primary review coexists with unchanged historical inventory contract", () => {
+  const featured = BUYER_SERVICES.filter(service => service.homepageFeatured === true);
+  const primaries = BUYER_SERVICES.filter(service => service.commercialRole === "primary");
+  assert.equal(featured.length, 1, "Exactly one review must lead the homepage");
+  assert.equal(primaries.length, 1, "Exactly one review must be commercially primary");
+  const current = buyerServiceById(PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(featured[0], current);
+  assert.equal(primaries[0], current);
+  assert.equal(current.name, PUBLIC_AGENT_ACTION_OFFER.name);
+  assert.equal(current.commercialContract, PUBLIC_AGENT_ACTION_OFFER.commercialContract);
+  assert.equal(current.price, PUBLIC_AGENT_ACTION_OFFER.price);
+  assert.equal(current.timing, PUBLIC_AGENT_ACTION_OFFER.timing);
+  assert.equal(current.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(current.price.pl, "€2 500: cena stała · bez VAT");
+  assert.equal(current.detailHref.en, "/catalog/workflows");
+  assert.equal(current.requestCta?.en, "Scope an Agent Action review");
+  assert.match(current.boundary.en, /One consequential agent or automation action/);
+  assert.deepEqual(publicPaidReviews(BUYER_SERVICES).map(service => service.id),
+    ["agent-action-security-review", "external-exposure-assessment"]);
 
-  const primary = buyerServiceById(PRIMARY_OFFER.id);
-  assert.equal(featured[0]?.id, PRIMARY_OFFER.id);
-  assert.equal(primaries[0], featured[0]);
-  assert.equal(primary.name, PRIMARY_OFFER.name);
-  assert.equal(primary.commercialContract, PRIMARY_OFFER.commercialContract);
-  assert.equal(primary.price, PRIMARY_OFFER.price);
-  assert.equal(primary.timing, PRIMARY_OFFER.timing);
-  assert.equal(primary.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Manual agent/tool observation and action reconstruction");
-  assert.equal(
-    PRIMARY_OFFER.mailSubject,
-    "WitnessOps request — AI Agent Tools & Access Review",
-  );
-  assert.equal(primary.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(primary.price.pl, "Od €2 500 · bez VAT");
-  assert.equal(
-    primary.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
-  assert.equal(primary.detailHref.en, PRIMARY_OFFER.route);
-  assert.equal(primary.detailHref.pl, PRIMARY_OFFER.route);
-  assert.equal(primary.productId, undefined);
-  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
+  const historical = buyerServiceById(PRIMARY_OFFER.id);
+  assert.notEqual(historical.id, current.id);
+  assert.equal(historical.homepageFeatured, false);
+  assert.notEqual(historical.commercialRole, "primary");
+  assert.equal(historical.name.en, "AI Agent Tools & Access Review");
+  assert.equal(historical.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(historical.id, "agent-tools-access-review");
+  assert.equal(historical.commercialContract.price, "from_eur_2500_fixed_quote_after_scope");
+  assert.match(historical.boundary.en, /dated system-level inventory/);
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
-  assert.equal(PRIMARY_OFFER.requestRoute, "/review/request");
-  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
-  assert.equal(
-    primary.cardSituation.en,
-    "See which agent tools are visible on an agreed device and what one consequential action can reach.",
-  );
-  assert.match(primary.situation.en, /coding agents and tool connections/i);
-  assert.equal(primary.requestCta?.en, "Request a scope and fixed quote");
-  assert.match(primary.boundary.en, /One agreed device and dated system-level inventory/i);
-  assert.match(primary.boundary.en, /Manual, read-only inspection/i);
-  assert.match(primary.situation.en, /observed in agreed sources/i);
-
-  const [first, second] = buyerServicesByCommercialPriority();
-  assert.equal(first?.id, PRIMARY_OFFER.id);
-  assert.equal(second?.id, "external-exposure-assessment");
-  assert.equal(second?.commercialRole, "secondary");
+  const ordered = buyerServicesByCommercialPriority();
+  assert.equal(ordered[0]?.id, current.id);
+  assert.equal(ordered[1]?.id, "external-exposure-assessment");
+  assert.equal(ordered[1]?.commercialRole, "secondary");
 });
 
-test("the primary detail contract exposes every required inclusion and exclusion", () => {
-  const landing = getServiceLanding(PRIMARY_OFFER.id, "en");
-  for (const item of PRIMARY_OFFER.included.en) {
-    assert.ok(landing.deliverables.some((line) => line.startsWith(item)), `Missing included item: ${item}`);
+test("current one-action detail names actual deliverables and preserves historical evidence", () => {
+  const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, "en");
+  const deliverables = landing.deliverables.join(" ").toLowerCase();
+  for (const term of ["authority", "approval", "execution path", "permission boundary", "evidence chain", "readout"]) {
+    assert.ok(deliverables.includes(term), term);
   }
-  assert.match(landing.steps.flat().join(" "), /10 working days after accepted scope/i);
-
-  const workflowPage = readFileSync(
-    resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"),
-    "utf8",
-  );
-  assert.match(workflowPage, /notIncluded=\{\[\.\.\.PRIMARY_OFFER\.notIncluded\.en\]\}/);
+  assert.match(landing.steps.flat().join(" "), /10 working days after evidence rules/i);
+  assert.match(landing.boundaries.join(" "), /not included|not a|No production|No execution/i);
+  const oldLanding = getServiceLanding(PRIMARY_OFFER.id, "en");
+  assert.match(oldLanding.scopeNote, /dated system-level inventory/);
+  const workflowPage = readFileSync(resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"), "utf8");
+  assert.match(workflowPage, /notIncluded=\{\[\.\.\.PUBLIC_AGENT_ACTION_OFFER\.notIncluded\.en\]\}/);
   assert.match(workflowPage, /promoteCommercialContract/);
-  assert.match(workflowPage, /dated system-level inventory/);
-  assert.match(workflowPage, /downstream permission and execution records/);
-  assert.match(workflowPage, /historical synthetic one-action sample/);
+  assert.match(workflowPage, /one agreed consequential agent or automation action/i);
+  assert.match(workflowPage, /effective permissions/);
+  assert.match(workflowPage, /historical synthetic one-action sample/i);
   assert.doesNotMatch(workflowPage, /The sample pack can be tested through \/verify/i);
 });
 
@@ -174,12 +159,12 @@ test("English and Polish entry links preserve the primary offer selection", () =
     ["en", "/review/request"],
     ["pl", "/pl/review/request"],
   ] as const) {
-    const href = buyerPublicOfferRequestHref(locale, PRIMARY_OFFER.id);
+    const href = buyerPublicOfferRequestHref(locale, PUBLIC_AGENT_ACTION_OFFER.id);
     const url = new URL(href, "https://witnessops.com");
 
     assert.equal(url.pathname, pathname);
-    assert.equal(url.searchParams.get("offerId"), PRIMARY_OFFER.id);
-    assert.equal(url.searchParams.get("offer"), PRIMARY_OFFER.name[locale]);
+    assert.equal(url.searchParams.get("offerId"), PUBLIC_AGENT_ACTION_OFFER.id);
+    assert.equal(url.searchParams.get("offer"), PUBLIC_AGENT_ACTION_OFFER.name[locale]);
   }
 });
 
@@ -198,10 +183,10 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"),
     "utf8",
   );
-  assert.match(workflowPage, /buyerServiceById\(PRIMARY_OFFER\.id\)/);
+  assert.match(workflowPage, /buyerServiceById\(PUBLIC_AGENT_ACTION_OFFER\.id\)/);
   assert.match(workflowPage, /title: service\.name\.en/);
   assert.match(workflowPage, /description: service\.situation\.en/);
-  assert.match(workflowPage, /canonical: PRIMARY_OFFER\.route/);
+  assert.match(workflowPage, /canonical: PUBLIC_AGENT_ACTION_OFFER\.route/);
   assert.match(workflowPage, /primaryOfferServiceJsonLd\(\)/);
   assert.match(workflowPage, /primaryOfferBreadcrumbJsonLd\(\)/);
 
@@ -213,23 +198,24 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.match(homepageSource, /Scope a review/);
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
   assert.equal(pricingMetadata.title, "Review Pricing");
-  assert.ok(String(pricingMetadata.description).includes(PRIMARY_OFFER.name.en));
+  assert.ok(String(pricingMetadata.description).includes(PUBLIC_AGENT_ACTION_OFFER.name.en));
+  assert.ok(String(pricingMetadata.description).includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
-  assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
+  assert.equal(serviceJsonLd.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
   assert.equal(serviceJsonLd.url, "https://witnessops.com/catalog/workflows");
-  assert.equal(serviceJsonLd.offers["@type"], "AggregateOffer");
-  assert.equal(serviceJsonLd.offers.lowPrice, "2500");
+  assert.equal(serviceJsonLd.offers["@type"], "Offer");
+  assert.equal(serviceJsonLd.offers.price, "2500");
   assert.equal(serviceJsonLd.offers.priceCurrency, "EUR");
-  assert.match(serviceJsonLd.offers.description, /One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action/);
-  assert.match(serviceJsonLd.offers.description, /Non-secret fit and scoping request first/);
+  assert.match(serviceJsonLd.offers.description, /One consequential agent or automation action/);
+  assert.match(serviceJsonLd.offers.description, /Non-secret fit check first/);
   assert.match(
     serviceJsonLd.offers.description,
-    /Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed/,
+    /Within 10 working days after evidence rules are agreed/,
   );
   assert.equal(
     primaryOfferBreadcrumbJsonLd().itemListElement.at(-1)?.name,
-    PRIMARY_OFFER.name.en,
+    PUBLIC_AGENT_ACTION_OFFER.name.en,
   );
 
   const pricing = renderToStaticMarkup(createElement(AppRouterContext.Provider, {
@@ -238,22 +224,21 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   const primaryCard = renderedArticle(
     pricing,
     "data-pricing-service",
-    PRIMARY_OFFER.id,
+    PUBLIC_AGENT_ACTION_OFFER.id,
   );
   assert.deepEqual(
     [...pricing.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
-    ["footprint", "agent-tools-access"],
-    "Pricing foreground contains exactly the two selected reviews",
+    ["agent-action-security", "external-exposure"],
+    "Pricing foreground contains exactly the two founder-approved reviews",
   );
-  const footprintCard = renderedArticle(pricing, "data-pricing-review", "footprint");
-  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en));
-  assert.ok(footprintCard.includes(INTERNET_FOOTPRINT_REVIEW_OFFER.price.en));
-  assert.doesNotMatch(footprintCard, /working days|response time|delivery time|FIRST 10|No\. 00/i);
-  assert.match(footprintCard, /href="\/review\/request\?enquiryPath=early-bird"/);
-  assert.doesNotMatch(pricing, /€49|€149|External Attack Surface Review|One Server Security Check/);
+  const externalCard = renderedArticle(pricing, "data-pricing-review", "external-exposure");
+  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
+  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.price.en));
+  assert.match(externalCard, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(primaryCard, /Start with a broken workflow/);
-  assert.match(primaryCard, /AI Agent Tools &amp; Access Review/);
-  assert.match(primaryCard, /Starting at €2,500/);
+  assert.match(primaryCard, /Agent Action Security Review/);
+  assert.match(primaryCard, /€2,500 fixed/);
   assert.doesNotMatch(primaryCard, /External Attack Surface Review/);
   assert.doesNotMatch(primaryCard, /Agent Risk &amp; Control Review|€1,500/);
   const catalogue = renderToStaticMarkup(
@@ -262,7 +247,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   const primaryCatalogueCard = renderedArticle(
     catalogue,
     "data-buyer-service",
-    PRIMARY_OFFER.id,
+    PUBLIC_AGENT_ACTION_OFFER.id,
   );
   const publicExposureCatalogueCard = renderedArticle(
     catalogue,
@@ -270,8 +255,8 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     "external-exposure-assessment",
   );
   assert.doesNotMatch(primaryCatalogueCard, /Start with a broken workflow/);
-  assert.match(primaryCatalogueCard, /AI Agent Tools &amp; Access Review/);
-  assert.match(primaryCatalogueCard, /Starting at €2,500/);
+  assert.match(primaryCatalogueCard, /Agent Action Security Review/);
+  assert.match(primaryCatalogueCard, /€2,500 fixed/);
   assert.doesNotMatch(primaryCatalogueCard, /Agent Risk &amp; Control Review|€1,500/);
   assert.match(catalogue, /id="system-reviews"/);
   assert.match(publicExposureCatalogueCard, /External Attack Surface Review/);
@@ -282,7 +267,7 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   const assessments = [
     classifyCommercialFit({
       question:
-        "What is included in AI Agent Tools & Access Review and how much does it cost?",
+        "What is included in Agent Action Security Review and how much does it cost?",
       authorityQuestionClassId: "outside_approved_public_context",
     }),
     classifyCommercialFit({
@@ -303,12 +288,12 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   assert.equal(assessments[1]?.offer_id, null);
   assert.equal(assessments[1]?.offer, null);
   for (const assessment of [assessments[0], assessments[2]]) {
-    assert.equal(assessment.offer_id, PRIMARY_OFFER.id);
-    assert.equal(assessment.offer?.name, PRIMARY_OFFER.name.en);
-    assert.equal(assessment.offer?.price_label, PRIMARY_OFFER.price.en);
-    assert.equal(assessment.offer?.unit_label, PRIMARY_OFFER.unit.en);
-    assert.equal(assessment.offer?.fit_check_label, PRIMARY_OFFER.fitCheck.en);
-    assert.equal(assessment.offer?.delivery_label, PRIMARY_OFFER.timing.en);
+    assert.equal(assessment.offer_id, PUBLIC_AGENT_ACTION_OFFER.id);
+    assert.equal(assessment.offer?.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
+    assert.equal(assessment.offer?.price_label, PUBLIC_AGENT_ACTION_OFFER.price.en);
+    assert.equal(assessment.offer?.unit_label, PUBLIC_AGENT_ACTION_OFFER.unit.en);
+    assert.equal(assessment.offer?.fit_check_label, PUBLIC_AGENT_ACTION_OFFER.fitCheck.en);
+    assert.equal(assessment.offer?.delivery_label, PUBLIC_AGENT_ACTION_OFFER.timing.en);
     assert.notEqual(assessment.offer?.name, "Agent Risk & Control Review");
     assert.notEqual(assessment.offer?.price_label, "From €1,500");
   }
@@ -320,8 +305,8 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
     ),
     "utf8",
   );
-  assert.match(askCard, /PRIMARY_OFFER\.requestRoute/);
-  assert.match(askCard, /offerId=\$\{PRIMARY_OFFER\.id\}/);
+  assert.match(askCard, /PUBLIC_AGENT_ACTION_OFFER\.requestRoute/);
+  assert.match(askCard, /offerId=\$\{PUBLIC_AGENT_ACTION_OFFER\.id\}/);
   assert.match(askCard, /source=ask&result=\$\{fit\.result\}/);
 });
 
@@ -351,7 +336,7 @@ test("active presentation sources do not restore stale buyer-facing product name
   assert.deepEqual(failures, []);
 });
 
-test("External Attack Surface Review remains available only as the secondary catalogue offer", () => {
+test("External Attack Surface Review retains its legacy registry role while current discovery includes it", () => {
   const secondary = buyerServiceById("external-exposure-assessment");
   assert.equal(secondary.name.en, "External Attack Surface Review");
   assert.equal(secondary.name, EXTERNAL_ATTACK_SURFACE_OFFER.name);

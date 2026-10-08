@@ -1,5 +1,5 @@
 import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
-import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import type { Page } from "@playwright/test";
 import type { CheckResult, Metrics } from "./report";
 import type { ReducedMotion, ScenarioSeverity } from "./scenarios";
@@ -106,8 +106,10 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedFitCheckHref =
-    new URL(page.url()).pathname.startsWith("/pl") ? "/pl/review/request" : buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id);
+  const expectedFitCheckHref = buyerPublicOfferRequestHref(
+    new URL(page.url()).pathname.startsWith("/pl") ? "pl" : "en",
+    PUBLIC_AGENT_ACTION_OFFER.id,
+  );
   checks.push({
     name: "primary CTA opens the supported check or enquiry entry",
     status: primaryCtaHref === expectedFitCheckHref ? "pass" : "fail",
@@ -121,8 +123,9 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const buyerHomepage = await page.locator('main[data-home-direction="security-verification"]').count() === 1;
-  const expectedDemoHref = buyerHomepage ? "/review/sample-cases/ai-agent-action-proof-run" : "/library";
+  // The approved Two-Offer V1 homepage links directly to its historical,
+  // explicitly synthetic action sample. The skills library stays independent.
+  const expectedDemoHref = "/review/sample-cases/ai-agent-action-proof-run";
   checks.push({
     name: "sample CTA opens the supported sample destination",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",

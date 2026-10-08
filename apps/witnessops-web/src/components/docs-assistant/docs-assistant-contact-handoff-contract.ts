@@ -1,5 +1,6 @@
 import type { AskWitnessOpsCommercialFit } from "./ask-witnessops-response";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 
 export const ASK_CONTACT_NOTE_MAX_LENGTH = 1_000;
 export const ASK_CONTACT_QUESTION_MAX_LENGTH = 2_000;
@@ -17,7 +18,7 @@ export function buildAskAiContactScope(
 ): string {
   const question = options.question?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH);
   const service = BUYER_SERVICES.find(
-    (candidate) => candidate.id === (options.serviceId ?? commercialFit?.offer_id),
+    (candidate) => candidate.id === (options.serviceId ?? commercialFit?.offer_id) && isPublicPaidReviewId(candidate.id),
   );
   return [
     "Contact path: Ask AI panel handoff",

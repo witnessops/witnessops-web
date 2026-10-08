@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { buyerServiceById, buyerServiceCta } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { buyerServiceById } from "../../apps/witnessops-web/src/lib/buyer-services";
 
 const scenarios = [
   { path: "/catalog", width: 1440, height: 1100 },
@@ -12,31 +12,22 @@ const scenarios = [
   { path: "/pl/catalog", width: 320, height: 740 },
 ] as const;
 
-const expectedServiceOrder = [
-  "agent-tools-access-review", "one-server-security-check", "external-exposure-assessment",
-  "automation-repair-handover", "customer-security-review-sprint", "launch-readiness-check",
-  "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit",
-] as const;
+const expectedServiceOrder = ["agent-action-security-review", "external-exposure-assessment"] as const;
 
-test("catalogue routes remain responsive and usable", async ({ browser }) => {
+test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
-    const context = await browser.newContext({
-      viewport: { width: scenario.width, height: scenario.height },
-    });
+    const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height } });
     const page = await context.newPage();
     const consoleErrors: string[] = [];
     const pageErrors: string[] = [];
-    page.on("console", (message) => {
-      if (message.type() === "error") consoleErrors.push(message.text());
-    });
+    page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
-
     const serviceCards = page.locator("[data-buyer-service]");
-    await expect(serviceCards).toHaveCount(9);
+    await expect(serviceCards).toHaveCount(2);
     const firstCardVisuals = await serviceCards.first().evaluate((card) => {
       const style = getComputedStyle(card);
       const primaryCta = card.querySelector<HTMLElement>("a");
@@ -57,144 +48,58 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     });
     expect(firstCardVisuals.background).toBe("rgb(18, 19, 16)");
     expect(firstCardVisuals.color).toBe("rgb(245, 241, 232)");
-    expect(firstCardVisuals.tokens).toEqual({
-      background: "#0b0c0b",
-      card: "#121310",
-      primary: "#f5f1e8",
-      accent: "#b89b62",
-      inverse: "#151510",
-    });
+    expect(firstCardVisuals.tokens).toEqual({ background: "#0b0c0b", card: "#121310", primary: "#f5f1e8", accent: "#b89b62", inverse: "#151510" });
     expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(245, 241, 232)");
     expect(firstCardVisuals.primaryCtaColor).toBe("rgb(21, 21, 16)");
-    expect(
-      await serviceCards.evaluateAll((cards) =>
-        cards.map((card) => card.getAttribute("data-buyer-service")),
-      ),
-    ).toEqual(expectedServiceOrder);
-    expect(
-      await serviceCards.evaluateAll((cards) =>
-        cards.map((card) => ({
-          price: card.getAttribute("data-price-contract"),
-          timing: card.getAttribute("data-timing-contract"),
-        })),
-      ),
-    ).toEqual(expectedServiceOrder.map(id => ({
-      price: buyerServiceById(id).commercialContract.price,
-      timing: buyerServiceById(id).commercialContract.timing,
-    })));
+    expect(await serviceCards.evaluateAll((cards) => cards.map((card) => card.getAttribute("data-buyer-service")))).toEqual(expectedServiceOrder);
+    expect(await serviceCards.evaluateAll((cards) => cards.map((card) => ({ price: card.getAttribute("data-price-contract"), timing: card.getAttribute("data-timing-contract") })))).toEqual(expectedServiceOrder.map(id => ({ price: buyerServiceById(id).commercialContract.price, timing: buyerServiceById(id).commercialContract.timing })));
     if (scenario.width >= 768) {
       const geometry = await serviceCards.last().evaluate(card => ({ card: card.getBoundingClientRect().width, grid: card.parentElement!.getBoundingClientRect().width }));
       expect(Math.abs(geometry.grid - geometry.card)).toBeLessThanOrEqual(2);
     }
+    const polish = scenario.path.startsWith("/pl");
     const primaryOfferCard = serviceCards.first();
-    await expect(primaryOfferCard).toContainText(scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
-    await expect(primaryOfferCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "Od €2 500 · bez VAT"
-        : "Starting at €2,500 · excluding VAT",
-    );
-    await expect(primaryOfferCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "Cel: 10 dni roboczych po potwierdzeniu zakresu"
-        : "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
+    await expect(primaryOfferCard).toContainText(polish ? "Agent Action Security Review" : "Agent Action Security Review");
+    await expect(primaryOfferCard).toContainText(polish ? "€2 500: cena stała · bez VAT" : "€2,500 fixed · excluding VAT");
+    await expect(primaryOfferCard).toContainText(polish ? "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych" : "Within 10 working days after evidence rules are agreed");
     await expect(primaryOfferCard).not.toContainText("Agent Risk & Control Review");
     await expect(primaryOfferCard).not.toContainText("From €1,500");
 
     const publicExposureCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
     await expect(publicExposureCard).toContainText("External Attack Surface Review");
-    await expect(publicExposureCard).toContainText(
-      scenario.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 · excluding VAT",
-    );
-    await expect(publicExposureCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "W ciągu 3 dni roboczych"
-        : "Within 3 working days",
-    );
-    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
+    await expect(publicExposureCard).toContainText(polish ? "€1 900 · bez VAT" : "€1,900 · excluding VAT");
+    await expect(publicExposureCard).toContainText(polish ? "W ciągu 3 dni roboczych" : "Within 3 working days");
+    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal|Internet Footprint Review|Early Bird|€500/);
 
-    for (let index = 0; index < expectedServiceOrder.length; index += 1) {
+    for (const [index, id] of expectedServiceOrder.entries()) {
       const card = serviceCards.nth(index);
       const links = card.locator("a");
       const primary = links.first();
       const primaryHref = await primary.getAttribute("href");
-      const requestPath = scenario.path.startsWith("/pl")
-        ? "/pl/review/request"
-        : "/review/request";
-      expect(primaryHref).toMatch(new RegExp(`^${requestPath}`));
-      if (expectedServiceOrder[index] === "external-exposure-assessment") {
-        expect(
-          new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("productId"),
-        ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
-      }
-      if (expectedServiceOrder[index] === "agent-tools-access-review") {
-        const request = new URL(primaryHref ?? "", "http://witnessops.test");
-        expect(request.searchParams.get("offerId")).toBe("agent-tools-access-review");
-        expect(request.searchParams.get("offer")).toBe(
-          scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review",
-        );
-      }
-      if (expectedServiceOrder[index] === "customer-security-review-sprint") {
-        expect(
-          new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("offerId"),
-        ).toBe("customer-security-review-sprint");
-      }
-      await expect(primary).toHaveText(buyerServiceCta(scenario.path.startsWith("/pl") ? "pl" : "en", buyerServiceById(expectedServiceOrder[index])));
-      // Public buyer cards expose only the request and web-detail paths.
-      if (expectedServiceOrder[index] === "customer-security-review-sprint") {
-        await expect(links).toHaveCount(2);
-      } else if (expectedServiceOrder[index] === "external-exposure-assessment") {
+      const requestPath = polish ? "/pl/review/request" : "/review/request";
+      const request = new URL(primaryHref ?? "", "http://witnessops.test");
+      expect(request.pathname).toBe(requestPath);
+      if (id === "external-exposure-assessment") {
+        expect(request.searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+        expect(request.searchParams.has("offerId")).toBe(false);
+        await expect(primary).toHaveText(polish ? "Omów przegląd ekspozycji" : "Scope an external review");
         await expect(links).toHaveCount(3);
-        await expect(links.nth(2)).toHaveAttribute(
-          "href",
-          "/review/sample-cases/external-exposure-assessment",
-        );
+        await expect(links.nth(2)).toHaveAttribute("href", "/review/sample-cases/external-exposure-assessment");
       } else {
+        expect(request.searchParams.get("offerId")).toBe("agent-action-security-review");
+        expect(request.searchParams.has("productId")).toBe(false);
+        expect(request.searchParams.get("offer")).toBe(polish ? "Agent Action Security Review" : "Agent Action Security Review");
+        await expect(primary).toHaveText(polish ? "Omów przegląd agenta AI" : "Scope an AI review");
         await expect(links).toHaveCount(2);
-        if (expectedServiceOrder[index] === "agent-tools-access-review") {
-          await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");
-        }
+        await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");
       }
     }
     await expect(page.locator('[data-one-pager], main a[href$=".pdf"]')).toHaveCount(0);
+    await expect(page.locator('[data-buyer-service="professional-public-footprint-audit"], [data-buyer-service="one-server-security-check"], [data-buyer-service="automation-repair-handover"], [data-buyer-service="customer-security-review-sprint"]')).toHaveCount(0);
+    await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
 
-    const publicFootprintCard = page.locator(
-      '[data-buyer-service="professional-public-footprint-audit"]',
-    );
-    await expect(publicFootprintCard).toContainText(
-      scenario.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
-    );
-    await expect(publicFootprintCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "4 900 EUR · bez VAT"
-        : "€4,900 · excluding VAT",
-    );
-    await expect(
-      publicFootprintCard.locator('[data-service-availability="available_by_request"]'),
-    ).toHaveCount(1);
-    const publicFootprintRequestHref = await publicFootprintCard.locator("a").first().getAttribute("href");
-    const publicFootprintRequest = new URL(
-      publicFootprintRequestHref ?? "",
-      "http://witnessops.test",
-    );
-    expect(publicFootprintRequest.pathname).toBe(
-      scenario.path.startsWith("/pl") ? "/pl/review/request" : "/review/request",
-    );
-    expect(publicFootprintRequest.searchParams.get("offerId")).toBe(
-      "professional-public-footprint-audit",
-    );
-    await expect(
-      page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),
-    ).toHaveCount(0);
-
-    const viewport = await page.evaluate(() => ({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
-    expect(viewport.scrollWidth, `${scenario.path} should not overflow`).toBeLessThanOrEqual(
-      viewport.clientWidth + 1,
-    );
-
+    const viewport = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
+    expect(viewport.scrollWidth, `${scenario.path} should not overflow`).toBeLessThanOrEqual(viewport.clientWidth + 1);
     const articleLinks = page.locator("main article a");
     expect(await articleLinks.count()).toBeGreaterThan(0);
     for (let index = 0; index < (await articleLinks.count()); index += 1) {
@@ -202,20 +107,25 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       const box = await link.boundingBox();
       expect(box?.height, `${scenario.path} article CTA ${index} height`).toBeGreaterThanOrEqual(44);
       expect((await link.textContent())?.trim().length ?? 0).toBeGreaterThan(0);
+      // Programmatic focus alone does not consistently trigger :focus-visible.
+      // Navigate with a keyboard to test the actual focus affordance.
       await link.focus();
-      const hasVisibleFocus = await link.evaluate((element) => {
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      await expect(link, `${scenario.path} article CTA ${index} keyboard focus`).toBeFocused();
+      const focus = await link.evaluate((element) => {
         const style = window.getComputedStyle(element);
-        return style.outlineStyle !== "none" || style.boxShadow !== "none";
+        return {
+          outline: style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2,
+          shadow: style.boxShadow !== "none",
+        };
       });
-      expect(hasVisibleFocus, `${scenario.path} article CTA ${index} focus indicator`).toBe(true);
+      expect(focus.outline || focus.shadow, `${scenario.path} article CTA ${index} visible keyboard focus`).toBe(true);
     }
-
-    const clippedCards = await page.locator("main article").evaluateAll((articles) =>
-      articles.filter((article) => {
-        const box = article.getBoundingClientRect();
-        return box.left < -1 || box.right > document.documentElement.clientWidth + 1;
-      }).length,
-    );
+    const clippedCards = await page.locator("main article").evaluateAll((articles) => articles.filter((article) => {
+      const box = article.getBoundingClientRect();
+      return box.left < -1 || box.right > document.documentElement.clientWidth + 1;
+    }).length);
     expect(clippedCards, `${scenario.path} should not clip offer cards`).toBe(0);
     expect(consoleErrors).toEqual([]);
     expect(pageErrors).toEqual([]);
@@ -227,33 +137,18 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
-
-  await page.getByRole("link", { name: "Explore the full catalogue" }).click();
+  await page.getByRole("link", { name: "Compare scopes and prices" }).click();
   await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
   const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
-  await expect(card).toContainText(
-    "€1,900 · excluding VAT",
-  );
+  await expect(card).toContainText("€1,900 · excluding VAT");
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
   await expect(card).toContainText(/payment alone does not authorise testing/i);
   await expect(card).toContainText("This is not a penetration test");
-  await expect(
-    card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
-  ).toHaveText("See a sample review →");
-
-  const fitHref = await card
-    .getByRole("link", { name: "Request this review" }).first()
-    .getAttribute("href");
-  expect(
-    new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
-      "productId",
-    ),
-  ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+  await expect(card.locator('a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveText("See a sample review →");
+  const fitHref = await card.getByRole("link", { name: "Request this review" }).first().getAttribute("href");
+  expect(new URL(fitHref ?? "", "http://witnessops.test").searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
-
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });

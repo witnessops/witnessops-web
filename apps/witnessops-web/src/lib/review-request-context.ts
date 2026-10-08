@@ -27,6 +27,8 @@ function selectedServiceFromRequest(
     offerId,
     searchParams.get("offer"),
   );
+  // The shell must not quietly sanitize a conflicted query into a paid CTA.
+  if (offerId !== null && searchParams.get("productId") !== null) return undefined;
   if (offerId !== null && requestedOffer) {
     return requestedOffer;
   }

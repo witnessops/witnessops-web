@@ -4,14 +4,14 @@ import test from "node:test";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "./buyer-services";
 import { listAdminBuyerServices } from "./admin-service-catalog";
 
-test("admin services mirror the canonical public catalogue without inventing contracts", () => {
+test("admin services mirror the retained registry while marking non-sellable paths generic", () => {
   const services = listAdminBuyerServices();
 
   assert.deepEqual(
     services.map((service) => service.id),
     BUYER_SERVICES.map((service) => service.id),
   );
-  assert.equal(services.length, 9);
+  assert.equal(services.length, 10);
 
   for (const [index, service] of services.entries()) {
     const authority = BUYER_SERVICES[index]!;
@@ -29,21 +29,15 @@ test("admin services mirror the canonical public catalogue without inventing con
     assert.deepEqual(
       service.requestContext,
       offerId
-        ? {
-            kind: "public_offer",
-            label: `offerId=${offerId}`,
-            preservesSelection: true,
-          }
-        : {
-            kind: "catalog_sku",
-            label: `productId=${productId}`,
-            preservesSelection: true,
-          },
+        ? { kind: "public_offer", label: `offerId=${offerId}`, preservesSelection: true }
+        : productId
+          ? { kind: "catalog_sku", label: `productId=${productId}`, preservesSelection: true }
+          : { kind: "generic", label: "generic /review/request", preservesSelection: false },
     );
   }
 });
 
-test("admin services preserve the selected offer for every public service", () => {
+test("admin service request selectors are allowed only for the two new-sales reviews", () => {
   const services = listAdminBuyerServices();
   const contextual = services.filter(
     (service) => service.requestContext.preservesSelection,
@@ -52,6 +46,7 @@ test("admin services preserve the selected offer for every public service", () =
     (service) => !service.requestContext.preservesSelection,
   );
 
-  assert.equal(contextual.length, BUYER_SERVICES.length);
-  assert.deepEqual(generic, []);
+  assert.deepEqual(contextual.map(s => s.id), ["agent-action-security-review", "external-exposure-assessment"]);
+  assert.equal(generic.length, BUYER_SERVICES.length - 2);
+  assert.ok(generic.some(s => s.id === "agent-tools-access-review"));
 });

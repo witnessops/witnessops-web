@@ -14,6 +14,7 @@ const polishPage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const expectedOrder = [
   "automation-repair-handover",
   "customer-security-review-sprint",
+  "agent-action-security-review",
   "agent-tools-access-review",
   "one-server-security-check",
   "external-exposure-assessment",
@@ -23,16 +24,16 @@ const expectedOrder = [
   "professional-public-footprint-audit",
 ];
 
-test("English and Polish catalogue pages render one shared offer contract", () => {
+test("English and Polish catalogue pages share the complete historical registry without promoting every entry", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 9);
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));
 });
 
-test("every public offer has one commercial contract and localized buyer copy", () => {
+test("every retained buyer-service source has a commercial contract and bilingual copy", () => {
   for (const service of BUYER_SERVICES) {
     assert.ok(service.commercialContract.price.length > 0);
     assert.ok(service.commercialContract.timing.length > 0);
@@ -79,7 +80,7 @@ test("approved server and launch commercial promises are represented once", () =
   );
 });
 
-test("each public offer carries a localized commercial boundary", () => {
+test("each retained service has a localized commercial boundary", () => {
   for (const service of BUYER_SERVICES) {
     for (const locale of ["en", "pl"] as const) {
       assert.ok(

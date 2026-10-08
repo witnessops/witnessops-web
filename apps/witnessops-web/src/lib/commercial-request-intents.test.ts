@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   ASK_AI_CONTACT_INTENT,
   BOUNDED_WORKFLOW_REVIEW_INTENT,
+  PUBLIC_AGENT_ACTION_REVIEW_INTENT,
   getCommercialRequestLabel,
   isGovernedReconRequestIntent,
   isManualCommercialRequestIntent,
@@ -36,6 +37,9 @@ test("current commercial request intents use the manual request lane", () => {
     );
   }
   assert.equal(isManualCommercialRequestIntent(ASK_AI_CONTACT_INTENT), true);
+  assert.equal(PUBLIC_AGENT_ACTION_REVIEW_INTENT, "agent-action-security-review");
+  assert.equal(getCommercialRequestLabel(PUBLIC_AGENT_ACTION_REVIEW_INTENT), "Agent Action Security Review request");
+  assert.equal(BOUNDED_WORKFLOW_REVIEW_INTENT, "bounded-workflow-review");
   assert.equal(
     getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT),
     "Agent Action Security Review request",

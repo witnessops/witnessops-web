@@ -395,18 +395,24 @@ test("External Attack Surface Review synthetic sample is buyer-safe and responsi
   }
 });
 
-test("Polish offer handoff keeps the canonical contract on the request page", async ({ page }) => {
+test("Polish historical offer handoff cannot silently sell a retired review", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
+  // The historical detail page is preserved, but it is not a third new-sales offer.
+  const detailResponse = await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
+  expect(detailResponse?.status()).toBe(200);
+  await expect(page.locator("main")).toContainText("Key, Access and Custody Review");
   await page.locator('main a[href^="/pl/review/request?"]:visible').first().click();
   await expect(page).toHaveURL(/\/pl\/review\/request\?/);
-  const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
-  await expect(selectedOffer).toContainText("Key, Access and Custody Review");
-  await expect(selectedOffer).toContainText(
-    "13 000–65 000 zł (ok. €3 000–€15 000) · bez VAT",
-  );
-  await expect(selectedOffer).toContainText(
-    "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
-  );
-  await expect(selectedOffer).not.toContainText("Custody / Wallet-Ops Review");
+  const main = page.locator('main[data-request-selection="unavailable"]');
+  await expect(main).toBeVisible();
+  await expect(main).toContainText("Ten link nie wybiera aktualnej oferty");
+  await expect(main).toContainText("Nie zastąpiliśmy go inną usługą");
+  await expect(main).not.toContainText("13 000–65 000 zł (ok. €3 000–€15 000)");
+  await expect(main.locator("form")).toHaveCount(0);
+  await expect(main.locator("[data-review-choice]")).toHaveCount(2);
+  await main.locator('[data-review-choice="external-exposure-assessment"] a').click();
+  await expect(page.locator('main[data-request-selection="external-exposure-assessment"]')).toBeVisible();
+  await expect(page.locator("main")).toContainText("External Attack Surface Review");
+  await expect(page.locator("main")).toContainText("€1 900 · bez VAT");
+  await expect(page.locator('main form input[name="intent"]')).toHaveValue("OFFSEC-EXTERNAL-EXPOSURE");
 });

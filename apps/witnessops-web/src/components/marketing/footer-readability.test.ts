@@ -9,7 +9,7 @@ import {
   isLibraryPath,
   resolveFooterHref,
 } from "./footer";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
@@ -95,7 +95,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
-    'label: "AI Agent Tools & Access Review (EN)"',
+    'label: "Agent Action Security Review (EN)"',
     'href: "/pl/catalog/offsec-external-exposure"',
     'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
@@ -106,8 +106,8 @@ test("footer provides Polish homepage labels without changing route contracts", 
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
 
-  assert.equal(PRIMARY_OFFER.name.pl, "Przegląd narzędzi i dostępu agenta AI");
-  assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.pl, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.route, "/catalog/workflows");
   assert.match(source, /reviewRequestHrefForLocation\(/);
   assert.match(source, /primaryHref=\{reviewRequestHref\}/);
 });
@@ -124,7 +124,7 @@ test("library surface includes English and Polish library paths", () => {
 
 test("footer uses the bounded public funnel without deleting repair services", () => {
   const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["AI Agent Tools & Access Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  for (const label of ["Agent Action Security Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
   assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });
 

@@ -1,5 +1,6 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
   AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
@@ -14,6 +15,7 @@ export type BuyerService = {
     | "automation-repair-handover"
     | "customer-security-review-sprint"
     | "agent-tools-access-review"
+    | "agent-action-security-review"
     | "one-server-security-check"
     | "external-exposure-assessment"
     | "launch-readiness-check"
@@ -44,19 +46,11 @@ export type BuyerService = {
   detailHref: Partial<Record<BuyerLocale, string>>;
 };
 
-export type BuyerPublicOfferId = Extract<
-  BuyerService["id"],
-  | "automation-repair-handover"
-  | "customer-security-review-sprint"
-  | "agent-tools-access-review"
-  | "professional-public-footprint-audit"
->;
+/** New-sales offerId: never reuse the historical one-action or inventory review IDs. */
+export type BuyerPublicOfferId = "agent-action-security-review";
 
 const BUYER_PUBLIC_OFFER_IDS = [
-  "automation-repair-handover",
-  "customer-security-review-sprint",
-  "agent-tools-access-review",
-  "professional-public-footprint-audit",
+  "agent-action-security-review",
 ] as const satisfies readonly BuyerPublicOfferId[];
 
 function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
@@ -113,9 +107,27 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   },
 
   {
-    id: PRIMARY_OFFER.id,
+    id: PUBLIC_AGENT_ACTION_OFFER.id,
     commercialRole: "primary",
     homepageFeatured: true,
+    commercialContract: PUBLIC_AGENT_ACTION_OFFER.commercialContract,
+    name: PUBLIC_AGENT_ACTION_OFFER.name,
+    cardSituation: PUBLIC_AGENT_ACTION_OFFER.cardSituation,
+    situation: PUBLIC_AGENT_ACTION_OFFER.situation,
+    result: PUBLIC_AGENT_ACTION_OFFER.result,
+    price: PUBLIC_AGENT_ACTION_OFFER.price,
+    timing: PUBLIC_AGENT_ACTION_OFFER.timing,
+    boundary: {
+      en: "One consequential agent or automation action. Read, inspect, reconstruct and report. Authority, approvals, executing identity, effective permission boundary and available action evidence only. No production changes, execution, exploitation, credentials, remediation, multi-workflow programme, continuous monitoring or certification.",
+      pl: "Jedno istotne działanie agenta lub automatyzacji. Odczyt, inspekcja, rekonstrukcja i raport. Analiza upoważnienia, zatwierdzenia, tożsamości wykonawczej, faktycznych uprawnień i dostępnych dowodów działania. Bez zmian produkcyjnych, wykonania działania, eksploatacji, poświadczeń, napraw, programów wielu działań, monitoringu ani certyfikacji.",
+    },
+    requestCta: { en: "Scope an Agent Action review", pl: "Omów przegląd działania agenta" },
+    detailHref: { en: PUBLIC_AGENT_ACTION_OFFER.route, pl: PUBLIC_AGENT_ACTION_OFFER.route },
+  },
+  {
+    id: PRIMARY_OFFER.id,
+    homepageFeatured: false,
+    // Retained solely for historical and issued-contract readbacks.
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
     cardSituation: PRIMARY_OFFER.cardSituation,
@@ -394,7 +406,10 @@ export function buyerServiceRequestHref(
   service: BuyerService,
 ): string {
   if (service.productId) {
-    return buyerOfferRequestHref(locale, service.productId);
+    // Only the External Attack Surface Review can be newly selected with productId.
+    return service.productId === "OFFSEC-EXTERNAL-EXPOSURE"
+      ? buyerOfferRequestHref(locale, service.productId)
+      : buyerRequestHref(locale);
   }
   if (isBuyerPublicOfferId(service.id)) {
     return buyerPublicOfferRequestHref(locale, service.id);
@@ -456,11 +471,9 @@ export function buyerServiceFromRequestOffer(
     return buyerServiceByPublicOfferId(offerId);
   }
 
-  if (offer === AUTOMATION_REPAIR_OFFER.name.en || offer === AUTOMATION_REPAIR_OFFER.name.pl) return buyerServiceById(AUTOMATION_REPAIR_OFFER.id);
-
-  return offer === PRIMARY_OFFER.name.en
-    ? buyerServiceById(PRIMARY_OFFER.id)
-    : undefined;
+  // An untrusted display label alone cannot select, reactivate or authorise a review.
+  void offer;
+  return undefined;
 }
 
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {

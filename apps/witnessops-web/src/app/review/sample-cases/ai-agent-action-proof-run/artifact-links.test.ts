@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
   buyerWalkthroughHref,
   publicVerifierSha256,
@@ -155,33 +155,27 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
 });
 
-test("specimen review CTA preserves the AI Agent Tools & Access Review selection", () => {
+test("synthetic specimen offers the new fixed one-action review without rewriting sample evidence", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
-
-  assert.match(
-    page,
-    /buyerPublicOfferRequestHref\(\s*"en",\s*PRIMARY_OFFER\.id,?\s*\)/,
-  );
-  assert.match(page, /Need to review your agent tools and access\?/);
-  assert.match(page, /PRIMARY_OFFER\.name\.en/);
-  assert.match(page, /PRIMARY_OFFER\.price\.en/);
-  assert.match(page, /PRIMARY_OFFER\.timing\.en/);
-  assert.match(page, /This synthetic one-action example is historical/);
-  assert.match(page, /Non-secret fit and scoping request first\./);
+  assert.match(page, /buyerPublicOfferRequestHref\(\s*"en",\s*PUBLIC_AGENT_ACTION_OFFER\.id,?\s*\)/);
+  assert.match(page, /Want to understand the safeguards around one agent action\?/);
+  assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.name\.en/);
+  assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.price\.en/);
+  assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.timing\.en/);
+  assert.match(page, /This fixed synthetic example is not a real action or customer outcome/);
+  assert.match(page, /It does not include a device-wide inventory or certify safety/);
+  assert.match(page, /Non-secret fit check first\./);
   assert.match(page, /<Link href=\{reviewRequestHref\}>Request scope and quote<\/Link>/);
   assert.equal(
-    buyerPublicOfferRequestHref("en", "agent-tools-access-review"),
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id),
+    "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review",
   );
-  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
-  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
-  assert.equal(
-    PRIMARY_OFFER.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, "agent-action-security-review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
 });
 
 test("specimen metadata uses claim-safe copy and the shared social preview", () => {

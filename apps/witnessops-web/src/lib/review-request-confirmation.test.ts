@@ -159,6 +159,7 @@ test("maps public request intents to fixed record labels", () => {
   assert.deepEqual(
     [
       "bounded-workflow-review",
+      "agent-action-security-review",
       "agent-tools-access-review",
       "ai-agent-action-proof-run",
       "access-change-proof-run",
@@ -172,6 +173,7 @@ test("maps public request intents to fixed record labels", () => {
     ].map(resolveReviewRequestKind),
     [
       "agent-risk-control-review",
+      "agent-action-security-review",
       "agent-tools-access-review",
       "ai-agent-action-proof-run",
       "access-change-proof-run",
@@ -185,4 +187,17 @@ test("maps public request intents to fixed record labels", () => {
     ],
   );
   assert.equal(resolveReviewRequestKind("review"), "review-request");
+});
+
+test("new Agent Action confirmations use their distinct kind without rewriting either historical interpretation", () => {
+  assert.equal(resolveReviewRequestKind("agent-action-security-review"), "agent-action-security-review");
+  assert.equal(resolveReviewRequestKind("bounded-workflow-review"), "agent-risk-control-review");
+  assert.equal(resolveReviewRequestKind("agent-tools-access-review"), "agent-tools-access-review");
+  const current = buildStandaloneReviewRequestConfirmation({
+    ...validResponse, requestIntent: "agent-action-security-review", requestLocale: "en",
+  });
+  assert.ok(current);
+  assert.equal(current.requestKind, "agent-action-security-review");
+  assert.match(buildReviewRequestConfirmationText(current), /Request: Agent Action Security Review/);
+  assert.match(buildReviewRequestConfirmationText(current), /Review started: NO/);
 });

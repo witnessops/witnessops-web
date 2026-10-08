@@ -1,7 +1,7 @@
 import "server-only";
 import { hasLikelySecret } from "../secret-detection";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 export type AskCommercialFitResult =
   | "likely"
@@ -20,14 +20,14 @@ export interface AskCommercialFitAssessment {
   readonly schema: "witnessops.ask.commercial-fit.v1";
   readonly result: AskCommercialFitResult;
   readonly intent: AskCommercialIntent;
-  readonly offer_id: typeof PRIMARY_OFFER.id | null;
+  readonly offer_id: typeof PUBLIC_AGENT_ACTION_OFFER.id | null;
   readonly source: "ask";
   readonly offer: {
-    readonly name: (typeof PRIMARY_OFFER.name)["en"];
-    readonly price_label: (typeof PRIMARY_OFFER.price)["en"];
-    readonly unit_label: (typeof PRIMARY_OFFER.unit)["en"];
-    readonly fit_check_label: (typeof PRIMARY_OFFER.fitCheck)["en"];
-    readonly delivery_label: (typeof PRIMARY_OFFER.timing)["en"];
+    readonly name: (typeof PUBLIC_AGENT_ACTION_OFFER.name)["en"];
+    readonly price_label: (typeof PUBLIC_AGENT_ACTION_OFFER.price)["en"];
+    readonly unit_label: (typeof PUBLIC_AGENT_ACTION_OFFER.unit)["en"];
+    readonly fit_check_label: (typeof PUBLIC_AGENT_ACTION_OFFER.fitCheck)["en"];
+    readonly delivery_label: (typeof PUBLIC_AGENT_ACTION_OFFER.timing)["en"];
   } | null;
   readonly matching_specimen_id: "ai-agent-action-proof-run" | null;
 }
@@ -49,13 +49,13 @@ const LIKELY_FIT_AUTHORITY_CLASSES = new Set([
 
 
 const NAMED_OFFER_PATTERN =
-  /\b(ai agent tools (?:&|and) access review|what does witnessops do|what can witnessops do)\b/i;
+  /\b(agent action security review|what does witnessops do|what can witnessops do)\b/i;
 const HISTORICAL_OFFER_PATTERN =
-  /\b(agent action security review|agent workflow reconstruction|agent risk (?:&|and) control review)\b/i;
+  /\b(ai agent tools (?:&|and) access review|agent workflow reconstruction|agent risk (?:&|and) control review)\b/i;
 const OFFER_DETAIL_PATTERN =
   /\b(how much|price|pricing|cost|fee|deliverables?|what (?:is|isn't|is not) included|review scope)\b/i;
 const OFFER_CONTEXT_PATTERN =
-  /\b(witnessops|ai agent tools (?:&|and) access review|agent tools|agent access|workflow review)\b/i;
+  /\b(witnessops|agent action security review|agent action|agent approvals|workflow review)\b/i;
 const AGENT_PATTERN =
   /\b(ai[- ]?agent|agentic|agent workflow|automated workflow|automation|autonomous agent|copilot)\b/i;
 const CONSEQUENTIAL_ACTION_PATTERN =
@@ -127,15 +127,15 @@ function assessment(
     schema: "witnessops.ask.commercial-fit.v1",
     result,
     intent,
-    offer_id: presentsOffer ? PRIMARY_OFFER.id : null,
+    offer_id: presentsOffer ? PUBLIC_AGENT_ACTION_OFFER.id : null,
     source: "ask",
     offer: presentsOffer
       ? {
-          name: PRIMARY_OFFER.name.en,
-          price_label: PRIMARY_OFFER.price.en,
-          unit_label: PRIMARY_OFFER.unit.en,
-          fit_check_label: PRIMARY_OFFER.fitCheck.en,
-          delivery_label: PRIMARY_OFFER.timing.en,
+          name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+          price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+          unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
+          fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
+          delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
         }
       : null,
     matching_specimen_id: matchingSpecimen,
