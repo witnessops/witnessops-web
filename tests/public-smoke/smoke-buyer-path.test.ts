@@ -137,7 +137,8 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.requiredMarkers.includes("Record one bounded check"));
   assert.ok(english.requiredMarkers.includes("Not a review."));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Sprawdź narzędzia i dostęp agenta AI"));
+  assert.ok(polish.requiredMarkers.includes("Omów przegląd agenta AI"));
+  assert.ok(polish.requiredMarkers.includes("Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy."));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
 });
 
@@ -156,10 +157,11 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
   for (const path of ["/catalog"] as const) {
     const route = routeContract(path);
     for (const marker of [
-      "Scope a review",
-      "AI Agent Tools &amp; Access Review",
-      "Starting at €2,500 · excluding VAT",
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+      "Two focused security reviews.",
+      "Agent Action Security Review",
+      "€2,500 fixed · excluding VAT",
+      "Within 10 working days after evidence rules are agreed",
+      "Scope an AI review",
       "External Attack Surface Review",
       "€1,900 · excluding VAT",
     ]) {
@@ -301,7 +303,7 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
   for (const [path, marker] of [
     ["/", "Not a review."],
     ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
-    ["/pricing", "No payment is taken here."],
+    ["/pricing", "An enquiry does not authorise collection or start a review."],
     ["/review/request", "No work or target-facing check starts from this form."],
   ]) {
     const route = routeContract(path);
