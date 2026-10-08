@@ -64,7 +64,10 @@ test("External Attack Surface Review sample preserves the synthetic and integrit
 test("sample remains linked from its offer detail and catalogue; pricing links to the catalogue", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
   assert.match(serviceLandings, new RegExp(route));
-  // Pricing delegates its catalogue link to the shared current-offer component.\n  assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);\n  assert.match(catalogue, /catalogueCta/);\n  assert.match(catalogue, /\/"\/);
+  // Shared pricing surface links through BuyerCatalogue, not inline page source.
+  assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
+  assert.match(catalogue, /catalogueCta/);
+  assert.match(catalogue, /"\/catalog"/);
   assert.match(catalogue, new RegExp(route));
   assert.doesNotMatch(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.match(homepagePreview, new RegExp(route));
