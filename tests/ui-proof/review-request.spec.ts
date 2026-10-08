@@ -361,53 +361,39 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
   }
 });
 
-test("primary request selection canonicalizes aliases and conflicting query text", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    reducedMotion: "reduce",
-  });
-  const page = await context.newPage();
-
-  for (const query of [
-    "offer=AI+Agent+Tools+%26+Access+Review",
-    "offerId=agent-tools-access-review&offer=Public+Exposure+Review",
-    "offerId=agent-tools-access-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
+test("new AI selection requires exact offerId and never trusts a conflicting display label", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const { query, selected } of [
+    { query: "offer=AI+Agent+Tools+%26+Access+Review", selected: false },
+    { query: "offerId=agent-tools-access-review&offer=Buyer-edited+title", selected: true },
+    { query: "offerId=agent-tools-access-review&offer=Public+Exposure+Review", selected: true },
+    { query: "offerId=agent-tools-access-review&productId=OFFSEC-EXTERNAL-EXPOSURE", selected: false },
+    { query: "offerId=bounded-workflow-review", selected: false },
   ]) {
-    const response = await page.goto(`/review/request?${query}`, {
-      waitUntil: "networkidle",
-    });
+    const response = await page.goto("/review/request?" + query, { waitUntil: "networkidle" });
     expect(response?.status(), query).toBe(200);
     const main = page.locator("main");
-    await expect(
-      page.getByText("Selected offer: AI Agent Tools & Access Review"),
-    ).toBeVisible();
-    await expect(main).toContainText("Starting at €2,500 · excluding VAT");
-    await expect(main).toContainText(
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
-    await expect(main.locator('form input[name="intent"]')).toHaveValue(
-      "agent-tools-access-review",
-    );
-    await expect(main).not.toContainText("Agent Risk & Control Review");
-    await expect(main).not.toContainText("From €1,500");
-    await expect(main).not.toContainText(
-      "Request an AI Agent Action Proof Run",
-    );
+    if (selected) {
+      await expect(main).toHaveAttribute("data-request-selection", "agent-tools-access-review");
+      await expect(main.getByRole("heading", { name: "AI Agent Tools & Access Review", exact: true })).toBeVisible();
+      await expect(main).toContainText("Starting at €2,500 · excluding VAT");
+      await expect(main).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+      await expect(main.locator('form input[name="intent"]')).toHaveValue("agent-tools-access-review");
+      await expect(main).not.toContainText("Buyer-edited title");
+      await expect(main).not.toContainText("Public Exposure Review");
+      await expect(main).not.toContainText("Agent Risk & Control Review");
+    } else {
+      await expect(main).toHaveAttribute("data-request-selection", "unavailable");
+      await expect(main).toContainText("Nothing has been substituted");
+      await expect(main.locator("form")).toHaveCount(0);
+      await expect(main.locator("[data-review-choice]")).toHaveCount(2);
+    }
   }
-
   await expect(
-    page
-      .locator("main")
-      .getByRole("link", { name: "engage@mail.witnessops.com" })
-      .first(),
+    page.locator("main").getByRole("link", { name: "engage@mail.witnessops.com" }).first(),
   ).toHaveAttribute(
-    "href",
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check",
+    "href", "mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check",
   );
-
-  await context.close();
 });
 
 test("External Attack Surface Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
