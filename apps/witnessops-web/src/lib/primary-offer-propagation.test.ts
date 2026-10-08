@@ -258,7 +258,8 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(agentActionCard, /AI Agent Tools &amp; Access Review/);
   assert.doesNotMatch(agentActionCard, /External Attack Surface Review/);
   assert.doesNotMatch(agentActionCard, /Agent Risk &amp; Control Review|€1,500/);
-  assert.match(agentActionCard, /href="\/catalog\/workflows"/);
+  assert.match(agentActionCard, /offerId=agent-action-security-review/);
+  assert.doesNotMatch(agentActionCard, /href="\/catalog\/workflows"/);
   assert.doesNotMatch(agentActionCard, /offerId=agent-tools-access-review/);
   const catalogue = renderToStaticMarkup(
     createElement(BuyerCatalogue, { locale: "en" }),
