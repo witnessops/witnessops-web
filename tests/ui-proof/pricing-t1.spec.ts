@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER, PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 
 for (const width of [390, 1440]) {
   test(`pricing shows only AI and external with valid enquiry paths at ${width}px`, async ({ page }) => {
@@ -55,25 +55,22 @@ test("discovery changes preserve old direct routes without promoting them in the
   }
 });
 
-// Compatibility evidence for this discovery-only stage, NOT final new-sales acceptance.
-// The separate intake stage must retire new legacy selection without breaking historical confirmations.
-test("legacy direct enquiry compatibility is unchanged by the discovery-only patch", async ({ page }) => {
-  let scope = "";
+test("retired footprint URLs cannot create a new enquiry or silently select another offer", async ({ page }) => {
+  let posted = false;
   await page.route("**/api/review/request", async route => {
-    scope = (route.request().postDataJSON() as { scope: string }).scope;
-    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ issuanceId: "iss_early_bird", email: "buyer@example.com", expiresAt: "2026-09-27T22:00:00.000Z" }) });
+    posted = true;
+    await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false }) });
   });
   await page.goto("/review/request");
-  await expect(page.locator("#enquiryPath")).toHaveValue("Free check");
-  await expect(page.locator("#enquiryPath option")).toHaveCount(5);
+  await expect(page.locator('main[data-request-selection="fit"]')).toBeVisible();
+  await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
+  await expect(page.locator("main form")).toHaveCount(0);
   await page.goto("/review/request?enquiryPath=early-bird");
-  await page.waitForLoadState("networkidle");
-  await expect(page.locator("#enquiryPath")).toHaveValue(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
-  await page.locator("#name").fill("Synthetic Buyer");
-  await page.locator("#email").fill("buyer@example.com");
-  await page.locator("#workflow").fill("Please review the public footprint of our authorised domain.");
-  await page.locator('main form button[type="submit"]').click();
-  await expect.poll(() => scope).toContain(`Enquiry path: ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}`);
+  await expect(page.locator('main[data-request-selection="unavailable"]')).toBeVisible();
+  await expect(page.locator("main")).toContainText("Nothing has been substituted");
+  await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
+  await expect(page.locator("main form")).toHaveCount(0);
+  expect(posted).toBe(false);
 });
 
 test("published English FAQ keeps free-signup boundaries and current pricing guidance", async ({ page }) => {
@@ -82,3 +79,36 @@ test("published English FAQ keeps free-signup boundaries and current pricing gui
   await expect(main).toContainText("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan.");
   await expect(main).not.toContainText("Paid app plans on the pricing page are illustrative");
 });
+
+for (const locale of ["en", "pl"] as const) {
+  test(`Two-Offer V1 ${locale} homepage and new-request selection`, async ({ page }) => {
+    const prefix = locale === "pl" ? "/pl" : "";
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(prefix || "/");
+    const main = page.locator("main");
+    await expect(main.locator("[data-home-offer]")).toHaveCount(2);
+    await expect(main.locator('[data-home-offer="agent-tools-access"]')).toContainText(locale === "pl" ? "Od €2 500" : "Starting at €2,500");
+    await expect(main.locator('[data-home-offer="external-exposure"]')).toContainText(locale === "pl" ? "€1 900" : "€1,900");
+    await expect(main).not.toContainText(/Early Bird|Internet Footprint Review|€500|€49|€149/);
+    await expect(main.locator('a[href="/check"]')).toHaveCount(1);
+    await expect(main.locator("#enquiryPath")).toHaveCount(0);
+    await main.locator('[data-ui-proof-id="homepage-external-cta"]').click();
+    expect(new URL(page.url()).searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+    await expect(page.locator('main[data-request-selection="external-exposure-assessment"]')).toBeVisible();
+    await expect(page.locator("main form")).toHaveCount(1);
+    await page.goto(`${prefix}/review/request?offerId=agent-tools-access-review`);
+    await expect(page.locator('main[data-request-selection="agent-tools-access-review"]')).toBeVisible();
+    await expect(page.locator("main form")).toHaveCount(1);
+    await page.goto(`${prefix}/review/request`);
+    await expect(page.locator('main[data-request-selection="fit"]')).toBeVisible();
+    await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
+    await expect(page.locator("main form")).toHaveCount(0);
+    for (const query of ["enquiryPath=early-bird", "offerId=automation-repair-handover", "productId=OFFSEC-LOCAL-AUDIT", "offerId=agent-tools-access-review&productId=OFFSEC-EXTERNAL-EXPOSURE", "offerId=agent-tools-access-review&offerId=agent-tools-access-review"]) {
+      await page.goto(`${prefix}/review/request?${query}`);
+      await expect(page.locator('main[data-request-selection="unavailable"]')).toBeVisible();
+      await expect(page.locator("main form")).toHaveCount(0);
+      await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+}

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { validateNewReviewIntake } from "@/lib/new-review-request-policy";
+
 import { isBusinessEmail } from "@/lib/freemail-policy";
 import {
   engageRequestSchema,
@@ -66,6 +68,20 @@ export async function handleReviewRequestIntake(
       request,
       PUBLIC_JSON_BODY_LIMIT_BYTES,
     );
+    // Applies only to new public issuance, never stored-request verification.
+    // Read raw selector fields before Zod can strip aliases or normalize intent.
+    const selection = validateNewReviewIntake(raw);
+    if (!selection.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "This selection is not available for new requests. Choose an AI or external review at /review/request.",
+          field: "intent",
+          code: "NEW_REVIEW_SELECTION_REQUIRED",
+        },
+        { status: 400 },
+      );
+    }
     const parsed = (
       options.validation === "review"
         ? reviewRequestSchema
@@ -75,7 +91,7 @@ export async function handleReviewRequestIntake(
       return invalidRequestResponse(parsed.error);
     }
 
-    const { email, name, org, intent, locale, scope } = parsed.data;
+    const { email, name, org, locale, scope } = parsed.data;
     if (!isBusinessEmail(email)) {
       return NextResponse.json(
         {
@@ -100,7 +116,7 @@ export async function handleReviewRequestIntake(
       submission: {
         name,
         org,
-        intent: intent ?? "review",
+        intent: selection.intent,
         locale: locale ?? "en",
         scope,
       },
