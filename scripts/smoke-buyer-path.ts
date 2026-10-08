@@ -30,11 +30,46 @@ export function escapeAmpersandsForHtml(value: string): string {
   return value.replaceAll("&", "&amp;");
 }
 
+/** Old purchase copy that must not return as a public new-sales choice. */
+const WITHDRAWN_PURCHASE_MARKERS = [
+  "Private Pilot",
+  "OFFSEC-PILOT",
+  "€950",
+  "Internet Footprint Review",
+  "Early Bird",
+  "Customer Security Review Sprint",
+  "Starting at €2,500 · excluding VAT",
+  "Launch Readiness Check",
+  "Key, Access and Custody Review",
+  "Incident Readiness Review",
+  "Professional Public Footprint Audit",
+  "€4,900 · excluding VAT",
+  "What do you need to check?",
+  "Review a system",
+  "Shared service principles",
+  "Scope this review",
+  "Automation Repair &amp; Handover",
+  "€250 diagnosis",
+  "Available by request",
+  "Request a scope and fixed quote",
+] as const;
+
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
     requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", ...WITHDRAWN_PURCHASE_MARKERS],
+  },
+  {
+    path: "/check",
+    requiredMarkers: [
+      "Check your public exposure.",
+      "Run free check",
+      "No account or email required.",
+      "This feature does not store results.",
+      "No exploitation or credentials",
+    ],
+    prohibitedMarkers: ["Private Pilot", "OFFSEC-PILOT", "€950", "offerId=agent-action-security-review"],
   },
   {
     path: "/catalog/automation-repair",
@@ -92,6 +127,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "productId=OFFSEC-PILOT",
       "Request a scope and fixed quote",
       "Scope this review",
+      ...WITHDRAWN_PURCHASE_MARKERS,
     ],
   },
   {
@@ -128,6 +164,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "certifies that the agent was correct",
       "Request a scope and fixed quote",
       'name="intent" value="agent-tools-access-review"',
+      "offerId=agent-action-security-review",
+      "€2,500 fixed",
     ],
   },
   {
@@ -328,6 +366,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "offerId=customer-security-review-sprint",
       "productId=OFFSEC-PILOT",
       "Request a scope and fixed quote",
+      ...WITHDRAWN_PURCHASE_MARKERS,
     ],
   },
   {
@@ -377,7 +416,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl",
     requiredMarkers: ["Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.", "Omów przegląd agenta AI", PUBLIC_AGENT_ACTION_OFFER.price.pl, "Fikcyjny przykład · Nie testowano systemu", EXTERNAL_ATTACK_SURFACE_OFFER.name.pl, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review"],
   },
   {
     path: "/pl/catalog",
@@ -410,6 +449,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "offerId=automation-repair-handover",
       "offerId=customer-security-review-sprint",
       "productId=OFFSEC-PILOT",
+      "Private Pilot",
+      "€950",
+      "Od €2 500",
+      "Customer Security Review Sprint",
+      "Omów zakres przeglądu",
+      "Scope this review",
     ],
   },
   {
@@ -533,6 +578,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.",
       "Next, confirm your email with a code.", "Submit non-secret enquiry",
       'value="OFFSEC-EXTERNAL-EXPOSURE"',
+      'value="agent-action-security-review"',
       'action="/api/review/request"',
       "No work or target-facing check starts from this form.",
     ],
@@ -554,6 +600,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       'value="agent-tools-access-review"',
       "Not sure",
       "Internet Footprint Review",
+      "Private Pilot",
+      "OFFSEC-PILOT",
+      "€950",
+      "Customer Security Review Sprint",
+      "Starting at €2,500 · excluding VAT",
     ],
   },
   {
@@ -969,6 +1020,90 @@ export function evaluateBuyerPathRoute(
   };
 }
 
+export type BuyerPathIntakeProbe = {
+  name: string;
+  path: "/api/review/request" | "/api/engage" | "/api/contact";
+  body: Record<string, unknown>;
+  expectReason?: string;
+  expectError?: string;
+};
+
+const intakeIdentity = {
+  name: "Synthetic Buyer",
+  org: "Example",
+  scope: "One bounded non-secret summary.",
+  locale: "en",
+} as const;
+
+function intakeBody(intent: string, extra: Record<string, unknown> = {}, email = "security@witnessops.com") {
+  return { ...intakeIdentity, email, intent, ...extra };
+}
+
+export const buyerPathIntakeProbes: readonly BuyerPathIntakeProbe[] = [
+  { name: "historical inventory", path: "/api/review/request", body: intakeBody("agent-tools-access-review"), expectReason: "historical" },
+  { name: "historical automation repair", path: "/api/review/request", body: intakeBody("automation-repair-handover"), expectReason: "historical" },
+  { name: "historical customer sprint", path: "/api/review/request", body: intakeBody("customer-security-review-sprint"), expectReason: "historical" },
+  { name: "historical bounded workflow", path: "/api/review/request", body: intakeBody("bounded-workflow-review"), expectReason: "historical" },
+  { name: "private pilot id", path: "/api/review/request", body: intakeBody("OFFSEC-PILOT"), expectReason: "unsupported" },
+  { name: "private pilot label", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review — Private Pilot"), expectReason: "unsupported" },
+  { name: "display name only", path: "/api/review/request", body: intakeBody("Agent Action Security Review"), expectReason: "unsupported" },
+  { name: "inventory display name", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review"), expectReason: "unsupported" },
+  { name: "wrong-role service id", path: "/api/review/request", body: intakeBody("external-exposure-assessment"), expectReason: "wrong-role" },
+  { name: "ambiguous both identities", path: "/api/review/request", body: intakeBody("agent-action-security-review", { productId: "OFFSEC-EXTERNAL-EXPOSURE" }), expectReason: "ambiguous" },
+  { name: "conflicting display", path: "/api/review/request", body: intakeBody("agent-action-security-review", { offer: "Buyer-edited title" }), expectReason: "ambiguous" },
+  { name: "engage alias historical", path: "/api/engage", body: intakeBody("agent-tools-access-review"), expectReason: "historical" },
+  { name: "contact alias pilot", path: "/api/contact", body: intakeBody("OFFSEC-PILOT"), expectReason: "unsupported" },
+  { name: "accepted agent action stops at email gate", path: "/api/review/request", body: intakeBody("agent-action-security-review", {}, "buyer@gmail.com"), expectError: "Please use your business email." },
+  { name: "accepted external product stops at email gate", path: "/api/review/request", body: intakeBody("OFFSEC-EXTERNAL-EXPOSURE", {}, "buyer@gmail.com"), expectError: "Please use your business email." },
+];
+
+export type BuyerPathIntakeResult = {
+  name: string;
+  path: string;
+  status: number;
+  ok: boolean;
+  detail: string;
+};
+
+export async function runBuyerPathIntakeProbes(
+  baseUrl: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<BuyerPathIntakeResult[]> {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const results: BuyerPathIntakeResult[] = [];
+  for (const [index, probe] of buyerPathIntakeProbes.entries()) {
+    const response = await fetchImpl(new URL(probe.path, `${normalizedBaseUrl}/`), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": `203.0.113.${10 + index}`,
+      },
+      body: JSON.stringify(probe.body),
+    });
+    const payload = (await response.json().catch(() => null)) as {
+      ok?: boolean;
+      error?: string;
+      reason?: string;
+      issuanceId?: string;
+    } | null;
+    const reasonOk = probe.expectReason
+      ? response.status === 400 && payload?.ok === false && payload.reason === probe.expectReason && !payload.issuanceId
+      : false;
+    const emailOk = probe.expectError
+      ? response.status === 400 && payload?.error === probe.expectError && payload.reason === undefined && !payload.issuanceId
+      : false;
+    const ok = reasonOk || emailOk;
+    results.push({
+      name: probe.name,
+      path: probe.path,
+      status: response.status,
+      ok,
+      detail: ok ? probe.expectReason ?? probe.expectError ?? "" : JSON.stringify(payload),
+    });
+  }
+  return results;
+}
+
 export async function runBuyerPathSmoke(
   baseUrl: string,
   routes: BuyerPathSmokeRoute[] = buyerPathSmokeRoutes,
@@ -1051,7 +1186,8 @@ function formatResult(result: BuyerPathSmokeResult): string {
 async function main() {
   const { baseUrl, json } = parseArgs(process.argv.slice(2));
   const results = await runBuyerPathSmoke(baseUrl);
-  const ok = results.every((result) => result.ok);
+  const intake = await runBuyerPathIntakeProbes(baseUrl);
+  const ok = results.every((result) => result.ok) && intake.every((result) => result.ok);
 
   if (json) {
     console.log(
@@ -1060,6 +1196,7 @@ async function main() {
           ok,
           baseUrl: normalizeBaseUrl(baseUrl),
           results,
+          intake,
         },
         null,
         2,
@@ -1068,6 +1205,13 @@ async function main() {
   } else {
     for (const result of results) {
       console.log(formatResult(result));
+    }
+    for (const result of intake) {
+      console.log(
+        [result.ok ? "PASS" : "FAIL", "INTAKE", result.path, result.name, String(result.status), result.detail]
+          .filter(Boolean)
+          .join(" "),
+      );
     }
   }
 

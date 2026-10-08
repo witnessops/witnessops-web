@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buyerPathIntakeProbes,
   buyerPathSmokeRoutes,
   escapeAmpersandsForHtml,
   evaluateBuyerPathRoute,
@@ -189,6 +190,51 @@ test("catalogue smoke preserves the two public review request paths", () => {
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
       `/catalog must include ${marker}`,
     );
+  }
+  for (const marker of [
+    "Private Pilot",
+    "OFFSEC-PILOT",
+    "€950",
+    "Starting at €2,500 · excluding VAT",
+    "Customer Security Review Sprint",
+    "Scope this review",
+    "Request a scope and fixed quote",
+    "Automation Repair &amp; Handover",
+  ]) {
+    assert.ok(catalogue.prohibitedMarkers?.includes(marker), `/catalog must reject ${marker}`);
+  }
+  const workflows = routeContract("/catalog/workflows");
+  assert.ok(workflows.requiredMarkers.includes("Starting at €2,500 · excluding VAT"));
+  assert.ok(workflows.requiredMarkers.includes("This review is not offered for new engagements."));
+  assert.ok(workflows.prohibitedMarkers?.includes("offerId=agent-action-security-review"));
+  assert.ok(workflows.prohibitedMarkers?.includes("€2,500 fixed"));
+  const freeCheck = routeContract("/check");
+  assert.ok(freeCheck.requiredMarkers.includes("Run free check"));
+  assert.ok(freeCheck.prohibitedMarkers?.includes("Private Pilot"));
+});
+
+test("intake probes reject withdrawn identities before issuance and keep the two public identities", () => {
+  const reasons = new Map(
+    buyerPathIntakeProbes
+      .filter((probe) => probe.expectReason)
+      .map((probe) => [String(probe.body.intent) + (probe.body.productId ? "+product" : "") + (probe.body.offer ? "+offer" : ""), probe.expectReason]),
+  );
+  assert.equal(reasons.get("agent-tools-access-review"), "historical");
+  assert.equal(reasons.get("automation-repair-handover"), "historical");
+  assert.equal(reasons.get("customer-security-review-sprint"), "historical");
+  assert.equal(reasons.get("bounded-workflow-review"), "historical");
+  assert.equal(reasons.get("OFFSEC-PILOT"), "unsupported");
+  assert.equal(reasons.get("AI Agent Tools & Access Review — Private Pilot"), "unsupported");
+  assert.equal(reasons.get("Agent Action Security Review"), "unsupported");
+  assert.equal(reasons.get("agent-action-security-review+product"), "ambiguous");
+  assert.equal(reasons.get("agent-action-security-review+offer"), "ambiguous");
+  assert.equal(reasons.get("external-exposure-assessment"), "wrong-role");
+  assert.ok(buyerPathIntakeProbes.some((probe) => probe.path === "/api/engage" && probe.expectReason === "historical"));
+  assert.ok(buyerPathIntakeProbes.some((probe) => probe.path === "/api/contact" && probe.expectReason === "unsupported"));
+  for (const intent of ["agent-action-security-review", "OFFSEC-EXTERNAL-EXPOSURE"]) {
+    const probe = buyerPathIntakeProbes.find((item) => item.body.intent === intent && item.expectError);
+    assert.equal(probe?.expectError, "Please use your business email.");
+    assert.equal(probe?.body.email, "buyer@gmail.com");
   }
 });
 
