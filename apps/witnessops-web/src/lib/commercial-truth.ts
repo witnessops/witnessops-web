@@ -250,8 +250,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     pl: "Sprawdź jeden autoryzowany system dostępny z internetu. Poznaj niezamierzoną ekspozycję, błędy konfiguracji i priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
   },
   result: {
-    en: "An external attack-surface map, evidence-backed findings, remediation priorities and one focused retest within 30 days.",
-    pl: "Mapa zewnętrznej powierzchni ataku, ustalenia ze źródłami, priorytety napraw i jedno sprawdzenie poprawek w ciągu 30 dni.",
+    en: "An external attack-surface map, evidence-backed findings, remediation priorities and one focused retest of reported findings within 30 calendar days beginning at initial report handover (for new engagements).",
+    pl: "Mapa zewnętrznej powierzchni ataku, ustalenia ze źródłami, priorytety napraw i jedno sprawdzenie zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu (dla nowych zleceń).",
   },
   boundary: {
     en: "This is not a penetration test. No exploitation, authenticated testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, exfiltration, certification, or security guarantee.",
