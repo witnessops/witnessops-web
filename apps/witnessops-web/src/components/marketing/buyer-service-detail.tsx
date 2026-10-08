@@ -13,6 +13,7 @@ import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { getServiceLanding } from "@/lib/service-landings";
 import { servicePreparation } from "@/lib/service-preparation";
 import { AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { ReviewerProfile } from "./reviewer-profile";
 
 const ui = {
@@ -23,6 +24,11 @@ const ui = {
     notIncluded: "Not included", verification: "How to inspect the result",
     start: "Scope this review", reference: "Service reference", sampleFallback: "See an example",
     firstStep: "Start with a short description. We confirm fit and scope before work begins.",
+    historical: "Historical service reference — not offered for new requests",
+    historicalBody: "This page preserves the former scope and terms for earlier enquiries and accepted agreements. It is not a current paid offer. Nothing is substituted for a previous agreement.",
+    historicalPrice: "Historical price (not a current quote)",
+    historicalTiming: "Historical delivery terms",
+    compareCurrent: "Compare the two current reviews",
     example: "Example and technical details",
   },
   pl: {
@@ -32,6 +38,11 @@ const ui = {
     notIncluded: "Czego oferta nie obejmuje", verification: "Jak sprawdzić wynik",
     start: "Omów zakres przeglądu", reference: "Identyfikator usługi", sampleFallback: "Zobacz przykład",
     firstStep: "Zacznij od krótkiego opisu. Dopasowanie i zakres potwierdzimy przed pracą.",
+    historical: "Archiwalny opis usługi — bez nowych zgłoszeń",
+    historicalBody: "Ta strona zachowuje wcześniejszy zakres i warunki dla poprzednich zapytań i zaakceptowanych umów. Nie jest aktualną ofertą płatną. Nie zastępujemy wcześniejszych ustaleń inną usługą.",
+    historicalPrice: "Cena historyczna (nie jest aktualną wyceną)",
+    historicalTiming: "Historyczne warunki realizacji",
+    compareCurrent: "Porównaj dwa aktualne przeglądy",
     example: "Przykład i szczegóły techniczne",
   },
 } as const;
@@ -54,6 +65,7 @@ export function BuyerServiceDetail({
 }) {
   const text = ui[locale];
   const landing = getServiceLanding(service.id, locale);
+  const currentForNewSales = isPublicPaidReviewId(service.id);
   const requestHref = requestHrefOverride ?? buyerServiceRequestHref(locale, service);
   const primaryCta = landing.primaryCta ?? text.start;
   const firstStep = service.id === "external-exposure-assessment"
@@ -67,15 +79,23 @@ export function BuyerServiceDetail({
     <main id="main-content" tabIndex={-1} className="buyer-page"
       data-page="buyer-service-detail" data-buyer-service-detail={service.id}
       data-price-contract={service.commercialContract.price}
-      data-timing-contract={service.commercialContract.timing}>
+      data-timing-contract={service.commercialContract.timing}
+      data-paid-sales-state={currentForNewSales ? "current" : "historical"}>
       <div className="mx-auto max-w-6xl px-6 py-6 md:py-10 lg:py-12">
         <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
           ← {text.back}
         </Link>
 
+        {!currentForNewSales ? (
+          <aside role="note" data-historical-offer-notice className="mt-4 border border-surface-border bg-surface-inset p-5 text-sm leading-6 text-text-secondary">
+            <p className="font-semibold text-text-primary">{text.historical}</p>
+            <p className="mt-2">{text.historicalBody}</p>
+          </aside>
+        ) : null}
+
         <header className="mt-4 grid gap-6 border-b border-surface-border pb-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start lg:gap-12 lg:pb-12">
           <div className="min-w-0">
-            {service.availability ? (
+            {currentForNewSales && service.availability ? (
               <p data-service-availability={service.availability.status} className="mb-3 inline-flex border border-surface-border px-2.5 py-1 text-xs font-semibold text-text-muted">
                 {service.availability.label[locale]}
               </p>
@@ -88,17 +108,21 @@ export function BuyerServiceDetail({
             <p className="mt-4 hidden max-w-xl text-sm leading-6 text-text-muted lg:block">{landing.whoFor}</p>
           </div>
 
-          <section data-promoted-commercial-contract={promoteCommercialContract ? service.id : undefined}
+          <section data-promoted-commercial-contract={promoteCommercialContract && currentForNewSales ? service.id : undefined}
             className="border border-brand-accent/40 bg-brand-accent/5 p-5 md:p-6" aria-label={text.price}>
             <dl>
-              <dt className="text-xs font-semibold uppercase tracking-wider text-text-muted">{text.price}</dt>
+              <dt className="text-xs font-semibold uppercase tracking-wider text-text-muted">{currentForNewSales ? text.price : text.historicalPrice}</dt>
               <dd className="mt-1 text-xl font-semibold leading-7 text-text-primary md:text-2xl">{service.price[locale]}</dd>
-              <dt className="mt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">{text.timing}</dt>
+              <dt className="mt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">{currentForNewSales ? text.timing : text.historicalTiming}</dt>
               <dd className="mt-1 text-sm leading-6 text-text-secondary">{service.timing[locale]}</dd>
             </dl>
             {service.id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-4 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice[locale]}. {locale === "pl" ? "Diagnoza nie zobowiązuje do naprawy." : "Diagnosis does not commit you to a repair."}</p> : null}
-            <CtaButton href={requestHref} variant="primary" label={primaryCta} className="mt-5 w-full !min-h-11 !px-3 !text-sm !tracking-normal" />
-            <p className="mt-3 text-xs leading-5 text-text-muted">{firstStep}</p>
+            {currentForNewSales ? (
+              <CtaButton href={requestHref} variant="primary" label={primaryCta} className="mt-5 w-full !min-h-11 !px-3 !text-sm !tracking-normal" />
+            ) : (
+              <Link href={buyerCatalogHref(locale)} data-historical-offer-catalogue className="mt-5 inline-flex min-h-11 w-full items-center justify-center border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary underline underline-offset-4 focus-visible:outline focus-visible:outline-2">{text.compareCurrent}</Link>
+            )}
+            <p className="mt-3 text-xs leading-5 text-text-muted">{currentForNewSales ? firstStep : text.historicalBody}</p>
           </section>
           {landing.sampleHref ? (
             <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent lg:-mt-4">
@@ -180,8 +204,8 @@ export function BuyerServiceDetail({
           ) : null}
         </div>
         <div className="flex flex-col items-start gap-3 pt-7 sm:flex-row sm:items-center sm:gap-6">
-          <CtaButton href={requestHref} variant="primary" label={primaryCta} />
-          <p className="max-w-md text-sm leading-6 text-text-muted">{firstStep}</p>
+          {currentForNewSales ? <CtaButton href={requestHref} variant="primary" label={primaryCta} /> : <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center border border-surface-border px-4 py-2 text-sm font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2">{text.compareCurrent}</Link>}
+          <p className="max-w-md text-sm leading-6 text-text-muted">{currentForNewSales ? firstStep : text.historicalBody}</p>
         </div>
       </div>
     </main>
