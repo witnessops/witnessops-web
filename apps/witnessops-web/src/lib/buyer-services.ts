@@ -1,6 +1,7 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
 import { publicB2bPrice } from "@/lib/commercial-price";
@@ -14,6 +15,7 @@ export type BuyerService = {
     | "automation-repair-handover"
     | "customer-security-review-sprint"
     | "agent-tools-access-review"
+    | "agent-action-security-review"
     | "one-server-security-check"
     | "external-exposure-assessment"
     | "launch-readiness-check"
@@ -49,6 +51,7 @@ export type BuyerPublicOfferId = Extract<
   | "automation-repair-handover"
   | "customer-security-review-sprint"
   | "agent-tools-access-review"
+  | "agent-action-security-review"
   | "professional-public-footprint-audit"
 >;
 
@@ -56,6 +59,7 @@ const BUYER_PUBLIC_OFFER_IDS = [
   "automation-repair-handover",
   "customer-security-review-sprint",
   "agent-tools-access-review",
+  "agent-action-security-review",
   "professional-public-footprint-audit",
 ] as const satisfies readonly BuyerPublicOfferId[];
 
@@ -135,6 +139,28 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: PRIMARY_OFFER.route,
       pl: PRIMARY_OFFER.route,
     },
+  },
+  {
+    id: PUBLIC_AGENT_ACTION_OFFER.id,
+    commercialContract: PUBLIC_AGENT_ACTION_OFFER.commercialContract,
+    name: PUBLIC_AGENT_ACTION_OFFER.name,
+    cardSituation: PUBLIC_AGENT_ACTION_OFFER.cardSituation,
+    situation: PUBLIC_AGENT_ACTION_OFFER.situation,
+    result: PUBLIC_AGENT_ACTION_OFFER.result,
+    price: PUBLIC_AGENT_ACTION_OFFER.price,
+    timing: PUBLIC_AGENT_ACTION_OFFER.timing,
+    boundary: {
+      en: "One consequential agent or automation action. Read, inspect, reconstruct and report only. No platform installation, production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring, or certification that an agent is safe.",
+      pl: "Jedno istotne działanie agenta lub automatyzacji. Tylko odczyt, inspekcja, rekonstrukcja i raport. Bez instalacji platformy, zmian produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitorowania i certyfikacji, że agent jest bezpieczny.",
+    },
+    requestCta: {
+      en: "Start a non-secret fit check",
+      pl: "Zacznij od niepoufnej oceny",
+    },
+    // Shared /catalog/workflows detail remains owned by PRIMARY_OFFER until
+    // presentation reconciliation; omit detailHref so route→request mapping
+    // stays unambiguous. PUBLIC_AGENT_ACTION_OFFER.route documents the target.
+    detailHref: {},
   },
   {
     id: "one-server-security-check",

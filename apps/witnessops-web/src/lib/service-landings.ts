@@ -2,6 +2,7 @@ import type { BuyerLocale, BuyerService } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
 export type ServiceLandingCopy = {
@@ -108,6 +109,34 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
     commercialNote: "Fixed fee after scope. Payment in full before start by default. The request is not a booking, checkout or authorization.",
     primaryCta: "Request a scope and fixed quote",
+  },
+  "agent-action-security-review": {
+    headline: "Understand the controls around one consequential agent action.",
+    whoFor: "Owners who need a fixed-scope review of one agent or automation action before launch, handover or customer use.",
+    scopeNote: "One consequential agent or automation action. Permissions, approvals and execution evidence only.",
+    deliverables: [
+      "Authority map for the named action.",
+      "Execution path and permission boundary.",
+      "Evidence chain with control gaps and practical fixes.",
+      "Readout for the owning team.",
+    ],
+    scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
+    steps: [
+      ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
+      ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 fixed excluding VAT."],
+      ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
+      ["Report and readout", "Handover within 10 working days after evidence rules are agreed. Your team owns remediation decisions."],
+    ],
+    boundaries: [
+      "One consequential agent or automation action only; multi-workflow programmes need a separate quote.",
+      "Default operating mode: read, inspect, reconstruct and report.",
+      "No platform installation, production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that an agent is safe.",
+      "Historical synthetic samples are not a full-review sample and do not change the fixed commercial terms.",
+    ],
+    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
+    sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
+    commercialNote: "€2,500 fixed excluding VAT after evidence rules are agreed. The request is not a booking, checkout or authorization.",
+    primaryCta: "Start a non-secret fit check",
   },
   "one-server-security-check": {
     headline: "Know what needs attention on one Linux server.",
@@ -430,6 +459,34 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleLabel: "Historyczny syntetyczny przykład jednego działania (nie próbka pełnego przeglądu, EN)",
     commercialNote: "Stała cena po ustaleniu zakresu. Domyślnie pełna płatność przed rozpoczęciem. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.",
     primaryCta: "Poproś o zakres i stałą wycenę",
+  },
+  "agent-action-security-review": {
+    headline: "Poznaj zabezpieczenia jednego istotnego działania agenta.",
+    whoFor: "Właściciele potrzebujący przeglądu o stałym zakresie jednego działania agenta lub automatyzacji przed wdrożeniem, przekazaniem lub użyciem przez klienta.",
+    scopeNote: "Jedno istotne działanie agenta lub automatyzacji. Tylko uprawnienia, zatwierdzenia i dowody wykonania.",
+    deliverables: [
+      "Mapa upoważnień dla wskazanego działania.",
+      "Ścieżka wykonania i granica uprawnień.",
+      "Łańcuch dowodowy z lukami kontrolnymi i praktycznymi poprawkami.",
+      "Omówienie wyniku dla odpowiedzialnego zespołu.",
+    ],
+    scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
+    steps: [
+      ["Niepoufna ocena", "Nazwij istotne działanie, systemy i termin decyzji. Bez poświadczeń, sekretów i danych produkcyjnych."],
+      ["Stały zakres i upoważnienie", "Potwierdź działanie, zasady dowodowe, odbiorców, cenę i obsługę w zaakceptowanej umowie. Opłata to €2 500 stała bez VAT."],
+      ["Ręczna rekonstrukcja", "Odczyt, inspekcja, rekonstrukcja i raport na uzgodnionych dowodach. Bez wykonania przeglądanego działania."],
+      ["Raport i omówienie", "Przekazanie w ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych. Decyzje o naprawach należą do Twojego zespołu."],
+    ],
+    boundaries: [
+      "Tylko jedno istotne działanie agenta lub automatyzacji; programy obejmujące wiele workflow wymagają osobnej wyceny.",
+      "Domyślny tryb pracy: odczyt, inspekcja, rekonstrukcja i raportowanie.",
+      "Bez instalacji platformy, zmian produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitorowania i certyfikacji, że agent jest bezpieczny.",
+      "Historyczne przykłady syntetyczne nie są próbką pełnego przeglądu i nie zmieniają stałych warunków handlowych.",
+    ],
+    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
+    sampleLabel: "Historyczny syntetyczny przykład jednego działania (nie próbka pełnego przeglądu, EN)",
+    commercialNote: "€2 500 stała cena bez VAT po uzgodnieniu zasad dowodowych. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.",
+    primaryCta: "Zacznij od niepoufnej oceny",
   },
   "one-server-security-check": {
     headline: "Sprawdź, co poprawić na serwerze.",

@@ -6,6 +6,8 @@ import {
   isPublicPaidReviewId,
   publicPaidReviews,
 } from "./public-paid-reviews";
+import { BUYER_SERVICES } from "./buyer-services";
+import { PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "./commercial-truth";
 
 const ai = { id: PUBLIC_AGENT_ACTION_REVIEW_ID, price: "€2,500 fixed", scope: "one consequential agent or automation action" };
 const external = { id: "external-exposure-assessment", productId: "OFFSEC-EXTERNAL-EXPOSURE", price: "€1,900" };
@@ -30,10 +32,10 @@ test("selection preserves the historical registry and its ordering", () => {
 });
 test("no fallback reintroduces a retired offer when an approved review is missing", () => {
   assert.throws(() => publicPaidReviews([ai, legacy]), /external-exposure-assessment/);
-  assert.throws(() => publicPaidReviews([external, legacy]), /agent-tools-access-review/);
+  assert.throws(() => publicPaidReviews([external, legacy]), /agent-action-security-review/);
 });
 test("duplicate current identities fail instead of selecting arbitrary commercial terms", () => {
-  assert.throws(() => publicPaidReviews([ai, external, { ...ai, price: "€500" }]), /agent-tools-access-review/);
+  assert.throws(() => publicPaidReviews([ai, external, { ...ai, price: "€500" }]), /agent-action-security-review/);
   assert.throws(() => publicPaidReviews([ai, external, { ...external, price: "€500" }]), /external-exposure-assessment/);
 });
 test("only exact current service IDs pass the public-paid-review type guard", () => {
@@ -56,4 +58,22 @@ test("older one-action, inventory review, pilot and extra-price options never se
   ]) {
     assert.equal(isPublicPaidReviewId(retiredOrPrivate), false, retiredOrPrivate);
   }
+});
+
+test("BUYER_SERVICES supplies Agent Action for the public selector and keeps inventory out of PUBLIC_PAID_REVIEW_IDS", () => {
+  const selected = publicPaidReviews(BUYER_SERVICES);
+  assert.deepEqual(
+    selected.map((service) => service.id),
+    [...PUBLIC_PAID_REVIEW_IDS],
+  );
+  assert.equal(selected[0]?.id, PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(selected[0]?.name.en, PUBLIC_AGENT_ACTION_OFFER.name.en);
+  assert.equal(selected[0]?.price.en, PUBLIC_AGENT_ACTION_OFFER.price.en);
+  assert.ok(BUYER_SERVICES.some((service) => service.id === PRIMARY_OFFER.id));
+  assert.equal(
+    PUBLIC_PAID_REVIEW_IDS.includes(PRIMARY_OFFER.id as (typeof PUBLIC_PAID_REVIEW_IDS)[number]),
+    false,
+  );
+  assert.equal(isPublicPaidReviewId(PRIMARY_OFFER.id), false);
+  assert.equal(isPublicPaidReviewId(PUBLIC_AGENT_ACTION_OFFER.id), true);
 });

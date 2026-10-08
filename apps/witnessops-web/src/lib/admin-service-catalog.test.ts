@@ -11,14 +11,14 @@ test("admin services mirror the canonical public catalogue without inventing con
     services.map((service) => service.id),
     BUYER_SERVICES.map((service) => service.id),
   );
-  assert.equal(services.length, 9);
+  assert.equal(services.length, 10);
 
   for (const [index, service] of services.entries()) {
     const authority = BUYER_SERVICES[index]!;
     assert.equal(service.name, authority.name.en);
     assert.equal(service.price, authority.price.en);
     assert.equal(service.timing, authority.timing.en);
-    assert.equal(service.publicHref, authority.detailHref.en);
+    assert.equal(service.publicHref, authority.detailHref.en ?? "/catalog");
     assert.equal(service.requestHref, buyerServiceRequestHref("en", authority));
     const params = new URL(
       service.requestHref,
