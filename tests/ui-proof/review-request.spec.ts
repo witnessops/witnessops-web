@@ -320,7 +320,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
   }
 });
 
-test("primary request selection canonicalizes aliases and conflicting query text", async ({
+test("supported request identities open a selling form and rejected identities stay closed", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -329,42 +329,42 @@ test("primary request selection canonicalizes aliases and conflicting query text
   });
   const page = await context.newPage();
 
+  for (const [query, intent] of [
+    ["offerId=agent-action-security-review", "agent-action-security-review"],
+    ["productId=OFFSEC-EXTERNAL-EXPOSURE", "OFFSEC-EXTERNAL-EXPOSURE"],
+  ] as const) {
+    const response = await page.goto(`/review/request?${query}`, {
+      waitUntil: "networkidle",
+    });
+    expect(response?.status(), query).toBe(200);
+    const form = page.locator("main form");
+    await expect(form).toBeVisible();
+    await expect(form.locator('input[name="intent"]')).toHaveValue(intent);
+  }
+
   for (const query of [
     "offer=AI+Agent+Tools+%26+Access+Review",
+    "offer=Agent+Action+Security+Review",
+    "offer=External+Attack+Surface+Review",
+    "offerId=agent-tools-access-review",
     "offerId=agent-tools-access-review&offer=Public+Exposure+Review",
     "offerId=agent-tools-access-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
+    "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=buyer-edited+query+text",
   ]) {
     const response = await page.goto(`/review/request?${query}`, {
       waitUntil: "networkidle",
     });
     expect(response?.status(), query).toBe(200);
     const main = page.locator("main");
-    await expect(
-      page.getByText("Selected offer: AI Agent Tools & Access Review"),
-    ).toBeVisible();
-    await expect(main).toContainText("Starting at €2,500 · excluding VAT");
-    await expect(main).toContainText(
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
-    await expect(main.locator('form input[name="intent"]')).toHaveValue(
-      "agent-tools-access-review",
-    );
+    await expect(main.locator("h1")).toContainText("This link does not start a new review");
+    await expect(main).toContainText("Existing requests and issued agreements keep their original terms.");
+    await expect(main.locator("form")).toHaveCount(0);
+    await expect(main.locator('input[name="intent"]')).toHaveCount(0);
+    await expect(main).not.toContainText("Selected offer:");
+    await expect(main).not.toContainText("Starting at €2,500 · excluding VAT");
     await expect(main).not.toContainText("Agent Risk & Control Review");
     await expect(main).not.toContainText("From €1,500");
-    await expect(main).not.toContainText(
-      "Request an AI Agent Action Proof Run",
-    );
   }
-
-  await expect(
-    page
-      .locator("main")
-      .getByRole("link", { name: "engage@mail.witnessops.com" })
-      .first(),
-  ).toHaveAttribute(
-    "href",
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check",
-  );
 
   await context.close();
 });
@@ -395,7 +395,7 @@ test("External Attack Surface Review request preserves SKU, locale, and fit boun
 
     const query = new URLSearchParams({
       productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "buyer-edited query text",
+      offer: "External Attack Surface Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
