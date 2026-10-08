@@ -31,7 +31,7 @@ test("bare review request shows only two paid choices without a default form or 
     await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
     await expect(page.locator('[data-review-choice="agent-tools-access-review"] a')).toHaveAttribute("href", /offerId=agent-tools-access-review/);
     await expect(page.locator('[data-review-choice="external-exposure-assessment"] a')).toHaveAttribute("href", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
-    await expect(page.locator("main")).toContainText(route.startsWith("/pl") ? "Zgłoszenie nie upoważnia" : "No review or target-facing check starts");
+    await expect(page.locator("main")).toContainText(route.startsWith("/pl") ? "Ten formularz nie rozpoczyna przeglądu" : "No review or target-facing check starts");
   }
   expect(posts).toBe(0);
 });
