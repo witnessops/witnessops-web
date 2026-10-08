@@ -47,7 +47,7 @@ const PUBLIC_SOURCES = [
     source_id: "public.historical-agent-action-offer",
     public_label: "Historical one-action request identity",
     canonical_href: "https://github.com/witnessops/witnessops-web/blob/main/docs/commercial/16-agent-workflow-reconstruction-offer.md",
-    excerpt: "The former bounded-workflow-review historical intake identifier remains retired and preserves issued terms. A new distinct agent-action-security-review identity selects the fixed €2,500, one-consequential-action Agent Action Security Review for NEW enquiries. The differently scoped agent-tools-access-review inventory-plus-action contract remains a historical separate record and is not a public new-sales offer. Never substitute the historical IDs, old consent or private pilot for the new selection. The public one-action offer itself is current.",
+    excerpt: "The former bounded-workflow-review historical intake identifier remains retired and preserves issued terms. A new distinct agent-action-security-review identity selects the fixed-fee, one-consequential-action Agent Action Security Review for NEW enquiries. The differently scoped agent-tools-access-review inventory-plus-action contract remains a historical separate record and is not a public new-sales offer. Never substitute the historical IDs, old consent or private pilot for the new selection. The public one-action offer itself is current.",
   },
   ...PUBLIC_SALES_SERVICES.map((service) => ({
     source_id: `service.${service.id}`,
