@@ -56,11 +56,8 @@ export type BuyerPublicOfferId = Extract<
 >;
 
 const BUYER_PUBLIC_OFFER_IDS = [
-  "automation-repair-handover",
-  "customer-security-review-sprint",
-  // Retained legacy IDs remain in the historical registry, not new public selection.
+  // Historical catalogue rows remain readable but are not new-sales choices.
   "agent-action-security-review",
-  "professional-public-footprint-audit",
 ] as const satisfies readonly BuyerPublicOfferId[];
 
 function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
@@ -118,6 +115,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
 
   {
     id: PUBLIC_AGENT_ACTION_OFFER.id,
+    commercialRole: "primary",
+    homepageFeatured: true,
     commercialContract: PUBLIC_AGENT_ACTION_OFFER.commercialContract,
     name: PUBLIC_AGENT_ACTION_OFFER.name,
     cardSituation: PUBLIC_AGENT_ACTION_OFFER.cardSituation,
@@ -134,8 +133,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   },
   {
     id: PRIMARY_OFFER.id,
-    commercialRole: "primary",
-    homepageFeatured: true,
+    // Retain the older inventory contract for historical lookups only.
+    homepageFeatured: false,
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
     cardSituation: PRIMARY_OFFER.cardSituation,
@@ -404,8 +403,9 @@ export function buyerPublicOfferRequestHref(
   offerId: BuyerPublicOfferId,
 ): string {
   const service = buyerServiceByPublicOfferId(offerId);
+  if (!service) return buyerRequestHref(locale);
   const params = new URLSearchParams({ offerId });
-  if (service) params.set("offer", service.name[locale]);
+  params.set("offer", service.name[locale]);
   return `${buyerRequestHref(locale)}?${params.toString()}`;
 }
 
@@ -470,7 +470,7 @@ export function buyerServiceByPublicOfferId(
  */
 export function buyerServiceFromRequestOffer(
   offerId: string | null | undefined,
-  offer: string | null | undefined,
+  _offer: string | null | undefined,
 ): BuyerService | undefined {
   if (offerId !== null && offerId !== undefined) {
     return buyerServiceByPublicOfferId(offerId);

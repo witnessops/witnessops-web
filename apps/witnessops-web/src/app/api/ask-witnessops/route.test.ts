@@ -875,8 +875,7 @@ test("refund-agent claim repair preserves the closed authority decision and neve
 test("historical repair pricing is not offered as a public paid review", async()=>{
   enableTestOpenAiRuntime();
   const oldFetch=globalThis.fetch;
-  let calls=0;
-  globalThis.fetch=async()=>{calls++;throw new Error("Provider unavailable");};
+  globalThis.fetch=async()=>{throw new Error("Provider unavailable");};
   try{
     const body=await (await POST(askRequest("Can you guarantee today for €250?", "203.0.113.187", {
       history:[{role:"user",content:"Our n8n workflow stopped reaching HubSpot."}],

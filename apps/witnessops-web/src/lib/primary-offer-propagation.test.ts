@@ -20,6 +20,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
 import {
@@ -99,59 +100,33 @@ function renderedArticle(html: string, attribute: string, value: string) {
   return html.slice(start, end + "</article>".length);
 }
 
-test("one canonical record defines the primary paid entry point", () => {
-  const featured = BUYER_SERVICES.filter(
-    (service) => service.homepageFeatured === true,
-  );
-  const primaries = BUYER_SERVICES.filter(
-    (service) => service.commercialRole === "primary",
-  );
-  assert.equal(featured.length, 1, "Exactly one offer may define the homepage");
-  assert.equal(primaries.length, 1, "Exactly one offer may be commercially primary");
-
-  const primary = buyerServiceById(PRIMARY_OFFER.id);
-  assert.equal(featured[0]?.id, PRIMARY_OFFER.id);
-  assert.equal(primaries[0], featured[0]);
-  assert.equal(primary.name, PRIMARY_OFFER.name);
-  assert.equal(primary.commercialContract, PRIMARY_OFFER.commercialContract);
-  assert.equal(primary.price, PRIMARY_OFFER.price);
-  assert.equal(primary.timing, PRIMARY_OFFER.timing);
-  assert.equal(primary.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Manual agent/tool observation and action reconstruction");
-  assert.equal(
-    PRIMARY_OFFER.mailSubject,
-    "WitnessOps request — AI Agent Tools & Access Review",
-  );
-  assert.equal(primary.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(primary.price.pl, "Od €2 500 · bez VAT");
-  assert.equal(
-    primary.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
-  assert.equal(primary.detailHref.en, PRIMARY_OFFER.route);
-  assert.equal(primary.detailHref.pl, PRIMARY_OFFER.route);
-  assert.equal(primary.productId, undefined);
-  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
-  assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
-  assert.equal(PRIMARY_OFFER.requestRoute, "/review/request");
-  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
-  assert.equal(
-    primary.cardSituation.en,
-    "See which agent tools are visible on an agreed device and what one consequential action can reach.",
-  );
-  assert.match(primary.situation.en, /coding agents and tool connections/i);
-  assert.equal(primary.requestCta?.en, "Request a scope and fixed quote");
-  assert.match(primary.boundary.en, /One agreed device and dated system-level inventory/i);
-  assert.match(primary.boundary.en, /Manual, read-only inspection/i);
-  assert.match(primary.situation.en, /observed in agreed sources/i);
-
-  assert.deepEqual(publicPaidReviews(BUYER_SERVICES).map(service => service.id), [
-    "agent-action-security-review", "external-exposure-assessment",
+test("one current fixed-price Agent Action review owns the public primary position", () => {
+  const featured=BUYER_SERVICES.filter(service=>service.homepageFeatured===true);
+  const primaries=BUYER_SERVICES.filter(service=>service.commercialRole==="primary");
+  assert.equal(featured.length,1,"There must be exactly one public homepage lead");
+  assert.equal(primaries.length,1,"There must be exactly one primary sales review");
+  const primary=buyerServiceById(PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(featured[0]?.id, PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(primaries[0],featured[0]);
+  assert.equal(primary.name,PUBLIC_AGENT_ACTION_OFFER.name);
+  assert.equal(primary.price,PUBLIC_AGENT_ACTION_OFFER.price);
+  assert.equal(primary.commercialContract,PUBLIC_AGENT_ACTION_OFFER.commercialContract);
+  assert.equal(primary.name.en,"Agent Action Security Review");
+  assert.equal(primary.price.en,"€2,500 fixed · excluding VAT");
+  assert.equal(primary.detailHref.en,"/catalog/workflows");
+  assert.equal(primary.productId,undefined);
+  const historical=buyerServiceById(PRIMARY_OFFER.id);
+  assert.equal(historical.id,"agent-tools-access-review");
+  assert.equal(historical.homepageFeatured,false);
+  assert.notEqual(historical.commercialRole,"primary");
+  assert.equal(historical.price.en,"Starting at €2,500 · excluding VAT");
+  assert.deepEqual(publicPaidReviews(BUYER_SERVICES).map(service=>service.id),[
+    "agent-action-security-review","external-exposure-assessment",
   ]);
-  const [first, second] = buyerServicesByCommercialPriority();
-  assert.equal(first?.id, PRIMARY_OFFER.id);
-  assert.equal(second?.id, "external-exposure-assessment");
-  assert.equal(second?.commercialRole, "secondary");
+  const [first,second]=buyerServicesByCommercialPriority();
+  assert.equal(first?.id,PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(second?.id,"external-exposure-assessment");
+  assert.equal(second?.commercialRole,"secondary");
 });
 
 test("the primary detail contract exposes every required inclusion and exclusion", () => {
