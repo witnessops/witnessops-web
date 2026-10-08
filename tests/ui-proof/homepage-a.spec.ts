@@ -39,8 +39,11 @@ for (const width of [390, 1440]) {
     await expect(external).toContainText("€1,900 fixed · excluding VAT");
     await expect(external).toContainText("Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.");
     await expect(external.getByRole("link", { name: "Scope an external review" })).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
-    await expect(page.locator("[data-home-offer]")).not.toContainText("Internet Footprint");
-    await expect(page.locator("[data-home-offer]")).not.toContainText("AI Agent Tools & Access Review");
+    for (const offer of [agent, external]) {
+      await expect(offer).not.toContainText("Internet Footprint");
+      await expect(offer).not.toContainText("AI Agent Tools & Access Review");
+      await expect(offer).not.toContainText("One Server Security Check");
+    }
     const free = page.getByRole("complementary", { name: "Free check — not a review" });
     await expect(free).toContainText("Not a review.");
     await expect(free.getByRole("link")).toHaveAttribute("href", "/check");
@@ -55,7 +58,6 @@ for (const width of [390, 1440]) {
     await expect(specimen).toContainText("No customer, execution, verification, authorisation failure or result is shown.");
     await expect(page.locator("main")).not.toContainText(/FIRST 10|No\. 0042|free while in Early Access|€49|€149/);
     await expect(hero).not.toContainText(/One Server Security Check|External Attack Surface Review/);
-    await expect(page.locator("[data-home-offer]")).not.toContainText("One Server Security Check");
     await expect(page.locator("[data-homepage-contact]")).toHaveText("Discuss a review: engage@mail.witnessops.com");
     await expect(page.locator('[data-homepage-contact] a')).toHaveAttribute("href", "mailto:engage@mail.witnessops.com");
     await expect(page.locator("main")).toContainText("Monitor continuously");
