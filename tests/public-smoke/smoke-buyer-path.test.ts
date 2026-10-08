@@ -130,15 +130,17 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
   assert.equal(results[0]?.ok, true);
 });
 
-test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
-  const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Start a free check"));
-  assert.ok(english.requiredMarkers.includes("The app cannot"));
-  assert.ok(english.requiredMarkers.includes("Record one bounded check"));
-  assert.ok(english.requiredMarkers.includes("Not a review."));
-  const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Sprawdź narzędzia i dostęp agenta AI"));
-  assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
+test("homepage contracts preserve two reviews, free check and synthetic-evidence boundaries", () => {
+  const en = routeContract("/");
+  for (const marker of ["Agent Action Security Review","€2,500 fixed · excluding VAT","External Attack Surface Review","€1,900 · excluding VAT","Start a free check","Not a review.","Historical synthetic one-action example"]) {
+    assert.ok(en.requiredMarkers.includes(marker), marker);
+  }
+  assert.ok(en.prohibitedMarkers?.includes("Private Pilot"));
+  const pl = routeContract("/pl");
+  for (const marker of ["Agent Action Security Review","External Attack Surface Review","Bezpłatne sprawdzenie hosta","To nie jest przegląd."]) {
+    assert.ok(pl.requiredMarkers.includes(marker), marker);
+  }
+  assert.ok(pl.prohibitedMarkers?.includes("Przegląd narzędzi i dostępu agenta AI"));
 });
 
 test("English Skill Library smoke follows the exact-byte library contract", () => {
@@ -152,131 +154,72 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
   assert.ok(!route.requiredMarkers.includes("Buyer path"));
 });
 
-test("catalogue smoke preserves the primary and secondary offer hierarchy", () => {
-  for (const path of ["/catalog"] as const) {
-    const route = routeContract(path);
-    for (const marker of [
-      "Scope a review",
-      "AI Agent Tools &amp; Access Review",
-      "Starting at €2,500 · excluding VAT",
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-      "External Attack Surface Review",
-      "€1,900 · excluding VAT",
-    ]) {
-      assert.ok(
-        route.requiredMarkers.some((candidate) => candidate.includes(marker)),
-        `${path} must include ${marker}`,
-      );
-    }
+test("catalogue smoke enforces two prices, two identities, and no private or outdated promotions", () => {
+  const en = routeContract("/catalog");
+  for(const marker of ["Agent Action Security Review","€2,500 fixed · excluding VAT","External Attack Surface Review","€1,900 · excluding VAT","Scope an AI review","Scope an external review"]) {
+    assert.ok(en.requiredMarkers.includes(marker), marker);
   }
-
-  const catalogue = routeContract("/catalog");
-  assert.ok(
-    catalogue.requiredMarkers.some((marker) =>
-      marker.includes("Within 3 working days after payment in full"),
-    ),
-  );
+  assert.ok(en.prohibitedMarkers?.includes("Private Pilot"));
+  assert.ok(en.prohibitedMarkers?.includes("One Server Security Check"));
+  const pl = routeContract("/pl/catalog");
+  assert.ok(pl.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
+  assert.ok(pl.requiredMarkers.includes("€1 900 · bez VAT"));
+  assert.ok(pl.prohibitedMarkers?.includes("Przegląd narzędzi i dostępu agenta AI"));
 });
 
-test("request smoke markers use the current fit and start-work boundaries", () => {
-  const generic = routeContract("/review/request");
-  assert.ok(generic.requiredMarkers.includes("Submit non-secret enquiry"));
-  assert.ok(generic.requiredMarkers.includes("Next, confirm your email with a code."));
-  assert.ok(
-    generic.requiredMarkers.includes(
-      "No work or target-facing check starts from this form.",
-    ),
-  );
-
-  for (const path of [
-    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-    "/review/request?productId=OFFSEC-PILOT",
-  ]) {
-    assert.ok(
-      routeContract(path).requiredMarkers.includes(
-        "No work or target-facing check starts from this form.",
-      ),
-    );
+test("request smoke keeps bare selection form-free and external review authority-bound", () => {
+  for(const path of ["/review/request","/pl/review/request"]) {
+    const route=routeContract(path);
+    assert.ok(route.requiredMarkers.includes("Agent Action Security Review"));
+    assert.ok(route.requiredMarkers.includes("External Attack Surface Review"));
+    assert.ok(route.prohibitedMarkers?.includes('name="intent"'));
+    assert.ok(route.prohibitedMarkers?.includes('action="/api/review/request"'));
+  }
+  for(const path of ["/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE","/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE"]) {
+    const route=routeContract(path);
+    assert.ok(route.requiredMarkers.includes('name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"'));
+    assert.ok(route.prohibitedMarkers?.includes("This form authorizes testing"));
+  }
+  for(const path of ["/review/request?productId=OFFSEC-PILOT","/pl/review/request?productId=OFFSEC-PILOT"]) {
+    const route=routeContract(path);
+    assert.ok(route.prohibitedMarkers?.includes('name="intent"'));
+    assert.ok(route.prohibitedMarkers?.includes('action="/api/review/request"'));
   }
 });
 
-test("primary offer smoke covers selected English and Polish intake", () => {
-  const english = routeContract(
-    "/review/request?offerId=agent-tools-access-review",
-  );
-  assert.ok(
-    english.requiredMarkers.includes("Tell us what you want to check"),
-  );
-  assert.ok(english.requiredMarkers.includes("Starting at €2,500 · excluding VAT"));
-  assert.ok(
-    english.requiredMarkers.includes(
-      "agent setup, selected tool connection, device class and one consequential action",
-    ),
-  );
-  assert.ok(english.requiredMarkers.includes("Fixed quote after scope"));
-  assert.ok(
-    english.requiredMarkers.includes(
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    ),
-  );
-  assert.ok(
-    english.requiredMarkers.includes(
-      'name="intent" value="agent-tools-access-review"',
-    ),
-  );
-  assert.ok(
-    english.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
-  );
-  assert.ok(english.prohibitedMarkers?.includes("From €1,500"));
-
-  const polish = routeContract(
-    "/pl/review/request?offerId=agent-tools-access-review",
-  );
-  assert.ok(
-    polish.requiredMarkers.includes("Opisz, co chcesz sprawdzić"),
-  );
-  assert.ok(polish.requiredMarkers.includes("Od €2 500 · bez VAT"));
-  assert.ok(
-    polish.requiredMarkers.includes(
-      "Jedno uzgodnione urządzenie i system operacyjny",
-    ),
-  );
-  assert.ok(
-    polish.requiredMarkers.includes(
-      'name="intent" value="agent-tools-access-review"',
-    ),
-  );
-  assert.ok(
-    polish.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
-  );
-  assert.ok(polish.prohibitedMarkers?.includes("Od 6 500 zł"));
+test("Agent Action new intake works only with its canonical ID in both languages", () => {
+  const en=routeContract("/review/request?offerId=agent-action-security-review");
+  const pl=routeContract("/pl/review/request?offerId=agent-action-security-review");
+  assert.ok(en.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
+  assert.ok(pl.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
+  assert.ok(en.requiredMarkers.includes('name="intent" value="agent-action-security-review"'));
+  assert.ok(pl.requiredMarkers.includes('name="intent" value="agent-action-security-review"'));
+  assert.ok(en.prohibitedMarkers?.includes('name="intent" value="bounded-workflow-review"'));
+  const oldEn=routeContract("/review/request?offerId=agent-tools-access-review");
+  const oldPl=routeContract("/pl/review/request?offerId=agent-tools-access-review");
+  assert.ok(oldEn.prohibitedMarkers?.includes('name="intent" value="agent-tools-access-review"'));
+  assert.ok(oldPl.prohibitedMarkers?.includes('name="intent" value="agent-tools-access-review"'));
+  assert.ok(oldEn.requiredMarkers.includes("Nothing has been substituted."));
+  assert.ok(oldPl.requiredMarkers.includes("Nie zastąpiliśmy go inną usługą."));
 });
 
-test("active primary surface smoke rejects former offer positioning", () => {
-  for (const path of [
-    "/",
-    "/catalog",
-    "/catalog/workflows",
-    "/pricing",
-    "/review/request?offerId=agent-tools-access-review",
-    "/pl",
-    "/pl/catalog",
-    "/pl/review/request?offerId=agent-tools-access-review",
-    "/review/sample-cases/ai-agent-action-proof-run",
-  ]) {
-    const route = routeContract(path);
-    assert.ok(
-      route.prohibitedMarkers?.some((marker) =>
-        marker.includes("Agent Risk &"),
-      ),
-      `${path} must reject the former primary name`,
-    );
-    assert.ok(
-      route.prohibitedMarkers?.some((marker) =>
-        marker.includes("€1,500") || marker.includes("€1 500") || marker.includes("6 500"),
-      ),
-      `${path} must reject the former primary price`,
-    );
+test("public new-sales surfaces reject the old inventory review and private pilot", () => {
+  const checks=[
+    ["/","AI Agent Tools &amp; Access Review"],
+    ["/catalog","AI Agent Tools &amp; Access Review"],
+    ["/catalog/workflows","AI Agent Tools &amp; Access Review"],
+    ["/pricing","AI Agent Tools &amp; Access Review"],
+    ["/review/sample-cases/ai-agent-action-proof-run","AI Agent Tools &amp; Access Review"],
+    ["/pl","Przegląd narzędzi i dostępu agenta AI"],
+    ["/pl/catalog","Przegląd narzędzi i dostępu agenta AI"],
+  ];
+  for(const [path,oldName] of checks) {
+    const contract=routeContract(path);
+    assert.ok(contract.prohibitedMarkers?.includes(oldName),path);
+    assert.ok(contract.prohibitedMarkers?.includes("Private Pilot"),path);
+  }
+  for(const path of ["/review/request?offerId=agent-tools-access-review","/pl/review/request?offerId=agent-tools-access-review"]) {
+    assert.ok(routeContract(path).prohibitedMarkers?.includes('action="/api/review/request"'));
   }
 });
 
@@ -297,27 +240,28 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 });
 
 
-test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
-  for (const [path, marker] of [
-    ["/", "Not a review."],
-    ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
-    ["/pricing", "No payment is taken here."],
-    ["/review/request", "No work or target-facing check starts from this form."],
+test("removing a free-check, signup, fee or enquiry boundary fails smoke", () => {
+  for (const [path,marker] of [
+    ["/","Not a review."],
+    ["/docs","Signup is free. Verify your email to create your own workspace. No card is required."],
+    ["/pricing","An enquiry does not authorise collection or start a review."],
+    ["/review/request","Choose one of the two paid reviews."],
   ]) {
-    const route = routeContract(path);
-    const body = route.requiredMarkers.filter(value => value !== marker).join("\n");
-    const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
-    assert.equal(result.ok, false, path);
-    assert.ok(result.missingMarkers.includes(marker), path);
+    const route=routeContract(path);
+    assert.ok(route.requiredMarkers.includes(marker), `Missing boundary contract ${path}`);
+    const body=route.requiredMarkers.filter(value=>value!==marker).join("\n");
+    const result=evaluateBuyerPathRoute(route,"https://witnessops.com",200,body);
+    assert.equal(result.ok,false,path);
+    assert.ok(result.missingMarkers.includes(marker),path);
   }
 });
 
-
-test("the limits section cannot satisfy the positive capabilities check", () => {
-  const route = routeContract("/");
-  const body = route.requiredMarkers.filter(marker => marker !== "Record one bounded check").join("\n");
-  assert.ok(body.includes("The app cannot"));
-  const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
-  assert.equal(result.ok, false);
-  assert.deepEqual(result.missingMarkers, ["Record one bounded check"]);
+test("home limitations never substitute for either paid-review identity", () => {
+  const route=routeContract("/");
+  const body=route.requiredMarkers.filter(marker=>marker!=="Agent Action Security Review").join("\n");
+  assert.ok(body.includes("External Attack Surface Review"));
+  const result=evaluateBuyerPathRoute(route,"https://witnessops.com",200,body);
+  assert.equal(result.ok,false);
+  assert.deepEqual(result.missingMarkers,["Agent Action Security Review"]);
 });
+
