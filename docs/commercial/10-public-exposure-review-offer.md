@@ -44,7 +44,7 @@ The signed target schedule controls the actual scope. The caps are maximums, not
 - buyer-readable executive report and technical appendix;
 - evidence manifest and artifact hashes;
 - signed receipt and offline verifier where the supported path is produced;
-- one 45-minute handover and one focused retest of reported findings within 30 days.
+- one 45-minute handover and, for new engagements, one focused retest of reported findings within 30 calendar days beginning at initial report handover.
 
 Package-integrity checks support only the files and claims they name. They do not prove the system is secure.
 
@@ -61,7 +61,7 @@ This is not a penetration test and does not guarantee security, completeness, co
 - **Payment:** payment of €1,900 in full is due before the delivery clock starts. Payment alone does not authorise testing.
 - **Availability:** subject to written scope acceptance and confirmed operator capacity.
 - **Delivery:** within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are all confirmed.
-- **Retest:** one focused retest within 30 days is included; an additional or late retest is €550 · excluding VAT.
+- **Retest (new engagements):** one focused retest of reported findings within 30 calendar days beginning at initial report handover is included; an additional or late retest is €550 · excluding VAT. Previously accepted customer agreements retain their original terms.
 
 Customer-caused approval, attribution, scheduling, outage, or scope-change delays pause the delivery clock.
 
