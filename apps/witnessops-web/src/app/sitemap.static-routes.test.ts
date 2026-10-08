@@ -8,6 +8,8 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/catalog/automation-repair",
   "/pl/catalog/automation-repair",
   "/catalog",
+  "/buyer-faq",
+  "/pl/buyer-faq",
   "/catalog/workflows",
   "/catalog/offsec-external-exposure",
   "/catalog/offsec-local-audit",
