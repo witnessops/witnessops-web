@@ -112,7 +112,7 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
       await link.focus();
       await page.keyboard.press("Tab");
       await page.keyboard.press("Shift+Tab");
-      await expect(link, \`\${scenario.path} article CTA \${index} keyboard focus\`).toBeFocused();
+      await expect(link, `${scenario.path} article CTA ${index} keyboard focus`).toBeFocused();
       const focus = await link.evaluate((element) => {
         const style = window.getComputedStyle(element);
         return {
@@ -120,7 +120,7 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
           shadow: style.boxShadow !== "none",
         };
       });
-      expect(focus.outline || focus.shadow, \`\${scenario.path} article CTA \${index} visible keyboard focus\`).toBe(true);
+      expect(focus.outline || focus.shadow, `${scenario.path} article CTA ${index} visible keyboard focus`).toBe(true);
     }
     const clippedCards = await page.locator("main article").evaluateAll((articles) => articles.filter((article) => {
       const box = article.getBoundingClientRect();
