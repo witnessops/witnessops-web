@@ -72,14 +72,32 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
   for (const locale of ["en", "pl"] as const) {
     const copy = HOMEPAGE_TWO_OFFER_COPY[locale];
     assert.equal(copy.aiCta.length > 0, true);
-    assert.match(copy.headline, locale === "en" ? /agents can do/ : /Twoi agenci/);
+    assert.match(copy.headline, locale === "en" ? /Proof other people can check/ : /Twoi agenci/);
     assert.match(copy.support, /WitnessOps/);
     assert.match(copy.freeBody, locale === "en" ? /Not a review/ : /nie jest przegląd/);
     assert.doesNotMatch(`${copy.headline} ${copy.aiHeadline} ${copy.externalHeadline}`, /inventory|€500|One Server/);
   }
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiCta, "Scope an AI review");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalCta, "Scope an external review");
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Understand what your agents can do and what your systems expose.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Proof other people can check.");
+  assert.equal(
+    HOMEPAGE_TWO_OFFER_COPY.en.support,
+    "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.",
+  );
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "What can your AI agent actually do in production?");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalQuestion, "What can the internet see that you didn’t mean to expose?");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500 fixed · excluding VAT");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalPrice, "€1,900 fixed · excluding VAT");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "Evidence survives the dashboard.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
+  assert.equal(
+    HOMEPAGE_TWO_OFFER_COPY.pl.headline,
+    "Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.",
+  );
+  assert.match(simple, /text\.evidenceHeadline/);
+  assert.match(simple, /text\.externalScopeNote/);
+  assert.match(simple, /mailto:\$\{PUBLIC_CONTACT_EMAIL\}/);
+  assert.doesNotMatch(simple, /Understand what your agents can do|€500|€950|€4,900|Private Pilot|One Server/);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });
 

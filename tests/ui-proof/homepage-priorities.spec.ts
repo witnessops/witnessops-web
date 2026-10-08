@@ -14,7 +14,7 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Understand what your agents can do and what your systems expose.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(2);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
     await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");

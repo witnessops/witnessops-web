@@ -91,7 +91,7 @@ export function PublicContactRoute({
           {premium ? (polish ? "Zapytaj eksperta" : "Ask an expert") : routeCta}
         </Link>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
-          {polish ? "Lub napisz:" : "Or email:"}{" "}
+          {polish ? "Lub napisz:" : "Discuss a review:"}{" "}
           <a
             href={publicContactMailto(mailtoSubject)}
             className="inline-flex min-h-11 items-center text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
@@ -127,7 +127,7 @@ export function PublicContactRoute({
         </Link>
       </p>
       <p className="mt-1 text-sm leading-6 text-text-secondary">
-        {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
+        {polish ? "Kontakt zapasowy:" : "Discuss a review:"}{" "}
         <a
           href={publicContactMailto(mailtoSubject)}
           className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
