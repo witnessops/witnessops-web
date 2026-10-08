@@ -8,7 +8,7 @@ ARG GWS_TARGET
 ARG GWS_SHA256
 # The pinned Node base still carries OpenSSL 3.5.7. Exact package constraints
 # fail closed if these patched versions are unavailable; never use apk upgrade.
-RUN apk add --no-cache libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 libc6-compat ca-certificates curl \
+RUN apk add --no-cache libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 zlib=1.3.2-r1 libc6-compat ca-certificates curl \
   && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-${GWS_TARGET}.tar.gz" \
     --output /tmp/gws.tar.gz \
