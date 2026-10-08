@@ -1,0 +1,153 @@
+{
+  "capture_date": "2026-10-08",
+  "property": "sc-domain:witnessops.com",
+  "evidence_form": "Normalized transcription of connector responses; not raw XML, raw HTML, or a full analytics export",
+  "source_commit": "6ac66c3de9da1dc17d038033f3571b466e27f557",
+  "deployed_commit": null,
+  "window": {
+    "start_date": "2026-09-08",
+    "end_date": "2026-10-05",
+    "days_inclusive": 28,
+    "search_type": "web",
+    "date_basis": "America/Los_Angeles",
+    "settled_through": "2026-10-05",
+    "first_incomplete_date": "2026-10-06"
+  },
+  "property_metrics": {
+    "evidence_class": "GSC",
+    "tool": "get_site_summary",
+    "data_source": "api",
+    "clicks": 4,
+    "impressions": 255,
+    "ctr_percent": 1.5686274509803921,
+    "average_position": 4.776470588235294,
+    "delta_previous_equal_period": {
+      "clicks": -1,
+      "impressions": -33,
+      "ctr_percentage_points": -0.16748366013071903,
+      "average_position": -2.6783905228758167
+    }
+  },
+  "visible_queries": {
+    "evidence_class": "PRIOR_OBSERVATION",
+    "observed_date": "2026-10-08",
+    "tool": "query_top_queries",
+    "limit": 100,
+    "columns": ["query", "clicks", "impressions", "average_position"],
+    "rows": [
+      ["witnessops", 2, 6, 1],
+      ["firstverifier", 0, 15, 6.933333333333334],
+      ["receipt validation", 0, 2, 61],
+      ["verify receipt", 0, 1, 35],
+      ["visualops", 0, 1, 72]
+    ],
+    "limitation": "Visible queries are not the full query population. Their totals do not reconcile to property totals; do not infer a complete branded/non-branded split."
+  },
+  "selected_page_metrics": {
+    "evidence_class": "PRIOR_OBSERVATION",
+    "observed_date": "2026-10-08",
+    "tool": "query_top_pages",
+    "rows_returned_in_original_read": 58,
+    "selection": "Buyer, evidence, documentation and variant URLs; not all 58 rows are copied here",
+    "columns": ["url", "clicks", "impressions", "average_position"],
+    "rows": [
+      ["https://witnessops.com/", 2, 117, 3.786324786324786],
+      ["https://witnessops.com/catalog", 0, 70, 3.942857142857143],
+      ["https://witnessops.com/why-witnessops", 0, 59, 4.101694915254237],
+      ["https://witnessops.com/docs", 0, 53, 4.339622641509434],
+      ["https://witnessops.com/verify", 0, 46, 9.630434782608695],
+      ["https://witnessops.com/library", 0, 27, 4.777777777777778],
+      ["https://witnessops.com/catalog/automation-repair", 0, 17, 5.9411764705882355],
+      ["https://witnessops.com/library/receipt-first-verifier", 0, 17, 6.882352941176471],
+      ["https://witnessops.com/review/request", 0, 13, 5.769230769230769],
+      ["https://witnessops.com/pl", 1, 12, 4.166666666666666],
+      ["https://witnessops.com/docs/getting-started/cli", 1, 4, 6.5],
+      ["https://witnessops.com/check", 0, 1, 1],
+      ["https://witnessops.com/early-access", 0, 1, 4],
+      ["https://witnessops.com/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review", 0, 3, 6.666666666666667],
+      ["https://witnessops.com/review/request?productId=OFFSEC-CUSTODY-OPS&offer=Key%2C+Access+and+Custody+Review", 0, 1, 2],
+      ["https://www.witnessops.com/docs/getting-started/proof-run-buyer-path", 0, 8, 5.5]
+    ],
+    "limitation": "Page impressions can overlap at property level. Do not sum them into distinct searches or use zero clicks as retirement authority."
+  },
+  "sitemap": {
+    "evidence_class": "GSC",
+    "tool": "get_sitemap_performance",
+    "url": "https://witnessops.com/sitemap.xml",
+    "max_urls": 2000,
+    "url_count": 136,
+    "url_list": "sitemap-urls.txt",
+    "data_source": "api",
+    "truncated": false,
+    "scan_limit_returned": 58,
+    "tool_field_indexedInGscCount": 51,
+    "field_interpretation": "51 exact URL strings matched positive impressions, not 51 URLs proven indexed by URL Inspection",
+    "submitted_sitemaps_listing": [],
+    "submitted_listing_observed_date": "2026-10-08",
+    "homepage_join": {
+      "sitemap_string": "https://witnessops.com",
+      "sitemap_join_clicks": 0,
+      "sitemap_join_impressions": 0,
+      "page_report_string": "https://witnessops.com/",
+      "page_report_clicks": 2,
+      "page_report_impressions": 117,
+      "interpretation": "Likely exact-string join mismatch; not evidence that the homepage lost indexing. Preserve raw strings and reconcile before changing canonicals."
+    },
+    "limitation": "An empty submitted-sitemap list does not mean no sitemap file. No sitemap was submitted or changed. Missing page performance is not an indexing verdict."
+  },
+  "prior_url_inspections": {
+    "evidence_class": "PRIOR_OBSERVATION",
+    "observed_date": "2026-10-08",
+    "new_inspections_in_pr00": 0,
+    "common_result": {
+      "verdict": "PASS",
+      "coverage_state": "Submitted and indexed",
+      "robots_txt_state": "ALLOWED",
+      "indexing_state": "INDEXING_ALLOWED",
+      "page_fetch_state": "SUCCESSFUL",
+      "crawled_as": "MOBILE"
+    },
+    "columns": ["path", "last_crawl_utc"],
+    "rows": [
+      ["/", "2026-09-29T22:59:48Z"],
+      ["/catalog", "2026-09-26T20:22:59Z"],
+      ["/why-witnessops", "2026-09-25T13:58:00Z"],
+      ["/review/request", "2026-09-26T17:52:57Z"],
+      ["/verify", "2026-09-26T06:47:41Z"]
+    ],
+    "limitation": "Stored Google snapshots for five URLs, not whole-site current coverage. The earlier inspections stored diagnostic history but did not request indexing."
+  },
+  "prior_onpage_audit": {
+    "evidence_class": "PRIOR_OBSERVATION",
+    "observed_date": "2026-10-08",
+    "tool": "audit_onpage_seo",
+    "paths": ["/", "/catalog", "/why-witnessops", "/docs", "/verify", "/review/request", "/pl"],
+    "audited_count": 7,
+    "all_http_200": true,
+    "all_reported_indexable": true,
+    "all_reported_self_canonical": true,
+    "all_one_h1": true,
+    "automated_issue_counts": {"critical": 0, "high": 0, "medium": 2, "low": 8},
+    "limitation": "Automated title-length and missing-schema/logo labels are heuristics, not established ranking blockers. Validate schema applicability before treating a label as a required repair. This audit is not a rendered accessibility or performance test."
+  },
+  "open_measurement_gaps": [
+    "GSC Wizard Core Web Vitals call returned notConfigured: no CrUX API key; no performance pass, fail or insufficient-traffic conclusion.",
+    "GA4 was not connected through GSC Wizard in the earlier baseline; qualified-enquiry conversion rate is unknown, not zero.",
+    "GSC Wizard indexing tracker was not configured in the earlier baseline; this says nothing about Google's total index coverage.",
+    "The live homepage content fetch and earlier on-page audit expose differing metadata strings. Reconcile raw HTML, title templates and rendered metadata before a metadata repair.",
+    "No deployment-specific source identity, comprehensive HTTP redirect chain, backlink graph or full locale parity was established."
+  ],
+  "keyword_opportunities": {
+    "observed": "The earlier score_opportunities call returned only firstverifier, 15 impressions, zero clicks, average position about 6.93.",
+    "not_a_forecast": "Its four potential clicks used a generic CTR heuristic, not validated buyer demand or guaranteed growth.",
+    "hypotheses_only": ["AI agent tools and access review", "internet footprint review", "external attack surface review"],
+    "rule": "Validate buyer intent and query-to-page fit before content investment; no branded or non-branded growth claim from this small sample."
+  },
+  "replay": {
+    "get_site_summary": {"siteUrl": "sc-domain:witnessops.com", "startDate": "2026-09-08", "endDate": "2026-10-05", "days": 28},
+    "get_sitemap_performance": {"siteUrl": "sc-domain:witnessops.com", "sitemapUrl": "https://witnessops.com/sitemap.xml", "startDate": "2026-09-08", "endDate": "2026-10-05", "maxUrls": 2000},
+    "list_sitemaps": {"siteUrl": "sc-domain:witnessops.com"},
+    "query_top_queries": {"siteUrl": "sc-domain:witnessops.com", "startDate": "2026-09-08", "endDate": "2026-10-05", "limit": 100},
+    "query_top_pages": {"siteUrl": "sc-domain:witnessops.com", "startDate": "2026-09-08", "endDate": "2026-10-05", "limit": 100}
+  }
+}
