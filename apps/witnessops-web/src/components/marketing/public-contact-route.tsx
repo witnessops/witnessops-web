@@ -1,6 +1,6 @@
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 
-import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_GENERAL_HREF,
@@ -45,10 +45,10 @@ export function PublicContactRoute({
   const primaryOfferSelected =
     new URL(primaryHref, "https://witnessops.com").searchParams.get(
       "offerId",
-    ) === PRIMARY_OFFER.id;
+    ) === PUBLIC_AGENT_ACTION_OFFER.id;
   const repairSelected = new URL(primaryHref, "https://witnessops.com").searchParams.get("offerId") === AUTOMATION_REPAIR_OFFER.id;
   const routeHeading = repairSelected ? AUTOMATION_REPAIR_OFFER.name[locale] : primaryOfferSelected
-    ? PRIMARY_OFFER.name[locale]
+    ? PUBLIC_AGENT_ACTION_OFFER.name[locale]
     : polish
       ? "Pomoc eksperta"
       : "Expert help";
@@ -62,7 +62,7 @@ export function PublicContactRoute({
   const generalEnquiry = !new URL(primaryHref, "https://witnessops.com").search;
   const routeCta = generalEnquiry ? (polish ? "Pomoc eksperta" : "Expert help") : repairSelected ? (polish ? "Opisz problem" : "Describe the problem") : (polish ? "Pomoc eksperta" : "Expert help");
   const mailtoSubject = primaryOfferSelected
-    ? PRIMARY_OFFER.mailSubject
+    ? PUBLIC_AGENT_ACTION_OFFER.mailSubject
     : productName
       ? productContactSubject(productName)
       : subject === "fit-check"
