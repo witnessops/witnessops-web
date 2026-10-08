@@ -129,7 +129,8 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("focused security reviews for AI agents and internet-facing systems");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
-      await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
+      await expect(page.getByRole("complementary", { name: "Free hostname check" })).toContainText("No account needed.");
+      await expect(page.getByRole("complementary", { name: "Free hostname check" })).toContainText("Not a review.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
       await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
