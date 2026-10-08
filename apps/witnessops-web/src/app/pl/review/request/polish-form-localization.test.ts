@@ -6,7 +6,7 @@ import { resolveNewReviewSelection } from "@/lib/new-review-request-policy";
 
 const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const sharedRequest = readFileSync(
-  resolve(__dirname, "../../../components/review-request/two-offer-request.tsx"),
+  resolve(__dirname, "../../../../components/review-request/two-offer-request.tsx"),
   "utf-8",
 );
 const form = readFileSync(
