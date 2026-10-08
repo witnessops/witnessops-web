@@ -1,0 +1,66 @@
+import { EXTERNAL_ATTACK_SURFACE_OFFER, PRIMARY_OFFER } from "./commercial-truth";
+
+/**
+ * Two-Offer V1 buyer answers only. Earlier commercial documents and issued
+ * agreements remain historical records; this copy changes no engagement.
+ */
+export const BUYER_FAQ = {
+  en: {
+    title: "Buyer FAQ: two focused security reviews",
+    description: "Scope, prices, timing, evidence, authority, limits and retesting for the two current WitnessOps security reviews.",
+    intro: "Start with a non-secret question about the decision you need to make. These answers explain current new-engagement boundaries, not the terms of an earlier accepted agreement.",
+    compare: "Compare the two current reviews",
+    choose: "Choose a review or ask about fit",
+    items: [
+      { question: "Which paid reviews can I request?",
+        answer: "There are two current paid reviews: " + PRIMARY_OFFER.name.en + " and " + EXTERNAL_ATTACK_SURFACE_OFFER.name.en + ". If neither fits, no alternative paid service is silently substituted. Other older service pages remain historical references." },
+      { question: "What do the reviews cost?",
+        answer: PRIMARY_OFFER.name.en + " starts at " + PRIMARY_OFFER.price.en + " with a fixed quote after exact scope. " + EXTERNAL_ATTACK_SURFACE_OFFER.name.en + " is " + EXTERNAL_ATTACK_SURFACE_OFFER.price.en + " for one bounded, authorised internet-facing system. Both prices exclude VAT; an enquiry is not a purchase." },
+      { question: "When does the delivery clock start?",
+        answer: PRIMARY_OFFER.name.en + ": " + PRIMARY_OFFER.timing.en + ". " + EXTERNAL_ATTACK_SURFACE_OFFER.name.en + ": " + EXTERNAL_ATTACK_SURFACE_OFFER.timing.en + ". Both depend on written scope, authority, handling, capacity and required inputs, not the time the contact form is sent." },
+      { question: "What does the AI agent review actually cover?",
+        answer: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected tool connection and one consequential action. Manual, read-only inspection of agreed sources; no action execution, exhaustive tool discovery, remediation, retesting or security certification." },
+      { question: "What is the limit of the external attack-surface review?",
+        answer: "One authorised internet-facing system, with caps of one registrable root domain, ten confirmed first-party hostnames, three customer-attributed public IPs and twenty public service endpoints. Actual targets require an accepted signed schedule. Checks are low-impact and unauthenticated; this is not a penetration test or exploitation." },
+      { question: "What evidence and deliverables will I receive?",
+        answer: "The AI review provides a dated coverage/tool map, one action path, evidence-backed findings, priorities and a readout. The external review provides a bounded surface map, evidence-backed findings, remediation priorities, executive and technical reports, and an artifact manifest. Signed receipts and offline verifiers apply only where the named supported path is produced; none proves the system secure." },
+      { question: "Is the free hostname check one of the paid reviews?",
+        answer: "No. The free /check hostname snapshot makes bounded point-in-time public observations. It is not an assessment, monitoring service, penetration test, paid review, security guarantee or permission to inspect other systems." },
+      { question: "Is an external retest included, and when?",
+        answer: "For new external engagements, one focused retest of reported findings is included within 30 calendar days beginning at initial report handover. The 45-minute handover remains included; an additional or late retest is " + EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en + ". The AI review does not include retesting; its separate factual-correction round is not a retest. Earlier accepted agreements retain their original terms." },
+      { question: "What happens after I send a request?",
+        answer: "Start with a short non-secret description and business email. Mailbox verification is only an intake step. Fit, scope, capacity, written authority, the statement of work, payment, handling, recipients and required inputs must be agreed before any work starts. Do not send credentials, logs, screenshots, private reports or customer evidence in the first message." },
+      { question: "What about older services or historical samples?",
+        answer: "Prior enquiries, accepted agreements, immutable artifacts and verifier paths retain their original identities and meaning. Historical service URLs can be read but do not select additional new paid offers. The synthetic one-action example is not a complete current AI review, and the external example is synthetic, not customer evidence." },
+    ],
+  },
+  pl: {
+    title: "FAQ kupującego: dwa konkretne przeglądy",
+    description: "Zakres, ceny, terminy, materiały, upoważnienie, ograniczenia i retest w dwóch aktualnych przeglądach WitnessOps.",
+    intro: "Zacznij od niepoufnego pytania o decyzję, którą musisz podjąć. Odpowiedzi opisują zasady nowych zleceń, a nie warunki wcześniej zaakceptowanej umowy.",
+    compare: "Porównaj dwa aktualne przeglądy",
+    choose: "Wybierz przegląd lub zapytaj o dopasowanie",
+    items: [
+      { question: "Jakie płatne przeglądy mogę zamówić?",
+        answer: "Aktualnie dostępne są dwa: " + PRIMARY_OFFER.name.pl + " oraz " + EXTERNAL_ATTACK_SURFACE_OFFER.name.pl + ". Jeśli żaden nie pasuje, nie podstawiamy innej płatnej usługi. Starsze strony zachowujemy jako odniesienia historyczne." },
+      { question: "Ile kosztują te przeglądy?",
+        answer: PRIMARY_OFFER.name.pl + " zaczyna się od " + PRIMARY_OFFER.price.pl + "; stałą cenę ustalamy po przyjęciu zakresu. " + EXTERNAL_ATTACK_SURFACE_OFFER.name.pl + " kosztuje " + EXTERNAL_ATTACK_SURFACE_OFFER.price.pl + " za jeden ograniczony, autoryzowany system dostępny z internetu. Ceny nie zawierają VAT; zapytanie nie jest zakupem." },
+      { question: "Od kiedy liczy się termin realizacji?",
+        answer: PRIMARY_OFFER.name.pl + ": " + PRIMARY_OFFER.timing.pl + ". " + EXTERNAL_ATTACK_SURFACE_OFFER.name.pl + ": " + EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl + ". Wysłanie formularza nie uruchamia terminu; wymagane są m.in. pisemny zakres, upoważnienie, warunki obsługi materiałów i niezbędne dane." },
+      { question: "Co obejmuje przegląd agenta AI?",
+        answer: "Jedno uzgodnione urządzenie i system operacyjny, jeden datowany spis systemowy, jedna konfiguracja agenta, jedno wybrane połączenie z narzędziem i jedno istotne działanie. Ręczny odczyt uzgodnionych źródeł, bez wykonania działania, pełnego wykrywania narzędzi, napraw, retestów ani certyfikacji." },
+      { question: "Jakie są limity przeglądu ekspozycji?",
+        answer: "Jeden autoryzowany system dostępny z internetu: do jednej rejestrowalnej domeny głównej, dziesięciu potwierdzonych hostów first-party, trzech publicznych adresów IP przypisanych klientowi i dwudziestu publicznych endpointów usług. Faktyczne cele muszą znaleźć się w zaakceptowanym harmonogramie. Tylko kontrole niskiego wpływu bez logowania, bez eksploatacji i bez testu penetracyjnego." },
+      { question: "Jakie materiały i wyniki otrzymam?",
+        answer: "Przegląd AI dostarcza datowaną mapę źródeł i narzędzi, ścieżkę działania, ustalenia ze źródłami, priorytety i omówienie. Przegląd ekspozycji obejmuje mapę powierzchni ataku, ustalenia, raport dla decydentów i załącznik techniczny oraz manifest plików. Podpisany zapis i weryfikator są możliwe tylko we wskazanej obsługiwanej ścieżce; nie dowodzą bezpieczeństwa systemu." },
+      { question: "Czy bezpłatne sprawdzenie hosta to płatny przegląd?",
+        answer: "Nie. Bezpłatny /check przedstawia ograniczone publiczne obserwacje jednego hosta w danym momencie. Nie jest audytem, stałym monitoringiem, testem penetracyjnym, płatnym przeglądem ani zgodą na inspekcję innych systemów." },
+      { question: "Czy retest jest wliczony i do kiedy?",
+        answer: "Dla nowych przeglądów ekspozycji wliczone jest jedno sprawdzenie zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu. Wliczone jest także 45-minutowe omówienie; dodatkowy lub spóźniony retest kosztuje " + EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl + ". Przegląd AI nie obejmuje retestu; runda korekty faktów jest odrębną czynnością. Wcześniej zaakceptowane umowy zachowują pierwotne warunki." },
+      { question: "Co się dzieje po wysłaniu zgłoszenia?",
+        answer: "Podaj krótki niepoufny opis i firmowy adres e-mail. Weryfikacja skrzynki służy tylko przyjęciu zgłoszenia. Przed pracą trzeba uzgodnić dopasowanie, zakres, dostępność, pisemne upoważnienie, SOW, płatność, zasady obsługi materiałów, odbiorców i wymagane dane. Nie przesyłaj haseł, logów, zrzutów ani prywatnych materiałów w pierwszej wiadomości." },
+      { question: "Co ze starszymi usługami i przykładami?",
+        answer: "Poprzednie zgłoszenia, zaakceptowane umowy, niezmienne artefakty i obsługiwane ścieżki weryfikacji zachowują pierwotną tożsamość i znaczenie. Historyczne strony nie wybierają dodatkowej bieżącej oferty. Syntetyczny przykład jednego działania nie jest kompletnym obecnym przeglądem AI, a przykład ekspozycji nie pochodzi od klienta." },
+    ],
+  },
+} as const;
