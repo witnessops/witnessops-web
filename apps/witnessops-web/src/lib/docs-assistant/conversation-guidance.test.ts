@@ -37,18 +37,23 @@ test("an identical generated question is not asked again", () => {
   const result = applyConversationContract(generated(`A run does not establish delivery. ${diagnostic}`), {question:"Missing.",history});
   assert.doesNotMatch(result.text, /\?/);
 });
-test("guarantee and price clarification uses exact catalogue terms, never model fees", () => {
-  const result = applyConversationContract(generated("We need to confirm fit.", AUTOMATION_REPAIR_OFFER.id), {question:"Can you guarantee today for €250?",history});
-  assert.match(result.text, /^No\./);
-  assert.ok(result.text.includes(AUTOMATION_REPAIR_OFFER.price.en));
-  assert.ok(result.text.includes(AUTOMATION_REPAIR_OFFER.repairPrice.en));
-  assert.match(result.text, /confirm fit and availability/);
-  assert.equal(normalizePublicAskResponse({output_text:JSON.stringify({answer:"Guaranteed repair today for €250.",service_id:AUTOMATION_REPAIR_OFFER.id,source_ids:[`service.${AUTOMATION_REPAIR_OFFER.id}`]})}),null);
+test("unlisted repair and invented prices cannot become paid offer recommendations", () => {
+  const forbidden = normalizePublicAskResponse({output_text:JSON.stringify({
+    answer:"Guaranteed repair today for €250.",service_id:AUTOMATION_REPAIR_OFFER.id,
+    source_ids:[`service.${AUTOMATION_REPAIR_OFFER.id}`],
+  })});
+  assert.equal(forbidden,null);
+  const result = applyConversationContract(generated("We need to confirm fit."), {
+    question:"Can you guarantee today for €250?",history,
+  });
+  assert.doesNotMatch(result.text, /guaranteed repair|€250|€750/i);
+  assert.match(result.text, /confirm fit/i);
 });
-test("Polish selection uses known language signals and approved catalogue terms", () => {
+test("Polish selection uses known language signals without exposing retired repair prices", () => {
   assert.equal(askLanguage("Czy nasz agent obsługujący zwroty jest bezpieczny?"), "pl");
-  const result = applyConversationContract(generated("Trzeba ustalić zakres.", AUTOMATION_REPAIR_OFFER.id), {question:"Czy gwarancja naprawy dzisiaj kosztuje €250?"});
-  assert.ok(result.text.includes(AUTOMATION_REPAIR_OFFER.repairPrice.pl));
+  const result = applyConversationContract(generated("Trzeba ustalić zakres."), {question:"Czy gwarancja naprawy dzisiaj kosztuje €250?"});
+  assert.doesNotMatch(result.text, /€250|€750|gwarantujemy/i);
+  assert.match(result.text, /ustalić zakres/);
 });
 test("handoff selects visitor statements, not questions or invented conclusions", () => {
   const draft = visitorStatements([first,"Missing. It is live and we need it today.","Can you guarantee today for €250?","No, nothing changed. It just stopped reaching HubSpot."]).join("\n");

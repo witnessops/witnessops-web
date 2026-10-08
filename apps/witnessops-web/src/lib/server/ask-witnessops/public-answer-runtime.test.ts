@@ -143,7 +143,7 @@ test("legitimate exclusions and bounded proof explanations survive the output fi
 test("excluded claim nouns accept ordinary articles and list grammar without knowing every excluded service", () => {
   for (const text of [
     "You get a read-only security report for one authorised Linux host, with findings, evidence references and unresolved issues, plus clear next steps. It’s bounded to one named server and does not include exploitation, secret collection, compliance certification or any security guarantee.",
-    "No exploitation, secret collection, compliance certification, or host-security guarantee. One named host, read-only, authorised collection only.",
+    "No exploitation, secret collection or compliance certification. One approved public-facing system, authorised low-impact observations only.",
     "It doesn't provide remediation work, a certification or any security guarantees.",
     "It doesn’t provide credentials, security certifications, or a host security guarantee.",
     "The scope excludes live changes, compliance certification and security guarantees.",
