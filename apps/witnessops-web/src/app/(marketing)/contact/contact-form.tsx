@@ -27,11 +27,12 @@ import {
   buyerServiceByProductId,
   buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
-import { AGENT_TOOLS_ACCESS_REVIEW_INTENT } from "@/lib/commercial-request-intents";
+import { AGENT_TOOLS_ACCESS_REVIEW_INTENT, PUBLIC_AGENT_ACTION_REVIEW_INTENT } from "@/lib/commercial-request-intents";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
 type FieldName =
@@ -104,14 +105,16 @@ export function ContactForm({
   const submissionBusyRef = useRef(false);
   const polish = locale === "pl";
   const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
+  const agentActionReview = intent === PUBLIC_AGENT_ACTION_REVIEW_INTENT;
   const agentToolsAccessReview = intent === AGENT_TOOLS_ACCESS_REVIEW_INTENT;
   const automationRepair = intent === "automation-repair-handover";
-  const optionalContext = agentToolsAccessReview || automationRepair || intent === "review";
+  const optionalContext = agentActionReview || agentToolsAccessReview || automationRepair || intent === "review";
   const selectedService =
     buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
   const selectedNonAgentService =
     selectedService &&
     selectedService.id !== AGENT_TOOLS_ACCESS_REVIEW_INTENT &&
+    selectedService.id !== PUBLIC_AGENT_ACTION_REVIEW_INTENT &&
     !externalExposureOrder
       ? selectedService
       : undefined;
@@ -299,6 +302,30 @@ export function ContactForm({
           : "Submitting this form opens fit and scope review for the selected service only. Work does not start until scope, required inputs, fee, timing, and evidence handling are agreed.",
       }
     : undefined;
+  const agentActionReviewCopy = agentActionReview
+    ? {
+        ...baseCopy,
+        fitTitle: polish ? `Rozpocznij ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.` : `Start your ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
+        fitBody: polish
+          ? `Niepoufny opis jednego ważnego działania agenta i decyzji, którą podejmujesz, wystarczy na początek. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}; bez całego spisu urządzenia w pakiecie.`
+          : `Name one consequential agent or automation action and the decision you face, without secrets or files. ${PUBLIC_AGENT_ACTION_OFFER.price.en}; one-action fixed scope, not a device-wide inventory.`,
+        workflow: polish ? PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.pl : PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en,
+        workflowPlaceholder: polish
+          ? "Np. agent zwraca płatność powyżej limitu lub zmienia dostęp do konta. Kto zatwierdza i jakie uprawnienia są wykorzystywane?"
+          : "For example: an agent issues refunds above a limit or changes account access. Who approves it and what can the acting identity reach?",
+        workflowHelp: polish ? "Opisz tylko działanie i ryzyko, bez logów, danych klientów ani poświadczeń." : "Describe the action and decision only. No logs, customer records or credentials.",
+        actionPath: polish ? "Co się stanie, jeśli działanie pójdzie źle?" : "What happens if this action goes wrong?",
+        actionPathPlaceholder: polish ? "Na przykład: strata, zmiana danych lub zbyt szeroki dostęp." : "For example: financial loss, unintended record changes or excessive access.",
+        approval: polish ? "Kto zatwierdza działanie i które systemy są zaangażowane?" : "Who approves the action and which systems are involved?",
+        approvalPlaceholder: polish ? "Podaj role i rodzaje systemów; nie udostępniaj dostępu." : "Name roles and system categories only; do not share access.",
+        evidence: polish ? "Jakie rodzaje dowodów mogą istnieć?" : "Which evidence types might exist?",
+        evidencePlaceholder: polish ? "Wskaż rodzaje konfiguracji, zapisów zatwierdzeń lub działań, bez przesyłania materiałów." : "Name configuration, approval or execution-record types without uploading them.",
+        send: polish ? "Poproś o ocenę dopasowania" : "Request a non-secret fit check",
+        submitBoundary: polish
+          ? "Zgłoszenie nie rezerwuje przeglądu ani nie upoważnia do pracy. Warunki, pisemne upoważnienie i obsługę materiałów uzgadniamy osobno."
+          : "An enquiry is neither a booking nor permission to inspect. Written authority, scope, evidence handling and start conditions are agreed separately.",
+      }
+    : undefined;
   const agentToolsAccessReviewCopy = agentToolsAccessReview
     ? {
         ...baseCopy,
@@ -375,7 +402,7 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
       }
-    : agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
+    : agentActionReviewCopy ?? agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -432,6 +459,8 @@ export function ContactForm({
     const requestScope = [
       externalExposureOrder
         ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
+        : agentActionReview
+          ? `Request: ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
         : agentToolsAccessReview
           ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
@@ -453,6 +482,8 @@ export function ContactForm({
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
+          : agentActionReview
+            ? "Follow-up needed: fixed one-action scope, approval owner, executing identity, relevant systems and effective permissions, evidence availability, agreed rules, written authority, handling, recipients and start conditions"
           : agentToolsAccessReview
             ? "Follow-up needed: fit, device and OS, dated system-level inventory, named agent setup, selected connection, one action, approval and downstream effective permissions, source coverage, fixed quote, payment, recipients, and evidence handling"
             : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",

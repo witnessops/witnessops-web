@@ -1,6 +1,7 @@
 import type { BuyerLocale, BuyerService } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 
@@ -78,6 +79,35 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Scope this review",
     sampleHref: "/review/sample-cases/customer-security-review-sprint",
     sampleLabel: "See a sample response",
+  },
+  "agent-action-security-review": {
+    headline: "Know what to fix before your AI agent acts.",
+    whoFor: "AI product and automation teams preparing a production launch, customer handover or expanded agent access.",
+    scopeNote: "One bounded consequential agent or automation action. No system-wide inventory or other workflow is included.",
+    deliverables: [
+      "Authority and approval map for the selected action.",
+      "Execution path: identity, connected tools and affected systems.",
+      "Effective permission boundary and control gaps.",
+      "Evidence chain with explicit missing or inconclusive evidence.",
+      "Prioritized practical recommendations and buyer readout.",
+    ],
+    scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
+    steps: [
+      ["Non-secret fit check", "Name one consequential action, its business risk and decision date. Do not send credentials, logs, files or customer evidence."],
+      ["Scope and evidence rules", "Agree the action, identity, relevant systems, written authority, evidence sources, handling and the fixed €2,500 fee before work."],
+      ["Read-only reconstruction", "Trace authorization, approvals, acting identity, effective permissions and available records for the selected action. No action is executed."],
+      ["Findings and readout", "Deliver the one-action map, sourced findings, gaps and priorities within 10 working days after evidence rules and agreed start conditions are satisfied."],
+    ],
+    boundaries: [
+      "The review covers only the agreed action and available relevant evidence. An inventory of all installed agents, devices or tools is not included.",
+      "Configuration alone does not prove an action occurred; unknown or unavailable sources remain explicit.",
+      "No production changes, execution, exploitation, credential access, remediation, retesting, monitoring, custom protocols, multi-workflow scope or security certification.",
+      "An enquiry does not authorize collection. The customer-specific agreement establishes written authority and secure evidence handling.",
+    ],
+    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
+    sampleLabel: "Historical synthetic one-action example (not customer evidence)",
+    commercialNote: "€2,500 fixed · excluding VAT, for one agreed action. Evidence rules and start conditions agreed before work. This is not checkout or an authorization.",
+    primaryCta: "Request an Agent Action Security Review",
   },
   "agent-tools-access-review": {
     headline: "Know which agent tools are visible and what one action can reach.",
@@ -400,6 +430,35 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Omów zakres przeglądu",
     sampleHref: "/review/sample-cases/customer-security-review-sprint",
     sampleLabel: "Zobacz przykładowe odpowiedzi (EN)",
+  },
+  "agent-action-security-review": {
+    headline: "Sprawdź zabezpieczenia, zanim agent wykona ważne działanie.",
+    whoFor: "Zespoły produktów AI i automatyzacji przed wdrożeniem, przekazaniem klientowi lub rozszerzeniem uprawnień agenta.",
+    scopeNote: "Jedno uzgodnione, istotne działanie agenta lub automatyzacji. Bez spisu całego urządzenia i innych procesów.",
+    deliverables: [
+      "Mapa upoważnień i zatwierdzania jednego działania.",
+      "Ścieżka wykonania, tożsamość, narzędzia i systemy.",
+      "Granica faktycznych uprawnień i luki kontrolne.",
+      "Łańcuch dowodowy z nazwanymi niewiadomymi i brakami.",
+      "Praktyczne zalecenia według priorytetu oraz omówienie.",
+    ],
+    scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
+    steps: [
+      ["Niepoufne zgłoszenie", "Nazwij jedno ważne działanie, ryzyko i termin decyzji. Bez danych logowania, logów, plików i materiałów klientów."],
+      ["Zakres i zasady dowodowe", "Uzgadniamy działanie, tożsamość, systemy, pisemne upoważnienie, źródła, obsługę materiałów i stałą cenę €2 500."],
+      ["Rekonstrukcja tylko do odczytu", "Analizujemy upoważnienie, zatwierdzenie, tożsamość, faktyczne uprawnienia i dostępne dowody. Nie wykonujemy działania."],
+      ["Raport i omówienie", "Przekazanie mapy działania, ustaleń i priorytetów w ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych i warunków startu."],
+    ],
+    boundaries: [
+      "Tylko uzgodnione działanie i dostępne źródła. Bez pełnego wykrywania agentów, urządzeń i narzędzi.",
+      "Sama konfiguracja nie dowodzi wykonania działania. Braki i niedostępne źródła pozostają jawne.",
+      "Bez zmian produkcyjnych, wykonania działania, eksploatacji, dostępu do poświadczeń, napraw, ponownych testów, monitoringu, nowych protokołów, wielu procesów i certyfikacji.",
+      "Zgłoszenie nie upoważnia do zbierania materiałów. Pisemne upoważnienie i bezpieczna obsługa wymagają odrębnego uzgodnienia.",
+    ],
+    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
+    sampleLabel: "Historyczny syntetyczny przykład jednego działania (nie dowód klienta, EN)",
+    commercialNote: "€2 500 stała cena · bez VAT za jedno działanie. Przed pracą uzgadniamy zasady i warunki startu; formularz nie jest płatnością ani upoważnieniem.",
+    primaryCta: "Zapytaj o Agent Action Security Review",
   },
   "agent-tools-access-review": {
     headline: "Sprawdź widoczne narzędzia agenta i dostęp w jednym działaniu.",
