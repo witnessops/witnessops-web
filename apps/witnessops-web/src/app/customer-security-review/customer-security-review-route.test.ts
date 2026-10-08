@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { getServiceLanding } from "@/lib/service-landings";
+import { resolveNewReviewSelection } from "@/lib/new-review-request-policy";
 
 const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const service = buyerServiceById("customer-security-review-sprint");
@@ -30,6 +31,7 @@ test("customer security review page does not widen the public product boundary",
   }
   const request = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   assert.equal(request.pathname, "/review/request");
-  assert.equal(request.searchParams.get("offerId"), service.id);
+  assert.equal(request.searchParams.get("offerId"), null, "Historical service remains readable but cannot issue new public intake");
+  assert.equal(resolveNewReviewSelection({offerId:service.id}).kind, "unavailable");
   assert.equal(landing.sampleHref, "/review/sample-cases/customer-security-review-sprint");
 });

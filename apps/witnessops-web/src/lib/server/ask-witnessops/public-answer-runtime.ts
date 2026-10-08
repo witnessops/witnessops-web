@@ -368,7 +368,7 @@ export function applyConversationContract(answer: NonNullable<ReturnType<typeof 
 
 /** Published terms do not depend on a provider response. Input safety gates run first. */
 export function catalogueClarification(args: NormalizedAskRequest) {
-  if (!/[€]|\b(price|pricing|cost|guarantee|today|fee|availability|deadline|fit|cena|koszt|dzisiaj|gwarancja)\b/i.test(args.question)) return null;
+  if (!/[€]|\b(how much|price|pricing|cost|guarantee|today|fee|availability|deadline|fit|ile kosztuje|cena|koszt|dzisiaj|gwarancja)\b/i.test(args.question)) return null;
   // A separately named historical or private catalogue service never falls back
   // to the prior conversation or page context as a different paid review.
   const q = args.question.toLowerCase();
