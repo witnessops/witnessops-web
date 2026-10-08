@@ -53,13 +53,11 @@ test("Customer Security Review pages remain responsive and usable", async ({ bro
     );
     expect(clippedSections, `${scenario.path} should not clip page sections`).toBe(0);
 
-    const expectedRequestPath = scenario.path.startsWith("/pl/")
-      ? "/pl/review/request"
-      : "/review/request";
-    const expectedRequestHref = `${expectedRequestPath}?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint`;
-    await expect(heroCta).toHaveAttribute("href", expectedRequestHref);
-    const requestLinks = page.locator(`main a[href="${expectedRequestHref}"]`);
-    expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
+    await expect(heroCta).toHaveAttribute(
+      "href",
+      "/review/sample-cases/customer-security-review-sprint",
+    );
+    await expect(page.locator('main a[href*="/review/request"]')).toHaveCount(0);
     await expect(page.locator('footer a[href^="mailto:engage@mail.witnessops.com"]')).toBeVisible();
     if (scenario.path === "/customer-security-review" && scenario.width === 390) {
       await page.locator("main summary").filter({ hasText: "Example and technical details" }).click();

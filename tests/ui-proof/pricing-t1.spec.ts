@@ -35,6 +35,7 @@ for (const width of [390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`pricing-${width}.png`), fullPage: true });
     await externalCta.click();
+    await expect(page).toHaveURL(/[?&]productId=OFFSEC-EXTERNAL-EXPOSURE(?:&|$)/);
     expect(new URL(page.url()).searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
     await expect(page.locator("main")).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
     await page.goto("/pricing");
