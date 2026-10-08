@@ -194,7 +194,7 @@ footer:
   brand_line: "WitnessOps"
   subline: "Security verification with clear findings, supporting evidence and practical next steps."
   links:
-    - label: "AI Agent Tools & Access Review"
+    - label: "Agent Action Security Review"
       href: "/catalog/workflows"
     - label: "External Attack Surface Review"
       href: "/catalog/offsec-external-exposure"
