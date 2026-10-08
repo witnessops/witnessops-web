@@ -1,0 +1,45 @@
+---
+title: "Run a free hostname check"
+description: "Check one authorized public hostname, read ten bounded observations and keep a copy of the result."
+section: "docs"
+order: 1
+nav_label: "Free check"
+draft: false
+---
+
+# Run a free hostname check
+
+The [Free Check](/check) observes one public hostname from the outside. It needs no account or email. Use it only for a hostname you own or are authorized to check.
+
+## Run the check
+
+1. Open [Free Check](/check). Enter the hostname alone, such as `example.com`, without `https://`, a path or a port. IP addresses are not accepted.
+2. Choose **Run free check**. WitnessOps servers make ten bounded public DNS, TLS and HTTP observations. Web connections use ports 80 and 443 only. The check does not use credentials or exploit the target.
+3. Read the result for that hostname and recorded time. Choose **View full report** to inspect methods, observations, evidence references and limitations.
+4. Choose **Download source JSON** to keep the observations. **Save report as PDF** opens your browser's print dialog; choose **Save as PDF** there.
+
+The ten checks cover the public DNS target, TLS certificate, legacy TLS, HTTP-to-HTTPS transition, HSTS, browser security headers, `security.txt`, SPF, DMARC and CAA.
+
+## Read the result
+
+| Label | Meaning |
+| --- | --- |
+| Needs attention | The named check observed a condition worth reviewing. No severity is assigned. |
+| Observed as expected | The named check saw its expected condition. This does not establish overall security. |
+| Informational | A recorded condition without an attention finding. |
+| Undetermined | The check could not reach a supported conclusion. It is not a pass. |
+| Collection error | The observation could not be completed for that check. |
+
+There is no overall security score. A timeout or error can leave a question unresolved; it does not prove that the target is safe or vulnerable. [Read how to interpret a public exposure snapshot](/research/reading-a-public-exposure-snapshot).
+
+## Keep a copy or build a history
+
+The free result is displayed until you change the hostname, choose **Clear**, or leave the page. This feature does not store it in an account, so download what you need before leaving. While collecting, **Cancel** stops waiting and clears the page result; the bounded server run may finish.
+
+For saved history and comparison, [create a workspace](/docs/getting-started), add your hostname, and explicitly authorize a **new** saved observation. The free snapshot is not imported automatically. See [Your first observation](/docs/getting-started/first-observation) and [Understand results and reports](/docs/getting-started/results).
+
+## Scope and limits
+
+This is a snapshot of ten defined public observations against one hostname at one time. It does not find every subdomain, test authenticated functions or internal infrastructure, exploit application vulnerabilities, or examine ports beyond 80 and 443. It is not a penetration test, complete attack-surface assessment, certification, compliance assessment or security guarantee.
+
+The source snapshot is unsigned. The report shows a SHA-256 digest of the source JSON; it identifies those bytes but does not authenticate the observations. For a separately agreed outside-in review of one authorized public-facing system, see [External Attack Surface Review](/catalog/offsec-external-exposure). It has its own target schedule and limits.

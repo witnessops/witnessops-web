@@ -13,7 +13,7 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 import { languageAlternates } from "@/lib/public-seo";
 
 const docsDescription =
-  "Create an account, set up the CLI, authenticate and find your first report."
+  "Run a free hostname check, or set up an account, CLI and workspace reports."
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
@@ -41,6 +41,7 @@ export const metadata: Metadata = {
 };
 
 const primaryPaths = [
+  { href: "/docs/getting-started/free-check", title: "Free hostname check", description: "No account needed. Run ten bounded public checks, read the result and keep a copy.", cta: "Read the guide" },
   { href: "/docs/getting-started", title: "Start with the app", description: "Free signup, workspace invitations, your first observation and reports.", cta: "Get started" },
   { href: "/docs/getting-started/first-observation", title: "Your first observation", description: "Add an authorized hostname, run a permitted check and find its report.", cta: "Follow the steps" },
   { href: "/docs/getting-started/results", title: "Understand results", description: "Unsigned snapshots, reports and signed packages have different limits.", cta: "Read your result" },
@@ -120,24 +121,24 @@ export default async function DocsIndexPage() {
         </h1>
 
         <p className="mt-5 max-w-[36rem] text-base leading-7 text-text-secondary">
-          Create your account, understand workspace access, and find your first result. Use the CLI guide when you need command-line access.
+          Check one authorized public hostname without an account, or set up a workspace to keep a history of new observations.
         </p>
 
         <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
-          Signup is free. Verify your email to create your own workspace. No card is required.
+          The free result is temporary. Sign up and verify your email when you want your own workspace; no card is required.
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
-          <CtaButton href={pub("/docs/getting-started")} variant="primary" label="Get started" />
+          <CtaButton href="/check" variant="primary" label="Run free check" />
           <CtaButton
-            href={pub("/docs/getting-started/access-help")}
+            href={pub("/docs/getting-started/free-check")}
             variant="secondary"
-            label="Access help"
+            label="Read the guide"
           />
           <CtaButton
-            href={pub("/docs/getting-started/cli")}
+            href={pub("/docs/getting-started")}
             variant="secondary"
-            label="CLI setup"
+            label="Get started"
           />
         </div>
       </header>

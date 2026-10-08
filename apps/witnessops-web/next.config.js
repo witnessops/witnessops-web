@@ -1,6 +1,9 @@
 const path = require("path");
 const { resolveDistDir } = require("../../packages/config/next/resolve-dist-dir");
 const { securityHeaders } = require("../../packages/config/next/security-headers");
+const checkScriptSrc = process.env.NODE_ENV === "development"
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -62,7 +65,7 @@ const nextConfig = {
       {
         source: "/check",
         headers: [
-          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" },
+          { key: "Content-Security-Policy", value: `default-src 'self'; ${checkScriptSrc}; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'` },
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "Cache-Control", value: "no-store" },
         ],

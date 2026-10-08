@@ -12,6 +12,39 @@ function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
 }
 
+async function checkCsp(mode: "development" | "production"): Promise<string> {
+  const priorMode = process.env.NODE_ENV;
+  const configPath = resolve(repoRoot, "apps/witnessops-web/next.config.js");
+  const sharedHeadersPath = resolve(repoRoot, "packages/config/next/security-headers.js");
+  try {
+    process.env.NODE_ENV = mode;
+    delete require.cache[configPath];
+    delete require.cache[sharedHeadersPath];
+    const config = require(configPath) as { headers: () => Promise<{ source: string; headers: { key: string; value: string }[] }[]> };
+    const routes = await config.headers();
+    const check = routes.find(route => route.source === "/check");
+    assert.ok(check);
+    const csp = check.headers.find(header => header.key === "Content-Security-Policy");
+    assert.ok(csp);
+    return csp.value;
+  } finally {
+    if (priorMode === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = priorMode;
+    delete require.cache[configPath];
+    delete require.cache[sharedHeadersPath];
+  }
+}
+
+test("/check permits development scripts without changing its production CSP", async () => {
+  const production = await checkCsp("production");
+  const development = await checkCsp("development");
+  assert.equal(production.includes("'unsafe-eval'"), false);
+  assert.equal(development, production.replace(
+    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  ));
+});
+
 test("routes-manifest matches the frozen baseline", () => {
   const actual = loadJson(
     resolve(repoRoot, "apps/witnessops-web/.next/routes-manifest.json"),
