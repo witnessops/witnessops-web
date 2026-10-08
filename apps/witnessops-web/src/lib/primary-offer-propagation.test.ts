@@ -288,7 +288,7 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   const assessments = [
     classifyCommercialFit({
       question:
-        "What is included in AI Agent Tools & Access Review and how much does it cost?",
+        "What is included in Agent Action Security Review and how much does it cost?",
       authorityQuestionClassId: "outside_approved_public_context",
     }),
     classifyCommercialFit({
@@ -309,13 +309,13 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   assert.equal(assessments[1]?.offer_id, null);
   assert.equal(assessments[1]?.offer, null);
   for (const assessment of [assessments[0], assessments[2]]) {
-    assert.equal(assessment.offer_id, PRIMARY_OFFER.id);
-    assert.equal(assessment.offer?.name, PRIMARY_OFFER.name.en);
-    assert.equal(assessment.offer?.price_label, PRIMARY_OFFER.price.en);
-    assert.equal(assessment.offer?.unit_label, PRIMARY_OFFER.unit.en);
-    assert.equal(assessment.offer?.fit_check_label, PRIMARY_OFFER.fitCheck.en);
-    assert.equal(assessment.offer?.delivery_label, PRIMARY_OFFER.timing.en);
-    assert.notEqual(assessment.offer?.name, "Agent Risk & Control Review");
+    assert.equal(assessment.offer_id, PUBLIC_AGENT_ACTION_OFFER.id);
+    assert.equal(assessment.offer?.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
+    assert.equal(assessment.offer?.price_label, PUBLIC_AGENT_ACTION_OFFER.price.en);
+    assert.equal(assessment.offer?.unit_label, PUBLIC_AGENT_ACTION_OFFER.unit.en);
+    assert.equal(assessment.offer?.fit_check_label, PUBLIC_AGENT_ACTION_OFFER.fitCheck.en);
+    assert.equal(assessment.offer?.delivery_label, PUBLIC_AGENT_ACTION_OFFER.timing.en);
+    assert.notEqual(assessment.offer_id, PRIMARY_OFFER.id);
     assert.notEqual(assessment.offer?.price_label, "From €1,500");
   }
 
@@ -326,9 +326,10 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
     ),
     "utf8",
   );
-  assert.match(askCard, /PRIMARY_OFFER\.requestRoute/);
-  assert.match(askCard, /offerId=\$\{PRIMARY_OFFER\.id\}/);
-  assert.match(askCard, /source=ask&result=\$\{fit\.result\}/);
+  assert.match(askCard, /buyerServiceRequestHref\(language, selectedService\)/);
+  assert.match(askCard, /PUBLIC_AGENT_ACTION_OFFER/);
+  assert.match(askCard, /30 calendar days of initial report handover/);
+  assert.doesNotMatch(askCard, /offerId=\$\{PRIMARY_OFFER\.id\}/);
 });
 
 test("active presentation sources cannot restore the former primary name or price", () => {

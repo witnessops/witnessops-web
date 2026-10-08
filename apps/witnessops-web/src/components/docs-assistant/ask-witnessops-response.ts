@@ -1,6 +1,10 @@
 import type { AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
+} from "@/lib/commercial-truth";
 import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 
 export interface AskWitnessOpsRecommendation {
   readonly service_id: BuyerService["id"];
@@ -32,14 +36,17 @@ export interface AskWitnessOpsCommercialFit {
     | "unknown"
     | "blocked";
   readonly intent: "workflow" | "offer" | "specimen" | "other";
-  readonly offer_id: typeof PRIMARY_OFFER.id | null;
+  readonly offer_id:
+    | typeof PUBLIC_AGENT_ACTION_OFFER.id
+    | typeof EXTERNAL_ATTACK_SURFACE_OFFER.id
+    | null;
   readonly source: "ask";
   readonly offer: {
-    readonly name: (typeof PRIMARY_OFFER.name)["en"];
-    readonly price_label: (typeof PRIMARY_OFFER.price)["en"];
-    readonly unit_label: (typeof PRIMARY_OFFER.unit)["en"];
-    readonly fit_check_label: (typeof PRIMARY_OFFER.fitCheck)["en"];
-    readonly delivery_label: (typeof PRIMARY_OFFER.timing)["en"];
+    readonly name: string;
+    readonly price_label: string;
+    readonly unit_label: string;
+    readonly fit_check_label: string;
+    readonly delivery_label: string;
   } | null;
   readonly matching_specimen_id: "ai-agent-action-proof-run" | null;
 }
@@ -187,7 +194,7 @@ export function askWitnessOpsRouteLabel(routeId: string): string {
 
 export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
   if (route.route_id === "route.fit-check") {
-    return `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask`;
+    return `${PUBLIC_AGENT_ACTION_OFFER.requestRoute}?source=ask`;
   }
 
   return route.href;
@@ -331,6 +338,7 @@ function asRecommendation(value: unknown): AskWitnessOpsRecommendation | null {
   const record = value as Record<string, unknown>;
   const service = BUYER_SERVICES.find((item) => item.id === record.service_id);
   if (!service) throw new Error("Invalid review recommendation.");
+  if (!isPublicPaidReviewId(service.id)) return null;
   const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   requestUrl.searchParams.set("source", "ask");
   const expected = {
@@ -435,21 +443,40 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
     record.offer && typeof record.offer === "object"
       ? (record.offer as Record<string, unknown>)
       : null;
-  const offerId = record.offer_id === PRIMARY_OFFER.id ? PRIMARY_OFFER.id : null;
+  const publicOffers = [
+    {
+      id: PUBLIC_AGENT_ACTION_OFFER.id,
+      offer: {
+        name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+        price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+        unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
+        fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
+        delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
+      },
+    },
+    {
+      id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
+      offer: {
+        name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+        price_label: EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+        unit_label:
+          "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
+        fit_check_label: "Non-secret fit check first. This is not a penetration test.",
+        delivery_label: EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
+      },
+    },
+  ] as const;
+  const matchedOffer = publicOffers.find((candidate) => candidate.id === record.offer_id);
   const offer =
-    offerRecord?.name === PRIMARY_OFFER.name.en &&
-    offerRecord.price_label === PRIMARY_OFFER.price.en &&
-    offerRecord.unit_label === PRIMARY_OFFER.unit.en &&
-    offerRecord.fit_check_label === PRIMARY_OFFER.fitCheck.en &&
-    offerRecord.delivery_label === PRIMARY_OFFER.timing.en
-      ? {
-          name: PRIMARY_OFFER.name.en,
-          price_label: PRIMARY_OFFER.price.en,
-          unit_label: PRIMARY_OFFER.unit.en,
-          fit_check_label: PRIMARY_OFFER.fitCheck.en,
-          delivery_label: PRIMARY_OFFER.timing.en,
-        }
+    matchedOffer &&
+    offerRecord?.name === matchedOffer.offer.name &&
+    offerRecord.price_label === matchedOffer.offer.price_label &&
+    offerRecord.unit_label === matchedOffer.offer.unit_label &&
+    offerRecord.fit_check_label === matchedOffer.offer.fit_check_label &&
+    offerRecord.delivery_label === matchedOffer.offer.delivery_label
+      ? matchedOffer.offer
       : null;
+  const offerId = matchedOffer && offer ? matchedOffer.id : null;
 
   const matchingSpecimenId =
     record.matching_specimen_id === "ai-agent-action-proof-run"
@@ -459,7 +486,7 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
         : undefined;
   const presentsOffer = result === "likely" || result === "needs_boundary";
   const validOfferState = presentsOffer
-    ? offerId === PRIMARY_OFFER.id &&
+    ? offerId !== null &&
       offer !== null &&
       (result === "likely"
         ? intent === "workflow" || intent === "offer"
