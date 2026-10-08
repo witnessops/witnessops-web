@@ -201,8 +201,8 @@ test("public Ask sends bounded follow-up history without changing current-questi
     assert.equal(body.answer_mode, "ai_assisted");
     assert.equal(body.recommendation.service_id, "external-exposure-assessment");
     assert.equal(body.authority_answer.policy_decision.question_class_id, "outside_approved_public_context");
-    assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user", "user"]);
-    assert.match(input[2].content, /^KNOWN VISITOR QUALIFICATION FACTS/);
+    assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user"]);
+    assert.match(input[1].content, /UNTRUSTED RECENT CONVERSATION/);
     assert.match(input[1].content, /I have one Linux host/);
     assert.equal(input.at(-1)?.content, "Which evidence types would support a review?");
     assert.equal("history" in body, false);

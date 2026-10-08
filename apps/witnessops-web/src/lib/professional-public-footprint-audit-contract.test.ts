@@ -42,14 +42,10 @@ test("historical footprint identity stays intact while new discovery uses the tw
   assert.equal(audit.productId, undefined);
   assert.equal(buyerRequestHref("en"), "/review/request");
   assert.equal(buyerRequestHref("pl"), "/pl/review/request");
-  assert.match(
-    buyerServiceRequestHref("en", audit),
-    /^\/review\/request\?offerId=professional-public-footprint-audit&/,
-  );
-  assert.match(
-    buyerServiceRequestHref("pl", audit),
-    /^\/pl\/review\/request\?offerId=professional-public-footprint-audit&/,
-  );
+  assert.equal(buyerServiceRequestHref("en",audit),"/review/request");
+  assert.equal(buyerServiceRequestHref("pl",audit),"/pl/review/request");
+  // Historic commercial details and accepted agreements are preserved; the
+  // old audit ID cannot become a third new-sale selection via this CTA.
   assert.doesNotMatch(JSON.stringify(audit), /stripe|checkout|payment[_-]?link/i);
   assert.match(catalogueSource, /buyerServiceRequestHref\(locale, service\)/);
   assert.doesNotMatch(pricingSource, /professional-public-footprint-audit|buyerServicesByCommercialPriority|INTERNET_FOOTPRINT_REVIEW_OFFER/);

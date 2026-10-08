@@ -10,10 +10,11 @@ import {
 import {
   buyerPublicOfferRequestHref,
   buyerServiceByPublicOfferId,
+  buyerServiceById,
   buyerServiceFromRequestOffer,
   buyerServiceRequestHref,
 } from "./buyer-services";
-import { PRIMARY_OFFER } from "./commercial-truth";
+import { PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "./commercial-truth";
 import { resolveNewReviewSelection } from "./new-review-request-policy";
 
 test("commercial SKU route dispositions preserve current offers and contain drift", () => {
@@ -47,44 +48,31 @@ test("request pages reject retired SKU selection while historical SKU route disp
   assert.equal(resolveNewReviewSelection({ offerId: "agent-tools-access-review", productId: "OFFSEC-EXTERNAL-EXPOSURE" }).kind, "unavailable");
 });
 
-test("English intake retains historical identity lookups without making them new-offer selectors", () => {
-  const offer = buyerServiceByPublicOfferId("agent-tools-access-review");
-  assert.equal(offer?.name.en, "AI Agent Tools & Access Review");
-  assert.equal(offer?.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(
-    offer?.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
-  assert.equal(offer?.requestCta?.en, "Request a scope and fixed quote");
-  assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
-  assert.equal(offer?.productId, undefined);
-
-  // Historical lookup data must still be available, but not as NEW issue authority.
-  for (const id of ["customer-security-review-sprint", "professional-public-footprint-audit"]) {
-    assert.ok(buyerServiceByPublicOfferId(id));
-    assert.equal(resolveNewReviewSelection({ offerId: id }).kind, "unavailable");
+test("English intake preserves old terms but restricts every new public offer selector", () => {
+  const historical=buyerServiceById("agent-tools-access-review");
+  assert.equal(historical.name.en,"AI Agent Tools & Access Review");
+  assert.equal(historical.price.en,"Starting at €2,500 · excluding VAT");
+  assert.equal(historical.requestCta?.en,"Request a scope and fixed quote");
+  assert.equal(PRIMARY_OFFER.unit.en,"One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
+  assert.equal(historical.productId,undefined);
+  for(const id of ["agent-tools-access-review","customer-security-review-sprint","professional-public-footprint-audit","automation-repair-handover"] as const){
+    assert.equal(buyerServiceByPublicOfferId(id),undefined,id);
+    assert.equal(resolveNewReviewSelection({offerId:id}).kind,"unavailable",id);
+    assert.equal(buyerServiceRequestHref("en",buyerServiceById(id)),"/review/request",id);
   }
-  assert.equal(buyerServiceByPublicOfferId("one-server-security-check"), undefined);
-  assert.equal(buyerServiceByPublicOfferId("external-exposure-assessment"), undefined);
-  assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
-  assert.equal(buyerServiceByPublicOfferId("bounded-workflow-review"), undefined);
-  assert.equal(buyerServiceFromRequestOffer("bounded-workflow-review", PRIMARY_OFFER.name.en), undefined);
-  assert.equal(buyerServiceFromRequestOffer(undefined, "Agent Action Security Review"), undefined);
+  assert.equal(buyerServiceByPublicOfferId("agent-action-security-review")?.name.en,"Agent Action Security Review");
+  for(const id of ["one-server-security-check","external-exposure-assessment","not-a-real-offer","bounded-workflow-review"])
+    assert.equal(buyerServiceByPublicOfferId(id),undefined,id);
+  assert.equal(buyerServiceFromRequestOffer("bounded-workflow-review",PRIMARY_OFFER.name.en),undefined);
+  assert.equal(buyerServiceFromRequestOffer(undefined,"Agent Action Security Review"),undefined);
+  assert.equal(buyerServiceFromRequestOffer(undefined,PRIMARY_OFFER.name.en),undefined);
+  assert.equal(buyerServiceFromRequestOffer("agent-action-security-review","buyer-edited label")?.id,"agent-action-security-review");
+  assert.equal(resolveNewReviewSelection({offer:PRIMARY_OFFER.name.en}).kind,"unavailable");
+  assert.equal(buyerPublicOfferRequestHref("en","agent-tools-access-review"),"/review/request");
+  assert.equal(buyerServiceRequestHref("pl",historical),"/pl/review/request");
   assert.equal(
-    buyerServiceFromRequestOffer(PRIMARY_OFFER.id, "Buyer-edited conflicting title"), offer,
-  );
-  assert.equal(buyerServiceFromRequestOffer(undefined, PRIMARY_OFFER.name.en), offer);
-  assert.equal(resolveNewReviewSelection({ offer: PRIMARY_OFFER.name.en }).kind, "unavailable");
-  assert.equal(resolveNewReviewSelection({ offerId: "bounded-workflow-review" }).kind, "unavailable");
-
-  assert.equal(
-    buyerPublicOfferRequestHref("en", "agent-tools-access-review"),
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
-  );
-  assert.equal(
-    buyerServiceRequestHref("pl", offer!),
-    "/pl/review/request?offerId=agent-tools-access-review&offer=Przegl%C4%85d+narz%C4%99dzi+i+dost%C4%99pu+agenta+AI",
+    buyerPublicOfferRequestHref("en",PUBLIC_AGENT_ACTION_OFFER.id),
+    "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review",
   );
 });
 
@@ -92,9 +80,10 @@ test("Polish intake preserves the same exact new paid selectors and old confirma
   assert.match(polish, /twoOfferRequestMetadata\("pl"\)/);
   assert.match(polish, /params=\{\(await searchParams\) \?\? \{\}\}/);
   assert.match(shared, /<ContactForm[\s\S]*locale=\{locale\}[\s\S]*intent=\{selection.intent\}/);
-  assert.deepEqual(resolveNewReviewSelection({ offerId: PRIMARY_OFFER.id }), {
-    kind: "selected", serviceId: PRIMARY_OFFER.id, intent: PRIMARY_OFFER.id,
+  assert.deepEqual(resolveNewReviewSelection({ offerId: PUBLIC_AGENT_ACTION_OFFER.id }), {
+    kind: "selected", serviceId: PUBLIC_AGENT_ACTION_OFFER.id, intent: PUBLIC_AGENT_ACTION_OFFER.id,
   });
+  assert.equal(resolveNewReviewSelection({offerId:PRIMARY_OFFER.id}).kind,"unavailable");
   for (const params of [
     { offerId: "bounded-workflow-review" },
     { offerId: "agent-tools-access-review", productId: "OFFSEC-EXTERNAL-EXPOSURE" },

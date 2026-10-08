@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
+import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
 import { buyerRequestHref, buyerServiceById, buyerPublicOfferRequestHref } from "./buyer-services";
 
 test("Pricing T1 footprint terms create no intake identity or delivery contract", () => {
@@ -13,7 +13,8 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
   assert.equal(buyerRequestHref("en"), "/review/request");
   assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
   assert.equal(PRIMARY_OFFER.timing.en, "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
-  assert.match(buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id), /offerId=agent-tools-access-review/);
+  assert.equal(buyerPublicOfferRequestHref("en",PRIMARY_OFFER.id),"/review/request");
+  assert.match(buyerPublicOfferRequestHref("en",PUBLIC_AGENT_ACTION_OFFER.id),/^\/review\/request\?offerId=agent-action-security-review&/);
   assert.equal(buyerServiceById("professional-public-footprint-audit").price.en, "€4,900 · excluding VAT");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 · excluding VAT");
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");

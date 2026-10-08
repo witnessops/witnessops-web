@@ -61,7 +61,10 @@ test("a proposed human brief contains only accepted visitor words and is bounded
 
 test("page context resolves exact canonical offer paths only", () => {
   for (const service of BUYER_SERVICES) {
-    if (service.detailHref.en) assert.equal(askPageService(`${service.detailHref.en}/`)?.id, service.id);
+    if (!service.detailHref.en) continue;
+    const selected=askPageService(`${service.detailHref.en}/`);
+    const sharedHistorical=service.id==="agent-tools-access-review";
+    assert.equal(selected?.id,sharedHistorical?"agent-action-security-review":service.id);
   }
   for (const path of ["/", "/catalog", "/admin", "/catalog/unknown", "https://witnessops.com/catalog", "/catalog?offerId=agent-action-security-review"]) {
     assert.equal(askPageService(path), undefined);
