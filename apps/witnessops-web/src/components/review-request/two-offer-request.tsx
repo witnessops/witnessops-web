@@ -21,7 +21,7 @@ const copy = {
     scope: "Scope and start conditions", next: "We confirm fit, capacity, the exact boundary, authority, price, timing, inputs, handling and recipients before work starts.",
     boundary: "No review or target-facing check starts from this form. Payment and mailbox verification alone do not authorise inspection.",
     retest: "For new external engagements, the included focused retest of reported findings is within 30 calendar days beginning at initial report handover.",
-    email: "Not sure which fits? Send a non-secret fit question by email:", details: "See scope and deliverables",
+    email: "Not sure which fits? Send a non-secret fit question by email:", details: "See scope and deliverables", faq: "Read the buyer FAQ",
   },
   pl: {
     title: "Wybierz przegląd bezpieczeństwa", description: "Wybierz przegląd narzędzi i dostępu agenta AI albo External Attack Surface Review. Najpierw uzgodnimy zakres, upoważnienie, cenę i obsługę materiałów.",
@@ -33,7 +33,7 @@ const copy = {
     scope: "Zakres i warunki rozpoczęcia", next: "Przed pracą potwierdzimy dopasowanie, dostępność, dokładny zakres, upoważnienie, cenę, termin, wymagane dane, obsługę materiałów i odbiorców.",
     boundary: "Ten formularz nie rozpoczyna przeglądu ani sprawdzeń wobec celu. Sama płatność i weryfikacja skrzynki nie upoważniają do inspekcji.",
     retest: "Dla nowych przeglądów ekspozycji jedno sprawdzenie zgłoszonych ustaleń jest wliczone w okresie 30 dni kalendarzowych od przekazania pierwszego raportu.",
-    email: "Nie wiesz, który wybrać? Wyślij niepoufne pytanie o dopasowanie:", details: "Zobacz zakres i wyniki",
+    email: "Nie wiesz, który wybrać? Wyślij niepoufne pytanie o dopasowanie:", details: "Zobacz zakres i wyniki", faq: "Przeczytaj FAQ kupującego",
   },
 } as const;
 
@@ -74,6 +74,7 @@ export function TwoOfferRequest({ locale, params }: { locale: BuyerLocale; param
       </article>)}</div>}
       <p className="mt-6 text-sm leading-6 text-text-muted">{text.boundary}</p>
       <p className="mt-4 text-sm leading-6">{text.email} <a className="underline underline-offset-4" href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}>{PUBLIC_CONTACT_EMAIL}</a></p>
+      <Link href={locale === "pl" ? "/pl/buyer-faq" : "/buyer-faq"} className="mt-4 inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline focus-visible:outline-2">{text.faq}</Link>
     </div>
   </main>;
 }
