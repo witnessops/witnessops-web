@@ -142,27 +142,31 @@ async function expectBelowStickyHeader(page: Page, selector: string) {
   );
 }
 
-test("the homepage sample-work link opens the sample library", async ({
-  browser,
-}) => {
+test("the homepage sample-work link opens the labelled historical sample; library remains accessible", async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
-  const page = await context.newPage();
+  try {
+    const page = await context.newPage();
+    await page.goto("/", { waitUntil: "networkidle" });
+    const sampleLink = page.locator('main a[data-ui-proof-id="homepage-sample-review-cta"]');
+    await expect(sampleLink).toHaveCount(1);
+    await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
+    await sampleLink.click();
+    await expectPath(page, "/review/sample-cases/ai-agent-action-proof-run");
+    await expect(page.locator("main")).toContainText(/synthetic|illustrative|historical/i);
+    await saveEvidence(page, "01-desktop-historical-sample.png");
 
-  await page.goto("/", { waitUntil: "networkidle" });
-  const fragmentLink = page.locator(
-    'main a[data-ui-proof-id="homepage-sample-review-cta"]',
-  );
-  await expect(fragmentLink).toHaveCount(1);
-  await fragmentLink.click();
-
-  await expect(page).toHaveURL(/\/library$/);
-  await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
-  await saveEvidence(page, "01-desktop-sample-library.png");
-
-  await context.close();
+    // Direct library access and its first-party skills still work after
+    // the commercial home stops advertising the library as a paid review.
+    const libraryResponse = await page.goto("/library");
+    expect(libraryResponse?.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
+    await saveEvidence(page, "01-desktop-sample-library.png");
+  } finally {
+    await context.close();
+  }
 });
 
 test("the Polish homepage historical-action link opens the historical sample", async ({ page }) => {
