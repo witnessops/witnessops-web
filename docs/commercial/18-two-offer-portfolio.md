@@ -184,11 +184,50 @@ inventory-plus-action contract. Old confirmations/issued agreements must not be
 rewritten or silently redirected. This is a **new-issuance namespace boundary**,
 not a declaration that any new intake route is active.
 
-**Stage state:** PR #450 policy constants and tests select this new ID, but
-`BUYER_SERVICES`, detail pages, EN/PL new intake forms, server-side issuers,
-assistant recommendations, historic compatibility and PR #451–#454 consumer
-branches still need a *reviewed, explicitly tested implementation*. The PR stack
-remains draft/held and cannot be merged merely because a selector compiles.
+**Stage state:** PR #450 now contains the additive
+`PUBLIC_AGENT_ACTION_OFFER` source contract (copied from the original fixed
+one-action terms with a **new identity**), the collision-free public selector and
+focused tests. No new public request, issued term, route or payment is active.
+The consumer PR #451–#454 stack still targets the earlier inventory-plus-action
+offer and is **not** merge-ready until reconciled against the updated #450 head.
+
+### Ordered consumer reconciliation (pending, not authorized for publication)
+
+1. **Catalogue truth and internal labels:** Add the new distinct service to
+   `buyer-services.ts` and its EN/PL `service-landings.ts` entries; preserve the
+   previous `PRIMARY_OFFER` inventory contract and both historical records.
+   New-public offer allowlists must **exclude** `agent-tools-access-review`,
+   `bounded-workflow-review` and the €950 private pilot. Do not make old records
+   disappear from historical lookups or the manual confirmation reader.
+2. **Buyer visibility:** Use the new public service in
+   `simple-homepage.tsx`, `buyer-catalogue.tsx`, shared pricing and the
+   `/catalog/workflows` detail route (including localized copy, canonical
+   metadata and truthful fixed-price structured data). Do not reuse the
+   inventory offer's dated full-device-inventory scope under the one-action name.
+   Retain the €1,900 external offer and its complete scope/retreat terms.
+3. **Explicit NEW selection:** Update `new-review-request-policy.ts`,
+   `two-offer-request.tsx` and the EN/PL form paths to accept exactly
+   `offerId=agent-action-security-review` or
+   `productId=OFFSEC-EXTERNAL-EXPOSURE`. The server's raw JSON intake must
+   reject old/unknown/ambiguous/wrong-role intents before issuance, on all
+   public aliases. No display-only label, free text, pilot mention or URL alias
+   may choose a review.
+4. **Post-verify continuity:** Add the *new* intent and separate request label
+   to the manual commercial request/confirmation path without changing the
+   historical `bounded-workflow-review` label or `agent-tools-access-review`
+   issued record interpretation. Recheck archived confirmations and
+   token/recipient attribution with explicit negative cases.
+5. **Source truth / acceptance:** Reconcile the FAQ, offer-specific CTAs,
+   shell/help references and existing source/route/UI/SEO tests; verify EN/PL,
+   keyboard/mobile navigation, synthetic sample labels and zero **public** pilot
+   promotion. Pin the exact updated stack heads and pass full `pnpm health`,
+   `pnpm smoke:buyer-path:test`, the public UI tests and head-specific image,
+   PDF, security and lifecycle gates. Isolated module/syntax success cannot
+   establish end-to-end acceptance. Preserve separate release approval.
+
+**Branch history:** Preserve existing draft PR and historical commit records.
+No automatic force-rebase, merge to main, publication or offer activation may
+be inferred from the new foundation.
 
 This is an approved **commercial choice with a selected technical ID**, **not**
 permission to bypass release gates or silently remap historical records,
@@ -222,8 +261,11 @@ historical-record rewrite, merge or release. In particular:
   CI evidence. A source commit or passing fixture does not prove publication
   or production behavior.
 
-**Status:** commercial direction **approved** by the later founder instruction;
-technical identity disposition and source implementation **not yet accepted**.
+**Status:** commercial direction and collision-free NEW-intake **identity selected**
+under the later founder GO; the **policy selector and additive public one-action
+contract source are committed in draft PR #450**, but are **not wired to live
+intake or released**. Consumer implementation and exact-head acceptance remain
+**not accepted**.
 Historical/issued terms remain unchanged. **No main-branch mutation, merge,
 deployment, billing activation, customer email, collection, deindexing, sitemap
 submission or workstation operation is authorized by this amendment.**
