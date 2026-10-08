@@ -428,13 +428,14 @@ test("External Attack Surface Review request preserves SKU, locale, and fit boun
       waitUntil: "networkidle",
     });
 
-    await expect(
-      page.getByText(
-        scenario.locale === "pl"
-          ? "Wybrana oferta: External Attack Surface Review"
-          : "Selected offer: External Attack Surface Review",
-      ),
-    ).toBeVisible();
+    const selection = page.locator('main[data-request-selection="external-exposure-assessment"]');
+    await expect(selection).toBeVisible();
+    await expect(selection.getByRole("heading", { name: "External Attack Surface Review", exact: true })).toBeVisible();
+    await expect(selection).toContainText(scenario.locale === "pl" ? "€1 900 · bez VAT" : "€1,900 · excluding VAT");
+    await expect(selection).toContainText(scenario.locale === "pl"
+      ? "W ciągu 3 dni roboczych" : "Within 3 working days");
+    await expect(selection).toContainText(scenario.locale === "pl"
+      ? "30 dni kalendarzowych od przekazania pierwszego raportu" : "30 calendar days beginning at initial report handover");
     const form = page.locator("main form");
     await expect(form.locator('input[name="intent"]')).toHaveValue(
       "OFFSEC-EXTERNAL-EXPOSURE",
