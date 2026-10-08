@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   publicContactMailto,
@@ -11,9 +11,9 @@ import { languageAlternates } from "@/lib/public-seo";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 const SUPPORT_MAILTO = publicContactMailto("WitnessOps support request");
-const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
+const PUBLIC_AGENT_ACTION_OFFER_HREF = buyerPublicOfferRequestHref(
   "pl",
-  PRIMARY_OFFER.id,
+  PUBLIC_AGENT_ACTION_OFFER.id,
 );
 
 export const metadata: Metadata = {
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
 
 const routes = [
   [
-    PRIMARY_OFFER.name.pl,
-    PRIMARY_OFFER_HREF,
+    PUBLIC_AGENT_ACTION_OFFER.name.pl,
+    PUBLIC_AGENT_ACTION_OFFER_HREF,
     "Opisz sytuację bez danych poufnych i wybierz ofertę.",
   ],
   [

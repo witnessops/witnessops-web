@@ -2,29 +2,39 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { resolveNewReviewSelection } from "@/lib/new-review-request-policy";
 
 const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const sharedRequest = readFileSync(
+  resolve(__dirname, "../../../../components/review-request/two-offer-request.tsx"),
+  "utf-8",
+);
 const form = readFileSync(
   resolve(__dirname, "../../../(marketing)/contact/contact-form.tsx"),
   "utf-8",
 );
 
-test("Polish PER request chrome mirrors the English offer-specific header", () => {
-  assert.match(page, /sku\?\.id === "OFFSEC-EXTERNAL-EXPOSURE"/);
-  assert.match(page, /generateMetadata/);
-  assert.match(page, /EXTERNAL_ATTACK_SURFACE_OFFER\.name\.pl/);
-  assert.match(page, /To nie jest test penetracyjny/);
-  assert.match(
-    page,
-    /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu/,
-  );
-  assert.match(page, /Opowiedz, co wymaga sprawdzenia/);
+test("Polish review request delegates to guarded two-offer selection", () => {
+  assert.match(page, /<TwoOfferRequest locale="pl"/);
+  assert.match(page, /twoOfferRequestMetadata\("pl"\)/);
+  assert.match(sharedRequest, /resolveNewReviewSelection\(params\)/);
+  assert.match(sharedRequest, /To nie jest test penetracyjny/);
+  assert.match(sharedRequest, /Ten formularz nie rozpoczyna przeglądu/);
+  assert.match(sharedRequest, /Który przegląd pomoże/);
+  assert.match(sharedRequest, /30 dni kalendarzowych/);
+  assert.deepEqual(resolveNewReviewSelection({productId:"OFFSEC-EXTERNAL-EXPOSURE"}), {
+    kind:"selected", serviceId:"external-exposure-assessment", intent:"OFFSEC-EXTERNAL-EXPOSURE",
+  });
+  assert.equal(resolveNewReviewSelection({productId:"OFFSEC-LOCAL-AUDIT"}).kind, "unavailable");
 });
 
-test("Polish review request selects the native Polish form copy", () => {
-  assert.match(page, /<ContactForm[\s\S]*locale="pl"[\s\S]*PRIMARY_OFFER\.id/);
-  assert.match(page, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(page, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
+test("Polish review request retains native localized form and exact intent", () => {
+  assert.match(sharedRequest, /<ContactForm[\s\S]*locale=\{locale\}[\s\S]*intent=\{selection\.intent\}/);
+  assert.match(sharedRequest, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(sharedRequest, /data-request-selection=/);
+  assert.deepEqual(resolveNewReviewSelection({offerId:"agent-tools-access-review"}), {
+    kind:"selected", serviceId:"agent-tools-access-review", intent:"agent-tools-access-review",
+  });
   for (const marker of [
     "Imię i nazwisko",
     "Służbowy adres e-mail",

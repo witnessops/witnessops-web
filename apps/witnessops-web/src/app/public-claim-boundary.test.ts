@@ -8,11 +8,16 @@ const webRoot = resolve(__dirname, "../..");
 const PUBLIC_CLAIM_SOURCES = [
   "src/app/(library)/library/page.tsx",
   "src/app/(marketing)/pricing/page.tsx",
+  "src/app/page.tsx",
+  "src/app/pl/page.tsx",
+  "src/app/pl/review/request/page.tsx",
   "src/app/(marketing)/catalog/page.tsx",
   "src/app/(marketing)/catalog/[skuId]/page.tsx",
   "src/app/(marketing)/catalog/workflows/page.tsx",
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
+  "src/components/marketing/simple-homepage.tsx",
+  "src/components/review-request/two-offer-request.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
@@ -110,6 +115,9 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "compliance certification",
   "named limits",
   "non-secret fit check",
+  // Two-Offer V1 shared-page wording: explicit negative guarantees and start gates.
+  "neither review certifies safety or compliance",
+  "no review or target-facing check starts from this form",
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
@@ -118,6 +126,8 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/lib/professional-public-footprint-audit.ts",
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
+  "src/components/marketing/simple-homepage.tsx",
+  "src/components/review-request/two-offer-request.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/components/marketing/offsec-suite-sample.tsx",
   "../../content/witnessops/legal/privacy.mdx",
@@ -127,11 +137,31 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "../../content/witnessops/landing/home.yaml",
 ]);
 
+// Wrapper routes delegate the actual buyer claims/boundaries to shared components.
+// Check the import before reading the boundary-bearing source: an unrelated file
+// must never satisfy this gate if the route stops rendering it.
+const PUBLIC_CLAIM_DELEGATES: Record<string, { path: string; usage: string }> = {
+  "src/app/page.tsx": { path: "src/components/marketing/simple-homepage.tsx", usage: "<SimpleHomepage" },
+  "src/app/pl/page.tsx": { path: "src/components/marketing/simple-homepage.tsx", usage: "<SimpleHomepage" },
+  "src/app/(marketing)/pricing/page.tsx": { path: "src/components/marketing/buyer-catalogue.tsx", usage: "<BuyerCatalogue" },
+  "src/app/review/request/page.tsx": { path: "src/components/review-request/two-offer-request.tsx", usage: "<TwoOfferRequest" },
+  "src/app/pl/review/request/page.tsx": { path: "src/components/review-request/two-offer-request.tsx", usage: "<TwoOfferRequest" },
+};
+
 function readPublicClaimSources(): Array<{ path: string; content: string }> {
-  return PUBLIC_CLAIM_SOURCES.map((sourcePath) => ({
-    path: sourcePath,
-    content: readFileSync(resolve(webRoot, sourcePath), "utf-8"),
-  }));
+  return PUBLIC_CLAIM_SOURCES.map((sourcePath) => {
+    const content = readFileSync(resolve(webRoot, sourcePath), "utf-8");
+    const delegate = PUBLIC_CLAIM_DELEGATES[sourcePath];
+    if (!delegate) return { path: sourcePath, content };
+    assert.ok(
+      content.includes(delegate.usage),
+      `Delegating route ${sourcePath} must visibly render ${delegate.usage}`,
+    );
+    return {
+      path: sourcePath,
+      content: content + "\n" + readFileSync(resolve(webRoot, delegate.path), "utf-8"),
+    };
+  });
 }
 
 function normalize(value: string): string {

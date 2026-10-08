@@ -1,5 +1,6 @@
 import type { AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
 
 export interface AskWitnessOpsRecommendation {
@@ -32,14 +33,14 @@ export interface AskWitnessOpsCommercialFit {
     | "unknown"
     | "blocked";
   readonly intent: "workflow" | "offer" | "specimen" | "other";
-  readonly offer_id: typeof PRIMARY_OFFER.id | null;
+  readonly offer_id: typeof PUBLIC_AGENT_ACTION_OFFER.id | null;
   readonly source: "ask";
   readonly offer: {
-    readonly name: (typeof PRIMARY_OFFER.name)["en"];
-    readonly price_label: (typeof PRIMARY_OFFER.price)["en"];
-    readonly unit_label: (typeof PRIMARY_OFFER.unit)["en"];
-    readonly fit_check_label: (typeof PRIMARY_OFFER.fitCheck)["en"];
-    readonly delivery_label: (typeof PRIMARY_OFFER.timing)["en"];
+    readonly name: (typeof PUBLIC_AGENT_ACTION_OFFER.name)["en"];
+    readonly price_label: (typeof PUBLIC_AGENT_ACTION_OFFER.price)["en"];
+    readonly unit_label: (typeof PUBLIC_AGENT_ACTION_OFFER.unit)["en"];
+    readonly fit_check_label: (typeof PUBLIC_AGENT_ACTION_OFFER.fitCheck)["en"];
+    readonly delivery_label: (typeof PUBLIC_AGENT_ACTION_OFFER.timing)["en"];
   } | null;
   readonly matching_specimen_id: "ai-agent-action-proof-run" | null;
 }
@@ -99,10 +100,10 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
       answer.commercial_fit.result === "needs_boundary")
   ) {
     const offer = answer.commercial_fit.offer;
-    const currentOffer = `${offer.name} is the primary review: ${offer.price_label}, with a fixed quote after scope; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
+    const currentOffer = `${offer.name} is the current one-action review: ${offer.price_label} for the agreed bounded action; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
 
     if (answer.commercial_fit.result === "needs_boundary") {
-      return `${currentOffer} This public guide cannot inspect a device. Narrow the non-secret description to an agreed device/source boundary, one agent connection and one consequential action; the fit-check path is shown above.`;
+      return `${currentOffer} This public guide cannot inspect a device. Narrow the non-secret description to one consequential action, its authority and available evidence types; the fit-check path is shown above.`;
     }
 
     return `${currentOffer} This public guide cannot inspect or verify the action here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
@@ -187,7 +188,7 @@ export function askWitnessOpsRouteLabel(routeId: string): string {
 
 export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
   if (route.route_id === "route.fit-check") {
-    return `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask`;
+    return `${PUBLIC_AGENT_ACTION_OFFER.requestRoute}?offerId=${PUBLIC_AGENT_ACTION_OFFER.id}&source=ask`;
   }
 
   return route.href;
@@ -330,7 +331,7 @@ function asRecommendation(value: unknown): AskWitnessOpsRecommendation | null {
   if (typeof value !== "object") throw new Error("Invalid review recommendation.");
   const record = value as Record<string, unknown>;
   const service = BUYER_SERVICES.find((item) => item.id === record.service_id);
-  if (!service) throw new Error("Invalid review recommendation.");
+  if (!service || !isPublicPaidReviewId(service.id)) throw new Error("Invalid review recommendation: no public paid offer matches.");
   const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   requestUrl.searchParams.set("source", "ask");
   const expected = {
@@ -435,19 +436,19 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
     record.offer && typeof record.offer === "object"
       ? (record.offer as Record<string, unknown>)
       : null;
-  const offerId = record.offer_id === PRIMARY_OFFER.id ? PRIMARY_OFFER.id : null;
+  const offerId = record.offer_id === PUBLIC_AGENT_ACTION_OFFER.id ? PUBLIC_AGENT_ACTION_OFFER.id : null;
   const offer =
-    offerRecord?.name === PRIMARY_OFFER.name.en &&
-    offerRecord.price_label === PRIMARY_OFFER.price.en &&
-    offerRecord.unit_label === PRIMARY_OFFER.unit.en &&
-    offerRecord.fit_check_label === PRIMARY_OFFER.fitCheck.en &&
-    offerRecord.delivery_label === PRIMARY_OFFER.timing.en
+    offerRecord?.name === PUBLIC_AGENT_ACTION_OFFER.name.en &&
+    offerRecord.price_label === PUBLIC_AGENT_ACTION_OFFER.price.en &&
+    offerRecord.unit_label === PUBLIC_AGENT_ACTION_OFFER.unit.en &&
+    offerRecord.fit_check_label === PUBLIC_AGENT_ACTION_OFFER.fitCheck.en &&
+    offerRecord.delivery_label === PUBLIC_AGENT_ACTION_OFFER.timing.en
       ? {
-          name: PRIMARY_OFFER.name.en,
-          price_label: PRIMARY_OFFER.price.en,
-          unit_label: PRIMARY_OFFER.unit.en,
-          fit_check_label: PRIMARY_OFFER.fitCheck.en,
-          delivery_label: PRIMARY_OFFER.timing.en,
+          name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+          price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+          unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
+          fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
+          delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
         }
       : null;
 
@@ -459,7 +460,7 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
         : undefined;
   const presentsOffer = result === "likely" || result === "needs_boundary";
   const validOfferState = presentsOffer
-    ? offerId === PRIMARY_OFFER.id &&
+    ? offerId === PUBLIC_AGENT_ACTION_OFFER.id &&
       offer !== null &&
       (result === "likely"
         ? intent === "workflow" || intent === "offer"

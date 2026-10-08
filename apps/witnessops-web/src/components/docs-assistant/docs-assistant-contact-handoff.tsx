@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
@@ -241,8 +241,8 @@ export function DocsAssistantContactHandoff({
       const record = buildReviewRequestConfirmation(payload, {
         locale: "en",
         requestKind:
-          service?.id === PRIMARY_OFFER.id
-            ? "agent-risk-control-review"
+          service?.id === PUBLIC_AGENT_ACTION_OFFER.id
+            ? "agent-action-security-review"
             : "review-request",
         source: "ask",
       });
