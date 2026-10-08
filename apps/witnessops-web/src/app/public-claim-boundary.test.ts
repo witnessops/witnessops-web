@@ -115,6 +115,9 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "compliance certification",
   "named limits",
   "non-secret fit check",
+  // Two-Offer V1 shared-page wording: explicit negative guarantees and start gates.
+  "neither review certifies safety or compliance",
+  "no review or target-facing check starts from this form",
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
