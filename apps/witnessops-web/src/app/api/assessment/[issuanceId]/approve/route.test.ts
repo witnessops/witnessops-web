@@ -1,3 +1,4 @@
+import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
@@ -13,7 +14,6 @@ import {
 } from "@/lib/server/token-store";
 import { claimantSessionCookieName } from "@/lib/server/claimant-session";
 
-import { POST as engage } from "../../../engage/route";
 import { POST as verifyToken } from "../../../verify-token/route";
 import { POST } from "./route";
 
@@ -36,21 +36,14 @@ async function issueVerifiedToken(
   intent = "Third-party assessment",
 ) {
   applyTestEnv(baseDir);
-  const response = await engage(
-    new Request("https://witnessops.com/api/engage", {
-      method: "POST",
-      body: JSON.stringify({
-        email: "security@witnessops.com",
-        intent,
-        scope: "Passive-only recon of witnessops.com",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-  };
+  // Seed an existing historical issuance without reopening retired PUBLIC sales.
+  // The new /api/engage boundary must reject historical intent IDs.
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-historical-issuance-fixture",
+    submission: { intent: intent, scope: "Passive-only recon of witnessops.com" },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
