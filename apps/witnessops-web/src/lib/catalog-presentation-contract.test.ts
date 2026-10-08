@@ -4,6 +4,7 @@ import test from "node:test";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 
@@ -16,6 +17,10 @@ const expectedPrices = {
   "agent-tools-access-review": {
     en: "Starting at €2,500 · excluding VAT",
     pl: "Od €2 500 · bez VAT",
+  },
+  "agent-action-security-review": {
+    en: "€2,500 fixed · excluding VAT",
+    pl: "€2 500: cena stała · bez VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",
@@ -57,6 +62,10 @@ test("every live buyer offer uses the canonical EN and PL VAT display", () => {
 });
 
 test("presentation cleanup preserves locked names, ids, and price contracts", () => {
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, "agent-action-security-review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
+
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Manual agent/tool observation and action reconstruction");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");

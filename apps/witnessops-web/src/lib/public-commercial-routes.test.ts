@@ -14,6 +14,7 @@ import {
   buyerServiceRequestHref,
 } from "./buyer-services";
 import { PRIMARY_OFFER } from "./commercial-truth";
+import { resolveNewReviewSelection } from "./new-review-request-policy";
 
 test("commercial SKU route dispositions preserve current offers and contain drift", () => {
   assert.equal(catalogSkuDisposition("OFFSEC-LOCAL-AUDIT"), "current");
@@ -26,30 +27,27 @@ test("commercial SKU route dispositions preserve current offers and contain drif
   assert.equal(isCurrentPublicCatalogSku("OFFSEC-PILOT"), false);
 });
 
-test("request pages gate query-selected commercial records to current public SKUs", () => {
-  for (const path of [
-    resolve(__dirname, "../app/review/request/page.tsx"),
-    resolve(__dirname, "../app/pl/review/request/page.tsx"),
-  ]) {
-    const source = readFileSync(path, "utf8");
-    assert.match(source, /isCurrentPublicCatalogSku\(requestedSku\.id\)/);
-  }
+const english = readFileSync(resolve(__dirname, "../app/review/request/page.tsx"), "utf8");
+const polish = readFileSync(resolve(__dirname, "../app/pl/review/request/page.tsx"), "utf8");
+const shared = readFileSync(resolve(__dirname, "../components/review-request/two-offer-request.tsx"), "utf8");
+
+test("request pages reject retired SKU selection while historical SKU route dispositions remain intact", () => {
+  assert.match(english, /<TwoOfferRequest locale="en"/);
+  assert.match(polish, /<TwoOfferRequest locale="pl"/);
+  assert.match(shared, /resolveNewReviewSelection\(params\)/);
+  assert.match(shared, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(shared, /buyerServiceRequestHref\(locale, review\)/);
+
+  // A current public detail route is NOT automatically a new sellable offer.
+  assert.equal(isCurrentPublicCatalogSku("OFFSEC-LOCAL-AUDIT"), true);
+  assert.equal(resolveNewReviewSelection({ productId: "OFFSEC-LOCAL-AUDIT" }).kind, "unavailable");
+  assert.deepEqual(resolveNewReviewSelection({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }), {
+    kind: "selected", serviceId: "external-exposure-assessment", intent: "OFFSEC-EXTERNAL-EXPOSURE",
+  });
+  assert.equal(resolveNewReviewSelection({ offerId: "agent-tools-access-review", productId: "OFFSEC-EXTERNAL-EXPOSURE" }).kind, "unavailable");
 });
 
-test("English review intake can preserve the current workflow offer without reviving a replaced SKU", () => {
-  const source = readFileSync(
-    resolve(__dirname, "../app/review/request/page.tsx"),
-    "utf8",
-  );
-
-  assert.match(source, /const offerId = one\(params\.offerId\)/);
-  assert.match(source, /const offer = one\(params\.offer\)/);
-  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
-  assert.match(source, /Selected offer: \{selectedOffer\.name\.en\}/);
-  assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
-  assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
-
+test("English intake retains historical identity lookups without making them new-offer selectors", () => {
   const offer = buyerServiceByPublicOfferId("agent-tools-access-review");
   assert.equal(offer?.name.en, "AI Agent Tools & Access Review");
   assert.equal(offer?.price.en, "Starting at €2,500 · excluding VAT");
@@ -61,48 +59,24 @@ test("English review intake can preserve the current workflow offer without revi
   assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
   assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
   assert.equal(offer?.productId, undefined);
-  assert.equal(
-    buyerServiceByPublicOfferId("customer-security-review-sprint")?.name.en,
-    "Customer Security Review Sprint",
-  );
-  assert.equal(
-    buyerServiceByPublicOfferId("professional-public-footprint-audit")?.name.en,
-    "Professional Public Footprint Audit",
-  );
+
+  // Historical lookup data must still be available, but not as NEW issue authority.
+  for (const id of ["customer-security-review-sprint", "professional-public-footprint-audit"]) {
+    assert.ok(buyerServiceByPublicOfferId(id));
+    assert.equal(resolveNewReviewSelection({ offerId: id }).kind, "unavailable");
+  }
   assert.equal(buyerServiceByPublicOfferId("one-server-security-check"), undefined);
-  assert.equal(
-    buyerServiceByPublicOfferId("external-exposure-assessment"),
-    undefined,
-  );
+  assert.equal(buyerServiceByPublicOfferId("external-exposure-assessment"), undefined);
   assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
   assert.equal(buyerServiceByPublicOfferId("bounded-workflow-review"), undefined);
   assert.equal(buyerServiceFromRequestOffer("bounded-workflow-review", PRIMARY_OFFER.name.en), undefined);
   assert.equal(buyerServiceFromRequestOffer(undefined, "Agent Action Security Review"), undefined);
-  for (const locale of ["", "pl/"]) {
-    const page = readFileSync(resolve(__dirname, `../app/${locale}review/request/page.tsx`), "utf8");
-    assert.match(page, /offerId === LEGACY_AGENT_ACTION_OFFER\.id/);
-    assert.match(page, /PRIMARY_OFFER\.id/);
-  }
-
   assert.equal(
-    buyerServiceFromRequestOffer(
-      PRIMARY_OFFER.id,
-      "Buyer-edited conflicting title",
-    ),
-    offer,
+    buyerServiceFromRequestOffer(PRIMARY_OFFER.id, "Buyer-edited conflicting title"), offer,
   );
-  assert.equal(
-    buyerServiceFromRequestOffer(undefined, PRIMARY_OFFER.name.en),
-    offer,
-  );
-  assert.equal(
-    buyerServiceFromRequestOffer("not-a-real-offer", PRIMARY_OFFER.name.en),
-    undefined,
-  );
-  assert.equal(
-    buyerServiceFromRequestOffer(undefined, "Bounded Workflow Review"),
-    undefined,
-  );
+  assert.equal(buyerServiceFromRequestOffer(undefined, PRIMARY_OFFER.name.en), offer);
+  assert.equal(resolveNewReviewSelection({ offer: PRIMARY_OFFER.name.en }).kind, "unavailable");
+  assert.equal(resolveNewReviewSelection({ offerId: "bounded-workflow-review" }).kind, "unavailable");
 
   assert.equal(
     buyerPublicOfferRequestHref("en", "agent-tools-access-review"),
@@ -114,16 +88,18 @@ test("English review intake can preserve the current workflow offer without revi
   );
 });
 
-test("Polish review intake preserves the same public workflow offer", () => {
-  const source = readFileSync(
-    resolve(__dirname, "../app/pl/review/request/page.tsx"),
-    "utf8",
-  );
-
-  assert.match(source, /const offerId = oneParam\(params\.offerId\)/);
-  assert.match(source, /const offer = oneParam\(params\.offer\)/);
-  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
-  assert.match(source, /Wybrana oferta: \{selectedOffer\.name\}/);
-  assert.match(source, /Cena: \{selectedOffer\.price\}/);
+test("Polish intake preserves the same exact new paid selectors and old confirmations", () => {
+  assert.match(polish, /twoOfferRequestMetadata\("pl"\)/);
+  assert.match(polish, /params=\{\(await searchParams\) \?\? \{\}\}/);
+  assert.match(shared, /<ContactForm[\s\S]*locale=\{locale\}[\s\S]*intent=\{selection.intent\}/);
+  assert.deepEqual(resolveNewReviewSelection({ offerId: PRIMARY_OFFER.id }), {
+    kind: "selected", serviceId: PRIMARY_OFFER.id, intent: PRIMARY_OFFER.id,
+  });
+  for (const params of [
+    { offerId: "bounded-workflow-review" },
+    { offerId: "agent-tools-access-review", productId: "OFFSEC-EXTERNAL-EXPOSURE" },
+    { productId: ["OFFSEC-EXTERNAL-EXPOSURE", "OFFSEC-EXTERNAL-EXPOSURE"] },
+    { offerId: ["agent-tools-access-review", "agent-tools-access-review"] },
+    { enquiryPath: "early-bird" },
+  ]) assert.equal(resolveNewReviewSelection(params).kind, "unavailable");
 });
