@@ -10,7 +10,7 @@ const form = readFileSync(
 );
 
 test("Polish PER request chrome mirrors the English offer-specific header", () => {
-  assert.match(page, /sku\?\.id === "OFFSEC-EXTERNAL-EXPOSURE"/);
+  assert.match(page, /decision\.role === "product"/);
   assert.match(page, /generateMetadata/);
   assert.match(page, /EXTERNAL_ATTACK_SURFACE_OFFER\.name\.pl/);
   assert.match(page, /To nie jest test penetracyjny/);
@@ -22,9 +22,9 @@ test("Polish PER request chrome mirrors the English offer-specific header", () =
 });
 
 test("Polish review request selects the native Polish form copy", () => {
-  assert.match(page, /<ContactForm[\s\S]*locale="pl"[\s\S]*PRIMARY_OFFER\.id/);
-  assert.match(page, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(page, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
+  assert.match(page, /<ContactForm[\s\S]*locale="pl"[\s\S]*decision\.intent/);
+  assert.match(page, /resolveNewSalesPageQuery\(/);
+  assert.match(page, /agentActionOrder/);
   for (const marker of [
     "Imię i nazwisko",
     "Służbowy adres e-mail",

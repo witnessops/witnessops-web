@@ -188,68 +188,68 @@ test("request smoke markers use the current fit and start-work boundaries", () =
     ),
   );
 
-  for (const path of [
-    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-    "/review/request?productId=OFFSEC-PILOT",
-  ]) {
-    assert.ok(
-      routeContract(path).requiredMarkers.includes(
-        "No work or target-facing check starts from this form.",
-      ),
-    );
-  }
+  assert.ok(
+    routeContract("/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE").requiredMarkers.includes(
+      "No work or target-facing check starts from this form.",
+    ),
+  );
+  assert.ok(
+    routeContract("/review/request?productId=OFFSEC-PILOT").requiredMarkers.includes(
+      "No work or target-facing check starts from this page.",
+    ),
+  );
+  assert.ok(
+    routeContract("/review/request?offerId=agent-action-security-review").requiredMarkers.includes(
+      'name="intent" value="agent-action-security-review"',
+    ),
+  );
 });
 
-test("primary offer smoke covers selected English and Polish intake", () => {
-  const english = routeContract(
+test("historical inventory request URLs stay closed while Agent Action intake is explicit", () => {
+  const englishClosed = routeContract(
     "/review/request?offerId=agent-tools-access-review",
   );
+  assert.ok(englishClosed.requiredMarkers.includes("This link does not start a new review"));
   assert.ok(
-    english.requiredMarkers.includes("Tell us what you want to check"),
-  );
-  assert.ok(english.requiredMarkers.includes("Starting at €2,500 · excluding VAT"));
-  assert.ok(
-    english.requiredMarkers.includes(
-      "agent setup, selected tool connection, device class and one consequential action",
-    ),
-  );
-  assert.ok(english.requiredMarkers.includes("Fixed quote after scope"));
-  assert.ok(
-    english.requiredMarkers.includes(
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    ),
-  );
-  assert.ok(
-    english.requiredMarkers.includes(
+    englishClosed.prohibitedMarkers?.includes(
       'name="intent" value="agent-tools-access-review"',
     ),
   );
-  assert.ok(
-    english.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
-  );
-  assert.ok(english.prohibitedMarkers?.includes("From €1,500"));
+  assert.ok(englishClosed.prohibitedMarkers?.includes("From €1,500"));
+  assert.ok(englishClosed.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"));
 
-  const polish = routeContract(
+  const englishOpen = routeContract(
+    "/review/request?offerId=agent-action-security-review",
+  );
+  assert.ok(englishOpen.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
+  assert.ok(
+    englishOpen.requiredMarkers.includes(
+      'name="intent" value="agent-action-security-review"',
+    ),
+  );
+  assert.ok(englishOpen.prohibitedMarkers?.includes("Starting at €2,500"));
+
+  const polishClosed = routeContract(
     "/pl/review/request?offerId=agent-tools-access-review",
   );
+  assert.ok(polishClosed.requiredMarkers.includes("Ten link nie rozpoczyna nowego przeglądu"));
   assert.ok(
-    polish.requiredMarkers.includes("Opisz, co chcesz sprawdzić"),
-  );
-  assert.ok(polish.requiredMarkers.includes("Od €2 500 · bez VAT"));
-  assert.ok(
-    polish.requiredMarkers.includes(
-      "Jedno uzgodnione urządzenie i system operacyjny",
-    ),
-  );
-  assert.ok(
-    polish.requiredMarkers.includes(
+    polishClosed.prohibitedMarkers?.includes(
       'name="intent" value="agent-tools-access-review"',
     ),
   );
-  assert.ok(
-    polish.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
+  assert.ok(polishClosed.prohibitedMarkers?.includes("Od 6 500 zł"));
+  assert.ok(polishClosed.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"));
+
+  const polishOpen = routeContract(
+    "/pl/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(polish.prohibitedMarkers?.includes("Od 6 500 zł"));
+  assert.ok(polishOpen.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
+  assert.ok(
+    polishOpen.requiredMarkers.includes(
+      'name="intent" value="agent-action-security-review"',
+    ),
+  );
 });
 
 test("active primary surface smoke rejects former offer positioning", () => {

@@ -121,7 +121,7 @@ test("contact route issues mailbox verification for review intake", async () => 
         name: "K. Witness",
         email: "operator@company.com",
         org: "Example Co",
-        intent: "review",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
         scope: "One workflow, handled over email.",
       }),
       headers: { "Content-Type": "application/json" },
@@ -147,7 +147,10 @@ test("contact route redacts upstream issuance errors", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/contact", {
       method: "POST",
-      body: JSON.stringify({ email: "operator@company.com" }),
+      body: JSON.stringify({
+        email: "operator@company.com",
+        intent: "ask-ai-contact",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );

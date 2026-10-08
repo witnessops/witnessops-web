@@ -30,9 +30,14 @@ import {
 import { AGENT_TOOLS_ACCESS_REVIEW_INTENT } from "@/lib/commercial-request-intents";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  INTERNET_FOOTPRINT_REVIEW_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import {
+  NEW_SALES_AGENT_ACTION_OFFER_ID,
+  newSalesEnquiryOptions,
+  type NewSalesReviewIntent,
+} from "@/lib/new-review-request-policy";
 
 type FieldName =
   | "name"
@@ -88,14 +93,12 @@ export function ContactForm({
   campaignAttribution,
   compact = false,
   landing = false,
-  defaultEnquiryPath,
 }: {
   locale?: "en" | "pl";
   intent?: string;
   campaignAttribution?: string;
   compact?: boolean;
   landing?: boolean;
-  defaultEnquiryPath?: typeof INTERNET_FOOTPRINT_REVIEW_OFFER.name.en;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -103,16 +106,20 @@ export function ContactForm({
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const submissionBusyRef = useRef(false);
   const polish = locale === "pl";
-  const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
-  const agentToolsAccessReview = intent === AGENT_TOOLS_ACCESS_REVIEW_INTENT;
-  const automationRepair = intent === "automation-repair-handover";
-  const optionalContext = agentToolsAccessReview || automationRepair || intent === "review";
+  const [landingIntent, setLandingIntent] = useState<NewSalesReviewIntent>(NEW_SALES_AGENT_ACTION_OFFER_ID);
+  const submittedIntent = landing ? landingIntent : intent;
+  const externalExposureOrder = submittedIntent === "OFFSEC-EXTERNAL-EXPOSURE";
+  const agentActionOrder = submittedIntent === PUBLIC_AGENT_ACTION_OFFER.id;
+  const agentToolsAccessReview = submittedIntent === AGENT_TOOLS_ACCESS_REVIEW_INTENT;
+  const automationRepair = submittedIntent === "automation-repair-handover";
+  const optionalContext = agentToolsAccessReview || automationRepair || agentActionOrder || submittedIntent === "review";
   const selectedService =
-    buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
+    buyerServiceByProductId(submittedIntent) ?? buyerServiceByPublicOfferId(submittedIntent);
   const selectedNonAgentService =
     selectedService &&
     selectedService.id !== AGENT_TOOLS_ACCESS_REVIEW_INTENT &&
-    !externalExposureOrder
+    !externalExposureOrder &&
+    !agentActionOrder
       ? selectedService
       : undefined;
   const baseCopy = polish
@@ -337,6 +344,40 @@ export function ContactForm({
           : `Submitting this form starts fit and scoping only. It is not a booking, checkout or authorization. Work requires an accepted agreement, authority, handling and, by default, payment in full.`,
       }
     : undefined;
+  const agentActionCopy = agentActionOrder
+    ? {
+        ...baseCopy,
+        fitTitle: polish
+          ? `Rozpocznij ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`
+          : `Start your ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
+        fitBody: polish
+          ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}.`
+          : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.en}.`,
+        workflow: PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion[locale],
+        workflowPlaceholder: polish
+          ? "Np. agent zwrotów może wykonać zwrot po zatwierdzeniu. Chcemy sprawdzić upoważnienie, granicę uprawnień i dowód wykonania tego jednego działania."
+          : "For example: a refund agent can issue a refund after approval. We want the authority, permission boundary, and execution evidence for that one action checked.",
+        workflowHelp: polish
+          ? "Opisz jedno działanie ogólnie. Nie wklejaj sekretów, poświadczeń, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
+          : "Describe one action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
+        actionPath: polish ? "Co może pójść inaczej, niż zamierzono?" : "What can go differently than intended?",
+        actionPathPlaceholder: polish
+          ? "Opisz możliwy skutek tego jednego działania: zmiana rekordu, zwrot, dostęp, wiadomość albo inna konsekwencja."
+          : "Describe the possible effect of this one action: a record change, refund, access grant, message, or other consequence.",
+        approval: polish ? "Kto zatwierdza i gdzie kończy się upoważnienie?" : "Who approves, and where does authority stop?",
+        approvalPlaceholder: polish
+          ? "Wskaż rolę zatwierdzającą i granicę upoważnienia. Bez danych dostępowych."
+          : "Name the approving role and where authority stops. No access details.",
+        evidence: polish ? "Jakie rodzaje dowodów wykonania są dostępne?" : "Which execution-evidence types are available?",
+        evidencePlaceholder: polish
+          ? "Nazwij tylko rodzaje: zgłoszenie, prompt, log, zatwierdzenie, wynik. Nie wysyłaj ich teraz."
+          : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
+        send: polish ? "Poproś o niepoufną ocenę" : "Request a non-secret fit check",
+        submitBoundary: polish
+          ? `Wysłanie formularza otwiera tylko ocenę dopasowania. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. To nie jest rezerwacja, płatność ani upoważnienie do inspekcji.`
+          : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. It is not a booking, payment, or authority to inspect.`,
+      }
+    : undefined;
   const copy = externalExposureOrder
     ? {
         ...baseCopy,
@@ -375,7 +416,7 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
       }
-    : agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
+    : agentActionCopy ?? agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -428,29 +469,41 @@ export function ContactForm({
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
-    const enquiryPath = landing ? stringField(data, "enquiryPath") : "";
+    const enquiryPath = landing ? landingIntent : "";
     const requestScope = [
-      externalExposureOrder
+      landing
+        ? "Request: WitnessOps new-sales enquiry"
+        : externalExposureOrder
         ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
+        : agentActionOrder
+          ? `Request: ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
         : agentToolsAccessReview
           ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
           ? `Request: ${selectedNonAgentService.name.en}`
           : "Request: WitnessOps review fit check",
-      `Selected product / intent: ${intent}`,
+      `Selected product / intent: ${submittedIntent}`,
       ...(enquiryPath ? [`Enquiry path: ${enquiryPath}`] : []),
       `Request locale: ${locale}`,
       ...(decisionTiming ? [`Decision and target date: ${decisionTiming}`] : []),
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      `${externalExposureOrder ? "Boundary seed / internet-facing system" : selectedNonAgentService ? "Selected-service need" : agentToolsAccessReview ? "Agent setup, connection and action" : "Review need"}: ${workflow || "not provided"}`,
-      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : agentToolsAccessReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : agentToolsAccessReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : agentToolsAccessReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+      ...(landing
+        ? [`Review need: ${workflow || "not provided"}`]
+        : [
+            `${externalExposureOrder ? "Boundary seed / internet-facing system" : agentActionOrder ? "Consequential action" : selectedNonAgentService ? "Selected-service need" : agentToolsAccessReview ? "Agent setup, connection and action" : "Review need"}: ${workflow || "not provided"}`,
+            `${externalExposureOrder ? "Trigger and timing" : agentActionOrder ? "Unintended effect" : selectedNonAgentService ? "Timing and reason" : agentToolsAccessReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+            `${externalExposureOrder ? "Authority statement" : agentActionOrder ? "Approval and authority boundary" : selectedNonAgentService ? "Scope owner, consent, and authority" : agentToolsAccessReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+            `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : agentActionOrder ? "Execution evidence types" : selectedNonAgentService ? "Available input or source types" : agentToolsAccessReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+          ]),
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
-      externalExposureOrder
+      landing
+        ? "Follow-up needed: confirm whether this exact review fits before scope, fee, or authority are agreed"
+        : externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
+        : agentActionOrder
+          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${PUBLIC_AGENT_ACTION_OFFER.price.en} terms`
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
           : agentToolsAccessReview
@@ -466,7 +519,7 @@ export function ContactForm({
           name: data.get("name"),
           org: stringField(data, "org"),
           email: data.get("email"),
-          intent,
+          intent: submittedIntent,
           locale,
           scope: requestScope,
         }),
@@ -555,7 +608,7 @@ export function ContactForm({
       if (payload.postVerifyPath === reviewRequestConfirmationPath(locale)) {
         const confirmation = buildReviewRequestConfirmation(payload, {
           locale,
-          requestKind: resolveReviewRequestKind(intent),
+          requestKind: resolveReviewRequestKind(submittedIntent),
           source: "request-form",
         });
         if (!confirmation) {
@@ -833,7 +886,7 @@ export function ContactForm({
       className={`space-y-5 ${landing ? "simple-enquiry-form" : ""}`}
       aria-busy={status === "sending"}
     >
-      <input type="hidden" name="intent" value={intent} />
+      <input type="hidden" name="intent" value={submittedIntent} />
       {(status === "error" || Object.keys(fieldErrors).length > 0) && (
         <div ref={errorSummaryRef} tabIndex={-1} role="alert" className="scroll-mt-24 border-l-2 border-signal-red bg-surface-inset p-4 text-sm leading-6 focus:outline focus:outline-2 focus:outline-brand-accent">
           <h2 className="font-semibold">{polish ? "Sprawdź zgłoszenie" : "Check your request"}</h2>
@@ -873,7 +926,7 @@ export function ContactForm({
 
       <div className={`grid gap-5 ${landing ? "" : "md:grid-cols-2"}`}>
         <div>
-          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} {!landing && <span className="text-text-muted">{copy.required}</span>}</label>
+          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
           <input
             id="name" name="name" type="text" autoComplete="name" required
             maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
@@ -889,7 +942,7 @@ export function ContactForm({
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} {!landing && <span className="text-text-muted">{copy.required}</span>}</label>
+          <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} <span className="text-text-muted">{copy.required}</span></label>
           <input
             id="email" name="email" type="email" autoComplete="email" inputMode="email" required
             aria-invalid={fieldErrors.email ? true : undefined}
@@ -905,9 +958,19 @@ export function ContactForm({
       </div>
 
       {landing && <div>
-        <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
-        <select id="enquiryPath" name="enquiryPath" defaultValue={defaultEnquiryPath ?? "Free check"} className={inputClass} style={inputStyle}>
-          {["Free check", PRIMARY_OFFER.name.en, "One Server Security Check", "External Attack Surface Review", ...(defaultEnquiryPath ? [INTERNET_FOOTPRINT_REVIEW_OFFER.name.en] : []), "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+        <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>{polish ? "Który przegląd?" : "Which review?"}</label>
+        <select
+          id="enquiryPath"
+          name="enquiryPath"
+          value={landingIntent}
+          onChange={(event) => {
+            const next = newSalesEnquiryOptions(locale).find((option) => option.intent === event.target.value);
+            if (next) setLandingIntent(next.intent);
+          }}
+          className={inputClass}
+          style={inputStyle}
+        >
+          {newSalesEnquiryOptions(locale).map((option) => <option key={option.intent} value={option.intent}>{option.label}</option>)}
         </select>
       </div>}
 
@@ -929,7 +992,7 @@ export function ContactForm({
 
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          {landing ? "What needs checking?" : copy.workflow} {!landing && <span className="text-text-muted">{copy.required}</span>}
+          {landing ? (polish ? "Co wymaga sprawdzenia?" : "What needs checking?") : copy.workflow} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
           id="workflow" name="workflow" rows={landing ? 5 : 3} required
@@ -944,7 +1007,7 @@ export function ContactForm({
           aria-invalid={fieldErrors.workflow ? true : undefined}
         />
         <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          {landing ? "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry." : copy.workflowHelp}
+          {landing ? (polish ? "W pierwszym zgłoszeniu nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesji ani materiałów klienta." : "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.") : copy.workflowHelp}
         </p>
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
@@ -990,7 +1053,7 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? copy.sending : landing ? "Submit non-secret enquiry" : copy.send}
+        {status === "sending" ? copy.sending : landing ? (polish ? "Wyślij niepoufne zgłoszenie" : "Submit non-secret enquiry") : copy.send}
       </button>
 
       {!landing && <p className="text-xs leading-relaxed text-text-muted">

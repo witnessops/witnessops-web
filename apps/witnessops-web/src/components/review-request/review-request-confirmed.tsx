@@ -13,6 +13,7 @@ import {
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import {
   readReviewRequestConfirmation,
@@ -50,6 +51,11 @@ const copy = {
       "We confirm scope, authority, evidence handling, timing, and fee by email.",
       "Work begins only after those terms are explicitly agreed.",
     ],
+    agentActionNextSteps: [
+      `We assess one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} No secrets yet.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.en}. Authority, the executing identity, the approval boundary, and the evidence path are agreed before work.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. The request and mailbox confirmation do not start work.`,
+    ],
     primaryOfferNextSteps: [
       "We assess the agent setup, selected connection, device/source boundary and one consequential action without asking for secrets.",
       `If it fits, ${PRIMARY_OFFER.price.en}. We issue a fixed quote after scope and agree authority, source handling and recipients before accepting material. Payment in full is due before start by default.`,
@@ -85,6 +91,11 @@ const copy = {
       "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
       "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
+    ],
+    agentActionNextSteps: [
+      `Ocenimy jedno istotne działanie agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.pl} Na razie bez sekretów.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed pracą uzgadniamy upoważnienie, tożsamość wykonującą, granicę zatwierdzenia i ścieżkę dowodów.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl}. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
       "Bez sekretów ocenimy konfigurację agenta, wybrane połączenie, granicę urządzenia i źródeł oraz jedno istotne działanie.",
@@ -172,6 +183,8 @@ export function ReviewRequestConfirmed({
 
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
+  const agentActionRequest =
+    confirmation.requestKind === "agent-action-security-review";
   const primaryOfferRequest =
     confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
@@ -180,9 +193,11 @@ export function ReviewRequestConfirmed({
     confirmation.requestKind === "access-change-proof-run";
   const nextSteps = publicExposureReview
     ? text.publicExposureNextSteps
-    : primaryOfferRequest
-      ? text.primaryOfferNextSteps
-      : text.nextSteps;
+    : agentActionRequest
+      ? text.agentActionNextSteps
+      : primaryOfferRequest
+        ? text.primaryOfferNextSteps
+        : text.nextSteps;
   const proofResource = publicExposureReview
     ? {
         href: "/review/sample-cases/external-exposure-assessment",

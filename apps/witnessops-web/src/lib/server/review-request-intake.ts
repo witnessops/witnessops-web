@@ -10,6 +10,7 @@ import {
   enforcePublicIntakeRateLimit,
   enforcePublicIssuanceRateLimits,
 } from "@/lib/server/public-intake-rate-limit";
+import { evaluateNewSalesIntakeBody } from "@/lib/new-review-request-policy";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import {
@@ -75,7 +76,21 @@ export async function handleReviewRequestIntake(
       return invalidRequestResponse(parsed.error);
     }
 
-    const { email, name, org, intent, locale, scope } = parsed.data;
+    const intakeDecision = evaluateNewSalesIntakeBody(raw);
+    if (!intakeDecision.accepted) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Selected request is not available for a new review.",
+          field: "intent",
+          reason: intakeDecision.reason,
+        },
+        { status: 400 },
+      );
+    }
+
+    const { email, name, org, locale, scope } = parsed.data;
+    const intent = intakeDecision.intent;
     if (!isBusinessEmail(email)) {
       return NextResponse.json(
         {
@@ -100,7 +115,7 @@ export async function handleReviewRequestIntake(
       submission: {
         name,
         org,
-        intent: intent ?? "review",
+        intent,
         locale: locale ?? "en",
         scope,
       },

@@ -31,7 +31,10 @@ test("engage route rejects freemail server-side", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
-      body: JSON.stringify({ email: "user@gmail.com" }),
+      body: JSON.stringify({
+        email: "user@gmail.com",
+        intent: "agent-action-security-review",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );
@@ -48,7 +51,10 @@ test("engage route creates issuance metadata and persists only token digest", as
   const response = await POST(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
-      body: JSON.stringify({ email: "security@witnessops.com" }),
+      body: JSON.stringify({
+        email: "security@witnessops.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );
@@ -144,7 +150,10 @@ test("engage route redacts upstream issuance errors", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
-      body: JSON.stringify({ email: "security@witnessops.com" }),
+      body: JSON.stringify({
+        email: "security@witnessops.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );

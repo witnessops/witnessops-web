@@ -59,23 +59,23 @@ test("discovery changes preserve old direct routes without promoting them in the
 
 // Compatibility evidence for this discovery-only stage, NOT final new-sales acceptance.
 // The separate intake stage must retire new legacy selection without breaking historical confirmations.
-test("legacy direct enquiry compatibility is unchanged by the discovery-only patch", async ({ page }) => {
-  let scope = "";
+test("new-sales enquiry accepts only the two review identities", async ({ page }) => {
+  let submitted: { intent?: string; scope?: string } = {};
   await page.route("**/api/review/request", async route => {
-    scope = (route.request().postDataJSON() as { scope: string }).scope;
-    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ issuanceId: "iss_early_bird", email: "buyer@example.com", expiresAt: "2026-09-27T22:00:00.000Z" }) });
+    submitted = route.request().postDataJSON() as { intent?: string; scope?: string };
+    await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ issuanceId: "iss_two_offer", email: "buyer@example.com", expiresAt: "2026-09-27T22:00:00.000Z" }) });
   });
-  await page.goto("/review/request");
-  await expect(page.locator("#enquiryPath")).toHaveValue("Free check");
-  await expect(page.locator("#enquiryPath option")).toHaveCount(5);
   await page.goto("/review/request?enquiryPath=early-bird");
-  await page.waitForLoadState("networkidle");
-  await expect(page.locator("#enquiryPath")).toHaveValue(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
+  await expect(page.locator("#enquiryPath option")).toHaveCount(2);
+  await expect(page.locator("#enquiryPath")).toHaveValue("agent-action-security-review");
+  await expect(page.getByRole("option", { name: INTERNET_FOOTPRINT_REVIEW_OFFER.name.en })).toHaveCount(0);
+  await page.locator("#enquiryPath").selectOption("OFFSEC-EXTERNAL-EXPOSURE");
   await page.locator("#name").fill("Synthetic Buyer");
   await page.locator("#email").fill("buyer@example.com");
-  await page.locator("#workflow").fill("Please review the public footprint of our authorised domain.");
+  await page.locator("#workflow").fill("Please review the public boundary of our authorised domain.");
   await page.locator('main form button[type="submit"]').click();
-  await expect.poll(() => scope).toContain(`Enquiry path: ${INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}`);
+  await expect.poll(() => submitted.intent).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+  expect(submitted.scope ?? "").not.toContain(INTERNET_FOOTPRINT_REVIEW_OFFER.name.en);
 });
 
 test("published English FAQ keeps free-signup boundaries and current pricing guidance", async ({ page }) => {
