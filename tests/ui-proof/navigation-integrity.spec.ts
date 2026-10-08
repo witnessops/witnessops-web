@@ -59,6 +59,7 @@ const askWorkflowAuthority = {
   }],
 } as const;
 
+const inventoryService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
 const agentService = BUYER_SERVICES.find(service => service.id === "agent-action-security-review")!;
 const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
 agentRequest.searchParams.set("source", "ask");
@@ -288,7 +289,7 @@ test("support sends paid-work buyers to the current agent tools review", async (
     { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
     {
       path: "/pl/support",
-      requestPath: buyerServiceRequestHref("pl", agentService),
+      requestPath: buyerServiceRequestHref("pl", inventoryService),
     },
   ]) {
     const context = await browser.newContext({
