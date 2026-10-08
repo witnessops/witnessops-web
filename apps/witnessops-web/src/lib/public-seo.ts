@@ -15,6 +15,7 @@ export type PublicLanguagePair = {
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
   { en: "/catalog", pl: "/pl/catalog" },
+  { en: "/buyer-faq", pl: "/pl/buyer-faq" },
   { en: "/library", pl: "/pl/library" },
   {
     en: "/customer-security-review",
