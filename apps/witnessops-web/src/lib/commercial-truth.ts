@@ -139,6 +139,20 @@ export const LEGACY_AGENT_ACTION_OFFER = {
   },
 } as const;
 
+/**
+ * Founder-selected new public one-action offer (2026-10-08).
+ *
+ * Preserve the immutable meaning of the earlier bounded-workflow-review
+ * request identity. This new identity inherits the *same bounded commercial
+ * promise* (one consequential agent/automation action; EUR 2,500 fixed) but is
+ * never a historical ID alias. The inventory-plus-action PRIMARY_OFFER remains
+ * a separate source contract; no billing or live issuance is activated here.
+ */
+export const PUBLIC_AGENT_ACTION_OFFER = {
+  ...LEGACY_AGENT_ACTION_OFFER,
+  id: "agent-action-security-review",
+} as const;
+
 /** Current distinct commercial offer; route continuity does not imply ID continuity. */
 export const PRIMARY_OFFER = {
   id: "agent-tools-access-review",
