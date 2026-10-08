@@ -14,10 +14,12 @@ test("Polish contact route localizes buyer guidance and preserves contact contra
     /href="\/pl\/review\/request"/,
   );
   assert.match(html, /Kontakt zapasowy:/);
-  assert.match(html, /engage@mail\.witnessops\.com/);
+  assert.match(html, /karol\.stefanski@mail\.witnessops\.com/);
+  assert.match(html, /mailto:karol\.stefanski@mail\.witnessops\.com/);
   assert.match(html, /Nie wysyłaj haseł/);
   assert.doesNotMatch(html, /Opowiedz nam, co się wydarzyło/);
   assert.doesNotMatch(html, /Tell us what happened|engage@witnessops\.com/);
+  assert.doesNotMatch(html, /engage@mail\.witnessops\.com/);
 });
 
 test("English contact route leaves the service choice open", () => {
@@ -30,9 +32,11 @@ test("English contact route leaves the service choice open", () => {
     /href="\/review\/request"/,
   );
   assert.match(html, /Discuss a review:/);
-  assert.match(html, /engage@mail\.witnessops\.com/);
+  assert.match(html, /karol\.stefanski@mail\.witnessops\.com/);
+  assert.match(html, /mailto:karol\.stefanski@mail\.witnessops\.com/);
   assert.match(html, /underline decoration-brand-accent\/50/);
   assert.doesNotMatch(html, /Tell us what happened/);
+  assert.doesNotMatch(html, /engage@mail\.witnessops\.com/);
 });
 
 test("compact footer contact route exposes a clear primary action", () => {

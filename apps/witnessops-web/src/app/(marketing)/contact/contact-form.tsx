@@ -18,10 +18,10 @@ import {
 } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import {
-  PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
-  publicContactMailto,
+  PUBLIC_SALES_CONTACT_EMAIL,
+  publicSalesContactMailto,
 } from "@/lib/public-contact";
 import {
   buyerServiceByProductId,
@@ -863,11 +863,11 @@ export function ContactForm({
                   &middot;
                 </span>
                 <a
-                  href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+                  href={publicSalesContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
                   className="whitespace-nowrap underline decoration-[#cfc9bd] underline-offset-2 transition-colors hover:text-[#121212]"
                   style={{ color: "inherit" }}
                 >
-                  {PUBLIC_CONTACT_EMAIL}
+                  {PUBLIC_SALES_CONTACT_EMAIL}
                 </a>
               </span>
             </div>
@@ -1091,11 +1091,11 @@ export function ContactForm({
               &middot;
             </span>
             <a
-              href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+              href={publicSalesContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
               className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
               style={{ color: "inherit" }}
             >
-              {PUBLIC_CONTACT_EMAIL}
+              {PUBLIC_SALES_CONTACT_EMAIL}
             </a>
           </span>
         </div>

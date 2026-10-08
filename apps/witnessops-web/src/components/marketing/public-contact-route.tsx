@@ -2,13 +2,13 @@ import { PublicNavigationLink as Link } from "@/components/shared/document-navig
 
 import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import {
-  PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_GENERAL_HREF,
   PUBLIC_CONTACT_PRIMARY_HREF,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
+  PUBLIC_SALES_CONTACT_EMAIL,
   productContactSubject,
-  publicContactMailto,
+  publicSalesContactMailto,
 } from "@/lib/public-contact";
 import {
   POLISH_NO_SECRETS_NOTE,
@@ -93,10 +93,10 @@ export function PublicContactRoute({
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           {polish ? "Lub napisz:" : "Discuss a review:"}{" "}
           <a
-            href={publicContactMailto(mailtoSubject)}
+            href={publicSalesContactMailto(mailtoSubject)}
             className="inline-flex min-h-11 items-center text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
           >
-            {PUBLIC_CONTACT_EMAIL}
+            {PUBLIC_SALES_CONTACT_EMAIL}
           </a>
         </p>
         <p className="mt-1 text-xs leading-5 text-text-muted">
@@ -129,10 +129,10 @@ export function PublicContactRoute({
       <p className="mt-1 text-sm leading-6 text-text-secondary">
         {polish ? "Kontakt zapasowy:" : "Discuss a review:"}{" "}
         <a
-          href={publicContactMailto(mailtoSubject)}
+          href={publicSalesContactMailto(mailtoSubject)}
           className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
         >
-          {PUBLIC_CONTACT_EMAIL}
+          {PUBLIC_SALES_CONTACT_EMAIL}
         </a>
       </p>
       <p className="mt-2 text-xs leading-5 text-text-muted">

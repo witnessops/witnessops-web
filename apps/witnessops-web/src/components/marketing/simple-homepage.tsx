@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
-import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
+import { PUBLIC_SALES_CONTACT_EMAIL } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import styles from "./simple-homepage.module.css";
@@ -73,7 +73,7 @@ export function SimpleHomepage() {
       ].map(([title, ...items]) => <div key={title}><h3>{title}</h3><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><p className={styles.eyebrow}>Ask an expert</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div><p className={styles.eyebrow}>Ask an expert</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={`mailto:${PUBLIC_SALES_CONTACT_EMAIL}`}>{PUBLIC_SALES_CONTACT_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
       <div className={styles.enquiryForm}><ContactForm compact landing /></div>
     </div></section>
   </main>;

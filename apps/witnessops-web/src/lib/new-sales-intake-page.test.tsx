@@ -113,5 +113,7 @@ test("the unselected enquiry offers exactly two review identities", async () => 
   assert.match(polish, /Który przegląd\?/);
   assert.match(polish, /value="agent-action-security-review"/);
   assert.match(polish, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
-  assert.match(polish, /engage@mail\.witnessops\.com/);
+  assert.match(polish, /karol\.stefanski@mail\.witnessops\.com/);
+  assert.match(polish, /mailto:karol\.stefanski@mail\.witnessops\.com/);
+  assert.doesNotMatch(polish, /engage@mail\.witnessops\.com/);
 });

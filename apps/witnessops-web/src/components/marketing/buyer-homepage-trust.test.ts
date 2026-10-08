@@ -96,7 +96,8 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
   );
   assert.match(simple, /text\.evidenceHeadline/);
   assert.match(simple, /text\.externalScopeNote/);
-  assert.match(simple, /mailto:\$\{PUBLIC_CONTACT_EMAIL\}/);
+  assert.match(simple, /mailto:\$\{PUBLIC_SALES_CONTACT_EMAIL\}/);
+  assert.doesNotMatch(simple, /PUBLIC_CONTACT_EMAIL\b/);
   assert.doesNotMatch(simple, /Understand what your agents can do|€500|€950|€4,900|Private Pilot|One Server/);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });

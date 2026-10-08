@@ -12,7 +12,7 @@ import {
   resolveNewSalesPageQuery,
 } from "@/lib/new-review-request-policy";
 import { languageAlternates } from "@/lib/public-seo";
-import { PUBLIC_CONTACT_EMAIL, publicContactMailto, PUBLIC_CONTACT_SUBJECTS } from "@/lib/public-contact";
+import { PUBLIC_SALES_CONTACT_EMAIL, publicSalesContactMailto, PUBLIC_CONTACT_SUBJECTS } from "@/lib/public-contact";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 
@@ -61,7 +61,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
       <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Wybierz Agent Action Security Review albo External Attack Surface Review. Nazwa wyświetlana, stary identyfikator albo swobodny opis nie wybiera innego przeglądu.</p>
       <div className="mt-10"><ContactForm compact landing locale="pl" /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">Ten formularz nie rozpoczyna pracy ani kontroli wobec celu.</p>
-      <p className="mt-3 text-sm leading-6 text-text-muted">Wolisz e-mail? <a href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_CONTACT_EMAIL}</a></p>
+      <p className="mt-3 text-sm leading-6 text-text-muted">Wolisz e-mail? <a href={publicSalesContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_CONTACT_EMAIL}</a></p>
     </main>;
   }
   const agentActionOrder = decision.role === "offer";
