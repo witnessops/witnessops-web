@@ -153,31 +153,43 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
   assert.ok(!route.requiredMarkers.includes("Buyer path"));
 });
 
-test("catalogue smoke preserves the primary and secondary offer hierarchy", () => {
-  for (const path of ["/catalog"] as const) {
+test("catalogue smoke preserves the two public review request paths", () => {
+  for (const path of ["/", "/catalog", "/pricing", "/pl", "/pl/catalog"] as const) {
     const route = routeContract(path);
     for (const marker of [
-      "Two focused security reviews.",
-      "Agent Action Security Review",
-      "€2,500 fixed · excluding VAT",
-      "Within 10 working days after evidence rules are agreed",
-      "Scope an AI review",
-      "External Attack Surface Review",
-      "€1,900 · excluding VAT",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
+    ]) {
+      assert.ok(route.requiredMarkers.includes(marker), `${path} must require ${marker}`);
+    }
+    for (const marker of [
+      "offerId=agent-tools-access-review",
+      "offerId=automation-repair-handover",
+      "offerId=customer-security-review-sprint",
+      "productId=OFFSEC-PILOT",
     ]) {
       assert.ok(
-        route.requiredMarkers.some((candidate) => candidate.includes(marker)),
-        `${path} must include ${marker}`,
+        route.prohibitedMarkers?.includes(marker),
+        `${path} must reject ${marker}`,
       );
     }
   }
-
   const catalogue = routeContract("/catalog");
-  assert.ok(
-    catalogue.requiredMarkers.some((marker) =>
-      marker.includes("Within 3 working days after payment in full"),
-    ),
-  );
+  for (const marker of [
+    "Two focused security reviews.",
+    "Agent Action Security Review",
+    "€2,500 fixed · excluding VAT",
+    "Within 10 working days after evidence rules are agreed",
+    "Scope an AI review",
+    "External Attack Surface Review",
+    "€1,900 · excluding VAT",
+    "Within 3 working days after payment in full",
+  ]) {
+    assert.ok(
+      catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
+      `/catalog must include ${marker}`,
+    );
+  }
 });
 
 test("request smoke markers use the current fit and start-work boundaries", () => {
@@ -200,11 +212,15 @@ test("request smoke markers use the current fit and start-work boundaries", () =
       "No work or target-facing check starts from this page.",
     ),
   );
-  assert.ok(
-    routeContract("/review/request?offerId=agent-action-security-review").requiredMarkers.includes(
-      'name="intent" value="agent-action-security-review"',
-    ),
-  );
+  const agent = routeContract("/review/request?offerId=agent-action-security-review");
+  assert.ok(agent.requiredMarkers.includes('name="intent" value="agent-action-security-review"'));
+  assert.ok(agent.prohibitedMarkers?.includes("productId=OFFSEC-EXTERNAL-EXPOSURE"));
+  const external = routeContract("/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE");
+  assert.ok(external.requiredMarkers.includes('name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"'));
+  assert.ok(external.prohibitedMarkers?.includes("offerId=agent-action-security-review"));
+  const repair = routeContract("/catalog/automation-repair");
+  assert.ok(repair.requiredMarkers.includes("This review is not offered for new engagements."));
+  assert.ok(repair.prohibitedMarkers?.includes('name="intent" value="automation-repair-handover"'));
 });
 
 test("historical inventory request URLs stay closed while Agent Action intake is explicit", () => {
