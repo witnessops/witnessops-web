@@ -30,6 +30,8 @@ test("customer security review page does not widen the public product boundary",
   }
   const request = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   assert.equal(request.pathname, "/review/request");
-  assert.equal(request.searchParams.get("offerId"), service.id);
+  assert.equal(request.searchParams.has("offerId"), false);
+  assert.equal(request.searchParams.has("productId"), false);
+  assert.equal(request.pathname,"/review/request", "historical detail can request fit, not select a third public paid review");
   assert.equal(landing.sampleHref, "/review/sample-cases/customer-security-review-sprint");
 });

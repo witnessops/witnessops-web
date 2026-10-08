@@ -8,28 +8,31 @@ import { getPolishSkus, POLISH_OFFERS } from "@/lib/public-i18n";
 
 const homePage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const buyerHomepage = readFileSync(
-  resolve(__dirname, "../../components/marketing/buyer-homepage.tsx"),
+  resolve(__dirname, "../../components/marketing/simple-homepage.tsx"),
   "utf-8",
 );
 
-test("Polish homepage leads with security and verification", () => {
-  assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(buyerHomepage, /Znajdź luki w bezpieczeństwie swoich systemów/);
-  assert.match(buyerHomepage, /Sprawdź narzędzia i dostęp agenta AI/);
-  assert.match(buyerHomepage, /Zweryfikuj lub napraw proces/);
-  assert.match(buyerHomepage, /Co wymaga sprawdzenia\?/);
-  assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
-  assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
+test("Polish homepage leads with both approved reviews, no old promotions, and a free check", () => {
+  assert.match(homePage, /<SimpleHomepage locale="pl" \/>/);
+  assert.match(buyerHomepage, /Zrozum, co mogą zrobić Twoje agenty i co ujawniają Twoje systemy/);
+  assert.match(buyerHomepage, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(buyerHomepage, /Omów przegląd agenta AI/);
+  assert.match(buyerHomepage, /Omów przegląd ekspozycji/);
+  assert.match(buyerHomepage, /Bezpłatne sprawdzenie hosta/);
+  assert.match(buyerHomepage, /To nie jest przegląd/);
+  assert.match(buyerHomepage, /krótkiego, niepoufnego opisu agenta/);
+  assert.doesNotMatch(buyerHomepage, /Internet Footprint Review|Early Bird|€500/);
   assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
 });
 
 test("public catalogue uses the approved service names in Polish", () => {
-  assert.equal(BUYER_SERVICES.length, 9);
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.name.pl),
     [
       "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
+      "Agent Action Security Review",
       "Przegląd narzędzi i dostępu agenta AI",
       "One Server Security Check",
       "External Attack Surface Review",

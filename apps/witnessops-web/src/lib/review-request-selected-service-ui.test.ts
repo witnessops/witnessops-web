@@ -7,6 +7,7 @@ const requestPage = readFileSync(
   resolve(__dirname, "../app/review/request/page.tsx"),
   "utf8",
 );
+const sharedRequest = readFileSync(resolve(__dirname, "../components/review-request/two-offer-request.tsx"), "utf8");
 const contactForm = readFileSync(
   resolve(__dirname, "../app/(marketing)/contact/contact-form.tsx"),
   "utf8",
@@ -19,24 +20,17 @@ const confirmationPage = readFileSync(
   "utf8",
 );
 
-test("selected non-agent services do not inherit the agent proof bundle", () => {
-  assert.match(requestPage, /const primaryOfferOrder/);
-  assert.match(requestPage, /const selectedServiceOrder/);
-  assert.match(
-    requestPage,
-    /const activeArtifacts = publicExposureOrder\s*\? publicExposureArtifacts\s*:\s*\[\]/,
-  );
-  assert.match(requestPage, /title: "Expected outcome"/);
-  assert.match(requestPage, /title: "Offer boundary"/);
-  assert.match(requestPage, /summary: selectedServiceOrder\.result\.en/);
-  assert.match(requestPage, /summary: selectedServiceOrder\.boundary\.en/);
-  assert.match(requestPage, /\{activeArtifacts\.length > 0 \? \(/);
-  assert.doesNotMatch(requestPage, /sampleArtifacts\.slice/);
-  assert.match(requestPage, /const selectedServiceNextSteps/);
-  assert.match(
-    requestPage,
-    /selectedServiceOrder\s*\? selectedServiceNextSteps\s*:\s*nextSteps/,
-  );
+test("selected external review stays bounded and cannot inherit the AI proof bundle", () => {
+  assert.match(requestPage, /<TwoOfferRequest locale="en"/);
+  assert.match(sharedRequest, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(sharedRequest, /resolveNewReviewSelection\(params\)/);
+  assert.match(sharedRequest, /const external = service\?\.id === "external-exposure-assessment"/);
+  assert.match(sharedRequest, /service\.result\[locale\]/);
+  assert.match(sharedRequest, /service\.boundary\[locale\]/);
+  assert.match(sharedRequest, /service\.price\[locale\]/);
+  assert.match(sharedRequest, /selection\.kind === "selected"/);
+  assert.match(sharedRequest, /30 calendar days beginning at initial report handover/);
+  assert.doesNotMatch(sharedRequest, /sampleArtifacts\.slice|primaryOfferOrder|publicExposureArtifacts/);
 });
 
 test("selected non-agent services collect and store service-specific context", () => {

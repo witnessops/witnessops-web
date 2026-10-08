@@ -1,5 +1,6 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
   AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
@@ -14,6 +15,7 @@ export type BuyerService = {
     | "automation-repair-handover"
     | "customer-security-review-sprint"
     | "agent-tools-access-review"
+    | "agent-action-security-review"
     | "one-server-security-check"
     | "external-exposure-assessment"
     | "launch-readiness-check"
@@ -49,14 +51,13 @@ export type BuyerPublicOfferId = Extract<
   | "automation-repair-handover"
   | "customer-security-review-sprint"
   | "agent-tools-access-review"
+  | "agent-action-security-review"
   | "professional-public-footprint-audit"
 >;
 
 const BUYER_PUBLIC_OFFER_IDS = [
-  "automation-repair-handover",
-  "customer-security-review-sprint",
-  "agent-tools-access-review",
-  "professional-public-footprint-audit",
+  // Historical catalogue rows remain readable but are not new-sales choices.
+  "agent-action-security-review",
 ] as const satisfies readonly BuyerPublicOfferId[];
 
 function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
@@ -113,9 +114,27 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   },
 
   {
-    id: PRIMARY_OFFER.id,
+    id: PUBLIC_AGENT_ACTION_OFFER.id,
     commercialRole: "primary",
     homepageFeatured: true,
+    commercialContract: PUBLIC_AGENT_ACTION_OFFER.commercialContract,
+    name: PUBLIC_AGENT_ACTION_OFFER.name,
+    cardSituation: PUBLIC_AGENT_ACTION_OFFER.cardSituation,
+    situation: PUBLIC_AGENT_ACTION_OFFER.situation,
+    result: PUBLIC_AGENT_ACTION_OFFER.result,
+    price: PUBLIC_AGENT_ACTION_OFFER.price,
+    timing: PUBLIC_AGENT_ACTION_OFFER.timing,
+    boundary: {
+      en: "One consequential agent or automation action. Read, inspect, reconstruct and report. Authority, approvals, executing identity, effective permission boundary and available action evidence only. No production changes, execution, exploitation, credentials, remediation, multi-workflow programme, continuous monitoring or certification.",
+      pl: "Jedno istotne działanie agenta lub automatyzacji. Odczyt, inspekcja, rekonstrukcja i raport. Analiza upoważnienia, zatwierdzenia, tożsamości wykonawczej, faktycznych uprawnień i dostępnych dowodów działania. Bez zmian produkcyjnych, wykonania działania, eksploatacji, poświadczeń, napraw, programów wielu działań, monitoringu ani certyfikacji.",
+    },
+    requestCta: { en: "Scope an Agent Action review", pl: "Omów przegląd działania agenta" },
+    detailHref: { en: PUBLIC_AGENT_ACTION_OFFER.route, pl: PUBLIC_AGENT_ACTION_OFFER.route },
+  },
+  {
+    id: PRIMARY_OFFER.id,
+    // Retain the older inventory contract for historical lookups only.
+    homepageFeatured: false,
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
     cardSituation: PRIMARY_OFFER.cardSituation,
@@ -384,8 +403,9 @@ export function buyerPublicOfferRequestHref(
   offerId: BuyerPublicOfferId,
 ): string {
   const service = buyerServiceByPublicOfferId(offerId);
+  if (!service) return buyerRequestHref(locale);
   const params = new URLSearchParams({ offerId });
-  if (service) params.set("offer", service.name[locale]);
+  params.set("offer", service.name[locale]);
   return `${buyerRequestHref(locale)}?${params.toString()}`;
 }
 
@@ -393,7 +413,7 @@ export function buyerServiceRequestHref(
   locale: BuyerLocale,
   service: BuyerService,
 ): string {
-  if (service.productId) {
+  if (service.id === "external-exposure-assessment" && service.productId) {
     return buyerOfferRequestHref(locale, service.productId);
   }
   if (isBuyerPublicOfferId(service.id)) {
@@ -450,17 +470,15 @@ export function buyerServiceByPublicOfferId(
  */
 export function buyerServiceFromRequestOffer(
   offerId: string | null | undefined,
-  offer: string | null | undefined,
+  _offer: string | null | undefined,
 ): BuyerService | undefined {
   if (offerId !== null && offerId !== undefined) {
     return buyerServiceByPublicOfferId(offerId);
   }
 
-  if (offer === AUTOMATION_REPAIR_OFFER.name.en || offer === AUTOMATION_REPAIR_OFFER.name.pl) return buyerServiceById(AUTOMATION_REPAIR_OFFER.id);
-
-  return offer === PRIMARY_OFFER.name.en
-    ? buyerServiceById(PRIMARY_OFFER.id)
-    : undefined;
+  // Names and legacy aliases are never selection authority. New intake needs an
+  // explicit current offerId, and must not reinterpret historic customer terms.
+  return undefined;
 }
 
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {

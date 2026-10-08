@@ -38,22 +38,19 @@ test("public footprint audit has the exact request-only commercial contract", ()
   assert.equal(audit.pricingVisible, false);
 });
 
-test("public footprint audit uses an allowlisted selected-offer route without payment semantics", () => {
+test("historical footprint identity stays intact while new discovery uses the two-review projection", () => {
   assert.equal(audit.productId, undefined);
   assert.equal(buyerRequestHref("en"), "/review/request");
   assert.equal(buyerRequestHref("pl"), "/pl/review/request");
-  assert.match(
-    buyerServiceRequestHref("en", audit),
-    /^\/review\/request\?offerId=professional-public-footprint-audit&/,
-  );
-  assert.match(
-    buyerServiceRequestHref("pl", audit),
-    /^\/pl\/review\/request\?offerId=professional-public-footprint-audit&/,
-  );
+  assert.equal(buyerServiceRequestHref("en",audit),"/review/request");
+  assert.equal(buyerServiceRequestHref("pl",audit),"/pl/review/request");
+  // Historic commercial details and accepted agreements are preserved; the
+  // old audit ID cannot become a third new-sale selection via this CTA.
   assert.doesNotMatch(JSON.stringify(audit), /stripe|checkout|payment[_-]?link/i);
   assert.match(catalogueSource, /buyerServiceRequestHref\(locale, service\)/);
-  assert.doesNotMatch(pricingSource, /professional-public-footprint-audit|buyerServicesByCommercialPriority/);
-  assert.match(pricingSource, /INTERNET_FOOTPRINT_REVIEW_OFFER/);
+  assert.doesNotMatch(pricingSource, /professional-public-footprint-audit|buyerServicesByCommercialPriority|INTERNET_FOOTPRINT_REVIEW_OFFER/);
+  assert.match(pricingSource, /BuyerCatalogue locale="en" surface="pricing"/);
+  assert.match(catalogueSource, /publicPaidReviews\(BUYER_SERVICES\)/);
 });
 
 test("public footprint audit preserves consent, source and bounded-claim limits", () => {
@@ -108,7 +105,7 @@ test("public footprint audit preserves consent, source and bounded-claim limits"
   );
 });
 
-test("External Attack Surface Review remains current, off the homepage, and commercially unchanged", () => {
+test("External Attack Surface Review keeps its historical registry metadata and commercial contract", () => {
   assert.equal(publicExposure.homepageFeatured, false);
   assert.equal(publicExposure.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(

@@ -11,7 +11,7 @@ test("admin services mirror the canonical public catalogue without inventing con
     services.map((service) => service.id),
     BUYER_SERVICES.map((service) => service.id),
   );
-  assert.equal(services.length, 9);
+  assert.equal(services.length, 10);
 
   for (const [index, service] of services.entries()) {
     const authority = BUYER_SERVICES[index]!;
@@ -28,7 +28,9 @@ test("admin services mirror the canonical public catalogue without inventing con
     const productId = params.get("productId");
     assert.deepEqual(
       service.requestContext,
-      offerId
+      !params.has("offerId") && !params.has("productId")
+        ? { kind: "generic", label: "generic /review/request", preservesSelection: false }
+        : offerId
         ? {
             kind: "public_offer",
             label: `offerId=${offerId}`,
@@ -52,6 +54,6 @@ test("admin services preserve the selected offer for every public service", () =
     (service) => !service.requestContext.preservesSelection,
   );
 
-  assert.equal(contextual.length, BUYER_SERVICES.length);
-  assert.deepEqual(generic, []);
+  assert.deepEqual(contextual.map(s=>s.id), ["agent-action-security-review","external-exposure-assessment"]);
+  assert.equal(generic.length, BUYER_SERVICES.length - 2);
 });

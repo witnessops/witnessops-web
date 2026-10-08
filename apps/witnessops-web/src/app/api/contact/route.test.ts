@@ -60,7 +60,7 @@ const askFit = {
   schema: "witnessops.ask.commercial-fit.v1" as const,
   result: "likely" as const,
   intent: "workflow" as const,
-  offer_id: "agent-tools-access-review" as const,
+  offer_id: "agent-action-security-review" as const,
   source: "ask" as const,
   offer: null,
   matching_specimen_id: null,
@@ -167,7 +167,7 @@ test("Ask follow-up is stored before verification without sharing the question b
   assert.equal(intake?.submission.intent, "ask-ai-contact");
   assert.equal(intake?.submission.scope, issued.scope);
   assert.match(issued.scope, /Source: ask/);
-  assert.match(issued.scope, /Offer: agent-tools-access-review/);
+  assert.match(issued.scope, /Offer: agent-action-security-review/);
   assert.match(issued.scope, /Visitor note: Review our agent approval step\./);
   assert.match(issued.scope, /Follow-up requested: reply by email/);
   assert.match(issued.scope, /Question sharing: not requested/);
