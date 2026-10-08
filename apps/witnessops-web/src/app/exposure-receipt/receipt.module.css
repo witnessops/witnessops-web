@@ -1,0 +1,52 @@
+.page { background: var(--color-surface-bg); color: var(--color-text-primary); }
+.container { max-width: 1160px; margin: auto; padding: 40px 32px 72px; }
+.pilot { width: fit-content; border: 1px solid var(--color-surface-border); padding: 8px 12px; font-size: 11px; letter-spacing: .12em; color: var(--color-text-muted); }
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 64px; padding: 64px 0 72px; align-items: center; }
+.eyebrow { color: var(--color-brand-accent); font-size: 11px; font-weight: 600; letter-spacing: .15em; margin-bottom: 20px; }
+.hero h1 { font-size: clamp(44px, 5.5vw, 76px); letter-spacing: -.055em; line-height: 1.04; font-weight: 500; }
+.hero h1 span { color: var(--color-brand-accent); }
+.lead { font-size: 19px; line-height: 1.65; max-width: 520px; color: var(--color-text-secondary); margin-top: 24px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 16px; }
+.actions a { min-height: 48px; }
+.note { font-size: 13px; line-height: 1.8; color: var(--color-text-muted); }
+.priceCard { border: 1px solid var(--color-surface-border); border-top: 3px solid var(--color-brand-accent); background: var(--color-surface-card); padding: 32px; }
+.price { font-size: 76px; line-height: 1; letter-spacing: -.05em; }
+.price span { display: block; font-size: 13px; line-height: 1.8; letter-spacing: 0; margin-top: 12px; color: var(--color-text-muted); }
+.priceCard ul { list-style: none; padding: 0; margin: 28px 0; }
+.priceCard li { padding: 12px 0; border-bottom: 1px solid var(--color-surface-border); font-size: 15px; }
+.manual { font-size: 12px; line-height: 1.8; color: var(--color-brand-accent); margin-top: 16px; }
+.section { padding: 56px 0; border-top: 1px solid var(--color-surface-border); scroll-margin-top: 100px; }
+.section h2 { font-size: clamp(28px, 3.5vw, 44px); line-height: 1.15; letter-spacing: -.035em; font-weight: 500; }
+.intro { max-width: 700px; font-size: 16px; line-height: 1.8; color: var(--color-text-secondary); margin-top: 20px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; }
+.number { color: var(--color-brand-accent); font-size: 12px; }
+.grid h3, .scopeGrid h3, .steps h3, .boundary h3 { font-size: 18px; font-weight: 500; margin: 16px 0 12px; }
+.grid p, .scopeGrid p, .steps p, .boundary p, .details p { font-size: 14px; line-height: 1.85; color: var(--color-text-secondary); }
+.scopeGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 40px; margin: 24px 0 32px; }
+.scopeGrid article { border-bottom: 1px solid var(--color-surface-border); padding-bottom: 20px; }
+.boundary { border-left: 2px solid var(--color-brand-accent); padding: 8px 24px; background: var(--color-surface-card); }
+.boundary p + p { margin-top: 12px; }
+.steps { list-style: decimal-leading-zero; display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; padding-left: 24px; margin: 32px 0; }
+.steps li::marker { color: var(--color-brand-accent); font-size: 12px; }
+.request { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+.request .note { margin-top: 24px; }
+.form { padding: 24px; border: 1px solid var(--color-surface-border); }
+.email { display: inline-block; padding: 16px 0; font-size: 14px; }
+.page a:not([class]) { color: var(--color-brand-accent); text-decoration: underline; text-underline-offset: 4px; }
+.page a:focus-visible, .details summary:focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 4px; }
+.details { border-top: 1px solid var(--color-surface-border); padding: 24px 0; font-size: 14px; }
+.details summary { cursor: pointer; min-height: 32px; }
+.details p { margin-top: 12px; max-width: 700px; }
+@media (max-width: 760px) {
+  .container { padding: 24px 20px 48px; }
+  .hero { grid-template-columns: 1fr; gap: 32px; padding: 40px 0; }
+  .hero h1 { font-size: clamp(42px, 10vw, 68px); }
+  .priceCard { padding: 24px; }
+  .section { padding: 36px 0; }
+  .grid, .steps, .request { grid-template-columns: 1fr; gap: 24px; }
+  .scopeGrid { grid-template-columns: 1fr; gap: 8px; }
+  .steps { padding-left: 24px; }
+  .form { padding: 20px 16px; }
+  .lead { font-size: 17px; }
+  .actions a { width: 100%; }
+}
