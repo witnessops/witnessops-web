@@ -13,7 +13,7 @@ const copy = {
     offers: "Two reviews. Scope before work.",
     ai: "One agreed device, one selected connection and one consequential action. Manual, read-only inspection—not execution or repair.",
     external: "One authorised internet-facing system, inspected from the outside with approved low-impact checks. Not a penetration test.",
-    details: "See scope and deliverables", compare: "Compare scopes and prices",
+    details: "See scope and deliverables", compare: "Compare scopes and prices", faq: "Buyer FAQ",
     free: "Free hostname check", freeBody: "A public hostname snapshot. No account needed.",
     freeBoundary: "Not a review.", freeCta: "Start a free check",
     receive: "What you receive", receiveBody: "Written findings with their supporting evidence, practical priorities and explicit unknowns. Scope and evidence handling are agreed before work begins. An enquiry does not authorise collection or start a review.",
@@ -32,7 +32,7 @@ const copy = {
     offers: "Dwa przeglądy. Najpierw uzgodniony zakres.",
     ai: "Jedno uzgodnione urządzenie, jedno wybrane połączenie i jedno istotne działanie. Ręczna inspekcja tylko do odczytu—bez wykonania działania i napraw.",
     external: "Jeden autoryzowany system dostępny z internetu, sprawdzany od zewnątrz uzgodnionymi metodami o niskim wpływie. To nie jest test penetracyjny.",
-    details: "Zobacz zakres i wyniki", compare: "Porównaj zakres i cenę",
+    details: "Zobacz zakres i wyniki", compare: "Porównaj zakres i cenę", faq: "FAQ kupującego",
     free: "Bezpłatne sprawdzenie hosta", freeBody: "Publiczny obraz jednego hosta. Bez konta.",
     freeBoundary: "To nie jest przegląd.", freeCta: "Sprawdź host bezpłatnie",
     receive: "Co otrzymasz", receiveBody: "Pisemne ustalenia wraz ze źródłami, praktyczne priorytety i jawne niewiadome. Zakres i zasady obsługi materiałów uzgadniamy przed pracą. Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu.",
@@ -74,7 +74,7 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
         {service.detailHref[locale] ? <TextLink href={service.detailHref[locale]!}>{text.details}</TextLink> : null}
       </article>)}</div>
       <aside className={styles.freeCheck} aria-label={text.free}><div><h3>{text.free}</h3><p>{text.freeBody} <strong>{text.freeBoundary}</strong></p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
-      <div className={styles.sectionLinks}><TextLink href={`${prefix}/catalog`}>{text.compare}</TextLink></div>
+      <div className={styles.sectionLinks}><TextLink href={`${prefix}/catalog`}>{text.compare}</TextLink><TextLink href={`${prefix}/buyer-faq`}>{text.faq}</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>{text.receive}</h2><p>{text.receiveBody}</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading"><div className={styles.frame}>
