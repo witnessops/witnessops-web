@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { getPolishSkus, POLISH_OFFERS } from "@/lib/public-i18n";
 
 const homePage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
@@ -22,16 +22,18 @@ test("Polish homepage leads with both approved reviews, no old promotions, and a
   assert.match(buyerHomepage, /To nie jest przegląd/);
   assert.match(buyerHomepage, /krótkiego, niepoufnego opisu agenta/);
   assert.doesNotMatch(buyerHomepage, /Internet Footprint Review|Early Bird|€500/);
-  assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "€2 500: cena stała · bez VAT");
+  assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT"); // unchanged historical source
 });
 
-test("public catalogue uses the approved service names in Polish", () => {
-  assert.equal(BUYER_SERVICES.length, 9);
+test("historical registry preserves bilingual service identities, while public projection is bounded", () => {
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.name.pl),
     [
       "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
+      "Agent Action Security Review",
       "Przegląd narzędzi i dostępu agenta AI",
       "One Server Security Check",
       "External Attack Surface Review",

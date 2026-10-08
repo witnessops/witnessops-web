@@ -32,9 +32,10 @@ test("Polish review request retains native localized form and exact intent", () 
   assert.match(sharedRequest, /<ContactForm[\s\S]*locale=\{locale\}[\s\S]*intent=\{selection\.intent\}/);
   assert.match(sharedRequest, /publicPaidReviews\(BUYER_SERVICES\)/);
   assert.match(sharedRequest, /data-request-selection=/);
-  assert.deepEqual(resolveNewReviewSelection({offerId:"agent-tools-access-review"}), {
-    kind:"selected", serviceId:"agent-tools-access-review", intent:"agent-tools-access-review",
+  assert.deepEqual(resolveNewReviewSelection({offerId:"agent-action-security-review"}), {
+    kind:"selected", serviceId:"agent-action-security-review", intent:"agent-action-security-review",
   });
+  assert.equal(resolveNewReviewSelection({offerId:"agent-tools-access-review"}).kind, "unavailable");
   for (const marker of [
     "Imię i nazwisko",
     "Służbowy adres e-mail",
