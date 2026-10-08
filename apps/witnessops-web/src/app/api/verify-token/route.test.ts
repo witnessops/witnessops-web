@@ -1,3 +1,4 @@
+import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
@@ -93,22 +94,14 @@ async function issueSupportToken(baseDir: string) {
 
 async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
   applyTestEnv(baseDir);
-  const response = await reviewRequest(
-    new Request("https://witnessops.com/api/review/request", {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        email: "security@witnessops.com",
-        intent: "access-change-proof-run",
-        scope: "Access change: contractor production access revoked.",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-  };
+  // Existing historical request: seed inside the test's file-only provider.
+  // A NEW public /review/request is not permitted to issue this retired intent.
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-historical-access-change",
+    submission: { name, intent: "access-change-proof-run", scope: "Access change: contractor production access revoked." },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
@@ -161,28 +154,39 @@ async function issueCurrentCommercialIntentToken(
   const handler = options.endpoint === "contact" ? contact : reviewRequest;
   const requestPath =
     options.endpoint === "contact" ? "/api/contact" : "/api/review/request";
+  const submission = {
+    ...(options.endpoint === "review" ? { name: "Synthetic Buyer", org: "WitnessOps Labs" } : {}),
+    intent: options.intent,
+    locale: options.locale,
+    scope: `One bounded request for ${options.intent}.`,
+  };
   const response = await handler(
     new Request(`https://witnessops.com${requestPath}`, {
       method: "POST",
-      body: JSON.stringify({
-        ...(options.endpoint === "review"
-          ? { name: "Synthetic Buyer", org: "WitnessOps Labs" }
-          : {}),
-        email: "security@witnessops.com",
-        intent: options.intent,
-        locale: options.locale,
-        scope: `One bounded request for ${options.intent}.`,
-      }),
+      body: JSON.stringify({ email: "security@witnessops.com", ...submission }),
       headers: { "Content-Type": "application/json" },
     }),
   );
-  assert.equal(response.status, 201);
-
-  const issuance = (await response.json()) as {
-    intakeId: string;
-    issuanceId: string;
-    email: string;
-  };
+  // Public new sales and historical confirmation are different operations.
+  // For retired identities, prove the NEW public endpoint denies issuance, then
+  // seed the old identity internally to exercise actual verification/lifecycle.
+  const newIntent = options.intent === "agent-tools-access-review" ||
+    options.intent === "OFFSEC-EXTERNAL-EXPOSURE" || options.intent === "ask-ai-contact";
+  const issuance = newIntent
+    ? await (async () => {
+        assert.equal(response.status, 201);
+        return (await response.json()) as { intakeId: string; issuanceId: string; email: string };
+      })()
+    : await (async () => {
+        assert.equal(response.status, 400);
+        assert.equal((await response.json()).code, "NEW_REVIEW_SELECTION_REQUIRED");
+        return createVerificationIssuance({
+          channel: "engage",
+          email: "security@witnessops.com",
+          source: "test-historical-commercial-intent",
+          submission,
+        });
+      })();
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
@@ -768,27 +772,18 @@ test("verify-token route sends a reply-ready operator notification for package r
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
   applyTestEnv(baseDir);
 
-  const issueResponse = await reviewRequest(
-    new Request("https://witnessops.com/api/review/request", {
-      method: "POST",
-      body: JSON.stringify({
-        name: "K. Witness",
-        org: "WitnessOps Labs",
-        email: "security@witnessops.com",
-        intent: "ai-agent-action-proof-run",
-        scope:
-          "Workflow: coding agent proposed and applied a configuration change after human approval.\nEvidence available: ticket, prompt transcript, commit record.",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-
-  assert.equal(issueResponse.status, 201);
-  const issued = (await issueResponse.json()) as {
-    intakeId: string;
-    issuanceId: string;
-    email: string;
-  };
+  // Historical issued package: retain verification and operator notification
+  // without re-enabling it as a new publicly orderable service.
+  const issued = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-historical-package-notification",
+    submission: {
+      name: "K. Witness", org: "WitnessOps Labs",
+      intent: "ai-agent-action-proof-run",
+      scope: "Workflow: coding agent proposed and applied a configuration change after human approval.\\nEvidence available: ticket, prompt transcript, commit record.",
+    },
+  });
   const [verificationMailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const verificationMailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, verificationMailFile),
