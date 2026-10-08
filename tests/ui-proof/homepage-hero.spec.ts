@@ -1,6 +1,6 @@
-import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { expect, test, type Page, type Route } from "@playwright/test";
-import { BUYER_SERVICES, buyerServiceRequestHref, buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { BUYER_SERVICES, buyerServiceById, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { activeHeroSupport, checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -228,7 +228,13 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       const page = await context.newPage();
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id) : "/pl/review/request");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute(
+        "href",
+        buyerServiceRequestHref(
+          path === "/" ? "en" : "pl",
+          buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID),
+        ),
+      );
       await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/review/sample-cases/ai-agent-action-proof-run");
       await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
