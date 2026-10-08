@@ -223,14 +223,16 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
 test("historical one-action links cannot select the distinct current offer", async ({ page }) => {
   for (const [path, oldLabel, newLabel] of [
-    ["/review/request?offerId=bounded-workflow-review", "This offer has been superseded", "AI Agent Tools & Access Review"],
-    ["/pl/review/request?offerId=bounded-workflow-review", "Ta oferta została zastąpiona", "Przegląd narzędzi i dostępu agenta AI"],
+    ["/review/request?offerId=bounded-workflow-review", "This link does not select a current offer", "AI Agent Tools & Access Review"],
+    ["/pl/review/request?offerId=bounded-workflow-review", "Ten link nie wybiera aktualnej oferty", "Przegląd narzędzi i dostępu agenta AI"],
   ] as const) {
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.locator("main")).toContainText(oldLabel);
     await expect(page.locator("main")).toContainText(newLabel);
+    await expect(page.locator('main[data-request-selection="unavailable"]')).toBeVisible();
     await expect(page.locator("main form")).toHaveCount(0);
+    await expect(page.locator("main [data-review-choice]")).toHaveCount(2);
     await expect(page.locator("main a[href*='offerId=agent-tools-access-review']")).toBeVisible();
   }
 });
@@ -245,7 +247,7 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
         "AI Agent Tools & Access Review",
         "Starting at €2,500 · excluding VAT",
         "one consequential action",
-        "Submitting this form starts fit and scoping only",
+        "No review or target-facing check starts from this form.",
         "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
       ],
     },
@@ -257,7 +259,7 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
         "Przegląd narzędzi i dostępu agenta AI",
         "Od €2 500 · bez VAT",
         "jedno istotne działanie",
-        "Na razie bez sekretów i materiałów",
+        "bez przesyłania materiałów źródłowych i sekretów",
         "Cel: 10 dni roboczych po potwierdzeniu zakresu",
       ],
     },
