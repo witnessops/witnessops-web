@@ -12,12 +12,13 @@ const buyerHomepage = readFileSync(
   "utf-8",
 );
 
-test("Polish homepage leads with security and verification", () => {
+test("Polish homepage leads with the two public paid reviews", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(buyerHomepage, /Znajdź luki w bezpieczeństwie swoich systemów/);
-  assert.match(buyerHomepage, /Sprawdź narzędzia i dostęp agenta AI/);
-  assert.match(buyerHomepage, /Zweryfikuj lub napraw proces/);
-  assert.match(buyerHomepage, /Co wymaga sprawdzenia\?/);
+  assert.match(homePage, /Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy/);
+  assert.match(buyerHomepage, /HOMEPAGE_TWO_OFFER_COPY/);
+  assert.match(buyerHomepage, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.doesNotMatch(buyerHomepage, /Zweryfikuj lub napraw proces/);
+  assert.doesNotMatch(buyerHomepage, /\/catalog\/automation-repair/);
   assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
   assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
   assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");

@@ -246,9 +246,9 @@ test("Polish homepage keeps its localized copy and Gap labels readable", async (
   await expect(figure).toContainText(/4[\s,.]?800/);
   await expect(figure).toContainText(/zatwierdzen/i);
   await expect(page.locator('[data-ui-proof-id="homepage-hero-headline"]'))
-    .toHaveText("Znajdź luki w bezpieczeństwie swoich systemów.");
+    .toHaveText("Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.");
   await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]'))
-    .toHaveAttribute("href", "/pl/review/request");
+    .toHaveAttribute("href", /\/pl\/review\/request\?offerId=agent-action-security-review/);
   await expectRefinedStructure(figure, 390);
   await expectReadableLabels(figure);
   await expectNoOverflow(page);

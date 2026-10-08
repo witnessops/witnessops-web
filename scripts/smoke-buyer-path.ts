@@ -1,4 +1,4 @@
-import { PRIMARY_OFFER, INTERNET_FOOTPRINT_REVIEW_OFFER } from "../apps/witnessops-web/src/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER, INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "../apps/witnessops-web/src/lib/commercial-truth";
 
 type FetchLike = (
   input: string,
@@ -33,7 +33,7 @@ export function escapeAmpersandsForHtml(value: string): string {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Agents act. WitnessOps reviews what yours are permitted to do.", "AI agents can send, buy, write, delete and call other systems.", escapeAmpersandsForHtml(PRIMARY_OFFER.name.en), PRIMARY_OFFER.price.en, INTERNET_FOOTPRINT_REVIEW_OFFER.name.en, INTERNET_FOOTPRINT_REVIEW_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {

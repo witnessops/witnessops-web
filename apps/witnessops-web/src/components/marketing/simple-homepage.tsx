@@ -1,39 +1,46 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
-import { buyerRequestHref, buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import styles from "./simple-homepage.module.css";
 
-const footprintAmount = new Intl.NumberFormat("en-IE", { style: "currency", currency: INTERNET_FOOTPRINT_REVIEW_OFFER.price.currency, maximumFractionDigits: 0 }).format(Number(INTERNET_FOOTPRINT_REVIEW_OFFER.price.amount));
-const agentRequest = buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id);
+const text = HOMEPAGE_TWO_OFFER_COPY.en;
+
 function TextLink({ href, children, uiProofId }: { href: string; children: React.ReactNode; uiProofId?: string }) {
   return <Link className={styles.textLink} href={href} data-ui-proof-id={uiProofId}>{children}<ArrowUpRight size={15} strokeWidth={1.5} aria-hidden="true" /></Link>;
 }
 
 export function SimpleHomepage() {
+  const services = publicPaidReviews(BUYER_SERVICES);
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agents-act">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
       <div className={styles.frame}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>REPEATABLE EVIDENCE. INDEPENDENT FINDINGS.</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">Agents act. WitnessOps reviews what yours are permitted to do.</h1>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">AI agents can send, buy, write, delete and call other systems. WitnessOps reviews what yours are permitted to do and what happens when they do it — and reviews the ground they stand on, starting with what the internet can already see. Bounded scope, findings in writing, evidence attached.</p>
+          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href={agentRequest} data-ui-proof-id="homepage-hero-primary-cta">Scope an agent review</Link>
-            <Link className={styles.secondary} href={buyerRequestHref("en")} data-ui-proof-id="homepage-footprint-cta">Start with the {footprintAmount} footprint review</Link>
+            {services.map((service) => {
+              const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+              return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
+            })}
           </div>
         </div>
       </div>
     </section>
     <section className={styles.offers} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
-      <h2 id="home-reviews-heading" className={styles.eyebrow}>Two reviews. Scope before work.</h2>
+      <h2 id="home-reviews-heading" className={styles.eyebrow}>{text.reviewsEyebrow}</h2>
+      <p>{text.reviewsBody}</p>
       <div className={styles.cards}>
-        <article data-home-offer="agent-tools-access"><h3>{PRIMARY_OFFER.name.en}</h3><p>Tooling observed in agreed sources, one selected connection and one consequential action path.</p><p className={styles.price}>{PRIMARY_OFFER.price.en}</p><p className={styles.timing}>{PRIMARY_OFFER.timing.en}</p><TextLink href={agentRequest}>Request a scope and fixed quote</TextLink></article>
-        <article data-home-offer="footprint"><h3>{INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}</h3><p>What your organisation exposes to the open internet, found, evidenced and written up.</p><p className={styles.price}>{INTERNET_FOOTPRINT_REVIEW_OFFER.price.en}</p><TextLink href={buyerRequestHref("en")}>Request the review</TextLink></article>
+        {services.map((service) => {
+          const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+          return <article key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name.en}</p><p>{service.cardSituation.en}</p><p className={styles.price}>{service.price.en}</p><p className={styles.timing}>{service.timing.en}</p><TextLink href={buyerServiceRequestHref("en", service)}>{ai ? text.aiCta : text.externalCta}</TextLink></article>;
+        })}
       </div>
-      <aside className={styles.freeCheck} aria-label="Free check — not a review"><div><h3>Free check</h3><p>A public hostname snapshot. No account needed. <strong>Not a review.</strong></p></div><TextLink href="/check">Start a free check</TextLink></aside>
-      <div className={styles.sectionLinks}><TextLink href="/catalog">Explore the full catalogue</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/library" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
+      <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
+      <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/library" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>

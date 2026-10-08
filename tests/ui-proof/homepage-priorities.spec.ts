@@ -14,7 +14,7 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Understand what your agents can do and what your systems expose.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(2);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
     await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
@@ -22,9 +22,9 @@ for (const viewport of [
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
     await expect(trigger).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const sampleLink = hero.getByRole("link", { name: "Scope an agent review", exact: true });
-    await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?/);
-    await expect(hero.getByRole("link", { name: "Start with the €500 footprint review", exact: true })).toHaveAttribute("href", "/review/request");
+    const sampleLink = hero.getByRole("link", { name: "Scope an AI review", exact: true });
+    await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
+    await expect(hero.getByRole("link", { name: "Scope an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
     await sampleLink.focus();
     // Keep the remaining hero action reachable beside the launcher.
     const collision = await page.locator('[data-focus-obscured="true"]').count();
@@ -66,9 +66,9 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Znajdź luki w bezpieczeństwie swoich systemów/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody.");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu.");
   const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true });
   await expect(docsEntry).toBeVisible();
   await expect(docsEntry).toHaveAttribute("href", "/pl/docs");

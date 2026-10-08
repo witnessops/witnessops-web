@@ -13,7 +13,9 @@ import {
   sampleSourceRepository,
 } from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PRIMARY_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
+import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
 const catalogueSource = readFileSync(resolve(__dirname, "buyer-catalogue.tsx"), "utf8");
@@ -35,27 +37,50 @@ test("the current review links to a clearly historical one-action example", () =
   assert.doesNotMatch(html, /id="sample-review"/);
 });
 
-test("homepage leads with system-wide security verification while keeping repair accessible", () => {
-  assert.match(source, /Find security gaps in your systems/);
-  assert.match(source, /Security · Verification · Evidence/);
-  assert.match(source, /Verify what is exposed, what changed, what acted/);
-  assert.match(source, /What needs checking\?/);
-  assert.match(source, /See all review options/);
+test("homepage leads with the two public paid reviews and keeps the free hostname check", () => {
+  assert.match(source, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(source, /HOMEPAGE_TWO_OFFER_COPY/);
   assert.match(source, /See how WitnessOps verifies/);
   assert.match(source, /Describe the system and the security question/);
   assert.match(source, /Proof bundle example/);
   assert.match(source, /Przykład paczki dowodowej/);
+  assert.match(source, /href="\/check"/);
   assert.doesNotMatch(source, /Proofpack/);
+  assert.doesNotMatch(source, /\/catalog\/automation-repair/);
+  assert.doesNotMatch(source, /agent-tools-access-review/);
+  assert.doesNotMatch(source, /See all review options/);
   const ownCase = readFileSync(resolve(__dirname, "own-system-case.tsx"), "utf8");
   assert.match(ownCase, /recorded request details/);
   assert.match(ownCase, /zapisane szczegóły żądań/);
   assert.doesNotMatch(ownCase, /preserves the requests/);
   assert.match(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
-  assert.match(source, /\/catalog\/automation-repair/);
   assert.match(source, /not customer evidence/);
   assert.match(source, /does not establish a real provider action/);
   assert.doesNotMatch(source, /€250|€750|Meet Karol|Work directly with|RepairOptions|VALID_SYNTHETIC_SPECIMEN/);
+});
+
+test("EN and PL homepage sources project only the two new-sales reviews", () => {
+  const simple = readFileSync(resolve(__dirname, "simple-homepage.tsx"), "utf8");
+  assert.match(simple, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.match(simple, /data-home-offer=\{service\.id\}/);
+  assert.match(simple, /buyerServiceRequestHref\("en", service\)/);
+  assert.match(simple, /href="\/check"/);
+  assert.doesNotMatch(simple, /INTERNET_FOOTPRINT_REVIEW_OFFER|PRIMARY_OFFER|agent-tools-access-review|automation-repair/);
+  assert.match(source, /data-home-offer=\{service\.id\}/);
+  assert.match(source, /buyerServiceRequestHref\(locale, service\)/);
+  for (const locale of ["en", "pl"] as const) {
+    const copy = HOMEPAGE_TWO_OFFER_COPY[locale];
+    assert.equal(copy.aiCta.length > 0, true);
+    assert.match(copy.headline, locale === "en" ? /agents can do/ : /Twoi agenci/);
+    assert.match(copy.support, /WitnessOps/);
+    assert.match(copy.freeBody, locale === "en" ? /Not a review/ : /nie jest przegląd/);
+    assert.doesNotMatch(`${copy.headline} ${copy.aiHeadline} ${copy.externalHeadline}`, /inventory|€500|One Server/);
+  }
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiCta, "Scope an AI review");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalCta, "Scope an external review");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Understand what your agents can do and what your systems expose.");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });
 
 test("security leads while the repair contract stays intact", () => {
@@ -72,19 +97,21 @@ test("security leads while the repair contract stays intact", () => {
   assert.equal(sampleManifestSha256, "9d8668507f3da027886a1847a92b705671063ed89cbb354d45909c119bb414e7");
 });
 
-test("External Attack Surface Review remains a current catalog offer but is not the homepage lead", () => {
+test("External Attack Surface Review stays a registry secondary and a homepage card", () => {
   const offer = BUYER_SERVICES.find(
     (service) => service.id === "external-exposure-assessment",
   );
 
   assert.equal(offer?.name.en, "External Attack Surface Review");
   assert.equal(offer?.commercialRole, "secondary");
+  assert.equal(offer?.homepageFeatured, false);
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(offer?.price.en, "€1,900 · excluding VAT");
   assert.match(offer?.timing.en ?? "", /Within 3 working days after/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /not a penetration test/i);
-  assert.doesNotMatch(source, /External Attack Surface Review/);
+  assert.match(source, /publicPaidReviews\(BUYER_SERVICES\)/);
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });
 
 test("request-only public footprint audit stays off the homepage", () => {
