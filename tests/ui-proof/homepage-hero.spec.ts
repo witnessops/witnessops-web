@@ -221,37 +221,48 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages preserve bounded entry points and evidence limits", async ({ browser }) => {
-  for (const path of ["/", "/pl"]) {
+test("English and Polish homepages preserve two paid choices, free check, and historical evidence boundaries", async ({ browser }) => {
+  for (const route of ["/", "/pl"] as const) {
     for (const width of [1440, 390, 320]) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
-      const page = await context.newPage();
-      const response = await page.goto(path, { waitUntil: "networkidle" });
-      expect(response?.status()).toBe(200);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id) : "/pl/review/request");
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/review/sample-cases/ai-agent-action-proof-run");
-      await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
-      if (path === "/pl") {
-        await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
-      } else {
-        // The English specimen explains the structure; it must not invent a finding.
-        await expect(page.locator("[data-review-finding]")).toHaveCount(0);
-        await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
-        await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
+      try {
+        const page = await context.newPage();
+        const response = await page.goto(route, { waitUntil: "networkidle" });
+        expect(response?.status()).toBe(200);
+        const pl = route === "/pl";
+        const locale = pl ? "pl" : "en";
+        const main = page.locator('main[data-home-direction="two-offer-v1"]');
+        await expect(main).toHaveCount(1);
+        await expect(main.getByRole("heading", { level: 1 })).toHaveText(
+          pl
+            ? "Zrozum, co mogą zrobić Twoje agenty i co ujawniają Twoje systemy."
+            : "Understand what your agents can do and what your systems expose.",
+        );
+        await expect(main.locator("[data-home-offer]")).toHaveCount(2);
+        await expect(main.locator('[data-home-offer="agent-tools-access"]')).toContainText(pl ? "Od €2 500" : "Starting at €2,500");
+        await expect(main.locator('[data-home-offer="external-exposure"]')).toContainText(pl ? "€1 900" : "€1,900");
+        await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute(
+          "href", buyerPublicOfferRequestHref(locale, PRIMARY_OFFER.id),
+        );
+        const externalCta = page.locator('[data-ui-proof-id="homepage-external-cta"]');
+        await expect(externalCta).toHaveAttribute("href", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+        await expect(main.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute(
+          "href", "/review/sample-cases/ai-agent-action-proof-run",
+        );
+        await expect(main).toContainText(pl ? "To nie jest pełny przykład obecnego przeglądu" : "Not a complete specimen of the current AI Tools & Access Review");
+        await expect(main).toContainText(pl ? "Syntetyczny przykład przeglądu ekspozycji" : "Synthetic external-review example");
+        await expect(main.locator('a[href="/check"]')).toHaveCount(1);
+        await expect(main).toContainText(pl ? "To nie jest przegląd." : "Not a review.");
+        await expect(main).not.toContainText(/Early Bird|Internet Footprint Review|€500|€250|€750|Meet Karol/);
+        await expect(main.locator('[data-review-finding], [data-finding-slot], [data-agent-action-specimen]')).toHaveCount(0);
+        await expect(main.locator("#enquiry")).toContainText(pl ? "niepoufnego opisu" : "non-secret description");
+        await expect(main.locator("#enquiry form")).toHaveCount(0);
+        await expect(main.locator('#enquiry a[href="' + (pl ? "/pl/review/request" : "/review/request") + '"]')).toHaveCount(1);
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        expect(overflow).toBeLessThanOrEqual(1);
+      } finally {
+        await context.close();
       }
-      await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
-      if (path === "/pl") {
-        await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(1);
-        await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
-      } else {
-        await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence.Explicit limits.");
-        await expect(page.locator("#enquiry form")).toBeVisible();
-      }
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow).toBeLessThanOrEqual(1);
-      await context.close();
     }
   }
 });
