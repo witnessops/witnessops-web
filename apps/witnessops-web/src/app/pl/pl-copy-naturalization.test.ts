@@ -20,7 +20,7 @@ test("Polish homepage leads with both approved reviews, no old promotions, and a
   assert.match(buyerHomepage, /Omów przegląd ekspozycji/);
   assert.match(buyerHomepage, /Bezpłatne sprawdzenie hosta/);
   assert.match(buyerHomepage, /To nie jest przegląd/);
-  assert.match(buyerHomepage, /Nie przesyłaj/);
+  assert.match(buyerHomepage, /krótkiego, niepoufnego opisu agenta/);
   assert.doesNotMatch(buyerHomepage, /Internet Footprint Review|Early Bird|€500/);
   assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
 });
