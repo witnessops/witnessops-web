@@ -40,45 +40,45 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
 
   assert.equal(
     headerHref,
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(footerHref, headerHref);
 
   for (const href of [headerHref, footerHref]) {
     const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "AI Agent Tools & Access Review");
-    assert.equal(selected?.price.en, "Starting at €2,500 · excluding VAT");
+    assert.equal(selected?.name.en, "Agent Action Security Review");
+    assert.equal(selected?.price.en, "€2,500 fixed · excluding VAT");
     assert.equal(
       selected?.timing.en,
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+      "Within 10 working days after evidence rules are agreed",
     );
   }
 });
 
 test("primary offer selection trusts its stable id before public query text", () => {
-  const primary = buyerServiceByPublicOfferId("agent-tools-access-review");
+  const primary = buyerServiceByPublicOfferId("agent-action-security-review");
 
   assert.equal(
     buyerServiceFromRequestOffer(
-      "agent-tools-access-review",
+      "agent-action-security-review",
       "buyer-edited text",
     ),
     primary,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "AI Agent Tools & Access Review"),
-    primary,
-  );
-  assert.equal(
-    buyerServiceFromRequestOffer("unknown", "AI Agent Tools & Access Review"),
+    buyerServiceFromRequestOffer(null, "Agent Action Security Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer("", "AI Agent Tools & Access Review"),
+    buyerServiceFromRequestOffer("unknown", "Agent Action Security Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "AI Agent Tools & Access Review "),
+    buyerServiceFromRequestOffer("", "Agent Action Security Review"),
+    undefined,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer(null, "Agent Action Security Review "),
     undefined,
   );
 });
@@ -106,7 +106,7 @@ test("shared review CTAs keep canonical product context on detail and selected r
 });
 
 test("every selectable service detail keeps its catalogue-authoritative request", () => {
-  for (const service of BUYER_SERVICES) {
+  for (const service of BUYER_SERVICES.filter(s => ["agent-action-security-review", "external-exposure-assessment"].includes(s.id))) {
     for (const locale of ["en", "pl"] as const satisfies readonly BuyerLocale[]) {
       const detailHref = service.detailHref[locale];
       if (!detailHref) continue;
@@ -145,18 +145,18 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
       "en",
       "/review/request",
       new URLSearchParams(
-        "offerId=agent-tools-access-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+        "offerId=agent-action-security-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
       ),
     ),
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    "/review/request",
   );
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/review/request",
-      new URLSearchParams("offer=AI+Agent+Tools+%26+Access+Review"),
+      new URLSearchParams("offer=Agent+Action+Security+Review"),
     ),
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
+    "/review/request",
   );
   assert.equal(
     reviewRequestHrefForLocation(
@@ -192,7 +192,7 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
       "/catalog/professional-public-footprint-audit",
       emptySearch,
     ),
-    /^\/review\/request\?offerId=professional-public-footprint-audit&/,
+    /^\/review\/request$/,
   );
   assert.match(
     reviewRequestHrefForLocation(
@@ -200,7 +200,7 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
       "/customer-security-review",
       emptySearch,
     ),
-    /^\/review\/request\?offerId=customer-security-review-sprint&/,
+    /^\/review\/request$/,
   );
 });
 
@@ -222,4 +222,12 @@ test("header uses the configured signup destination while footer and service enq
   assert.match(footer, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /primaryHref=\{reviewRequestHref\}/);
   assert.match(serviceDetail, /href=\{requestHref\}/);
+});
+
+test("historical source records survive without a newly selectable paid offer", () => {
+  for (const id of ["agent-tools-access-review", "automation-repair-handover", "customer-security-review-sprint", "professional-public-footprint-audit"]) {
+    assert.equal(buyerServiceByPublicOfferId(id), undefined);
+    assert.equal(reviewRequestHrefForLocation("en", "/review/request", new URLSearchParams({offerId:id})), "/review/request");
+  }
+  assert.ok(BUYER_SERVICES.find(s => s.id === "agent-tools-access-review"));
 });
