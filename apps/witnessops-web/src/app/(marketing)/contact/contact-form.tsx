@@ -18,10 +18,10 @@ import {
 } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import {
-  PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
-  publicContactMailto,
+  PUBLIC_SALES_REVIEW_EMAIL,
+  salesReviewMailto,
 } from "@/lib/public-contact";
 import {
   buyerServiceByProductId,
@@ -858,16 +858,16 @@ export function ContactForm({
               <span className={`whitespace-nowrap ${verificationLight.accent}`}>
                 {copy.emailFollowup}
               </span>
-              <span className="inline-flex items-center whitespace-nowrap">
+              <span className="inline-flex min-w-0 max-w-full items-center">
                 <span className="mx-2 text-[#cfc9bd]" aria-hidden="true">
                   &middot;
                 </span>
                 <a
-                  href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-                  className="whitespace-nowrap underline decoration-[#cfc9bd] underline-offset-2 transition-colors hover:text-[#121212]"
+                  href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+                  className="break-all underline decoration-[#cfc9bd] underline-offset-2 transition-colors hover:text-[#121212]"
                   style={{ color: "inherit" }}
                 >
-                  {PUBLIC_CONTACT_EMAIL}
+                  {PUBLIC_SALES_REVIEW_EMAIL}
                 </a>
               </span>
             </div>
@@ -1082,7 +1082,7 @@ export function ContactForm({
           >
             {copy.emailFollowup}
           </span>
-          <span className="inline-flex items-center whitespace-nowrap">
+          <span className="inline-flex min-w-0 max-w-full items-center">
             <span
               className="mx-2"
               style={{ color: "var(--color-surface-border)" }}
@@ -1091,11 +1091,11 @@ export function ContactForm({
               &middot;
             </span>
             <a
-              href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-              className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
+              href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+              className="break-all underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
               style={{ color: "inherit" }}
             >
-              {PUBLIC_CONTACT_EMAIL}
+              {PUBLIC_SALES_REVIEW_EMAIL}
             </a>
           </span>
         </div>

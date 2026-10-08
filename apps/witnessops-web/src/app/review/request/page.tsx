@@ -16,9 +16,9 @@ import {
   resolveNewSalesPageQuery,
 } from "@/lib/new-review-request-policy";
 import {
-  PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
-  publicContactMailto,
+  PUBLIC_SALES_REVIEW_EMAIL,
+  salesReviewMailto,
 } from "@/lib/public-contact";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -108,7 +108,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Choose Agent Action Security Review or External Attack Surface Review. A display name, old identifier, or free-text note does not select a different review.</p>
       <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
-      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_CONTACT_EMAIL}</a></p>
+      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
     </main>;
   }
   const agentActionOrder = decision.role === "offer";
@@ -159,10 +159,10 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}
           <a
-            href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-            className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
+            href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+            className="break-all text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
           >
-            {PUBLIC_CONTACT_EMAIL}
+            {PUBLIC_SALES_REVIEW_EMAIL}
           </a>
           .
         </p>

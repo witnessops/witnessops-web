@@ -58,7 +58,9 @@ test("Customer Security Review pages remain responsive and usable", async ({ bro
       "/review/sample-cases/customer-security-review-sprint",
     );
     await expect(page.locator('main a[href*="/review/request"]')).toHaveCount(0);
-    await expect(page.locator('footer a[href^="mailto:engage@mail.witnessops.com"]')).toBeVisible();
+    const salesMail = page.locator('footer a[href^="mailto:karol.stefanski@mail.witnessops.com"]');
+    await expect(salesMail).toBeVisible();
+    await expect(salesMail).toHaveText("karol.stefanski@mail.witnessops.com");
     if (scenario.path === "/customer-security-review" && scenario.width === 390) {
       await page.locator("main summary").filter({ hasText: "Example and technical details" }).click();
       const tableScroller = page.getByLabel("Synthetic example response table");
