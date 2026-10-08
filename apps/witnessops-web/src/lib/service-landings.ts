@@ -165,13 +165,13 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Evidence-backed findings and prioritised remediation guidance.",
       "Executive report, technical appendix and explicit unknowns.",
       "Scope and stop-condition record, evidence manifest and artifact hashes; signed receipt and offline verifier where supported.",
-      "45-minute handover and one focused retest within 30 days.",
+      "45-minute handover and one focused retest of reported findings within 30 calendar days beginning at initial report handover (for new engagements).",
     ],
     steps: [
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
       ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
       ["Review", "Use passive discovery where applicable, then perform only the explicitly approved, low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks against the signed target schedule. Manually validate, deduplicate, prioritise, and link findings to evidence."],
-      ["Delivery and retest", "Deliver the reports and inspection package within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, then retest the agreed reported findings once within 30 days."],
+      ["Delivery and retest", "Deliver the reports and inspection package within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, then retest the reported findings once within 30 calendar days beginning at initial report handover (for new engagements)."],
     ],
     boundaries: [
       "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",
@@ -180,7 +180,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.`,
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. For new engagements, one focused retest of reported findings within 30 calendar days beginning at initial report handover is included; an additional or late retest is ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.`,
     primaryCta: "Request this review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "See a sample review",
@@ -490,13 +490,13 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Ustalenia ze źródłami i priorytety napraw.",
       "Raport dla osób decyzyjnych, załącznik techniczny i jawne niewiadome.",
       "Zapis zakresu i warunków zatrzymania, manifest i skróty plików; podpisany zapis i weryfikator offline, jeśli obsługiwane.",
-      "45-minutowe omówienie i jedno sprawdzenie poprawek w ciągu 30 dni.",
+      "45-minutowe omówienie i jedno sprawdzenie zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu (dla nowych zleceń).",
     ],
     steps: [
       ["Zamówienie", "Wskaż autoryzowany system dostępny z internetu i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Podaj podstawę upoważnienia, ale nie wysyłaj sekretów ani materiałów produkcyjnych."],
       ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
       ["Przegląd", "Tam, gdzie ma to zastosowanie, wykorzystujemy pasywne wykrywanie, a następnie wykonujemy wyłącznie jawnie zatwierdzone kontrole niskiego ryzyka zgodnie z podpisanym harmonogramem celów. Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
-      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
+      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania, a następnie jeden raz ponownie sprawdzamy zgłoszone ustalenia w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu (dla nowych zleceń)."],
     ],
     boundaries: [
       "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware, zbierania danych klientów i eksfiltracji danych.",
@@ -505,7 +505,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Dla nowych zleceń jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu jest wliczony; dodatkowy lub późny retest kosztuje ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
     primaryCta: "Zapytaj o przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz przykładowy przegląd (EN)",
