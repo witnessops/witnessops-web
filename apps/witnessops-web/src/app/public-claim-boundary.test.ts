@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import PricingPage from "@/app/(marketing)/pricing/page";
 
 const webRoot = resolve(__dirname, "../..");
 
@@ -155,9 +159,13 @@ test("public claim surfaces do not contain hard-blocked overclaim phrases", () =
 
 test("public claim surfaces preserve at least one explicit boundary marker", () => {
   const failures: string[] = [];
+  const pricingSource = "src/app/(marketing)/pricing/page.tsx";
+  const pricingHtml = renderToStaticMarkup(createElement(PricingPage));
 
   for (const source of readPublicClaimSources()) {
-    const content = normalize(source.content);
+    const content = normalize(
+      source.path === pricingSource ? pricingHtml : source.content,
+    );
     const hasBoundary = REQUIRED_BOUNDARY_MARKERS.some((marker) =>
       content.includes(marker.toLowerCase()),
     );
@@ -166,6 +174,8 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
     }
   }
 
+  assert.match(pricingHtml, /do not grant compliance certification/);
+  assert.match(pricingHtml, /does not authorise collection or start a review/);
   assert.deepEqual(failures, []);
 });
 

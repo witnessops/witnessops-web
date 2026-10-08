@@ -16,7 +16,8 @@ for (const locale of ["en", "pl"] as const) {
       assert.ok(html.includes(service.price[locale]));
       assert.ok(html.includes(buyerServiceRequestHref(locale, service).replaceAll("&", "&amp;")));
     }
-    assert.match(html, /href="\/catalog\/workflows"/);
+    assert.match(html, /offerId=agent-action-security-review/);
+    assert.doesNotMatch(html, /href="\/catalog\/workflows"/);
     assert.doesNotMatch(html, /offerId=agent-tools-access-review/);
     assert.doesNotMatch(html, /Early Bird|Internet Footprint Review|€500|€250 diagnosis|One Server Security Check|Customer Security Review Sprint|Professional Public Footprint Audit/);
     assert.doesNotMatch(html, /buy\.stripe\.com|checkout\.stripe\.com/);

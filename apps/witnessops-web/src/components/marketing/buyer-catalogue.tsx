@@ -6,7 +6,6 @@ import {
   buyerServiceRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
-import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_AGENT_ACTION_REVIEW_ID,
   publicPaidReviews,
@@ -99,13 +98,10 @@ export function BuyerCatalogue({
         {services.map((service) => {
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
           const groupId = ai ? "ai-reviews" : "system-reviews";
-          // Keep buyer-services detailHref empty for Agent Action so
-          // /catalog/workflows → request mapping stays owned by inventory
-          // PRIMARY_OFFER. Catalogue presentation may still link the shared
-          // route; request CTAs use agent-action-security-review offerId.
-          const detailHref = ai
-            ? PUBLIC_AGENT_ACTION_OFFER.route
-            : service.detailHref[locale];
+          // Agent Action has no detail route. /catalog/workflows remains the
+          // historical agent-tools-access-review record, so this card does not
+          // link there. The request CTA carries offerId=agent-action-security-review.
+          const detailHref = service.detailHref[locale];
           const serviceRequestHref = buyerServiceRequestHref(locale, service);
           return (
             <section key={service.id} id={groupId} aria-labelledby={`${groupId}-heading`} className="scroll-mt-28 mb-10">

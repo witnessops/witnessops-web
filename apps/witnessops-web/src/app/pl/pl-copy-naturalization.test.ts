@@ -24,13 +24,14 @@ test("Polish homepage leads with security and verification", () => {
 });
 
 test("public catalogue uses the approved service names in Polish", () => {
-  assert.equal(BUYER_SERVICES.length, 9);
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.name.pl),
     [
       "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
       "Przegląd narzędzi i dostępu agenta AI",
+      "Agent Action Security Review",
       "One Server Security Check",
       "External Attack Surface Review",
       "Launch Readiness Check",

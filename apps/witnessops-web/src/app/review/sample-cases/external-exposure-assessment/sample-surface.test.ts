@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import PricingPage from "@/app/(marketing)/pricing/page";
+import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 
 const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
 const serviceLandings = readFileSync(
@@ -63,8 +68,15 @@ test("External Attack Surface Review sample preserves the synthetic and integrit
 
 test("sample remains linked from its offer detail and catalogue; pricing links to the catalogue", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
+  const pricingHtml = renderToStaticMarkup(createElement(PricingPage));
+  const catalogueHtml = renderToStaticMarkup(
+    createElement(BuyerCatalogue, { locale: "en" }),
+  );
+  assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
   assert.match(serviceLandings, new RegExp(route));
-  assert.match(pricing, /href="\/catalog"/);
+  assert.match(pricingHtml, /href="\/catalog"/);
+  assert.match(pricingHtml, new RegExp(route));
+  assert.match(catalogueHtml, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
   assert.doesNotMatch(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.match(homepagePreview, new RegExp(route));

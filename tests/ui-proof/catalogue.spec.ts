@@ -93,9 +93,8 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
         expect(request.searchParams.has("productId")).toBe(false);
         expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
         await expect(primary).toHaveText(polish ? "Omów przegląd agenta AI" : "Scope an AI review");
-        await expect(links).toHaveCount(2);
-        // Shared presentation route; inventory PRIMARY_OFFER retains detailHref ownership.
-        await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");
+        await expect(links).toHaveCount(1);
+        await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
       }
     }
     await expect(page.locator('[data-one-pager], main a[href$=".pdf"]')).toHaveCount(0);
