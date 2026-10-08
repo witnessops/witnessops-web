@@ -47,12 +47,12 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
     en: {
       inputs: "Name one public-facing system and your authority to request the review. We confirm the target list, scope, collection window and start conditions asynchronously; no sales call is required.",
       access: "No login to your systems: agreed low-impact checks use the public, unauthenticated surface only. Written authority is required before testing; payment alone does not authorize it.",
-      after: "A 45-minute handover explains the findings. Your team implements fixes; one focused retest of the agreed findings within 30 days is included.",
+      after: "A 45-minute handover explains the findings. Your team implements fixes; for new engagements, one focused retest of reported findings within 30 calendar days beginning at initial report handover is included.",
     },
     pl: {
       inputs: "Wskaż jeden system publiczny i swoje upoważnienie do zamówienia przeglądu. Listę celów, zakres, okno zbierania i warunki rozpoczęcia potwierdzimy asynchronicznie; rozmowa sprzedażowa nie jest wymagana.",
       access: "Bez logowania do Twoich systemów: uzgodnione kontrole o niskim wpływie obejmują tylko publiczną, nieuwierzytelnioną powierzchnię. Testy wymagają pisemnego upoważnienia; sama płatność go nie zastępuje.",
-      after: "Ustalenia omówimy podczas 45-minutowego przekazania. Twój zespół wdraża poprawki; cena obejmuje jedno sprawdzenie uzgodnionych ustaleń w ciągu 30 dni.",
+      after: "Ustalenia omówimy podczas 45-minutowego przekazania. Twój zespół wdraża poprawki; dla nowych zleceń cena obejmuje jedno sprawdzenie zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
     },
   },
   "launch-readiness-check": {
