@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
-import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 import {
   askWitnessOpsAnswerText,
@@ -274,6 +274,54 @@ test("commercial fit turns an authority decline into bounded buyer guidance", ()
     "Commercial fit · public boundary",
   );
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /outside the approved/);
+});
+
+test("deterministic fallback names each public review without ranking either one", () => {
+  const offers = [
+    {
+      id: PUBLIC_AGENT_ACTION_OFFER.id,
+      offer: likelyCommercialFit.offer,
+    },
+    {
+      id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
+      offer: {
+        name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+        price_label: EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+        unit_label:
+          "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
+        fit_check_label: "Non-secret fit check first. This is not a penetration test.",
+        delivery_label: EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
+      },
+    },
+  ] as const;
+
+  for (const item of offers) {
+    const text = askWitnessOpsAnswerText({
+      schema: "witnessops.ask.assembled-answer.v1",
+      status: "success",
+      template: {
+        template_id: "route.ai_agent_action.v1",
+        body: "A bounded action may fit Workflow S.",
+        source_display: null,
+      },
+      route: null,
+      commercial_fit: {
+        ...likelyCommercialFit,
+        offer_id: item.id,
+        offer: item.offer,
+      },
+      presented_sources: [],
+      answer_mode: "deterministic_fallback",
+    });
+    assert.match(text, new RegExp(`${item.offer.name} is a public review`));
+    assert.match(text, new RegExp(item.offer.price_label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.doesNotMatch(text, /primary review|the primary|secondary review/i);
+    for (const other of offers) {
+      if (other.id !== item.id) {
+        assert.doesNotMatch(text, new RegExp(other.offer.name));
+      }
+    }
+  }
 });
 
 test("commercial fit keeps successful public guidance coherent with the live offer", () => {
