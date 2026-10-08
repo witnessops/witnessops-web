@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { ApiKeyRotationDemo } from "./api-key-rotation-demo";
 import styles from "./api-key-rotation-demo.module.css";
@@ -16,7 +16,7 @@ import {
 
 const reviewRequestHref = buyerPublicOfferRequestHref(
   "en",
-  PRIMARY_OFFER.id,
+  PUBLIC_AGENT_ACTION_OFFER.id,
 );
 
 export const metadata: Metadata = {
@@ -71,15 +71,15 @@ export default function ApiKeyRotationSamplePage() {
       >
         <section className={styles.nextStep} aria-labelledby="rotation-next-step-heading">
           <div>
-            <span className={styles.eyebrow}>{PRIMARY_OFFER.name.en}</span>
-            <h2 id="rotation-next-step-heading">Need to review your agent tools and access?</h2>
-            <p>This synthetic one-action example is historical. The current review adds a dated, source-bounded device inventory, one selected connection and one deeper action path.</p>
-            <strong className={styles.offerPrice}>{PRIMARY_OFFER.price.en}</strong>
-            <p className={styles.offerTiming}>{PRIMARY_OFFER.timing.en}.</p>
+            <span className={styles.eyebrow}>{PUBLIC_AGENT_ACTION_OFFER.name.en}</span>
+            <h2 id="rotation-next-step-heading">Want to understand the safeguards around one agent action?</h2>
+            <p>This fixed synthetic example is not a real action or customer outcome. The current review reconstructs one agreed action, its approval, executing identity, effective permissions and available evidence. It does not include a device-wide inventory or certify safety.</p>
+            <strong className={styles.offerPrice}>{PUBLIC_AGENT_ACTION_OFFER.price.en}</strong>
+            <p className={styles.offerTiming}>{PUBLIC_AGENT_ACTION_OFFER.timing.en}.</p>
           </div>
           <div className={styles.offerAction}>
             <Link href={reviewRequestHref}>Request scope and quote</Link>
-            <span>Non-secret fit and scoping request first.</span>
+            <span>Non-secret fit check first.</span>
           </div>
         </section>
       </ApiKeyRotationDemo>

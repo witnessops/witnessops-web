@@ -1,5 +1,5 @@
 import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
-import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import type { Page } from "@playwright/test";
 import type { CheckResult, Metrics } from "./report";
 import type { ReducedMotion, ScenarioSeverity } from "./scenarios";
@@ -108,7 +108,7 @@ export async function checkHomepageHero(
     .catch(() => null);
   const expectedFitCheckHref = buyerPublicOfferRequestHref(
     new URL(page.url()).pathname.startsWith("/pl") ? "pl" : "en",
-    PRIMARY_OFFER.id,
+    PUBLIC_AGENT_ACTION_OFFER.id,
   );
   checks.push({
     name: "primary CTA opens the supported check or enquiry entry",
