@@ -170,7 +170,28 @@ authenticated app, verifier, samples and correctly labelled historical material.
 
 ### Technical identity and publication hold
 
-This is an approved **commercial choice**, **not** a technical mapping,
+**New-intake ID decision (founder-authorized next safe GO, 8 October 2026):**
+use the distinct canonical **`agent-action-security-review`** service identity,
+`offerId` and new-issuance `intent` for the fixed-price one-action review.
+The historical **`bounded-workflow-review`** stays historical-only; the
+separate inventory-based **`agent-tools-access-review`** keeps its existing
+source/customer meaning but is excluded from current *new public sales*.
+External Attack Surface Review retains service `external-exposure-assessment`
+and `productId=OFFSEC-EXTERNAL-EXPOSURE`; its product ID is not an offerId.
+No third product, provider SKU, pilot or discount is introduced. The new ID
+maps to the original one-action buyer *scope and price*, not the different
+inventory-plus-action contract. Old confirmations/issued agreements must not be
+rewritten or silently redirected. This is a **new-issuance namespace boundary**,
+not a declaration that any new intake route is active.
+
+**Stage state:** PR #450 policy constants and tests select this new ID, but
+`BUYER_SERVICES`, detail pages, EN/PL new intake forms, server-side issuers,
+assistant recommendations, historic compatibility and PR #451–#454 consumer
+branches still need a *reviewed, explicitly tested implementation*. The PR stack
+remains draft/held and cannot be merged merely because a selector compiles.
+
+This is an approved **commercial choice with a selected technical ID**, **not**
+permission to bypass release gates or silently remap historical records,
 historical-record rewrite, merge or release. In particular:
 
 - `bounded-workflow-review` is an existing **retired historical request ID**.
@@ -179,8 +200,8 @@ historical-record rewrite, merge or release. In particular:
 - `agent-tools-access-review` selects the distinct inventory-plus-action
   review. Do **not** attach the old fixed EUR 2,500 terms to that ID or alias
   the two offers merely because the public route is shared.
-- Choose and verify an explicit, collision-free NEW-intake mapping in a
-  separate bounded implementation plan. Assess stored requests, confirmed
+- Apply the explicit collision-free `agent-action-security-review` NEW-intake mapping in a
+  separate bounded implementation phase; preserve the reviewed distinction from historical IDs. Assess stored requests, confirmed
   messages, existing agreements, redirects, optional labels, EN/PL routes,
   raw API intent checks, CRM projections, source truth, analytics and rollback.
   New intake must fail closed for missing, ambiguous, wrong-role or retired
