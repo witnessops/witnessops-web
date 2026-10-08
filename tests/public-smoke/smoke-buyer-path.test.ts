@@ -364,7 +364,7 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
   for (const [path, marker] of [
     ["/", "Not a review."],
-    ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
+    ["/docs", "The free result is temporary. Sign up and verify your email when you want your own workspace; no card is required."],
     ["/pricing", "An enquiry does not authorise collection or start a review."],
     ["/review/request", "No work or target-facing check starts from this form."],
   ]) {
