@@ -31,6 +31,7 @@ const staticRoutes: StaticRoute[] = [
   })),
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
   { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
+  { route: "/buyer-faq", sourcePath: "src/app/buyer-faq/page.tsx" },
   {
     route: "/catalog/workflows",
     sourcePath: "src/app/(marketing)/catalog/workflows/page.tsx",
@@ -143,6 +144,7 @@ const staticRoutes: StaticRoute[] = [
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
   { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
+  { route: "/pl/buyer-faq", sourcePath: "src/app/pl/buyer-faq/page.tsx" },
   {
     route: "/pl/catalog/professional-public-footprint-audit",
     sourcePath: "src/app/pl/catalog/professional-public-footprint-audit/page.tsx",
