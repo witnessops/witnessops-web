@@ -10,6 +10,7 @@ import {
 
 import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
@@ -79,7 +80,7 @@ export function DocsAssistantContactHandoff({
   const confirmationHeadingRef = useRef<HTMLHeadingElement>(null);
   const inFlightRef = useRef<"contact" | "verification" | null>(null);
   const service = BUYER_SERVICES.find(
-    (candidate) => candidate.id === (serviceId ?? commercialFit?.offer_id),
+    (candidate) => candidate.id === (serviceId ?? commercialFit?.offer_id) && isPublicPaidReviewId(candidate.id),
   );
   const offerRequiresSummary = Boolean(service);
   const summary = includeQuestion ? sharedQuestion : note;
