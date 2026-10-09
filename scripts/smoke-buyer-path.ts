@@ -57,8 +57,8 @@ const WITHDRAWN_PURCHASE_MARKERS = [
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", ...WITHDRAWN_PURCHASE_MARKERS],
+    requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, PUBLIC_AGENT_ACTION_OFFER.timing.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.timing.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
   },
   {
     path: "/check",
@@ -105,7 +105,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Scope an AI review",
       EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
       EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
-      "Within 3 working days after payment in full",
+      EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
       "one focused retest within 30 days",
       "Not a penetration test.",
       "offerId=agent-action-security-review",
@@ -415,8 +415,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.", "Omów przegląd agenta AI", PUBLIC_AGENT_ACTION_OFFER.price.pl, "Fikcyjny przykład · Nie testowano systemu", EXTERNAL_ATTACK_SURFACE_OFFER.name.pl, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review"],
+    requiredMarkers: ["Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.", "Omów przegląd agenta AI", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Fikcyjny przykład · Nie testowano systemu", EXTERNAL_ATTACK_SURFACE_OFFER.name.pl, EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
     path: "/pl/catalog",
@@ -428,7 +428,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Omów przegląd agenta AI",
       EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
       EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
-      "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności",
+      EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
       "jedno sprawdzenie poprawek w ciągu 30 dni",
       "To nie jest test penetracyjny.",
       "offerId=agent-action-security-review",
@@ -497,7 +497,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Review one authorised internet-facing system.",
       "€1,900 · excluding VAT",
       "No sales call required.",
-      "Within 3 working days",
+      "Delivery timing per signed SOW",
       "One authorised public-facing system",
       "Inside that accepted system boundary: up to 1 registrable root domain",
       "Public cloud-hosted services can be included",
