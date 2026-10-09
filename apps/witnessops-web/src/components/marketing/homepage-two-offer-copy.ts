@@ -12,7 +12,7 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     aiQuestion: "What can your AI agent actually do in production?",
     aiHeadline: "What can your AI agent actually do in production?",
     aiDescription:
-      "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations and a readout.",
+      "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations, explicit unknowns and a readout.",
     // Approved homepage display. Matches the public agent-action price label.
     aiPrice: "€2,500 fixed · excluding VAT",
     aiCta: "Scope an AI review",

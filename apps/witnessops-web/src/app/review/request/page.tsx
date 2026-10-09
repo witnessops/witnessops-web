@@ -71,13 +71,13 @@ const agentActionOutputs = [
   { title: "Authority and executing identity", summary: "Who can cause the action, and which identity actually executes it." },
   { title: "Approval and permission boundary", summary: "Where approval stops, and which permissions the action can use." },
   { title: "Evidence path", summary: "Which execution evidence is available, missing, or not yet in scope." },
-  { title: "Findings and unknowns", summary: "Prioritized findings for that one action, with gaps left explicit." },
+  { title: "Findings and explicit unknowns", summary: "Prioritized findings for that one action, with explicit unknowns left in the record." },
 ];
 
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "After payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, the three-working-day delivery clock starts.",
+  "Delivery timing per signed SOW. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [

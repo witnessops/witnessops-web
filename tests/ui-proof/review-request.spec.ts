@@ -210,7 +210,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
         "€2,500 fixed · excluding VAT",
         "One consequential agent or automation action",
         "Submitting this form opens fit review only",
-        "Within 10 working days after evidence rules are agreed",
+        "Delivery timing per signed SOW",
       ],
     },
     {
@@ -222,7 +222,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
         "€2 500: cena stała · bez VAT",
         "Jedno istotne działanie agenta lub automatyzacji",
         "Na razie bez sekretów i materiałów",
-        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
+        "Termin realizacji według podpisanego SOW",
       ],
     },
   ] as const) {
@@ -459,7 +459,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
       selectedOffer: /Wybrana oferta:/,
       boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
       authorizationBoundary:
-        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu.",
+        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji.",
     },
     {
       path: "/review/request?productId=OFFSEC-PILOT",

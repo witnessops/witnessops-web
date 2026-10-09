@@ -16,7 +16,7 @@ test("Polish PER request chrome mirrors the English offer-specific header", () =
   assert.match(page, /To nie jest test penetracyjny/);
   assert.match(
     page,
-    /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu/,
+    /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji/,
   );
   assert.match(page, /Opowiedz, co wymaga sprawdzenia/);
 });

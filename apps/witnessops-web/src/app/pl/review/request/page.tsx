@@ -92,7 +92,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
           {publicExposureOrder
-            ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
+            ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji. To nie jest test penetracyjny."
             : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. Najpierw potwierdzimy dopasowanie. Na razie bez sekretów i materiałów.`}
         </p>
         {selectedOffer ? <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary"><p className="sr-only">Wybrana oferta: {selectedOffer.name}</p><p>Cena: {selectedOffer.price}</p><p>Termin: {selectedOffer.timing}</p>{publicExposureOrder ? <p className="mt-2">Rozmowa sprzedażowa nie jest wymagana.</p> : null}</div> : null}

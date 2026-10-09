@@ -4,8 +4,7 @@ const emptyServerOnlyModule = new URL(
   "./server-only-test-stub.mjs",
   import.meta.url,
 ).href;
-const cssModuleStub = new URL("./css-module-test-stub.mjs", import.meta.url)
-  .href;
+const cssModuleStub = new URL("./css-module-test-stub.mjs", import.meta.url).href;
 
 registerHooks({
   resolve(specifier, context, nextResolve) {

@@ -110,7 +110,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
     PUBLIC_AGENT_ACTION_OFFER.timing.en,
-    "Within 10 working days after evidence rules are agreed",
+    "Delivery timing per signed SOW",
   );
 });
 
