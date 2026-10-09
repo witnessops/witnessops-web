@@ -1,5 +1,7 @@
 # Agent Action Security Review
 
+> **Historical / superseded.** The delivery sentence in this record binds only agreements already made under it. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+
 > **Superseded historical commercial record (2026-09-28).** This one-action,
 > €2,500-fixed offer is no longer the primary public offer in this source
 > promotion. Its terms continue to identify requests and customer agreements

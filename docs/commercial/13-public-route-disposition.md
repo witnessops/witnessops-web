@@ -1,5 +1,18 @@
 # Public commercial route disposition — 2026-08-13
 
+> **Historical / superseded.** The table below is the 2026-08-13 disposition. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+
+## Amendment — 2026-10-09
+
+Founder decision: the following historical records stay reachable by URL, keep their historical-record banners, and are removed from the sitemap, the English header, the Polish footer, and internal search. Each page sets `robots: { index: false, follow: true }`. `robots.txt` does not Disallow them.
+
+| Route | 2026-10-09 outcome |
+| --- | --- |
+| `/catalog/workflows` | noindex, follow; not in sitemap or English header; service offer JSON-LD removed |
+| `/catalog/professional-public-footprint-audit` and `/pl/catalog/professional-public-footprint-audit` | noindex, follow; not in sitemap |
+| `/customer-security-review` and `/pl/customer-security-review` | noindex, follow; not in sitemap; sample and Polish library links point at the catalogue |
+| `/access-change-proof-run` | permanent redirect to `/catalog` |
+
 This record separates confirmed route behavior from unresolved commercial decisions. It does not retire an offer merely because its current name or catalog record looks old.
 
 | Route or family | Classification | Implemented outcome | Evidence |

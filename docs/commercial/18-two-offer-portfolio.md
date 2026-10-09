@@ -21,7 +21,7 @@ New paid-review discovery and selection must converge on exactly:
 
 | Public name | Existing service identity | Existing request mapping | Commercial terms |
 | --- | --- | --- | --- |
-| AI Agent Tools & Access Review | `agent-tools-access-review` | `offerId=agent-tools-access-review` | Starting at EUR 2,500 excluding VAT; fixed quote after exact scope; target 10 working days after all documented start gates |
+| AI Agent Tools & Access Review (superseded historical row) | `agent-tools-access-review` | `offerId=agent-tools-access-review` | Starting at EUR 2,500 excluding VAT; fixed quote after exact scope; target 10 working days after all documented start gates |
 | External Attack Surface Review | `external-exposure-assessment` | `productId=OFFSEC-EXTERNAL-EXPOSURE` | EUR 1,900 excluding VAT; fixed bounded package; delivery timing per signed SOW |
 
 Retain the current names, source-bounded scope and existing technical identities.
