@@ -52,7 +52,7 @@ const CURRENT_AGENT_ACTION_OFFER = {
   price_label: "€2,500 fixed · excluding VAT",
   unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
-  delivery_label: "Within 10 working days after evidence rules are agreed",
+  delivery_label: "Delivery timing per signed SOW",
 } as const;
 
 test("public Ask rejects malformed UTF-8 before JSON parsing", async () => {
