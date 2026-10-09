@@ -269,8 +269,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   },
   commercialContract: {
     price: "eur_1900_ex_vat_one_authorised_public_facing_system",
-    timing:
-      "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
+    timing: "delivery_timing_per_signed_sow",
   },
   price: {
     amount: "1900",
@@ -284,8 +283,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     ...publicB2bPrice("€550", "€550"),
   },
   timing: {
-    en: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
-    pl: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
+    en: "Delivery timing per signed SOW",
+    pl: "Termin realizacji według podpisanego SOW",
   },
   cardSituation: {
     en: "See what your public-facing system exposes.",

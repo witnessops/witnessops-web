@@ -173,7 +173,7 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
   const catalogue = routeContract("/catalog");
   assert.ok(
     catalogue.requiredMarkers.some((marker) =>
-      marker.includes("Within 3 working days after payment in full"),
+      marker.includes("Delivery timing per signed SOW"),
     ),
   );
 });

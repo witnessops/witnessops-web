@@ -81,7 +81,8 @@ test("External Attack Surface Review remains a current catalog offer but is not 
   assert.equal(offer?.commercialRole, "secondary");
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(offer?.price.en, "€1,900 · excluding VAT");
-  assert.match(offer?.timing.en ?? "", /Within 3 working days after/);
+  assert.equal(offer?.timing.en, "Delivery timing per signed SOW");
+  assert.doesNotMatch(offer?.timing.en ?? "", /3 working days|10 working days|€550/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /not a penetration test/i);
   assert.doesNotMatch(source, /External Attack Surface Review/);
