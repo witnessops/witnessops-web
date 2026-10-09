@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CtaButton } from "@/components/shared/cta-button";
-import { buyerRequestHref, type BuyerLocale } from "@/lib/buyer-services";
+import { BUYER_SERVICES, buyerRequestHref, buyerServiceRequestHref, type BuyerLocale } from "@/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import { OwnSystemCase } from "./own-system-case";
 import { HeroGap } from "./hero-gap";
 import styles from "./buyer-homepage.module.css";
@@ -11,20 +13,14 @@ type HeroCopy = { eyebrow: string; title: string; body: string };
 export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: HeroCopy }) {
   const pl = locale === "pl";
   const prefix = pl ? "/pl" : "";
+  const text = HOMEPAGE_TWO_OFFER_COPY[locale];
   const requestHref = buyerRequestHref(locale);
+  const services = publicPaidReviews(BUYER_SERVICES);
+  const agent = services[0];
   const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
-  const title = hero?.title ?? (pl ? "Znajdź luki w bezpieczeństwie swoich systemów." : "Find security gaps in your systems.");
-  const body = hero?.body ?? (pl ? "Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody." : "Verify what is exposed, what changed, what acted, and what the evidence actually supports.");
-  const cta = pl ? "Omów zakres przeglądu" : "Scope a review";
-  const services = pl ? [
-    ["Sprawdź narzędzia i dostęp agenta AI", "Zobacz narzędzia widoczne w uzgodnionych źródłach i dostęp w ścieżce jednego działania.", "/catalog/workflows", "Zobacz zakres przeglądu (EN)"],
-    ["Sprawdź system", "Zbadaj jedno pytanie bezpieczeństwa dotyczące systemu, usługi lub zasobu wystawionego do internetu.", `${prefix}/catalog#system-reviews`, "Zobacz opcje przeglądu systemu"],
-    ["Zweryfikuj lub napraw proces", "Prześledź zawodną ścieżkę, znajdź miejsce awarii i po naprawie sprawdź wynik w systemie docelowym.", `${prefix}/catalog/automation-repair`, "Zobacz diagnozę i naprawę"],
-  ] : [
-    ["Review AI agent tools and access", "See tooling observed on an agreed device and what one consequential action can reach.", "/catalog/workflows", "See the review scope"],
-    ["Review a system", "Investigate one security question around a system, service or exposed asset.", "/catalog#system-reviews", "See system review options"],
-    ["Verify or repair a workflow", "Trace a failing path, identify the break and verify the destination result after repair.", "/catalog/automation-repair", "See diagnosis and repair"],
-  ];
+  const title = hero?.title ?? text.headline;
+  const body = hero?.body ?? text.support;
+  const agentHref = agent ? buyerServiceRequestHref(locale, agent) : requestHref;
   const stages = pl ? [
     ["Uzgodnij granicę", "Wskaż działanie, system i decyzję, którą mają wesprzeć ustalenia. Cenę i zasady dostępu uzgadniamy przed pracą."],
     ["Sprawdź i przetestuj", "Sprawdź właściwy stan, zachowanie i zabezpieczenia. Wykonaj uzgodnione testy i zachowaj obserwacje wspierające wynik."],
@@ -41,9 +37,9 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
           <p className={styles.eyebrow}>{hero?.eyebrow ?? (pl ? "Bezpieczeństwo · Weryfikacja · Dowody" : "Security · Verification · Evidence")}</p>
           <h1 data-ui-proof-id="homepage-hero-headline" data-copy-length="long" className={styles.heroTitle}>{title}</h1>
           <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{body}</p>
-          <p data-ui-proof-id="homepage-hero-mobile-body" className={styles.heroMobileBody}>{pl ? "Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody." : "Verify what is exposed, what changed, what acted, and what the evidence actually supports."}</p>
+          <p data-ui-proof-id="homepage-hero-mobile-body" className={styles.heroMobileBody}>{body}</p>
         </div>
-        <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={cta} className={styles.primaryCta} />
+        <CtaButton uiProofId="homepage-hero-primary-cta" href={agentHref} variant="primary" label={text.aiCta} className={styles.primaryCta} />
         <aside aria-label={pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}><h2 className="sr-only">{pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}</h2><HeroGap locale={locale} /></aside>
         <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href={sampleHref}>{pl ? "Zobacz historyczny przykład działania (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
         <p className={styles.heroNote}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
@@ -53,10 +49,14 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       </div>
     </section>
     <section className={styles.reviewSection} aria-labelledby="home-services-heading"><div className={styles.frame}>
-      <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Co wymaga sprawdzenia?" : "What needs checking?"}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{pl ? "Zacznij od jednego systemu, działania lub wyniku, który ma znaczenie." : "Start with one system, action or result that matters."}</h2><p className={styles.sectionBody}>{pl ? "Zacznij przed wdrożeniem, po zmianie lub gdy wynik budzi wątpliwości." : "Start before launch, after a change or when a result is in doubt."}</p></div>
-      <ul className={`${styles.reviewGrid} ${styles.serviceGrid}`}>{services.map(([heading, detail, href, label]) => <li key={heading}><h3>{heading}</h3><p>{detail}</p><Link className={styles.textLink} href={href}>{label}<ArrowRight size={16} aria-hidden="true" /></Link></li>)}</ul>
-      <p className={styles.askEntry}>{pl ? "Nie wiesz, co wymaga sprawdzenia?" : "Not sure what needs checking?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p>
-      <Link className={styles.sectionLink} href={`${prefix}/catalog`}>{pl ? "Zobacz wszystkie opcje przeglądu" : "See all review options"}<ArrowRight size={16} aria-hidden="true" /></Link>
+      <div className={styles.sectionIntro}><p className={styles.eyebrow}>{text.reviewsEyebrow}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{text.reviewsTitle}</h2><p className={styles.sectionBody}>{text.reviewsBody}</p></div>
+      <ul className={`${styles.reviewGrid} ${styles.serviceGrid} ${styles.twoOfferGrid}`}>{services.map((service) => {
+        const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+        return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p>{service.price[locale]}</p><p>{service.cardSituation[locale]}</p><p>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
+      })}</ul>
+      <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><Link className={styles.textLink} href="/check">{text.freeCta}<ArrowRight size={16} aria-hidden="true" /></Link></aside>
+      <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p>
+      <Link className={styles.sectionLink} href={`${prefix}/catalog`}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section className={`${styles.reviewSection} ${styles.decisionSection}`} aria-labelledby="home-decision-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Kiedy zacząć" : "When to start"}</p><h2 id="home-decision-heading" className={styles.sectionTitle}>{pl ? "Przed kolejną ważną decyzją." : "Before the next consequential step."}</h2></div>
@@ -65,7 +65,7 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         <li><h3>{pl ? "Przed decyzją klienta o bezpieczeństwie" : "Before a customer security decision"}</h3><p>{pl ? "Klient potrzebuje dowodów na to, jak zachowuje się Twój system lub do czego ma dostęp? Zweryfikuj właściwe twierdzenie i przygotuj ustalenia, które klient może sprawdzić." : "A customer needs evidence about how your system behaves or what it can access? Verify the relevant claim and prepare findings they can inspect."}</p></li>
       </ul>
       <p className={styles.sectionBody}>{pl ? "Powiedz, co ma się wydarzyć i do kiedy. Uzgodnimy zakres, cenę i możliwy termin przed rozpoczęciem pracy." : "Tell us what needs to happen and by when. We’ll confirm scope, price and whether we can meet your deadline before work begins."}</p>
-      <Link className={styles.sectionLink} href={requestHref}>{pl ? "Omów zakres przeglądu" : "Scope a review"}<ArrowRight size={16} aria-hidden="true" /></Link>
+      <Link className={styles.sectionLink} href={requestHref}>{text.fitCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section id="how-it-works" className={styles.reviewSection} aria-labelledby="home-review-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Sposób pracy" : "Our approach"}</p><h2 id="home-review-heading" className={styles.sectionTitle}>{pl ? "Od pytania do ustaleń, które możesz sprawdzić." : "From a question to findings you can inspect."}</h2><p className={styles.sectionBody}>{pl ? "Oddzielamy obserwacje od założeń. Pokazujemy, co sprawdzono, co pozostaje nieznane i co warto zrobić dalej." : "We separate observations from assumptions. You can see what was checked, what remains unknown and what to do next."}</p></div>
@@ -74,6 +74,6 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <div className={styles.evidenceNote}><p>{pl ? "Przykład paczki dowodowej" : "Proof bundle example"}</p><Link href={sampleHref}>{pl ? "Zobacz, jak działa paczka dowodowa (EN)" : "See how a proof bundle works"}<ArrowRight size={16} aria-hidden="true" /></Link><p>{pl ? "Przykład syntetyczny: sprawdza opublikowane pliki i zadeklarowaną zmianę. Nie potwierdza rzeczywistej operacji u dostawcy." : "Synthetic example, not customer evidence: checks the published artifacts and declared transition. It does not establish a real provider action."}</p></div>
       <Link className={styles.sectionLink} href={`${prefix}/why-witnessops`}>{pl ? "Zobacz, jak weryfikujemy" : "See how WitnessOps verifies"}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
-    <div className={styles.frame}><section className={styles.closingSection} aria-labelledby="home-close-heading"><div><h2 id="home-close-heading">{pl ? "Co robi Twój system i co chcesz sprawdzić?" : "What does your system do and what needs checking?"}</h2><p>{pl ? "Opisz system i pytanie bezpieczeństwa. Zaproponujemy konkretny zakres i kolejny krok. Bez haseł, kluczy API i danych klientów." : "Describe the system and the security question. We’ll propose a clear scope and next step. Leave out credentials and customer data."}</p></div><CtaButton href={requestHref} variant="primary" label={cta} className={styles.closingPrimary} /></section></div>
+    <div className={styles.frame}><section className={styles.closingSection} aria-labelledby="home-close-heading"><div><h2 id="home-close-heading">{pl ? "Co robi Twój system i co chcesz sprawdzić?" : "What does your system do and what needs checking?"}</h2><p>{pl ? "Opisz system i pytanie bezpieczeństwa. Zaproponujemy konkretny zakres i kolejny krok. Bez haseł, kluczy API i danych klientów." : "Describe the system and the security question. We’ll propose a clear scope and next step. Leave out credentials and customer data."}</p></div><CtaButton href={requestHref} variant="primary" label={text.fitCta} className={styles.closingPrimary} /></section></div>
   </main>;
 }

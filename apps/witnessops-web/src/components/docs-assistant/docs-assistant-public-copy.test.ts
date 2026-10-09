@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 function source(filename: string): string {
   return readFileSync(resolve(__dirname, filename), "utf-8");
@@ -96,20 +96,21 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(card, /offer\.delivery_label/);
   assert.match(card, /Fit signal only/);
   assert.match(card, /Public Workflow labels are request-shape references/);
-  assert.match(response, /import \{ PRIMARY_OFFER \}/);
-  assert.match(response, /offerId=\$\{PRIMARY_OFFER\.id\}&source=ask/);
+  assert.match(response, /PUBLIC_AGENT_ACTION_OFFER\.requestRoute/);
+  assert.match(response, /source=ask/);
+  assert.doesNotMatch(response, /offerId=\$\{PRIMARY_OFFER\.id\}/);
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
-  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(
-    PRIMARY_OFFER.unit.en,
-    "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+    PUBLIC_AGENT_ACTION_OFFER.unit.en,
+    "One consequential agent or automation action",
   );
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
-    PRIMARY_OFFER.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+    PUBLIC_AGENT_ACTION_OFFER.timing.en,
+    "Delivery timing per signed SOW",
   );
 });
 

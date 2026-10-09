@@ -24,7 +24,7 @@ import {
 } from "./token-store";
 import { claimantSessionCookieName } from "./claimant-session";
 
-import { POST as engage } from "../../app/api/engage/route";
+import { createVerificationIssuance } from "./token-issuance";
 import { POST as verifyToken } from "../../app/api/verify-token/route";
 import { POST as approve } from "../../app/api/assessment/[issuanceId]/approve/route";
 
@@ -51,22 +51,15 @@ function applyTestEnv(baseDir: string): void {
 
 async function issueVerifiedToken(baseDir: string) {
   applyTestEnv(baseDir);
-  const response = await engage(
-    new Request("https://witnessops.com/api/engage", {
-      method: "POST",
-      body: JSON.stringify({
-        email: "claimant@example.com",
-        intent: "Third-party assessment",
-        scope: "Original scope text",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-    intakeId: string;
-  };
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "claimant@example.com",
+    source: "test-issued-historical-record",
+    submission: {
+      intent: "Third-party assessment",
+      scope: "Original scope text",
+    },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),

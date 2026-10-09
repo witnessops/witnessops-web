@@ -61,13 +61,14 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await page.keyboard.press(nextControl);
   await expect(page.getByRole('button', { name: 'Run free check', exact: true })).toBeFocused();
   await collect(page);
+  await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText(/10 check results · .* UTC · 2\.0 seconds/);
   await expect(page.locator('[data-status=CHECK_ERROR]')).toContainText('Collection error');
   await expect(page.getByRole('heading', { name: 'What needs attention?', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'What remains unknown?', exact: true })).toBeVisible();
   const resultRegion = page.getByRole('region', { name: 'Snapshot results' });
   expect(await resultRegion.locator('h3, details > summary').allTextContents()).toEqual([
     'What needs attention?', 'What was observed as expected?', 'Inspect expected observations',
-    '1 informational observations', 'What remains unknown?', 'Full evidence', 'Source data and report details',
+    '1 informational observation', 'What remains unknown?', 'Full evidence', 'Source data and report details',
   ]);
   const expectedDetails = page.getByText('Inspect expected observations', { exact: true }).locator('..');
   await expect(expectedDetails).toHaveJSProperty('open', false);
@@ -76,7 +77,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
     await expect(expectedDetails).toContainText(check.interpretation);
   for (const check of snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION'))
     await expect(page.locator('[data-status=NEEDS_ATTENTION]').getByRole('heading', { name: check.title, exact: true })).toBeVisible();
-  const information = page.getByText('1 informational observations', { exact: true }).locator('..');
+  const information = page.getByText('1 informational observation', { exact: true }).locator('..');
   await expect(information).toHaveJSProperty('open', false);
   await expect(information.getByText('Mock observation 3', { exact: true })).not.toBeVisible();
   await information.locator('summary').click();

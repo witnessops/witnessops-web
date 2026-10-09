@@ -3,22 +3,23 @@ import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import {
   buyerServiceByProductId,
-  buyerServiceFromRequestOffer,
+  buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
-import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  INTERNET_FOOTPRINT_REVIEW_OFFER,
-  PRIMARY_OFFER,
-  LEGACY_AGENT_ACTION_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { NewSalesIntakeClosed } from "@/components/review-request/new-sales-intake-closed";
 import {
-  PUBLIC_CONTACT_EMAIL,
+  NEW_SALES_EXTERNAL_PRODUCT_ID,
+  resolveNewSalesPageQuery,
+} from "@/lib/new-review-request-policy";
+import {
   PUBLIC_CONTACT_SUBJECTS,
-  publicContactMailto,
+  PUBLIC_SALES_REVIEW_EMAIL,
+  salesReviewMailto,
 } from "@/lib/public-contact";
-import { getSku } from "@witnessops/catalog";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
@@ -41,25 +42,6 @@ export const metadata: Metadata = {
   },
 };
 
-const proofOutputs = [
-  {
-    title: "Dated source coverage",
-    summary: "Which agreed device and system-level inventory were inspected, when and with what coverage or failure.",
-  },
-  {
-    title: "Observed agent and connection map",
-    summary: "Tooling visible in the agreed source, one named agent setup and one selected tool connection.",
-  },
-  {
-    title: "One action path",
-    summary: "Approval, executing identity, downstream effective permissions and available execution evidence.",
-  },
-  {
-    title: "Findings and unknowns",
-    summary: "Prioritized sourced findings, practical fixes and explicit gaps or unavailable sources.",
-  },
-];
-
 const publicExposureOutputs = [
   {
     title: "External attack-surface map",
@@ -79,47 +61,23 @@ const publicExposureOutputs = [
   },
 ];
 
-const reviewFitOutputs = [
-  {
-    title: "Fit decision",
-    summary: "Whether the request matches a listed service or needs a separately bounded scope.",
-  },
-  {
-    title: "Scope outline",
-    summary: "The named situation or system, authority boundary, exclusions, and input types needed for the next decision.",
-  },
-  {
-    title: "Commercial proposal",
-    summary: "The applicable offer, fee, timing, and evidence-handling conditions before work starts.",
-  },
-  {
-    title: "Start boundary",
-    summary: "A clear statement that the request itself neither starts work nor authorises evidence collection or target-facing checks.",
-  },
+const agentActionNextSteps = [
+  `${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} Do not send source files or secrets.`,
+  `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}.`,
+  `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. Payment and authority are agreed before work. This form does not start the review.`,
 ];
 
-const nextSteps = [
-  "We check whether the technical action is bounded enough for one review package.",
-  "We confirm the system boundary, action path, likely evidence sources, and obvious gaps.",
-  "We reply with fit, scope, fee, and next action before any source materials are accepted.",
-];
-
-const primaryOfferNextSteps = [
-  `${PRIMARY_OFFER.fitCheckQuestion.en} Name the device class and decision you face. Do not send source files or secrets.`,
-  "If it fits, we name the device, dated system inventory, agent setup, connection, action evidence, authority, recipients and handling in a fixed quote and accepted agreement.",
-  `${PRIMARY_OFFER.price.en}, with a fixed quote after scope. Payment in full before start by default. ${PRIMARY_OFFER.timing.en}.`,
-];
-
-const selectedServiceNextSteps = [
-  "We check whether the selected service fits one bounded request.",
-  "We confirm the scope owner, consent or authority, exclusions, required inputs, fee, and timing.",
-  "We reply with fit and the next action before any source materials are accepted or work begins.",
+const agentActionOutputs = [
+  { title: "Authority and executing identity", summary: "Who can cause the action, and which identity actually executes it." },
+  { title: "Approval and permission boundary", summary: "Where approval stops, and which permissions the action can use." },
+  { title: "Evidence path", summary: "Which execution evidence is available, missing, or not yet in scope." },
+  { title: "Findings and explicit unknowns", summary: "Prioritized findings for that one action, with explicit unknowns left in the record." },
 ];
 
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "After payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, the three-working-day delivery clock starts.",
+  "Delivery timing per signed SOW. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [
@@ -134,78 +92,39 @@ type Props = { searchParams?: Promise<Record<string, string | string[] | undefin
 
 export default async function ReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
-  const one = (value: string | string[] | undefined) =>
-    Array.isArray(value) ? value[0] : value;
-  const productId = one(params.productId);
-  const offerId = one(params.offerId);
-  if (offerId === LEGACY_AGENT_ACTION_OFFER.id) {
-    const currentHref = `/review/request?offerId=${PRIMARY_OFFER.id}`;
-    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
-      <h1 className="text-4xl font-semibold">This offer has been superseded</h1>
-      <p className="mt-5 leading-7">{LEGACY_AGENT_ACTION_OFFER.name.en} was a separate one-action, fixed-price offer. This link no longer selects it for new requests. Existing requests and customer agreements retain their original terms.</p>
-      <p className="mt-5 leading-7">The current {PRIMARY_OFFER.name.en} includes a source-bounded device inventory and one deeper action review, with a fixed quote after scope.</p>
-      <Link className="mt-6 inline-block underline" href={currentHref}>Request fit and scope for the current review</Link>
-    </main>;
-  }
-  const offer = one(params.offer);
+  const decision = resolveNewSalesPageQuery({
+    offerId: params.offerId,
+    productId: params.productId,
+    offer: params.offer,
+  });
   const campaignAttribution = linkedinPremiumCampaignAttribution(params);
-  const requestedSku = productId ? getSku(productId) : undefined;
-  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
-    ? requestedSku
-    : undefined;
-  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferSelected =
-    requestedOffer &&
-    (offerId !== undefined || !sku);
-  const selectedOffer = primaryOfferSelected
-    ? requestedOffer
-    : sku
-      ? buyerServiceByProductId(sku.id)
-      : requestedOffer;
-  const publicExposureOrder =
-    selectedOffer?.id === "external-exposure-assessment";
-  const primaryOfferOrder = selectedOffer?.id === PRIMARY_OFFER.id;
-  const selectedServiceOrder =
-    selectedOffer && !publicExposureOrder && !primaryOfferOrder
-      ? selectedOffer
-      : undefined;
-  const activeNextSteps = publicExposureOrder
-    ? publicExposureNextSteps
-    : primaryOfferOrder
-      ? primaryOfferNextSteps
-      : selectedServiceOrder
-        ? selectedServiceNextSteps
-        : nextSteps;
-  const activeOutputs = publicExposureOrder
-    ? publicExposureOutputs
-    : primaryOfferOrder
-      ? proofOutputs
-      : selectedServiceOrder
-        ? [
-            {
-              title: "Expected outcome",
-              summary: selectedServiceOrder.result.en,
-            },
-            {
-              title: "Offer boundary",
-              summary: selectedServiceOrder.boundary.en,
-            },
-          ]
-        : reviewFitOutputs;
-  const activeArtifacts = publicExposureOrder
-    ? publicExposureArtifacts
-    : [];
-
-  if (!selectedOffer && !sku) {
+  if (decision.state === "rejected") {
+    return <NewSalesIntakeClosed locale="en" reason={decision.reason} />;
+  }
+  if (decision.state === "chooser") {
     return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
       <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Ask about your case</p>
       <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">One question. Non-secret details only.</h1>
-      <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Tell us what needs to happen and by when. We’ll confirm whether the app, a named review, or neither is the right next step.</p>
-      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} defaultEnquiryPath={one(params.enquiryPath) === "early-bird" ? INTERNET_FOOTPRINT_REVIEW_OFFER.name.en : undefined} /></div>
+      <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Choose Agent Action Security Review or External Attack Surface Review. A display name, old identifier, or free-text note does not select a different review.</p>
+      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
-      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_CONTACT_EMAIL}</a></p>
+      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
     </main>;
   }
+  const agentActionOrder = decision.role === "offer";
+  const publicExposureOrder = decision.role === "product";
+  const selectedOffer = agentActionOrder
+    ? buyerServiceByPublicOfferId(PUBLIC_AGENT_ACTION_OFFER.id)
+    : buyerServiceByProductId(NEW_SALES_EXTERNAL_PRODUCT_ID);
+  const activeNextSteps = publicExposureOrder
+    ? publicExposureNextSteps
+    : agentActionNextSteps;
+  const activeOutputs = publicExposureOrder
+    ? publicExposureOutputs
+    : agentActionOutputs;
+  const activeArtifacts = publicExposureOrder
+    ? publicExposureArtifacts
+    : [];
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -228,30 +147,22 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           className="mb-4 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {selectedOffer?.id === "automation-repair-handover" ? "What stopped working?" : selectedOffer
+          {selectedOffer
             ? "Tell us what you want to check"
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
             ? "Name the authorised internet-facing system and why its external attack surface matters now. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test."
-            : primaryOfferOrder
-              ? `Name the agent setup, selected tool connection, device class and one consequential action. We’ll confirm fit and scope together. No secrets or evidence yet.`
-            : selectedServiceOrder
-              ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
-              : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
+            : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. We’ll confirm fit before any work. No secrets or evidence yet.`}
         </p>
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}
           <a
-            href={publicContactMailto(
-              primaryOfferOrder
-                ? PRIMARY_OFFER.mailSubject
-                : PUBLIC_CONTACT_SUBJECTS.fitCheck,
-            )}
-            className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
+            href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+            className="break-all text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
           >
-            {PUBLIC_CONTACT_EMAIL}
+            {PUBLIC_SALES_REVIEW_EMAIL}
           </a>
           .
         </p>
@@ -268,11 +179,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
           <ContactForm
             compact={Boolean(selectedOffer)}
-            intent={
-              primaryOfferOrder
-                ? PRIMARY_OFFER.id
-                : sku?.id ?? selectedOffer?.id ?? "review"
-            }
+            intent={decision.intent}
             campaignAttribution={campaignAttribution}
           />
         </section>
@@ -356,9 +263,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               <p>
                 {publicExposureOrder
                   ? `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance.`
-                  : primaryOfferOrder
-                    ? `${PRIMARY_OFFER.price.en} for a one-device reference scope. Fixed quote after scope; payment in full before start by default. ${PRIMARY_OFFER.timing.en}. This form is not a booking, checkout or authority to inspect.`
-                    : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
+                  : `${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}. This form is not a booking, checkout, or authority to inspect.`}
               </p>
               <p>No work or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
@@ -456,11 +361,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         >
           {publicExposureOrder
             ? `What the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} delivers`
-            : primaryOfferOrder
-              ? `What ${PRIMARY_OFFER.name.en} includes`
-              : selectedServiceOrder
-                ? `What the ${selectedServiceOrder.name.en} is scoped to deliver`
-                : "What the fit check establishes"}
+            : `What ${PUBLIC_AGENT_ACTION_OFFER.name.en} includes`}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {activeOutputs.map((item, index) => (

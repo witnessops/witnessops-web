@@ -1,4 +1,4 @@
-import { PRIMARY_OFFER, INTERNET_FOOTPRINT_REVIEW_OFFER } from "../apps/witnessops-web/src/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "../apps/witnessops-web/src/lib/commercial-truth";
 
 type FetchLike = (
   input: string,
@@ -30,53 +30,86 @@ export function escapeAmpersandsForHtml(value: string): string {
   return value.replaceAll("&", "&amp;");
 }
 
+/** Old purchase copy that must not return as a public new-sales choice. */
+const WITHDRAWN_PURCHASE_MARKERS = [
+  "Private Pilot",
+  "OFFSEC-PILOT",
+  "€950",
+  "Internet Footprint Review",
+  "Early Bird",
+  "Customer Security Review Sprint",
+  "Starting at €2,500 · excluding VAT",
+  "Launch Readiness Check",
+  "Key, Access and Custody Review",
+  "Incident Readiness Review",
+  "Professional Public Footprint Audit",
+  "€4,900 · excluding VAT",
+  "What do you need to check?",
+  "Review a system",
+  "Shared service principles",
+  "Scope this review",
+  "Automation Repair &amp; Handover",
+  "€250 diagnosis",
+  "Available by request",
+  "Request a scope and fixed quote",
+] as const;
+
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Agents act. WitnessOps reviews what yours are permitted to do.", "AI agents can send, buy, write, delete and call other systems.", escapeAmpersandsForHtml(PRIMARY_OFFER.name.en), PRIMARY_OFFER.price.en, INTERNET_FOOTPRINT_REVIEW_OFFER.name.en, INTERNET_FOOTPRINT_REVIEW_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
+    requiredMarkers: ["WitnessOps", "Proof other people can check.", "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.", "What can your AI agent actually do in production?", "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations, explicit unknowns and a readout.", "What can the internet see that you didn’t mean to expose?", "Review one authorised internet-facing system. Receive an external attack-surface map, findings with supporting evidence, remediation priorities and one focused retest.", "€2,500 fixed · excluding VAT", "€1,900 fixed · excluding VAT", "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.", "Evidence survives the dashboard.", "Discuss a review: engage@mail.witnessops.com", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
+  },
+  {
+    path: "/check",
+    requiredMarkers: [
+      "Check your public exposure.",
+      "Run free check",
+      "No account or email required.",
+      "This feature does not store results.",
+      "No exploitation or credentials",
+    ],
+    prohibitedMarkers: ["Private Pilot", "OFFSEC-PILOT", "€950", "offerId=agent-action-security-review"],
   },
   {
     path: "/catalog/automation-repair",
-    requiredMarkers: ["Automation Repair &amp; Handover", "€250 diagnosis", "€750 total including diagnosis only if", "about six total delivery hours", "No promise to fix every automation", "operating and recovery instructions", "Want someone to look after it?"],
+    requiredMarkers: ["Automation Repair &amp; Handover", "€250 diagnosis", "€750 total including diagnosis only if", "about six total delivery hours", "No promise to fix every automation", "operating and recovery instructions", "Want someone to look after it?", "This review is not offered for new engagements.", "data-legacy-offer-withdrawal=\"automation-repair-handover\""],
+    prohibitedMarkers: ["Describe the problem", 'name="intent" value="automation-repair-handover"'],
   },
   {
     path: "/pl/catalog/automation-repair",
-    requiredMarkers: ["Naprawa i przejęcie automatyzacji", "€250 za diagnozę", "€750 łącznie z diagnozą tylko wtedy", "Opisz problem"],
+    requiredMarkers: ["Naprawa i przejęcie automatyzacji", "€250 za diagnozę", "€750 łącznie z diagnozą tylko wtedy", "Ten przegląd nie jest oferowany dla nowych zleceń."],
+    prohibitedMarkers: ["Opisz problem"],
   },
   {
     path: "/review/request?offerId=automation-repair-handover",
-    requiredMarkers: ["Automation Repair &amp; Handover", "€250 diagnosis", "What should happen, and what happens instead?", "name=\"intent\" value=\"automation-repair-handover\""],
+    requiredMarkers: [
+      "This link does not start a new review",
+      "Existing requests and issued agreements keep their original terms.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
+      "No work or target-facing check starts from this page.",
+    ],
+    prohibitedMarkers: [
+      'name="intent" value="automation-repair-handover"',
+      "€250 diagnosis",
+    ],
   },
   {
     path: "/catalog",
     requiredMarkers: [
-      "Automation Repair &amp; Handover", "€250 diagnosis",
-      "What do you need to check?",
-      "Scope a review",
-      "AI Agent Tools &amp; Access Review",
-      "Starting at €2,500 · excluding VAT",
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-      "Review a system",
-      "Customer Security Review Sprint",
-      "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
-      "One Server Security Check",
-      "€950 standard · excluding VAT",
-      "Within two business days after the authorised collection window",
-      "External Attack Surface Review",
-      "€1,900 · excluding VAT",
-      "Within 3 working days after payment in full",
-      "Launch Readiness Check",
-      "Four business days after candidate collection",
-      "Key, Access and Custody Review",
-      "Incident Readiness Review",
-      "Professional Public Footprint Audit",
-      "Available by request",
-      "€4,900 · excluding VAT",
-      "7–10 working days",
-      "Synthetic sample",
-      "Scope this review",
-      "Shared service principles",
+      "Two focused security reviews.",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
+      PUBLIC_AGENT_ACTION_OFFER.price.en,
+      PUBLIC_AGENT_ACTION_OFFER.timing.en,
+      "Scope an AI review",
+      EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+      EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+      EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
+      "one focused retest within 30 days",
+      "Not a penetration test.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -88,6 +121,13 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Pilot (entry)",
       "Access Removal Proof",
       "10-Server Security Pilot",
+      "offerId=agent-tools-access-review",
+      "offerId=automation-repair-handover",
+      "offerId=customer-security-review-sprint",
+      "productId=OFFSEC-PILOT",
+      "Request a scope and fixed quote",
+      "Scope this review",
+      ...WITHDRAWN_PURCHASE_MARKERS,
     ],
   },
   {
@@ -108,7 +148,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Platform installation or production modification",
       "Continuous monitoring",
       "A security or production-readiness guarantee",
-      "Request a scope and fixed quote",
+      "This review is not offered for new engagements.",
+      "data-legacy-offer-withdrawal=\"agent-tools-access-review\"",
       "historical synthetic one-action example",
       "does not guarantee security",
     ],
@@ -121,6 +162,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "€1 500",
       "Bounded Workflow Review",
       "certifies that the agent was correct",
+      "Request a scope and fixed quote",
+      'name="intent" value="agent-tools-access-review"',
+      "offerId=agent-action-security-review",
+      "€2,500 fixed",
     ],
   },
   {
@@ -144,7 +189,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/docs/getting-started/proof-run-buyer-path",
     requiredMarkers: [
       "Buyer path for a security or operational review",
-      "Customer Security Review Sprint",
+      "Agent Action Security Review",
       "External Attack Surface Review",
       "View services",
       "Start a review",
@@ -156,11 +201,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "broad compliance certification",
       "legal audit opinion",
       "Minimal buyer reading order",
-      "AI Agent Tools &amp; Access Review",
-      "dated, source-bounded device inventory",
-      "starts at €2,500 excluding VAT",
-      "10 working days after the documented start gates",
-      "secondary catalogue work at €1,900 excluding VAT",
+      "€2,500 excluding VAT",
+      "€1,900 excluding VAT",
+      "one retest within 30 calendar days of report handover",
+      "Delivery timing agreed in the signed statement of work.",
+      "offerId=agent-action-security-review",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -172,6 +217,38 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Package one security workflow",
       "Access Removal Proof",
       "10-Server Security Pilot",
+      "fixed quote after scope",
+      "10 working days",
+      "3 working days",
+      "three-working-day",
+      "three working days",
+      "€550",
+      "Customer Security Review Sprint",
+      "/catalog/workflows",
+      "/customer-security-review",
+    ],
+  },
+  {
+    path: "/docs/getting-started/review-workflow",
+    requiredMarkers: [
+      "Review workflow",
+      "Agent Action Security Review",
+      "€2,500 excluding VAT",
+      "External Attack Surface Review",
+      "€1,900 excluding VAT",
+      "one retest within 30 calendar days of report handover",
+      "Delivery timing agreed in the signed statement of work.",
+      "offerId=agent-action-security-review",
+      "It is not a penetration test.",
+    ],
+    prohibitedMarkers: [
+      "fixed quote after scope",
+      "10 working days",
+      "3 working days",
+      "three-working-day",
+      "three working days",
+      "€550",
+      "/catalog/workflows",
     ],
   },
   {
@@ -282,15 +359,17 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pricing",
     requiredMarkers: [
       "Review pricing and scope",
-      INTERNET_FOOTPRINT_REVIEW_OFFER.name.en,
-      INTERNET_FOOTPRINT_REVIEW_OFFER.price.en,
-      escapeAmpersandsForHtml(PRIMARY_OFFER.name.en),
-      PRIMARY_OFFER.price.en,
-      PRIMARY_OFFER.timing.en,
-      "No payment is taken here.",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
+      PUBLIC_AGENT_ACTION_OFFER.price.en,
+      PUBLIC_AGENT_ACTION_OFFER.timing.en,
+      "Scope an AI review",
+      EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+      EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+      EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
       "An enquiry does not authorise collection or start a review.",
-      "Explore the full catalogue",
-      "Request a scope and fixed quote",
+      "No work starts from the enquiry.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -314,6 +393,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Full payment is recommended",
       "two €950 instalments",
       "Primary fixed-scope offer",
+      "offerId=agent-tools-access-review",
+      "offerId=automation-repair-handover",
+      "offerId=customer-security-review-sprint",
+      "productId=OFFSEC-PILOT",
+      "Request a scope and fixed quote",
+      ...WITHDRAWN_PURCHASE_MARKERS,
     ],
   },
   {
@@ -343,7 +428,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Customer Security Review Sprint",
       "Get the questionnaire off your desk.",
       "From €1,600 · excluding VAT",
-      "Scope this review",
+      "This review is not offered for new engagements.",
+      "data-legacy-offer-withdrawal=\"customer-security-review-sprint\"",
       "Proposed answer matrix",
       "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
       "SYNTHETIC DEMONSTRATION, NOT CUSTOMER EVIDENCE",
@@ -355,39 +441,30 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "guaranteed approval",
       "security guaranteed",
       "public evidence upload",
+      "Scope this review",
+      'name="intent" value="customer-security-review-sprint"',
     ],
   },
   {
     path: "/pl",
-    requiredMarkers: ["Znajdź luki w bezpieczeństwie swoich systemów.", "Sprawdź narzędzia i dostęp agenta AI", "Zweryfikuj lub napraw proces", "Fikcyjny przykład · Nie testowano systemu", "Omów zakres przeglądu"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500"],
+    requiredMarkers: ["Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.", "Omów przegląd agenta AI", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Fikcyjny przykład · Nie testowano systemu", EXTERNAL_ATTACK_SURFACE_OFFER.name.pl, EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
     path: "/pl/catalog",
     requiredMarkers: [
-      "Naprawa i przejęcie automatyzacji", "€250 za diagnozę",
-      "Co chcesz sprawdzić?",
-      "Customer Security Review Sprint",
-      "Od 7 000 zł (ok. €1 600) · bez VAT",
-      "Około trzech dni roboczych po potwierdzeniu zakresu, właścicieli, wymaganych materiałów i dostępu do dowodów",
-      "Sprawdź narzędzia i dostęp agenta AI",
-      "Przegląd narzędzi i dostępu agenta AI",
-      "Od €2 500 · bez VAT",
-      "Cel: 10 dni roboczych po potwierdzeniu zakresu",
-      "Sprawdź system",
-      "One Server Security Check",
-      "Standardowo 4 100 zł (ok. €950) · bez VAT",
-      "External Attack Surface Review",
-      "€1 900 · bez VAT",
-      "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności",
-      "Cztery dni robocze po zebraniu kandydata do wydania",
-      "Key, Access and Custody Review",
-      "Incident Readiness Review",
-      "Audyt publicznego śladu zawodowego",
-      "Dostępny na zapytanie",
-      "4 900 EUR · bez VAT",
-      "7–10 dni roboczych",
-      "Omów zakres przeglądu",
+      "Dwa konkretne przeglądy bezpieczeństwa.",
+      PUBLIC_AGENT_ACTION_OFFER.name.pl,
+      PUBLIC_AGENT_ACTION_OFFER.price.pl,
+      PUBLIC_AGENT_ACTION_OFFER.timing.pl,
+      "Omów przegląd agenta AI",
+      EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
+      EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
+      EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
+      "jedno sprawdzenie poprawek w ciągu 30 dni",
+      "To nie jest test penetracyjny.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
     ],
     prohibitedMarkers: [
       "Co się wydarzyło?",
@@ -400,6 +477,16 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "certyfikujemy zgodność",
       "Pilotaż przeglądu bezpieczeństwa 10 serwerów",
       "Access Removal Proof",
+      "offerId=agent-tools-access-review",
+      "offerId=automation-repair-handover",
+      "offerId=customer-security-review-sprint",
+      "productId=OFFSEC-PILOT",
+      "Private Pilot",
+      "€950",
+      "Od €2 500",
+      "Customer Security Review Sprint",
+      "Omów zakres przeglądu",
+      "Scope this review",
     ],
   },
   {
@@ -409,7 +496,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Zdejmij kwestionariusz z listy zaległości.",
       "Od 7 000 zł (ok. €1 600) · bez VAT",
       "trzech dni roboczych",
-      "Omów zakres przeglądu",
+      "Ten przegląd nie jest oferowany dla nowych zleceń.",
+      "data-legacy-offer-withdrawal=\"customer-security-review-sprint\"",
       "Klient odpowiada za końcowe odpowiedzi, zatwierdzenia i wysyłkę.",
     ],
     prohibitedMarkers: [
@@ -441,7 +529,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Review one authorised internet-facing system.",
       "€1,900 · excluding VAT",
       "No sales call required.",
-      "Within 3 working days",
+      "Delivery timing per signed SOW",
       "One authorised public-facing system",
       "Inside that accepted system boundary: up to 1 registrable root domain",
       "Public cloud-hosted services can be included",
@@ -450,8 +538,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "This is not a penetration test.",
       "Request this review",
       "See a sample review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
     ],
     prohibitedMarkers: [
+      "offerId=agent-action-security-review",
       "first three accepted engagements",
       "Intended standard price",
       "Check pilot fit",
@@ -472,10 +562,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Private-life investigation",
       "Ongoing monitoring",
       "Legal advice",
-      "Request this audit",
+      "This review is not offered for new engagements.",
+      "data-legacy-offer-withdrawal=\"professional-public-footprint-audit\"",
     ],
     prohibitedMarkers: [
       "Buy now",
+      "Request this audit",
       "Pay now",
       "Stripe",
       "complete picture of the internet",
@@ -497,10 +589,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Badanie życia prywatnego",
       "Ciągły monitoring",
       "Porady prawne",
-      "Zapytaj o audyt",
+      "Ten przegląd nie jest oferowany dla nowych zleceń.",
+      "data-legacy-offer-withdrawal=\"professional-public-footprint-audit\"",
     ],
     prohibitedMarkers: [
       "Kup teraz",
+      "Zapytaj o audyt",
       "Zapłać teraz",
       "Stripe",
       "pełnego obrazu internetu",
@@ -512,9 +606,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "One question. Non-secret details only.", "Your name", "Work email", "Which path?", "What needs checking?",
+      "One question. Non-secret details only.", "Your name", "Work email", "Which review?", "What needs checking?",
       "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.",
       "Next, confirm your email with a code.", "Submit non-secret enquiry",
+      'value="OFFSEC-EXTERNAL-EXPOSURE"',
+      'value="agent-action-security-review"',
       'action="/api/review/request"',
       "No work or target-facing check starts from this form.",
     ],
@@ -532,6 +628,38 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "platform for AI governance",
       "proves compliance",
       "guarantees compliance",
+      'value="automation-repair-handover"',
+      'value="agent-tools-access-review"',
+      "Not sure",
+      "Internet Footprint Review",
+      "Private Pilot",
+      "OFFSEC-PILOT",
+      "€950",
+      "Customer Security Review Sprint",
+      "Starting at €2,500 · excluding VAT",
+    ],
+  },
+  {
+    path: "/review/request?offerId=agent-action-security-review",
+    requiredMarkers: [
+      "Tell us what you want to check",
+      "€2,500 fixed · excluding VAT",
+      "What consequential action can the agent or automation take?",
+      "One consequential agent or automation action",
+      PUBLIC_AGENT_ACTION_OFFER.timing.en,
+      'name="intent" value="agent-action-security-review"',
+      "No work or target-facing check starts from this form.",
+    ],
+    prohibitedMarkers: [
+      "Starting at €2,500",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
+      'name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"',
+      "Fixed quote after scope",
+      "dated system-level inventory",
+      'name="intent" value="agent-tools-access-review"',
+      "offerId=agent-tools-access-review",
+      "Agent Risk &amp; Control Review",
+      "€1,500",
     ],
   },
   {
@@ -549,9 +677,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "External attack-surface map",
       "What the External Attack Surface Review delivers",
       "This is not a penetration test.",
+      'name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"',
     ],
     prohibitedMarkers: [
       "This form authorizes testing",
+      "offerId=agent-action-security-review",
+      'name="intent" value="agent-action-security-review"',
       "Pay now",
       "Upload evidence",
     ],
@@ -559,18 +690,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request?offerId=agent-tools-access-review",
     requiredMarkers: [
-      "Tell us what you want to check",
-      "Starting at €2,500 · excluding VAT",
-      "Which agent setup, tool connection and consequential action concern you?",
-      "What happens if it goes wrong?",
-      "Which device, connection and systems are involved?",
-      "Which security boundaries are involved?",
-      "agent setup, selected tool connection, device class and one consequential action",
-      "Fixed quote after scope",
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-      "What AI Agent Tools &amp; Access Review includes",
-      'name="intent" value="agent-tools-access-review"',
-      "No work or target-facing check starts from this form.",
+      "This link does not start a new review",
+      "Existing requests and issued agreements keep their original terms.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
+      "No work or target-facing check starts from this page.",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -579,6 +703,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "from €1,500",
       "€1,500",
       "€1 500",
+      'name="intent" value="agent-tools-access-review"',
+      "Starting at €2,500",
+      "Fixed quote after scope",
       "What the External Attack Surface Review delivers",
       "€1,900 · excluding VAT",
     ],
@@ -586,8 +713,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
-      "One question. Non-secret details only.", "Which path?", "Submit non-secret enquiry",
-      "No work or target-facing check starts from this form.",
+      "This link does not start a new review",
+      "Existing requests and issued agreements keep their original terms.",
+      "No work or target-facing check starts from this page.",
     ],
     prohibitedMarkers: [
       "Selected offer:",
@@ -599,13 +727,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/review/request",
     requiredMarkers: [
       "Opowiedz, co wymaga sprawdzenia",
-      "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
+      "Jedno pytanie. Tylko niepoufne szczegóły.",
+      "Który przegląd?",
       "Co wymaga sprawdzenia?",
-      "Sytuacja i system objęty przeglądem",
-      "Granica zakresu i zatwierdzenie",
-      "Dostępne rodzaje materiałów",
-      "Wyślij ocenę dopasowania",
-      "engage@mail.witnessops.com",
+      "Wyślij niepoufne zgłoszenie",
+      "Ten formularz nie rozpoczyna pracy ani kontroli wobec celu.",
     ],
     prohibitedMarkers: ["Opowiedz, co się wydarzyło"],
   },
@@ -616,7 +742,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Rozpocznij External Attack Surface Review",
       "Wskaż jeden system publicznie dostępny i podstawę upoważnienia",
       "Rozmowa sprzedażowa nie jest wymagana",
-      "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu.",
+      "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji.",
       "Wyślij zgłoszenie do akceptacji zakresu",
       "To nie jest test penetracyjny.",
     ],
@@ -626,25 +752,40 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
-    path: "/pl/review/request?offerId=agent-tools-access-review",
+    path: "/pl/review/request?offerId=agent-action-security-review",
     requiredMarkers: [
       "Opisz, co chcesz sprawdzić",
-      "Od €2 500 · bez VAT",
-      "Która konfiguracja agenta, połączenie z narzędziem i istotne działanie wymagają przeglądu?",
-      "Co się stanie, jeśli działanie pójdzie źle?",
-      "Jakie urządzenie, połączenie i systemy są zaangażowane?",
-      "Jakie granice bezpieczeństwa są zaangażowane?",
-      "Jedno uzgodnione urządzenie i system operacyjny",
-      "niepoufne",
-      "Cel: 10 dni roboczych po potwierdzeniu zakresu",
-      'name="intent" value="agent-tools-access-review"',
+      "€2 500: cena stała · bez VAT",
+      "Jakie istotne działanie może wykonać agent lub automatyzacja?",
+      "Jedno istotne działanie agenta lub automatyzacji",
+      'name="intent" value="agent-action-security-review"',
       "Samo zgłoszenie nie rozpoczyna pracy.",
+    ],
+    prohibitedMarkers: [
+      "Od €2 500 · bez VAT",
+      "stała wycena po ustaleniu zakresu",
+      "Jedno uzgodnione urządzenie i system operacyjny",
+      'name="intent" value="agent-tools-access-review"',
+      "Agent Risk &amp; Control Review",
+      "€1 500",
+    ],
+  },
+  {
+    path: "/pl/review/request?offerId=agent-tools-access-review",
+    requiredMarkers: [
+      "Ten link nie rozpoczyna nowego przeglądu",
+      "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
+      "offerId=agent-action-security-review",
+      "productId=OFFSEC-EXTERNAL-EXPOSURE",
+      "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
       "Od 6 500 zł",
       "€1 500",
+      'name="intent" value="agent-tools-access-review"',
+      "Od €2 500 · bez VAT",
       "Rozpocznij External Attack Surface Review",
       "€1 900 · bez VAT",
     ],
@@ -652,9 +793,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
-      "Opowiedz, co wymaga sprawdzenia",
-      "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
-      "Samo zgłoszenie nie rozpoczyna pracy.",
+      "Ten link nie rozpoczyna nowego przeglądu",
+      "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
+      "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
     ],
     prohibitedMarkers: [
       "Wybrana oferta:",
@@ -911,6 +1052,90 @@ export function evaluateBuyerPathRoute(
   };
 }
 
+export type BuyerPathIntakeProbe = {
+  name: string;
+  path: "/api/review/request" | "/api/engage" | "/api/contact";
+  body: Record<string, unknown>;
+  expectReason?: string;
+  expectError?: string;
+};
+
+const intakeIdentity = {
+  name: "Synthetic Buyer",
+  org: "Example",
+  scope: "One bounded non-secret summary.",
+  locale: "en",
+} as const;
+
+function intakeBody(intent: string, extra: Record<string, unknown> = {}, email = "security@witnessops.com") {
+  return { ...intakeIdentity, email, intent, ...extra };
+}
+
+export const buyerPathIntakeProbes: readonly BuyerPathIntakeProbe[] = [
+  { name: "historical inventory", path: "/api/review/request", body: intakeBody("agent-tools-access-review"), expectReason: "historical" },
+  { name: "historical automation repair", path: "/api/review/request", body: intakeBody("automation-repair-handover"), expectReason: "historical" },
+  { name: "historical customer sprint", path: "/api/review/request", body: intakeBody("customer-security-review-sprint"), expectReason: "historical" },
+  { name: "historical bounded workflow", path: "/api/review/request", body: intakeBody("bounded-workflow-review"), expectReason: "historical" },
+  { name: "private pilot id", path: "/api/review/request", body: intakeBody("OFFSEC-PILOT"), expectReason: "unsupported" },
+  { name: "private pilot label", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review — Private Pilot"), expectReason: "unsupported" },
+  { name: "display name only", path: "/api/review/request", body: intakeBody("Agent Action Security Review"), expectReason: "unsupported" },
+  { name: "inventory display name", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review"), expectReason: "unsupported" },
+  { name: "wrong-role service id", path: "/api/review/request", body: intakeBody("external-exposure-assessment"), expectReason: "wrong-role" },
+  { name: "ambiguous both identities", path: "/api/review/request", body: intakeBody("agent-action-security-review", { productId: "OFFSEC-EXTERNAL-EXPOSURE" }), expectReason: "ambiguous" },
+  { name: "conflicting display", path: "/api/review/request", body: intakeBody("agent-action-security-review", { offer: "Buyer-edited title" }), expectReason: "ambiguous" },
+  { name: "engage alias historical", path: "/api/engage", body: intakeBody("agent-tools-access-review"), expectReason: "historical" },
+  { name: "contact alias pilot", path: "/api/contact", body: intakeBody("OFFSEC-PILOT"), expectReason: "unsupported" },
+  { name: "accepted agent action stops at email gate", path: "/api/review/request", body: intakeBody("agent-action-security-review", {}, "buyer@gmail.com"), expectError: "Please use your business email." },
+  { name: "accepted external product stops at email gate", path: "/api/review/request", body: intakeBody("OFFSEC-EXTERNAL-EXPOSURE", {}, "buyer@gmail.com"), expectError: "Please use your business email." },
+];
+
+export type BuyerPathIntakeResult = {
+  name: string;
+  path: string;
+  status: number;
+  ok: boolean;
+  detail: string;
+};
+
+export async function runBuyerPathIntakeProbes(
+  baseUrl: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<BuyerPathIntakeResult[]> {
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+  const results: BuyerPathIntakeResult[] = [];
+  for (const [index, probe] of buyerPathIntakeProbes.entries()) {
+    const response = await fetchImpl(new URL(probe.path, `${normalizedBaseUrl}/`), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": `203.0.113.${10 + index}`,
+      },
+      body: JSON.stringify(probe.body),
+    });
+    const payload = (await response.json().catch(() => null)) as {
+      ok?: boolean;
+      error?: string;
+      reason?: string;
+      issuanceId?: string;
+    } | null;
+    const reasonOk = probe.expectReason
+      ? response.status === 400 && payload?.ok === false && payload.reason === probe.expectReason && !payload.issuanceId
+      : false;
+    const emailOk = probe.expectError
+      ? response.status === 400 && payload?.error === probe.expectError && payload.reason === undefined && !payload.issuanceId
+      : false;
+    const ok = reasonOk || emailOk;
+    results.push({
+      name: probe.name,
+      path: probe.path,
+      status: response.status,
+      ok,
+      detail: ok ? probe.expectReason ?? probe.expectError ?? "" : JSON.stringify(payload),
+    });
+  }
+  return results;
+}
+
 export async function runBuyerPathSmoke(
   baseUrl: string,
   routes: BuyerPathSmokeRoute[] = buyerPathSmokeRoutes,
@@ -993,7 +1218,8 @@ function formatResult(result: BuyerPathSmokeResult): string {
 async function main() {
   const { baseUrl, json } = parseArgs(process.argv.slice(2));
   const results = await runBuyerPathSmoke(baseUrl);
-  const ok = results.every((result) => result.ok);
+  const intake = await runBuyerPathIntakeProbes(baseUrl);
+  const ok = results.every((result) => result.ok) && intake.every((result) => result.ok);
 
   if (json) {
     console.log(
@@ -1002,6 +1228,7 @@ async function main() {
           ok,
           baseUrl: normalizeBaseUrl(baseUrl),
           results,
+          intake,
         },
         null,
         2,
@@ -1010,6 +1237,13 @@ async function main() {
   } else {
     for (const result of results) {
       console.log(formatResult(result));
+    }
+    for (const result of intake) {
+      console.log(
+        [result.ok ? "PASS" : "FAIL", "INTAKE", result.path, result.name, String(result.status), result.detail]
+          .filter(Boolean)
+          .join(" "),
+      );
     }
   }
 

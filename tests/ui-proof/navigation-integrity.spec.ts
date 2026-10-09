@@ -59,7 +59,8 @@ const askWorkflowAuthority = {
   }],
 } as const;
 
-const agentService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
+const inventoryService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
+const agentService = BUYER_SERVICES.find(service => service.id === "agent-action-security-review")!;
 const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
 agentRequest.searchParams.set("source", "ask");
 const askWorkflowFitResponse = {
@@ -81,7 +82,7 @@ const askWorkflowFitResponse = {
     name: agentService.name.en,
     price_label: agentService.price.en,
     delivery_label: agentService.timing.en,
-    detail_href: agentService.detailHref.en,
+    detail_href: agentService.detailHref.en ?? "/catalog",
     request_href: `${agentRequest.pathname}${agentRequest.search}`,
   },
 } as const;
@@ -251,7 +252,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await context.close();
 });
 
-test("a selected offer survives the click handoff into the request form", async ({
+test("the historical agent tools detail stays on its URL and does not start a new review", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -261,26 +262,21 @@ test("a selected offer survives the click handoff into the request form", async 
   const page = await context.newPage();
 
   await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
-  const selectedOfferCta = page
-    .locator('[data-buyer-service-detail="agent-tools-access-review"]')
-    .getByRole("link", { name: "Request a scope and fixed quote", exact: true })
-    .first();
-  await selectedOfferCta.click();
-
-  await expectPath(page, "/review/request");
-  const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
-  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
-  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(page.locator("main")).toContainText(
+  const detail = page.locator('[data-buyer-service-detail="agent-tools-access-review"]');
+  await expect(detail).toBeVisible();
+  await expect(detail.getByRole("link", { name: "Request a scope and fixed quote", exact: true })).toHaveCount(0);
+  await expect(detail.locator('a[href*="/review/request"]')).toHaveCount(0);
+  await expect(detail.locator('a[href*="agent-action-security-review"]')).toHaveCount(0);
+  await expect(detail.locator('[data-legacy-offer-withdrawal="agent-tools-access-review"]').first()).toBeVisible();
+  await expect(page.locator('[data-buyer-service-detail="agent-action-security-review"]')).toHaveCount(0);
+  await expectPath(page, "/catalog/workflows");
+  await expect(detail.getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
+  await expect(detail).toContainText("Starting at €2,500 · excluding VAT");
+  await expect(detail).toContainText(
     "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
-  await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
-  await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.locator('main form input[name="intent"]')).toHaveValue(
-    "agent-tools-access-review",
-  );
+  await expect(detail).not.toContainText("Agent Risk & Control Review");
+  await expect(detail).not.toContainText("From €1,500");
   await saveEvidence(page, "03-desktop-selected-offer-handoff.png");
 
   await context.close();
@@ -293,7 +289,7 @@ test("support sends paid-work buyers to the current agent tools review", async (
     { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
     {
       path: "/pl/support",
-      requestPath: buyerServiceRequestHref("pl", agentService),
+      requestPath: buyerServiceRequestHref("pl", inventoryService),
     },
   ]) {
     const context = await browser.newContext({
@@ -399,8 +395,8 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await page.getByRole("textbox", { name: "Ask WitnessOps question" }).fill("We're launching an AI agent.");
   await page.getByRole("button", { name: "Ask AI", exact: true }).click();
   const fit = page.getByRole("region", { name: "Suggested service", exact: true });
-  await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
+  await expect(fit).toContainText(agentService.price.en);
+  await expect(fit).toContainText(agentService.timing.en);
   await expect(page.locator("#ask-witnessops-dialog")).toContainText("NO EVIDENCE REVIEWED");
   await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
   await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
@@ -410,7 +406,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await expectPath(page, "/catalog");
   const contact = page.locator("[data-ask-contact-region]");
   await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
-  await expect(contact).toContainText("AI Agent Tools & Access Review");
+  await expect(contact).toContainText(agentService.name.en);
   await expect(contact.getByLabel("Work email")).toBeFocused();
   await expect(contact.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toBeChecked();
   await expect(contact.getByLabel(/^Draft request/)).toHaveValue("We're launching an AI agent.");
@@ -426,16 +422,14 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await expectPath(page, "/catalog/workflows");
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-  await page.locator('[data-buyer-service-detail="agent-tools-access-review"]')
-    .getByRole("link", { name: "Request a scope and fixed quote", exact: true }).first().click();
-
-  await expectPath(page, "/review/request");
-  const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
-  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
-  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(page.locator("main")).toContainText(
+  const detail = page.locator('[data-buyer-service-detail="agent-tools-access-review"]');
+  await expect(detail.getByRole("link", { name: "Request a scope and fixed quote", exact: true })).toHaveCount(0);
+  await expect(detail.locator('a[href*="/review/request"]')).toHaveCount(0);
+  await expect(detail.locator('[data-legacy-offer-withdrawal="agent-tools-access-review"]').first()).toBeVisible();
+  await expectPath(page, "/catalog/workflows");
+  await expect(detail.getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
+  await expect(detail).toContainText("Starting at €2,500 · excluding VAT");
+  await expect(detail).toContainText(
     "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);

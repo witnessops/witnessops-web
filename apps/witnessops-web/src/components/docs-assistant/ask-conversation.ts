@@ -1,5 +1,6 @@
 import { askLanguage, contextualSuggestions, visitorStatements } from "@/lib/docs-assistant/conversation-guidance";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { keepRecentAskHistory, type AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { askWitnessOpsAnswerText, type AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
@@ -99,10 +100,16 @@ export function askFollowUpQuestions(answer?: AskWitnessOpsUiAnswer, service?: B
 /** Card identity comes from the answer's own commercial authority, not its prose. */
 export function askServiceCardIdentity(answer?: AskWitnessOpsUiAnswer): string | undefined {
   if (!answer || answer.status !== "success" || answer.commercial_fit.result === "blocked") return undefined;
-  if (answer.schema === "witnessops.ask.generated-answer.v1") return answer.recommendation?.service_id;
+  if (answer.schema === "witnessops.ask.generated-answer.v1") {
+    const serviceId = answer.recommendation?.service_id;
+    return serviceId && isPublicPaidReviewId(serviceId) ? serviceId : undefined;
+  }
   const fit = answer.commercial_fit;
-  return fit.offer && (fit.result === "likely" || fit.result === "needs_boundary")
-    ? fit.offer_id ?? fit.offer.name
+  return fit.offer &&
+    (fit.result === "likely" || fit.result === "needs_boundary") &&
+    fit.offer_id &&
+    isPublicPaidReviewId(fit.offer_id)
+    ? fit.offer_id
     : undefined;
 }
 

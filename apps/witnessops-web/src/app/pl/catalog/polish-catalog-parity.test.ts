@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { BUYER_SERVICES } from "@/lib/buyer-services";
+import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 
 const englishPage = readFileSync(
   resolve(__dirname, "../../(marketing)/catalog/page.tsx"),
@@ -15,6 +16,7 @@ const expectedOrder = [
   "automation-repair-handover",
   "customer-security-review-sprint",
   "agent-tools-access-review",
+  "agent-action-security-review",
   "one-server-security-check",
   "external-exposure-assessment",
   "launch-readiness-check",
@@ -26,7 +28,7 @@ const expectedOrder = [
 test("English and Polish catalogue pages render one shared offer contract", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 9);
+  assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));
@@ -116,8 +118,28 @@ test("catalogue details keep the primary canonical route and localized secondary
   assert.equal(workflow?.detailHref.en, "/catalog/workflows");
   assert.equal(workflow?.detailHref.pl, "/catalog/workflows");
 
+  // Agent Action Security Review has no detail route. /catalog/workflows stays
+  // the historical AI Agent Tools & Access Review record.
+  const agentAction = BUYER_SERVICES.find(
+    (service) => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID,
+  );
+  assert.ok(agentAction);
+  assert.equal(agentAction.id, "agent-action-security-review");
+  assert.deepEqual(agentAction.detailHref, {});
+  for (const locale of ["en", "pl"] as const) {
+    const requestHref = buyerServiceRequestHref(locale, agentAction);
+    const request = new URL(requestHref, "https://witnessops.test");
+    assert.equal(request.pathname, locale === "pl" ? "/pl/review/request" : "/review/request");
+    assert.equal(request.searchParams.get("offerId"), "agent-action-security-review");
+    assert.equal(request.searchParams.get("productId"), null);
+    assert.equal(request.searchParams.get("offer"), agentAction.name[locale]);
+    assert.equal(requestHref.includes("/catalog/workflows"), false);
+  }
+
   for (const service of BUYER_SERVICES.filter(
-    (candidate) => candidate.id !== "agent-tools-access-review",
+    (candidate) =>
+      candidate.id !== "agent-tools-access-review" &&
+      candidate.id !== "agent-action-security-review",
   )) {
     assert.ok(service.detailHref.en);
     assert.ok(service.detailHref.pl);

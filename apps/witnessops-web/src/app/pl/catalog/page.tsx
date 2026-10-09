@@ -4,9 +4,9 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Usługi bezpieczeństwa i przeglądy operacyjne",
+  title: "Przeglądy Agent Action i ekspozycji zewnętrznej",
   description:
-    "Wybierz jeden z jasno określonych przeglądów WitnessOps według sytuacji, rezultatu, ceny i terminu.",
+    "Porównaj Agent Action Security Review oraz External Attack Surface Review. Poznaj zakres, materiały, cenę i warunki rozpoczęcia.",
   alternates: languageAlternates("/pl/catalog", {
     en: "/catalog",
     pl: "/pl/catalog",

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { takeAskCheck, normalizeAskHostname, type AskCheckContext } from '@/lib/external-exposure/ask-handoff';
 import { DocsAssistantContactHandoff } from '@/components/docs-assistant/docs-assistant-contact-handoff';
 import { useBuyerReportPrint } from '@/components/proofpack/buyer-report-print';
@@ -26,6 +27,9 @@ function saveSource(snapshot: ExternalSnapshotV1) {
   link.download = `external-exposure-${snapshot.target}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function formatUtcTime(value: string) {
+  return `${new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value))} UTC`;
 }
 
 export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUrl?: string | null }) {
@@ -127,7 +131,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
         <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button ref={runButton} type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
         <p id="hostname-help">Use a hostname you own or are authorized to check, such as example.com.</p>
         <p className={styles.promise}>Read the findings and download your result. No account needed.</p>
-        <details className={styles.executionDetails}><summary>How this check works</summary><p>Enter only the hostname, without https://, a path or a port. WitnessOps servers make ten bounded public DNS, TLS and HTTP observations. No exploitation or credentials; web connections use ports 80/443 only. Results stay in this page until you clear or leave it. This feature does not store results.</p></details>
+        <details className={styles.executionDetails}><summary>How this check works</summary><p>Enter only the hostname, without https://, a path or a port. WitnessOps servers make ten bounded public DNS, TLS and HTTP observations. No exploitation or credentials; web connections use ports 80/443 only. Changing the hostname, choosing Clear, or leaving the page removes the displayed result. This feature does not store results.</p><Link className={styles.textLink} href="/docs/getting-started/free-check">Read the Free Check guide →</Link></details>
         <div className={styles.actions}>{busy && <button type="button" onClick={() => { clearResult(); hostnameInput.current?.focus(); }}>Cancel</button>}{(result || error) && <button type="button" onClick={() => { clearResult(''); hostnameInput.current?.focus(); }}>Clear</button>}</div>
         {busy && <p role="status">Collection is limited to 30 seconds, followed by brief report processing. Cancel hides the result; the bounded server run may finish.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
@@ -137,18 +141,18 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
         <section className={styles.result} aria-label="Snapshot results">
           <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
           <h2 ref={resultHeading} tabIndex={-1}>{result.snapshot.target}</h2>
-          <p className={styles.muted}>{result.snapshot.checks.length} checks returned · {result.snapshot.finished_at} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
+          <p className={styles.muted}>{result.snapshot.checks.length} check results · {formatUtcTime(result.snapshot.finished_at)} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
           <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{expected.length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
           <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
           <div className={styles.actions} aria-label="Report actions"><button className={styles.reportPrimary} type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
-          <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account.</p>
+          <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account. Saving as PDF opens your browser’s print dialog; choose Save as PDF.</p>
           <div className={styles.resultColumns}>
             <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
             <section aria-labelledby="expected-heading"><h3 id="expected-heading">What was observed as expected?</h3><p>{expected.length} of the ten checks returned an expected observation. This is not an overall security assessment.</p>{expected.length > 0 && <details className={styles.information}><summary>Inspect expected observations</summary><ul>{expected.map(check => <li key={check.check_id} data-status={check.status}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}</section>
           </div>
-          {information.length > 0 && <details className={styles.information}><summary>{information.length} informational observations</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
+          {information.length > 0 && <details className={styles.information}><summary>{information.length} informational {information.length === 1 ? 'observation' : 'observations'}</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
           <div className={styles.unknowns}><section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section></div>
-          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the buyer report.</p></div><details><summary>Source data and report details</summary><p className={styles.muted}>{EXTERNAL_VERSION}. PDF uses your browser’s print dialog. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
+          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the full report.</p></div><details><summary>Source data and report details</summary><p className={styles.muted}>{EXTERNAL_VERSION}. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
         </section>
         <section className={styles.nextStep} aria-label="Save a persistent baseline"><div><h2>Keep a history in your workspace</h2><p>After sign-in, add your hostname and authorize a new saved check. Come back after a change, run again, and compare the recorded results.</p><p className={styles.muted}>Create an account, verify your email, then create your workspace. This transient snapshot is not automatically imported.</p>{workspaceUrl ? <a className={styles.textLink} href="/early-access">How workspace access works →</a> : null}</div><a className={styles.primaryLink} href={workspaceUrl ?? '/early-access'}>{workspaceUrl ? 'Open workspace' : 'See workspace access'}</a></section>
         {askContext?.email && <section aria-label="Optional follow-up" className={styles.nextStep}>

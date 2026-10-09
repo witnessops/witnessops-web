@@ -18,6 +18,7 @@ import {
   claimantSessionCookieName,
 } from "@/lib/server/claimant-session";
 
+import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import { POST as engage } from "../engage/route";
 import { POST as contact } from "../contact/route";
 import { POST as reviewRequest } from "../review/request/route";
@@ -45,7 +46,10 @@ async function issueToken(baseDir: string) {
   const response = await engage(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
-      body: JSON.stringify({ email: "security@witnessops.com" }),
+      body: JSON.stringify({
+        email: "security@witnessops.com",
+        intent: "agent-action-security-review",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );
@@ -93,22 +97,16 @@ async function issueSupportToken(baseDir: string) {
 
 async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
   applyTestEnv(baseDir);
-  const response = await reviewRequest(
-    new Request("https://witnessops.com/api/review/request", {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        email: "security@witnessops.com",
-        intent: "access-change-proof-run",
-        scope: "Access change: contractor production access revoked.",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-  };
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-issued-historical-record",
+    submission: {
+      name,
+      intent: "access-change-proof-run",
+      scope: "Access change: contractor production access revoked.",
+    },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
@@ -158,31 +156,49 @@ async function issueCurrentCommercialIntentToken(
   },
 ) {
   applyTestEnv(baseDir);
-  const handler = options.endpoint === "contact" ? contact : reviewRequest;
-  const requestPath =
-    options.endpoint === "contact" ? "/api/contact" : "/api/review/request";
-  const response = await handler(
-    new Request(`https://witnessops.com${requestPath}`, {
-      method: "POST",
-      body: JSON.stringify({
-        ...(options.endpoint === "review"
-          ? { name: "Synthetic Buyer", org: "WitnessOps Labs" }
-          : {}),
+  const publiclyAcceptable =
+    options.intent === "agent-action-security-review" ||
+    options.intent === "OFFSEC-EXTERNAL-EXPOSURE" ||
+    options.intent === "ask-ai-contact";
+  const issuance = publiclyAcceptable
+    ? await (async () => {
+        const handler = options.endpoint === "contact" ? contact : reviewRequest;
+        const requestPath =
+          options.endpoint === "contact" ? "/api/contact" : "/api/review/request";
+        const response = await handler(
+          new Request(`https://witnessops.com${requestPath}`, {
+            method: "POST",
+            body: JSON.stringify({
+              ...(options.endpoint === "review"
+                ? { name: "Synthetic Buyer", org: "WitnessOps Labs" }
+                : {}),
+              email: "security@witnessops.com",
+              intent: options.intent,
+              locale: options.locale,
+              scope: `One bounded request for ${options.intent}.`,
+            }),
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+        assert.equal(response.status, 201);
+        return (await response.json()) as {
+          intakeId: string;
+          issuanceId: string;
+          email: string;
+        };
+      })()
+    : await createVerificationIssuance({
+        channel: "engage",
         email: "security@witnessops.com",
-        intent: options.intent,
-        locale: options.locale,
-        scope: `One bounded request for ${options.intent}.`,
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  assert.equal(response.status, 201);
-
-  const issuance = (await response.json()) as {
-    intakeId: string;
-    issuanceId: string;
-    email: string;
-  };
+        source: "test-issued-historical-record",
+        submission: {
+          name: "Synthetic Buyer",
+          org: "WitnessOps Labs",
+          intent: options.intent,
+          locale: options.locale,
+          scope: `One bounded request for ${options.intent}.`,
+        },
+      });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
@@ -360,7 +376,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(firstPayload.assessmentRunId, null);
   assert.equal(firstPayload.assessmentStatus, "unavailable");
   assert.equal(firstPayload.postVerifyPath, "/review/request/confirmed");
-  assert.equal(firstPayload.requestIntent, "review");
+  assert.equal(firstPayload.requestIntent, "agent-action-security-review");
   assert.equal(firstPayload.requestLocale, "en");
 
   const second = await POST(
@@ -775,7 +791,7 @@ test("verify-token route sends a reply-ready operator notification for package r
         name: "K. Witness",
         org: "WitnessOps Labs",
         email: "security@witnessops.com",
-        intent: "ai-agent-action-proof-run",
+        intent: "agent-action-security-review",
         scope:
           "Workflow: coding agent proposed and applied a configuration change after human approval.\nEvidence available: ticket, prompt transcript, commit record.",
       }),
@@ -833,7 +849,7 @@ test("verify-token route sends a reply-ready operator notification for package r
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,
-    /^Subject: Verified AI Agent Action Proof Run request: WitnessOps Labs$/m,
+    /^Subject: Verified Agent Action Security Review request: WitnessOps Labs$/m,
   );
   assert.match(operatorMailRaw, /^X-WitnessOps-Message-Class: internal_notification$/m);
   assert.match(operatorMailRaw, /^X-WitnessOps-Signature-Profile: none$/m);

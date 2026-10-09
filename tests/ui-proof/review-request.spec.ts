@@ -71,19 +71,9 @@ test("review request routes remain responsive, accessible, and usable", async ({
       .evaluateAll((controls) =>
         controls.map((control) => control.getAttribute("name") || control.id || control.tagName.toLowerCase()),
       );
-    expect(controlOrder).toEqual(scenario.locale === "en" ? ["name", "email", "enquiryPath", "workflow", "button"] : [
-      "name",
-      "email",
-      "org",
-      "workflow",
-      "decisionTiming",
-      "agentPath",
-      "approvalBoundary",
-      "evidenceAvailable",
-      "button",
-    ]);
+    expect(controlOrder).toEqual(["name", "email", "enquiryPath", "workflow", "button"]);
 
-    if (scenario.locale === "pl") await expect(form.locator("#org")).not.toHaveAttribute("required", "");
+    await expect(form.locator("#enquiryPath option")).toHaveCount(2);
     for (const fieldName of requiredFields) {
       const field = form.locator(`#${fieldName}`);
       await expect(field).toHaveAttribute("required", "");
@@ -117,9 +107,8 @@ test("review request routes remain responsive, accessible, and usable", async ({
     }
 
     await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
-    for (const name of scenario.locale === "pl" ? ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"] : []) {
-      await expect(form.locator(`#${name}`)).not.toHaveAttribute("required", "");
-    }
+    const salesMail = page.locator('main a[href^="mailto:engage@mail.witnessops.com"]');
+    await expect(salesMail.first()).toHaveText("engage@mail.witnessops.com");
 
     await submit.click();
     await expect(form.locator("[aria-invalid=true]")).toHaveCount(requiredFields.length);
@@ -139,14 +128,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     await form.locator("#name").fill("Buyer Name");
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("One bounded technical action");
-    if (scenario.locale === "pl") {
-    await form.locator("summary").filter({ hasText: /Add context|Dodaj kontekst/ }).click();
-    await form.locator("#agentPath").fill("Issue to reviewed patch");
-    await form.locator("#approvalBoundary").fill("Approved action with a named stopping point");
-    await form.locator("#evidenceAvailable").fill("Ticket and commit record types only");
-    } else {
-      await form.locator("#enquiryPath").selectOption("Not sure");
-    }
+    await form.locator("#enquiryPath").selectOption("OFFSEC-EXTERNAL-EXPOSURE");
     await submit.click();
 
     expect(Object.keys(submittedPayload ?? {}).sort()).toEqual([
@@ -157,7 +139,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "org",
       "scope",
     ]);
-    expect(submittedPayload?.intent).toBe("review");
+    expect(submittedPayload?.intent).toBe("OFFSEC-EXTERNAL-EXPOSURE");
     expect(submittedPayload?.locale).toBe(scenario.locale);
     expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
     expect(submittedPayload?.scope).toContain("First-message boundary: no files, secrets");
@@ -201,44 +183,46 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
-test("historical one-action links cannot select the distinct current offer", async ({ page }) => {
-  for (const [path, oldLabel, newLabel] of [
-    ["/review/request?offerId=bounded-workflow-review", "This offer has been superseded", "AI Agent Tools & Access Review"],
-    ["/pl/review/request?offerId=bounded-workflow-review", "Ta oferta została zastąpiona", "Przegląd narzędzi i dostępu agenta AI"],
-  ] as const) {
+test("historical one-action links do not select a new review", async ({ page }) => {
+  for (const path of [
+    "/review/request?offerId=bounded-workflow-review",
+    "/pl/review/request?offerId=bounded-workflow-review",
+  ]) {
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
-    await expect(page.locator("main")).toContainText(oldLabel);
-    await expect(page.locator("main")).toContainText(newLabel);
+    await expect(page.locator("main h1")).toContainText(/does not start a new review|nie rozpoczyna nowego przeglądu/);
+    await expect(page.locator("main")).toContainText(/keep their original terms|zachowują pierwotne warunki/);
     await expect(page.locator("main form")).toHaveCount(0);
-    await expect(page.locator("main a[href*='offerId=agent-tools-access-review']")).toBeVisible();
+    await expect(page.locator("main a[href*='offerId=agent-tools-access-review']")).toHaveCount(0);
+    await expect(page.locator("main a[href*='offerId=agent-action-security-review']")).toBeVisible();
+    await expect(page.locator("main a[href*='productId=OFFSEC-EXTERNAL-EXPOSURE']")).toBeVisible();
   }
 });
 
-test("AI Agent Tools & Access Review gathers one non-secret consequential action", async ({ browser }) => {
+test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {
       locale: "en",
       path: "/review/request",
-      fitTitle: "Start your AI Agent Tools & Access Review.",
+      fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
-        "AI Agent Tools & Access Review",
-        "Starting at €2,500 · excluding VAT",
-        "one consequential action",
-        "Submitting this form starts fit and scoping only",
-        "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+        "Agent Action Security Review",
+        "€2,500 fixed · excluding VAT",
+        "One consequential agent or automation action",
+        "Submitting this form opens fit review only",
+        "Delivery timing per signed SOW",
       ],
     },
     {
       locale: "pl",
       path: "/pl/review/request",
-      fitTitle: "Rozpocznij Przegląd narzędzi i dostępu agenta AI.",
+      fitTitle: "Rozpocznij Agent Action Security Review.",
       contractMarkers: [
-        "Przegląd narzędzi i dostępu agenta AI",
-        "Od €2 500 · bez VAT",
-        "jedno istotne działanie",
+        "Agent Action Security Review",
+        "€2 500: cena stała · bez VAT",
+        "Jedno istotne działanie agenta lub automatyzacji",
         "Na razie bez sekretów i materiałów",
-        "Cel: 10 dni roboczych po potwierdzeniu zakresu",
+        "Termin realizacji według podpisanego SOW",
       ],
     },
   ] as const) {
@@ -262,8 +246,8 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
     });
 
     const query = new URLSearchParams({
-      offerId: "agent-tools-access-review",
-      offer: "AI Agent Tools & Access Review",
+      offerId: "agent-action-security-review",
+      offer: "Agent Action Security Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -278,7 +262,7 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
     await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
     await expect(page.locator("main")).not.toContainText("From €1,500");
     await expect(form.locator('input[name="intent"]')).toHaveValue(
-      "agent-tools-access-review",
+      "agent-action-security-review",
     );
 
     const controlOrder = await form
@@ -325,21 +309,20 @@ test("AI Agent Tools & Access Review gathers one non-secret consequential action
     await form.locator("#evidenceAvailable").fill("Production, credential, account, and permission boundaries.");
     await submit.click();
 
-    expect(submittedPayload?.intent).toBe("agent-tools-access-review");
+    expect(submittedPayload?.intent).toBe("agent-action-security-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain("Request: AI Agent Tools & Access Review");
-    expect(submittedPayload?.scope).toContain("Agent setup, connection and action:");
-    expect(submittedPayload?.scope).toContain("Failure impact:");
-    expect(submittedPayload?.scope).toContain("Systems, tools, and approver:");
-    expect(submittedPayload?.scope).toContain(
-      "Production, customer-data, money, account, permission, or communication boundaries:",
-    );
+    expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
+    expect(submittedPayload?.scope).toContain("Consequential action:");
+    expect(submittedPayload?.scope).toContain("Unintended effect:");
+    expect(submittedPayload?.scope).toContain("Approval and authority boundary:");
+    expect(submittedPayload?.scope).toContain("Execution evidence types:");
+    expect(submittedPayload?.scope).not.toContain("dated system-level inventory");
 
     await context.close();
   }
 });
 
-test("primary request selection canonicalizes aliases and conflicting query text", async ({
+test("supported request identities open a selling form and rejected identities stay closed", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -348,42 +331,42 @@ test("primary request selection canonicalizes aliases and conflicting query text
   });
   const page = await context.newPage();
 
+  for (const [query, intent] of [
+    ["offerId=agent-action-security-review", "agent-action-security-review"],
+    ["productId=OFFSEC-EXTERNAL-EXPOSURE", "OFFSEC-EXTERNAL-EXPOSURE"],
+  ] as const) {
+    const response = await page.goto(`/review/request?${query}`, {
+      waitUntil: "networkidle",
+    });
+    expect(response?.status(), query).toBe(200);
+    const form = page.locator("main form");
+    await expect(form).toBeVisible();
+    await expect(form.locator('input[name="intent"]')).toHaveValue(intent);
+  }
+
   for (const query of [
     "offer=AI+Agent+Tools+%26+Access+Review",
+    "offer=Agent+Action+Security+Review",
+    "offer=External+Attack+Surface+Review",
+    "offerId=agent-tools-access-review",
     "offerId=agent-tools-access-review&offer=Public+Exposure+Review",
     "offerId=agent-tools-access-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
+    "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=buyer-edited+query+text",
   ]) {
     const response = await page.goto(`/review/request?${query}`, {
       waitUntil: "networkidle",
     });
     expect(response?.status(), query).toBe(200);
     const main = page.locator("main");
-    await expect(
-      page.getByText("Selected offer: AI Agent Tools & Access Review"),
-    ).toBeVisible();
-    await expect(main).toContainText("Starting at €2,500 · excluding VAT");
-    await expect(main).toContainText(
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
-    await expect(main.locator('form input[name="intent"]')).toHaveValue(
-      "agent-tools-access-review",
-    );
+    await expect(main.locator("h1")).toContainText("This link does not start a new review");
+    await expect(main).toContainText("Existing requests and issued agreements keep their original terms.");
+    await expect(main.locator("form")).toHaveCount(0);
+    await expect(main.locator('input[name="intent"]')).toHaveCount(0);
+    await expect(main).not.toContainText("Selected offer:");
+    await expect(main).not.toContainText("Starting at €2,500 · excluding VAT");
     await expect(main).not.toContainText("Agent Risk & Control Review");
     await expect(main).not.toContainText("From €1,500");
-    await expect(main).not.toContainText(
-      "Request an AI Agent Action Proof Run",
-    );
   }
-
-  await expect(
-    page
-      .locator("main")
-      .getByRole("link", { name: "engage@mail.witnessops.com" })
-      .first(),
-  ).toHaveAttribute(
-    "href",
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check",
-  );
 
   await context.close();
 });
@@ -414,7 +397,7 @@ test("External Attack Surface Review request preserves SKU, locale, and fit boun
 
     const query = new URLSearchParams({
       productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "buyer-edited query text",
+      offer: "External Attack Surface Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -476,22 +459,22 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
       selectedOffer: /Wybrana oferta:/,
       boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
       authorizationBoundary:
-        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu.",
+        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji.",
     },
     {
       path: "/review/request?productId=OFFSEC-PILOT",
-      heading: "One question. Non-secret details only.",
-      intent: "review",
+      heading: "This link does not start a new review",
+      intent: null,
       selectedOffer: null,
-      boundary: "No work or target-facing check starts from this form.",
+      boundary: "No work or target-facing check starts from this page.",
       authorizationBoundary: null,
     },
     {
       path: "/pl/review/request?productId=OFFSEC-PILOT",
-      heading: "Opowiedz, co wymaga sprawdzenia",
-      intent: "review",
+      heading: "Ten link nie rozpoczyna nowego przeglądu",
+      intent: null,
       selectedOffer: null,
-      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
+      boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
       authorizationBoundary: null,
     },
   ] as const;
@@ -515,10 +498,14 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
       await expect(page.locator("main h1")).toContainText(scenario.heading);
 
       const form = page.locator("main form");
-      await expect(form).toBeVisible();
-      await expect(form.locator('input[name="intent"]')).toHaveValue(
-        scenario.intent,
-      );
+      if (scenario.intent) {
+        await expect(form).toBeVisible();
+        await expect(form.locator('input[name="intent"]')).toHaveValue(
+          scenario.intent,
+        );
+      } else {
+        await expect(form).toHaveCount(0);
+      }
       await expect(page.locator("main")).toContainText(scenario.boundary);
       if (scenario.authorizationBoundary) {
         await expect(page.locator("main")).toContainText(
@@ -528,9 +515,11 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
 
       if (scenario.selectedOffer) {
         await expect(page.getByText(scenario.selectedOffer).first()).toBeVisible();
-      } else {
+      } else if (scenario.intent) {
         await expect(page.getByText(/Selected offer:|Wybrana oferta:/)).toHaveCount(0);
         await expect(form.locator(scenario.path.startsWith("/pl/") ? "#agentPath" : "#enquiryPath")).toHaveCount(1);
+      } else {
+        await expect(page.getByText(/Selected offer:|Wybrana oferta:/)).toHaveCount(0);
       }
 
       const overflow = await page.evaluate(

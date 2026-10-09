@@ -8,13 +8,11 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/catalog/automation-repair",
   "/pl/catalog/automation-repair",
   "/catalog",
-  "/catalog/workflows",
   "/catalog/offsec-external-exposure",
   "/catalog/offsec-local-audit",
   "/catalog/offsec-launch-ready",
   "/catalog/offsec-custody-ops",
   "/catalog/offsec-incident-ready",
-  "/catalog/professional-public-footprint-audit",
   "/library",
   "/media-kit",
   "/pricing",
@@ -28,10 +26,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/review/sample-cases/customer-security-review-sprint",
   "/review/sample-cases/access-removed-proof",
   "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-  "/customer-security-review",
-  "/pl/customer-security-review",
   "/pl/library",
-  "/pl/catalog/professional-public-footprint-audit",
   "/review/sample-cases/approval-gated-containment",
   "/review/sample-cases/privileged-access-grant",
 ] as const;
@@ -43,6 +38,11 @@ const EXCLUDED_SITEMAP_ROUTES = [
   "/pl/catalog/offsec-pilot",
   "/catalog/sbom-min-elements",
   "/verify/skill",
+  "/catalog/workflows",
+  "/catalog/professional-public-footprint-audit",
+  "/pl/catalog/professional-public-footprint-audit",
+  "/customer-security-review",
+  "/pl/customer-security-review",
 ] as const;
 
 test("sitemap includes canonical public buyer routes", async () => {

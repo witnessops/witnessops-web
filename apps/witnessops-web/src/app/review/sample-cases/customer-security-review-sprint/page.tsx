@@ -79,9 +79,9 @@ export default function CustomerSecurityReviewSamplePage() {
               label="Ask about this review"
             />
             <CtaButton
-              href="/customer-security-review"
+              href="/catalog"
               variant="secondary"
-              label="View service"
+              label="View services"
             />
             <CtaButton
               href="/review/sample-cases"
@@ -204,9 +204,9 @@ export default function CustomerSecurityReviewSamplePage() {
               label="Ask about this review"
             />
             <CtaButton
-              href="/customer-security-review"
+              href="/catalog"
               variant="secondary"
-              label="Back to service"
+              label="View services"
             />
           </div>
         </div>

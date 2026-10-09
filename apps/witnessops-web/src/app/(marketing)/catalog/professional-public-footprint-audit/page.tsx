@@ -14,6 +14,7 @@ const detail = PROFESSIONAL_PUBLIC_FOOTPRINT_DETAIL.en;
 export const metadata: Metadata = {
   title: service.name.en,
   description: service.cardSituation.en,
+  robots: { index: false, follow: true },
   alternates: languageAlternates("/catalog/professional-public-footprint-audit", {
     en: "/catalog/professional-public-footprint-audit",
     pl: "/pl/catalog/professional-public-footprint-audit",

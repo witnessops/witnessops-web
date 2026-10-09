@@ -37,7 +37,10 @@ async function issueToken(baseDir: string) {
   const response = await engage(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
-      body: JSON.stringify({ email: "security@witnessops.com" }),
+      body: JSON.stringify({
+        email: "security@witnessops.com",
+        intent: "agent-action-security-review",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );

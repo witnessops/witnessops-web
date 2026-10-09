@@ -26,13 +26,15 @@ test("commercial SKU route dispositions preserve current offers and contain drif
   assert.equal(isCurrentPublicCatalogSku("OFFSEC-PILOT"), false);
 });
 
-test("request pages gate query-selected commercial records to current public SKUs", () => {
+test("request pages gate new intake through the two-offer identity policy", () => {
   for (const path of [
     resolve(__dirname, "../app/review/request/page.tsx"),
     resolve(__dirname, "../app/pl/review/request/page.tsx"),
   ]) {
     const source = readFileSync(path, "utf8");
-    assert.match(source, /isCurrentPublicCatalogSku\(requestedSku\.id\)/);
+    assert.match(source, /resolveNewSalesPageQuery\(/);
+    assert.match(source, /NewSalesIntakeClosed/);
+    assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedSku\.id\)/);
   }
 });
 
@@ -42,13 +44,11 @@ test("English review intake can preserve the current workflow offer without revi
     "utf8",
   );
 
-  assert.match(source, /const offerId = one\(params\.offerId\)/);
-  assert.match(source, /const offer = one\(params\.offer\)/);
-  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
+  assert.match(source, /resolveNewSalesPageQuery\(/);
+  assert.match(source, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.match(source, /Selected offer: \{selectedOffer\.name\.en\}/);
   assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
-  assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
+  assert.doesNotMatch(source, /offerId === LEGACY_AGENT_ACTION_OFFER\.id/);
 
   const offer = buyerServiceByPublicOfferId("agent-tools-access-review");
   assert.equal(offer?.name.en, "AI Agent Tools & Access Review");
@@ -80,8 +80,8 @@ test("English review intake can preserve the current workflow offer without revi
   assert.equal(buyerServiceFromRequestOffer(undefined, "Agent Action Security Review"), undefined);
   for (const locale of ["", "pl/"]) {
     const page = readFileSync(resolve(__dirname, `../app/${locale}review/request/page.tsx`), "utf8");
-    assert.match(page, /offerId === LEGACY_AGENT_ACTION_OFFER\.id/);
-    assert.match(page, /PRIMARY_OFFER\.id/);
+    assert.match(page, /resolveNewSalesPageQuery\(/);
+    assert.doesNotMatch(page, /offerId=\$\{PRIMARY_OFFER\.id\}/);
   }
 
   assert.equal(
@@ -120,10 +120,9 @@ test("Polish review intake preserves the same public workflow offer", () => {
     "utf8",
   );
 
-  assert.match(source, /const offerId = oneParam\(params\.offerId\)/);
-  assert.match(source, /const offer = oneParam\(params\.offer\)/);
-  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
-  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
+  assert.match(source, /resolveNewSalesPageQuery\(/);
+  assert.match(source, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.match(source, /Wybrana oferta: \{selectedOffer\.name\}/);
   assert.match(source, /Cena: \{selectedOffer\.price\}/);
+  assert.doesNotMatch(source, /PRIMARY_OFFER\.id/);
 });

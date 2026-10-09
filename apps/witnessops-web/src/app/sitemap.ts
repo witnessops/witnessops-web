@@ -32,15 +32,6 @@ const staticRoutes: StaticRoute[] = [
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
   { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
   {
-    route: "/catalog/workflows",
-    sourcePath: "src/app/(marketing)/catalog/workflows/page.tsx",
-  },
-  {
-    route: "/catalog/professional-public-footprint-audit",
-    sourcePath:
-      "src/app/(marketing)/catalog/professional-public-footprint-audit/page.tsx",
-  },
-  {
     route: "/catalog/offsec-external-exposure",
     sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
   },
@@ -60,10 +51,6 @@ const staticRoutes: StaticRoute[] = [
       : [],
   ),
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
-  {
-    route: "/customer-security-review",
-    sourcePath: "src/app/customer-security-review/page.tsx",
-  },
   { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
   {
     route: "/review/sample-cases",
@@ -143,15 +130,7 @@ const staticRoutes: StaticRoute[] = [
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
   { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
-  {
-    route: "/pl/catalog/professional-public-footprint-audit",
-    sourcePath: "src/app/pl/catalog/professional-public-footprint-audit/page.tsx",
-  },
   { route: "/pl/library", sourcePath: "src/app/pl/library/page.tsx" },
-  {
-    route: "/pl/customer-security-review",
-    sourcePath: "src/app/pl/customer-security-review/page.tsx",
-  },
   ...getPolishSkus().map(({ id }) => ({
     route: `/pl/catalog/${id.toLowerCase()}`,
     sourcePath: "src/app/pl/catalog/[skuId]/page.tsx",
