@@ -86,6 +86,11 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
   );
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "What can your AI agent actually do in production?");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalQuestion, "What can the internet see that you didn’t mean to expose?");
+  assert.match(HOMEPAGE_TWO_OFFER_COPY.en.aiDescription, /explicit unknowns/);
+  assert.doesNotMatch(
+    `${HOMEPAGE_TWO_OFFER_COPY.en.aiDescription} ${HOMEPAGE_TWO_OFFER_COPY.en.externalScopeNote}`,
+    /10 working days|3 working days|€550|550 €|fixed quote after scope/,
+  );
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500 fixed · excluding VAT");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalPrice, "€1,900 fixed · excluding VAT");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "Evidence survives the dashboard.");

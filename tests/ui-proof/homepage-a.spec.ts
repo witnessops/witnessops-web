@@ -30,7 +30,7 @@ for (const width of [390, 1440]) {
     const external = page.locator('[data-home-offer="external-exposure-assessment"]');
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
     await expect(agent).toContainText("What can your AI agent actually do in production?");
-    await expect(agent).toContainText("Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations and a readout.");
+    await expect(agent).toContainText("Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations, explicit unknowns and a readout.");
     await expect(agent).toContainText("€2,500 fixed · excluding VAT");
     await expect(agent.getByRole("link", { name: "Scope an AI review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
