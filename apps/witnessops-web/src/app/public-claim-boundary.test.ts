@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
-import { createElement } from "react";
+import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import PricingPage from "@/app/(marketing)/pricing/page";
+import HomePage from "@/app/page";
+import PolishHomePage from "@/app/pl/page";
 import { SimpleHomepage } from "@/components/marketing/simple-homepage";
 
 const webRoot = resolve(__dirname, "../..");
@@ -124,6 +126,13 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "non-secret fit check",
 ] as const;
 
+const POLISH_HOMEPAGE_BOUNDARY_MARKERS = [
+  "nie potwierdza rzeczywistej operacji u dostawcy",
+  "fikcyjny przykład",
+  "nie testowano systemu",
+  "to nie jest przegląd",
+] as const;
+
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/why-witnessops.tsx",
   "src/lib/buyer-services.ts",
@@ -150,6 +159,16 @@ function readPublicClaimSources(): Array<{ path: string; content: string }> {
 
 const HOMEPAGE_COPY_SOURCE = "src/components/marketing/homepage-two-offer-copy.ts";
 const RENDERED_HOMEPAGE_SOURCE = "rendered:/";
+const RENDERED_POLISH_HOMEPAGE_SOURCE = "rendered:/pl";
+
+const appRouter = {
+  back() {},
+  forward() {},
+  refresh() {},
+  push() {},
+  replace() {},
+  prefetch() {},
+};
 
 const HOMEPAGE_COPY_EVIDENCE_BOUNDARIES = [
   "this is not a penetration test. one focused retest of reported findings is included within 30 calendar days of initial report handover.",
@@ -180,30 +199,38 @@ function prohibitedClaimsIn(content: string): string[] {
   );
 }
 
-function renderHomepage(): string {
+function renderRoute(page: ReactNode): string {
   return renderToStaticMarkup(
     createElement(
       AppRouterContext.Provider,
-      {
-        value: {
-          back() {},
-          forward() {},
-          refresh() {},
-          push() {},
-          replace() {},
-          prefetch() {},
-        },
-      },
-      createElement(SimpleHomepage),
+      { value: appRouter },
+      page,
     ),
   );
+}
+
+/** English homepage route (`src/app/page.tsx`), including its JSON-LD. */
+function renderHomepage(): string {
+  return renderRoute(createElement(HomePage));
+}
+
+/** Polish homepage route (`src/app/pl/page.tsx`), including its JSON-LD. */
+function renderPolishHomepage(): string {
+  return renderRoute(createElement(PolishHomePage));
 }
 
 function claimSurfaces(): Array<{ path: string; content: string }> {
   return [
     ...readPublicClaimSources(),
     { path: RENDERED_HOMEPAGE_SOURCE, content: renderHomepage() },
+    { path: RENDERED_POLISH_HOMEPAGE_SOURCE, content: renderPolishHomepage() },
   ];
+}
+
+function boundaryMarkersFor(path: string): readonly string[] {
+  return path === RENDERED_POLISH_HOMEPAGE_SOURCE
+    ? POLISH_HOMEPAGE_BOUNDARY_MARKERS
+    : REQUIRED_BOUNDARY_MARKERS;
 }
 
 function missingBoundaries(content: string, markers: readonly string[]): string[] {
@@ -245,7 +272,7 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
     const content = normalize(
       source.path === pricingSource ? pricingHtml : source.content,
     );
-    const hasBoundary = REQUIRED_BOUNDARY_MARKERS.some((marker) =>
+    const hasBoundary = boundaryMarkersFor(source.path).some((marker) =>
       content.includes(marker.toLowerCase()),
     );
     if (!hasBoundary) {
@@ -263,9 +290,51 @@ test("homepage copy source and rendered homepage keep evidence boundaries", () =
   const rendered = renderHomepage();
 
   assert.deepEqual(assessHomepageClaims(copy, rendered), []);
+  assert.match(rendered, /id="witnessops-organization"/);
+  assert.match(rendered, /type="application\/ld\+json"/);
   assert.ok(PUBLIC_CLAIM_SOURCES.includes(HOMEPAGE_COPY_SOURCE));
   assert.ok(
     PUBLIC_CLAIM_SOURCES.includes("src/components/marketing/simple-homepage.tsx"),
+  );
+});
+
+test("homepage claim guard scans the EN and PL route output, including JSON-LD", () => {
+  const en = renderHomepage();
+  const pl = renderPolishHomepage();
+  const innerOnly = renderToStaticMarkup(
+    createElement(
+      AppRouterContext.Provider,
+      { value: appRouter },
+      createElement(SimpleHomepage),
+    ),
+  );
+
+  assert.doesNotMatch(innerOnly, /witnessops-organization/);
+  assert.match(en, /engage@mail\.witnessops\.com/);
+  assert.doesNotMatch(en, /karol\.stefanski@/);
+  assert.doesNotMatch(pl, /karol\.stefanski@/);
+
+  for (const html of [en, pl]) {
+    assert.match(html, /id="witnessops-organization"/);
+    assert.match(html, /id="witnessops-website"/);
+    assert.match(html, /type="application\/ld\+json"/);
+    assert.match(html, /"@type":"Organization"/);
+    assert.match(html, /"@type":"WebSite"/);
+    const poisoned = html.replace(
+      '"@type":"Organization"',
+      '"@type":"Organization","description":"verified compliance"',
+    );
+    assert.ok(prohibitedClaimsIn(poisoned).includes("verified compliance"));
+  }
+
+  const surfaces = claimSurfaces();
+  assert.equal(
+    surfaces.find((surface) => surface.path === RENDERED_HOMEPAGE_SOURCE)?.content.includes("witnessops-organization"),
+    true,
+  );
+  assert.equal(
+    surfaces.find((surface) => surface.path === RENDERED_POLISH_HOMEPAGE_SOURCE)?.content.includes("witnessops-organization"),
+    true,
   );
 });
 

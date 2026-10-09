@@ -106,9 +106,9 @@ test("review request routes remain responsive, accessible, and usable", async ({
       expect(textareaBox?.height, `${scenario.path} mobile textarea height`).toBeGreaterThanOrEqual(128);
     }
 
-    await expect(page.locator("main")).toContainText("karol.stefanski@mail.witnessops.com");
-    const salesMail = page.locator('main a[href^="mailto:karol.stefanski@mail.witnessops.com"]');
-    await expect(salesMail.first()).toHaveText("karol.stefanski@mail.witnessops.com");
+    await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
+    const salesMail = page.locator('main a[href^="mailto:engage@mail.witnessops.com"]');
+    await expect(salesMail.first()).toHaveText("engage@mail.witnessops.com");
 
     await submit.click();
     await expect(form.locator("[aria-invalid=true]")).toHaveCount(requiredFields.length);

@@ -14,9 +14,9 @@ test("Polish contact route localizes buyer guidance and preserves contact contra
     /href="\/pl\/review\/request"/,
   );
   assert.match(html, /Kontakt zapasowy:/);
-  assert.match(html, /href="mailto:karol\.stefanski@mail\.witnessops\.com\?subject=/);
-  assert.match(html, />karol\.stefanski@mail\.witnessops\.com</);
-  assert.doesNotMatch(html, /engage@mail\.witnessops\.com/);
+  assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=/);
+  assert.match(html, />engage@mail\.witnessops\.com</);
+  assert.doesNotMatch(html, /karol\.stefanski@/);
   assert.match(html, /Nie wysyłaj haseł/);
   assert.doesNotMatch(html, /Opowiedz nam, co się wydarzyło/);
   assert.doesNotMatch(html, /Tell us what happened|engage@witnessops\.com/);
@@ -32,9 +32,9 @@ test("English contact route leaves the service choice open", () => {
     /href="\/review\/request"/,
   );
   assert.match(html, /Discuss a review:/);
-  assert.match(html, /href="mailto:karol\.stefanski@mail\.witnessops\.com\?subject=/);
-  assert.match(html, />karol\.stefanski@mail\.witnessops\.com</);
-  assert.doesNotMatch(html, /engage@mail\.witnessops\.com/);
+  assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=/);
+  assert.match(html, />engage@mail\.witnessops\.com</);
+  assert.doesNotMatch(html, /karol\.stefanski@/);
   assert.match(html, /underline decoration-brand-accent\/50/);
   assert.doesNotMatch(html, /Tell us what happened/);
 });
@@ -55,8 +55,9 @@ test("compact footer contact route exposes a clear primary action", () => {
   assert.match(html, /border-brand-accent bg-brand-accent/);
   assert.match(html, /text-text-inverse/);
   assert.match(html, /Discuss a review:/);
-  assert.match(html, /href="mailto:karol\.stefanski@mail\.witnessops\.com\?subject=/);
-  assert.match(html, />karol\.stefanski@mail\.witnessops\.com</);
+  assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=/);
+  assert.match(html, />engage@mail\.witnessops\.com</);
+  assert.doesNotMatch(html, /karol\.stefanski@/);
   assert.match(html, /Do not send passwords/);
   assert.doesNotMatch(html, /No secrets/);
 });
@@ -69,6 +70,9 @@ test("Polish compact footer preserves checking, scope and contact semantics", ()
   assert.match(html, /href="\/pl\/review\/request"/);
   assert.match(html, /Pomoc eksperta/);
   assert.match(html, /Nie wysyłaj haseł/);
+  assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=/);
+  assert.match(html, />engage@mail\.witnessops\.com</);
+  assert.doesNotMatch(html, /karol\.stefanski@/);
 });
 
 test("contact route preserves an explicitly selected offer request", () => {

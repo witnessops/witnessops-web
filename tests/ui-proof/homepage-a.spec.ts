@@ -58,8 +58,8 @@ for (const width of [390, 1440]) {
     await expect(specimen).toContainText("No customer, execution, verification, authorisation failure or result is shown.");
     await expect(page.locator("main")).not.toContainText(/FIRST 10|No\. 0042|free while in Early Access|€49|€149/);
     await expect(hero).not.toContainText(/One Server Security Check|External Attack Surface Review/);
-    await expect(page.locator("[data-homepage-contact]")).toHaveText("Discuss a review: karol.stefanski@mail.witnessops.com");
-    await expect(page.locator('[data-homepage-contact] a')).toHaveAttribute("href", "mailto:karol.stefanski@mail.witnessops.com");
+    await expect(page.locator("[data-homepage-contact]")).toHaveText("Discuss a review: engage@mail.witnessops.com");
+    await expect(page.locator('[data-homepage-contact] a')).toHaveAttribute("href", "mailto:engage@mail.witnessops.com");
     await expect(page.locator("main")).toContainText("Monitor continuously");
     await expect(page.locator("main")).toContainText("Replace a penetration test");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
