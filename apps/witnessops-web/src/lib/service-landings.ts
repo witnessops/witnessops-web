@@ -118,6 +118,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Authority map for the named action.",
       "Execution path and permission boundary.",
       "Evidence chain with control gaps and practical fixes.",
+      "Explicit unknowns.",
       "Readout for the owning team.",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
@@ -125,7 +126,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
       ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 fixed excluding VAT."],
       ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
-      ["Report and readout", "Handover within 10 working days after evidence rules are agreed. Your team owns remediation decisions."],
+      ["Report and readout", "Delivery timing per signed SOW. Your team owns remediation decisions."],
     ],
     boundaries: [
       "One consequential agent or automation action only; multi-workflow programmes need a separate quote.",
@@ -200,7 +201,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
       ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
       ["Review", "Use passive discovery where applicable, then perform only the explicitly approved, low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks against the signed target schedule. Manually validate, deduplicate, prioritise, and link findings to evidence."],
-      ["Delivery and retest", "Deliver the reports and inspection package within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, then retest the agreed reported findings once within 30 days."],
+      ["Delivery and retest", "Deliver the reports and inspection package. Delivery timing per signed SOW. Then retest the agreed reported findings once within 30 calendar days of report handover."],
     ],
     boundaries: [
       "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",
@@ -209,7 +210,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.`,
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 calendar days of report handover is included.`,
     primaryCta: "Request this review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "See a sample review",
@@ -468,6 +469,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Mapa upoważnień dla wskazanego działania.",
       "Ścieżka wykonania i granica uprawnień.",
       "Łańcuch dowodowy z lukami kontrolnymi i praktycznymi poprawkami.",
+      "Jawne niewiadome.",
       "Omówienie wyniku dla odpowiedzialnego zespołu.",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
@@ -475,7 +477,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Niepoufna ocena", "Nazwij istotne działanie, systemy i termin decyzji. Bez poświadczeń, sekretów i danych produkcyjnych."],
       ["Stały zakres i upoważnienie", "Potwierdź działanie, zasady dowodowe, odbiorców, cenę i obsługę w zaakceptowanej umowie. Opłata to €2 500 stała bez VAT."],
       ["Ręczna rekonstrukcja", "Odczyt, inspekcja, rekonstrukcja i raport na uzgodnionych dowodach. Bez wykonania przeglądanego działania."],
-      ["Raport i omówienie", "Przekazanie w ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych. Decyzje o naprawach należą do Twojego zespołu."],
+      ["Raport i omówienie", "Termin realizacji według podpisanego SOW. Decyzje o naprawach należą do Twojego zespołu."],
     ],
     boundaries: [
       "Tylko jedno istotne działanie agenta lub automatyzacji; programy obejmujące wiele workflow wymagają osobnej wyceny.",
@@ -553,7 +555,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Zamówienie", "Wskaż autoryzowany system dostępny z internetu i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Podaj podstawę upoważnienia, ale nie wysyłaj sekretów ani materiałów produkcyjnych."],
       ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
       ["Przegląd", "Tam, gdzie ma to zastosowanie, wykorzystujemy pasywne wykrywanie, a następnie wykonujemy wyłącznie jawnie zatwierdzone kontrole niskiego ryzyka zgodnie z podpisanym harmonogramem celów. Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
-      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
+      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia. Termin realizacji według podpisanego SOW. Następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni kalendarzowych od przekazania raportu."],
     ],
     boundaries: [
       "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware, zbierania danych klientów i eksfiltracji danych.",
@@ -562,7 +564,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni kalendarzowych od przekazania raportu jest wliczony.`,
     primaryCta: "Zapytaj o przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz przykładowy przegląd (EN)",

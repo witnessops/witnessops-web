@@ -22,7 +22,7 @@ New paid-review discovery and selection must converge on exactly:
 | Public name | Existing service identity | Existing request mapping | Commercial terms |
 | --- | --- | --- | --- |
 | AI Agent Tools & Access Review | `agent-tools-access-review` | `offerId=agent-tools-access-review` | Starting at EUR 2,500 excluding VAT; fixed quote after exact scope; target 10 working days after all documented start gates |
-| External Attack Surface Review | `external-exposure-assessment` | `productId=OFFSEC-EXTERNAL-EXPOSURE` | EUR 1,900 excluding VAT; fixed bounded package; initial handover within 3 working days after all documented start gates |
+| External Attack Surface Review | `external-exposure-assessment` | `productId=OFFSEC-EXTERNAL-EXPOSURE` | EUR 1,900 excluding VAT; fixed bounded package; delivery timing per signed SOW |
 
 Retain the current names, source-bounded scope and existing technical identities.
 This is a portfolio/discovery change, not a rename or a new product/SKU.
@@ -46,12 +46,11 @@ or authenticated testing. It is not a penetration test.
 
 ## Approved clarification for new external engagements
 
-The included focused retest window is **30 calendar days beginning at initial
-report handover**. Retest remains limited to reported findings. The included
-45-minute handover and EUR 550 excluding VAT additional/late retest term remain.
-This clarifies a previously unnamed window anchor; it does not rewrite already
-accepted customer agreements. Historical terms retain their original meaning.
-Do not add a separate retest product or checkout.
+The included focused retest is **one retest within 30 calendar days of report
+handover**. Retest remains limited to reported findings. Delivery timing is per
+signed SOW. An additional or late retest price is not published. This does not
+rewrite already accepted customer agreements. Historical terms retain their
+original meaning. Do not add a separate retest product or checkout.
 
 ## Buyer copy anchors
 
@@ -147,8 +146,8 @@ not authorization to present a third or different paid offer.
 
 | Public paid review | Commercial source contract | Approved buyer promise |
 | --- | --- | --- |
-| **Agent Action Security Review** | [Historical one-action contract](./16-agent-workflow-reconstruction-offer.md), selected again for commercial presentation; original `bounded-workflow-review` identity remains historical pending technical mapping | **EUR 2,500 fixed, excluding VAT**; one bounded consequential agent/automation action; authority, executing identity, approval/permission boundary, action/evidence path, prioritized findings and readout; delivery within 10 working days after evidence rules and customer-specific start conditions are agreed. |
-| **External Attack Surface Review** | [Existing external contract](./10-public-exposure-review-offer.md); `external-exposure-assessment`, product `OFFSEC-EXTERNAL-EXPOSURE` | **EUR 1,900 fixed, excluding VAT**; one authorised public-facing system, agreed low-impact unauthenticated scope and existing caps/exclusions; three working days after all documented start gates; one focused retest within 30 calendar days of initial report handover, subject to accepted new-engagement terms. |
+| **Agent Action Security Review** | [Historical one-action contract](./16-agent-workflow-reconstruction-offer.md), selected again for commercial presentation; original `bounded-workflow-review` identity remains historical pending technical mapping | **EUR 2,500 fixed, excluding VAT**; one bounded consequential agent/automation action; authority, executing identity, approval/permission boundary, action/evidence path, prioritized findings, explicit unknowns and readout; delivery timing per signed SOW. |
+| **External Attack Surface Review** | [Existing external contract](./10-public-exposure-review-offer.md); `external-exposure-assessment`, product `OFFSEC-EXTERNAL-EXPOSURE` | **EUR 1,900 fixed, excluding VAT**; one authorised public-facing system, agreed low-impact unauthenticated scope and existing caps/exclusions; delivery timing per signed SOW; one focused retest within 30 calendar days of report handover, subject to accepted new-engagement terms. |
 
 The AI decision explicitly selects the **one-action, fixed-price scope**.
 It does **not** silently rename or relabel the distinct

@@ -39,6 +39,7 @@ for (const width of [390, 1440]) {
     await expect(external).toContainText("€1,900 fixed · excluding VAT");
     await expect(external).toContainText("Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.");
     await expect(external.getByRole("link", { name: "Scope an external review" })).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
+    await expect(page.locator("[data-home-offer]")).not.toContainText(/10 working days|3 working days|€550|550 €/);
     for (const offer of [agent, external]) {
       await expect(offer).not.toContainText("Internet Footprint");
       await expect(offer).not.toContainText("AI Agent Tools & Access Review");

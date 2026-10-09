@@ -137,10 +137,18 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.requiredMarkers.includes("The app cannot"));
   assert.ok(english.requiredMarkers.includes("Record one bounded check"));
   assert.ok(english.requiredMarkers.includes("Not a review."));
+  assert.equal(english.requiredMarkers.includes("Delivery timing per signed SOW"), false);
+  assert.ok(english.prohibitedMarkers?.includes("10 working days"));
+  assert.ok(english.prohibitedMarkers?.includes("3 working days"));
+  assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Omów przegląd agenta AI"));
   assert.ok(polish.requiredMarkers.includes("Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy."));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
+  assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
+  assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
+  assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
+  assert.ok(polish.prohibitedMarkers?.includes("€550"));
 });
 
 test("English Skill Library smoke follows the exact-byte library contract", () => {
@@ -180,11 +188,10 @@ test("catalogue smoke preserves the two public review request paths", () => {
     "Two focused security reviews.",
     "Agent Action Security Review",
     "€2,500 fixed · excluding VAT",
-    "Within 10 working days after evidence rules are agreed",
+    "Delivery timing per signed SOW",
     "Scope an AI review",
     "External Attack Surface Review",
     "€1,900 · excluding VAT",
-    "Within 3 working days after payment in full",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),

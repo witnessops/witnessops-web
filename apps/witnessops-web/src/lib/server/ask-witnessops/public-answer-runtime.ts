@@ -68,7 +68,7 @@ const PUBLIC_SOURCES = [
         ? { included: PUBLIC_AGENT_ACTION_OFFER.included.en, not_included: PUBLIC_AGENT_ACTION_OFFER.notIncluded.en }
         : service.id === EXTERNAL_ATTACK_SURFACE_OFFER.id
           ? {
-              retest: "One focused retest of reported findings within 30 calendar days of initial report handover. An additional or late retest has a separate published price.",
+              retest: "One focused retest of reported findings within 30 calendar days of initial report handover.",
             }
           : {}),
     }),
@@ -83,7 +83,7 @@ const PUBLIC_SOURCES = [
     source_id: "public.agent-action-sample",
     public_label: "AI Agent Action Proof Run sample",
     canonical_href: "https://witnessops.com/review/sample-cases/ai-agent-action-proof-run",
-    excerpt: "The public key-rotation specimen is synthetic. Its sample-specific browser/offline verifier checks the fixed demo signer, evidence hashes, receipt references, authority, scope and declared synthetic rotation transition. It does not establish a real provider action, real credential compromise, source-system truth or production signing-key custody. A fictional review-input/findings example illustrates the paid review deliverable separately from this specimen. The paid review produces an action map, evidence-linked findings, prioritized fixes and a readout.",
+    excerpt: "The public key-rotation specimen is synthetic. Its sample-specific browser/offline verifier checks the fixed demo signer, evidence hashes, receipt references, authority, scope and declared synthetic rotation transition. It does not establish a real provider action, real credential compromise, source-system truth or production signing-key custody. A fictional review-input/findings example illustrates the paid review deliverable separately from this specimen. The paid review produces an action map, evidence-linked findings, prioritized fixes, explicit unknowns and a readout.",
   },
   {
     source_id: "public.reviewer",

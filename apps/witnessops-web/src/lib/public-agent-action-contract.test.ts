@@ -12,6 +12,7 @@ import {
   PUBLIC_PAID_REVIEW_IDS,
   publicPaidReviews,
 } from "./public-paid-reviews";
+import { getServiceLanding } from "./service-landings";
 
 test("new Agent Action public contract reuses the fixed one-action terms without reactivating the historical ID", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
@@ -24,8 +25,21 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing per signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Termin realizacji według podpisanego SOW");
+  assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.timing.en, LEGACY_AGENT_ACTION_OFFER.timing.en);
+  assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
+  assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.en.includes("Explicit unknowns"));
+  assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.pl.includes("Jawne niewiadome"));
   assert.ok(PUBLIC_AGENT_ACTION_OFFER.notIncluded.en.includes("Exploitation"));
+  for (const locale of ["en", "pl"] as const) {
+    const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
+    const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
+    assert.match(rendered, locale === "en" ? /Delivery timing per signed SOW/ : /Termin realizacji według podpisanego SOW/);
+    assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Jawne niewiadome/);
+    assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
+  }
 });
 
 test("the distinct inventory review retains its original identity and its different price model", () => {

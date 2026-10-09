@@ -20,7 +20,7 @@ const likelyWorkflowFit = {
     price_label: "€2,500 fixed · excluding VAT" as const,
     unit_label: "One consequential agent or automation action" as const,
     fit_check_label: "Non-secret fit check first" as const,
-    delivery_label: "Within 10 working days after evidence rules are agreed" as const,
+    delivery_label: "Delivery timing per signed SOW" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };

@@ -365,8 +365,10 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
   assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
   assert.match(
     askWitnessOpsAnswerText(answer),
-    /Within 10 working days after evidence rules are agreed/,
+    /Delivery timing per signed SOW/,
   );
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 fixed · excluding VAT/);
+  assert.doesNotMatch(askWitnessOpsAnswerText(answer), /fixed quote after scope|10 working days|€550/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
   assert.equal(
     askWitnessOpsModeLabel(answer),

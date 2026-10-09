@@ -117,7 +117,7 @@ function paidFallback(): AskWitnessOpsUiAnswer {
   return { ...answer(), schema: "witnessops.ask.assembled-answer.v1", answer_mode: "deterministic_fallback", fallback_reason: "ai_unavailable",
     commercial_fit: { ...answer().commercial_fit, result: "likely", offer_id: "agent-action-security-review", offer: {
       name: "Agent Action Security Review", price_label: "€2,500 fixed · excluding VAT", unit_label: "One consequential agent or automation action",
-      fit_check_label: "Non-secret fit check first", delivery_label: "Within 10 working days after evidence rules are agreed",
+      fit_check_label: "Non-secret fit check first", delivery_label: "Delivery timing per signed SOW",
     } } };
 }
 
@@ -135,7 +135,7 @@ test("assembled paid fallback remains visible without becoming history or a prop
 test("card identity deduplicates generated recommendations and distinguishes assembled offers", () => {
   const fallback = paidFallback();
   const generated = { ...answer(), recommendation: { service_id: "agent-action-security-review", name: "Agent Action Security Review",
-    price_label: "€2,500 fixed · excluding VAT", delivery_label: "Within 10 working days after evidence rules are agreed", detail_href: "/catalog", request_href: "/review/request?offerId=agent-action-security-review" } } satisfies AskWitnessOpsUiAnswer;
+    price_label: "€2,500 fixed · excluding VAT", delivery_label: "Delivery timing per signed SOW", detail_href: "/catalog", request_href: "/review/request?offerId=agent-action-security-review" } } satisfies AskWitnessOpsUiAnswer;
   assert.equal(shouldShowServiceCard(generated), true);
   assert.equal(shouldShowServiceCard(generated, generated), false);
   assert.equal(shouldShowServiceCard(generated, fallback), false);

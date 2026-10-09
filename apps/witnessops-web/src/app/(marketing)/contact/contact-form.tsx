@@ -388,7 +388,7 @@ export function ContactForm({
           ? `Rozpocznij ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}.`
           : `Start your ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}.`,
         fitBody: polish
-          ? "Wskaż jeden autoryzowany system dostępny z internetu i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
+          ? "Wskaż jeden autoryzowany system dostępny z internetu i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji. To nie jest test penetracyjny."
           : "Tell us which authorised internet-facing system needs an external attack-surface review. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test.",
         workflow: polish ? "System dostępny z internetu" : "Internet-facing system",
         workflowPlaceholder: polish
