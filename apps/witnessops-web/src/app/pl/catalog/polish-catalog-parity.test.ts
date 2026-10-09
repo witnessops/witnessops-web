@@ -118,6 +118,8 @@ test("catalogue details keep the primary canonical route and localized secondary
   assert.equal(workflow?.detailHref.en, "/catalog/workflows");
   assert.equal(workflow?.detailHref.pl, "/catalog/workflows");
 
+  // Agent Action Security Review has no detail route. /catalog/workflows stays
+  // the historical AI Agent Tools & Access Review record.
   const agentAction = BUYER_SERVICES.find(
     (service) => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID,
   );
