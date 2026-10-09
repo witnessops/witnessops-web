@@ -8,7 +8,8 @@ Write in email or PDF. Keep short. **Nothing starts until both sides accept.**
 
 ```text
 WitnessOps — Scope agreement
-Product: [CSR Sprint | One Server Security Check | AI Agent Tools & Access Review]
+Product: [Agent Action Security Review | External Attack Surface Review]
+Historical option, not for a new agreement: [CSR Sprint | One Server Security Check | AI Agent Tools & Access Review]
 Engagement ref: [id]
 Date: [ISO date]
 Customer: [legal or trading name]
@@ -46,7 +47,7 @@ WitnessOps contact: [name, email]
 - Deliverables: posture, findings, report, [proof package if agreed], walkthrough
 ```
 
-**AI Agent Tools & Access Review**
+**AI Agent Tools & Access Review (historical option — do not use for a new agreement)**
 
 ```text
 - Offer identity: agent-tools-access-review (not bounded-workflow-review)
@@ -86,13 +87,14 @@ Timing: [match public line or firm date after authority/inputs confirmed]
 Payment: [terms]
 ```
 
-For AI Agent Tools & Access Review, record a fixed fee after scope (starting
-at €2,500 excluding VAT) and payment in full before start by default. A larger
-scope or procurement exception needs explicit written payment and start terms.
-Target handover is 10 working days after both parties accept this same version,
-supplier/tax/contract/payment route are confirmed, payment clears under default
-terms, authority and recipient list are recorded, and minimum inputs or a
-read-only window are available. Record the actual start date and any pause.
+Current paid reviews, for a new agreement:
+
+- Agent Action Security Review: €2,500 excluding VAT.
+- External Attack Surface Review: €1,900 excluding VAT, with one retest within 30 calendar days of report handover.
+
+Delivery timing agreed in the signed statement of work.
+
+AI Agent Tools & Access Review, CSR Sprint and One Server Security Check are historical options. Do not copy their former quote or handover wording into a new agreement. Existing agreements under those offers keep the terms already signed. Record the actual start date and any pause.
 
 ---
 

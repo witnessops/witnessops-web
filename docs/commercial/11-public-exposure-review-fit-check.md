@@ -59,7 +59,7 @@ All of the following should be true:
 - It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
-- The deadline allows three working days after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.
+- The deadline allows the delivery timing agreed in the signed statement of work after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed. Delivery timing agreed in the signed statement of work.
 
 ### Custom scope or referral
 
@@ -89,11 +89,9 @@ a custom-scope request / not a fit] because [one specific boundary reason].
 The review covers one authorised internet-facing system within the 1-root-domain /
 10-hostname / 3-IP / 20-endpoint caps. It uses passive discovery where applicable,
 followed by explicitly approved, low-impact checks against the signed target schedule.
-The fixed fee is €1,900 excluding VAT. Payment is due in full before the delivery clock
-starts. Payment alone does not authorise testing. Delivery is due within three working days
-after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and
-the approved collection window are confirmed.
-One focused retest within 30 days is included.
+The fixed fee is €1,900 excluding VAT, with one retest within 30 calendar days of report handover.
+Payment is due in full before the delivery clock starts. Payment alone does not authorise testing.
+Delivery timing agreed in the signed statement of work.
 
 Next we will send the fixed-scope statement of work and target/check schedule. Do not
 send evidence or access details until that document and the handling route are agreed.
