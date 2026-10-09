@@ -69,8 +69,12 @@ test("Polish homepage keeps the own-system case and localized docs destination e
     await expect(page.locator(selector)).toHaveAttribute("content", /Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy/);
   }
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu.");
-  await expect(page.locator("[data-home-offer]")).toContainText("Termin realizacji według podpisanego SOW");
-  await expect(page.locator("[data-home-offer]")).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€550|550 €/);
+  const offers = page.locator("[data-home-offer]");
+  await expect(offers).toHaveCount(2);
+  for (const offer of await offers.all()) {
+    await expect(offer).toContainText("Termin realizacji według podpisanego SOW");
+    await expect(offer).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€550|550 €/);
+  }
   const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true });
   await expect(docsEntry).toBeVisible();
   await expect(docsEntry).toHaveAttribute("href", "/pl/docs");
