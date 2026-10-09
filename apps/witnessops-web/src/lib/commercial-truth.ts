@@ -151,6 +151,38 @@ export const LEGACY_AGENT_ACTION_OFFER = {
 export const PUBLIC_AGENT_ACTION_OFFER = {
   ...LEGACY_AGENT_ACTION_OFFER,
   id: "agent-action-security-review",
+  commercialContract: {
+    price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
+    timing: "delivery_timing_per_signed_sow",
+  },
+  timing: {
+    en: "Delivery timing per signed SOW",
+    pl: "Termin realizacji według podpisanego SOW",
+  },
+  result: {
+    en: "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritized recommendations, explicit unknowns and a readout.",
+    pl: "Sprawdź uprawnienia, zatwierdzanie i dowody wykonania jednego działania. Otrzymasz mapę działania, ustalenia ze źródłami, zalecenia według priorytetu, jawne niewiadome i omówienie.",
+  },
+  included: {
+    en: [
+      "Authority map",
+      "Execution path",
+      "Permission boundary",
+      "Evidence chain",
+      "Control gaps and practical fixes",
+      "Explicit unknowns",
+      "Readout",
+    ],
+    pl: [
+      "Mapa upoważnień",
+      "Ścieżka wykonania",
+      "Granica uprawnień",
+      "Łańcuch dowodowy",
+      "Luki kontrolne i praktyczne poprawki",
+      "Jawne niewiadome",
+      "Omówienie wyniku",
+    ],
+  },
 } as const;
 
 /** Current distinct commercial offer; route continuity does not imply ID continuity. */
