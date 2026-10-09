@@ -277,6 +277,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     vatIncluded: false,
     ...publicB2bPrice("€1,900", "€1 900"),
   },
+  // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {
     amount: "550",
     currency: "EUR",
