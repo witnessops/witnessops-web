@@ -23,12 +23,12 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
     en: {
       inputs: "Name the consequential agent or automation action, the systems it can affect and the decision deadline. Do not send credentials, secrets or production data in this form.",
       access: "A later accepted agreement sets evidence rules, recipients and handling. Work is read, inspect, reconstruct and report only; never paste credentials into the enquiry.",
-      after: "You receive an authority map, execution path, evidence chain, prioritized fixes and a readout. Your team owns remediation; additional actions need a separate quote.",
+      after: "You receive an authority map, execution path, evidence chain, prioritized fixes, explicit unknowns and a readout. Your team owns remediation; additional actions need a separate quote.",
     },
     pl: {
       inputs: "Nazwij istotne działanie agenta lub automatyzacji, systemy, na które może wpłynąć, oraz termin decyzji. Nie przesyłaj w formularzu poświadczeń, sekretów ani danych produkcyjnych.",
       access: "Późniejsza zaakceptowana umowa ustala zasady dowodowe, odbiorców i obsługę materiałów. Praca to tylko odczyt, inspekcja, rekonstrukcja i raport; nigdy nie wklejaj danych logowania do zgłoszenia.",
-      after: "Otrzymasz mapę upoważnień, ścieżkę wykonania, łańcuch dowodowy, priorytety poprawek i omówienie. Twój zespół odpowiada za naprawy; kolejne działania wymagają osobnej wyceny.",
+      after: "Otrzymasz mapę upoważnień, ścieżkę wykonania, łańcuch dowodowy, priorytety poprawek, jawne niewiadome i omówienie. Twój zespół odpowiada za naprawy; kolejne działania wymagają osobnej wyceny.",
     },
   },
   "customer-security-review-sprint": {

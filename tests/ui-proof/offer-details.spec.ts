@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
     price: "€1,900 · excluding VAT",
-    timing: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+    timing: "Delivery timing per signed SOW",
     request: "/review/request",
   },
   {
@@ -70,7 +70,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
     price: "€1 900 · bez VAT",
-    timing: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
+    timing: "Termin realizacji według podpisanego SOW",
     request: "/pl/review/request",
   },
   {
