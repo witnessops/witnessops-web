@@ -136,9 +136,17 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.requiredMarkers.includes("The app cannot"));
   assert.ok(english.requiredMarkers.includes("Record one bounded check"));
   assert.ok(english.requiredMarkers.includes("Not a review."));
+  assert.ok(english.requiredMarkers.includes("Delivery timing per signed SOW"));
+  assert.ok(english.prohibitedMarkers?.includes("10 working days"));
+  assert.ok(english.prohibitedMarkers?.includes("3 working days"));
+  assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Sprawdź narzędzia i dostęp agenta AI"));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
+  assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
+  assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
+  assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
+  assert.ok(polish.prohibitedMarkers?.includes("€550"));
 });
 
 test("English Skill Library smoke follows the exact-byte library contract", () => {
@@ -173,7 +181,7 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
   const catalogue = routeContract("/catalog");
   assert.ok(
     catalogue.requiredMarkers.some((marker) =>
-      marker.includes("Within 3 working days after payment in full"),
+      marker.includes("Delivery timing per signed SOW"),
     ),
   );
 });

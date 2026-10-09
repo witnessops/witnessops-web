@@ -33,8 +33,8 @@ export function escapeAmpersandsForHtml(value: string): string {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
+    requiredMarkers: ["WitnessOps", "Understand what your agents can do and what your systems expose.", "WitnessOps provides focused security reviews for AI agents and internet-facing systems.", "Know what your AI agent can reach—before you rely on it.", "See what your internet-facing system exposes—and what needs attention.", "Scope an AI review", "Scope an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, PUBLIC_AGENT_ACTION_OFFER.timing.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, EXTERNAL_ATTACK_SURFACE_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.timing.en, "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
     path: "/catalog/automation-repair",
@@ -65,7 +65,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Within two business days after the authorised collection window",
       "External Attack Surface Review",
       "€1,900 · excluding VAT",
-      "Within 3 working days after payment in full",
+      "Delivery timing per signed SOW",
       "Launch Readiness Check",
       "Four business days after candidate collection",
       "Key, Access and Custody Review",
@@ -359,8 +359,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Znajdź luki w bezpieczeństwie swoich systemów.", "Sprawdź narzędzia i dostęp agenta AI", "Zweryfikuj lub napraw proces", "Fikcyjny przykład · Nie testowano systemu", "Omów zakres przeglądu"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500"],
+    requiredMarkers: ["Znajdź luki w bezpieczeństwie swoich systemów.", "Sprawdź narzędzia i dostęp agenta AI", "Zweryfikuj lub napraw proces", "Fikcyjny przykład · Nie testowano systemu", "Omów zakres przeglądu", "Termin realizacji według podpisanego SOW"],
+    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "10 dni roboczych", "3 dni roboczych", "€550", "550 €"],
   },
   {
     path: "/pl/catalog",
@@ -379,7 +379,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Standardowo 4 100 zł (ok. €950) · bez VAT",
       "External Attack Surface Review",
       "€1 900 · bez VAT",
-      "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności",
+      "Termin realizacji według podpisanego SOW",
       "Cztery dni robocze po zebraniu kandydata do wydania",
       "Key, Access and Custody Review",
       "Incident Readiness Review",
@@ -441,7 +441,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Review one authorised internet-facing system.",
       "€1,900 · excluding VAT",
       "No sales call required.",
-      "Within 3 working days",
+      "Delivery timing per signed SOW",
       "One authorised public-facing system",
       "Inside that accepted system boundary: up to 1 registrable root domain",
       "Public cloud-hosted services can be included",

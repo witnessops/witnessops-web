@@ -71,7 +71,9 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     const publicExposureCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
     await expect(publicExposureCard).toContainText("External Attack Surface Review");
     await expect(publicExposureCard).toContainText(polish ? "€1 900 · bez VAT" : "€1,900 · excluding VAT");
-    await expect(publicExposureCard).toContainText(polish ? "W ciągu 3 dni roboczych" : "Within 3 working days");
+    await expect(publicExposureCard).toContainText(polish ? "Termin realizacji według podpisanego SOW" : "Delivery timing per signed SOW");
+    await expect(publicExposureCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|3 dni roboczych|€550|550 €/);
+    await expect(agentActionCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|€550|550 €/);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal|Internet Footprint Review|Early Bird|€500/);
 
     for (const [index, id] of expectedServiceOrder.entries()) {
@@ -136,7 +138,8 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
   const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
   await expect(card).toContainText("€1,900 · excluding VAT");
-  await expect(card).toContainText("One focused retest within 30 days is included");
+  await expect(card).toContainText("One focused retest within 30 calendar days of report handover is included");
+  await expect(card).not.toContainText(/3 working days|three working days|€550|550 €/);
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
   await expect(card).toContainText(/payment alone does not authorise testing/i);
   await expect(card).toContainText("This is not a penetration test");

@@ -34,6 +34,8 @@ for (const width of [390, 1440]) {
     await expect(agent).toContainText("Know what your AI agent can reach—before you rely on it.");
     await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
     await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.price.en);
+    await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.timing.en);
+    await expect(page.locator("[data-home-offer]")).not.toContainText(/10 working days|3 working days|€550|550 €/);
     await expect(external).toContainText("See what your internet-facing system exposes—and what needs attention.");
     await expect(page.locator("[data-home-offer]")).not.toContainText("Internet Footprint");
     await expect(page.locator("[data-home-offer]")).not.toContainText("AI Agent Tools & Access Review");
