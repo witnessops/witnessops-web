@@ -10,6 +10,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { generateMetadata as englishCatalogMetadata } from "@/app/(marketing)/catalog/[skuId]/page";
 import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
+import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
+import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
+import CustomerSecurityReviewPage from "@/app/customer-security-review/page";
+import PolishCustomerSecurityReviewPage from "@/app/pl/customer-security-review/page";
 import { metadata as englishCatalogIndexMetadata } from "@/app/(marketing)/catalog/page";
 import { metadata as englishFootprintMetadata } from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
 import { metadata as englishCustomerSecurityMetadata } from "@/app/customer-security-review/page";
@@ -107,10 +111,10 @@ test("historical offer pages are noindex and current offer pages stay indexable"
 test("rendered historical pages keep their record banner and emit no held-term JSON-LD", () => {
   const rendered = [
     render(createElement(CatalogWorkflowsPage)),
-    render(createElement(require("@/app/(marketing)/catalog/professional-public-footprint-audit/page").default)),
-    render(createElement(require("@/app/pl/catalog/professional-public-footprint-audit/page").default)),
-    render(createElement(require("@/app/customer-security-review/page").default)),
-    render(createElement(require("@/app/pl/customer-security-review/page").default)),
+    render(createElement(ProfessionalPublicFootprintAuditPage)),
+    render(createElement(PolishProfessionalPublicFootprintAuditPage)),
+    render(createElement(CustomerSecurityReviewPage)),
+    render(createElement(PolishCustomerSecurityReviewPage)),
   ];
   const banners = [
     "This review is not offered for new engagements.",
@@ -156,6 +160,24 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     assert.ok(source.includes(CURRENT_TIMING));
     assert.doesNotMatch(source, HELD_TERM);
   }
+  for (const file of [
+    "docs/commercial/06-scope-agreement-skeleton.md",
+    "docs/commercial/10-public-exposure-review-offer.md",
+    "docs/commercial/11-public-exposure-review-fit-check.md",
+  ]) {
+    const source = readFileSync(resolve(repoRoot, file), "utf8");
+    assert.ok(source.includes(CURRENT_TIMING), file);
+    assert.match(source, /€1,900 excluding VAT/);
+    assert.doesNotMatch(source, HELD_TERM, file);
+  }
+  assert.match(
+    readFileSync(resolve(repoRoot, "docs/commercial/06-scope-agreement-skeleton.md"), "utf8"),
+    /€2,500 excluding VAT/,
+  );
+  assert.match(
+    readFileSync(resolve(repoRoot, "docs/commercial/10-public-exposure-review-offer.md"), "utf8"),
+    /HELD — not offered, pending founder decision/,
+  );
   for (const locale of ["en", "pl"] as const) {
     const html = render(
       createElement(ContactForm, { locale, intent: "agent-tools-access-review" }),
