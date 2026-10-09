@@ -269,8 +269,9 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
 
 test("remaining held-term hits are historical records, held marks, or test fixtures", () => {
   const output = execFileSync(
-    "rg",
+    "git",
     [
+      "grep",
       "-l",
       "-e",
       "3 working days",
@@ -286,13 +287,8 @@ test("remaining held-term hits are historical records, held marks, or test fixtu
       "€550",
       "-e",
       "7–10",
-      "--glob",
-      "!node_modules/**",
-      "--glob",
-      "!.next/**",
-      repoRoot,
     ],
-    { encoding: "utf8" },
+    { cwd: repoRoot, encoding: "utf8" },
   );
   const files = output
     .split("\n")
