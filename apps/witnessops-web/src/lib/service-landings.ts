@@ -118,6 +118,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Authority map for the named action.",
       "Execution path and permission boundary.",
       "Evidence chain with control gaps and practical fixes.",
+      "Explicit unknowns.",
       "Readout for the owning team.",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
@@ -125,7 +126,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
       ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 fixed excluding VAT."],
       ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
-      ["Report and readout", "Handover within 10 working days after evidence rules are agreed. Your team owns remediation decisions."],
+      ["Report and readout", "Delivery timing per signed SOW. Your team owns remediation decisions."],
     ],
     boundaries: [
       "One consequential agent or automation action only; multi-workflow programmes need a separate quote.",
@@ -468,6 +469,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Mapa upoważnień dla wskazanego działania.",
       "Ścieżka wykonania i granica uprawnień.",
       "Łańcuch dowodowy z lukami kontrolnymi i praktycznymi poprawkami.",
+      "Jawne niewiadome.",
       "Omówienie wyniku dla odpowiedzialnego zespołu.",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
@@ -475,7 +477,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Niepoufna ocena", "Nazwij istotne działanie, systemy i termin decyzji. Bez poświadczeń, sekretów i danych produkcyjnych."],
       ["Stały zakres i upoważnienie", "Potwierdź działanie, zasady dowodowe, odbiorców, cenę i obsługę w zaakceptowanej umowie. Opłata to €2 500 stała bez VAT."],
       ["Ręczna rekonstrukcja", "Odczyt, inspekcja, rekonstrukcja i raport na uzgodnionych dowodach. Bez wykonania przeglądanego działania."],
-      ["Raport i omówienie", "Przekazanie w ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych. Decyzje o naprawach należą do Twojego zespołu."],
+      ["Raport i omówienie", "Termin realizacji według podpisanego SOW. Decyzje o naprawach należą do Twojego zespołu."],
     ],
     boundaries: [
       "Tylko jedno istotne działanie agenta lub automatyzacji; programy obejmujące wiele workflow wymagają osobnej wyceny.",
