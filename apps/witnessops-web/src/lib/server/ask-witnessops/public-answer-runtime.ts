@@ -7,6 +7,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { isHistoricallyUnindexedPublicPath } from "@/lib/historical-public-routes";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsRuntimeEnabledConfig } from "@/lib/docs-assistant/runtime-config";
 import type { NormalizedAskRequest } from "./ask-request-normalizer";
@@ -88,10 +89,10 @@ const PUBLIC_SOURCES = [
   {
     source_id: "public.reviewer",
     public_label: "Your reviewer",
-    canonical_href: "https://witnessops.com/catalog/workflows#reviewer-heading",
+    canonical_href: "https://witnessops.com/why-witnessops",
     excerpt: "Karol Stefanski is the founder of WitnessOps and the reviewer. His public reviewer section states that he previously worked as an engineer at Waystone and Nostra. Clients work directly with Karol to agree the scope, review findings and understand next steps. No additional credentials, client history or availability are established here.",
   },
-];
+].filter((source) => !isHistoricallyUnindexedPublicPath(source.canonical_href));
 
 const OUTPUT_SCHEMA = {
   type: "object",

@@ -203,7 +203,8 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.match(workflowPage, /title: service\.name\.en/);
   assert.match(workflowPage, /description: service\.situation\.en/);
   assert.match(workflowPage, /canonical: PRIMARY_OFFER\.route/);
-  assert.match(workflowPage, /primaryOfferServiceJsonLd\(\)/);
+  assert.doesNotMatch(workflowPage, /primaryOfferServiceJsonLd\(\)/);
+  assert.match(workflowPage, /robots: \{ index: false, follow: true \}/);
   assert.match(workflowPage, /primaryOfferBreadcrumbJsonLd\(\)/);
 
   const homepageSource = readFileSync(
@@ -225,9 +226,9 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.equal(serviceJsonLd.offers.priceCurrency, "EUR");
   assert.match(serviceJsonLd.offers.description, /One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action/);
   assert.match(serviceJsonLd.offers.description, /Non-secret fit and scoping request first/);
-  assert.match(
+  assert.doesNotMatch(
     serviceJsonLd.offers.description,
-    /Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed/,
+    /10 working days|3 working days|three working days|€550/,
   );
   assert.equal(
     primaryOfferBreadcrumbJsonLd().itemListElement.at(-1)?.name,

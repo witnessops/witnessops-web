@@ -9,11 +9,11 @@ const scenarios = [
 const expectedDestinations = {
   "/pl/library": [
     "/pl/catalog",
-    "/pl/customer-security-review",
+    "/pl/catalog",
     "/pl/verify",
     "/pl/why-witnessops",
     "/pl/docs",
-    "/pl/customer-security-review",
+    "/pl/catalog",
     "/pl/review/request",
     "/pl/catalog",
     "/review/sample-cases",

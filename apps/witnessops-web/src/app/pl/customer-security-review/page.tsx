@@ -6,6 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 const service = buyerServiceById("customer-security-review-sprint");
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: "Customer Security Review Sprint",
   description:
     "WitnessOps bierze jeden kwestionariusz i jeden zakres produktu, ustala, które proponowane odpowiedzi mają wsparcie w dostarczonych materiałach, oddziela oświadczenia kierownictwa i otwarte kwestie, a następnie przekazuje pakiet odpowiedzi do zatwierdzenia.",

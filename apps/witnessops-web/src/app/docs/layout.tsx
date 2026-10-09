@@ -15,6 +15,7 @@ import {
   normalizeHost,
   toPublicDocsHref,
 } from "@/lib/docs-host-routing";
+import { isHistoricallyUnindexedPublicPath } from "@/lib/historical-public-routes";
 
 type DocsSidebarSection = Awaited<ReturnType<typeof getDocsSidebar>>[number];
 type DocsPage = Awaited<ReturnType<typeof listDocPages>>[number];
@@ -41,7 +42,11 @@ function buildSearchEntries(
 
   for (const section of sections) {
     for (const item of section.items) {
-      if (!item.href.startsWith("/docs") || seenHrefs.has(item.href)) {
+      if (
+        !item.href.startsWith("/docs") ||
+        seenHrefs.has(item.href) ||
+        isHistoricallyUnindexedPublicPath(item.href)
+      ) {
         continue;
       }
 
@@ -62,7 +67,7 @@ function buildSearchEntries(
 
   for (const doc of docs) {
     const href = getDocHref(doc.slug);
-    if (seenHrefs.has(href)) {
+    if (seenHrefs.has(href) || isHistoricallyUnindexedPublicPath(href)) {
       continue;
     }
 

@@ -133,7 +133,7 @@ export function primaryOfferServiceJsonLd() {
       url,
       lowPrice: PRIMARY_OFFER.price.amount,
       priceCurrency: PRIMARY_OFFER.price.currency,
-      description: `${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.timing.en}.`,
+      description: `${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}.`,
     },
   } as const;
 }

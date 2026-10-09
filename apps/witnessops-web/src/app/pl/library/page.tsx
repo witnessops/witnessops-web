@@ -12,11 +12,11 @@ const primaryPaths = [
     cta: "Przeglądaj usługi",
   },
   {
-    href: "/pl/customer-security-review",
+    href: "/pl/catalog",
     title: "Przykłady",
     description:
-      "Zobacz oznaczony przykład oferty przed wysłaniem zgłoszenia.",
-    cta: "Zobacz przykład CSR",
+      "Zobacz aktualny katalog usług przed wysłaniem zgłoszenia.",
+    cta: "Zobacz usługi",
   },
   {
     href: "/pl/verify",
@@ -43,9 +43,9 @@ const secondaryGroups = [
         "Objaśnienia w zatwierdzonej polskiej wersji.",
       ],
       [
-        "Sprint kwestionariusza bezpieczeństwa",
-        "/pl/customer-security-review",
-        "Jedna odpowiedź na kwestionariusz z jasnymi ograniczeniami.",
+        "Katalog usług",
+        "/pl/catalog",
+        "Aktualne przeglądy i ich granice.",
       ],
       [
         "Rozpocznij przegląd",

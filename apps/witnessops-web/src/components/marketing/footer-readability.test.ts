@@ -95,7 +95,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
-    'label: "AI Agent Tools & Access Review (EN)"',
+    'label: "External Attack Surface Review"',
     'href: "/pl/catalog/offsec-external-exposure"',
     'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
