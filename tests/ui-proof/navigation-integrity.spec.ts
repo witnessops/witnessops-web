@@ -159,9 +159,9 @@ test("the homepage sample-work link opens the sample library", async ({
   await expect(fragmentLink).toHaveCount(1);
   await fragmentLink.click();
 
-  await expect(page).toHaveURL(/\/library$/);
-  await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
-  await saveEvidence(page, "01-desktop-sample-library.png");
+  await expect(page).toHaveURL(/\/review\/sample-cases$/);
+  await expect(page.getByRole("heading", { name: "Sample work", exact: true })).toBeVisible();
+  await saveEvidence(page, "01-desktop-sample-cases.png");
 
   await context.close();
 });

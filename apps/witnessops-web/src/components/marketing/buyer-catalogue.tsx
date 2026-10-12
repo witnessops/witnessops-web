@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getServiceLanding } from "@/lib/service-landings";
 
 import {
   BUYER_SERVICES,
@@ -21,8 +22,10 @@ const copy = {
     price: "Price",
     timing: "Timing",
     boundary: "Scope and exclusions",
-    aiCta: "Scope an AI review",
-    externalCta: "Scope an external review",
+    aiCta: "Request an agent review",
+    externalCta: "Request an external review",
+    receive: "What you receive",
+    how: "How the review works",
     detailCta: "See scope and deliverables",
     sampleCta: "Synthetic sample",
     aiGroup: "Review one agent action",
@@ -51,8 +54,10 @@ const copy = {
     price: "Cena",
     timing: "Termin",
     boundary: "Zakres i wyłączenia",
-    aiCta: "Omów przegląd agenta AI",
-    externalCta: "Omów przegląd ekspozycji",
+    aiCta: "Zgłoś przegląd agenta",
+    externalCta: "Zgłoś przegląd ekspozycji",
+    receive: "Co otrzymasz",
+    how: "Jak przebiega przegląd",
     detailCta: "Zobacz zakres i wyniki",
     sampleCta: "Syntetyczny przykład",
     aiGroup: "Sprawdź jedno działanie agenta",
@@ -97,6 +102,7 @@ export function BuyerCatalogue({
 
         {services.map((service) => {
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+          const landing = getServiceLanding(service.id, locale);
           const groupId = ai ? "ai-reviews" : "system-reviews";
           // Agent Action has no detail route. /catalog/workflows remains the
           // historical agent-tools-access-review record, so this card does not
@@ -119,13 +125,29 @@ export function BuyerCatalogue({
                 >
                   <h3 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">{service.name[locale]}</h3>
                   <p className="mt-3 text-lg font-semibold leading-6 text-text-primary"><span className="sr-only">{text.price}: </span>{service.price[locale]}</p>
-                  <p className="mt-4 text-sm leading-6 text-text-muted">{service.cardSituation[locale]}</p>
-                  <p className="mt-3 text-sm leading-6 text-text-secondary">{service.result[locale]}</p>
+                  <p className="mt-4 text-lg font-medium leading-7 text-text-primary">{service.cardSituation[locale]}</p>
+                  <p className="mt-3 text-sm leading-6 text-text-secondary">{landing.whoFor}</p>
+                  {pricing ? <p className="mt-3 text-sm leading-6 text-text-secondary">{service.result[locale]}</p> : <div className="mt-5">
+                    <h4 className="font-semibold text-text-primary">{text.receive}</h4>
+                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-text-secondary">
+                      {landing.deliverables.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>}
                   <p className="mt-2 text-sm leading-6 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
                   <details className="mt-3 border-t border-surface-border">
                     <summary className="cursor-pointer py-3 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.boundary}</summary>
                     <p className="pb-3 text-sm leading-6 text-text-muted">{service.boundary[locale]}</p>
+                    <ul className="list-disc space-y-2 pb-4 pl-5 text-sm leading-6 text-text-secondary">
+                      {landing.scopeLimits?.map((item) => <li key={item}>{item}</li>)}
+                      {landing.boundaries.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
                   </details>
+                  {!pricing ? <details className="border-t border-surface-border">
+                    <summary className="cursor-pointer py-3 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.how}</summary>
+                    <ol className="list-decimal space-y-3 pb-4 pl-5 text-sm leading-6 text-text-secondary">
+                      {landing.steps.map(([title, body]) => <li key={title}><strong className="font-semibold text-text-primary">{title}.</strong> {body}</li>)}
+                    </ol>
+                  </details> : null}
                   <div className="mt-auto flex flex-wrap gap-3 pt-3">
                     <Link href={serviceRequestHref} className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{ai ? text.aiCta : text.externalCta}</Link>
                     {detailHref ? <Link href={detailHref} className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{text.detailCta}</Link> : null}

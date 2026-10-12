@@ -160,6 +160,6 @@ test("English public navigation uses the existing outlined secondary action", ()
   assert.match(navbar, /: signupUrl \? \{/);
   assert.match(navbar, /variant: "secondary",\s+} : null/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
-  assert.match(groups, /label: "Sample work", href: "\/library"/);
+  assert.match(groups, /label: "Sample work", href: "\/review\/sample-cases"/);
   assert.match(groups, /label: "All services", href: "\/catalog"/);
 });

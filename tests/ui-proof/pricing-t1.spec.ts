@@ -25,8 +25,8 @@ for (const width of [390, 1440]) {
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.timing.en);
     await expect(main).not.toContainText(/€0|€49|€149|FIRST 10|No\. 0042|free while in Early Access|One Server Security Check|Early Bird|Internet Footprint Review|AI Agent Tools & Access Review/i);
-    const externalCta = external.getByRole("link", { name: "Scope an external review", exact: true });
-    const agentCta = agent.getByRole("link", { name: "Scope an AI review", exact: true });
+    const externalCta = external.getByRole("link", { name: "Request an external review", exact: true });
+    const agentCta = agent.getByRole("link", { name: "Request an agent review", exact: true });
     for (const cta of [agentCta, externalCta]) {
       expect(await cta.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
       expect(await cta.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
@@ -39,7 +39,7 @@ for (const width of [390, 1440]) {
     expect(new URL(page.url()).searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
     await expect(page.locator("main")).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
     await page.goto("/pricing");
-    await page.getByRole("link", { name: "Scope an AI review", exact: true }).click();
+    await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/review/request\\?offerId=${PUBLIC_AGENT_ACTION_REVIEW_ID}&`));
     expect(new URL(page.url()).searchParams.get("offerId")).toBe(PUBLIC_AGENT_ACTION_REVIEW_ID);
     await expect(page.locator("main")).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
