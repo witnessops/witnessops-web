@@ -37,16 +37,18 @@ export function SimpleHomepage() {
           return <article key={service.id} data-home-offer={service.id}>
             <h2>{ai ? text.aiQuestion : text.externalQuestion}</h2>
             <h3>{service.name.en}</h3>
+            <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
             <p>{ai ? text.aiDescription : text.externalDescription}</p>
             <p className={styles.price}>{ai ? text.aiPrice : text.externalPrice}</p>
-            {ai ? null : <p className={styles.scope}>{text.externalScopeNote}</p>}
+            <p className={styles.scope}>{ai ? text.aiScopeNote : text.externalScopeNote}</p>
+            <p className={styles.timing}>{service.timing.en}</p>
             <TextLink href={buyerServiceRequestHref("en", service)}>{ai ? text.aiCta : text.externalCta}</TextLink>
           </article>;
         })}
       </div>
       <p>{text.reviewsBody}</p>
       <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
-      <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/library" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
+      <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>

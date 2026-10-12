@@ -12,11 +12,11 @@ for (const width of [390, 1440]) {
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
     await expect(hero).toContainText("WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.");
-    const primary = hero.getByRole("link", { name: "Scope an AI review" });
+    const primary = hero.getByRole("link", { name: "Request an agent review" });
     const secondary = hero.locator('[data-ui-proof-id="homepage-external-cta"]');
     await expect(primary).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(secondary).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
-    await expect(secondary).toContainText("Scope an external review");
+    await expect(secondary).toContainText("Request an external review");
     for (const control of [primary, secondary]) {
       const box = await control.boundingBox();
       expect(box).not.toBeNull();
@@ -29,18 +29,18 @@ for (const width of [390, 1440]) {
     const agent = page.locator(`[data-home-offer="${PUBLIC_AGENT_ACTION_REVIEW_ID}"]`);
     const external = page.locator('[data-home-offer="external-exposure-assessment"]');
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
-    await expect(agent).toContainText("What can your AI agent actually do in production?");
-    await expect(agent).toContainText("Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritised recommendations, explicit unknowns and a readout.");
+    await expect(agent).toContainText("Before your agent takes an important action, understand the controls around it.");
+    await expect(agent).toContainText("Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.");
     await expect(agent).toContainText("€2,500 fixed · excluding VAT");
-    await expect(agent.getByRole("link", { name: "Scope an AI review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
+    await expect(agent.getByRole("link", { name: "Request an agent review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
-    await expect(external).toContainText("What can the internet see that you didn’t mean to expose?");
-    await expect(external).toContainText("Review one authorised internet-facing system. Receive an external attack-surface map, findings with supporting evidence, remediation priorities and one focused retest.");
+    await expect(external).toContainText("Understand what your public-facing system exposes—and what to fix first.");
+    await expect(external).toContainText("Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities and a 45-minute handover.");
     await expect(external).toContainText("€1,900 fixed · excluding VAT");
     await expect(external).toContainText("Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.");
-    await expect(external.getByRole("link", { name: "Scope an external review" })).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
-    await expect(page.locator("[data-home-offer]")).not.toContainText(/10 working days|3 working days|€550|550 €/);
+    await expect(external.getByRole("link", { name: "Request an external review" })).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
     for (const offer of [agent, external]) {
+      await expect(offer).not.toContainText(/10 working days|3 working days|€550|550 €/);
       await expect(offer).not.toContainText("Internet Footprint");
       await expect(offer).not.toContainText("AI Agent Tools & Access Review");
       await expect(offer).not.toContainText("One Server Security Check");

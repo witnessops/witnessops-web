@@ -12,11 +12,11 @@ const primaryPaths = [
     cta: "Przeglądaj usługi",
   },
   {
-    href: "/pl/catalog",
-    title: "Przykłady",
+    href: "/review/sample-cases",
+    title: "Przykłady (EN)",
     description:
-      "Zobacz aktualny katalog usług przed wysłaniem zgłoszenia.",
-    cta: "Zobacz usługi",
+      "Zobacz przykładowe przeglądy, ustalenia i dowody. Materiały są w języku angielskim.",
+    cta: "Zobacz przykłady (EN)",
   },
   {
     href: "/pl/verify",

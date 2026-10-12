@@ -1,4 +1,13 @@
-# Paste-ready drafts
+# Historical commercial drafts — not for new sales
+
+> **Historical material — not for new sales.** The original draft content below
+> is retained for reference. Its old offer choices, prices, timing, handling
+> instructions and claims are not current guidance. Existing agreements keep
+> the terms actually accepted; this label changes none.
+>
+> For new work, use the [current commercial index](../README.md) and the matching
+> current block in the [scope agreement](../06-scope-agreement-skeleton.md).
+> Read the preserved instructions below as part of the historical kit only.
 
 Plain text extracted from the commercial kit for Gmail / Resend drafts.
 

@@ -26,7 +26,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await expect(page.locator("main")).toContainText("Two focused security reviews.");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
-  await page.getByRole("link", { name: "Scope an AI review", exact: true }).click();
+  await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/\/review\/request\?offerId=agent-action-security-review(?:&|$)/);
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "agent-action-security-review",
@@ -35,7 +35,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await shot(page, "catalogue-agent-action-request");
 
   await page.goto("/catalog", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Scope an external review", exact: true }).click();
+  await page.getByRole("link", { name: "Request an external review", exact: true }).click();
   await expect(page).toHaveURL(/\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE(?:&|$)/);
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "OFFSEC-EXTERNAL-EXPOSURE",
@@ -43,13 +43,13 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await shot(page, "catalogue-external-request");
 
   await page.goto("/pricing", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Scope an AI review", exact: true }).click();
+  await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/offerId=agent-action-security-review/);
   expect(new URL(page.url()).searchParams.get("productId")).toBeNull();
   await shot(page, "pricing-agent-action-request");
 
   await page.goto("/pricing", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Scope an external review", exact: true }).click();
+  await page.getByRole("link", { name: "Request an external review", exact: true }).click();
   await expect(page).toHaveURL(/productId=OFFSEC-EXTERNAL-EXPOSURE/);
   expect(new URL(page.url()).searchParams.get("offerId")).toBeNull();
   await shot(page, "pricing-external-request");

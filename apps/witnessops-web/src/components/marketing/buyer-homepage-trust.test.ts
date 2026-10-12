@@ -77,16 +77,16 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
     assert.match(copy.freeBody, locale === "en" ? /Not a review/ : /nie jest przegląd/);
     assert.doesNotMatch(`${copy.headline} ${copy.aiHeadline} ${copy.externalHeadline}`, /inventory|€500|One Server/);
   }
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiCta, "Scope an AI review");
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalCta, "Scope an external review");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiCta, "Request an agent review");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalCta, "Request an external review");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Proof other people can check.");
   assert.equal(
     HOMEPAGE_TWO_OFFER_COPY.en.support,
     "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.",
   );
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "What can your AI agent actually do in production?");
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalQuestion, "What can the internet see that you didn’t mean to expose?");
-  assert.match(HOMEPAGE_TWO_OFFER_COPY.en.aiDescription, /explicit unknowns/);
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "Before your agent takes an important action, understand the controls around it.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalQuestion, "Understand what your public-facing system exposes—and what to fix first.");
+  assert.match(HOMEPAGE_TWO_OFFER_COPY.en.aiDescription, /documented unknowns/);
   assert.doesNotMatch(
     `${HOMEPAGE_TWO_OFFER_COPY.en.aiDescription} ${HOMEPAGE_TWO_OFFER_COPY.en.externalScopeNote}`,
     /10 working days|3 working days|€550|550 €|fixed quote after scope/,

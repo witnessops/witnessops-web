@@ -87,14 +87,14 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
       if (id === "external-exposure-assessment") {
         expect(request.searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
         expect(request.searchParams.has("offerId")).toBe(false);
-        await expect(primary).toHaveText(polish ? "Omów przegląd ekspozycji" : "Scope an external review");
+        await expect(primary).toHaveText(polish ? "Zgłoś przegląd ekspozycji" : "Request an external review");
         await expect(links).toHaveCount(3);
         await expect(links.nth(2)).toHaveAttribute("href", "/review/sample-cases/external-exposure-assessment");
       } else {
         expect(request.searchParams.get("offerId")).toBe(PUBLIC_AGENT_ACTION_REVIEW_ID);
         expect(request.searchParams.has("productId")).toBe(false);
         expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
-        await expect(primary).toHaveText(polish ? "Omów przegląd agenta AI" : "Scope an AI review");
+        await expect(primary).toHaveText(polish ? "Zgłoś przegląd agenta" : "Request an agent review");
         await expect(links).toHaveCount(1);
         await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
       }
@@ -144,7 +144,7 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   await expect(card).toContainText(/payment alone does not authorise testing/i);
   await expect(card).toContainText("This is not a penetration test");
   await expect(card.locator('a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveText("See a sample review →");
-  const fitHref = await card.getByRole("link", { name: "Request this review" }).first().getAttribute("href");
+  const fitHref = await card.getByRole("link", { name: "Request an external review" }).first().getAttribute("href");
   expect(new URL(fitHref ?? "", "http://witnessops.test").searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

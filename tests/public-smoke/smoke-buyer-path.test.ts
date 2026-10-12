@@ -142,7 +142,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.prohibitedMarkers?.includes("3 working days"));
   assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Omów przegląd agenta AI"));
+  assert.ok(polish.requiredMarkers.includes("Zgłoś przegląd agenta"));
   assert.ok(polish.requiredMarkers.includes("Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy."));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
   assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
@@ -189,7 +189,7 @@ test("catalogue smoke preserves the two public review request paths", () => {
     "Agent Action Security Review",
     "€2,500 fixed · excluding VAT",
     "Delivery timing per signed SOW",
-    "Scope an AI review",
+    "Request an agent review",
     "External Attack Surface Review",
     "€1,900 · excluding VAT",
   ]) {

@@ -76,7 +76,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.match(landing.commercialNote ?? "", /One focused retest within 30 calendar days of report handover is included/);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500|€550|3 working days|three working days/i);
   assert.doesNotMatch(landing.steps.flat().join(" "), /3 working days|three working days|€550/);
-  assert.match(landing.deliverables.join("\n"), /one focused retest within 30 days/i);
+  assert.match(landing.deliverables.join("\n"), /one focused retest within 30 calendar days of initial report handover/i);
 });
 
 test("External Attack Surface Review preserves fixed caps and allowed check classes", () => {

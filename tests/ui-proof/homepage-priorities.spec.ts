@@ -22,9 +22,9 @@ for (const viewport of [
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
     await expect(trigger).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const sampleLink = hero.getByRole("link", { name: "Scope an AI review", exact: true });
+    const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
     await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
-    await expect(hero.getByRole("link", { name: "Scope an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+    await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
     await sampleLink.focus();
     // Keep the remaining hero action reachable beside the launcher.
     const collision = await page.locator('[data-focus-obscured="true"]').count();

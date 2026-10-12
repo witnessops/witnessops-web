@@ -132,10 +132,13 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
-      await expect(sampleLink).toHaveAttribute("href", "/library");
+      await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");
       await sampleLink.click();
-      await expect(page).toHaveURL(/\/library$/);
-      await expect(page.locator('main section[aria-label="First-party skills"] a')).toHaveCount(11);
+      await expect(page).toHaveURL(/\/review\/sample-cases$/);
+      await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
+      await expect(page.locator("main")).toContainText("Published sample, not live customer evidence. No production verification or certification.");
+      await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
+      await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
       await page.goto("/", { waitUntil: "networkidle" });
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);
@@ -437,5 +440,12 @@ test("recorded replay emits no live action request and downloaded receipt matche
       2,
     )}\n`,
   );
+  const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check →", exact: true });
+  await expect(reviewLink).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
+  await expect(reviewLink.locator("..")).toContainText("Agent Action Security Review");
+  await reviewLink.click();
+  await expect(page).toHaveURL(new RegExp(`offerId=${PUBLIC_AGENT_ACTION_REVIEW_ID}`));
+  await expect(page.locator('main form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
+  await expect(page.locator("main")).toContainText("Selected offer: Agent Action Security Review");
   await context.close();
 });
