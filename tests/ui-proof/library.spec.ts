@@ -9,7 +9,7 @@ const scenarios = [
 const expectedDestinations = {
   "/pl/library": [
     "/pl/catalog",
-    "/pl/catalog",
+    "/review/sample-cases",
     "/pl/verify",
     "/pl/why-witnessops",
     "/pl/docs",
@@ -166,6 +166,9 @@ test("Polish Library route remains responsive, discoverable, and bounded", async
       ? "Nie są materiałem klienta ani certyfikacją zgodności."
       : "Each example is not a live customer artifact.";
     await expect(page.locator("main")).toContainText(boundary);
+    await page.locator("main").getByRole("link", { name: /Przykłady \(EN\)/ }).click();
+    await expect(page).toHaveURL(/\/review\/sample-cases$/);
+    await expect(page.locator("main h1")).toHaveText("Sample work");
     expect(consoleErrors).toEqual([]);
     expect(pageErrors).toEqual([]);
     await context.close();
