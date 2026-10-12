@@ -47,7 +47,8 @@ test("buyer-path offer section matches the live catalogue", () => {
   );
   assert.match(buyer, /External Attack Surface Review/);
   assert.match(buyer, /former Public Exposure Review title as historical artifact identity/);
-  assert.match(buyer, /Customer Security Review Sprint/);
+  assert.match(buyer, /Agent Action Security Review/);
+  assert.match(buyer, /offerId=agent-action-security-review/);
   assert.match(buyer, /pinned AI-agent public sample only/i);
   assert.match(buyer, /does not duplicate its inventory or commercial status/i);
   assert.match(buyer, /intentionally contains no receipt/i);

@@ -1,4 +1,13 @@
-# Pricing investigation + PLN
+# Pricing investigation + PLN — historical research
+
+> **Historical / superseded for current sales.** The 30 July 2026 research,
+> display policy, price table, sales wording and implementation map below are
+> retained as a dated record. They are not current pricing or currency policy.
+> Current EN and PL offer displays use EUR: Agent Action Security Review is
+> €2,500 fixed excluding VAT and External Attack Surface Review is €1,900 fixed
+> excluding VAT, with delivery timing per signed SOW. Use the
+> [commercial index](./README.md) and current offer records for new agreements.
+> This note does not alter historical quotes, invoices or accepted terms.
 
 **Date:** 2026-07-30  
 **FX reference:** ~**1 EUR ≈ 4,33 PLN** (ECB-class mid-market late July 2026).  

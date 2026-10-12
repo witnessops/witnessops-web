@@ -1,4 +1,4 @@
-# Commercial delivery kit (complete P0)
+# Commercial delivery kit — current reviews and historical records
 
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
@@ -14,14 +14,18 @@ Historical records stay in force for issued agreements and old lookups. The [sup
 
 ## Start here
 
-**This week’s run sheet:** [`THIS-WEEK.md`](./THIS-WEEK.md) · paste drafts [`drafts/`](./drafts/) · worked examples [`worked-examples/`](./worked-examples/) · ledger [`engagement-ledger.md`](./engagement-ledger.md)
+1. **[Current portfolio](./18-two-offer-portfolio.md)** and **[external offer record](./10-public-exposure-review-offer.md)** — current promises and exclusions.
+2. **[Scope agreement](./06-scope-agreement-skeleton.md)** — select one current scope block; keep historical terms separate.
+3. **[Dry-run checklist](./05-dry-run-checklist.md)** and **[operator playbook](./07-operator-playbook-complete.md)** — use their current two-offer sections.
+4. **[External order and fit check](./11-public-exposure-review-fit-check.md)** — current external intake template.
 
-
-1. **[Offer learning guide](./00-offer-learning-guide.md)** — what each offer is, price, samples, disk paths  
-2. **[Artifact map](./08-artifact-map.md)** — every public + private sample location  
-3. **[Operator playbook](./07-operator-playbook-complete.md)** — end-to-end lifecycle  
-
-Then use the paste templates below.
+The [former run sheet](./THIS-WEEK.md), [learning guide](./00-offer-learning-guide.md),
+older reply/delivery/claim/demo templates, [drafts](./drafts/) and
+[worked examples](./worked-examples/) are historical references, not current
+new-sales instructions. Do not paste their old prices, timing or product choices
+into a new agreement. The [artifact map](./08-artifact-map.md) helps locate
+samples; keep their historical and synthetic labels. Record work in the
+[engagement ledger](./engagement-ledger.md).
 
 ## Offer identity and naming
 
@@ -36,16 +40,16 @@ retained as superseded research, not a current general naming policy.
 
 | # | Doc | Use when |
 | --- | --- | --- |
-| 00 | [Offer learning guide](./00-offer-learning-guide.md) | First read; study the offers |
-| 01 | [Fit-check replies](./01-fit-check-reply.md) | Inbound / after `/review/request` |
-| 02 | [Delivery emails](./02-delivery-email.md) | Package handover |
-| 03 | [Claim blurbs](./03-claim-blurb.md) | Scope, package, email limits |
-| 04 | [Demo script 15 min](./04-demo-script-15min.md) | Sales / founder call |
-| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Before first real package |
+| 00 | [Offer learning guide](./00-offer-learning-guide.md) | Historical offer learning material; not current sales instructions |
+| 01 | [Fit-check replies](./01-fit-check-reply.md) | Historical replies; do not paste as current offer terms |
+| 02 | [Delivery emails](./02-delivery-email.md) | Historical CSR / One Server handovers |
+| 03 | [Claim blurbs](./03-claim-blurb.md) | Historical CSR / One Server claim limits |
+| 04 | [Demo script 15 min](./04-demo-script-15min.md) | Historical demo sequence; not current sales instructions |
+| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current two-offer readiness; earlier rehearsal retained as historical |
 | 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | After fit; before work |
-| 07 | [Operator playbook complete](./07-operator-playbook-complete.md) | Full delivery path |
+| 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current two-offer lifecycle; earlier playbooks retained as historical |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
-| 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
+| 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Historical July 2026 research and superseded PLN display policy |
 | 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
 | 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Historical sampled research; naming instructions superseded |
@@ -67,10 +71,10 @@ Source routes below. A listed URL is not evidence that the route is the released
 | External Attack Surface Review request | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
 | Historical AI Agent Tools & Access Review | https://witnessops.com/catalog/workflows |
 | Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
-| CSR service | https://witnessops.com/customer-security-review |
+| Historical CSR service | https://witnessops.com/customer-security-review |
 | CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |
 | CSR full synthetic package | https://witnessops.com/samples/csr-sprint-synthetic/ |
-| One Server service | https://witnessops.com/catalog/offsec-local-audit |
+| Historical One Server service | https://witnessops.com/catalog/offsec-local-audit |
 | One Server sample page | https://witnessops.com/review/sample-cases/local-server-security-review |
 | One Server web fixture | https://witnessops.com/samples/offsec-shield-local-server-audit/ |
 | One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |

@@ -198,12 +198,19 @@ offer and is **not** merge-ready until reconciled against the updated #450 head.
    New-public offer allowlists must **exclude** `agent-tools-access-review`,
    `bounded-workflow-review` and the €950 private pilot. Do not make old records
    disappear from historical lookups or the manual confirmation reader.
-2. **Buyer visibility:** Use the new public service in
-   `simple-homepage.tsx`, `buyer-catalogue.tsx`, shared pricing and the
-   `/catalog/workflows` detail route (including localized copy, canonical
-   metadata and truthful fixed-price structured data). Do not reuse the
-   inventory offer's dated full-device-inventory scope under the one-action name.
-   Retain the €1,900 external offer and its complete scope/retreat terms.
+2. **Buyer visibility — route instruction reconciled 12 October 2026:** Use
+   the new public service in `simple-homepage.tsx`, `buyer-catalogue.tsx` and
+   shared pricing. The current Agent Action Security Review has no detail route;
+   its request uses `offerId=agent-action-security-review`. `/catalog/workflows`
+   and its Polish equivalent remain the historical inventory-plus-action review.
+   Do not reuse that review's device-inventory scope or route as the new
+   one-action offer. Retain the €1,900 external offer and its complete scope and
+   retest terms. This corrects documentation only; it authorises no route change.
+
+   **Superseded route instruction, retained as history:** the earlier directive
+   placed the new public service in the `/catalog/workflows` detail route,
+   including its localized copy, canonical metadata and fixed-price structured
+   data. That directive must not be used to relabel the historical route.
 3. **Explicit NEW selection:** Update `new-review-request-policy.ts`,
    `two-offer-request.tsx` and the EN/PL form paths to accept exactly
    `offerId=agent-action-security-review` or
