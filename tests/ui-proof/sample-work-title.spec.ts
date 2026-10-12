@@ -19,10 +19,14 @@ for (const width of [390, 1440]) {
     const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
     if (width === 390) await nav.getByRole("button", { name: "Open primary navigation" }).click();
     await nav.getByRole("button", { name: "Resources", exact: true }).click();
-    const sampleLink = nav.locator('a[href="/library"]:visible');
+    const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
+    await expect(sampleLink).toHaveCount(1);
     await expect(sampleLink).toContainText("Sample work");
+    await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");
     await sampleLink.click();
-    await expect(page).toHaveURL(/\/library$/);
-    await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/review\/sample-cases$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
+    await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
+    await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
   });
 }

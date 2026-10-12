@@ -81,6 +81,7 @@ export default function ExternalExposureAssessmentSamplePage() {
     >
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner
+          showActions={false}
           title={EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
           note="Synthetic worked example, not customer evidence. Local fixture observations only; no public company or customer was assessed. The preserved package files retain the former Public Exposure Review title as historical artifact identity."
         />
@@ -99,6 +100,11 @@ export default function ExternalExposureAssessmentSamplePage() {
             result produced for a bounded synthetic target. This is not a penetration test.
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
+            This public sample contains no receipt and is not an input for /verify.
+            Its preserved verifier result describes the larger internal synthetic
+            bundle, not verification of this public copy.
+          </p>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
             Naming continuity: these immutable sample artifacts were published under
             the former Public Exposure Review name. The stable SKU, scope, caps,
             authority rules, checks, retest, and claim boundaries are unchanged.
@@ -107,7 +113,7 @@ export default function ExternalExposureAssessmentSamplePage() {
             <CtaButton
               href={buyerOfferRequestHref("en", "OFFSEC-EXTERNAL-EXPOSURE")}
               variant="primary"
-              label="Start a review"
+              label="Request an external review"
             />
             <CtaButton
               href="/catalog/offsec-external-exposure"

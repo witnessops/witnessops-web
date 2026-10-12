@@ -236,7 +236,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
           buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID),
         ),
       );
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/library" : "/review/sample-cases/ai-agent-action-proof-run");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/review/sample-cases" : "/review/sample-cases/ai-agent-action-proof-run");
       await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
         await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
@@ -252,7 +252,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       if (path === "/pl") {
         const external = buyerServiceById("external-exposure-assessment");
         await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
-        await expect(page.locator("main").getByRole("link", { name: "Omów przegląd ekspozycji" }).first()).toHaveAttribute(
+        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true }).first()).toHaveAttribute(
           "href",
           buyerServiceRequestHref("pl", external),
         );
