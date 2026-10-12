@@ -3,6 +3,7 @@ import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
 import { reportFollowThrough } from "./report-follow-through";
+import { ReportOverview } from "./report-overview";
 import { Billing } from "./billing";
 import { ReportShare } from "./report-share";
 import { Members } from "./members";
@@ -258,7 +259,7 @@ function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
   const model = useMemo(() => savedRunReport(run, previous), [run, previous]);
   const context = { linux: false, evidenceHref: (finding: typeof model.findings[number]) => `/runs/${run.id}/observations/${encodeURIComponent(finding.checkId ?? finding.id)}`, recheckHref: hasWorkspaceCapability(workspace.role, "hostname:run") ? `/assets/${run.assetId}#run-observation` : undefined };
   const { print, printRoot } = useBuyerReportPrint(model, reportFollowThrough(model, context, false));
-  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
+  return <>{printRoot}<ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceHref={context.evidenceHref} /><div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
 }
 
 function SignInLinks() {
@@ -385,7 +386,7 @@ export function ProductApp() {
   if (access !== undefined) {
     content = <AccessGate state={access} busy={busy} activate={() => void perform(async () => { await request("/api/early-access", "POST", { action: "activate" }); setState(await request<WorkspaceState>("/api/workspace")); setAccess(undefined); router.push("/"); })} />;
   } else if (!state) {
-    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>Open WitnessOps</h1><p>Create an account or sign in to open your workspaces. No check starts until you authorize it.</p>{loading ? <p role="status">Loading workspace…</p> : <><SignInLinks /><p className="quiet">Account authentication is handled on the secure WorkOS screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a></div></>}</div>;
+    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>{loading ? "Opening your workspace" : "Open WitnessOps"}</h1>{loading ? <p role="status">Loading workspace…</p> : <><p>Create an account or sign in to open your workspaces. No check starts until you authorize it.</p><SignInLinks /><p className="quiet">Account authentication is handled on the secure WorkOS screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a></div></>}</div>;
   } else if (creatingWorkspace || state.workspaces.length === 0) {
     content = <div className="welcome"><h1>Create workspace</h1>
       <p>Create a separate space for your assets and saved evidence. No card or subscription is required.</p>

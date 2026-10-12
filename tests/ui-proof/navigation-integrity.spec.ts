@@ -643,6 +643,26 @@ test("grouped desktop navigation supports keyboard, dismissal and document navig
   await expect(panel).toBeHidden();
 });
 
+test("grouped desktop navigation keeps final links reachable in short windows", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 400 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Resources", exact: true }).click();
+  const panel = page.locator("#public-nav-group-2");
+  await expect(panel).toBeVisible();
+  const panelBox = await panel.boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(400);
+
+  await panel.hover();
+  await page.mouse.wheel(0, 600);
+  await expect.poll(() => panel.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  const cliSetup = panel.getByRole("link", { name: "CLI setup", exact: true });
+  await expect(cliSetup).toBeInViewport({ ratio: 1 });
+  await cliSetup.click();
+  await expect(page).toHaveURL(/\/docs\/getting-started\/cli$/);
+  await expect(panel).toBeHidden();
+});
+
 test("grouped mobile navigation keeps product and resource links reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");

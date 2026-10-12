@@ -239,7 +239,8 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/review/sample-cases" : "/review/sample-cases/ai-agent-action-proof-run");
       await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
-        await expect(page.locator("[data-review-finding]")).toContainText(/Nie testowano systemu/);
+        await expect(page.locator("[data-review-finding]")).toHaveCount(0);
+        await expect(page.locator('[data-ui-proof-id="homepage-hero"] img, [data-hero-gap]')).toHaveCount(0);
       } else {
         // The English specimen explains the structure; it must not invent a finding.
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);

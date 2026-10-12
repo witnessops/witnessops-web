@@ -53,7 +53,7 @@ test("homepage leads with the two public paid reviews and keeps the free hostnam
   assert.match(ownCase, /recorded request details/);
   assert.match(ownCase, /zapisane szczegóły żądań/);
   assert.doesNotMatch(ownCase, /preserves the requests/);
-  assert.match(source, /HeroGap/);
+  assert.doesNotMatch(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
   assert.match(source, /not customer evidence/);
   assert.match(source, /does not establish a real provider action/);

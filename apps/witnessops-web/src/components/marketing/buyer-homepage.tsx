@@ -5,7 +5,7 @@ import { BUYER_SERVICES, buyerRequestHref, buyerServiceRequestHref, type BuyerLo
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import { OwnSystemCase } from "./own-system-case";
-import { HeroGap } from "./hero-gap";
+import heroStyles from "./simple-homepage.module.css";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = { eyebrow: string; title: string; body: string };
@@ -31,18 +31,18 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
     ["Deliver the finding", "Receive the result, supporting evidence, limitations, unknowns and practical next steps. Corrections and retesting remain subject to the agreed scope."],
   ];
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="security-verification">
-    <section data-ask-trigger-guard data-ui-proof-id="homepage-hero" className={styles.heroSection}>
-      <header className={`${styles.frame} ${styles.heroFrame}`}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{hero?.eyebrow ?? (pl ? "Bezpieczeństwo · Weryfikacja · Dowody" : "Security · Verification · Evidence")}</p>
-          <h1 data-ui-proof-id="homepage-hero-headline" data-copy-length="long" className={styles.heroTitle}>{title}</h1>
-          <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{body}</p>
-          <p data-ui-proof-id="homepage-hero-mobile-body" className={styles.heroMobileBody}>{body}</p>
+    <section data-ask-trigger-guard data-ui-proof-id="homepage-hero" className={`${styles.heroSection} ${heroStyles.page} ${heroStyles.hero}`}>
+      <header className={heroStyles.frame}>
+        <div className={heroStyles.heroCopy}>
+          <p className={heroStyles.eyebrow}>{hero?.eyebrow ?? (pl ? "Bezpieczeństwo · Weryfikacja · Dowody" : "Security · Verification · Evidence")}</p>
+          <h1 data-ui-proof-id="homepage-hero-headline">{title}</h1>
+          <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p>
+          <div className={heroStyles.actions}>
+            <Link data-ui-proof-id="homepage-hero-primary-cta" href={agentHref} className={heroStyles.primary}>{text.aiCta}</Link>
+            <Link data-ui-proof-id="homepage-sample-review-cta" className={heroStyles.textLink} href={sampleHref}>{pl ? "Zobacz historyczny przykład działania (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
+          </div>
+          <p className={heroStyles.note}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
         </div>
-        <CtaButton uiProofId="homepage-hero-primary-cta" href={agentHref} variant="primary" label={text.aiCta} className={styles.primaryCta} />
-        <aside aria-label={pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}><h2 className="sr-only">{pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}</h2><HeroGap locale={locale} /></aside>
-        <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href={sampleHref}>{pl ? "Zobacz historyczny przykład działania (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
-        <p className={styles.heroNote}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
       </header>
       <div className={styles.frame}>
         <ul className={styles.deliverableStrip} aria-label={pl ? "Podejście" : "Our approach"}>{(pl ? ["Ekspozycja", "Zmiany", "Działania", "Dowody"] : ["Exposure", "Changes", "Actions", "Evidence"]).map(item => <li key={item}>{item}</li>)}</ul>
