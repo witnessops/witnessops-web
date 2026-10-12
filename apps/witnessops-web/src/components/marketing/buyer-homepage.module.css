@@ -34,6 +34,10 @@
   border-bottom: 1px solid var(--rule);
 }
 
+.heroSection > header {
+  padding-bottom: 2rem;
+}
+
 .heroFrame {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
