@@ -1410,25 +1410,39 @@ def discover_files(root: Path, names: set[str]) -> list[Path]:
     return sorted(found)
 
 
-def load_tsv(path: Path, required_fields: Sequence[str]) -> list[dict[str, str]]:
+def parse_tsv(
+    data: bytes, label: str, required_fields: Sequence[str]
+) -> list[dict[str, str]]:
     try:
-        lines = [line for line in path.read_text(encoding="utf-8").splitlines() if not line.startswith("#")]
-    except (OSError, UnicodeDecodeError) as exc:
-        raise GateError(f"cannot read {path}: {exc}") from exc
+        lines = [
+            line
+            for line in data.decode("utf-8").splitlines()
+            if not line.startswith("#")
+        ]
+    except UnicodeDecodeError as exc:
+        raise GateError(f"cannot read {label}: {exc}") from exc
     if not lines:
-        raise GateError(f"{path}: missing TSV header")
+        raise GateError(f"{label}: missing TSV header")
     reader = csv.DictReader(lines, delimiter="\t")
     if not reader.fieldnames or any(field not in reader.fieldnames for field in required_fields):
-        raise GateError(f"{path}: expected fields {', '.join(required_fields)}")
+        raise GateError(f"{label}: expected fields {', '.join(required_fields)}")
     rows: list[dict[str, str]] = []
     for row_number, row in enumerate(reader, start=2):
         normalized = {key: (value or "").strip() for key, value in row.items() if key is not None}
         if not any(normalized.values()):
             continue
         if any(not normalized.get(field) for field in required_fields):
-            raise GateError(f"{path}:{row_number}: missing required field")
+            raise GateError(f"{label}:{row_number}: missing required field")
         rows.append(normalized)
     return rows
+
+
+def load_tsv(path: Path, required_fields: Sequence[str]) -> list[dict[str, str]]:
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise GateError(f"cannot read {path}: {exc}") from exc
+    return parse_tsv(data, str(path), required_fields)
 
 
 def load_iocs(path: Path) -> dict[Pair, dict[str, str]]:
@@ -1442,9 +1456,12 @@ def load_iocs(path: Path) -> dict[Pair, dict[str, str]]:
     return result
 
 
-def load_lifecycle_reviews(path: Path) -> dict[tuple[str, str, str, str], dict[str, str]]:
-    rows = load_tsv(
-        path,
+def parse_lifecycle_reviews(
+    data: bytes, label: str
+) -> dict[tuple[str, str, str, str], dict[str, str]]:
+    rows = parse_tsv(
+        data,
+        label,
         (
             "package",
             "version",
@@ -1460,19 +1477,29 @@ def load_lifecycle_reviews(path: Path) -> dict[tuple[str, str, str, str], dict[s
     for row in rows:
         outcome = row["outcome"].upper()
         if outcome not in {"APPROVED", "BLOCKED"}:
-            raise GateError(f"{path}: invalid lifecycle outcome {row['outcome']}")
+            raise GateError(f"{label}: invalid lifecycle outcome {row['outcome']}")
         if row["phase"] not in {*LIFECYCLE_KEYS, "metadata_hasInstallScript"}:
-            raise GateError(f"{path}: invalid lifecycle phase {row['phase']}")
+            raise GateError(f"{label}: invalid lifecycle phase {row['phase']}")
         if not re.fullmatch(r"[0-9a-f]{64}", row["script_sha256"]):
-            raise GateError(f"{path}: invalid lifecycle script SHA-256 {row['script_sha256']}")
+            raise GateError(
+                f"{label}: invalid lifecycle script SHA-256 {row['script_sha256']}"
+            )
         row["outcome"] = outcome
         key = (row["package"], row["version"], row["phase"], row["script_sha256"])
         if key in result:
             raise GateError(
-                f"{path}: duplicate lifecycle review {key[0]}@{key[1]} {key[2]} {key[3]}"
+                f"{label}: duplicate lifecycle review {key[0]}@{key[1]} {key[2]} {key[3]}"
             )
         result[key] = row
     return result
+
+
+def load_lifecycle_reviews(path: Path) -> dict[tuple[str, str, str, str], dict[str, str]]:
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise GateError(f"cannot read {path}: {exc}") from exc
+    return parse_lifecycle_reviews(data, str(path))
 
 
 def read_json_object(data: bytes, label: str) -> dict[str, Any]:
@@ -1780,6 +1807,40 @@ def git_blob(repo: Path, revision: str, relative_path: str) -> bytes | None:
         stderr=subprocess.DEVNULL,
     )
     return completed.stdout if completed.returncode == 0 else None
+
+
+def load_lifecycle_review_authority(
+    repo: Path, path: Path, base_ref: str | None
+) -> tuple[
+    dict[tuple[str, str, str, str], dict[str, str]],
+    str | None,
+]:
+    if not base_ref:
+        return load_lifecycle_reviews(path), None
+
+    try:
+        relative = Path(os.path.abspath(path)).relative_to(repo.resolve()).as_posix()
+    except ValueError as exc:
+        raise GateError(
+            f"lifecycle review ledger must be inside repository root: {path}"
+        ) from exc
+    authority_revision = run_git(repo, ["rev-parse", f"{base_ref}^{{commit}}"]).strip()
+    authority_bytes = git_blob(repo, authority_revision, relative)
+    if authority_bytes is None:
+        authority_reviews: dict[tuple[str, str, str, str], dict[str, str]] = {}
+    else:
+        authority_reviews = parse_lifecycle_reviews(
+            authority_bytes, f"{authority_revision}:{relative}"
+        )
+
+    try:
+        if path.is_symlink() or not path.is_file():
+            raise GateError("lifecycle review ledger must be a regular repository file")
+        repository_relative_path(repo, path, "lifecycle review ledger")
+        load_lifecycle_reviews(path)
+    except (GateError, OSError) as exc:
+        return authority_reviews, str(exc)
+    return authority_reviews, None
 
 
 def load_vendored_artifact_review_authority(
@@ -2260,10 +2321,17 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         reviews_path = resolve_under(repo, args.lifecycle_reviews)
         try:
-            reviews = load_lifecycle_reviews(reviews_path)
+            reviews, current_review_error = load_lifecycle_review_authority(
+                repo, reviews_path, args.base_ref
+            )
         except (GateError, OSError) as exc:
             reviews = {}
             degraded_reasons.append(f"lifecycle review ledger unavailable: {exc}")
+        else:
+            if current_review_error:
+                degraded_reasons.append(
+                    f"current lifecycle review ledger invalid: {current_review_error}"
+                )
         rejected_review_pairs = {
             (key[0], key[1])
             for key, review in reviews.items()
