@@ -23,6 +23,9 @@ REVIEWS_FILE = REPO_ROOT / "security" / "supply-chain" / "lifecycle-reviews.tsv"
 VENDORED_REVIEWS_HEADER = (
     "package\tversion\tpath\tsha256\tstatus\tsource\trationale\n"
 )
+LIFECYCLE_REVIEWS_HEADER = (
+    "package\tversion\tphase\tscript_sha256\treviewed_at\toutcome\tsource\tnote\n"
+)
 
 SPEC = importlib.util.spec_from_file_location("supply_chain_gate", SCRIPT)
 assert SPEC and SPEC.loader
@@ -76,6 +79,10 @@ class SyntheticRepository:
         )
         self.vendored_reviews.parent.mkdir(parents=True)
         self.vendored_reviews.write_text(VENDORED_REVIEWS_HEADER, encoding="utf-8")
+        self.lifecycle_reviews = (
+            self.root / "security" / "supply-chain" / "lifecycle-reviews.tsv"
+        )
+        self.lifecycle_reviews.write_text(LIFECYCLE_REVIEWS_HEADER, encoding="utf-8")
         self.write_package(dependencies or {})
         run(["git", "init", "--quiet"], self.root)
         run(["git", "config", "user.name", "WitnessOps fixture"], self.root)
@@ -86,6 +93,7 @@ class SyntheticRepository:
                 "add",
                 "package.json",
                 "pnpm-lock.yaml",
+                "security/supply-chain/lifecycle-reviews.tsv",
                 "security/supply-chain/vendored-artifact-reviews.tsv",
             ],
             self.root,
@@ -112,6 +120,22 @@ class SyntheticRepository:
             VENDORED_REVIEWS_HEADER
             + f"{package}\t{version}\t{path}\t{digest}\t{status}\t"
             "fixture-authority@example.invalid\tExact inert fixture review.\n",
+            encoding="utf-8",
+        )
+
+    def write_lifecycle_review(
+        self,
+        package: str,
+        version: str,
+        phase: str,
+        script_sha256: str,
+        *,
+        outcome: str = "APPROVED",
+    ) -> None:
+        self.lifecycle_reviews.write_text(
+            LIFECYCLE_REVIEWS_HEADER
+            + f"{package}\t{version}\t{phase}\t{script_sha256}\t2026-10-13\t{outcome}\t"
+            f"fixture://{package}@{version}\tExact inert fixture review.\n",
             encoding="utf-8",
         )
 
@@ -238,7 +262,7 @@ class SupplyChainGateTests(unittest.TestCase):
             "--ioc-file",
             str(ioc_file or IOC_FILE),
             "--lifecycle-reviews",
-            str(reviews_file or REVIEWS_FILE),
+            str(reviews_file or repository.lifecycle_reviews),
             "--vendored-artifact-reviews",
             str(repository.vendored_reviews),
             "--osv-snapshot",
@@ -820,6 +844,186 @@ snapshots: {}
         self.assertEqual(record["review_outcome"], "REVIEW_REQUIRED")
         self.assertEqual(record["script_reviews"][0]["phase"], "preinstall")
         self.assertRegex(record["script_reviews"][0]["script_sha256"], r"^[0-9a-f]{64}$")
+
+    def test_lifecycle_approval_added_with_dependency_does_not_self_authorize(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_package({"risky-package": "1.0.0"})
+        repository.replace_lock("risky-pnpm-lock.yaml")
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+        )
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "REVIEW_REQUIRED",
+        )
+
+    def test_lifecycle_blocked_review_removed_on_head_still_blocks_from_base(self) -> None:
+        repository = self.repository("risky-pnpm-lock.yaml", {"risky-package": "1.0.0"})
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+            outcome="BLOCKED",
+        )
+        repository.commit_all("establish blocked lifecycle authority")
+        repository.lifecycle_reviews.write_text(LIFECYCLE_REVIEWS_HEADER, encoding="utf-8")
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "BLOCKED",
+        )
+
+    def test_base_lifecycle_approval_authorizes_later_dependency_change(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+        )
+        repository.commit_all("establish lifecycle review authority")
+        repository.write_package({"risky-package": "1.0.0"})
+        repository.replace_lock("risky-pnpm-lock.yaml")
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "APPROVED",
+        )
+
+    def test_base_lifecycle_block_survives_malformed_head_ledger(self) -> None:
+        repository = self.repository("risky-pnpm-lock.yaml", {"risky-package": "1.0.0"})
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+            outcome="BLOCKED",
+        )
+        repository.commit_all("establish blocked lifecycle authority")
+        repository.lifecycle_reviews.write_text("not\ta\tledger\n", encoding="utf-8")
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "BLOCKED",
+        )
+        self.assertTrue(
+            any(
+                "current lifecycle review ledger invalid" in reason
+                for reason in result["degraded_reasons"]
+            )
+        )
+
+    def test_base_lifecycle_block_survives_deleted_head_ledger(self) -> None:
+        repository = self.repository("risky-pnpm-lock.yaml", {"risky-package": "1.0.0"})
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+            outcome="BLOCKED",
+        )
+        repository.commit_all("establish blocked lifecycle authority")
+        repository.lifecycle_reviews.unlink()
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "BLOCKED",
+        )
+        self.assertTrue(
+            any(
+                "must be a regular repository file" in reason
+                for reason in result["degraded_reasons"]
+            )
+        )
+
+    def test_base_lifecycle_block_survives_symlinked_head_ledger(self) -> None:
+        repository = self.repository("risky-pnpm-lock.yaml", {"risky-package": "1.0.0"})
+        repository.write_lifecycle_review(
+            "risky-package",
+            "1.0.0",
+            "preinstall",
+            GATE.sha256_bytes(b"node setup.mjs"),
+            outcome="BLOCKED",
+        )
+        repository.commit_all("establish blocked lifecycle authority")
+        repository.lifecycle_reviews.unlink()
+        repository.lifecycle_reviews.symlink_to(repository.root / "package.json")
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["lifecycle_review"]["records"][0]["review_outcome"],
+            "BLOCKED",
+        )
+        self.assertTrue(
+            any(
+                "must be a regular repository file" in reason
+                for reason in result["degraded_reasons"]
+            )
+        )
+
+    def test_base_lifecycle_external_path_is_rejected_before_read(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as external:
+            external.write("not\ta\tledger\n")
+            external.flush()
+            external_via_parent = repository.root / ".." / Path(external.name).name
+            completed, result = self.invoke(
+                repository,
+                base_ref="HEAD",
+                reviews_file=external_via_parent,
+            )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertEqual(result["status"], "COVERAGE DEGRADED")
+        self.assertTrue(
+            any(
+                reason.startswith("lifecycle review ledger unavailable:")
+                and "must be inside repository root" in reason
+                for reason in result["degraded_reasons"]
+            )
+        )
+        self.assertFalse(
+            any("expected fields" in reason for reason in result["degraded_reasons"])
+        )
 
     def test_lifecycle_review_binds_package_version_phase_and_script_text_hash(self) -> None:
         script = "ts-scripts install && npm run build"
