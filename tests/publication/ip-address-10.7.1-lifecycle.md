@@ -34,8 +34,10 @@ an evidence record and failed the probe.
 pnpm 9.15.4's registry dependency build path excludes `prepare`; the
 published artifact therefore needs no consumer build and does not execute the
 Git-mutating command. The lifecycle approval is exact to this package,
-version, phase, script hash, and registry source. It does not transfer to
-another version or source type.
+version, phase, and script hash. The ledger `source` field records review
+provenance rather than adding a matching key. Non-registry, Git, local-directory,
+workspace, and arbitrary package sources remain prohibited by the gate's
+independent source checks.
 
 The registry reported 10.7.4 as available at review time and that version has
 the same `prepare` command. It is outside this review.
