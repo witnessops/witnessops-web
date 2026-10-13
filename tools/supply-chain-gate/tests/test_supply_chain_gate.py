@@ -1025,6 +1025,29 @@ snapshots: {}
             any("expected fields" in reason for reason in result["degraded_reasons"])
         )
 
+    def test_no_base_lifecycle_external_path_is_rejected_before_read(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as external:
+            external.write("not\ta\tledger\n")
+            external.flush()
+            external_via_parent = repository.root / ".." / Path(external.name).name
+            completed, result = self.invoke(
+                repository,
+                reviews_file=external_via_parent,
+            )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertEqual(result["status"], "COVERAGE DEGRADED")
+        self.assertTrue(
+            any(
+                reason.startswith("lifecycle review ledger unavailable:")
+                and "must be inside repository root" in reason
+                for reason in result["degraded_reasons"]
+            )
+        )
+        self.assertFalse(
+            any("expected fields" in reason for reason in result["degraded_reasons"])
+        )
+
     def test_lifecycle_review_binds_package_version_phase_and_script_text_hash(self) -> None:
         script = "ts-scripts install && npm run build"
         script_sha256 = GATE.sha256_bytes(script.encode("utf-8"))
