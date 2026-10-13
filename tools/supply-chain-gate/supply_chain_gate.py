@@ -1816,6 +1816,9 @@ def load_lifecycle_review_authority(
     str | None,
 ]:
     if not base_ref:
+        if path.is_symlink() or not path.is_file():
+            raise GateError("lifecycle review ledger must be a regular repository file")
+        repository_relative_path(repo, path, "lifecycle review ledger")
         return load_lifecycle_reviews(path), None
 
     try:
