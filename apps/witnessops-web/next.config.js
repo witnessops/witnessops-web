@@ -8,6 +8,7 @@ const checkScriptSrc = process.env.NODE_ENV === "development"
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: resolveDistDir(),
+  poweredByHeader: false,
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: [
