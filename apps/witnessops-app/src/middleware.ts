@@ -15,6 +15,7 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
       return new NextResponse('Not found',{status:404,headers});
     }
   }catch{return new NextResponse('Reporting host unavailable',{status:404,headers:{'Cache-Control':'no-store'}});}
+  if (request.nextUrl.pathname === "/.well-known/security.txt" && ["GET", "HEAD"].includes(request.method)) return NextResponse.next();
   if (['/s', '/s/', '/api/shared-report', '/api/shared-report/', '/api/billing/webhook', '/api/billing/webhook/'].includes(request.nextUrl.pathname)) return;
   try { authConfiguration(); } catch { return new Response("App authentication is not configured.", { status: 503 }); }
   return authkitMiddleware({ middlewareAuth: { enabled: false, unauthenticatedPaths: [] } })(request, event);
