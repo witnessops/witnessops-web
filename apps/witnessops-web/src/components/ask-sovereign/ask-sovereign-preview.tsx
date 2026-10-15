@@ -82,7 +82,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const copy = COPY[locale];
   const pageRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
-  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const composerRef = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
   const [armed, setArmed] = useState(false);
   const [phase, setPhase] = useState<SovereignSpriteState>("greet");
@@ -243,6 +243,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }
 
   const status = liveText(locale, live, phase);
+  const asked = turns.some((turn) => turn.role === "you");
 
   return (
     <div className={styles.page} ref={pageRef}>
@@ -290,6 +291,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               </a>
             </div>
           </header>
+          <div className={styles.thread}>
           <p className={styles.disclaimer}>You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <ol className={styles.transcript}>
@@ -330,22 +332,25 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               <p>{copy.handoffMail}</p>
             </div>
           ) : null}
-          <div className={styles.chips}>
+          <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips}>
             {copy.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
             ))}
           </div>
-          <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
-            <label htmlFor="ask-sovereign-draft">Ask about the two reviews</label>
-            <textarea id="ask-sovereign-draft" ref={composerRef} value={draft} rows={3} onChange={(event) => setDraft(event.target.value)} />
-            <button type="submit">Send</button>
-          </form>
           <label className={styles.optin}>
             <input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
             Include this transcript when I contact a person
           </label>
           <p className={styles.muted}>{share ? "Selected on this screen only." : "Not selected."} This choice is not sent and is not stored.</p>
           <p className={styles.muted}>Nothing from this chat is attached.</p>
+          </div>
+          <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
+            <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">Ask about the two reviews</label>
+            <input id="ask-sovereign-draft" ref={composerRef} value={draft} onChange={(event) => setDraft(event.target.value)} />
+            <button type="submit" aria-label="Send">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+            </button>
+          </form>
         </section>
         <aside className={styles.rail} data-sheet-behind>
           <h2>What Sovereign can answer</h2>
