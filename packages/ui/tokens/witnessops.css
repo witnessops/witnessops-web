@@ -55,6 +55,47 @@
   --font-display: var(--font-sans);
   --font-serif: "Newsreader", "Newsreader Fallback", Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Type lock. S is the default. M starts at 768px and L at 1200px. */
+  --type-display-size: 44px; --type-display-lh: 48px; --type-display-ls: -0.025em; --type-display-wt: 300;
+  --type-h1-size: 34px; --type-h1-lh: 40px; --type-h1-ls: -0.02em; --type-h1-wt: 300;
+  --type-h2-size: 28px; --type-h2-lh: 36px; --type-h2-ls: -0.015em; --type-h2-wt: 300; --type-h2-gap: 40px;
+  --type-h3-size: 20px; --type-h3-lh: 28px; --type-h3-ls: -0.01em; --type-h3-wt: 400;
+  --type-h4-size: 16px; --type-h4-lh: 24px; --type-h4-wt: 500;
+  --type-body-lg-size: 18px; --type-body-lg-lh: 28px;
+  --type-body-size: 16px; --type-body-lh: 24px;
+  --type-body-long-lh: 24px;
+  --type-ui-size: 14px; --type-ui-lh: 20px; --type-ui-wt: 500;
+  --type-small-size: 14px; --type-small-lh: 20px;
+  --type-caption-size: 12px; --type-caption-lh: 16px;
+  --type-eyebrow-size: 12px; --type-eyebrow-lh: 16px; --type-eyebrow-ls: 0.08em; --type-eyebrow-wt: 500;
+  --type-mono-size: 13px; --type-mono-lh: 20px;
+  --type-mono-caps-size: 12px; --type-mono-caps-lh: 16px; --type-mono-caps-ls: 0.06em; --type-mono-caps-wt: 500;
+  --type-prose-size: 18px; --type-prose-lh: 28px; --type-prose-gap: 20px;
+  --measure-body: 34em; --measure-lead: 32em; --measure-prose: 31em; --measure-heading: 20ch; --measure-small: 40em;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --type-display-size: 56px; --type-display-lh: 64px; --type-display-ls: -0.03em;
+    --type-h1-size: 40px; --type-h1-lh: 48px; --type-h1-ls: -0.025em;
+    --type-h2-size: 30px; --type-h2-lh: 36px; --type-h2-ls: -0.02em;
+    --type-h3-size: 22px; --type-h3-lh: 28px;
+    --type-h4-size: 18px; --type-h4-lh: 28px;
+    --type-body-long-lh: 28px;
+    --type-prose-size: 20px; --type-prose-lh: 32px; --type-prose-gap: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --type-display-size: 72px; --type-display-lh: 80px;
+    --type-h1-size: 48px; --type-h1-lh: 56px;
+    --type-h2-size: 36px; --type-h2-lh: 44px; --type-h2-gap: 48px;
+    --type-h3-size: 24px; --type-h3-lh: 32px;
+    --type-body-lg-size: 20px; --type-body-lg-lh: 32px;
+    --type-mono-size: 14px;
+  }
 }
 
 /* The outline follows border-radius, so the ring is the element radius plus the offset.
