@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AskSovereignPreview } from "./ask-sovereign-preview";
 
 test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
-  const files = ["ask-sovereign-preview.tsx", "sovereign-sprite.tsx", "ask-sovereign-answers.ts", "sovereign-playback.ts"];
+  const files = ["ask-sovereign-preview.tsx", "sovereign-sprite.tsx", "ask-sovereign-answers.ts", "sovereign-playback.ts", "preview-triggers.ts"];
   const source = files.map((file) => readFileSync(resolve(__dirname, file), "utf8")).join("\n");
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|indexedDB|\/api\/ask-witnessops/);
   assert.match(source, /wo-sovereign-paused/);
@@ -29,7 +29,7 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /Simulated response · preview/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
   assert.match(source, /PL copy pending native review/);
-  assert.match(source, /get\("sim"\) !== "error"/);
+  assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
   assert.match(source, /Unavailable/);
   assert.match(source, /Asystent niedostępny/);
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);

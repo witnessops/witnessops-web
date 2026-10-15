@@ -9,7 +9,8 @@ import {
 } from "@/lib/commercial-truth";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
-import { revealWaitMs, stateDurationMs, thinkingWaitMs } from "./sovereign-playback";
+import { previewChip, simErrorAtLoad, simFlag, thinkingDurationMs } from "./preview-triggers";
+import { revealWaitMs, stateDurationMs } from "./sovereign-playback";
 import { SovereignSprite } from "./sovereign-sprite";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
@@ -31,7 +32,7 @@ const COPY = {
     answerReady: "Answer ready",
     handoff: "Needs a person",
     unavailable: "Unavailable",
-    retry: "Try again",
+    retry: "Retry",
     pause: "Pause animation",
     play: "Play animation",
     simulated: "Simulated response · preview",
@@ -56,7 +57,7 @@ const COPY = {
     answerReady: "Odpowiedź gotowa",
     handoff: "Potrzebna odpowiedź człowieka",
     unavailable: "Asystent niedostępny",
-    retry: "Spróbuj ponownie",
+    retry: "Retry",
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
@@ -98,6 +99,9 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const [reduced, setReduced] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: copy.greeting }]);
+  const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
+  const [announceError, setAnnounceError] = useState(false);
+  const errorSpent = useRef(false);
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -128,6 +132,12 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       if (started) return;
       started = true;
       setArmed(true);
+      const search = window.location.search;
+      if (simErrorAtLoad(search)) {
+        errorSpent.current = true;
+        setPhase("error");
+        setAnnounceError(true);
+      }
       composerRef.current?.focus();
     };
     panel.addEventListener("animationend", start);
@@ -139,9 +149,14 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("sim") !== "error") return;
-    setPhase("error");
+    setActiveSim(simFlag(window.location.search));
   }, []);
+
+  useEffect(() => {
+    if (!announceError) return;
+    const timer = window.setTimeout(() => setAnnounceError(false), 1000);
+    return () => window.clearTimeout(timer);
+  }, [announceError]);
 
   useEffect(() => {
     if (phase !== "greet" || !armed || paused) return;
@@ -216,6 +231,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
 
   function retryFromError() {
     generation.current += 1;
+    setAnnounceError(false);
     setPhase("idle");
     setLive("idle");
   }
@@ -223,15 +239,24 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   function ask(question: string) {
     const text = question.trim();
     if (!text) return;
+    const search = window.location.search;
+    const flag = simFlag(search);
+    const forceError = flag === "error" && !errorSpent.current;
+    if (forceError) errorSpent.current = true;
     const gen = ++generation.current;
     setDraft("");
     setPhase("thinking");
     setLive("thinking");
     setTurns((current) => [...current, { role: "you", text }]);
-    const answer = sovereignAnswer(text, locale);
+    const answer = flag === "handoff" ? sovereignAnswer("simulate handoff", locale) : sovereignAnswer(text, locale);
     const handoff = answer.kind === "handoff";
     window.setTimeout(() => {
       if (gen !== generation.current) return;
+      if (forceError) {
+        setPhase("error");
+        setAnnounceError(true);
+        return;
+      }
       if (handoff) {
         setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
         setPhase(window.matchMedia("(max-width: 767px)").matches ? "handoff-mobile" : "handoff-desktop");
@@ -255,7 +280,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           setLive("idle");
         }, 400);
       }, revealWaitMs(answer.text));
-    }, Math.max(400, thinkingWaitMs(Math.random())));
+    }, thinkingDurationMs(flag, Math.random()));
   }
 
   const status = liveText(locale, live, phase);
@@ -294,6 +319,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           >
             <span className={styles.mark} aria-hidden="true" />
             <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span>AI</span></p>
+            {previewChip(activeSim) ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
             <div className={styles.controls}>
               <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
                 {paused ? (
@@ -323,7 +349,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                     <div className={styles.withSprite}>
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
                       <div>
-                        <p className={styles.status} role="status" aria-live={phase === "error" ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" />{status}</p>
+                        <p className={styles.status} role="status" aria-live={announceError ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" />{status}</p>
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                         <p>{turn.text}</p>

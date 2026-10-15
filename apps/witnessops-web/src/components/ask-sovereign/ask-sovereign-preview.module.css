@@ -70,6 +70,7 @@
   background-image: image-set(url("/ask-sovereign/sovereign-icon-32-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-icon-32-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.png") type("image/png") 2x);
 }
 .name { min-width: 0; flex: 1; margin: 0; overflow: hidden; font-size: 16px; font-weight: 500; line-height: 24px; white-space: nowrap; text-overflow: ellipsis; }
+.simChip { flex: none; margin: 0; border-radius: 2px; background: var(--color-surface-inset); color: var(--color-text-muted); font-size: 12px; line-height: 16px; padding: 2px 6px; white-space: nowrap; }
 .iconButton {
   display: inline-flex;
   align-items: center;
