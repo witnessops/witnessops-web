@@ -64,7 +64,8 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.equal(announcementText("en", "answer", "Scope."), "Sovereign, simulated response: Scope.");
   assert.equal(announcementText("pl", "error"), "Błąd symulowany. Pytanie nie dostało odpowiedzi. Możesz spróbować ponownie.");
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);
-  assert.match(source, /mailto:engage@mail\.witnessops\.com/);
+  assert.match(source, /CONTACT_ADDRESS = "engage@mail\.witnessops\.com"/);
+  assert.match(source, /mailto:\$\{CONTACT_ADDRESS\}/);
   assert.match(source, /<wbr \/>/);
 });
 
