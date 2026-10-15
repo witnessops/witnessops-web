@@ -172,7 +172,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         setPhase("error");
         setAnnounceError(true);
       }
-      composerRef.current?.focus();
+      composerRef.current?.focus({ preventScroll: true });
     };
     panel.addEventListener("animationend", start);
     const fallback = window.setTimeout(start, 260);

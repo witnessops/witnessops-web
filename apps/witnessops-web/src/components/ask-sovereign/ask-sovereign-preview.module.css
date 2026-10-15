@@ -194,6 +194,7 @@
 @keyframes sv-sheet { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 767px) {
+  .layout { min-height: 100dvh; }
   .scrim { display: block; position: fixed; inset: 0; z-index: 70; background: rgb(0 0 0 / 0.48); animation: sv-fade 240ms linear both; }
   .panel {
     position: fixed;
