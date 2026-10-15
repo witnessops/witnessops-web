@@ -16,6 +16,7 @@ import type { SovereignSpriteState } from "./sovereign-playback";
 
 const PAUSE_KEY = "wo-sovereign-paused";
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
+const EASR_RETEST = "One focused retest of reported findings within 30 calendar days of initial report handover.";
 
 const COPY = {
   en: {
@@ -33,6 +34,18 @@ const COPY = {
     handoff: "Needs a person",
     unavailable: "Unavailable",
     retry: "Retry",
+    disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
+    optin: "Include this transcript when I contact a person",
+    optinOn: "Selected on this screen only.",
+    optinOff: "Not selected.",
+    optinStored: "This choice is not sent and is not stored.",
+    attached: "Nothing from this chat is attached.",
+    composer: "Ask about the two reviews",
+    send: "Send",
+    railAnswer: "What Sovereign can answer",
+    railStart: "How to start, and where to write",
+    railAbout: "About this AI",
+    railAboutBody: "Answers are generated from a fixed list of published offer facts for this preview. No transcript is kept.",
     pause: "Pause animation",
     play: "Play animation",
     simulated: "Simulated response · preview",
@@ -57,7 +70,19 @@ const COPY = {
     answerReady: "Odpowiedź gotowa",
     handoff: "Potrzebna odpowiedź człowieka",
     unavailable: "Asystent niedostępny",
-    retry: "Retry",
+    retry: "Spróbuj ponownie",
+    disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się mylić.",
+    optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
+    optinOn: "Zaznaczone tylko na tym ekranie.",
+    optinOff: "Nie zaznaczono.",
+    optinStored: "Ten wybór nie jest wysyłany i nie jest zapisywany.",
+    attached: "Nic z tej rozmowy nie jest dołączane.",
+    composer: "Zapytaj o te dwa przeglądy",
+    send: "Wyślij",
+    railAnswer: "Na co Sovereign może odpowiedzieć",
+    railStart: "Jak zacząć i gdzie napisać",
+    railAbout: "O tym asystencie",
+    railAboutBody: "Odpowiedzi powstają ze stałej listy opublikowanych faktów oferty w tym podglądzie. Rozmowa nie jest przechowywana.",
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
@@ -346,7 +371,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             </div>
           </header>
           <div className={styles.thread}>
-          <p className={styles.disclaimer}>You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
+          <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <ol className={styles.transcript}>
             {turns.map((turn, index) => {
@@ -396,28 +421,28 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           </div>
           <label className={styles.optin}>
             <input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
-            Include this transcript when I contact a person
+            {copy.optin}
           </label>
-          <p className={styles.muted}>{share ? "Selected on this screen only." : "Not selected."} This choice is not sent and is not stored.</p>
-          <p className={styles.muted}>Nothing from this chat is attached.</p>
+          <p className={styles.muted}>{share ? copy.optinOn : copy.optinOff} {copy.optinStored}</p>
+          <p className={styles.muted}>{copy.attached}</p>
           </div>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
-            <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">Ask about the two reviews</label>
+            <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>
             <input id="ask-sovereign-draft" ref={composerRef} value={draft} onChange={(event) => setDraft(event.target.value)} />
-            <button type="submit" aria-label="Send">
+            <button type="submit" aria-label={copy.send}>
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
             </button>
           </form>
         </section>
         <aside className={styles.rail} data-sheet-behind>
-          <h2>What Sovereign can answer</h2>
+          <h2>{copy.railAnswer}</h2>
           <ul>
-            <li>{PUBLIC_AGENT_ACTION_OFFER.name.en}: {PUBLIC_AGENT_ACTION_OFFER.price.en}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: {EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. One focused retest of reported findings within 30 calendar days of initial report handover.</li>
-            <li>How to start, and where to write</li>
+            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST}</li>
+            <li>{copy.railStart}</li>
           </ul>
-          <h2>About this AI</h2>
-          <p>Answers are generated from a fixed list of published offer facts for this preview. No transcript is kept.</p>
+          <h2>{copy.railAbout}</h2>
+          <p>{copy.railAboutBody}</p>
           <ul className={styles.review}>
             {REVIEW_TOPICS.map((topic) => <li key={topic}>{topic} <span>Needs review</span></li>)}
           </ul>

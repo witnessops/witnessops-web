@@ -90,6 +90,29 @@ test("liveText is non-empty for every phase in English and Polish", () => {
   assert.match(polish, /role="status"[^>]*>[\s\S]*Gotowy do pytań/);
 });
 
+test("Polish Ask Sovereign chrome stays under the review tag and keeps the locked retest line", () => {
+  const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
+  assert.match(html, /PL copy pending native review/);
+  assert.match(html, /Rozmawiasz z asystentem AI/);
+  assert.match(html, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
+  assert.match(html, /Nie zaznaczono\./);
+  assert.match(html, /Ten wybór nie jest wysyłany i nie jest zapisywany/);
+  assert.match(html, /Nic z tej rozmowy nie jest dołączane/);
+  assert.match(html, /Zapytaj o te dwa przeglądy/);
+  assert.match(html, /aria-label="Wyślij"/);
+  assert.match(html, /Na co Sovereign może odpowiedzieć/);
+  assert.match(html, /Jak zacząć i gdzie napisać/);
+  assert.match(html, /O tym asystencie/);
+  assert.match(html, /€2 500 · bez VAT/);
+  assert.match(html, /€1 900 · bez VAT/);
+  assert.match(html, /One focused retest of reported findings within 30 calendar days of initial report handover/);
+  const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
+  assert.match(source, /retry: "Spróbuj ponownie"/);
+  for (const topic of ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"]) {
+    assert.match(html, new RegExp(`${topic}.*Needs review`));
+  }
+});
+
 test("paused-on-load shows Ready and the idle sprite", () => {
   assert.equal(pausedLoadPhase(true), "idle");
   assert.equal(pausedLoadPhase(false), "greet");
