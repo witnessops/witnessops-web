@@ -4,8 +4,8 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
-import {
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
+import {
   cisaNewsUrl,
   cisaResourceUrl,
   intentionalGaps,

@@ -5,8 +5,8 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
-import {
 import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
+import {
   loadShieldSampleManifest,
   shieldArtifactDigest,
   shieldDisplayedArtifacts,
