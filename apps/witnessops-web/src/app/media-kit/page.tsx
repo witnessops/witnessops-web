@@ -84,19 +84,19 @@ const brandAssets: BrandAsset[] = [
   {
     title: "Primary stacked logo — black",
     description: "Primary lockup for formal covers and large centred placements.",
-    previewSrc: "/brand/witnessops-primary-stacked-black.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-primary-stacked-black.svg",
     previewAlt: "Black WitnessOps primary stacked logo",
     previewWidth: 1000,
     previewHeight: 640,
     downloads: [
       {
-        href: "/brand/witnessops-primary-stacked-black.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-primary-stacked-black.svg",
         fileName: "witnessops-primary-stacked-black.svg",
         format: "SVG",
         dimensions: "1000 × 640",
       },
       {
-        href: "/brand/witnessops-primary-stacked-black-1600px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-primary-stacked-black-1600px.png",
         fileName: "witnessops-primary-stacked-black-1600px.png",
         format: "PNG",
         dimensions: "1600 × 1024",
@@ -106,20 +106,20 @@ const brandAssets: BrandAsset[] = [
   {
     title: "Primary stacked logo — white",
     description: "Reversed primary lockup for dark formal covers and large placements.",
-    previewSrc: "/brand/witnessops-primary-stacked-white.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-primary-stacked-white.svg",
     previewAlt: "White WitnessOps primary stacked logo",
     previewWidth: 1000,
     previewHeight: 640,
     darkPreview: true,
     downloads: [
       {
-        href: "/brand/witnessops-primary-stacked-white.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-primary-stacked-white.svg",
         fileName: "witnessops-primary-stacked-white.svg",
         format: "SVG",
         dimensions: "1000 × 640",
       },
       {
-        href: "/brand/witnessops-primary-stacked-white-1600px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-primary-stacked-white-1600px.png",
         fileName: "witnessops-primary-stacked-white-1600px.png",
         format: "PNG",
         dimensions: "1600 × 1024",
@@ -129,19 +129,19 @@ const brandAssets: BrandAsset[] = [
   {
     title: "Horizontal logo — black",
     description: "Use on warm white or another light, quiet background.",
-    previewSrc: "/brand/witnessops-horizontal-black.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg",
     previewAlt: "Black WitnessOps horizontal logo",
     previewWidth: 1500,
     previewHeight: 420,
     downloads: [
       {
-        href: "/brand/witnessops-horizontal-black.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg",
         fileName: "witnessops-horizontal-black.svg",
         format: "SVG",
         dimensions: "1500 × 420",
       },
       {
-        href: "/brand/witnessops-horizontal-black-2400px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-horizontal-black-2400px.png",
         fileName: "witnessops-horizontal-black-2400px.png",
         format: "PNG",
         dimensions: "2400 × 672",
@@ -151,20 +151,20 @@ const brandAssets: BrandAsset[] = [
   {
     title: "Horizontal logo — white",
     description: "Use on black or another dark background with clear contrast.",
-    previewSrc: "/brand/witnessops-horizontal-white.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg",
     previewAlt: "White WitnessOps horizontal logo",
     previewWidth: 1500,
     previewHeight: 420,
     darkPreview: true,
     downloads: [
       {
-        href: "/brand/witnessops-horizontal-white.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg",
         fileName: "witnessops-horizontal-white.svg",
         format: "SVG",
         dimensions: "1500 × 420",
       },
       {
-        href: "/brand/witnessops-horizontal-white-2400px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-horizontal-white-2400px.png",
         fileName: "witnessops-horizontal-white-2400px.png",
         format: "PNG",
         dimensions: "2400 × 672",
@@ -174,19 +174,19 @@ const brandAssets: BrandAsset[] = [
   {
     title: "W mark — black",
     description: "Compact mark for light backgrounds and small placements.",
-    previewSrc: "/brand/witnessops-mark-black.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg",
     previewAlt: "Black geometric WitnessOps W mark",
     previewWidth: 746,
     previewHeight: 427,
     downloads: [
       {
-        href: "/brand/witnessops-mark-black.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg",
         fileName: "witnessops-mark-black.svg",
         format: "SVG",
         dimensions: "746 × 427",
       },
       {
-        href: "/brand/witnessops-mark-black-1024px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-mark-black-1024px.png",
         fileName: "witnessops-mark-black-1024px.png",
         format: "PNG",
         dimensions: "1024 × 586",
@@ -196,20 +196,20 @@ const brandAssets: BrandAsset[] = [
   {
     title: "W mark — white",
     description: "Compact mark for dark backgrounds and small placements.",
-    previewSrc: "/brand/witnessops-mark-white.svg",
+    previewSrc: "/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg",
     previewAlt: "White geometric WitnessOps W mark",
     previewWidth: 746,
     previewHeight: 427,
     darkPreview: true,
     downloads: [
       {
-        href: "/brand/witnessops-mark-white.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg",
         fileName: "witnessops-mark-white.svg",
         format: "SVG",
         dimensions: "746 × 427",
       },
       {
-        href: "/brand/witnessops-mark-white-1024px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-mark-white-1024px.png",
         fileName: "witnessops-mark-white-1024px.png",
         format: "PNG",
         dimensions: "1024 × 586",
@@ -219,19 +219,19 @@ const brandAssets: BrandAsset[] = [
   {
     title: "App icon — dark",
     description: "Square dark icon for app, account and social-avatar surfaces.",
-    previewSrc: "/brand/witnessops-app-icon-dark-1024px.png",
+    previewSrc: "/brand/witnessops-logo-system-v1/png/witnessops-app-icon-dark-1024px.png",
     previewAlt: "Dark square WitnessOps app icon",
     previewWidth: 1024,
     previewHeight: 1024,
     downloads: [
       {
-        href: "/brand/witnessops-app-icon-dark.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-app-icon-dark.svg",
         fileName: "witnessops-app-icon-dark.svg",
         format: "SVG",
         dimensions: "1024 × 1024",
       },
       {
-        href: "/brand/witnessops-app-icon-dark-1024px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-app-icon-dark-1024px.png",
         fileName: "witnessops-app-icon-dark-1024px.png",
         format: "PNG",
         dimensions: "1024 × 1024",
@@ -241,19 +241,19 @@ const brandAssets: BrandAsset[] = [
   {
     title: "App icon — light",
     description: "Square light icon for light account and social-avatar surfaces.",
-    previewSrc: "/brand/witnessops-app-icon-light-1024px.png",
+    previewSrc: "/brand/witnessops-logo-system-v1/png/witnessops-app-icon-light-1024px.png",
     previewAlt: "Light square WitnessOps app icon",
     previewWidth: 1024,
     previewHeight: 1024,
     downloads: [
       {
-        href: "/brand/witnessops-app-icon-light.svg",
+        href: "/brand/witnessops-logo-system-v1/svg/witnessops-app-icon-light.svg",
         fileName: "witnessops-app-icon-light.svg",
         format: "SVG",
         dimensions: "1024 × 1024",
       },
       {
-        href: "/brand/witnessops-app-icon-light-1024px.png",
+        href: "/brand/witnessops-logo-system-v1/png/witnessops-app-icon-light-1024px.png",
         fileName: "witnessops-app-icon-light-1024px.png",
         format: "PNG",
         dimensions: "1024 × 1024",

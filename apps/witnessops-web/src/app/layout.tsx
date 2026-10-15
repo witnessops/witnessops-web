@@ -1,5 +1,5 @@
 import { getWorkspaceAppUrl } from "@/lib/workspace-access";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
@@ -44,9 +44,22 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/witnessops-logo-system-v1/favicon/apple-touch-icon.png", sizes: "180x180" }],
   },
+  manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F2EEE4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0C0B" },
+  ],
 };
 
 const fontPreloads = (

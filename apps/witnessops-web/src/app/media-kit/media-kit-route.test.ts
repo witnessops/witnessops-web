@@ -96,15 +96,15 @@ test("canonical logo package and published masters retain their exact bytes", ()
   }
 
   const masters = new Map([
-    ["witnessops-primary-stacked-black.svg", "cdf86853339e9c6b98458e262288b8c355979dd77d1343575847640803b8b84b"],
-    ["witnessops-primary-stacked-white.svg", "ab4dd5ad5592a18b750ee8d87b15428c878baab43eed76198ca65e413f611aa2"],
-    ["witnessops-mark-black.svg", "5ba79933305de96fea822f6dc501670fdc72a81b5908f5d46fc198e7c2d355fe"],
-    ["witnessops-mark-white.svg", "fe6589c60572618c4f07368ab84d467c97a6ee438c42bf4a1987f6acb84a5e8e"],
-    ["witnessops-app-icon-dark.svg", "736ec62a21236ba09466b3678c780e731babb9f09cfa6e1fafdc6f38b650e6ef"],
-    ["witnessops-app-icon-light.svg", "dd330c2a9f94cffb0eb246a6cd8d1ed4174c388d5ecaf9490d562fc1d0a70eb3"],
+    ["witnessops-primary-stacked-black.svg", "21ab7293f9cac03e617ab4523f97fdc3d7c9d45ff80f477456a924f749e445bc"],
+    ["witnessops-primary-stacked-white.svg", "18140eff9932611bc57f9075a42c301c27f31f89ab6ad7a729b3c9100ee400e5"],
+    ["witnessops-mark-black.svg", "fa7ca892f67cbcc50b3cbab2b633886b963df34118337eeee679096b7be064a1"],
+    ["witnessops-mark-white.svg", "2df4deaf83cb80c30ca066fbb76649d0802670d463232ef59bbb520f9141d5a8"],
+    ["witnessops-app-icon-dark.svg", "3a397f211a678b7a73387659ce459d7366fe1e16cf37d0e69ea3a44f50e1464d"],
+    ["witnessops-app-icon-light.svg", "204b73fe66f27fb74ca4e15e70f65e29ff8a064dc487d2751cb51fbe70fe59b9"],
   ]);
   for (const [fileName, expected] of masters) {
-    assert.equal(sha256(resolve(publicRoot, `brand/${fileName}`)), expected, fileName);
+    assert.equal(sha256(resolve(publicRoot, `brand/witnessops-logo-system-v1/svg/${fileName}`)), expected, fileName);
   }
 });
 
