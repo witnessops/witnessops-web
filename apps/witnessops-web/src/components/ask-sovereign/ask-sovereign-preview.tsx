@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import {
@@ -203,14 +203,19 @@ export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement, 
   thread.scrollTo({ top: Math.max(0, top), behavior: reduced ? "auto" : "smooth" });
 }
 
-/** Scrolls only enough to put the primary action inside the thread. Reduced motion jumps. */
+/** Scrolls the primary action fully inside the thread when it fits. Otherwise brings its top in. Reduced motion jumps. */
 export function scrollPrimaryActionIntoView(thread: HTMLElement, action: HTMLElement, reduced: boolean) {
   const threadBox = thread.getBoundingClientRect();
   const box = action.getBoundingClientRect();
   const padding = 8;
+  const fits = box.height <= threadBox.height - padding * 2;
   let delta = 0;
-  if (box.top < threadBox.top + padding) delta = box.top - (threadBox.top + padding);
-  else if (box.bottom > threadBox.bottom - padding) delta = box.bottom - (threadBox.bottom - padding);
+  if (fits) {
+    if (box.top < threadBox.top + padding) delta = box.top - (threadBox.top + padding);
+    else if (box.bottom > threadBox.bottom - padding) delta = box.bottom - (threadBox.bottom - padding);
+  } else if (box.top < threadBox.top + padding || box.top > threadBox.bottom - padding) {
+    delta = box.top - (threadBox.top + padding);
+  }
   if (delta === 0) return;
   thread.scrollTo({ top: Math.max(0, thread.scrollTop + delta), behavior: reduced ? "auto" : "smooth" });
 }
@@ -253,6 +258,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
   const [pending, setPending] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [followUpsReady, setFollowUpsReady] = useState(true);
   const errorSpent = useRef(false);
 
   function clearPendingTimers() {
@@ -401,7 +407,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       const action = live === "error"
         ? turn.querySelector<HTMLElement>("[data-retry]")
         : live === "handoff"
-          ? thread.querySelector<HTMLElement>("[data-handoff-cta]")
+          ? thread.querySelector<HTMLElement>("[data-handoff-card]")
           : null;
       if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
       else scrollTurnToThreadStart(thread, turn, reducedMotion);
@@ -542,13 +548,23 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
 
   const askedText = [...turns].reverse().find((turn) => turn.role === "you")?.text;
   const actionBeats = live === "error" || live === "handoff";
-  const suggestions = followUpSuggestions(copy.suggestions, askedText, actionBeats);
+  useLayoutEffect(() => {
+    setFollowUpsReady(live !== "error" && live !== "handoff" && live !== "processing");
+  }, [live]);
+  const suggestions = followUpSuggestions(copy.suggestions, askedText, actionBeats || !followUpsReady);
   const showReview = sovereignNeedsReviewVisible();
   const visibleStatus = liveText(locale, live, phase);
   let spriteIndex = -1;
-  turns.forEach((item, itemIndex) => {
-    if (item.role === "sovereign") spriteIndex = itemIndex;
-  });
+  if (phase === "ERROR") {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "you" && item.simulatedError) spriteIndex = itemIndex;
+    });
+  }
+  if (spriteIndex < 0) {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "sovereign") spriteIndex = itemIndex;
+    });
+  }
 
   const errorSplit = copy.errorNote.lastIndexOf(" ");
   const errorHead = errorSplit > 0 ? copy.errorNote.slice(0, errorSplit + 1) : "";
@@ -558,10 +574,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       <span className={styles.turnChip}>{copy.simulatedChip}</span>
       <span className={styles.errorCaption}>
         {errorHead}
-        <span className={styles.captionTail}>
-          {errorTail}
-          {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
-        </span>
+        <span className={styles.captionTail}>{errorTail}</span>
+        {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
       </span>
     </p>
   );
@@ -618,32 +632,31 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
+              const caption = activeSim === "handoff" && turn.role === "sovereign" && turn.simulated
+                ? previewChip("handoff", locale)
+                : activeSim === "error" && turn.simulatedError
+                  ? previewChip("error", locale)
+                  : null;
+              const content = (
+                <>
+                  <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                  {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
+                  <p><ContactLine text={turn.text} /></p>
+                  {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
+                  {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
+                </>
+              );
+              const retry = turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
+              const body = withSprite ? (
+                <div className={styles.withSprite}>
+                  <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
+                  <div>{content}</div>
+                </div>
+              ) : content;
               return (
                 <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
-                  {activeSim === "handoff" && turn.role === "sovereign" && turn.simulated ? <p className={styles.handoffCaption}>{previewChip("handoff")}</p> : null}
-                  {activeSim === "error" && turn.simulatedError ? <p className={styles.handoffCaption}>{previewChip("error")}</p> : null}
-                  {withSprite ? (
-                    <div className={styles.withSprite}>
-                      <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
-                      <div>
-                        <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                        {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                        <p><ContactLine text={turn.text} /></p>
-                        {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
-                        {turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null}
-                        {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                      {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                      <p><ContactLine text={turn.text} /></p>
-                      {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
-                      {turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null}
-                      {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
-                    </>
-                  )}
+                  {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
+                  {turn.role === "you" ? <div className={styles.youBubble}>{body}{retry}</div> : <>{body}{retry}</>}
                 </li>
               );
             })}
@@ -651,7 +664,14 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           {phase === "HANDOFF" ? (
             <div className={styles.handoffCard} data-handoff-card>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
-              <p><ContactLine text={copy.handoffMail} /></p>
+              <p className={styles.handoffWrite}>{locale === "pl" ? "Albo napisz na" : "Or write to"}</p>
+              <p className={styles.handoffAddress}>
+                <a href={`mailto:${CONTACT_ADDRESS}`}>
+                  {CONTACT_ADDRESS.slice(0, CONTACT_ADDRESS.indexOf("@"))}
+                  <wbr />
+                  {CONTACT_ADDRESS.slice(CONTACT_ADDRESS.indexOf("@"))}
+                </a>
+              </p>
             </div>
           ) : null}
           </div>
@@ -678,7 +698,6 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         <aside className={styles.rail} data-sheet-behind>
           <p className={styles.back}><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
           <p className={styles.kicker}>{copy.kicker}</p>
-          <h1>Ask Sovereign</h1>
           <p className={styles.lead}>{copy.lead}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <h3>{copy.railAnswer}</h3>

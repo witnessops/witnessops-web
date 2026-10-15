@@ -3,7 +3,8 @@
  * Ciemny, Jasny, Przełącz na ciemny motyw, Przełącz na jasny motyw,
  * Motyw na tym urządzeniu, Zapamiętany na tym urządzeniu,
  * Zapisujemy wybór tylko w tej przeglądarce, dopiero po kliknięciu. WitnessOps nie otrzymuje tego wyboru.,
- * Zaloguj się, Przykładowe prace, Zobacz przykłady, Narzędzie · to nie jest przegląd.
+ * Zaloguj się, Przykładowe prace, Zobacz przykłady, Narzędzie, nie przegląd,
+ * Podgląd · symulowane przekazanie, Podgląd · symulowany błąd.
  */
 export default function PolishLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -67,7 +67,9 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /CONTACT_ADDRESS = "engage@mail\.witnessops\.com"/);
   assert.match(source, /mailto:\$\{CONTACT_ADDRESS\}/);
   assert.match(source, /<wbr \/>/);
-  assert.match(source, /followUpSuggestions\(copy\.suggestions, askedText, actionBeats\)/);
+  assert.match(source, /followUpSuggestions\(copy\.suggestions, askedText, actionBeats \|\| !followUpsReady\)/);
+  assert.match(source, /useLayoutEffect\(\(\) => \{/);
+  assert.match(source, /setFollowUpsReady\(live !== "error" && live !== "handoff" && live !== "processing"\)/);
   assert.match(source, /activeSim === "slow" \|\| activeSim === "timeout"/);
   assert.equal(suggestionTopic("What does the External Attack Surface Review cover?"), "easr");
   assert.equal(suggestionTopic("What does the External Attack Surface Review include, and what does it cost?"), "easr");
@@ -142,6 +144,12 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /\.retry \{[^}]*white-space:\s*nowrap/);
   assert.match(css, /\.addressTail \{[^}]*white-space:\s*nowrap/);
   assert.match(css, /\.rail \{ height: auto; align-self: start;/);
+  assert.match(css, /\.handoffCta \{[^}]*background:\s*var\(--color-brand-accent\)/);
+  assert.match(css, /\.handoffCta \{[^}]*color:\s*var\(--color-text-inverse\)/);
+  assert.match(css, /:where\(\.sovereign, \.handoffCard\) a:not\(\.handoffCta\)/);
+  assert.match(css, /max-height:\s*699px\)[\s\S]*\.chips button:nth-child\(n\+3\)/);
+  assert.match(source, /if \(phase === "ERROR"\)/);
+  assert.match(source, /item\.role === "you" && item\.simulatedError/);
   assert.match(source, /scrollPrimaryActionIntoView\(thread, action, reducedMotion\)/);
   assert.match(source, /behavior: reduced \? "auto" : "smooth"/);
   assert.match(css, /\.you, \.sovereign \{ min-width: 0; max-width: 100%; \}/);
@@ -370,7 +378,8 @@ test("a preview timeout reaches the error state and a second question waits", ()
 test("Ask Sovereign type classes stay on the locked roles", () => {
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(html, /class="[^"]*reviewTag[^"]*"/);
-  assert.match(html, /<h1[^>]*>Ask Sovereign<\/h1>/);
+  assert.doesNotMatch(html, /<h1[^>]*>Ask Sovereign<\/h1>/);
+  assert.match(html, /id="ask-sovereign-title"/);
   assert.doesNotMatch(html, /data-display-title/);
   assert.match(html, /<h3[^>]*>Na co Sovereign może odpowiedzieć/);
   const css = readFileSync(resolve(__dirname, "ask-sovereign-preview.module.css"), "utf8");

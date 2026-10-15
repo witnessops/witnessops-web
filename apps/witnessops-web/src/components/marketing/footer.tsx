@@ -78,7 +78,7 @@ const POLISH_FOOTER = {
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
     { label: "Przykładowe prace", href: "/review/sample-cases" },
-    { label: "Narzędzie · to nie jest przegląd", href: "/check" },
+    { label: "Narzędzie, nie przegląd", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
@@ -165,13 +165,14 @@ export function Footer({
 
   function renderLink(link: FooterLink, className: string) {
     const href = resolveFooterHref(link.href);
+    const classes = isPolishSurface && href === "/check" ? `${className} whitespace-nowrap` : className;
     return isExternalFooterHref(href) ? (
       <a key={href} href={href} target="_blank" rel="noreferrer"
-        className={className} style={FOOTER_NAV_STYLE}>
+        className={classes} style={FOOTER_NAV_STYLE}>
         {link.label}
       </a>
     ) : (
-      <Link key={href} href={href} prefetch={false} className={className} style={FOOTER_NAV_STYLE}>
+      <Link key={href} href={href} prefetch={false} className={classes} style={FOOTER_NAV_STYLE}>
         {link.label}
       </Link>
     );

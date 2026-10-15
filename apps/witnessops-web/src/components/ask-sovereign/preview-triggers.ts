@@ -21,7 +21,9 @@ export function simErrorAtLoad(search: string): boolean {
   return new URLSearchParams(search).get("at") === "load";
 }
 
-export function previewChip(flag: SimFlag | null): string | null {
+export function previewChip(flag: SimFlag | null, locale: "en" | "pl" = "en"): string | null {
+  if (locale === "pl" && flag === "error") return "Podgląd · symulowany błąd";
+  if (locale === "pl" && flag === "handoff") return "Podgląd · symulowane przekazanie";
   if (flag === "error") return "Preview · simulated error";
   if (flag === "handoff") return "Preview · simulated handoff";
   if (flag === "slow") return "Preview · simulated slow";
