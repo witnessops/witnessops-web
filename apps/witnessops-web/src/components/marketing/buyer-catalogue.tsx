@@ -95,9 +95,9 @@ export function BuyerCatalogue({
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-6 py-8 lg:py-12">
         <header className="max-w-4xl pb-7 md:pb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{pricing ? text.pricingEyebrow : text.eyebrow}</p>
-          <h1 className="mt-3 text-[2.1rem] font-semibold leading-[1.08] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">{pricing ? text.pricingTitle : text.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">{text.intro}</p>
+          <p className="wo-eyebrow text-brand-accent">{pricing ? text.pricingEyebrow : text.eyebrow}</p>
+          <h1 className="wo-h1 mt-3 text-text-primary">{pricing ? text.pricingTitle : text.title}</h1>
+          <p className="wo-lead mt-4 text-text-secondary">{text.intro}</p>
         </header>
 
         {services.map((service) => {
@@ -111,8 +111,8 @@ export function BuyerCatalogue({
           const serviceRequestHref = buyerServiceRequestHref(locale, service);
           return (
             <section key={service.id} id={groupId} aria-labelledby={`${groupId}-heading`} className="scroll-mt-28 mb-10">
-              <h2 id={`${groupId}-heading`} className="text-2xl font-semibold tracking-tight text-text-primary">{ai ? text.aiGroup : text.externalGroup}</h2>
-              <p className="mt-2 mb-5 max-w-2xl text-sm leading-6 text-text-secondary">{ai ? text.aiSummary : text.externalSummary}</p>
+              <h2 id={`${groupId}-heading`} className="wo-h2 text-text-primary">{ai ? text.aiGroup : text.externalGroup}</h2>
+              <p className="wo-body mt-2 mb-5 text-text-secondary">{ai ? text.aiSummary : text.externalSummary}</p>
               <div className="grid max-w-3xl gap-px overflow-hidden rounded-md border border-surface-border bg-surface-border">
                 <article
                   id={service.id}
@@ -123,35 +123,35 @@ export function BuyerCatalogue({
                   data-timing-contract={service.commercialContract.timing}
                   className="scroll-mt-28 flex h-full min-w-0 flex-col bg-surface-card p-5 md:p-7"
                 >
-                  <h3 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">{service.name[locale]}</h3>
-                  <p className="mt-3 text-lg font-semibold leading-6 text-text-primary"><span className="sr-only">{text.price}: </span>{service.price[locale]}</p>
-                  <p className="mt-4 text-lg font-medium leading-7 text-text-primary">{service.cardSituation[locale]}</p>
-                  <p className="mt-3 text-sm leading-6 text-text-secondary">{landing.whoFor}</p>
-                  {pricing ? <p className="mt-3 text-sm leading-6 text-text-secondary">{service.result[locale]}</p> : <div className="mt-5">
-                    <h4 className="font-semibold text-text-primary">{text.receive}</h4>
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-text-secondary">
+                  <h3 className="wo-h3 text-text-primary">{service.name[locale]}</h3>
+                  <p className="wo-price mt-3 text-text-primary"><span className="sr-only">{text.price}: </span>{service.price[locale]}</p>
+                  <p className="wo-body mt-4 text-text-primary">{service.cardSituation[locale]}</p>
+                  <p className="wo-small mt-3 text-text-secondary">{landing.whoFor}</p>
+                  {pricing ? <p className="wo-small mt-3 text-text-secondary">{service.result[locale]}</p> : <div className="mt-5">
+                    <h4 className="wo-h4 text-text-primary">{text.receive}</h4>
+                    <ul className="wo-body-long mt-3 list-disc space-y-2 pl-5 text-text-secondary">
                       {landing.deliverables.map((item) => <li key={item}>{item}</li>)}
                     </ul>
                   </div>}
-                  <p className="mt-2 text-sm leading-6 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
+                  <p className="wo-small mt-2 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
                   <details className="mt-3 border-t border-surface-border">
-                    <summary className="cursor-pointer py-3 text-sm text-text-secondary">{text.boundary}</summary>
-                    <p className="pb-3 text-sm leading-6 text-text-muted">{service.boundary[locale]}</p>
-                    <ul className="list-disc space-y-2 pb-4 pl-5 text-sm leading-6 text-text-secondary">
+                    <summary className="wo-ui cursor-pointer py-3 text-text-secondary">{text.boundary}</summary>
+                    <p className="wo-small pb-3 text-text-muted">{service.boundary[locale]}</p>
+                    <ul className="wo-body-long list-disc space-y-2 pb-4 pl-5 text-text-secondary">
                       {landing.scopeLimits?.map((item) => <li key={item}>{item}</li>)}
                       {landing.boundaries.map((item) => <li key={item}>{item}</li>)}
                     </ul>
                   </details>
                   {!pricing ? <details className="border-t border-surface-border">
-                    <summary className="cursor-pointer py-3 text-sm text-text-secondary">{text.how}</summary>
-                    <ol className="list-decimal space-y-3 pb-4 pl-5 text-sm leading-6 text-text-secondary">
-                      {landing.steps.map(([title, body]) => <li key={title}><strong className="font-semibold text-text-primary">{title}.</strong> {body}</li>)}
+                    <summary className="wo-ui cursor-pointer py-3 text-text-secondary">{text.how}</summary>
+                    <ol className="wo-body-long list-decimal space-y-3 pb-4 pl-5 text-text-secondary">
+                      {landing.steps.map(([title, body]) => <li key={title}><strong className="font-medium text-text-primary">{title}.</strong> {body}</li>)}
                     </ol>
                   </details> : null}
                   <div className="mt-auto flex flex-wrap gap-3 pt-3">
-                    <Link href={serviceRequestHref} className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110">{ai ? text.aiCta : text.externalCta}</Link>
-                    {detailHref ? <Link href={detailHref} className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset">{text.detailCta}</Link> : null}
-                    {!ai ? <Link href="/review/sample-cases/external-exposure-assessment" className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset">{text.sampleCta}</Link> : null}
+                    <Link href={serviceRequestHref} className="wo-ui inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{ai ? text.aiCta : text.externalCta}</Link>
+                    {detailHref ? <Link href={detailHref} className="wo-ui inline-flex min-h-11 items-center border border-surface-border px-5 text-text-primary hover:bg-surface-inset">{text.detailCta}</Link> : null}
+                    {!ai ? <Link href="/review/sample-cases/external-exposure-assessment" className="wo-ui inline-flex min-h-11 items-center border border-surface-border px-5 text-text-primary hover:bg-surface-inset">{text.sampleCta}</Link> : null}
                   </div>
                 </article>
               </div>
@@ -159,17 +159,17 @@ export function BuyerCatalogue({
           );
         })}
 
-        <p className="mt-5 max-w-3xl text-sm leading-6 text-text-muted">{text.enquiryBoundary}</p>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-text-muted">{text.assuranceBoundary}</p>
+        <p className="wo-small mt-5 text-text-muted">{text.enquiryBoundary}</p>
+        <p className="wo-small mt-3 text-text-muted">{text.assuranceBoundary}</p>
         <section className="mt-6 border-b border-surface-border py-7 md:py-10" aria-labelledby="shared-principles">
-          <h2 id="shared-principles" className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">{text.principlesTitle}</h2>
+          <h2 id="shared-principles" className="wo-h2 text-text-primary">{text.principlesTitle}</h2>
           <div className="mt-8 grid gap-8 md:grid-cols-3">
-            {text.principles.map(([title, body]) => <article key={title} className="border-t border-surface-border pt-4"><h3 className="font-semibold text-text-primary">{title}</h3><p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p></article>)}
+            {text.principles.map(([title, body]) => <article key={title} className="border-t border-surface-border pt-4"><h3 className="wo-h4 text-text-primary">{title}</h3><p className="wo-small mt-2 text-text-secondary">{body}</p></article>)}
           </div>
         </section>
         <section className="mt-12 flex flex-col gap-5 border border-surface-border bg-surface-inset p-7 text-text-primary md:flex-row md:items-center md:justify-between md:p-10">
-          <div><h2 className="text-2xl font-semibold">{text.unsureTitle}</h2><p className="mt-2 max-w-2xl text-sm leading-7 text-text-secondary">{text.unsureBody}</p></div>
-          <Link href={buyerRequestHref(locale)} className="inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
+          <div><h2 className="wo-h3 text-text-primary">{text.unsureTitle}</h2><p className="wo-small mt-2 text-text-secondary">{text.unsureBody}</p></div>
+          <Link href={buyerRequestHref(locale)} className="wo-ui inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
         </section>
         {pricing ? <Link href={locale === "pl" ? "/pl/reviews" : "/reviews"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
       </div>

@@ -37,6 +37,26 @@ body:has(nav[data-public-presentation="quiet"]) #main-content h1[data-chronicle-
   max-width: var(--measure-heading);
 }
 
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] h2 {
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: var(--type-h3-wt);
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] :is(p, li) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-long-lh);
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] > p:first-child {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  max-width: var(--measure-small);
+}
+
 body:has(nav[data-public-presentation="quiet"]) #main-content h2 {
   font-family: var(--font-sans);
   font-size: var(--type-h2-size);
@@ -113,3 +133,46 @@ body:has(nav[data-public-presentation="quiet"]) #main-content code:not(pre code)
   line-height: var(--type-caption-lh);
   letter-spacing: 0;
 }
+
+.wo-display, .wo-h1, .wo-h2, .wo-h3, .wo-h4, .wo-lead, .wo-body, .wo-body-long, .wo-small, .wo-caption, .wo-eyebrow, .wo-ui, .wo-price, .wo-mono, .wo-mono-caps, .wo-prose {
+  font-synthesis: none;
+}
+.wo-display { font-family: var(--font-sans); font-size: var(--type-display-size); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); text-wrap: balance; max-width: 14ch; }
+.wo-h1 { font-family: var(--font-sans); font-size: var(--type-h1-size); line-height: var(--type-h1-lh); letter-spacing: var(--type-h1-ls); font-weight: var(--type-h1-wt); text-wrap: balance; max-width: var(--measure-heading); }
+.wo-h2 { font-family: var(--font-sans); font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); text-wrap: balance; max-width: 24ch; }
+.wo-h3 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-wrap: balance; }
+.wo-h4 { font-family: var(--font-sans); font-size: var(--type-h4-size); line-height: var(--type-h4-lh); letter-spacing: 0; font-weight: var(--type-h4-wt); }
+.wo-lead { font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); letter-spacing: 0; max-width: var(--measure-lead); text-wrap: pretty; }
+.wo-body { font-size: var(--type-body-size); line-height: var(--type-body-lh); letter-spacing: 0; max-width: var(--measure-body); text-wrap: pretty; }
+.wo-body-long { font-size: var(--type-body-size); line-height: var(--type-body-long-lh); letter-spacing: 0; max-width: var(--measure-body); text-wrap: pretty; }
+.wo-small { font-size: var(--type-small-size); line-height: var(--type-small-lh); letter-spacing: 0; max-width: var(--measure-small); }
+.wo-caption { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); letter-spacing: 0; }
+.wo-eyebrow { font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
+.wo-ui { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); letter-spacing: 0; font-weight: var(--type-ui-wt); text-transform: none; }
+.wo-price { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
+.wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
+.wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; font-variant-numeric: tabular-nums lining-nums; }
+.wo-prose { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; }
+.wo-chapter-index { font-family: var(--font-mono); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: 0; font-weight: 400; }
+
+/* Role classes outrank the element rules inside the public main. */
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-display { font-family: var(--font-sans); font-size: var(--type-display-size); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h1 { font-family: var(--font-sans); font-size: var(--type-h1-size); line-height: var(--type-h1-lh); letter-spacing: var(--type-h1-ls); font-weight: var(--type-h1-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h2 { font-family: var(--font-sans); font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h3,
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-chapter-index { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-chapter-index { font-family: var(--font-mono); letter-spacing: 0; font-weight: 400; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h4 { font-size: var(--type-h4-size); line-height: var(--type-h4-lh); letter-spacing: 0; font-weight: var(--type-h4-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-lead { font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); letter-spacing: 0; max-width: var(--measure-lead); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-body { font-size: var(--type-body-size); line-height: var(--type-body-lh); letter-spacing: 0; max-width: var(--measure-body); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-body-long { font-size: var(--type-body-size); line-height: var(--type-body-long-lh); letter-spacing: 0; max-width: var(--measure-body); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-small { font-size: var(--type-small-size); line-height: var(--type-small-lh); letter-spacing: 0; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-caption { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); letter-spacing: 0; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-eyebrow { font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-ui { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); letter-spacing: 0; font-weight: var(--type-ui-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-price { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose :is(p, li, blockquote):not(.wo-mono-caps):not(.wo-small) { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; max-width: var(--measure-prose); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-prose-stack > * + * { margin-top: var(--type-prose-gap); }
