@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -59,8 +60,8 @@ function Sprite({ phase }: { phase: Phase }) {
   const frame = phase === "answering" ? "answering" : phase === "greet" ? "greet" : "idle";
   return (
     <span className={styles.sprite} data-sovereign-phase={phase}>
-      <img className={styles.light} src={`/ask-sovereign/${frame}-light.webp`} alt="" width={96} height={104} />
-      <img className={styles.dark} src={`/ask-sovereign/${frame}-dark.webp`} alt="" width={96} height={104} />
+      <Image className={styles.light} src={`/ask-sovereign/${frame}-light.webp`} alt="" width={96} height={104} />
+      <Image className={styles.dark} src={`/ask-sovereign/${frame}-dark.webp`} alt="" width={96} height={104} />
     </span>
   );
 }
