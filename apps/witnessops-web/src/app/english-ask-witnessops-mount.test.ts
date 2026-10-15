@@ -18,8 +18,8 @@ const disclosure = readFileSync(resolve(__dirname, "../components/docs-assistant
 
 test("Ask WitnessOps widget is quarantined and unmounted", () => {
   assert.match(widget, /DOCS_ASSISTANT_WIDGET_QUARANTINED = true/);
-  assert.match(rootLayout, /DOCS_ASSISTANT_WIDGET_QUARANTINED \? null : <DocsAssistantWidget \/>/);
-  assert.match(rootLayout, /localWorkspace === "external-check" && \(DOCS_ASSISTANT_WIDGET_QUARANTINED \? null : <DocsAssistantWidget \/>\)/);
+  assert.doesNotMatch(rootLayout, /DocsAssistantWidget/);
+  assert.doesNotMatch(rootLayout, /docs-assistant-widget/);
   assert.match(widget, /aria-label="Ask WitnessOps"/);
   assert.match(widget, /Ask WitnessOps/);
   assert.match(conversation, /An automation stopped working/);

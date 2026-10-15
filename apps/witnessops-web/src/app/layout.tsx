@@ -5,7 +5,6 @@ import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { DocumentNavigation } from "@/components/shared/document-navigation";
 import documentNavigationStyles from "@/components/shared/document-navigation.module.css";
-import { DocsAssistantWidget, DOCS_ASSISTANT_WIDGET_QUARANTINED } from "@/components/docs-assistant/docs-assistant-widget";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
@@ -80,6 +79,18 @@ function fontPreloads(language: string) {
   );
 }
 
+const UNPUBLISHED_FOOTER_HREFS = new Set([
+  "/catalog/workflows",
+  "/catalog/offsec-external-exposure",
+]);
+
+function publishedFooter<T extends { links: { href: string; label: string }[] }>(footer: T): T {
+  return {
+    ...footer,
+    links: footer.links.filter((link) => !UNPUBLISHED_FOOTER_HREFS.has(link.href)),
+  };
+}
+
 const appShellStyle: React.CSSProperties = {
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
 };
@@ -122,10 +133,9 @@ export default async function RootLayout({
           {children}
           <div className={documentNavigationStyles.chrome}>
             <DocumentNavigation>
-              <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
+              <Footer {...publishedFooter(content.footer)} appUrl={getWorkspaceAppUrl()} />
             </DocumentNavigation>
           </div>
-          {localWorkspace === "external-check" && (DOCS_ASSISTANT_WIDGET_QUARANTINED ? null : <DocsAssistantWidget />)}
         </body>
       </html>
     );
@@ -179,8 +189,7 @@ export default async function RootLayout({
         />
         <RouteScrollReset />
         {children}
-        <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
-        {DOCS_ASSISTANT_WIDGET_QUARANTINED ? null : <DocsAssistantWidget />}
+        <Footer {...publishedFooter(content.footer)} appUrl={getWorkspaceAppUrl()} />
         <KonamiPenguin />
       </body>
     </html>
