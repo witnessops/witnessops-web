@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -69,6 +69,32 @@ test("public type styles use the locked tokens", () => {
         failures.push(`${file} overflow-wrap: anywhere on ${selector.trim()}`);
       }
     }
+  }
+  assert.deepEqual(failures, []);
+});
+
+function cssFiles(dir: string, out: string[] = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules" || entry.name.startsWith(".next")) continue;
+      cssFiles(path, out);
+    } else if (entry.name.endsWith(".css")) out.push(path);
+  }
+  return out;
+}
+
+test("--type-hero is only read by the homepage modules", () => {
+  const allowed = [
+    "src/components/marketing/simple-homepage.module.css",
+    "src/components/marketing/buyer-homepage.module.css",
+  ];
+  const failures: string[] = [];
+  for (const file of cssFiles("src")) {
+    const css = readFileSync(file, "utf8");
+    if (!css.includes("var(--type-hero")) continue;
+    const normalised = file.split("\\").join("/");
+    if (!allowed.some((item) => normalised.endsWith(item))) failures.push(normalised);
   }
   assert.deepEqual(failures, []);
 });

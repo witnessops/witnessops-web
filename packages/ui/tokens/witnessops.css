@@ -58,6 +58,8 @@
 
   /* Type lock. S is the default. M starts at 768px and L at 1200px. */
   --type-display-size: 44px; --type-display-lh: 48px; --type-display-ls: -0.025em; --type-display-wt: 300;
+  --type-hero-size: 52px; --type-hero-lh: 56px; --type-hero-ls: -0.025em; --type-hero-wt: 300;
+  --measure-h2: 32ch;
   --type-h1-size: 34px; --type-h1-lh: 40px; --type-h1-ls: -0.02em; --type-h1-wt: 300;
   --type-h2-size: 28px; --type-h2-lh: 36px; --type-h2-ls: -0.015em; --type-h2-wt: 300; --type-h2-gap: 40px;
   --type-h3-size: 20px; --type-h3-lh: 28px; --type-h3-ls: -0.01em; --type-h3-wt: 400;
@@ -78,6 +80,7 @@
 @media (min-width: 768px) {
   :root {
     --type-display-size: 56px; --type-display-lh: 64px; --type-display-ls: -0.03em;
+    --type-hero-size: 76px; --type-hero-lh: 80px; --type-hero-ls: -0.03em;
     --type-h1-size: 40px; --type-h1-lh: 48px; --type-h1-ls: -0.025em;
     --type-h2-size: 30px; --type-h2-lh: 36px; --type-h2-ls: -0.02em;
     --type-h3-size: 22px; --type-h3-lh: 28px;
@@ -90,6 +93,7 @@
 @media (min-width: 1200px) {
   :root {
     --type-display-size: 72px; --type-display-lh: 80px;
+    --type-hero-size: 108px; --type-hero-lh: 112px;
     --type-h1-size: 48px; --type-h1-lh: 56px;
     --type-h2-size: 36px; --type-h2-lh: 44px; --type-h2-gap: 48px;
     --type-h3-size: 24px; --type-h3-lh: 32px;

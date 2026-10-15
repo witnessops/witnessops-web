@@ -31,6 +31,7 @@ const P = "IBM Plex Mono";
 // size, line-height, letter-spacing em, weight, family, transform
 const T = {
   display: { S: [44, 48, -0.025, 300, I, "none"], M: [56, 64, -0.03, 300, I, "none"], L: [72, 80, -0.03, 300, I, "none"] },
+  hero: { S: [52, 56, -0.025, 300, I, "none"], M: [76, 80, -0.03, 300, I, "none"], L: [108, 112, -0.03, 300, I, "none"] },
   h1: { S: [34, 40, -0.02, 300, I, "none"], M: [40, 48, -0.025, 300, I, "none"], L: [48, 56, -0.025, 300, I, "none"] },
   h2: { S: [28, 36, -0.015, 300, I, "none"], M: [30, 36, -0.02, 300, I, "none"], L: [36, 44, -0.02, 300, I, "none"] },
   h3: { S: [20, 28, -0.01, 400, I, "none"], M: [22, 28, -0.01, 400, I, "none"], L: [24, 32, -0.01, 400, I, "none"] },
@@ -77,7 +78,8 @@ function role(it) {
   if (it.prose && fam === "Newsreader") return "prose";
   if (it.prose && tag === "h2") return "h3";
   if (tt === "uppercase") return "eyebrow";
-  if (tag === "h1") return it.route === "/" || it.route === "/pl" ? "display" : "h1";
+  if (/heroLine/.test(p) || (tag === "h1" && (it.route === "/" || it.route === "/pl"))) return "hero";
+  if (tag === "h1") return "h1";
   if (tag === "h2") return "h2";
   if (tag === "h3") return s <= 18 ? "h4" : "h3";
   if (tag === "h4") return "h4";
