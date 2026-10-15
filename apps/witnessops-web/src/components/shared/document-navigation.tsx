@@ -22,9 +22,9 @@ export function DocumentNavigation({ children }: { children: ReactNode }) {
 type PublicNavigationLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
   "href"
-> & { href: string };
+> & { href: string; prefetch?: boolean };
 
-export function PublicNavigationLink(props: PublicNavigationLinkProps) {
+export function PublicNavigationLink({ prefetch, ...props }: PublicNavigationLinkProps) {
   const documentNavigation = useContext(DocumentNavigationContext);
-  return documentNavigation ? <a {...props} /> : <NextLink {...props} />;
+  return documentNavigation ? <a {...props} /> : <NextLink prefetch={prefetch} {...props} />;
 }

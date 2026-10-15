@@ -33,7 +33,9 @@ function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
     },
     {
       label: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
-      href: EXTERNAL_ATTACK_SURFACE_OFFER.route[locale],
+      href: locale === "pl"
+        ? "/pl/reviews/external-attack-surface-review"
+        : "/reviews/external-attack-surface-review",
     },
   ];
 }
@@ -169,7 +171,7 @@ export function Footer({
         {link.label}
       </a>
     ) : (
-      <Link key={href} href={href} className={className} style={FOOTER_NAV_STYLE}>
+      <Link key={href} href={href} prefetch={false} className={className} style={FOOTER_NAV_STYLE}>
         {link.label}
       </Link>
     );
