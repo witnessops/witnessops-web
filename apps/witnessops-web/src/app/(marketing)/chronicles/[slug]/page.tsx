@@ -13,6 +13,8 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return PUBLISHED_CHAPTERS.map((chapter) => ({ slug: chapter.slug }));
 }

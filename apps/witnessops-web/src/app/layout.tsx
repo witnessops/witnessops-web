@@ -16,7 +16,8 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
 import "./globals.css";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-export const revalidate = 300;
+// headers() in this layout forces dynamic rendering, so a revalidate export
+// would not cache pages or freeze the assistant gate. Do not add one.
 
 export const metadata: Metadata = {
   title: {
