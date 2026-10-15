@@ -220,6 +220,7 @@ export function Footer({
               { label: "Sample work", href: "/review/sample-cases" },
               { label: "Research", href: "/research" },
               { label: "The Sovereign Chronicles", href: "/chronicles" },
+              { label: "Ask Sovereign", href: "/docs/assistant" },
               { label: "Verify a receipt", href: "/verify" },
               { label: "Tool · not a review", href: "/check" },
             ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}

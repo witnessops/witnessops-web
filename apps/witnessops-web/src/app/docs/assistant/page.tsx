@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
-import { DocsAssistantPage } from "@/components/docs-assistant/docs-assistant-page";
+import { AskSovereignPreview } from "@/components/ask-sovereign/ask-sovereign-preview";
 
 export const metadata: Metadata = {
-  title: "Ask WitnessOps | WitnessOps",
+  title: "Ask Sovereign | WitnessOps",
   robots: { index: false, follow: false },
 };
 
 export default function DocsAssistantRoute() {
   return (
     <main id="main-content" tabIndex={-1} className="docs-page-enter">
-      <DocsAssistantPage />
+      <AskSovereignPreview />
     </main>
   );
 }

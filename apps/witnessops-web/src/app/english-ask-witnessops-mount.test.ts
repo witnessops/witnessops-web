@@ -61,7 +61,7 @@ test("Ask WitnessOps launcher stays off dedicated and non-buyer surfaces", () =>
 });
 
 test("dedicated Ask WitnessOps route remains available for separate gating", () => {
-  assert.match(dedicatedAskPage, /<DocsAssistantPage\s*\/>/);
+  assert.match(dedicatedAskPage, /<AskSovereignPreview\s*\/>/);
 });
 
 test("External check mounts Ask while the local proofpack shell stays isolated", () => {
