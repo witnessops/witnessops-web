@@ -185,7 +185,7 @@ export function homepageReviewsJsonLd() {
     {
       name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
       price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
-      url: canonicalUrl("/reviews#external-attack-surface-review"),
+      url: canonicalUrl("/reviews/external-attack-surface-review"),
     },
   ] as const;
 
