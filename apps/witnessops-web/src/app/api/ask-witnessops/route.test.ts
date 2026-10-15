@@ -1,3 +1,5 @@
+// These cases exercise the non-production route (NODE_ENV=test).
+// Production responses are quarantined in ask-witnessops-production-gate.test.ts.
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
 
