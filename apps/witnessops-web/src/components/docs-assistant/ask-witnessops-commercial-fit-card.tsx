@@ -48,12 +48,12 @@ export function AskWitnessOpsCommercialFitCard({
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           {showRequestAction && (onRequestScope ? (
             <button type="button" onClick={() => { onOfferSelected?.(); onRequestScope(); }} data-ask-primary-cta
-              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary">
               {pl ? "Przygotuj moją prośbę" : "Prepare my request"}
             </button>
           ) : (
             <Link href={buyerServiceRequestHref(language, service)} onClick={onOfferSelected} data-ask-primary-cta
-              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary">
               {pl ? "Przygotuj moją prośbę" : "Prepare my request"}
             </Link>
           ))}
@@ -121,7 +121,7 @@ export function AskWitnessOpsCommercialFitCard({
     ? "mt-4 border border-brand-accent/45 p-3"
     : "mt-5 border border-brand-accent/45 p-4";
   const primaryClassName =
-    "inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-center text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+    "inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-center text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary ";
 
   return (
     <section className={cardClassName} aria-label="Commercial fit">
@@ -185,7 +185,7 @@ export function AskWitnessOpsCommercialFitCard({
           {fit.matching_specimen_id === "ai-agent-action-proof-run" && (
             <Link
               href={SPECIMEN_HREF}
-              className="inline-flex min-h-10 items-center justify-center px-2 py-2 text-center text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              className="inline-flex min-h-10 items-center justify-center px-2 py-2 text-center text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4"
             >
               Inspect matching specimen
             </Link>

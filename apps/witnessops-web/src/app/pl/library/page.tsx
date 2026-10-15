@@ -214,7 +214,7 @@ export default function PolishLibraryPage() {
                     <li key={href + label} className="border-t border-surface-border pt-4">
                       <Link
                         href={href}
-                        className="inline-flex min-h-11 items-center font-semibold text-text-primary underline decoration-1 underline-offset-4 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                        className="inline-flex min-h-11 items-center font-semibold text-text-primary underline decoration-1 underline-offset-4 hover:no-underline"
                       >
                         {label}
                       </Link>

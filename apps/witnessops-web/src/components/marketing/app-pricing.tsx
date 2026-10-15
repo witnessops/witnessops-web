@@ -19,7 +19,7 @@ const capabilities = [
   ["Named-review intake", "Enquire", "Enquire", "Priority"],
 ];
 const eyebrow = "text-xs uppercase tracking-[0.16em] text-text-muted";
-const button = "min-h-11 rounded border border-surface-border-strong px-5 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+const button = "min-h-11 rounded border border-surface-border-strong px-5 py-3 text-sm ";
 
 export function AppPricing({ signupUrl = null }: { signupUrl?: string | null }) {
   const [annual, setAnnual] = useState(false);
@@ -35,7 +35,7 @@ export function AppPricing({ signupUrl = null }: { signupUrl?: string | null }) 
       </div>
       <p id="app-pricing-draft" className="mt-5 max-w-3xl text-sm leading-6 text-text-secondary">Proposed prices and capabilities for discussion, not current paid entitlements. Creating an account is free; verify your email to create your own workspace.</p>
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {plans.map(plan => <article key={plan.name} data-app-plan={plan.name} className={`flex min-w-0 flex-col gap-4 rounded-lg border p-6 lg:p-7 ${plan.name === "Compare" ? "border-brand-accent bg-surface-card/40" : "border-surface-border-strong"}`}>
+        {plans.map(plan => <article key={plan.name} data-app-plan={plan.name} className={`flex min-w-0 flex-col gap-4 rounded-md border p-6 lg:p-7 ${plan.name === "Compare" ? "border-brand-accent bg-surface-card/40" : "border-surface-border-strong"}`}>
           <p className={eyebrow}>{plan.label}</p><h3 className="text-[22px] font-medium">{plan.name}</h3>
           <p className="text-text-secondary"><strong className="text-[32px] font-medium tracking-tight text-text-primary">€{new Intl.NumberFormat("en-IE").format(plan.monthly * (annual ? 10 : 1))}</strong> <span className="text-sm">/ {annual ? "year" : "month"}</span></p>
           <p className="text-xs text-text-muted">excluding VAT · illustrative {annual ? "annual total" : "monthly price"}</p>
@@ -49,7 +49,7 @@ export function AppPricing({ signupUrl = null }: { signupUrl?: string | null }) 
     </section>
     <section className="border-b border-surface-border py-12 lg:py-16" aria-labelledby="capabilities-heading">
       <p className={eyebrow}>Compare · Proposed capabilities</p><h2 id="capabilities-heading" className="mt-3 text-3xl font-medium">What each plan records</h2>
-      <div role="region" aria-label="Plan capability comparison" tabIndex={0} className="mt-8 overflow-x-auto rounded-lg border border-surface-border-strong focus-visible:ring-2 focus-visible:ring-brand-accent">
+      <div role="region" aria-label="Plan capability comparison" tabIndex={0} className="mt-8 overflow-x-auto rounded-md border border-surface-border-strong">
         <table className="w-full min-w-[580px] text-left text-sm"><caption className="sr-only">Illustrative plan comparison, not current paid entitlements</caption><thead className="bg-surface-card"><tr>{["Capability", ...plans.map(p => p.name)].map(name => <th key={name} scope="col" className="px-5 py-5 font-medium">{name}</th>)}</tr></thead><tbody>{capabilities.map(([name, ...values]) => <tr key={name} className="border-t border-surface-border"><th scope="row" className="px-5 py-5 font-normal text-text-secondary">{name}</th>{values.map((value, i) => <td key={i} className="px-5 py-5 text-text-secondary">{value === "—" ? <span aria-label="Not included">—</span> : value}</td>)}</tr>)}</tbody></table>
       </div>
       <p className="mt-5 text-sm leading-6 text-text-muted">A plan does not authorise a scan or establish that a system is secure. Scope and permission remain specific to each check.</p>
@@ -72,7 +72,7 @@ export function PricingQuestions() {
         ["Preview in this browser", "Selection is a page preview. Nothing is billed and no card is collected."],
         ["Create your account", "Create an account, verify your email, then create your workspace. Creating an account does not start a check."],
         ["Escalate if needed", "A named review stays a separate, scoped engagement."],
-      ].map(([title, body], i) => <li key={title} className="rounded-lg border border-surface-border p-5"><p className={eyebrow}>0{i + 1}</p><h3 className="mt-3 font-medium">{title}</h3><p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p></li>)}</ol>
+      ].map(([title, body], i) => <li key={title} className="rounded-md border border-surface-border p-5"><p className={eyebrow}>0{i + 1}</p><h3 className="mt-3 font-medium">{title}</h3><p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p></li>)}</ol>
     </section>
     <section className="py-8" aria-labelledby="price-faq-heading"><p className={eyebrow}>Questions</p><h2 id="price-faq-heading" className="mt-3 text-3xl font-medium">Price FAQ</h2>
       <div className="mt-6">{[
@@ -83,7 +83,7 @@ export function PricingQuestions() {
         ["Does a plan authorise a scan?", "No. Selecting a plan, asking for support or making a payment does not authorise testing. You must have authority for the specific target and agreed scope."],
         ["Can I change or cancel?", "You can change the preview selection on this page. There is no live subscription to cancel; live billing and cancellation terms are not established by this draft."],
         ["Monthly or annual?", "The illustrative annual price includes two months: Compare is €490 per year and Workspace is €1,490 per year, excluding VAT. The toggle displays the full annual total."],
-      ].map(([question, answer]) => <details key={question} className="border-b border-surface-border"><summary className="cursor-pointer py-5 text-sm font-medium focus-visible:ring-2 focus-visible:ring-brand-accent">{question}</summary><p className="max-w-3xl pb-5 text-sm leading-6 text-text-secondary">{answer}</p></details>)}</div>
+      ].map(([question, answer]) => <details key={question} className="border-b border-surface-border"><summary className="cursor-pointer py-5 text-sm font-medium">{question}</summary><p className="max-w-3xl pb-5 text-sm leading-6 text-text-secondary">{answer}</p></details>)}</div>
     </section>
   </>;
 }

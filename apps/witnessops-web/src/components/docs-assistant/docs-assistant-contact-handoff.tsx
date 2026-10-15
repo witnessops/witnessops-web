@@ -297,7 +297,7 @@ export function DocsAssistantContactHandoff({
           }}
           aria-expanded="false"
           aria-controls={CONTACT_PANEL_ID}
-          className="mt-2 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          className="mt-2 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 transition-colors hover:text-text-primary"
         >
           Request a follow-up
         </button>
@@ -323,7 +323,7 @@ export function DocsAssistantContactHandoff({
           type="button"
           onClick={reset}
           data-ask-contact-return
-          className="mt-3 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          className="mt-3 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4"
         >
           Return to Ask AI
         </button>
@@ -362,7 +362,7 @@ export function DocsAssistantContactHandoff({
           type="button"
           onClick={reset}
           disabled={status === "sending" || status === "verifying"}
-          className="min-h-11 min-w-11 shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-11 min-w-11 shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
         >
           Back
         </button>
@@ -409,7 +409,7 @@ export function DocsAssistantContactHandoff({
               aria-describedby={status === "error" ? "ask-ai-contact-code-error ask-ai-contact-code-help" : "ask-ai-contact-code-help"}
               aria-errormessage={status === "error" ? "ask-ai-contact-code-error" : undefined}
               placeholder="ABCD-EFGH-JKLM"
-              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent "
             />
             <p id="ask-ai-contact-code-help" className="mt-1 text-[11px] leading-relaxed text-text-muted">
               The code expires at {verificationStep.expiresAt}.
@@ -479,7 +479,7 @@ export function DocsAssistantContactHandoff({
               autoComplete="email"
               required
               placeholder="you@company.com"
-              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent "
             />
           </div>
           {hasConversation && (
@@ -521,7 +521,7 @@ export function DocsAssistantContactHandoff({
               maxLength={includeQuestion ? ASK_CONTACT_QUESTION_MAX_LENGTH : ASK_CONTACT_NOTE_MAX_LENGTH}
               placeholder="What would you like help with?"
               aria-describedby="ask-ai-contact-summary-help"
-              className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-3 py-2 text-base leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-3 py-2 text-base leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent "
             />
             <p id="ask-ai-contact-summary-help" className="mt-1 text-xs leading-relaxed text-text-muted">
               Edit what WitnessOps will receive. AI answers are not shared. Do not include secrets or customer evidence.

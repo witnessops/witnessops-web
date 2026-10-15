@@ -23,7 +23,7 @@ export async function GET() {
             width: "100%",
             border: "1px solid rgba(255,255,255,0.08)",
             margin: "28px",
-            borderRadius: "28px",
+            borderRadius: "8px",
             background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
           }}
         >

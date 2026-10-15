@@ -81,7 +81,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-card);
   background: rgba(13, 13, 12, 0.88);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
 }
@@ -161,7 +161,7 @@
 .console {
   overflow: hidden;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.9rem;
+  border-radius: var(--radius-card);
   background: var(--skill-paper);
   box-shadow: 0 28px 72px rgba(0, 0, 0, 0.3);
 }
@@ -245,7 +245,7 @@
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  border-radius: 0.55rem;
+  border-radius: var(--radius-control);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 650;
@@ -287,8 +287,8 @@
 .verifyButton:focus-visible,
 .policySelect:focus-visible,
 .findingsList summary:focus-visible {
-  outline: 2px solid var(--skill-accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--skill-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .editorShell {
@@ -296,7 +296,7 @@
   overflow: hidden;
   margin-top: 1.35rem;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.65rem;
+  border-radius: var(--radius-card);
   background: #080b12;
   transition:
     border-color 180ms ease,
@@ -340,7 +340,6 @@
   font-family: var(--font-mono);
   font-size: 0.76rem;
   line-height: 1.8;
-  outline: none;
 }
 
 .editor::placeholder {
@@ -381,12 +380,11 @@
   width: min(100%, 32rem);
   min-height: 50px;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.55rem;
+  border-radius: var(--radius-control);
   background: var(--skill-soft);
   padding: 0 2.5rem 0 0.9rem;
   color: var(--skill-ink);
   font-size: 0.84rem;
-  outline: none;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -529,7 +527,7 @@
   overflow: hidden;
   border: 1px solid var(--skill-rule-strong);
   border-left-width: 3px;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
   background: var(--skill-soft);
 }
 
@@ -651,7 +649,7 @@
 .findingsList details {
   overflow: hidden;
   border: 1px solid var(--skill-rule);
-  border-radius: 0.55rem;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.012);
   transition:
     border-color 180ms ease,
@@ -752,7 +750,7 @@
   overflow-x: auto;
   padding: 0.9rem;
   border: 1px solid var(--skill-rule);
-  border-radius: 0.45rem;
+  border-radius: var(--radius-card);
   background: #080b12;
   color: var(--skill-ink-soft);
   font-family: var(--font-mono);

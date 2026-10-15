@@ -79,7 +79,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
 
   function getDesktopCtaClassName(variant: string) {
     const baseClassName =
-      "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
+      "hidden min-h-11 items-center whitespace-nowrap rounded-sm px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-200 motion-reduce:transform-none lg:inline-flex";
 
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
@@ -105,7 +105,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
           <div className="mx-auto max-w-content px-6">
             <a
               href={effectiveAnnouncement.href}
-              className="flex items-center justify-center gap-2 py-2 text-xs text-brand-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+              className="flex items-center justify-center gap-2 py-2 text-xs text-brand-accent hover:underline"
             >
               <span className="font-medium">{effectiveAnnouncement.text}</span>
               <span aria-hidden="true">&rarr;</span>
@@ -124,7 +124,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
-            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded-xs text-text-primary transition-colors"
           >
             <WitnessOpsMark
               variant="mark"
@@ -151,7 +151,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-md border border-transparent px-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
+                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border border-transparent px-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none"
                   >
                     {link.label}
                   </a>
@@ -160,7 +160,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                     key={link.href}
                     href={link.href}
                     aria-current={currentPath === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-md border px-3 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none ${
+                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border px-3 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none ${
                       currentPath === link.href
                         ? "border-surface-border-strong bg-surface-inset text-text-primary"
                         : "border-transparent text-text-secondary"

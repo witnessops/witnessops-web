@@ -124,7 +124,7 @@ export default function CustomerSecurityReviewSamplePage() {
                 </ul>
               </div>
               <div
-                className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                className="overflow-x-auto"
                 tabIndex={0}
                 aria-label="Synthetic example response table"
               >

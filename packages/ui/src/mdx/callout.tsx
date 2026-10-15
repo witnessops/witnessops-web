@@ -23,7 +23,7 @@ export function Callout({ type, title, children }: CalloutProps) {
       style={{
         background: style.bg,
         borderLeft: `4px solid ${style.border}`,
-        borderRadius: "4px",
+        borderRadius: "var(--radius-card)",
         padding: "12px 16px",
         margin: "16px 0",
       }}
@@ -36,7 +36,7 @@ export function Callout({ type, title, children }: CalloutProps) {
             justifyContent: "center",
             width: "20px",
             height: "20px",
-            borderRadius: "50%",
+            borderRadius: "var(--radius-pill)",
             background: style.border,
             color: "#fff",
             fontSize: "12px",

@@ -10,7 +10,7 @@ export type CardProps = {
 export function Card({ header, footer, children, className = "" }: CardProps) {
   return (
     <div
-      className={`bg-surface-card border border-surface-border rounded-[var(--radius-lg)] overflow-hidden group transition-all duration-200 hover:border-surface-border/80 hover:shadow-lg hover:shadow-black/20 ${className}`}
+      className={`bg-surface-card border border-surface-border rounded-[var(--radius-card)] overflow-hidden group transition-all duration-200 hover:border-surface-border/80 hover:shadow-lg hover:shadow-black/20 ${className}`}
     >
       {header && (
         <div className="px-6 py-4 border-b border-surface-border">

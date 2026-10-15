@@ -36,7 +36,7 @@ export function AskWitnessOpsSourceLinks({ answer, compact = false }: Props) {
               href={href}
               target={target === "external" ? "_blank" : undefined}
               rel={target === "external" ? "noreferrer" : undefined}
-              className="inline-flex min-h-8 items-center px-1 py-1 underline underline-offset-4 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              className="inline-flex min-h-8 items-center px-1 py-1 underline underline-offset-4 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent"
             >
               {source.public_label}
             </SourceLink>

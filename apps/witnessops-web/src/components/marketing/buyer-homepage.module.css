@@ -83,7 +83,7 @@
 .secondaryCta,
 .closingPrimary {
   min-height: 50px !important;
-  border-radius: 4px !important;
+  border-radius: var(--radius-control) !important;
   padding-inline: 1.5rem !important;
   font-family: var(--font-mono);
   font-size: .875rem !important;
@@ -261,7 +261,7 @@
   margin-top: 1.25rem;
   padding: 1.1rem 1.35rem;
   border: 1px dashed var(--rule-strong);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
 }
 
 .freeCheck h3 {
@@ -279,7 +279,7 @@
   margin: 2.5rem 0 0;
   padding: 0;
   border: 1px solid var(--rule);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.012);
   list-style: none;
   overflow: hidden;
@@ -346,7 +346,7 @@
 .receiptCard {
   min-width: 0;
   border: 1px solid var(--rule-strong);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-card);
   background: #080808;
   overflow: hidden;
 }
@@ -535,7 +535,7 @@
   margin-block: clamp(3rem, 6vw, 5rem);
   padding: clamp(1.8rem, 4vw, 3rem);
   border: 1px solid var(--rule-strong);
-  border-radius: 0.85rem;
+  border-radius: var(--radius-card);
   background: var(--paper-raised);
 }
 
@@ -583,8 +583,8 @@
 }
 
 .page a:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-offset);
 }
 
 @media (max-width: 920px) {
@@ -874,13 +874,13 @@
 
 .askEntry { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .5rem; margin: 1.25rem 0 0; color: var(--ink-soft); font-size: .9375rem; line-height: 1.6; }
 .askEntry a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: var(--ink); text-decoration: underline; text-underline-offset: .3em; }
-.ownSystemCase { margin-top: 2rem; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--rule-strong); border-radius: .5rem; background: var(--paper-raised); }
+.ownSystemCase { margin-top: 2rem; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--rule-strong); border-radius: var(--radius-card); background: var(--paper-raised); }
 .ownSystemCase h3 { margin: .75rem 0; font-size: clamp(1.35rem, 2.5vw, 1.8rem); line-height: 1.25; letter-spacing: -.025em; }
 .ownSystemCase p, .ownSystemCase li { max-width: 68ch; font-size: .9375rem; line-height: 1.65; color: var(--ink-soft); }
 .ownSystemCase .eyebrow { font-size: .75rem; color: var(--accent); }
 .ownSystemCase details { margin-top: .75rem; border-top: 1px solid var(--rule); }
 .ownSystemCase summary { padding-block: .875rem; cursor: pointer; font-size: .9375rem; color: var(--ink); }
-.ownSystemCase summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ownSystemCase summary:focus-visible { outline: var(--focus-width) solid var(--accent); outline-offset: var(--focus-offset); }
 .ownSystemCase li + li { margin-top: .5rem; }
 .ownSystemCase ul { padding-left: 1.25rem; margin-block: .25rem 1rem; }
 

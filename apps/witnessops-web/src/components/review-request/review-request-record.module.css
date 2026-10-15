@@ -8,7 +8,7 @@
   width: 100%;
   overflow: hidden;
   border: 1px solid var(--record-rule);
-  border-radius: 0.35rem;
+  border-radius: var(--radius-card);
   background: var(--record-paper);
   color: var(--record-ink);
   box-shadow: 0 20px 56px rgba(31, 24, 18, 0.12);
@@ -152,7 +152,7 @@
   min-height: 44px;
   margin-top: 1rem;
   border: 1px solid var(--record-ink);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-control);
   background: var(--record-ink);
   padding: 0.7rem 0.95rem;
   color: var(--record-sheet);
@@ -169,8 +169,8 @@
 }
 
 .copyButton:focus-visible {
-  outline: 3px solid var(--record-accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--record-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .copyStatus {
@@ -203,7 +203,7 @@
   width: 100%;
   resize: vertical;
   border: 1px solid var(--record-ink);
-  border-radius: 0.2rem;
+  border-radius: var(--radius-control);
   background: var(--record-sheet);
   padding: 0.7rem;
   color: var(--record-ink);
@@ -213,8 +213,8 @@
 }
 
 .copyFallback textarea:focus-visible {
-  outline: 3px solid var(--record-accent);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--record-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .footer {

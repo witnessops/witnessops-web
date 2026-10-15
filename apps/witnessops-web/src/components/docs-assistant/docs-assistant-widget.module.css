@@ -51,10 +51,6 @@
   animation: ask-proof-enter 180ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
-.dialog:focus {
-  outline: none;
-}
-
 .chrome {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -128,7 +124,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   color: var(--proof-muted);
   font-size: 0.9rem;
   transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
@@ -162,8 +158,8 @@
 .contactScrollRegion [data-ask-contact-form] button:focus-visible,
 .contactScrollRegion [data-ask-contact-return]:focus-visible,
 .trigger:focus-visible {
-  outline: 3px solid var(--proof-accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--proof-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .dialogBody {
@@ -199,7 +195,7 @@
 
 .scrollRegion::-webkit-scrollbar-thumb,
 .contactScrollRegion::-webkit-scrollbar-thumb {
-  border-radius: 999px;
+  border-radius: var(--radius-label);
   background: var(--proof-rule-strong);
 }
 
@@ -357,7 +353,7 @@
   --color-text-inverse: #160b05;
   overflow: hidden;
   border: 1px solid var(--receipt-rule);
-  border-radius: 4px;
+  border-radius: var(--radius-card);
   background: var(--receipt-paper);
   color: var(--receipt-ink);
 }
@@ -408,8 +404,8 @@
 }
 
 .resultReset:focus-visible {
-  outline: 3px solid var(--proof-accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--proof-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .answerMode {
@@ -442,7 +438,7 @@
 .errorPanel {
   overflow: hidden;
   border: 1px solid var(--proof-rule-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   background: var(--proof-raised);
   color: var(--proof-ink);
 }
@@ -534,7 +530,7 @@
 .contactScrollRegion [data-ask-contact-form] textarea {
   min-height: 44px;
   border-color: var(--proof-muted);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   background: var(--proof-raised);
   padding: 0.7rem 0.75rem;
   font-size: 1rem;
@@ -616,7 +612,7 @@
   min-height: 50px;
   flex: 1;
   border: 1px solid var(--proof-muted);
-  border-radius: 4px;
+  border-radius: var(--radius-none);
   background: var(--proof-raised);
   padding: 0.7rem 0.8rem;
   color: var(--proof-ink);
@@ -636,7 +632,7 @@
   min-height: 50px;
   flex: none;
   border: 1px solid var(--proof-accent);
-  border-radius: 4px;
+  border-radius: var(--radius-label);
   background: var(--proof-accent);
   padding: 0.65rem 1rem;
   color: #160b05;
@@ -727,8 +723,8 @@
 .followUpQuestions button:focus-visible,
 .retryButton:focus-visible,
 .earlierTurns summary:focus-visible {
-  outline: 3px solid var(--proof-accent);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--proof-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .feedbackRow {
@@ -744,7 +740,7 @@
 
 .followUpQuestions button {
   border: 1px solid var(--proof-rule-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   padding: 0.4rem 0.6rem;
   text-decoration: none;
 }
@@ -801,7 +797,7 @@
   justify-content: center;
   gap: 0.65rem;
   border: 1px solid var(--proof-accent);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   background: var(--proof-bg);
   padding: 0;
   color: var(--proof-accent);
@@ -851,7 +847,7 @@
     width: min(520px, calc(100vw - 3rem));
     height: min(760px, calc(100dvh - 3rem));
     border: 1px solid var(--proof-rule-strong);
-    border-radius: 8px;
+    border-radius: var(--radius-overlay);
     box-shadow: 0 32px 120px rgba(0, 0, 0, 0.62);
   }
 
@@ -946,7 +942,7 @@
 .feedbackRow button,
 .followUpQuestions button,
 .earlierTurns summary { font-size: .875rem; }
-.conversationActions button:first-child { border: 1px solid var(--proof-rule-strong); border-radius: 4px; padding: .4rem .75rem; text-decoration: none; }
+.conversationActions button:first-child { border: 1px solid var(--proof-rule-strong); border-radius: var(--radius-control); padding: .4rem .75rem; text-decoration: none; }
 .visitorQuestion, .earlierTurn, .recoveryLine { font-size: .875rem; line-height: 1.6; }
 
 @media (min-width: 701px) {
@@ -985,7 +981,7 @@
     max-height: none;
     margin: 0;
     border: 0;
-    border-radius: 0;
+    border-radius: var(--radius-none);
     animation: none;
   }
 }
@@ -997,28 +993,28 @@
 .chromeSubtitle { font-family: var(--font-sans); font-size: 12px; line-height: 1.5; letter-spacing: 0; margin-top: 6px; }
 .promptTitle { font-size: 12px; line-height: 1.5; font-weight: 400; color: var(--proof-muted); letter-spacing: 0; }
 .guidedRows { display: flex; flex-wrap: wrap; gap: 8px; border: 0; }
-.guidedRow, .guidedRow:last-child { display: inline-flex; width: auto; min-height: 44px; padding: 10px 12px; border: 1px solid var(--proof-rule-strong); border-radius: 24px; }
+.guidedRow, .guidedRow:last-child { display: inline-flex; width: auto; min-height: 44px; padding: 10px 12px; border: 1px solid var(--proof-rule-strong); border-radius: var(--radius-control); }
 .guidedLabel { font-size: 14px; font-weight: 400; }
-.answerSheet { border: 0; border-radius: 12px; }
+.answerSheet { border: 0; border-radius: var(--radius-card); }
 .answerSheetChrome { background: transparent; border-bottom: 0; font-family: var(--font-sans); font-size: 11px; text-transform: none; }
 .answerCopy { font-size: 14px; line-height: 1.6; }
-.visitorQuestion { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--proof-raised); }
+.visitorQuestion { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 12px; border: 0; border-radius: var(--radius-card); background: var(--proof-raised); }
 .composer { padding-top: 0; }
 .utilityLinks { margin-top: 0; gap: 16px; }
 .utilityLink { min-height: 44px; font-family: var(--font-sans); font-size: 12px; font-weight: 400; text-decoration: none; }
 .utilityLink:hover { text-decoration: underline; }
 .safetyLine { border: 0; padding: 0; font-size: 11px; }
-.askForm { align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--proof-rule-strong); border-radius: 12px; background: var(--proof-raised); }
-.askInput { min-height: 44px; border: 0; background: transparent; border-radius: 8px; }
-.askSubmit { background: #f5f1e8; border-color: #f5f1e8; color: #0b0c0b; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; width: 44px; padding: 0; border-radius: 8px; }
-.trigger { width: auto; min-width: 76px; height: 44px; padding: 0 16px; gap: 8px; border-radius: 8px; border-color: var(--proof-rule); background: #1b1e18; color: var(--proof-ink); box-shadow: none; }
+.askForm { align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--proof-rule-strong); border-radius: var(--radius-control); background: var(--proof-raised); }
+.askInput { min-height: 44px; border: 0; background: transparent; border-radius: var(--radius-none); }
+.askSubmit { background: #f5f1e8; border-color: #f5f1e8; color: #0b0c0b; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; width: 44px; padding: 0; border-radius: var(--radius-label); }
+.trigger { width: auto; min-width: 76px; height: 44px; padding: 0 16px; gap: 8px; border-radius: var(--radius-control); border-color: var(--proof-rule); background: #1b1e18; color: var(--proof-ink); box-shadow: none; }
 .trigger:hover { background: var(--proof-raised); color: var(--proof-ink); }
 .triggerLabel { display: inline; font-family: var(--font-sans); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
-.triggerDot { width: 6px; height: 6px; border-radius: 50%; background: var(--proof-accent); }
-@media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: 24px; } .dialogBody { padding-top: 8px; } }
+.triggerDot { width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--proof-accent); }
+@media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: var(--radius-overlay); } .dialogBody { padding-top: 8px; } }
 
 /* Suggestions remain pills; action controls share the public button treatment. */
-.trigger, .askSubmit, .askInput { border-radius: 6px; }
+.trigger { border-radius: var(--radius-control); }
 .trigger:hover, .askSubmit:hover:not(:disabled) { transform: none; box-shadow: none; }
 .trigger:active { background: var(--proof-raised); }
 .askSubmit:hover:not(:disabled) { background: #e7e2d7; border-color: #e7e2d7; }

@@ -36,7 +36,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(10, 10, 10, 0.9);
   color: rgba(125, 245, 255, 0.92);
@@ -74,7 +74,7 @@
 .partnerDot {
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: rgba(255, 107, 53, 0.6);
   box-shadow: 0 0 4px rgba(255, 107, 53, 0.2);
 }
@@ -148,7 +148,7 @@
 .protocolDot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: rgba(0, 212, 126, 0.7);
   box-shadow: 0 0 6px rgba(0, 212, 126, 0.3);
 }
@@ -204,7 +204,7 @@
 .stripDot {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: rgba(125, 245, 255, 0.48);
   box-shadow: 0 0 5px rgba(125, 245, 255, 0.14);
 }

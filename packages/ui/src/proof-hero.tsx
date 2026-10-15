@@ -181,12 +181,12 @@ function PipelineLayer({
   const palette = theme[tone];
 
   return (
-    <section className="rounded-[20px] border border-white/8 bg-white/[0.025] px-4 py-4">
+    <section className="rounded-md border border-white/8 bg-white/[0.025] px-4 py-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="text-[11px] font-medium tracking-[0.24em] text-slate-500 uppercase">
           Pipeline
         </div>
-        <div className={cn("rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]", palette.pill)}>
+        <div className={cn("rounded-xs border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]", palette.pill)}>
           governed path
         </div>
       </div>
@@ -215,7 +215,7 @@ function PipelineLayer({
               <div
                 key={node.id}
                 className={cn(
-                  "relative rounded-[18px] border border-white/8 bg-black/24 px-3 py-2.5 text-left transition duration-300",
+                  "relative rounded-md border border-white/8 bg-black/24 px-3 py-2.5 text-left transition duration-300",
                   isActive && cn(palette.accentBorder, palette.accentBg, palette.glow),
                 )}
               >
@@ -245,7 +245,7 @@ function PipelineLayer({
       </div>
 
       {detail && (
-        <div className="mt-4 rounded-2xl border border-white/8 bg-black/28 px-3 py-3">
+        <div className="mt-4 rounded-md border border-white/8 bg-black/28 px-3 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-[11px] tracking-[0.16em] text-slate-500 uppercase">
               {detail.title}
@@ -266,7 +266,7 @@ function PipelineLayer({
               {detail.metrics.map((metric) => (
                 <div
                   key={`${metric.label}:${metric.value}`}
-                  className={cn("rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-2", palette.glow)}
+                  className={cn("rounded-md border border-white/8 bg-white/[0.03] px-3 py-2", palette.glow)}
                 >
                   <div className="text-[10px] tracking-[0.18em] text-slate-500 uppercase">
                     {metric.label}
@@ -304,7 +304,7 @@ function LedgerLayer({
     items[items.length - 1];
 
   return (
-    <section className="rounded-[20px] border border-white/8 bg-white/[0.025] px-4 py-4">
+    <section className="rounded-md border border-white/8 bg-white/[0.025] px-4 py-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="text-[11px] font-medium tracking-[0.24em] text-slate-500 uppercase">
           {scene.ledgerTitle}
@@ -326,7 +326,7 @@ function LedgerLayer({
               <React.Fragment key={item.id}>
                 <div
                   className={cn(
-                    "min-w-[220px] rounded-[18px] border px-4 py-3 text-left transition-all duration-300",
+                    "min-w-[220px] rounded-md border px-4 py-3 text-left transition-all duration-300",
                     "border-white/8 bg-black/28",
                     isActive && cn(palette.accentBorder, palette.accentBg, palette.glow),
                   )}
@@ -356,7 +356,7 @@ function LedgerLayer({
       </div>
 
       {detailSource && (
-        <div className="mt-4 grid gap-3 rounded-2xl border border-white/8 bg-black/28 px-3 py-3 md:grid-cols-[0.9fr_1.1fr]">
+        <div className="mt-4 grid gap-3 rounded-md border border-white/8 bg-black/28 px-3 py-3 md:grid-cols-[0.9fr_1.1fr]">
           <div>
             <div className="mb-2 font-mono text-xs text-slate-100">{detailSource.id}</div>
             <div className="space-y-1 text-[11px] text-slate-400">
@@ -367,7 +367,7 @@ function LedgerLayer({
           </div>
 
           {detailSource.detail && (
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-3">
+            <div className="rounded-md border border-white/8 bg-white/[0.03] px-3 py-3">
               <div className="text-[10px] tracking-[0.18em] text-slate-500 uppercase">
                 {detailSource.detail.title}
               </div>
@@ -405,7 +405,7 @@ function TerminalLayer({
       : null;
 
   return (
-    <section className="overflow-hidden rounded-[22px] border border-white/10 bg-black/55">
+    <section className="overflow-hidden rounded-md border border-white/10 bg-black/55">
       <div className="flex items-center justify-between gap-4 border-b border-white/10 bg-white/[0.03] px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex items-center gap-2">
@@ -423,18 +423,18 @@ function TerminalLayer({
         <div className="flex items-center gap-2">
           {witnessMetrics &&
             (activeNode === "witness" || activeNode === "verify" || activeNode === "proof") && (
-              <div className={cn("rounded-full border px-2.5 py-1 text-[10px] tracking-[0.16em] uppercase", palette.pill)}>
+              <div className={cn("rounded-xs border px-2.5 py-1 text-[10px] tracking-[0.16em] uppercase", palette.pill)}>
                 quorum {witnessMetrics}
               </div>
             )}
-          <div className={cn("rounded-full border px-2.5 py-1 text-[10px] tracking-[0.16em] uppercase", palette.pill)}>
+          <div className={cn("rounded-xs border px-2.5 py-1 text-[10px] tracking-[0.16em] uppercase", palette.pill)}>
             verification
           </div>
         </div>
       </div>
 
       <div className="space-y-4 px-4 py-4">
-        <div className={cn("rounded-[18px] border px-3 py-3", palette.preview)}>
+        <div className={cn("rounded-md border px-3 py-3", palette.preview)}>
           <div className="mb-2 text-[11px] tracking-[0.18em] text-slate-500 uppercase">
             {scene.preview.title}
           </div>
@@ -445,7 +445,7 @@ function TerminalLayer({
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[18px] border border-white/8 bg-black/60 px-4 py-4">
+        <div className="relative overflow-hidden rounded-md border border-white/8 bg-black/60 px-4 py-4">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,rgba(255,255,255,0.015)_46%,transparent_100%)]" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/6" />
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[45%] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_64%)]" />
@@ -540,7 +540,7 @@ export function ProofHeroInstrument({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(11,16,28,0.9)_0%,rgba(2,6,23,0.95)_100%)] p-4 sm:p-5 shadow-[0_22px_70px_rgba(2,6,23,0.42)]",
+        "relative overflow-hidden rounded-md border border-white/8 bg-[linear-gradient(180deg,rgba(11,16,28,0.9)_0%,rgba(2,6,23,0.95)_100%)] p-4 sm:p-5 shadow-[0_22px_70px_rgba(2,6,23,0.42)]",
         className,
       )}
     >

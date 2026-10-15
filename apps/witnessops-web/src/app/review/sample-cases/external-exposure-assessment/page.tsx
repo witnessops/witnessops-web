@@ -154,7 +154,7 @@ export default function ExternalExposureAssessmentSamplePage() {
                   href={`${sampleBase}/${file}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="break-all font-mono text-sm font-semibold text-brand-accent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                  className="break-all font-mono text-sm font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
                   {file}
                 </a>

@@ -255,7 +255,7 @@ export function LegalDocumentPage({
               <Link
                 key={entry.slug}
                 href={legalPath(locale, entry.slug)}
-                className="block rounded-lg border border-surface-border bg-surface-card p-4 transition-colors hover:border-brand-accent/30"
+                className="block rounded-md border border-surface-border bg-surface-card p-4 transition-colors hover:border-brand-accent/30"
               >
                 <h3 className="font-medium text-text-primary">{NAV_LABEL[locale][entry.slug]}</h3>
                 <p className="mt-1 text-sm text-text-secondary">{entry.doc.description}</p>
