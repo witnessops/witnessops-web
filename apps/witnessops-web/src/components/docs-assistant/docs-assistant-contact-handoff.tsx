@@ -44,6 +44,7 @@ export function DocsAssistantContactHandoff({
   question,
   proposedBrief,
   surface = "widget",
+  trackOpen = true,
   serviceId,
   launcherRef,
   onBusyChange,
@@ -56,6 +57,8 @@ export function DocsAssistantContactHandoff({
   question?: string;
   proposedBrief?: string;
   surface?: "widget" | "page" | "inline";
+  /** The free-check follow-up opens without category telemetry. */
+  trackOpen?: boolean;
   serviceId?: BuyerService["id"];
   launcherRef?: Ref<HTMLButtonElement>;
   onBusyChange?: (busy: boolean) => void;
@@ -98,11 +101,11 @@ export function DocsAssistantContactHandoff({
   }, [proposedBrief, question]);
 
   useEffect(() => {
-    if (expanded && !wasExpandedRef.current) {
+    if (trackOpen && expanded && !wasExpandedRef.current) {
       trackAskEvent("contact_started", { service_id: service?.id, surface });
     }
     wasExpandedRef.current = expanded;
-  }, [expanded, service?.id, surface]);
+  }, [expanded, service?.id, surface, trackOpen]);
 
   useEffect(() => {
     if (!expanded || verificationStep) return;

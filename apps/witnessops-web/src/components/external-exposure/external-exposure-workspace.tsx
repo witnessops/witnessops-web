@@ -157,7 +157,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
         </section>
         <section className={styles.nextStep} aria-label="Save a persistent baseline"><div><h2>Keep a history in your workspace</h2><p>After sign-in, add your hostname and authorize a new saved check. Come back after a change, run again, and compare the recorded results.</p><p className={styles.muted}>Create an account, verify your email, then create your workspace. This transient snapshot is not automatically imported.</p>{workspaceUrl ? <a className={styles.textLink} href="/early-access">How workspace access works <InlineArrow /></a> : null}</div><a className={styles.primaryLink} href={workspaceUrl ?? '/early-access'}>{workspaceUrl ? 'Open workspace' : 'See workspace access'}</a></section>
         {askContext?.email && <section aria-label="Optional follow-up" className={styles.nextStep}>
-          {!discuss ? <button type="button" onClick={() => setDiscuss(true)}>Discuss this result</button> : <DocsAssistantContactHandoff expanded initialEmail={askContext.email} surface="page" onExpandedChange={setDiscuss} />}
+          {!discuss ? <button type="button" onClick={() => setDiscuss(true)}>Discuss this result</button> : <DocsAssistantContactHandoff expanded initialEmail={askContext.email} surface="page" trackOpen={false} onExpandedChange={setDiscuss} />}
         </section>}
 
         <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>
