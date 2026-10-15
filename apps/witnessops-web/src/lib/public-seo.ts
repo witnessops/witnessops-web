@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
 export const CANONICAL_ORIGIN = "https://witnessops.com";
@@ -167,6 +168,43 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
         valueAddedTaxIncluded: EXTERNAL_ATTACK_SURFACE_OFFER.price.vatIncluded,
       },
     },
+  } as const;
+}
+
+export function homepageReviewsJsonLd() {
+  const reviews = [
+    {
+      name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+      price: PUBLIC_AGENT_ACTION_OFFER.price.amount,
+      url: canonicalUrl("/reviews#agent-action-security-review"),
+    },
+    {
+      name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+      price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
+      url: canonicalUrl("/reviews#external-attack-surface-review"),
+    },
+  ] as const;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "WitnessOps reviews",
+    itemListElement: reviews.map((review, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Service",
+        name: review.name,
+        url: review.url,
+        provider: { "@id": organizationJsonLd["@id"] },
+        offers: {
+          "@type": "Offer",
+          price: review.price,
+          priceCurrency: "EUR",
+          valueAddedTaxIncluded: false,
+        },
+      },
+    })),
   } as const;
 }
 

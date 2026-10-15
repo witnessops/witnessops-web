@@ -3,7 +3,7 @@ import { SimpleHomepage } from "@/components/marketing/simple-homepage";
 import { loadHomeContent } from "@/lib/content";
 import { buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
-import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
+import { homepageReviewsJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 
 const home = loadHomeContent();
 
@@ -14,6 +14,7 @@ export default function HomePage() {
     <>
       <JsonLd id="witnessops-organization" value={organizationJsonLd} />
       <JsonLd id="witnessops-website" value={websiteJsonLd} />
+      <JsonLd id="witnessops-reviews" value={homepageReviewsJsonLd()} />
       <SimpleHomepage />
     </>
   );

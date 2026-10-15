@@ -7,6 +7,7 @@ import {
   canonicalUrl,
   languageAlternates,
   languagePairForPath,
+  homepageReviewsJsonLd,
   organizationJsonLd,
   publicExposureBreadcrumbJsonLd,
   publicExposureServiceJsonLd,
@@ -42,6 +43,13 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
       },
     });
   }
+});
+
+test("homepage review data names the two locked prices with VAT excluded", () => {
+  const data = homepageReviewsJsonLd();
+  const offers = data.itemListElement.map((entry) => entry.item.offers);
+  assert.deepEqual(offers.map((offer) => offer.price), ["2500", "1900"]);
+  assert.ok(offers.every((offer) => offer.priceCurrency === "EUR" && offer.valueAddedTaxIncluded === false));
 });
 
 test("paired pages keep en, pl and x-default, and withdrawn pages have none", () => {
