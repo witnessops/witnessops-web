@@ -250,7 +250,7 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/catalog", "/catalog/offsec-external-exposure", "/contact", "/pl/contact", "/pl/catalog"]) {
+  for (const route of ["/reviews", "/reviews/external-attack-surface-review", "/contact", "/pl/contact", "/pl/catalog"]) {
     assert.equal(paths.has(route), true, route);
   }
   assert.equal(paths.has("/review/request"), false);

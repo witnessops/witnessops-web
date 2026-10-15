@@ -74,7 +74,7 @@ test("sample remains linked from its offer detail and catalogue; pricing links t
   );
   assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
   assert.match(serviceLandings, new RegExp(route));
-  assert.match(pricingHtml, /href="\/catalog"/);
+  assert.match(pricingHtml, /href="\/reviews"/);
   assert.match(pricingHtml, new RegExp(route));
   assert.match(catalogueHtml, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
