@@ -20,7 +20,10 @@ export const PROCESSING_SHOW_DELAY_MS = 150;
 export const PENDING_TIMEOUT_MS = 15_000;
 export const SLOW_PENDING_MS = 6_000;
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
-const EASR_RETEST = "One focused retest of reported findings within 30 calendar days of initial report handover.";
+const EASR_RETEST = {
+  en: "One focused retest of reported findings within 30 calendar days of initial report handover.",
+  pl: "Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
+} as const;
 
 const COPY = {
   en: {
@@ -56,6 +59,9 @@ const COPY = {
     handoffCta: "Continue to contact",
     handoffMail: "Or write to engage@mail.witnessops.com",
     contact: "/contact",
+    back: "Docs",
+    kicker: "AI assistant",
+    lead: "Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.",
   },
   pl: {
     greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
@@ -90,6 +96,9 @@ const COPY = {
     handoffCta: "Przejdź do kontaktu",
     handoffMail: "Albo napisz na engage@mail.witnessops.com",
     contact: "/pl/contact",
+    back: "Dokumentacja",
+    kicker: "Asystent AI",
+    lead: "Pytania o dwa przeglądy WitnessOps, z odpowiedzią na podstawie opublikowanych faktów oferty. Wszystko inne trafia do człowieka.",
   },
 } as const;
 
@@ -482,10 +491,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
 
   return (
     <div className={styles.page} ref={pageRef} data-sovereign-preview="">
-      <p className={styles.back} data-sheet-behind><Link href={copy.docs}>Docs</Link></p>
-      <p className={styles.kicker} data-sheet-behind>AI assistant</p>
+      <p className={styles.back} data-sheet-behind><Link href={copy.docs} prefetch={false}>{copy.back}</Link>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+      <p className={styles.kicker} data-sheet-behind>{copy.kicker}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
       <h1 data-sheet-behind>Ask Sovereign</h1>
-      <p className={styles.lead} data-sheet-behind>Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.</p>
+      <p className={styles.lead} data-sheet-behind>{copy.lead}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
       <div className={styles.scrim} />
       <div className={styles.layout}>
         <section
@@ -596,7 +605,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <h3>{copy.railAnswer}</h3>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST}</li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST[locale]}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</li>
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

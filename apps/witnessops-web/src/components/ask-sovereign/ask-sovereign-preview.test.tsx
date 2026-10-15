@@ -159,7 +159,13 @@ test("Polish Ask Sovereign chrome stays under the review tag and keeps the locke
   assert.match(html, /O tym asystencie/);
   assert.match(html, /€2 500 · bez VAT/);
   assert.match(html, /€1 900 · bez VAT/);
-  assert.match(html, /One focused retest of reported findings within 30 calendar days of initial report handover/);
+  assert.match(html, /Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu/);
+  assert.doesNotMatch(html, /One focused retest of reported findings/);
+  assert.match(html, />Dokumentacja</);
+  assert.match(html, /Asystent AI/);
+  assert.match(html, /Pytania o dwa przeglądy WitnessOps/);
+  assert.doesNotMatch(html, />Docs</);
+  assert.doesNotMatch(html, /AI assistant/);
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
   assert.match(source, /retry: "Spróbuj ponownie"/);
   assert.doesNotMatch(html, /Needs review/);
