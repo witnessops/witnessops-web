@@ -106,3 +106,10 @@ body:has(nav[data-public-presentation="quiet"]) #main-content code:not(pre code)
   font-size: 0.875em;
   line-height: inherit;
 }
+
+.pl-copy-review {
+  padding-inline: 16px;
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-lh);
+  letter-spacing: 0;
+}
