@@ -19,5 +19,5 @@ test("simulated answers use only the two locked offers and make no request", () 
   assert.match(external.text, /retest/i);
   assert.equal(handoff.kind, "handoff");
   assert.equal(handoff.needsReview, true);
-  assert.match(sovereignAnswer("ile kosztuje ekspozycja", "pl").text, /€1 900 · bez VAT/);
+  assert.match(sovereignAnswer("ile kosztuje ekspozycja", "pl").text, /€1 900\u00A0· bez VAT/);
 });

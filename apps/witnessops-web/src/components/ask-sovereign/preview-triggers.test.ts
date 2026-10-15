@@ -60,13 +60,13 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(simErrorAtLoad("?sim=error"), false);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), true);
     assert.equal(simErrorAtLoad("?sim=handoff&at=load"), false);
-    assert.equal(previewChip("error"), "Preview · simulated error");
-    assert.equal(previewChip("handoff"), "Preview · simulated handoff");
-    assert.equal(previewChip("slow"), "Preview · simulated slow");
-    assert.equal(previewChip("timeout"), "Preview · simulated timeout");
-    assert.equal(previewChip("error", "pl"), "Podgląd · symulowany błąd");
-    assert.equal(previewChip("handoff", "pl"), "Podgląd · symulowane przekazanie");
-    assert.equal(previewChip("slow", "pl"), "Preview · simulated slow");
+    assert.equal(previewChip("error"), "Preview\u00A0· simulated error");
+    assert.equal(previewChip("handoff"), "Preview\u00A0· simulated handoff");
+    assert.equal(previewChip("slow"), "Preview\u00A0· simulated slow");
+    assert.equal(previewChip("timeout"), "Preview\u00A0· simulated timeout");
+    assert.equal(previewChip("error", "pl"), "Podgląd\u00A0· symulowany błąd");
+    assert.equal(previewChip("handoff", "pl"), "Podgląd\u00A0· symulowane przekazanie");
+    assert.equal(previewChip("slow", "pl"), "Preview\u00A0· simulated slow");
     assert.equal(simFlag("?sim=slow"), "slow");
   } finally {
     restore();

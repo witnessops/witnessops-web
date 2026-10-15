@@ -19,6 +19,7 @@ const viewports = [
   { width: 320, height: 640, key: "320x640" },
   { width: 320, height: 844, key: "320x844" },
   { width: 390, height: 844, key: "390" },
+  { width: 1024, height: 900, key: "1024" },
   { width: 1440, height: 900, key: "1440x900" },
   { width: 1440, height: 800, key: "1440x800" },
 ];
@@ -29,6 +30,20 @@ const contrastLines = ["# Computed contrast of button and link labels in the Ask
 function log(line) {
   lines.push(line);
   console.log(line);
+}
+
+async function gotoReady(page, url) {
+  let last;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+      return;
+    } catch (error) {
+      last = error;
+      await page.waitForTimeout(400);
+    }
+  }
+  throw last;
 }
 
 const browser = await chromium.launch({ executablePath: chrome, headless: true, args: ["--no-sandbox"] });
@@ -104,7 +119,7 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     await chip.click();
     if (mode === "error") await page.getByRole("button", { name: locale === "pl" ? "Spróbuj ponownie" : "Retry" }).waitFor();
     else if (mode === "handoff") await page.locator("[data-handoff-card]").waitFor();
-    else await page.getByText(locale === "pl" ? "Podgląd: odpowiedź symulowana" : "Simulated response · preview").waitFor();
+    else await page.getByText(/Simulated response\s·\s*preview|Podgląd: odpowiedź symulowana/).waitFor();
     await page.locator(".sv-fallback[data-face-ready]").waitFor();
     if (mode === "error" || mode === "handoff") {
       await page.waitForFunction((expect) => {
@@ -202,8 +217,8 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const panelBox = panel.getBoundingClientRect();
     const header = panel.querySelector("header");
     const headerBox = header.getBoundingClientRect();
-    const handoffLabel = liveLocale === "pl" ? "Podgląd · symulowane przekazanie" : "Preview · simulated handoff";
-    const errorLabel = liveLocale === "pl" ? "Podgląd · symulowany błąd" : "Preview · simulated error";
+    const handoffLabel = liveLocale === "pl" ? "Podgląd\u00A0· symulowane przekazanie" : "Preview\u00A0· simulated handoff";
+    const errorLabel = liveLocale === "pl" ? "Podgląd\u00A0· symulowany błąd" : "Preview\u00A0· simulated error";
     const caption = thread.querySelector("[class*='handoffCaption']");
     const captionText = caption ? (caption.textContent || "").trim() : "";
     const captionOutside = !caption || !caption.closest("[class*='youBubble']");
@@ -212,7 +227,7 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const handoffChipInThread = (thread.textContent || "").includes(handoffLabel);
     const errorChipInHeader = (header.textContent || "").includes(errorLabel);
     const errorChipInThread = (thread.textContent || "").includes(errorLabel);
-    const simulatedLabel = /Simulated response · preview|Podgląd: odpowiedź symulowana/.test(thread.textContent || "");
+    const simulatedLabel = /Simulated response\s·\s*preview|Podgląd: odpowiedź symulowana/.test(thread.textContent || "");
     const chipButtons = [...chips.querySelectorAll("button")].filter((button) => getComputedStyle(button).display !== "none");
     const cardBox = card ? card.getBoundingClientRect() : null;
     const fits = (el) => el.scrollWidth <= el.clientWidth + 1;
@@ -265,7 +280,73 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       range.selectNodeContents(errorCaption);
       errorRects = [...range.getClientRects()].filter((rect) => rect.width > 1);
     }
-    const hanging = errorRects.length < 2 || Math.abs(errorRects[0].left - errorRects[1].left) <= 1.5;
+    const errorLines = new Map();
+    for (const rect of errorRects) {
+      const key = Math.round(rect.top);
+      const current = errorLines.get(key);
+      if (!current || rect.left < current) errorLines.set(key, rect.left);
+    }
+    const errorLineLefts = [...errorLines.values()];
+    const hanging = errorLineLefts.length < 2 || Math.abs(errorLineLefts[0] - errorLineLefts[1]) <= 1.5;
+    const errorNote = thread.querySelector("[class*='errorNote']");
+    const noteBox = errorNote ? errorNote.getBoundingClientRect() : null;
+    const turnBox = errorLi ? errorLi.getBoundingClientRect() : null;
+    const sprite = errorLi?.querySelector(".sv-fallback");
+    const spriteBox = sprite ? sprite.getBoundingClientRect() : null;
+    const faceCopy = errorLi?.querySelector("[class*='errorFaceCopy']");
+    const faceCopyBox = faceCopy ? faceCopy.getBoundingClientRect() : null;
+    const stackedNote = Boolean(noteBox && spriteBox && noteBox.left <= spriteBox.left + 4);
+    const textLeft = stackedNote ? noteBox.left : faceCopyBox ? faceCopyBox.left : noteBox ? noteBox.left : 0;
+    let middotStarts = 0;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let textNode = walker.nextNode();
+    while (textNode) {
+      const value = textNode.textContent || "";
+      if (value.includes("·") && !textNode.parentElement?.closest("[class*='srOnly']")) {
+        const lines = new Map();
+        for (let index = 0; index < value.length; index += 1) {
+          const range = document.createRange();
+          range.setStart(textNode, index);
+          range.setEnd(textNode, index + 1);
+          const rect = range.getClientRects()[0];
+          if (!rect || rect.width < 0.2 || rect.height < 0.2) continue;
+          const key = Math.round(rect.top);
+          const current = lines.get(key);
+          if (!current || rect.left < current.left) lines.set(key, { left: rect.left, ch: value[index] });
+        }
+        for (const info of lines.values()) {
+          if (info.ch === "·") middotStarts += 1;
+        }
+      }
+      textNode = walker.nextNode();
+    }
+    const prices = [...root.querySelectorAll("[data-offer-price]")];
+    const railBox = root.querySelector("aside")?.getBoundingClientRect();
+    const priceFits = prices.length === 2 && prices.every((el) => {
+      const box = el.getBoundingClientRect();
+      const lines = new Set([...el.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size;
+      return getComputedStyle(el).whiteSpace === "nowrap" && lines === 1 && box.width > 1 && (!railBox || box.right <= railBox.right + 1);
+    });
+    const priceText = prices.map((el) => (el.textContent || "").replace(/\s+/g, " ").trim()).join(" | ");
+    const notice = root.querySelector("[data-sheet-notice]");
+    const noticeBox = notice ? notice.getBoundingClientRect() : null;
+    const noticeStyle = notice ? getComputedStyle(notice) : null;
+    const titleEl = document.getElementById("ask-sovereign-title");
+    const titleLine = titleEl ? titleEl.getClientRects().length === 1 : false;
+    const sheetVisible = Boolean(noticeStyle && noticeStyle.display !== "none" && noticeBox && noticeBox.height > 0);
+    const sheetBelow = Boolean(noticeBox && titleEl && noticeBox.top >= titleEl.getBoundingClientRect().bottom - 1);
+    const disclaimerEl = root.querySelector("[class*='disclaimer']");
+    let disclaimerTail = "";
+    if (disclaimerEl) {
+      const range = document.createRange();
+      range.selectNodeContents(disclaimerEl);
+      const rects = [...range.getClientRects()].filter((rect) => rect.width > 1);
+      const lastTop = rects.length ? Math.round(rects[rects.length - 1].top) : 0;
+      disclaimerTail = rects.filter((rect) => Math.round(rect.top) === lastTop).length ? "measured" : "";
+      const last = rects.filter((rect) => Math.round(rect.top) === lastTop);
+      if (last.length) disclaimerTail = `${Math.round(last[0].width)}`;
+    }
+    const disclaimerBound = (disclaimerEl?.textContent || "").includes("się\u00A0mylić.");
     const labels = [...root.querySelectorAll("button, a")].filter((el) => {
       const style = getComputedStyle(el);
       if (style.display === "none" || style.visibility === "hidden") return false;
@@ -326,30 +407,103 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       youWidth: youBubble ? youBubble.getBoundingClientRect().width : 0,
       hanging,
       errorWrapped: errorRects.length >= 2,
+      noteWidth: noteBox ? noteBox.width : 0,
+      turnWidth: turnBox ? turnBox.width : 0,
+      noteTop: noteBox ? noteBox.top : 0,
+      spriteBottom: spriteBox ? spriteBox.bottom : 0,
+      spriteRight: spriteBox ? spriteBox.right : 0,
+      retryLeft: retryBox ? retryBox.left : 0,
+      textLeft,
+      noteBelowFace: Boolean(noteBox && spriteBox && noteBox.top >= spriteBox.bottom - 8),
+      retryWithText: Boolean(retryBox && faceCopyBox && Math.abs(retryBox.left - textLeft) <= 3),
+      middotStarts,
+      priceFits,
+      priceText,
+      sheetVisible,
+      sheetBelow,
+      titleLine,
+      disclaimerTail,
+      disclaimerBound,
       contrastLow: labels.filter((item) => item.ratio < 4.5),
       contrastSample: labels,
     };
   }, { expectRetry: mode === "error", mode, locale });
   Object.assign(measured, onLoad);
   if (shot) await page.screenshot({ path: `${outDir}/${shot}` });
+  if (mode === "error" && theme === "light" && ((width === 320 && height === 640) || (width === 1440 && height === 900))) {
+    await page.screenshot({ path: `${outDir}/ask-error-${width}-${locale}-${theme}.png` });
+  }
+  if (locale === "pl" && theme === "light" && mode === "idle" && ((width === 320 && height === 640) || width === 390)) {
+    await page.screenshot({ path: `${outDir}/ask-pl-sheet-${width}.png` });
+  }
+  if (theme === "light" && mode === "idle" && (width === 1024 || (width === 1440 && height === 900))) {
+    await page.locator("[data-sovereign-preview] aside").screenshot({ path: `${outDir}/ask-rail-${width}-${locale}.png` });
+  }
   if (mode === "error") {
     clsLines.push(`${locale} ${width}x${height} ${theme} error cls=${measured.cls}`);
     const retryName = locale === "pl" ? "Spróbuj ponownie" : "Retry";
     await page.getByRole("button", { name: retryName }).click();
-    await page.getByText(locale === "pl" ? "Podgląd: odpowiedź symulowana" : "Simulated response · preview").waitFor();
-    await page.waitForTimeout(400);
-    const afterRetry = await page.evaluate(() => {
+    await page.getByText(/Simulated response\s·\s*preview|Podgląd: odpowiedź symulowana/).waitFor();
+    await page.waitForFunction(() => {
+      const thread = document.querySelector("[data-ask-thread]");
+      const answer = document.querySelector("[data-latest-answer]");
+      if (!thread || !answer) return false;
+      const frame = thread.getBoundingClientRect();
+      const box = answer.getBoundingClientRect();
+      const delta = box.top - frame.top;
+      const desired = delta + thread.scrollTop;
+      const max = thread.scrollHeight - thread.clientHeight;
+      if (desired <= max + 2) return Math.abs(delta) <= 3;
+      return Math.abs(thread.scrollTop - max) <= 2 && box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1;
+    }, { timeout: 3000 }).catch(() => {});
+    if (width === 320 && height === 640 && theme === "light") {
+      await page.screenshot({ path: `${outDir}/ask-after-retry-320-${locale}.png` });
+    }
+    const afterRetry = await page.evaluate(async () => {
       const chips = document.querySelector("[data-ask-chips]");
       const visible = [...chips.querySelectorAll("button")].filter((button) => getComputedStyle(button).display !== "none").length;
-      const answer = /Simulated response · preview|Podgląd: odpowiedź symulowana/.test(document.body.textContent || "");
+      const answer = /Simulated response\s·\s*preview|Podgląd: odpowiedź symulowana/.test(document.body.textContent || "");
       const cls = (window.__shifts || []).filter((entry) => !entry.recent).reduce((sum, entry) => sum + entry.value, 0);
       const bubble = document.querySelector("[class*='youBubble']");
+      const thread = document.querySelector("[data-ask-thread]");
+      const answerTurn = document.querySelector("[data-latest-answer]");
+      const threadBox = thread.getBoundingClientRect();
+      const answerBox = answerTurn ? answerTurn.getBoundingClientRect() : null;
+      const desired = answerBox ? answerBox.top - threadBox.top + thread.scrollTop : 0;
+      const maxScroll = thread.scrollHeight - thread.clientHeight;
+      const reachedStart = Boolean(answerBox && desired <= maxScroll + 2 && Math.abs(answerBox.top - threadBox.top) <= 3);
+      const reachedEnd = Boolean(answerBox && desired > maxScroll + 2 && Math.abs(thread.scrollTop - maxScroll) <= 2 && answerBox.top >= threadBox.top - 1 && answerBox.bottom <= threadBox.bottom + 1);
+      const copy = answerTurn?.querySelector("[data-answer-copy]");
+      let firstTop = null;
+      if (copy) {
+        const range = document.createRange();
+        range.selectNodeContents(copy);
+        const rect = [...range.getClientRects()].find((item) => item.width > 1 && item.height > 1);
+        firstTop = rect ? rect.top : null;
+      }
+      const maskOf = () => {
+        const style = getComputedStyle(thread);
+        return style.maskImage && style.maskImage !== "none" ? style.maskImage : style.webkitMaskImage || "none";
+      };
+      const overflow = thread.scrollHeight > thread.clientHeight + 1;
+      const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+      const beforeMask = maskOf();
+      const previous = thread.scrollTop;
+      thread.scrollTop = thread.scrollHeight;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const endMask = maskOf();
+      thread.scrollTop = previous;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const fadeOk = (overflow ? (atEnd ? beforeMask === "none" : beforeMask !== "none") : beforeMask === "none") && endMask === "none";
       return {
         visible,
         answer,
         cls,
         youWidth: bubble ? bubble.getBoundingClientRect().width : 0,
         active: document.activeElement?.id || "",
+        aligned: reachedStart || reachedEnd,
+        topCut: firstTop !== null && firstTop < threadBox.top - 1,
+        fadeOk,
       };
     });
     measured.retryCls = afterRetry.cls;
@@ -357,6 +511,8 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     measured.retryAnswer = afterRetry.answer;
     measured.retryYouWidth = afterRetry.youWidth;
     measured.retryActive = afterRetry.active;
+    measured.answerAligned = afterRetry.aligned && !afterRetry.topCut;
+    measured.fadeOk = afterRetry.fadeOk;
     clsLines.push(`${locale} ${width}x${height} ${theme} retry cls=${afterRetry.cls} chips=${afterRetry.visible} answer=${afterRetry.answer}`);
   }
   await context.close();
@@ -396,8 +552,17 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "handoff" && width <= 320 && (measured.emailLines < 1 || measured.emailLines > 2)) issues.push(`email lines ${measured.emailLines}`);
   if (mode === "handoff" && width <= 320 && (measured.replyLines < 1 || measured.replyLines > 2 || measured.replyTailLines !== 1)) issues.push(`reply email lines ${measured.replyLines} tail ${measured.replyTailLines}`);
   if (mode === "handoff" && measured.emailBreak === "break-all") issues.push("email breaks anywhere");
-  if (locale === "pl" && mode === "error" && width <= 390 && !measured.hanging) issues.push("error note indent");
-  if (locale === "pl" && mode === "error" && width === 320 && !measured.errorWrapped) issues.push("error note did not wrap");
+  if (locale === "pl" && mode === "error" && width <= 390 && measured.errorWrapped && !measured.hanging) issues.push("error note indent");
+  if (mode === "error" && width < 480 && (measured.noteWidth < measured.turnWidth * 0.75 || !measured.noteBelowFace)) issues.push(`error note squeezed ${Math.round(measured.noteWidth)}/${Math.round(measured.turnWidth)}`);
+  if (mode === "error" && width >= 480 && measured.retryLeft < measured.spriteRight - 1) issues.push("retry under the face");
+  if (mode === "error" && !measured.retryWithText) issues.push("retry not in the text column");
+  if (measured.middotStarts) issues.push(`middot starts a line ${measured.middotStarts}`);
+  if ((width === 1024 || width === 1440) && !measured.priceFits) issues.push(`price ${measured.priceText}`);
+  if (locale === "pl" && width < 768 && (!measured.sheetVisible || !measured.sheetBelow || !measured.titleLine)) issues.push("sheet notice");
+  if ((locale !== "pl" || width >= 768) && measured.sheetVisible) issues.push("sheet notice visible");
+  if (locale === "pl" && width === 1440 && !measured.disclaimerBound) issues.push("disclaimer tail");
+  if (mode === "error" && measured.answerAligned === false) issues.push("answer not at block start after retry");
+  if (mode === "error" && width <= 390 && measured.fadeOk === false) issues.push("thread fade");
   if (!measured.disclaimerFull) issues.push("disclaimer not full width");
   if (width >= 900 && !measured.bottomsAligned) issues.push(`bottoms ${measured.panelBottom.toFixed(0)}/${measured.railBottom.toFixed(0)}`);
   if (locale === "pl" && width === 1440 && height === 900 && !measured.railInFold) issues.push(`rail past fold ${measured.railBottom.toFixed(0)}`);
@@ -405,9 +570,9 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "error" && measured.cls !== 0) issues.push(`cls ${measured.cls}`);
   if (mode === "error" && (measured.retryCls !== 0 || !measured.retryAnswer || measured.retryChips < 1)) issues.push(`retry cls=${measured.retryCls} chips=${measured.retryChips}`);
   const expectedCaption = mode === "error"
-    ? (locale === "pl" ? "Podgląd · symulowany błąd" : "Preview · simulated error")
+    ? (locale === "pl" ? "Podgląd\u00A0· symulowany błąd" : "Preview\u00A0· simulated error")
     : mode === "handoff"
-      ? (locale === "pl" ? "Podgląd · symulowane przekazanie" : "Preview · simulated handoff")
+      ? (locale === "pl" ? "Podgląd\u00A0· symulowane przekazanie" : "Preview\u00A0· simulated handoff")
       : "";
   if (expectedCaption && measured.captionText !== expectedCaption) issues.push(`caption ${JSON.stringify(measured.captionText)}`);
   return issues;
@@ -456,7 +621,7 @@ try {
       await retry.focus();
       await page.keyboard.press(activation);
     }
-    await page.getByText("Simulated response · preview").waitFor();
+    await page.getByText(/Simulated response\s·\s*preview/).waitFor();
     const after = await page.evaluate(() => ({
       active: document.activeElement?.id || document.activeElement?.tagName || "",
       you: document.querySelector("[class*='youBubble']")?.getBoundingClientRect().width ?? 0,
@@ -493,7 +658,7 @@ try {
       const page = await context.newPage();
       await page.addInitScript((value) => localStorage.setItem("wo-theme", value), theme);
       for (const [locale, path] of widthRoutes) {
-        await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded", timeout: 45000 });
+        await gotoReady(page, `${base}${path}`);
         const measured = await page.evaluate(() => ({
           scroll: document.documentElement.scrollWidth,
           banner: Boolean(document.querySelector(".pl-copy-review")),

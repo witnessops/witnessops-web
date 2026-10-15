@@ -41,7 +41,7 @@ const COPY = {
     checking: "Checking the published facts…",
     handoff: "Needs a person",
     notAnswered: "Not answered",
-    errorNote: "Not answered. Nothing was sent.",
+    errorNote: "Nothing was sent. Try again?",
     retry: "Retry",
     disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
     optin: "Include this transcript when I contact a person",
@@ -54,7 +54,7 @@ const COPY = {
     railAboutBody: "Answers are generated from a fixed list of published offer facts for this preview. No transcript is kept.",
     pause: "Pause animation",
     play: "Play animation",
-    simulated: "Simulated response · preview",
+    simulated: "Simulated response\u00A0· preview",
     simulatedChip: "Simulated",
     you: "You",
     close: "Close",
@@ -78,9 +78,9 @@ const COPY = {
     checking: "Sprawdzam opublikowane informacje…",
     handoff: "Potrzebna odpowiedź człowieka",
     notAnswered: "Bez odpowiedzi",
-    errorNote: "Bez odpowiedzi. Nic nie zostało wysłane.",
+    errorNote: "Nic nie zostało wysłane. Spróbować ponownie?",
     retry: "Spróbuj ponownie",
-    disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się mylić.",
+    disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się\u00A0mylić.",
     optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
     optinHint: "Podgląd, nic nie wysyła",
     composer: "Zapytaj o te dwa przeglądy",
@@ -389,7 +389,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     return () => window.clearTimeout(timer);
   }, [phase, armed, paused]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (live !== "answered" && live !== "handoff" && live !== "error") return;
     const thread = threadRef.current;
     if (!thread) return;
@@ -413,21 +413,39 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     const turn = index >= 0 ? turnRefs.current[index] : null;
     if (!turn) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = window.requestAnimationFrame(() => {
-      const action = live === "error"
-        ? turn.querySelector<HTMLElement>("[data-retry]")
-        : live === "handoff"
-          ? thread.querySelector<HTMLElement>("[data-handoff-card]")
-          : null;
-      if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
-      else scrollTurnToThreadStart(thread, turn, reducedMotion);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [live, turns, loadError]);
+    const action = live === "error"
+      ? turn.querySelector<HTMLElement>("[data-retry]")
+      : live === "handoff"
+        ? thread.querySelector<HTMLElement>("[data-handoff-card]")
+        : null;
+    if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
+    else scrollTurnToThreadStart(thread, turn, reducedMotion);
+    const overflow = thread.scrollHeight > thread.clientHeight + 1;
+    const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+    thread.classList.toggle(styles.threadFade, overflow && !atEnd);
+  }, [live, turns, loadError, followUpsReady]);
 
   useEffect(() => () => {
     pendingCancel.current?.();
   }, []);
+
+  useEffect(() => {
+    const thread = threadRef.current;
+    if (!thread) return;
+    const syncFade = () => {
+      const overflow = thread.scrollHeight > thread.clientHeight + 1;
+      const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+      thread.classList.toggle(styles.threadFade, overflow && !atEnd);
+    };
+    syncFade();
+    thread.addEventListener("scroll", syncFade, { passive: true });
+    const observer = new ResizeObserver(syncFade);
+    observer.observe(thread);
+    return () => {
+      thread.removeEventListener("scroll", syncFade);
+      observer.disconnect();
+    };
+  }, [turns, live, followUpsReady, mobile]);
 
   useEffect(() => {
     if (!mobile) return;
@@ -643,37 +661,58 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               </a>
             </div>
           </header>
+          {locale === "pl" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
           <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
+              const showError = turn.role === "sovereign" && (turn.simulatedError || (loadError && index === 0 && !turns.some((item) => item.simulatedError)));
               const caption = activeSim === "handoff" && turn.role === "sovereign" && turn.simulated
                 ? previewChip("handoff", locale)
-                : activeSim === "error" && turn.simulatedError
+                : activeSim === "error" && showError
                   ? previewChip("error", locale)
                   : null;
+              const retry = turn.role === "sovereign" && turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
+              const sprite = <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />;
+              const latestAnswer = turn.role === "sovereign" && turn.simulated && !turn.simulatedError;
+              if (showError) {
+                return (
+                  <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={styles.sovereign}>
+                    <div className={styles.errorStack}>
+                      {withSprite ? sprite : null}
+                      <div className={styles.errorFaceCopy}>
+                        <span>Sovereign</span>
+                        {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
+                        {turn.text ? <p><ContactLine text={turn.text} /></p> : null}
+                      </div>
+                      <div className={styles.errorBody}>
+                        {errorNote}
+                        {retry}
+                      </div>
+                    </div>
+                  </li>
+                );
+              }
               const content = (
                 <>
                   <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                   {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                  <p><ContactLine text={turn.text} /></p>
-                  {turn.role === "sovereign" && (turn.simulatedError || (loadError && index === 0 && !turns.some((item) => item.simulatedError))) ? errorNote : null}
+                  {turn.text ? <p data-answer-copy={latestAnswer ? "" : undefined}><ContactLine text={turn.text} /></p> : null}
                   {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                 </>
               );
-              const retry = turn.role === "sovereign" && turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
               const body = withSprite ? (
                 <div className={styles.withSprite}>
-                  <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
+                  {sprite}
                   <div>{content}</div>
                 </div>
               ) : content;
               return (
-                <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
+                <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign} data-latest-answer={latestAnswer ? "" : undefined}>
                   {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
-                  {turn.role === "you" ? <div className={styles.youBubble}>{body}</div> : <>{body}{retry}</>}
+                  {turn.role === "you" ? <div className={styles.youBubble}>{body}</div> : body}
                 </li>
               );
             })}
@@ -718,8 +757,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <p className={styles.lead}>{copy.lead}</p>
           <h3>{copy.railAnswer}</h3>
           <ul>
-            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST[locale]}</li>
+            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{PUBLIC_AGENT_ACTION_OFFER.price[locale].replace(/ ·/g, "\u00A0·")}</span></li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{EXTERNAL_ATTACK_SURFACE_OFFER.price[locale].replace(/ ·/g, "\u00A0·")}</span>. {EASR_RETEST[locale]}</li>
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

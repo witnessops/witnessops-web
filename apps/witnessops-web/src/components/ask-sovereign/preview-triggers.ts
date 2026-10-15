@@ -21,12 +21,15 @@ export function simErrorAtLoad(search: string): boolean {
   return new URLSearchParams(search).get("at") === "load";
 }
 
+/** A non-breaking space before "·" keeps the separator on the previous word. */
+const MIDDOT = "\u00A0· ";
+
 export function previewChip(flag: SimFlag | null, locale: "en" | "pl" = "en"): string | null {
-  if (locale === "pl" && flag === "error") return "Podgląd · symulowany błąd";
-  if (locale === "pl" && flag === "handoff") return "Podgląd · symulowane przekazanie";
-  if (flag === "error") return "Preview · simulated error";
-  if (flag === "handoff") return "Preview · simulated handoff";
-  if (flag === "slow") return "Preview · simulated slow";
-  if (flag === "timeout") return "Preview · simulated timeout";
+  if (locale === "pl" && flag === "error") return `Podgląd${MIDDOT}symulowany błąd`;
+  if (locale === "pl" && flag === "handoff") return `Podgląd${MIDDOT}symulowane przekazanie`;
+  if (flag === "error") return `Preview${MIDDOT}simulated error`;
+  if (flag === "handoff") return `Preview${MIDDOT}simulated handoff`;
+  if (flag === "slow") return `Preview${MIDDOT}simulated slow`;
+  if (flag === "timeout") return `Preview${MIDDOT}simulated timeout`;
   return null;
 }

@@ -4,6 +4,7 @@
  * Motyw na tym urządzeniu, Zapamiętany na tym urządzeniu,
  * Zapisujemy wybór tylko w tej przeglądarce, dopiero po kliknięciu. WitnessOps nie otrzymuje tego wyboru.,
  * Zaloguj się, Przykładowe prace, Zobacz przykłady, Narzędzie, nie przegląd,
+ * Nic nie zostało wysłane. Spróbować ponownie?,
  * Podgląd · symulowane przekazanie, Podgląd · symulowany błąd.
  */
 export default function PolishLayout({ children }: { children: React.ReactNode }) {
