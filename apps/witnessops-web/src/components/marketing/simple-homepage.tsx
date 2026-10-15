@@ -50,6 +50,7 @@ export function SimpleHomepage() {
       </div>
       <div className={styles.frame}>
         <div className={styles.heroCopy}>
+          <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>Sovereign evidence</p>
           <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
@@ -72,7 +73,8 @@ export function SimpleHomepage() {
         <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
       </div>
     </nav>
-    <section className={styles.offers} aria-label="Public reviews"><div className={styles.frame}>
+    <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>WitnessOps reviews</p>
       <h2>Two focused security reviews.</h2>
       <p>Understand what one agent action can do and what your internet-facing system exposes. Compare the scope, evidence and price before requesting a review.</p>
@@ -97,8 +99,9 @@ export function SimpleHomepage() {
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
-        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
+        <span className={styles.rule} aria-hidden="true" />
         <p className={styles.eyebrow}>Historical synthetic one-action example</p>
+        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
         <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
         <dl className={styles.specimenRows}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
@@ -112,6 +115,7 @@ export function SimpleHomepage() {
       </div>
     </section>
     <section className={styles.section} aria-labelledby="home-process-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>How a review works</p>
       <h2 id="home-process-heading">Scope before work. Evidence beside findings.</h2>
       <ol className={styles.steps}>
@@ -120,6 +124,7 @@ export function SimpleHomepage() {
       <p className={styles.note}><Link href="/early-access">How the app works</Link></p>
     </div></section>
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>What this is · what this isn’t</p>
       <h2 id="home-limits-heading">Useful evidence. Explicit limits.</h2>
       <div className={styles.limits}>
@@ -128,11 +133,12 @@ export function SimpleHomepage() {
       </div>
     </div></section>
     <section className={styles.section} aria-label="What sovereign means here"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>What sovereign means here</p>
       <ul className={styles.principles}>{PRINCIPLES.map(([title, body]) => <li key={title}><h3>{title}</h3><p>{body}</p></li>)}</ul>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
       <div className={styles.enquiryForm}><ContactForm compact landing /></div>
     </div></section>
   </main>;

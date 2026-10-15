@@ -2,15 +2,16 @@
 .frame { width: min(1152px, calc(100% - 80px)); margin-inline: auto; }
 .page h1, .page h2, .page h3 { font-family: var(--font-sans); font-weight: 300; text-wrap: pretty; }
 .page h1 { max-width: 16ch; margin: 16px 0; font-size: 72px; line-height: 80px; letter-spacing: -.035em; }
-.page h2 { margin: 16px 0 20px; font-size: 40px; line-height: 48px; letter-spacing: -.025em; }
+.page h2 { margin: 4px 0 20px; font-size: 40px; line-height: 48px; letter-spacing: -.025em; }
 .page h3 { font-size: 20px; line-height: 1.35; }
 .page p { color: var(--color-text-secondary); font-size: 15px; line-height: 1.65; }
 .page .eyebrow { margin: 0; color: var(--color-brand-accent); font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: .14em; text-transform: uppercase; }
-.hero { position: relative; overflow: hidden; padding-block: 64px 36px; background-image: var(--hero-glow); }
+.rule { display: block; width: 24px; height: 2px; margin: 0 0 16px; background: var(--color-brand-accent); }
+.hero { position: relative; overflow: hidden; padding-block: 120px; background-image: var(--hero-glow); }
 .watermark { position: absolute; top: 24px; right: 6%; color: var(--color-text-primary); opacity: 0.08; pointer-events: none; transform: scale(8); transform-origin: top right; }
 .heroCopy { position: relative; max-width: 880px; }
 .linkRow { border-top: 1px solid var(--color-surface-border); }
-.linkRow .frame { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; }
+.linkRow .frame { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; }
 .subline { margin: 0; color: var(--color-text-muted); font-size: 14px; }
 .steps, .principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 28px 0 0; padding: 0; list-style: none; }
 .principles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -31,8 +32,8 @@
 .enquiry > .frame > div:first-child > p.contactLine { max-width: none; }
 .contactLine a { color: inherit; text-decoration: underline; text-underline-offset: 4px; }
 .note a { text-decoration: underline; text-underline-offset: 4px; }
-.offers { padding-bottom: 48px; }
-.cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 0 0 16px; }
+.offers { padding-bottom: 96px; }
+.cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 0 0 48px; }
 .cards article { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--color-surface-border-strong); border-radius: var(--radius-card); background: var(--color-surface-card); }
 .cards h2, .cards h3 { margin: 0; font-family: var(--font-sans); font-size: 24px; font-weight: 400; line-height: 32px; letter-spacing: 0; }
 .cards p { margin-top: 12px; font-size: 14px; }
@@ -47,7 +48,8 @@
 .sectionLinks { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 20px; }
 .receive { max-width: 780px; margin-top: 24px; }
 .receive p { margin-top: 12px; }
-.section { padding-block: 56px; border-top: 1px solid var(--color-surface-border); scroll-margin-top: 80px; }
+.section { padding-block: 96px; scroll-margin-top: 80px; }
+.boundaries, .enquiry { padding-block: 120px; }
 .boundaries { background: var(--color-surface-bg-alt); }
 .boundaries > .frame { display: block; }
 .limits { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 32px; }
@@ -76,7 +78,7 @@
 
 @media (max-width: 800px) {
   .frame { width: calc(100% - 40px); }
-  .hero { padding-block: 30px; }
+  .hero, .section, .boundaries, .enquiry { padding-block: 64px; }
   .page h1 { font-size: 48px; line-height: 56px; }
   .page h2 { font-size: 32px; line-height: 40px; }
   .page .lead { font-size: 16px; line-height: 1.6; }
@@ -84,12 +86,12 @@
   .watermark { transform: scale(4); }
   .freeCheck { align-items: flex-start; flex-direction: column; gap: 8px; }
   .specimenRows > div { grid-template-columns: 1fr; gap: 10px; }
-  .section { padding-block: 40px; }
 }
+
 @media (max-width: 480px) {
   .actions { flex-direction: column; gap: 10px; margin-top: 20px; }
   .actions a { width: 100%; }
-  .page .eyebrow { font-size: 10px; }
+  .page .eyebrow { font-size: 12px; }
   .limits { grid-template-columns: 1fr; }
   .enquiryForm button[type="submit"] { width: 100%; }
 }
