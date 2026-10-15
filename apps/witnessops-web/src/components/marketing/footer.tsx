@@ -46,7 +46,7 @@ const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-xs text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
 const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
-const PREMIUM_FOOTER_SUBLINE = "REPEATABLE. INDEPENDENT.";
+const PREMIUM_FOOTER_SUBLINE = "Proof other people can check.";
 
 type FooterLink = { label: string; href: string };
 
@@ -140,7 +140,7 @@ export function Footer({
   ] : [
     { label: "Product", links: [
       ...ENGLISH_SERVICE_LINKS,
-      { label: "Services", href: "/catalog" },
+      { label: "Services", href: "/reviews" },
       { label: "Pricing", href: "/pricing" },
       { label: "How it works", href: "/early-access" },
       { label: "Docs", href: DOCS_PUBLIC_HREF },
@@ -149,9 +149,6 @@ export function Footer({
     ...(appUrl ? [{ label: "App", links: [
       { label: "Sign up", href: new URL("/signup", appUrl).href },
       { label: "Log in", href: new URL("/login", appUrl).href },
-      { label: "Assets", href: new URL("/assets", appUrl).href },
-      { label: "Reports", href: new URL("/reports", appUrl).href },
-      { label: "Settings", href: new URL("/settings", appUrl).href },
     ] }] : []),
   ];
 
@@ -172,7 +169,7 @@ export function Footer({
   return (
     <footer
       id="site-footer"
-      className="public-shell public-footer border-t border-[#2a261f] bg-[#0d0d0c] simple-public-footer"
+      className="public-shell public-footer border-t border-surface-border bg-surface-bg simple-public-footer"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={isLibraryPath(path) ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
@@ -185,13 +182,13 @@ export function Footer({
               className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-xs"
             >
               <WitnessOpsMark variant="mark" size="md" tone="current" decorative
-                className="shrink-0 text-[#f5f1e8]" />
+                className="shrink-0 text-text-primary" />
               <span className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
                 style={FOOTER_DISPLAY_STYLE}>
                 {brand_line}
               </span>
             </Link>
-            <p className="max-w-[320px] text-sm leading-relaxed text-[#b89b62]">
+            <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
               {content.subline}
             </p>
           </div>

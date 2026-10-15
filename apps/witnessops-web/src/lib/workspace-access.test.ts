@@ -46,9 +46,12 @@ test("footer emits only the configured app destinations, or none", () => {
   for (const appUrl of [null, "https://staging.example/", "http://127.0.0.1:3020/"]) {
     const html = renderToStaticMarkup(createElement(Footer, { appUrl, brand_line: "WitnessOps", build_label: "", copyright: "WitnessOps", subline: "", links: [], legal_links: [] }));
     assert.doesNotMatch(html, /https:\/\/app\.witnessops\.com/);
-    for (const path of ["signup", "login", "assets", "reports", "settings"]) {
+    for (const path of ["signup", "login"]) {
       if (appUrl) assert.ok(html.includes(`href="${appUrl}${path}"`));
       else assert.ok(!html.includes(`href="/${path}"`));
+    }
+    for (const path of ["assets", "reports", "settings"]) {
+      assert.ok(!html.includes(`/${path}"`), `app-only footer path remains: ${path}`);
     }
   }
 });
