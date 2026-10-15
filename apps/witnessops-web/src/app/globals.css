@@ -1034,7 +1034,12 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
 }
 
 .sidebar-kb-item-prefix {
-  font-size: 9px;
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  font-weight: var(--type-mono-caps-wt);
+  letter-spacing: var(--type-mono-caps-ls);
+  text-transform: uppercase;
   color: var(--color-brand-muted);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
@@ -1139,7 +1144,7 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
 .buyer-page :is(p, dd, li).text-sm,
 .buyer-page :is(dl, ul, ol, details > div).text-sm { font-size: 1rem; line-height: 1.65; }
 .buyer-page :is(a, button, summary):focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
-.sidebar-kb-item { min-height: 44px; font-size: .875rem; line-height: 1.5; }
+.sidebar-kb-item { min-height: 44px; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; }
 .sidebar-kb-section-header { min-height: 44px; font-size: .875rem; line-height: 1.5; }
 .sidebar-kb-search-input { min-height: 44px; font-size: 1rem; }
 
@@ -1218,7 +1223,8 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
 /* Figma public chrome; scoped to the shared website header and footer. */
 .simple-public-navbar { font-family: var(--font-sans); }
 .simple-public-navbar > div { max-width: 1200px; min-height: 64px; padding-block: 0; gap: 20px; }
-.simple-public-navbar a { font-weight: 400; }
+.simple-public-navbar :is(a, button) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
+.simple-public-navbar button span { font-size: inherit; line-height: inherit; font-weight: inherit; letter-spacing: 0; }
 .simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
 .simple-public-navbar a:not([data-public-primary-cta]):hover { transform: none; }
 /* Footer palette is scoped here so shared shell styles cannot override it. */
@@ -1230,13 +1236,18 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-public-footer .footer-main { display: grid; gap: 32px; }
 .simple-public-footer .footer-heading,
 .simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-text-muted); }
-.simple-public-footer nav a { font-weight: 400; color: var(--color-text-secondary); }
+.simple-public-footer :is(nav a, .footer-resources a, .footer-legal a) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; color: var(--color-text-secondary); }
 .simple-public-footer nav a:hover { color: var(--color-text-primary); }
-.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: var(--color-brand-accent); }
+.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; color: var(--color-brand-accent); }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
-.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.simple-public-footer [data-public-contact-route] p { max-width: 34ch; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-public-contact-route] a { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; }
+.simple-public-footer .footer-legal span { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-theme-memory],
+.simple-public-footer [data-theme-memory] p { font-size: var(--type-small-size); line-height: var(--type-small-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-theme-memory] button { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
+.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: 500; letter-spacing: 0; text-transform: none; }
 .simple-public-footer [data-footer-review-cta]:hover { background: #24221d; border-color: #b89b62; }
-.simple-public-footer [data-public-contact-route] p { max-width: 34ch; }
 .simple-public-footer [data-public-contact-route] a[href^="mailto:"] { overflow-wrap: anywhere; display: inline-flex; align-items: center; }
 .simple-public-footer .footer-resources { display: flex; flex-wrap: wrap; column-gap: 24px; margin-top: 28px; }
 .simple-public-footer .footer-legal { margin-top: 12px; }
@@ -1254,13 +1265,14 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
   .simple-public-footer .footer-contact { border-top: 1px solid var(--color-surface-border); padding-top: 24px; }
 }
 
-@media (max-width: 700px) { .simple-public-navbar > div { min-height: 60px; gap: 12px; } }
+@media (min-width: 1200px) { .simple-public-navbar > div { min-height: 72px; } }
+@media (max-width: 700px) { .simple-public-navbar > div { gap: 12px; } }
 
 /* Compact public enquiry, shared by the landing and price pages. */
-.simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 400 !important; }
+.simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: var(--type-small-size) !important; line-height: var(--type-small-lh) !important; font-weight: 400 !important; }
 .simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: var(--radius-control); background: var(--color-surface-bg); border-color: var(--color-text-muted); }
 .simple-enquiry-form select option { background: var(--color-surface-bg); color: var(--color-text-primary); }
-.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
+.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-size: var(--type-ui-size) !important; line-height: var(--type-ui-lh) !important; font-weight: var(--type-ui-wt) !important; letter-spacing: 0 !important; text-transform: none !important; }
 
 /* Shared public navigation follows the approved presentation palette. */
 body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {

@@ -164,7 +164,7 @@
   white-space: normal;
   font-size: var(--type-ui-size);
   line-height: var(--type-ui-lh);
-  font-weight: 400;
+  font-weight: var(--type-ui-wt);
   letter-spacing: 0;
 }
 .composer {

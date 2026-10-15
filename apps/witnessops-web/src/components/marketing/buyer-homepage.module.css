@@ -148,6 +148,7 @@
   color: var(--ink-soft);
   font-family: var(--font-sans);
   font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
   font-weight: var(--type-ui-wt);
   letter-spacing: 0;
   text-decoration: underline;
@@ -302,7 +303,10 @@
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
   letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
+  text-transform: uppercase;
 }
 
 .reviewGrid h3 {
@@ -393,7 +397,9 @@
   color: var(--ink-muted);
   font-family: var(--font-mono);
   font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
   letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
   text-align: center;
   text-transform: uppercase;
 }
@@ -785,7 +791,7 @@
 .heroFacts svg { flex-shrink: 0; color: var(--accent); margin-top: .15rem; }
 .heroFacts dd { margin: 0; font-family: var(--font-sans); font-size: var(--type-body-size); line-height: var(--type-body-lh); }
 .deliverableStrip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; margin: 0; padding: 1.25rem 0; border-block: 1px solid var(--rule); }
-.deliverableStrip li { padding: .25rem 1rem; text-align: center; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+.deliverableStrip li { padding: .25rem 1rem; text-align: center; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
 .deliverableStrip li + li { border-left: 1px solid var(--rule-strong); }
 .reviewerLine { margin: 0; padding-block: 2rem; color: var(--ink-muted); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .reviewerLine a { display: inline-flex; align-items: center; min-height: 44px; margin-left: .5rem; text-decoration: underline; text-underline-offset: .2em; }
@@ -827,7 +833,7 @@
 .serviceGrid p { margin-bottom: 1rem; }
 .serviceGrid .textLink { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: auto; font-family: var(--font-sans); font-size: var(--type-ui-size); }
 .serviceGrid svg, .sectionLink svg, .evidenceNote svg { flex-shrink: 0; }
-.sectionLink { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: 1rem; color: var(--ink-soft); font-size: var(--type-ui-size); text-decoration: underline; text-underline-offset: .3em; }
+.sectionLink { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: 1rem; color: var(--ink-soft); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-decoration: underline; text-underline-offset: .3em; }
 .evidenceNote { margin-top: 2rem; padding: 1.5rem; border-left: 2px solid var(--accent); background: var(--paper-raised); }
 .evidenceNote p { max-width: 68ch; margin: 0; color: var(--ink-muted); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .evidenceNote p:first-child { color: var(--ink); font-weight: 500; }

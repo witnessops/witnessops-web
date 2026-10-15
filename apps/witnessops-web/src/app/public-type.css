@@ -57,6 +57,16 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] 
   max-width: var(--measure-small);
 }
 
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, h2)[class*="eyebrow"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
 body:has(nav[data-public-presentation="quiet"]) #main-content h2 {
   font-family: var(--font-sans);
   font-size: var(--type-h2-size);
@@ -176,3 +186,105 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono-caps { fo
 body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose :is(p, li, blockquote):not(.wo-mono-caps):not(.wo-small) { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; max-width: var(--measure-prose); }
 body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-prose-stack > * + * { margin-top: var(--type-prose-gap); }
+
+/* CSS-module roles lose to the element rules above. These selectors outrank them. */
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="kicker"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content #ask-sovereign-title {
+  font-family: var(--font-sans);
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-lh);
+  letter-spacing: 0;
+  font-weight: var(--type-h4-wt);
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="preview_status"]:not([class*="statusText"]) {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content p[class*="lead"] {
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-lh);
+  letter-spacing: 0;
+  font-weight: 400;
+  max-width: var(--measure-lead);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="review-offer_content"] :is(p, li):not([class*="lead"]):not([class*="price"]):not([class*="eyebrow"]) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-long-lh);
+  letter-spacing: 0;
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="review-offer_rail"] :is(p, li):not([class*="price"]) {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  letter-spacing: 0;
+  font-weight: 400;
+  max-width: var(--measure-small);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content p[class*="_price"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-transform: none;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content a[class*="min-h-11"]:not([class*="wo-"]) {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, summary)[class*="textLink"],
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, summary)[class*="sectionLink"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="deliverableStrip"] li {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) summary {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}
