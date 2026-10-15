@@ -213,7 +213,7 @@
     flex-wrap: wrap;
   }
   .controls { order: 2; }
-  .simChip { order: 3; flex: 1 0 100%; margin: 0 0 8px 44px; }
+  .simChip { order: 3; flex: 0 0 calc(100% - 44px); max-width: calc(100% - 44px); margin: 0 0 8px 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sprite, .statusText { animation: none !important; }
