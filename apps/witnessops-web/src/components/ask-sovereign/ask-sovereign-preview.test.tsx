@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import test from "node:test";
+import test, { mock } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { AskSovereignPreview, announcementText, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS } from "./ask-sovereign-preview";
+import { AskSovereignPreview, announcementText, armPendingQuestion, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS } from "./ask-sovereign-preview";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
 test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
@@ -53,6 +53,9 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /Bez odpowiedzi\. Nic nie zostało wysłane\./);
   assert.match(source, /PL copy pending native review/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
+  assert.match(source, /if \(pending\) return/);
+  assert.match(source, /disabled=\{pending\}/);
+  assert.match(source, /flag === "timeout"/);
   assert.match(source, /sv-fallback/);
   assert.match(source, /sovereign-idle-fallback\.css/);
   assert.equal(announcementText("en", "answer", "Scope."), "Sovereign, simulated response: Scope.");
@@ -265,6 +268,40 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
       assert.ok(row.retryTop >= row.threadTop - 1 && row.retryBottom <= row.threadBottom + 1, `Retry is outside the thread at ${width}`);
     }
   }
+});
+
+test("a preview timeout reaches the error state and a second question waits", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    let phase = "pending";
+    const stopTimeout = armPendingQuestion("timeout", 1, () => 1, {
+      show() { phase = "processing"; },
+      resolve() { phase = "answered"; },
+      fail() { phase = "error"; },
+    });
+    mock.timers.tick(PROCESSING_SHOW_DELAY_MS);
+    assert.equal(phase, "processing");
+    mock.timers.tick(PENDING_TIMEOUT_MS);
+    assert.equal(phase, "error");
+    stopTimeout();
+
+    phase = "pending";
+    let stopSlow = () => {};
+    stopSlow = armPendingQuestion("slow", 2, () => 2, {
+      show() { phase = "processing"; },
+      resolve() { stopSlow(); phase = "answered"; },
+      fail() { phase = "error"; },
+    });
+    mock.timers.tick(SLOW_PENDING_MS);
+    assert.equal(phase, "answered");
+    mock.timers.tick(PENDING_TIMEOUT_MS);
+    assert.equal(phase, "answered");
+  } finally {
+    mock.timers.reset();
+  }
+  const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
+  const askBody = source.slice(source.indexOf("function ask("), source.indexOf("const asked"));
+  assert.ok(askBody.indexOf("if (pending) return") < askBody.indexOf("clearPendingTimers()"));
 });
 
 test("Ask Sovereign type classes stay on the locked roles", () => {

@@ -120,6 +120,30 @@ export function pausedLoadPhase(storedPause: boolean): "IDLE" | "GREETING" {
   return storedPause ? "IDLE" : "GREETING";
 }
 
+export function armPendingQuestion(
+  flag: "slow" | "timeout",
+  generation: number,
+  currentGeneration: () => number,
+  hooks: { show: () => void; resolve: () => void; fail: () => void },
+): () => void {
+  const ids: ReturnType<typeof setTimeout>[] = [];
+  const live = () => currentGeneration() === generation;
+  ids.push(setTimeout(() => {
+    if (live()) hooks.show();
+  }, PROCESSING_SHOW_DELAY_MS));
+  if (flag === "slow") {
+    ids.push(setTimeout(() => {
+      if (live()) hooks.resolve();
+    }, SLOW_PENDING_MS));
+  }
+  ids.push(setTimeout(() => {
+    if (live()) hooks.fail();
+  }, PENDING_TIMEOUT_MS));
+  return () => {
+    for (const id of ids) clearTimeout(id);
+  };
+}
+
 /** Puts the start of the turn at the top of the thread. Moves scroll only, and does not move focus. */
 export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement) {
   const top = turn.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop;
@@ -149,7 +173,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const threadRef = useRef<HTMLDivElement>(null);
   const turnRefs = useRef<Array<HTMLLIElement | null>>([]);
   const generation = useRef(0);
-  const pendingTimers = useRef<number[]>([]);
+  const pendingCancel = useRef<(() => void) | null>(null);
   const lastQuestion = useRef("");
   const [armed, setArmed] = useState(false);
   const [phase, setPhase] = useState<SovereignSpriteState>("GREETING");
@@ -167,8 +191,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const errorSpent = useRef(false);
 
   function clearPendingTimers() {
-    for (const id of pendingTimers.current) window.clearTimeout(id);
-    pendingTimers.current = [];
+    pendingCancel.current?.();
+    pendingCancel.current = null;
   }
 
   function publishAnnouncement(text: string) {
@@ -311,7 +335,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }, [live, turns, loadError]);
 
   useEffect(() => () => {
-    pendingTimers.current.forEach((id) => window.clearTimeout(id));
+    pendingCancel.current?.();
   }, []);
 
   useEffect(() => {
@@ -388,6 +412,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   function ask(question: string, resend = false) {
     const text = question.trim();
     if (!text) return;
+    if (pending) return;
     clearPendingTimers();
     const flag = simFlag(window.location.search);
     const forceError = flag === "error" && !errorSpent.current;
@@ -419,23 +444,21 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       publishAnnouncement(announcementText(locale, "error"));
       return;
     }
-    if (flag === "slow") {
+    if (flag === "slow" || flag === "timeout") {
       setPending(true);
-      const show = window.setTimeout(() => {
-        if (generation.current !== gen) return;
-        setPhase("PROCESSING");
-        setLive("processing");
-      }, PROCESSING_SHOW_DELAY_MS);
-      const resolveAt = window.setTimeout(() => {
-        if (generation.current !== gen) return;
-        const answer = sovereignAnswer(text, locale);
-        showAnswer(text, answer);
-      }, SLOW_PENDING_MS);
-      const timeout = window.setTimeout(() => {
-        if (generation.current !== gen) return;
-        failQuestion(text);
-      }, PENDING_TIMEOUT_MS);
-      pendingTimers.current = [show, resolveAt, timeout];
+      setLive("processing");
+      publishAnnouncement(copy.checking);
+      pendingCancel.current = armPendingQuestion(flag, gen, () => generation.current, {
+        show() {
+          setPhase("PROCESSING");
+        },
+        resolve() {
+          showAnswer(text, sovereignAnswer(text, locale));
+        },
+        fail() {
+          failQuestion(text);
+        },
+      });
       return;
     }
     const answer = flag === "handoff" ? sovereignAnswer("simulate handoff", locale) : sovereignAnswer(text, locale);
@@ -508,7 +531,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.thread} ref={threadRef}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{phase === "PROCESSING" && activeSim === "slow" ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
+          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
@@ -552,7 +575,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.askDock}>
           <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips}>
             {copy.suggestions.map((suggestion) => (
-              <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
+              <button key={suggestion} type="button" disabled={pending} onClick={() => ask(suggestion)}>{suggestion}</button>
             ))}
           </div>
           <label className={styles.optin}>
@@ -561,10 +584,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           </label>
           <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{copy.optinHint}</p>
           </div>
-          <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
+          <form className={styles.composer} aria-busy={pending ? "true" : "false"} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
             <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>
-            <input id="ask-sovereign-draft" ref={composerRef} value={draft} onChange={(event) => setDraft(event.target.value)} />
-            <button type="submit" aria-label={copy.send}>
+            <input id="ask-sovereign-draft" ref={composerRef} value={draft} disabled={pending} onChange={(event) => setDraft(event.target.value)} />
+            <button type="submit" aria-label={copy.send} disabled={pending}>
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
             </button>
           </form>

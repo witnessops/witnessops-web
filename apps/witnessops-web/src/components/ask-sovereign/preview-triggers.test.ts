@@ -28,6 +28,7 @@ test("a production build without the preview flag ignores sim triggers", () => {
     assert.equal(simFlag("?sim=error&at=load"), null);
     assert.equal(simFlag("?sim=handoff"), null);
     assert.equal(simFlag("?sim=slow"), null);
+    assert.equal(simFlag("?sim=timeout"), null);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
     assert.equal(previewChip(simFlag("?sim=error")), null);
   } finally {
@@ -54,6 +55,7 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(simFlag("?sim=error"), "error");
     assert.equal(simFlag("?sim=handoff"), "handoff");
     assert.equal(simFlag("?sim=slow"), "slow");
+    assert.equal(simFlag("?sim=timeout"), "timeout");
     assert.equal(simFlag("?sim=other"), null);
     assert.equal(simErrorAtLoad("?sim=error"), false);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), true);
@@ -61,6 +63,7 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(previewChip("error"), "Preview · simulated error");
     assert.equal(previewChip("handoff"), "Preview · simulated handoff");
     assert.equal(previewChip("slow"), "Preview · simulated slow");
+    assert.equal(previewChip("timeout"), "Preview · simulated timeout");
     assert.equal(simFlag("?sim=slow"), "slow");
   } finally {
     restore();
@@ -74,6 +77,7 @@ test("a production build ignores sim triggers even when the preview flag is set"
     assert.equal(simFlag("?sim=error"), null);
     assert.equal(simFlag("?sim=slow"), null);
     assert.equal(simFlag("?sim=handoff"), null);
+    assert.equal(simFlag("?sim=timeout"), null);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
   } finally {
     restore();
@@ -100,5 +104,6 @@ test("preview trigger source makes no request and writes no storage", () => {
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
   assert.match(source, /NODE_ENV !== "production"/);
+  assert.match(source, /dev-only/);
   assert.doesNotMatch(source, /thinkingDurationMs|thinkingWaitMs|setTimeout/);
 });
