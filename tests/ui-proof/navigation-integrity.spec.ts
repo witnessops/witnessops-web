@@ -668,7 +668,7 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   await page.goto("/");
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  for (const name of ["Product", "Expert help", "Resources"]) {
+  for (const name of ["Product", "Reviews", "Resources"]) {
     await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
   }
   if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();

@@ -304,7 +304,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         // English routes now live inside grouped navigation. Inspect the active
         // link in its expanded group, preserving the one-current-page contract.
         if (!route.startsWith("/pl")) {
-          const groupName = route === "/catalog" ? "Expert help" : "Resources";
+          const groupName = route === "/catalog" || route === "/reviews" ? "Reviews" : "Resources";
           const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
           await groupToggle.click();
           await expect(groupToggle).toHaveAttribute("aria-expanded", "true");

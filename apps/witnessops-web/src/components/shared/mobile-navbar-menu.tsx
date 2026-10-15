@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { CtaButton } from "./cta-button";
+import { ThemeToggle } from "./theme-toggle";
 
 interface MobileNavbarMenuProps {
   loginUrl?: string | null;
@@ -169,13 +170,14 @@ export function MobileNavbarMenu({
         id={menuId}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`public-shell absolute inset-x-0 top-full z-50 w-full overflow-y-auto overscroll-contain bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 lg:hidden ${
+        className={`public-shell absolute inset-x-0 top-full z-50 w-full overflow-y-auto overscroll-contain rounded-none bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 lg:hidden ${
           menuOpen
             ? "h-[calc(100dvh-var(--app-navbar-height,72px))] max-h-[calc(100dvh-var(--app-navbar-height,72px))] border-y border-surface-border opacity-100"
             : "pointer-events-none max-h-0 border-t border-transparent opacity-0"
         }`}
       >
         <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
+          {groups && <div className="border-b border-surface-border py-3"><ThemeToggle className="inline-flex" /></div>}
           {groups && (cta || loginUrl) && <div data-mobile-account-actions className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
             {cta && <CtaButton label={cta.label} href={cta.href} variant={cta.variant as "primary" | "secondary" | "ghost"} onClick={closeMenu} className="min-h-11" />}
             {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-sm border border-surface-border px-4 text-sm">Log in</Link>}

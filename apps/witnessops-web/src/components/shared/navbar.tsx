@@ -7,6 +7,7 @@ import { useLayoutEffect, useRef } from "react";
 import { DesktopNavbarMenu } from "./desktop-navbar-menu";
 import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
+import { ThemeToggle } from "./theme-toggle";
 import { WitnessOpsMark } from "./witnessops-mark";
 import {
   isPolishPath,
@@ -30,8 +31,8 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
   const logoHref = polish ? "/pl" : "/";
   const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
     { label: "How the app works", href: "/early-access" },
-    { label: "Expert help", href: "/catalog" },
-    { label: "Price", href: "/pricing" },
+    { label: "Reviews", href: "/reviews" },
+    { label: "Pricing", href: "/pricing" },
     { label: "Tool · not a review", href: "/check" },
     { label: "Docs", href: "/docs" },
   ];
@@ -39,11 +40,12 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     label: signupUrl ? "Sign up" : "Free check",
     href: signupUrl || "/check",
     variant: "primary",
-  } : signupUrl ? {
-    label: "Sign up",
-    href: signupUrl,
-    variant: "secondary",
-  } : null;
+  } : {
+    label: "Discuss a review",
+    href: "/contact",
+    variant: "primary",
+  };
+  const loginHref = appUrl ? new URL("/login", appUrl).href : null;
   const effectiveAnnouncement = announcement;
   const brandLabel = "WitnessOps";
 
@@ -144,7 +146,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
-              {!polish ? <DesktopNavbarMenu loginUrl={appUrl ? new URL("/login", appUrl).href : null} /> : effectiveLinks.map((link) =>
+              {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
                     key={link.href}
@@ -170,6 +172,8 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                   </Link>
                 ),
               )}
+              <ThemeToggle />
+              {loginHref ? <a href={loginHref} className="hidden min-h-11 items-center px-3 text-sm text-text-secondary lg:inline-flex">Log in</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}

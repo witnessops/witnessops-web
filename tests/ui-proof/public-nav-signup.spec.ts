@@ -58,7 +58,7 @@ for (const width of [390, 1440]) {
     await expect(sampleLink).toHaveCount(1);
     await expect(sampleLink).toContainText('Sample work');
     await expect(sampleLink).toHaveAttribute('href', '/review/sample-cases');
-    await nav.getByRole('button', { name: 'Expert help', exact: true }).click();
+    await nav.getByRole('button', { name: 'Reviews', exact: true }).click();
     await nav.locator('a[href="/catalog"]:visible').click();
     await expect(page).toHaveURL(/\/catalog$/);
   });
