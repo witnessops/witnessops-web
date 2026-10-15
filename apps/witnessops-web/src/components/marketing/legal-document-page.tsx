@@ -155,13 +155,13 @@ export function LegalEntityNotice({
       data-legal-entity-locale={locale}
       className="mb-10 min-w-0 max-w-full border border-surface-border bg-surface-card p-5"
     >
-      <h2 className="text-xl font-semibold text-text-primary">
+      <h2 className="wo-h3 text-text-primary">
         {role === "controller" ? copy.controllerHeading : copy.providerHeading}
       </h2>
-      <p className="mt-3 text-base leading-7 text-text-secondary">
+      <p className="wo-body-long mt-3 text-text-secondary">
         {role === "controller" ? copy.controller : copy.provider}
       </p>
-      <div className="mt-4 min-w-0 max-w-full space-y-2 text-sm leading-6 break-words text-text-secondary">
+      <div className="wo-small mt-4 min-w-0 max-w-full space-y-2 break-words text-text-secondary">
         {lines.map((line) => (
           <p
             key={line}
@@ -172,7 +172,7 @@ export function LegalEntityNotice({
           </p>
         ))}
       </div>
-      <p className="mt-4 text-sm leading-6">
+      <p className="wo-small mt-4">
         <Link
           href={COMPANY_DETAILS_HREF[locale]}
           className="inline-flex min-h-11 items-center text-brand-accent underline underline-offset-4"
@@ -180,11 +180,11 @@ export function LegalEntityNotice({
           {company.heading}
         </Link>
       </p>
-      <p className="text-sm leading-6 text-text-secondary">
+      <p className="wo-small text-text-secondary">
         {copy.contact}{" "}
         <a
           href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
-          className="inline-flex min-h-11 items-center break-all font-semibold text-brand-accent underline underline-offset-4"
+          className="inline-flex min-h-11 items-center break-all font-medium text-brand-accent underline underline-offset-4"
         >
           {PUBLIC_CONTACT_EMAIL}
         </a>
@@ -230,12 +230,12 @@ export function LegalDocumentPage({
         ))}
       </nav>
       <header className={styles.legalHeader}>
-        <h1 className="text-4xl font-bold tracking-tight text-text-primary">
+        <h1 className="wo-h1 text-text-primary">
           {doc.title}
         </h1>
-        <p className="mt-4 text-lg text-text-secondary">{doc.description}</p>
+        <p className="wo-lead mt-4 text-text-secondary">{doc.description}</p>
       </header>
-      <div className={styles.legalBody}>
+      <div className={styles.legalBody} data-legal-body="">
         {role ? <LegalEntityNotice locale={locale} role={role} /> : null}
         <MarkdownContent source={doc.body} />
         {trust ? (
@@ -249,7 +249,7 @@ export function LegalDocumentPage({
       </div>
       {related.length > 0 ? (
         <section className={styles.relatedPolicies}>
-          <h2 className="text-xl font-semibold text-text-primary">{copy.related}</h2>
+          <h2 className="wo-h3 text-text-primary">{copy.related}</h2>
           <div className={styles.relatedGrid}>
             {related.map((entry) => (
               <Link
@@ -257,8 +257,8 @@ export function LegalDocumentPage({
                 href={legalPath(locale, entry.slug)}
                 className="block rounded-md border border-surface-border bg-surface-card p-4 transition-colors hover:border-brand-accent/30"
               >
-                <h3 className="font-medium text-text-primary">{NAV_LABEL[locale][entry.slug]}</h3>
-                <p className="mt-1 text-sm text-text-secondary">{entry.doc.description}</p>
+                <h3 className="wo-h4 text-text-primary">{NAV_LABEL[locale][entry.slug]}</h3>
+                <p className="wo-small mt-1 text-text-secondary">{entry.doc.description}</p>
               </Link>
             ))}
           </div>

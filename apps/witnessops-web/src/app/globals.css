@@ -577,11 +577,13 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 .callout-title {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
   text-transform: uppercase;
   color: var(--color-brand-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .callout-warning .callout-title { color: var(--color-signal-amber); }
@@ -590,8 +592,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .callout-trust   .callout-title { color: var(--color-brand-accent); }
 
 .callout p {
-  font-size: 12px;
-  line-height: 1.7;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
   color: var(--color-text-secondary);
   margin: 0;
 }
