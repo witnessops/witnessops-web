@@ -6,6 +6,7 @@ import test from "node:test";
 const files = [
   "src/app/public-presentation.css",
   "src/app/public-type.css",
+  "src/components/marketing/simple-homepage.module.css",
 ];
 
 const allowedSpacing = new Set([
