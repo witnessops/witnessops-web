@@ -17,6 +17,7 @@ import {
 import { isPolishPath } from "@/lib/public-i18n";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
+import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 
 const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
@@ -226,7 +227,7 @@ export function Footer({
               { label: "Sample work", href: "/review/sample-cases" },
               { label: "Research", href: "/research" },
               { label: "The Sovereign Chronicles", href: "/chronicles" },
-              { label: "Ask Sovereign", href: "/docs/assistant" },
+              ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
               { label: "Verify a receipt", href: "/verify" },
               { label: "Tool · not a review", href: "/check" },
             ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}

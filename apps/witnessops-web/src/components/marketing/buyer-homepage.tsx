@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { CtaButton } from "@/components/shared/cta-button";
 import { BUYER_SERVICES, buyerRequestHref, buyerServiceRequestHref, type BuyerLocale } from "@/lib/buyer-services";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import { OwnSystemCase } from "./own-system-case";
 import heroStyles from "./simple-homepage.module.css";
@@ -54,7 +55,7 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
         return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p className={styles.price}>{service.price[locale]}</p><p>{service.result[locale]}</p><p className={styles.timing}>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
       })}</ul>
-      <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p>
+      {sovereignAssistantPublished() ? <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p> : null}
       <Link className={styles.sectionLink} href={pl ? "/pl/reviews" : "/reviews"}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section className={`${styles.reviewSection} ${styles.decisionSection}`} aria-labelledby="home-decision-heading"><div className={styles.frame}>
