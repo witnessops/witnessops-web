@@ -21,14 +21,24 @@ function restore() {
   else process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = saved.release;
 }
 
-test("a production build without a release GO renders the assistant absent", async () => {
-  Object.assign(process.env, { NODE_ENV: "production" });
-  delete process.env.NEXT_PUBLIC_WO_PREVIEW;
-  delete process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE;
+test("a production build stays closed with no flags, the preview flag, or the release flag", async () => {
+  const cases = [
+    {},
+    { NEXT_PUBLIC_WO_PREVIEW: "1" },
+    { NEXT_PUBLIC_SOVEREIGN_RELEASE: "1" },
+    { NEXT_PUBLIC_WO_PREVIEW: "1", NEXT_PUBLIC_SOVEREIGN_RELEASE: "1" },
+  ];
   try {
-    const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release");
-    assert.equal(sovereignAssistantPublished(), false);
-    assert.equal(sovereignNeedsReviewVisible(), false);
+    for (const flags of cases) {
+      Object.assign(process.env, { NODE_ENV: "production" });
+      delete process.env.NEXT_PUBLIC_WO_PREVIEW;
+      delete process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE;
+      Object.assign(process.env, flags);
+      const { sovereignAssistantPublished, sovereignNeedsReviewVisible, askWitnessOpsRouteAvailable } = await import("./sovereign-release");
+      assert.equal(sovereignAssistantPublished(), false, JSON.stringify(flags));
+      assert.equal(sovereignNeedsReviewVisible(), false, JSON.stringify(flags));
+      assert.equal(askWitnessOpsRouteAvailable(), false, JSON.stringify(flags));
+    }
     const en = await import("../app/docs/assistant/page");
     const pl = await import("../app/pl/docs/assistant/page");
     for (const page of [en.default, pl.default]) {
@@ -46,24 +56,29 @@ test("a production build without a release GO renders the assistant absent", asy
     const home = readFileSync(resolve(__dirname, "../components/marketing/buyer-homepage.tsx"), "utf8");
     const sitemap = readFileSync(resolve(__dirname, "../app/sitemap.ts"), "utf8");
     const beacon = readFileSync(resolve(__dirname, "../../public/witnessops-analytics.js"), "utf8");
+    const config = readFileSync(resolve(__dirname, "../../next.config.js"), "utf8");
     assert.match(footer, /footerResourceLinks\(\)/);
     assert.match(footer, /label: "Ask Sovereign"/);
     assert.match(home, /sovereignAssistantPublished\(\) \? <p className=\{styles\.askEntry\}/);
     assert.doesNotMatch(sitemap, /\/docs\/assistant/);
     assert.match(beacon, /\/docs\/assistant/);
     assert.match(beacon, /\/pl\/docs\/assistant/);
+    assert.match(config, /NEXT_PUBLIC_WO_PREVIEW: process\.env\.NEXT_PUBLIC_WO_PREVIEW \?\? "0"/);
+    assert.match(config, /NEXT_PUBLIC_SOVEREIGN_RELEASE: process\.env\.NEXT_PUBLIC_SOVEREIGN_RELEASE \?\? "0"/);
   } finally {
     restore();
   }
 });
 
-test("the review rail appears only for an explicit release GO", async () => {
-  Object.assign(process.env, { NODE_ENV: "production" });
-  delete process.env.NEXT_PUBLIC_WO_PREVIEW;
-  process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = "1";
+test("a development preview publishes the assistant and keeps the review rail behind the release flag", async () => {
   try {
-    const { sovereignNeedsReviewVisible, sovereignAssistantPublished } = await import("./sovereign-release");
+    Object.assign(process.env, { NODE_ENV: "development" });
+    process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
+    delete process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE;
+    const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release");
     assert.equal(sovereignAssistantPublished(), true);
+    assert.equal(sovereignNeedsReviewVisible(), false);
+    process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = "1";
     assert.equal(sovereignNeedsReviewVisible(), true);
     const html = renderToStaticMarkup(createElement(AskSovereignPreview));
     for (const topic of ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"]) {
