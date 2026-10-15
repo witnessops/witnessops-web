@@ -36,7 +36,8 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.doesNotMatch(source, /revealWaitMs|thinkingDurationMs/);
   assert.match(source, /setPhase\("ERROR"\)/);
   assert.match(source, /ask\(text, true\)/);
-  assert.match(source, /scrollIntoView\(\{ block: "nearest" \}\)/);
+  assert.doesNotMatch(source, /scrollIntoView/);
+  assert.match(source, /scrollTurnToThreadStart/);
   assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 1);
   assert.equal(PROCESSING_SHOW_DELAY_MS, 150);
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
@@ -95,6 +96,12 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /border:\s*1px solid var\(--color-surface-border\)/);
   assert.match(css, /background:\s*var\(--color-surface-inset\)/);
   assert.match(css, /color:\s*var\(--color-text-muted\)/);
+  assert.match(css, /\.sv-fallback\[data-face-ready\]\)\s*\{\s*background-image:\s*none/);
+  assert.match(css, /\.chips\.chipsRow\s*\{\s*flex-wrap:\s*nowrap/);
+  const sprite = readFileSync(resolve(__dirname, "sovereign-sprite.tsx"), "utf8");
+  assert.match(sprite, /data-face-ready=\{faceReady \? "" : undefined\}/);
+  assert.match(sprite, /setFaceReady\(false\)/);
+  assert.match(sprite, /setTopSrc\(undefined\)/);
 });
 
 test("liveText is non-empty for every phase in English and Polish", () => {
@@ -130,6 +137,12 @@ test("liveText is non-empty for every phase in English and Polish", () => {
 test("Polish Ask Sovereign chrome stays under the review tag and keeps the locked retest line", () => {
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(html, /PL copy pending native review/);
+  const status = html.match(/<p class="[^"]*status[^"]*"[\s\S]*?<\/p>/);
+  const hint = html.match(/<p id="ask-sovereign-optin-hint"[\s\S]*?<\/p>/);
+  assert.ok(status);
+  assert.ok(hint);
+  assert.doesNotMatch(status[0], /PL copy pending native review/);
+  assert.doesNotMatch(hint[0], /PL copy pending native review/);
   assert.match(html, /Rozmawiasz z asystentem AI/);
   assert.match(html, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
   assert.match(html, /Podgląd, nic nie wysyła/);
@@ -182,28 +195,41 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
   for (const width of [320, 390]) {
     const threads = suggestionLists.map((suggestions, index) => {
       const buttons = suggestions.map((suggestion) => `<button type="button">${escapeHtml(suggestion)}</button>`).join("");
-      return `<section class="panel" style="width:${width}px"><div class="thread" data-thread="${index}">
-      <p class="disclaimer">You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
-      <ol class="transcript"><li class="sovereign"><div class="withSprite"><div class="sprite" data-state="IDLE" data-still="1"></div><div><p class="status">Ready</p><p>${escapeHtml(greetings[index] ?? "")}</p></div></div></li></ol>
-      <div class="chips">${buttons}</div>
-      <div class="chips chipsRow">${buttons}</div>
-    </div></section>`;
+      return `<section class="panel" data-case="${index}" style="width:${width}px;height:640px">
+      <div class="thread" data-thread="${index}">
+        <p class="disclaimer">You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
+        <ol class="transcript"><li class="you" data-turn=""><p>${escapeHtml(suggestions[0] ?? "")}</p><p class="errorNote">Not answered. Nothing was sent.</p><button type="button" class="retry" data-retry="">Retry</button></li><li class="sovereign"><div class="withSprite"><div class="sprite" data-state="ERROR" data-still="1"></div><div><p>${escapeHtml(greetings[index] ?? "")}</p></div></div></li></ol>
+      </div>
+      <div class="askDock"><div class="chips chipsRow" data-chips="">${buttons}</div></div>
+      <form class="composer"><input /><button type="submit">Send</button></form>
+    </section>`;
     }).join("");
     const htmlPath = join(dir, `overflow-${width}.html`);
     writeFileSync(
       htmlPath,
       `<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="${cssPath}">
-      <style>.panel{position:relative !important;inset:auto !important;height:auto !important;max-height:none !important;}</style>
+      <style>.panel{position:relative !important;inset:auto !important;max-height:none !important;}</style>
       </head><body>${threads}
       <pre id="result"></pre>
       <script>
-        const rows = [...document.querySelectorAll("[data-thread]")].map((thread) => {
-          const chip = thread.querySelector("button");
+        const rows = [...document.querySelectorAll("[data-case]")].map((panel) => {
+          const thread = panel.querySelector("[data-thread]");
+          const turn = panel.querySelector("[data-turn]");
+          const chips = panel.querySelector("[data-chips]");
+          const retry = panel.querySelector("[data-retry]");
+          const turnBox = turn.getBoundingClientRect();
+          const chipBox = chips.getBoundingClientRect();
+          const retryBox = retry.getBoundingClientRect();
+          const overlap = !(turnBox.bottom <= chipBox.top || chipBox.bottom <= turnBox.top || turnBox.right <= chipBox.left || chipBox.right <= turnBox.left);
           return {
             scroll: thread.scrollWidth,
             client: thread.clientWidth,
-            chipScroll: chip ? chip.scrollWidth : 0,
-            chipClient: chip ? chip.clientWidth : 0,
+            overlap,
+            retryTop: retryBox.top,
+            retryBottom: retryBox.bottom,
+            threadTop: thread.getBoundingClientRect().top,
+            threadBottom: thread.getBoundingClientRect().bottom,
+            nowrap: getComputedStyle(chips).flexWrap,
           };
         });
         document.getElementById("result").textContent = JSON.stringify(rows);
@@ -229,13 +255,14 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
     const dom = String(launched.stdout ?? "");
     const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
     assert.ok(matched, `missing thread measurement at ${width}`);
-    const rows = JSON.parse(matched[1]) as Array<{ scroll: number; client: number; chipScroll: number; chipClient: number }>;
+    const rows = JSON.parse(matched[1]) as Array<{ scroll: number; client: number; overlap: boolean; retryTop: number; retryBottom: number; threadTop: number; threadBottom: number; nowrap: string }>;
     assert.equal(rows.length, 2);
     for (const row of rows) {
       assert.ok(row.client >= width - 2 && row.client <= width, `thread clientWidth ${row.client} at ${width}`);
-      assert.ok(row.scroll <= row.client, `thread scrollWidth ${row.scroll} > clientWidth ${row.client} at ${width}`);
-      assert.ok(row.chipClient > 0 && row.chipClient <= row.client, `chip clientWidth ${row.chipClient} outside thread ${row.client} at ${width}`);
-      assert.ok(row.chipScroll <= row.chipClient, `chip scrollWidth ${row.chipScroll} > clientWidth ${row.chipClient} at ${width}`);
+      assert.ok(row.scroll <= row.client + 1, `thread scrollWidth ${row.scroll} > clientWidth ${row.client} at ${width}`);
+      assert.equal(row.overlap, false, `chips overlap a turn at ${width}`);
+      assert.equal(row.nowrap, "nowrap");
+      assert.ok(row.retryTop >= row.threadTop - 1 && row.retryBottom <= row.threadBottom + 1, `Retry is outside the thread at ${width}`);
     }
   }
 });

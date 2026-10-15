@@ -51,6 +51,7 @@ export function SovereignSprite({
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
   const [stripReady, setStripReady] = useState(false);
   const [topSrc, setTopSrc] = useState<string | undefined>(undefined);
+  const [faceReady, setFaceReady] = useState(false);
   const still = paused || reduced || hidden || !armed || !stripReady || hold;
 
   useEffect(() => {
@@ -81,9 +82,16 @@ export function SovereignSprite({
     const url = assetUrl(state, theme, scale, wantsStill, viewport);
     setStripReady(false);
     setTopSrc(undefined);
+    setFaceReady(false);
     void decodeImage(url).then((ok) => {
       if (cancelled) return;
-      if (ok) setTopSrc(url);
+      if (ok) {
+        setTopSrc(url);
+        setFaceReady(true);
+      } else {
+        setTopSrc(undefined);
+        setFaceReady(false);
+      }
       setStripReady(true);
     });
     return () => {
@@ -163,7 +171,7 @@ export function SovereignSprite({
   const frozen = paused || reduced || !armed;
   const position = frozen ? "0 0" : `${-frame * FRAME}px 0`;
   return (
-    <div className={`${styles.sprite} sv-fallback`} role="presentation" aria-hidden="true">
+    <div className={`${styles.sprite} sv-fallback`} data-face-ready={faceReady ? "" : undefined} role="presentation" aria-hidden="true">
       {topSrc ? (
         <div
           className={styles.spriteFace}

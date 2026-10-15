@@ -49,10 +49,9 @@
 }
 .thread { flex: 1; min-width: 0; min-height: 0; overflow: auto; }
 .stripe { height: 4px; background: var(--color-brand-accent); }
+.bar, .stripe, .askDock, .composer { flex: none; }
 .bar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -133,6 +132,9 @@
   flex: none;
   image-rendering: pixelated;
 }
+/* The idle underlay shows only until the current frame has decoded, and again if that frame fails. */
+:global(.sv-fallback[data-face-ready]) { background-image: none; }
+:global([data-theme="dark"] .sv-fallback[data-face-ready]) { background-image: none; }
 .spriteFace {
   position: absolute;
   inset: 0;
@@ -204,9 +206,9 @@
   text-decoration: none;
 }
 .handoffCard p { margin: 12px 0 0; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
-.askDock { flex: none; }
+.askDock { flex: none; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; padding: 0 16px 16px; }
-.chipsRow { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.chips.chipsRow { flex-wrap: nowrap; overflow-x: auto; }
 .chips button {
   box-sizing: border-box;
   max-width: 100%;
@@ -226,9 +228,9 @@
   font-weight: var(--type-ui-wt);
   letter-spacing: 0;
 }
+.chips.chipsRow button { flex: 0 0 auto; max-width: none; white-space: nowrap; overflow-wrap: normal; }
 .composer {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -271,7 +273,6 @@
   .handoffCta { min-height: 52px; width: 100%; }
   .you { max-width: 100%; }
   .page { padding-inline: 0; }
-  .chips { min-height: 192px; }
 }
 @media (max-width: 419px) {
   .bar {

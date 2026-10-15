@@ -120,6 +120,12 @@ export function pausedLoadPhase(storedPause: boolean): "IDLE" | "GREETING" {
   return storedPause ? "IDLE" : "GREETING";
 }
 
+/** Puts the start of the turn at the top of the thread. Moves scroll only, and does not move focus. */
+export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement) {
+  const top = turn.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop;
+  thread.scrollTo({ top: Math.max(0, top) });
+}
+
 function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setText: (value: string) => void) {
   if (node && node.textContent === text) {
     node.textContent = "";
@@ -140,7 +146,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const panelRef = useRef<HTMLElement>(null);
   const composerRef = useRef<HTMLInputElement>(null);
   const announcerRef = useRef<HTMLParagraphElement>(null);
-  const handoffRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  const turnRefs = useRef<Array<HTMLLIElement | null>>([]);
   const generation = useRef(0);
   const pendingTimers = useRef<number[]>([]);
   const lastQuestion = useRef("");
@@ -278,9 +285,30 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }, [phase, armed, paused]);
 
   useEffect(() => {
-    if (phase !== "HANDOFF") return;
-    handoffRef.current?.scrollIntoView({ block: "nearest" });
-  }, [phase, turns]);
+    if (live !== "answered" && live !== "handoff" && live !== "error") return;
+    const thread = threadRef.current;
+    if (!thread) return;
+    let index = -1;
+    if (live === "error") {
+      for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
+        if (turns[cursor]?.simulatedError) {
+          index = cursor;
+          break;
+        }
+      }
+      if (index < 0 && loadError) index = 0;
+    } else {
+      for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
+        if (turns[cursor]?.role === "sovereign") {
+          index = cursor;
+          break;
+        }
+      }
+    }
+    const turn = index >= 0 ? turnRefs.current[index] : null;
+    if (!turn) return;
+    scrollTurnToThreadStart(thread, turn);
+  }, [live, turns, loadError]);
 
   useEffect(() => () => {
     pendingTimers.current.forEach((id) => window.clearTimeout(id));
@@ -477,15 +505,15 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               </a>
             </div>
           </header>
-          <div className={styles.thread}>
+          <div className={styles.thread} ref={threadRef}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{phase === "PROCESSING" && activeSim === "slow" ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span>{locale === "pl" && (phase === "ERROR" || live === "error" || (phase === "PROCESSING" && activeSim === "slow")) ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{phase === "PROCESSING" && activeSim === "slow" ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
               return (
-                <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
+                <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
                   {withSprite ? (
                     <div className={styles.withSprite}>
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
@@ -515,7 +543,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             })}
           </ol>
           {phase === "HANDOFF" ? (
-            <div className={styles.handoffCard} data-handoff-card ref={handoffRef}>
+            <div className={styles.handoffCard} data-handoff-card>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
               <p>{copy.handoffMail}</p>
             </div>
@@ -531,7 +559,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             <input type="checkbox" checked={share} aria-describedby="ask-sovereign-optin-hint" onChange={(event) => setShare(event.target.checked)} />
             {copy.optin}
           </label>
-          <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{copy.optinHint}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+          <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{copy.optinHint}</p>
           </div>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
             <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>
