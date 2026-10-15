@@ -27,9 +27,12 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.doesNotMatch(html, /Nothing from this chat is attached/);
   assert.match(html, /Pause animation/);
   assert.equal(html.match(/role="status"/g)?.length, 1);
+  assert.equal(html.match(/aria-live=/g)?.length, 1);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /aria-atomic="true"/);
-  assert.match(html, /aria-hidden="true"/);
+  const visibleStatus = html.match(/<p class="[^"]*status[^"]*"[^>]*>/);
+  assert.ok(visibleStatus);
+  assert.doesNotMatch(visibleStatus[0], /aria-hidden|aria-live|role=/);
   assert.doesNotMatch(source, /aria-live="assertive"/);
   assert.doesNotMatch(source, /key=\{status\}/);
   assert.match(source, /Checking the published facts/);
@@ -92,6 +95,8 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /max-width:\s*419px\)\s*\{\s*\.status\s*\{\s*min-height:\s*32px/);
   assert.match(css, /@keyframes sv-status \{ from \{ opacity: 0\.6; \} to \{ opacity: 1; \} \}/);
   assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*statusText \{ animation: none/);
+  assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*\.panel, \.scrim \{ animation-duration: 0ms; transition-duration: 0ms; \}/);
+  assert.doesNotMatch(css, /\.pause\s*\{\s*display:\s*none/);
   assert.match(css, /max-width:\s*419px\)[\s\S]*\.simChip \{ order: 3; flex: 0 0 calc\(100% - 44px\);/);
   assert.match(css, /height:\s*20px/);
   assert.match(css, /font-weight:\s*500/);
@@ -129,7 +134,10 @@ test("liveText is non-empty for every phase in English and Polish", () => {
   assert.equal(liveText("en", "handoff", "HANDOFF"), "Needs a person");
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
   assert.match(html, /role="status" aria-live="polite" aria-atomic="true"><\/p>/);
-  assert.match(html, /aria-hidden="true"/);
+  assert.equal(html.match(/aria-live=/g)?.length, 1);
+  const visibleStatus = html.match(/<p class="[^"]*status[^"]*"[^>]*>/);
+  assert.ok(visibleStatus);
+  assert.doesNotMatch(visibleStatus[0], /aria-hidden|aria-live|role=/);
   assert.match(html, /Ready/);
   const polish = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(polish, /Gotowy do pytań/);

@@ -541,7 +541,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.thread} data-ask-thread="" ref={threadRef}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
+          <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;

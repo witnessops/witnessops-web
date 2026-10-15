@@ -285,7 +285,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .spriteFace, .statusText { animation: none !important; }
-  .spriteFace { transition: opacity 100ms linear; }
-  .pause { display: none; }
-  .panel, .scrim { animation: sv-fade 100ms linear both; transform: none; }
+  .spriteFace { transition-duration: 0ms; }
+  .panel, .scrim { animation-duration: 0ms; transition-duration: 0ms; }
 }
