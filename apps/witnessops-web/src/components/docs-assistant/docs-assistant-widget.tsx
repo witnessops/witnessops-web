@@ -77,7 +77,11 @@ const FOCUSABLE_SELECTOR = [
 
 const DOCS_ASSISTANT_WIDGET_SURFACES = ["/docs", "/check", "/support"] as const;
 
+/** Quarantined. The public site keeps one assistant. Do not delete this widget. */
+export const DOCS_ASSISTANT_WIDGET_QUARANTINED = true;
+
 export function shouldShowDocsAssistantWidget(pathname: string): boolean {
+  if (DOCS_ASSISTANT_WIDGET_QUARANTINED) return false;
   if (pathname === "/docs/assistant") return false;
   if (
     HIDDEN_WIDGET_PATHS.some(

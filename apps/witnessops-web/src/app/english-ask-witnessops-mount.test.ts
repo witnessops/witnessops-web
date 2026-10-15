@@ -16,7 +16,17 @@ const widget = readFileSync(
 const conversation = readFileSync(resolve(__dirname, "../components/docs-assistant/ask-conversation.ts"), "utf-8");
 const disclosure = readFileSync(resolve(__dirname, "../components/docs-assistant/ask-ai-disclosure.tsx"), "utf-8");
 
-test("English public shell mounts the compact Ask WitnessOps launcher", () => {
+test("Ask WitnessOps widget is quarantined and unmounted", () => {
+  assert.match(widget, /DOCS_ASSISTANT_WIDGET_QUARANTINED = true/);
+  assert.match(rootLayout, /DOCS_ASSISTANT_WIDGET_QUARANTINED \? null : <DocsAssistantWidget \/>/);
+  assert.match(rootLayout, /localWorkspace === "external-check" && \(DOCS_ASSISTANT_WIDGET_QUARANTINED \? null : <DocsAssistantWidget \/>\)/);
+  assert.match(widget, /aria-label="Ask WitnessOps"/);
+  assert.match(widget, /Ask WitnessOps/);
+  assert.match(conversation, /An automation stopped working/);
+  assert.match(disclosure, /store: false/);
+});
+
+test("English public shell mounts the compact Ask WitnessOps launcher", { skip: "quarantined: the public site keeps one assistant" }, () => {
   assert.match(rootLayout, /import\s+{\s*DocsAssistantWidget\s*}/);
   assert.match(rootLayout, /<DocsAssistantWidget\s*\/>/);
   assert.doesNotMatch(docsPage, /DocsAssistantInline/);
@@ -64,6 +74,6 @@ test("dedicated Ask WitnessOps route remains available for separate gating", () 
   assert.match(dedicatedAskPage, /<AskSovereignPreview\s*\/>/);
 });
 
-test("External check mounts Ask while the local proofpack shell stays isolated", () => {
+test("External check mounts Ask while the local proofpack shell stays isolated", { skip: "quarantined: the public site keeps one assistant" }, () => {
   assert.ok(rootLayout.includes('localWorkspace === "external-check" && <DocsAssistantWidget />'));
 });

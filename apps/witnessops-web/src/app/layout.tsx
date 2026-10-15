@@ -5,7 +5,7 @@ import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { DocumentNavigation } from "@/components/shared/document-navigation";
 import documentNavigationStyles from "@/components/shared/document-navigation.module.css";
-import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
+import { DocsAssistantWidget, DOCS_ASSISTANT_WIDGET_QUARANTINED } from "@/components/docs-assistant/docs-assistant-widget";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
@@ -117,7 +117,7 @@ export default async function RootLayout({
               <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
             </DocumentNavigation>
           </div>
-          {localWorkspace === "external-check" && <DocsAssistantWidget />}
+          {localWorkspace === "external-check" && (DOCS_ASSISTANT_WIDGET_QUARANTINED ? null : <DocsAssistantWidget />)}
         </body>
       </html>
     );
@@ -172,7 +172,7 @@ export default async function RootLayout({
         <RouteScrollReset />
         {children}
         <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
-        <DocsAssistantWidget />
+        {DOCS_ASSISTANT_WIDGET_QUARANTINED ? null : <DocsAssistantWidget />}
         <KonamiPenguin />
       </body>
     </html>
