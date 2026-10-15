@@ -26,24 +26,8 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/verify", pl: "/pl/verify" },
   { en: "/why-witnessops", pl: "/pl/why-witnessops" },
   {
-    en: "/catalog/offsec-local-audit",
-    pl: "/pl/catalog/offsec-local-audit",
-  },
-  {
     en: "/catalog/offsec-external-exposure",
     pl: "/pl/catalog/offsec-external-exposure",
-  },
-  {
-    en: "/catalog/offsec-launch-ready",
-    pl: "/pl/catalog/offsec-launch-ready",
-  },
-  {
-    en: "/catalog/offsec-custody-ops",
-    pl: "/pl/catalog/offsec-custody-ops",
-  },
-  {
-    en: "/catalog/offsec-incident-ready",
-    pl: "/pl/catalog/offsec-incident-ready",
   },
   {
     en: "/catalog/professional-public-footprint-audit",

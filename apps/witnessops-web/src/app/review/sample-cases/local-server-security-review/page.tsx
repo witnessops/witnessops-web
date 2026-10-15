@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import {
   loadShieldSampleManifest,
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "witnessops",
     "/review/sample-cases/local-server-security-review",
   ),
+  robots: { index: false, follow: true },
   openGraph: {
     title: "Sample: Local server security review | WitnessOps",
     description:
@@ -50,6 +52,7 @@ export default function LocalServerSecurityReviewSamplePage() {
           title="Local server security review"
           note="Synthetic public sample package for a read-only local server review. It is not a live customer audit, not a production verification result, and not evidence that any third-party system was tested."
         />
+        <HistoricalOfferSampleLabel />
         <div className="space-y-8">
           <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">

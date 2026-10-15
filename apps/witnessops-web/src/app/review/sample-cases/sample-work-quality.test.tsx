@@ -8,6 +8,8 @@ import Access from "./access-removed-proof/page";
 import Incident from "./incident-readiness-review/page";
 import Local from "./local-server-security-review/page";
 
+const withdrawnOfferSamples = [Launch, Custody, Incident, Local];
+
 test("all five historical proofpacks disclose incompatible Bundle V1 and unavailable verifier", () => {
   for (const Page of [Launch, Custody, Access, Incident, Local]) {
     const html = renderToStaticMarkup(<Page />);
@@ -18,19 +20,33 @@ test("all five historical proofpacks disclose incompatible Bundle V1 and unavail
     assert.ok(!html.includes('href="/proofpack"'));
     assert.ok(!html.includes("Offline product verifier path"));
     if (Page !== Local) assert.ok(!html.includes('href="/verify"'));
+    if (withdrawnOfferSamples.includes(Page)) {
+      assert.ok(html.includes("Historical sample, offer withdrawn"));
+      assert.ok(html.includes('data-historical-offer="withdrawn"'));
+    }
   }
+  const access = renderToStaticMarkup(<Access />);
+  assert.equal(access.includes("Historical sample, offer withdrawn"), false);
 });
 
-test("index leads with current-review examples and labels historical service samples", () => {
+test("index leads with current-review examples and omits withdrawn-offer samples", () => {
   const html = renderToStaticMarkup(<Index />);
   assert.ok(html.includes('href="/review/sample-cases/external-exposure-assessment"'));
   assert.ok(html.includes("not live customer evidence"));
   assert.ok(!html.includes("How to use these pages"));
   const firstCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
   const agentCard = html.indexOf('href="/review/sample-cases/ai-agent-action-proof-run"');
-  const historicalCard = html.indexOf('href="/review/sample-cases/local-server-security-review"');
+  const historicalCard = html.indexOf('href="/review/sample-cases/customer-security-review-sprint"');
   assert.ok(firstCard > 0 && firstCard < agentCard && agentCard < historicalCard);
   assert.ok(historicalCard < html.indexOf("Next steps"));
+  for (const href of [
+    "/review/sample-cases/local-server-security-review",
+    "/review/sample-cases/launch-readiness-review",
+    "/review/sample-cases/custody-wallet-ops-review",
+    "/review/sample-cases/incident-readiness-review",
+  ]) {
+    assert.equal(html.includes(`href="${href}"`), false, href);
+  }
   assert.ok(html.includes("Agent Action Security Review"));
   assert.ok(html.includes("External Attack Surface Review"));
   assert.ok(html.includes("Historical service sample"));

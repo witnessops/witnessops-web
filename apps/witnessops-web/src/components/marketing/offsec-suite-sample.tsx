@@ -1,3 +1,4 @@
+import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
 
@@ -9,6 +10,8 @@ export type OffsecSuiteSampleProps = {
   bannerNote: string;
   /** Method samples are not buyer product cards. */
   methodOnly?: boolean;
+  /** The sample stays public. The offer it illustrated does not. */
+  offerWithdrawn?: boolean;
   catalogHref?: string;
   sampleBase: string;
   packageDir: string;
@@ -26,6 +29,7 @@ export function OffsecSuiteSample({
   situation,
   bannerNote,
   methodOnly = false,
+  offerWithdrawn = false,
   catalogHref,
   sampleBase,
   packageDir,
@@ -49,6 +53,7 @@ export function OffsecSuiteSample({
     >
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner title={title} note={bannerNote} showActions={false} />
+        {offerWithdrawn ? <HistoricalOfferSampleLabel /> : null}
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">

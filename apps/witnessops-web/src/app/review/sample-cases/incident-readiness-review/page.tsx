@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Synthetic incident readiness sample for one named scenario and environment. Not live incident response, not compromise attribution, not a 24/7 service.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
     title: "Sample: Incident readiness review | WitnessOps",
     description:
@@ -25,6 +26,7 @@ export default function IncidentReadinessSamplePage() {
       productId="OFFSEC-INCIDENT-READY"
       runId="pr_incident_demo_20260711130000"
       situation="Situation: a team needs a bounded readiness record for one named incident class and environment: preparation, unknowns, and open decisions on the package before an event."
+      offerWithdrawn
       bannerNote="Synthetic public sample from the OffSec suite. Not live incident response, not hack-back, not compromise, root-cause, or attribution evidence, and not a 24/7 service."
       catalogHref="/catalog/offsec-incident-ready"
       sampleBase="/samples/offsec-incident-ready"

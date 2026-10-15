@@ -18,6 +18,10 @@ import {
   DOCUMENT_LANGUAGE_HEADER,
   documentLanguageForPathname,
 } from "@/lib/request-language";
+import {
+  isWithdrawnOfferPath,
+  withdrawnOfferDocument,
+} from "@/lib/withdrawn-offer-routes";
 
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname ?? "witnessops.com";
@@ -35,6 +39,22 @@ function isAdminApiMutation(request: NextRequest): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Withdrawn offer pages stay in the repo. This list makes them unreachable.
+  if (isWithdrawnOfferPath(pathname)) {
+    const headers = {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+      "x-robots-tag": "noindex",
+    };
+    if (request.method === "HEAD") {
+      return new NextResponse(null, { status: 410, headers });
+    }
+    return new NextResponse(withdrawnOfferDocument(pathname), {
+      status: 410,
+      headers,
+    });
+  }
 
   // Cookie-authenticated admin mutations must originate from the exact admin
   // origin. The federated OIDC callback is independently protected by its

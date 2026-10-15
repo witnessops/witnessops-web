@@ -11,6 +11,15 @@ import {
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { listSkills } from "@/lib/skills/catalog";
+import { WITHDRAWN_OFFER_PATHS } from "@/lib/withdrawn-offer-routes";
+
+const SITEMAP_OMITTED_ROUTES = new Set<string>([
+  ...WITHDRAWN_OFFER_PATHS,
+  "/review/sample-cases/local-server-security-review",
+  "/review/sample-cases/launch-readiness-review",
+  "/review/sample-cases/custody-wallet-ops-review",
+  "/review/sample-cases/incident-readiness-review",
+]);
 
 type StaticRoute = {
   route: string;
@@ -148,7 +157,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const docs = await getDocsSitemapEntries("witnessops");
 
   return [
-    ...[...staticRoutes, ...polishRoutes].map(({ route }) => ({
+    ...[...staticRoutes, ...polishRoutes]
+      .filter(({ route }) => !SITEMAP_OMITTED_ROUTES.has(route))
+      .map(({ route }) => ({
       url: canonicalUrl(route || "/"),
       alternates: sitemapLanguageAlternates(route || "/"),
     })),
