@@ -25,7 +25,8 @@ const pages = [
 test("axe audits Ask Sovereign in English and Polish at desktop and mobile", async (t) => {
   const chrome = chromeBinary();
   if (!chrome) {
-    t.skip("Chrome is not available for the axe audit");
+    console.error("AXE AUDIT NOT RUN: Chrome is not available, so this audit did not run.");
+    t.skip("AXE AUDIT NOT RUN: Chrome is not available");
     return;
   }
   let marker = false;
@@ -36,7 +37,8 @@ test("axe audits Ask Sovereign in English and Polish at desktop and mobile", asy
     marker = false;
   }
   if (!marker) {
-    t.skip("Ask Sovereign preview is not being served on 127.0.0.1:3001");
+    console.error("AXE AUDIT NOT RUN: Ask Sovereign is not being served on 127.0.0.1:3001, so this audit did not run in this environment.");
+    t.skip("AXE AUDIT NOT RUN: Ask Sovereign preview is not being served on 127.0.0.1:3001");
     return;
   }
 
