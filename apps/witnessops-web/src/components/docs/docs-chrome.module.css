@@ -19,7 +19,7 @@
 @media (max-width: 1023px) {
   .toolbar { position: sticky; top: var(--app-navbar-height, 64px); z-index: 35; }
   .toolbarInner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem .75rem; padding: .6rem 1rem .35rem; }
-  .menuSlot { display: block; }
+  .menuSlot { display: block; box-sizing: border-box; min-height: calc(var(--type-ui-lh) + 1.2rem + 2px); }
   .utilityLinks { grid-column: 1 / -1; gap: .25rem; overflow-x: auto; }
   .utilityLinks a { flex: none; padding-inline: .65rem; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); }
   .content { padding: 2rem 1.25rem 3rem; }
