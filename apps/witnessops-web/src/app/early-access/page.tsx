@@ -6,7 +6,7 @@ import { getWorkspaceAppUrl } from '@/lib/workspace-access';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '@/lib/commercial-truth';
 import { InlineArrow } from '@/components/marketing/inline-arrow';
 
-export const metadata: Metadata = { title: 'WitnessOps checks and workspace', description: 'Start with a free hostname check. Save new observations in your workspace, compare changes and export reports.', alternates: getCanonicalAlternates('witnessops', '/early-access') };
+export const metadata: Metadata = { title: { absolute: 'WitnessOps checks and workspace' }, description: 'Start with a free hostname check. Save new observations in your workspace, compare changes and export reports.', alternates: getCanonicalAlternates('witnessops', '/early-access') };
 
 export default function EarlyAccessPage() {
   const signIn = getWorkspaceAppUrl();

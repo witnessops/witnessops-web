@@ -114,7 +114,7 @@ const exampleBoundary =
   "Przykłady są oznaczone jako demonstracje lub ilustracje. Nie są materiałem klienta ani certyfikacją zgodności. Ważny wynik publicznej weryfikacji potwierdza kontrole wskazane w zapisie, nie to, że każde działanie leżące u podstaw było poprawne.";
 
 export const metadata: Metadata = {
-  title: "Biblioteka WitnessOps",
+  title: "Biblioteka",
   description:
     "Publiczne punkty wejścia do usług, przykładów, weryfikacji zapisów i dokumentacji.",
   alternates: languageAlternates("/pl/library", {

@@ -17,7 +17,7 @@ const docsDescription =
   "Run a free hostname check, or set up an account, CLI and workspace reports."
 
 export const metadata: Metadata = {
-  title: "Docs — WitnessOps",
+  title: "Docs",
   description: docsDescription,
   alternates: {
     canonical: getDocCanonicalUrl("witnessops", []),
