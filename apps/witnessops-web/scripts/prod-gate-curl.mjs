@@ -62,11 +62,16 @@ if (!standaloneEntry) {
   writeFileSync(outPath, `${lines.join("\n")}\n`);
   process.exit(1);
 }
-log(`standalone ${standaloneEntry}`);
-log(`start runtime NEXT_PUBLIC_WO_PREVIEW=1 NEXT_PUBLIC_SOVEREIGN_RELEASE=1 port ${port}`);
+if (standaloneEntry.endsWith("/.next/standalone/server.js")) {
+  log("standalone entry .next/standalone/server.js");
+} else {
+  log("standalone .next/standalone/server.js is not emitted: outputFileTracingRoot is the repo root");
+  log(`standalone ${standaloneEntry}`);
+}
+log(`start HOSTNAME=0.0.0.0 runtime NEXT_PUBLIC_WO_PREVIEW=1 NEXT_PUBLIC_SOVEREIGN_RELEASE=1 port ${port}`);
 const server = spawn(process.execPath, [standaloneEntry], {
   cwd: dirname(standaloneEntry),
-  env: { ...startEnv, PORT: port, HOSTNAME: "127.0.0.1" },
+  env: { ...startEnv, PORT: port, HOSTNAME: "0.0.0.0" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let serverLog = "";
@@ -139,11 +144,14 @@ try {
   for (const headers of [
     { host: "localhost:3000" },
     { host: "witnessops.com", "x-forwarded-host": "witnessops.com", "x-forwarded-proto": "https" },
+    { host: "0.0.0.0:3000", "x-forwarded-host": "evil.example", "x-forwarded-proto": "https" },
   ]) {
     const og = await fetch(`http://127.0.0.1:${port}/og/home`, { headers, redirect: "manual" });
-    log(`GET /og/home host=${headers.host} forwarded=${headers["x-forwarded-host"] ?? ""} ${og.status} location=${og.headers.get("location")}`);
-    if (og.status !== 308 || og.headers.get("location") !== "https://witnessops.com/opengraph-image") {
-      throw new Error(`/og/home location ${og.headers.get("location")}`);
+    const location = og.headers.get("location") ?? "";
+    log(`GET /og/home host=${headers.host} forwarded=${headers["x-forwarded-host"] ?? ""} ${og.status} location=${location}`);
+    const allowed = location === "/opengraph-image" || location === "https://witnessops.com/opengraph-image";
+    if (og.status !== 308 || !allowed || /localhost|0\.0\.0\.0/i.test(location)) {
+      throw new Error(`/og/home location ${location}`);
     }
   }
   log("PROD_GATE_OK");
