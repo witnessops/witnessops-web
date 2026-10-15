@@ -528,7 +528,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               </a>
             </div>
           </header>
-          <div className={styles.thread} ref={threadRef}>
+          <div className={styles.thread} data-ask-thread="" ref={threadRef}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
@@ -573,7 +573,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           ) : null}
           </div>
           <div className={styles.askDock}>
-          <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips}>
+          <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips} data-ask-chips="">
             {copy.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" disabled={pending} onClick={() => ask(suggestion)}>{suggestion}</button>
             ))}

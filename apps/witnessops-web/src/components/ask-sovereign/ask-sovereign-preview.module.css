@@ -133,8 +133,8 @@
   image-rendering: pixelated;
 }
 /* The idle underlay shows only until the current frame has decoded, and again if that frame fails. */
-:global(.sv-fallback[data-face-ready]) { background-image: none; }
-:global([data-theme="dark"] .sv-fallback[data-face-ready]) { background-image: none; }
+.sprite:global(.sv-fallback)[data-face-ready] { background-image: none; }
+:global([data-theme="dark"]) .sprite:global(.sv-fallback)[data-face-ready] { background-image: none; }
 .spriteFace {
   position: absolute;
   inset: 0;

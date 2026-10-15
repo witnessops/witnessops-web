@@ -99,7 +99,7 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /border:\s*1px solid var\(--color-surface-border\)/);
   assert.match(css, /background:\s*var\(--color-surface-inset\)/);
   assert.match(css, /color:\s*var\(--color-text-muted\)/);
-  assert.match(css, /\.sv-fallback\[data-face-ready\]\)\s*\{\s*background-image:\s*none/);
+  assert.match(css, /\.sprite:global\(\.sv-fallback\)\[data-face-ready\]\s*\{\s*background-image:\s*none/);
   assert.match(css, /\.chips\.chipsRow\s*\{\s*flex-wrap:\s*nowrap/);
   const sprite = readFileSync(resolve(__dirname, "sovereign-sprite.tsx"), "utf8");
   assert.match(sprite, /data-face-ready=\{faceReady \? "" : undefined\}/);
