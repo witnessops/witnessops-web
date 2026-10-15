@@ -36,6 +36,9 @@ const COPY = {
     you: "You",
     close: "Close",
     docs: "/docs",
+    handoffCta: "Continue to contact",
+    handoffMail: "Or write to engage@mail.witnessops.com",
+    contact: "/contact",
   },
   pl: {
     greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
@@ -56,6 +59,9 @@ const COPY = {
     you: "Ty",
     close: "Zamknij",
     docs: "/pl/docs",
+    handoffCta: "Przejdź do kontaktu",
+    handoffMail: "Albo napisz na engage@mail.witnessops.com",
+    contact: "/pl/contact",
   },
 } as const;
 
@@ -214,7 +220,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
         setPhase(window.matchMedia("(max-width: 767px)").matches ? "handoff-mobile" : "handoff-desktop");
         setLive("handoff");
-        panelRef.current?.querySelector<HTMLAnchorElement>("[data-handoff-cta]")?.focus();
+        window.setTimeout(() => {
+          const card = panelRef.current?.querySelector<HTMLElement>("[data-handoff-card]");
+          card?.querySelector<HTMLElement>("[data-handoff-cta]")?.focus({ preventScroll: true });
+          card?.scrollIntoView({ block: "nearest" });
+        }, 0);
         return;
       }
       setPhase("answering");
@@ -314,6 +324,12 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               );
             })}
           </ol>
+          {phase === "handoff-desktop" || phase === "handoff-mobile" ? (
+            <div className={styles.handoffCard} data-handoff-card>
+              <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <span aria-hidden="true">→</span></a>
+              <p>{copy.handoffMail}</p>
+            </div>
+          ) : null}
           <div className={styles.chips}>
             {copy.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
@@ -329,7 +345,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             Include this transcript when I contact a person
           </label>
           <p className={styles.muted}>{share ? "Selected on this screen only." : "Not selected."} This choice is not sent and is not stored.</p>
-          <p className={styles.muted}><Link href={locale === "pl" ? "/pl/contact" : "/contact"} data-handoff-cta>Contact a person</Link>. Nothing from this chat is attached.</p>
+          <p className={styles.muted}>Nothing from this chat is attached.</p>
         </section>
         <aside className={styles.rail} data-sheet-behind>
           <h2>What Sovereign can answer</h2>
