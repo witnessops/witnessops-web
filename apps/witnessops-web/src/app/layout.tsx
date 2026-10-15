@@ -13,6 +13,7 @@ import {
   DOCUMENT_LANGUAGE_HEADER,
   parseDocumentLanguage,
 } from "@/lib/request-language";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
 import "./globals.css";
 
 export const revalidate = 300;
@@ -69,7 +70,11 @@ export default async function RootLayout({
   const localWorkspace = headerStore.get("x-witnessops-local-workspace");
   if (localWorkspace === "proofpack" || localWorkspace === "external-check") {
     return (
-      <html lang={documentLanguage} className="dark" style={appShellStyle}>
+      <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
+        <head>
+          <meta name="color-scheme" content="light dark" />
+          <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        </head>
         <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
           <a href="#main-content" className="skip-link">
             {localWorkspace === "proofpack" ? "Skip to proofpack" : "Skip to snapshot"}
@@ -98,8 +103,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={documentLanguage} className="dark" style={appShellStyle}>
+    <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="light dark" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <meta name="penguin" content="respect" />
         {/*
 

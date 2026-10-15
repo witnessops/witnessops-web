@@ -52,7 +52,8 @@
   --spacing-section-sm: 80px;
 
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-barlow-condensed, "Barlow Condensed"), "Inter", system-ui, sans-serif;
+  --font-display: "Newsreader", "Inter", system-ui, sans-serif;
+  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", serif;
   --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
@@ -66,16 +67,7 @@
 input[type="checkbox"] { border-radius: var(--radius-label); }
 input[type="radio"] { border-radius: var(--radius-pill); }
 
-/* Quiet Utility footer palette; other public surfaces keep their existing theme. */
-footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
-  --color-surface-bg: #111110;
-  --color-text-primary: #f5f1e8;
-  --color-text-secondary: #c3bfb6;
-  --color-text-muted: #a7a399;
-  --color-brand-accent: #b89b62;
-  --color-surface-border: #34332e;
-  --color-surface-border-strong: #777267;
-}
+/* The footer inherits the active theme. It does not keep a separate dark plate. */
 
 /* Public presentation theme; admin and customer workspaces retain their own palette. */
 body:has(nav[data-public-presentation="quiet"]) {
@@ -90,4 +82,57 @@ body:has(nav[data-public-presentation="quiet"]) {
   --color-text-muted: #a7a399;
   --color-brand-accent: #b89b62;
   --color-text-inverse: #151510;
+}
+
+/* Light is the default public theme. Dark is the remembered alternative.
+   Admin keeps the :root palette via [data-admin-shell]. */
+html[data-theme="light"] body:not(:has([data-admin-shell])) {
+  --color-surface-bg: #f2eee4;
+  --color-surface-bg-alt: #e8e2d5;
+  --color-surface-inset: #e8e2d5;
+  --color-surface-card: #fbf8f1;
+  --color-surface-card-hover: #f2eee4;
+  --color-surface-border: #d3cdbf;
+  --color-surface-border-hover: #7c786c;
+  --color-surface-border-strong: #7c786c;
+  --color-text-primary: #0b0c0b;
+  --color-text-secondary: #3a3a34;
+  --color-text-muted: #55544c;
+  --color-text-inverse: #f5f1e8;
+  --color-brand-primary: #0b0c0b;
+  --color-brand-accent: #715a2c;
+  --color-brand-accent-subtle: rgba(113, 90, 44, 0.1);
+  --hero-glow: none;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] body:not(:has([data-admin-shell])) {
+  --color-surface-bg: #0b0c0b;
+  --color-surface-bg-alt: #111210;
+  --color-surface-card: #131411;
+  --color-surface-inset: #191a16;
+  --color-surface-border: #2f302b;
+  --color-surface-border-strong: #6e6e64;
+  --color-text-primary: #f5f1e8;
+  --color-text-secondary: #c9c5bc;
+  --color-text-muted: #a7a399;
+  --color-text-inverse: #0b0c0b;
+  --color-brand-primary: #f5f1e8;
+  --color-brand-accent: #b89b62;
+  --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
+  --hero-glow: radial-gradient(ellipse at 70% 20%, rgba(184, 155, 98, 0.08), transparent 55%);
+  color-scheme: dark;
+}
+
+@media print {
+  html body:not(:has([data-admin-shell])) {
+    --color-surface-bg: #f2eee4;
+    --color-surface-card: #fbf8f1;
+    --color-text-primary: #0b0c0b;
+    --color-text-secondary: #3a3a34;
+    --color-text-muted: #55544c;
+    --color-brand-accent: #715a2c;
+    --hero-glow: none;
+    color-scheme: light;
+  }
 }

@@ -5,8 +5,8 @@ import { useState } from "react";
 type RememberedTheme = "dark" | "light";
 
 /**
- * Records a theme choice only after a click. It does not read storage on load
- * and does not switch the public palette.
+ * Records a theme choice only after a click. The pre-paint script may read
+ * wo-theme, and it does not write it.
  */
 export function ThemeMemory() {
   const [remembered, setRemembered] = useState<RememberedTheme | null>(null);

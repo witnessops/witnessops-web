@@ -51,15 +51,15 @@ const languagePairs = [
 const routesWithSecondaryNavigation = new Set<string>(["/docs", "/pl/docs"]);
 
 const canonicalChrome = {
-  background: "rgb(11, 12, 11)",
-  primary: "rgb(245, 241, 232)",
-  accent: "rgb(184, 155, 98)",
-  inverse: "rgb(21, 21, 16)",
+  background: "rgb(242, 238, 228)",
+  primary: "rgb(11, 12, 11)",
+  accent: "rgb(113, 90, 44)",
+  inverse: "rgb(245, 241, 232)",
   tokens: {
-    background: "#0b0c0b",
-    primary: "#f5f1e8",
-    accent: "#b89b62",
-    inverse: "#151510",
+    background: "#f2eee4",
+    primary: "#0b0c0b",
+    accent: "#715a2c",
+    inverse: "#f5f1e8",
   },
 } as const;
 
@@ -248,7 +248,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         canonicalChrome.primary,
       );
       expect(shell.footerBackground, `${route} footer background`).toBe(
-        "rgb(17, 17, 16)",
+        canonicalChrome.background,
       );
       expect(shell.footerColor, `${route} footer foreground`).toBe(
         canonicalChrome.primary,
@@ -259,7 +259,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         ["main", shell.mainTokens],
       ] as const) {
         expect(tokens, `${route} ${viewport.name} ${surface} tokens`).toEqual(
-          surface === "footer" ? { ...canonicalChrome.tokens, background: "#111110" } : canonicalChrome.tokens,
+          canonicalChrome.tokens,
         );
       }
       expect(
