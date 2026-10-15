@@ -20,21 +20,27 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
   assert.match(html, /Ask Sovereign/);
   assert.match(html, /Hello\. I can answer from the two published reviews/);
-  assert.match(html, /Include this transcript when I contact a person/);
+  assert.match(html, /Preview, sends nothing/);
   assert.match(html, /This choice is not sent and is not stored/);
   assert.match(html, /Pause animation/);
-  assert.match(html, /role="status"/);
-  for (const topic of ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"]) {
-    assert.match(html, new RegExp(`${topic}.*Needs review`));
-  }
+  assert.equal(html.match(/role="status"/g)?.length, 1);
+  assert.doesNotMatch(source, /key=\{status\}/);
+  assert.doesNotMatch(source, /Checking the published facts|Sprawdzam opublikowane/);
+  assert.doesNotMatch(source, /revealWaitMs|thinkingDurationMs/);
+  assert.match(source, /setPhase\("ERROR"\)/);
+  assert.match(source, /ask\(text, true\)/);
+  assert.doesNotMatch(html, /Needs review/);
   assert.match(html, /€2,500 excl\. VAT/);
   assert.match(html, /€1,900 excl\. VAT/);
   assert.match(source, /Simulated response · preview/);
+  assert.match(source, /simulatedChip: "Simulated"/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
+  assert.match(source, /simulatedChip: "Symulowane"/);
   assert.match(source, /PL copy pending native review/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
   assert.match(source, /Unavailable/);
   assert.match(source, /Asystent niedostępny/);
+  assert.match(source, /assetUrl\("IDLE"/);
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);
 });
 
@@ -71,8 +77,8 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
 });
 
 test("liveText is non-empty for every phase in English and Polish", () => {
-  const phases: SovereignSpriteState[] = ["greet", "idle", "thinking", "answering", "handoff-desktop", "handoff-mobile", "error"];
-  const lives = ["idle", "thinking", "answering", "answerReady", "handoff"] as const;
+  const phases: SovereignSpriteState[] = ["GREETING", "IDLE", "PROCESSING", "COMPOSING", "HANDOFF", "ERROR"];
+  const lives = ["idle", "processing", "answered", "handoff", "error"] as const;
   for (const locale of ["en", "pl"] as const) {
     for (const phase of phases) {
       for (const live of lives) {
@@ -81,10 +87,12 @@ test("liveText is non-empty for every phase in English and Polish", () => {
       }
     }
   }
-  assert.equal(liveText("en", "idle", "greet"), "Ready");
-  assert.equal(liveText("pl", "idle", "greet"), "Gotowy do pytań");
-  assert.equal(liveText("en", "idle", "error"), "Unavailable");
-  assert.equal(liveText("pl", "thinking", "error"), "Asystent niedostępny");
+  assert.equal(liveText("en", "idle", "GREETING"), "Ready");
+  assert.equal(liveText("pl", "idle", "GREETING"), "Gotowy do pytań");
+  assert.equal(liveText("en", "idle", "ERROR"), "Unavailable");
+  assert.equal(liveText("pl", "processing", "ERROR"), "Asystent niedostępny");
+  assert.equal(liveText("en", "processing", "PROCESSING"), "Working on this question");
+  assert.equal(liveText("en", "answered", "IDLE"), "Answer ready");
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
   assert.match(html, /role="status"[^>]*>[\s\S]*Ready/);
   const polish = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
@@ -95,7 +103,7 @@ test("Polish Ask Sovereign chrome stays under the review tag and keeps the locke
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(html, /PL copy pending native review/);
   assert.match(html, /Rozmawiasz z asystentem AI/);
-  assert.match(html, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
+  assert.match(html, /Podgląd, nic nie wysyła/);
   assert.match(html, /Nie zaznaczono\./);
   assert.match(html, /Ten wybór nie jest wysyłany i nie jest zapisywany/);
   assert.match(html, /Nic z tej rozmowy nie jest dołączane/);
@@ -109,18 +117,16 @@ test("Polish Ask Sovereign chrome stays under the review tag and keeps the locke
   assert.match(html, /One focused retest of reported findings within 30 calendar days of initial report handover/);
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
   assert.match(source, /retry: "Spróbuj ponownie"/);
-  for (const topic of ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"]) {
-    assert.match(html, new RegExp(`${topic}.*Needs review`));
-  }
+  assert.doesNotMatch(html, /Needs review/);
 });
 
 test("paused-on-load shows Ready and the idle sprite", () => {
-  assert.equal(pausedLoadPhase(true), "idle");
-  assert.equal(pausedLoadPhase(false), "greet");
+  assert.equal(pausedLoadPhase(true), "IDLE");
+  assert.equal(pausedLoadPhase(false), "GREETING");
   assert.equal(liveText("en", "idle", pausedLoadPhase(true)), "Ready");
   assert.equal(liveText("pl", "idle", pausedLoadPhase(true)), "Gotowy do pytań");
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
-  assert.match(source, /setPhase\(\(current\) => \(current === "greet" \? pausedLoadPhase\(true\) : current\)\)/);
+  assert.match(source, /setPhase\(\(current\) => \(current === "GREETING" \? pausedLoadPhase\(true\) : current\)\)/);
   assert.match(source, /setPhase\(pausedLoadPhase\(true\)\)/);
   assert.match(source, /<SovereignSprite state=\{phase\}/);
 });
@@ -149,7 +155,7 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
       const buttons = suggestions.map((suggestion) => `<button type="button">${escapeHtml(suggestion)}</button>`).join("");
       return `<section class="panel" style="width:${width}px"><div class="thread" data-thread="${index}">
       <p class="disclaimer">You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
-      <ol class="transcript"><li class="sovereign"><div class="withSprite"><div class="sprite" data-state="idle" data-still="1"></div><div><p class="status">Ready</p><p>${escapeHtml(greetings[index] ?? "")}</p></div></div></li></ol>
+      <ol class="transcript"><li class="sovereign"><div class="withSprite"><div class="sprite" data-state="IDLE" data-still="1"></div><div><p class="status">Ready</p><p>${escapeHtml(greetings[index] ?? "")}</p></div></div></li></ol>
       <div class="chips">${buttons}</div>
       <div class="chips chipsRow">${buttons}</div>
     </div></section>`;

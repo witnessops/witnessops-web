@@ -7,13 +7,13 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
-import { previewChip, simErrorAtLoad, simFlag, thinkingDurationMs } from "./preview-triggers";
-import { revealWaitMs, stateDurationMs } from "./sovereign-playback";
+import { previewChip, simErrorAtLoad, simFlag } from "./preview-triggers";
+import { spriteRecord, stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
-import type { SovereignSpriteState } from "./sovereign-playback";
 
 const PAUSE_KEY = "wo-sovereign-paused";
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
@@ -29,14 +29,13 @@ const COPY = {
       "Where do I write?",
     ],
     idle: "Ready",
-    thinking: "Checking the published facts…",
-    answering: "Answering…",
+    working: "Working on this question",
     answerReady: "Answer ready",
     handoff: "Needs a person",
     unavailable: "Unavailable",
     retry: "Retry",
     disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
-    optin: "Include this transcript when I contact a person",
+    optin: "Preview, sends nothing",
     optinOn: "Selected on this screen only.",
     optinOff: "Not selected.",
     optinStored: "This choice is not sent and is not stored.",
@@ -50,6 +49,7 @@ const COPY = {
     pause: "Pause animation",
     play: "Play animation",
     simulated: "Simulated response · preview",
+    simulatedChip: "Simulated",
     you: "You",
     close: "Close",
     docs: "/docs",
@@ -66,14 +66,13 @@ const COPY = {
       "Gdzie napisać?",
     ],
     idle: "Gotowy do pytań",
-    thinking: "Sprawdzam opublikowane informacje…",
-    answering: "Odpowiadam…",
+    working: "Pracuję nad tym pytaniem",
     answerReady: "Odpowiedź gotowa",
     handoff: "Potrzebna odpowiedź człowieka",
     unavailable: "Asystent niedostępny",
     retry: "Spróbuj ponownie",
     disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się mylić.",
-    optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
+    optin: "Podgląd, nic nie wysyła",
     optinOn: "Zaznaczone tylko na tym ekranie.",
     optinOff: "Nie zaznaczono.",
     optinStored: "Ten wybór nie jest wysyłany i nie jest zapisywany.",
@@ -87,6 +86,7 @@ const COPY = {
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
+    simulatedChip: "Symulowane",
     you: "Ty",
     close: "Zamknij",
     docs: "/pl/docs",
@@ -96,23 +96,21 @@ const COPY = {
   },
 } as const;
 
-type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; needsReview?: boolean };
-type Live = "idle" | "thinking" | "answering" | "answerReady" | "handoff";
+type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean };
+type Live = "idle" | "processing" | "answered" | "handoff" | "error";
 
 export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
-  if (phase === "error") return COPY[locale].unavailable;
   const copy = COPY[locale];
-  if (phase === "greet") return copy.idle;
-  if (live === "thinking") return copy.thinking;
-  if (live === "answering") return copy.answering;
-  if (live === "answerReady") return copy.answerReady;
-  if (live === "handoff") return copy.handoff;
+  if (phase === "ERROR" || live === "error") return copy.unavailable;
+  if (phase === "PROCESSING" || live === "processing") return copy.working;
+  if (phase === "HANDOFF" || live === "handoff") return copy.handoff;
+  if (live === "answered") return copy.answerReady;
   return copy.idle;
 }
 
-/** A saved pause skips greet, so the first painted sprite is the idle still. */
-export function pausedLoadPhase(storedPause: boolean): "idle" | "greet" {
-  return storedPause ? "idle" : "greet";
+/** A saved pause skips the greeting, so the first painted sprite is the idle still. */
+export function pausedLoadPhase(storedPause: boolean): "IDLE" | "GREETING" {
+  return storedPause ? "IDLE" : "GREETING";
 }
 
 export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocale }) {
@@ -121,9 +119,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const panelRef = useRef<HTMLElement>(null);
   const composerRef = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
+  const lastQuestion = useRef("");
   const [armed, setArmed] = useState(false);
-  const [phase, setPhase] = useState<SovereignSpriteState>("greet");
+  const [phase, setPhase] = useState<SovereignSpriteState>("GREETING");
   const [live, setLive] = useState<Live>("idle");
+  const [announcement, setAnnouncement] = useState(copy.idle);
   const [draft, setDraft] = useState("");
   const [share, setShare] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -131,7 +131,6 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const [mobile, setMobile] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: copy.greeting }]);
   const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
-  const [announceError, setAnnounceError] = useState(false);
   const errorSpent = useRef(false);
 
   useEffect(() => {
@@ -147,7 +146,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     try {
       if (window.sessionStorage.getItem(PAUSE_KEY) === "1") {
         setPaused(true);
-        setPhase((current) => (current === "greet" ? pausedLoadPhase(true) : current));
+        setPhase((current) => (current === "GREETING" ? pausedLoadPhase(true) : current));
       }
     } catch {
       setPaused(false);
@@ -169,8 +168,9 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       const search = window.location.search;
       if (simErrorAtLoad(search)) {
         errorSpent.current = true;
-        setPhase("error");
-        setAnnounceError(true);
+        setPhase("ERROR");
+        setLive("error");
+        setAnnouncement(COPY[locale].unavailable);
       }
       composerRef.current?.focus({ preventScroll: true });
     };
@@ -180,27 +180,47 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       panel.removeEventListener("animationend", start);
       window.clearTimeout(fallback);
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     setActiveSim(simFlag(window.location.search));
   }, []);
 
   useEffect(() => {
-    if (!announceError) return;
-    const timer = window.setTimeout(() => setAnnounceError(false), 1000);
-    return () => window.clearTimeout(timer);
-  }, [announceError]);
-
-  useEffect(() => {
-    if (phase !== "greet" || !armed) return;
+    if (phase !== "GREETING" || !armed) return;
     if (paused) {
       setPhase(pausedLoadPhase(true));
       return;
     }
-    const timer = window.setTimeout(() => setPhase("idle"), stateDurationMs("greet"));
+    const timer = window.setTimeout(() => setPhase("IDLE"), stateDurationMs("GREETING"));
     return () => window.clearTimeout(timer);
   }, [phase, armed, paused]);
+
+  useEffect(() => {
+    if (phase !== "PROCESSING") return;
+    const cap = spriteRecord("PROCESSING").cap_ms;
+    if (!cap) return;
+    const gen = generation.current;
+    const timer = window.setTimeout(() => {
+      if (gen !== generation.current) return;
+      setTurns((current) => {
+        const next = current.slice();
+        for (let index = next.length - 1; index >= 0; index -= 1) {
+          const turn = next[index];
+          if (turn?.role === "you") {
+            next[index] = { ...turn, simulatedError: true };
+            break;
+          }
+        }
+        return next;
+      });
+      setPhase("ERROR");
+      setLive("error");
+      setAnnouncement(copy.unavailable);
+      composerRef.current?.focus({ preventScroll: true });
+    }, cap);
+    return () => window.clearTimeout(timer);
+  }, [phase, copy.unavailable]);
 
   useEffect(() => {
     if (!mobile) return;
@@ -268,64 +288,75 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }
 
   function retryFromError() {
-    generation.current += 1;
-    setAnnounceError(false);
-    setPhase("idle");
-    setLive("idle");
+    const text = lastQuestion.current;
+    if (!text) return;
+    ask(text, true);
   }
 
-  function ask(question: string) {
+  function ask(question: string, resend = false) {
     const text = question.trim();
     if (!text) return;
-    const search = window.location.search;
-    const flag = simFlag(search);
+    const flag = simFlag(window.location.search);
     const forceError = flag === "error" && !errorSpent.current;
     if (forceError) errorSpent.current = true;
-    const gen = ++generation.current;
+    generation.current += 1;
+    lastQuestion.current = text;
     setDraft("");
-    setPhase("thinking");
-    setLive("thinking");
-    setTurns((current) => [...current, { role: "you", text }]);
-    const answer = flag === "handoff" ? sovereignAnswer("simulate handoff", locale) : sovereignAnswer(text, locale);
-    const handoff = answer.kind === "handoff";
-    window.setTimeout(() => {
-      if (gen !== generation.current) return;
-      if (forceError) {
-        setPhase("error");
-        setAnnounceError(true);
-        return;
+    const pending = flag === "slow";
+    const answer = forceError || pending
+      ? null
+      : flag === "handoff"
+        ? sovereignAnswer("simulate handoff", locale)
+        : sovereignAnswer(text, locale);
+    const handoff = answer?.kind === "handoff";
+    setTurns((current) => {
+      const next = current.slice();
+      if (resend) {
+        for (let index = next.length - 1; index >= 0; index -= 1) {
+          const turn = next[index];
+          if (turn?.role === "you") {
+            next[index] = { ...turn, text, simulatedError: forceError };
+            break;
+          }
+        }
+      } else {
+        next.push({ role: "you", text, simulatedError: forceError });
       }
-      if (handoff) {
-        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
-        setPhase(window.matchMedia("(max-width: 767px)").matches ? "handoff-mobile" : "handoff-desktop");
-        setLive("handoff");
-        window.setTimeout(() => {
-          const card = panelRef.current?.querySelector<HTMLElement>("[data-handoff-card]");
-          card?.querySelector<HTMLElement>("[data-handoff-cta]")?.focus({ preventScroll: true });
-          card?.scrollIntoView({ block: "nearest" });
-        }, 0);
-        return;
+      if (answer) {
+        next.push({ role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview });
       }
-      setPhase("answering");
-      setLive("answering");
-      window.setTimeout(() => {
-        if (gen !== generation.current) return;
-        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
-        setLive("answerReady");
-        window.setTimeout(() => {
-          if (gen !== generation.current) return;
-          setPhase("idle");
-          setLive("idle");
-        }, 400);
-      }, revealWaitMs(answer.text));
-    }, thinkingDurationMs(flag, Math.random()));
+      return next;
+    });
+    if (forceError) {
+      setPhase("ERROR");
+      setLive("error");
+      setAnnouncement(copy.unavailable);
+    } else if (pending) {
+      setPhase("PROCESSING");
+      setLive("processing");
+      setAnnouncement(copy.working);
+    } else if (handoff) {
+      setPhase("HANDOFF");
+      setLive("handoff");
+      setAnnouncement(copy.handoff);
+    } else {
+      setPhase("IDLE");
+      setLive("answered");
+      setAnnouncement(copy.answerReady);
+    }
+    // Handoff keeps focus on the composer. This repo has no STATE-SPEC to update.
+    composerRef.current?.focus({ preventScroll: true });
   }
 
-  const status = liveText(locale, live, phase);
   const asked = turns.some((turn) => turn.role === "you");
+  const showReview = sovereignNeedsReviewVisible();
+  let spriteIndex = -1;
+  turns.forEach((item, itemIndex) => {
+    if (phase === "ERROR" ? item.role === "you" : item.role === "sovereign") spriteIndex = itemIndex;
+  });
 
   return (
-    <div className={styles.page} ref={pageRef}>
+    <div className={styles.page} ref={pageRef} data-sovereign-preview="">
       <p className={styles.back} data-sheet-behind><Link href={copy.docs}>Docs</Link></p>
       <p className={styles.kicker} data-sheet-behind>AI assistant</p>
       <h1 data-sheet-behind>Ask Sovereign</h1>
@@ -374,47 +405,47 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.thread}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
+          <p className={styles.status} role="status" aria-live="polite" data-live={live}><span className={styles.dot} aria-hidden="true" /><span className={styles.statusText}>{announcement}</span></p>
           <ol className={styles.transcript}>
             {turns.map((turn, index) => {
-              let latestSovereign = -1;
-              turns.forEach((item, itemIndex) => {
-                if (item.role === "sovereign") latestSovereign = itemIndex;
-              });
-              const latest = turn.role === "sovereign" && latestSovereign === index;
+              const withSprite = spriteIndex === index;
               return (
                 <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
-                  {latest ? (
+                  {withSprite ? (
                     <div className={styles.withSprite}>
-                      <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
+                      <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
                       <div>
-                        <p className={styles.status} role="status" aria-live={announceError ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" /><span key={status} className={styles.statusText}>{status}</span></p>
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                        {turn.simulatedError ? <p className={styles.simChip}>{copy.simulatedChip}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                         <p>{turn.text}</p>
-                        {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
+                        {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                       </div>
                     </div>
                   ) : (
                     <>
                       <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                      {turn.simulatedError ? <p className={styles.simChip}>{copy.simulatedChip}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                       {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                       <p>{turn.text}</p>
-                      {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
+                      {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                     </>
                   )}
                 </li>
               );
             })}
           </ol>
-          {phase === "error" ? (
+          {phase === "ERROR" ? (
             <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button>
           ) : null}
-          {phase === "handoff-desktop" || phase === "handoff-mobile" ? (
+          {phase === "HANDOFF" ? (
             <div className={styles.handoffCard} data-handoff-card>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
               <p>{copy.handoffMail}</p>
             </div>
           ) : null}
+          </div>
+          <div className={styles.askDock}>
           <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips}>
             {copy.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
@@ -423,6 +454,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <label className={styles.optin}>
             <input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
             {copy.optin}
+            {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
           </label>
           <p className={styles.muted}>{share ? copy.optinOn : copy.optinOff} {copy.optinStored}</p>
           <p className={styles.muted}>{copy.attached}</p>
@@ -444,9 +476,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           </ul>
           <h3>{copy.railAbout}</h3>
           <p>{copy.railAboutBody}</p>
-          <ul className={styles.review}>
-            {REVIEW_TOPICS.map((topic) => <li key={topic}>{topic} <span>Needs review</span></li>)}
-          </ul>
+          {showReview ? (
+            <ul className={styles.review}>
+              {REVIEW_TOPICS.map((topic) => <li key={topic}>{topic} <span>Needs review</span></li>)}
+            </ul>
+          ) : null}
         </aside>
       </div>
     </div>

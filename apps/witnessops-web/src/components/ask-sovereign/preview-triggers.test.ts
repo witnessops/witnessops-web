@@ -7,7 +7,6 @@ import {
   previewChip,
   simErrorAtLoad,
   simFlag,
-  thinkingDurationMs,
 } from "./preview-triggers";
 
 const saved = {
@@ -21,9 +20,9 @@ function restore() {
   else process.env.NEXT_PUBLIC_WO_PREVIEW = saved.preview;
 }
 
-test("production builds ignore preview triggers", () => {
+test("a production build without the preview flag ignores sim triggers", () => {
   Object.assign(process.env, { NODE_ENV: "production" });
-  process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
+  delete process.env.NEXT_PUBLIC_WO_PREVIEW;
   try {
     assert.equal(simFlag("?sim=error"), null);
     assert.equal(simFlag("?sim=error&at=load"), null);
@@ -31,7 +30,6 @@ test("production builds ignore preview triggers", () => {
     assert.equal(simFlag("?sim=slow"), null);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
     assert.equal(previewChip(simFlag("?sim=error")), null);
-    assert.equal(thinkingDurationMs(simFlag("?sim=slow"), 0), 600);
   } finally {
     restore();
   }
@@ -63,9 +61,19 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(previewChip("error"), "Preview · simulated error");
     assert.equal(previewChip("handoff"), "Preview · simulated handoff");
     assert.equal(previewChip("slow"), "Preview · simulated slow");
-    assert.equal(thinkingDurationMs("slow", 0), 6000);
-    assert.ok(thinkingDurationMs("error", 0) >= 400);
-    assert.ok(thinkingDurationMs(null, 1) <= 1200);
+    assert.equal(simFlag("?sim=slow"), "slow");
+  } finally {
+    restore();
+  }
+});
+
+test("an explicit preview flag keeps sim triggers in a production preview build", () => {
+  Object.assign(process.env, { NODE_ENV: "production" });
+  process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
+  try {
+    assert.equal(simFlag("?sim=error"), "error");
+    assert.equal(simFlag("?sim=slow"), "slow");
+    assert.equal(simErrorAtLoad("?sim=error&at=load"), true);
   } finally {
     restore();
   }
@@ -75,5 +83,5 @@ test("preview trigger source makes no request and writes no storage", () => {
   const source = readFileSync(resolve(__dirname, "preview-triggers.ts"), "utf8");
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
-  assert.match(source, /NODE_ENV !== "production"/);
+  assert.doesNotMatch(source, /thinkingDurationMs|thinkingWaitMs|setTimeout/);
 });

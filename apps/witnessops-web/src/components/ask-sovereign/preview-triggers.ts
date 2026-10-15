@@ -1,10 +1,12 @@
-import { thinkingWaitMs } from "./sovereign-playback";
-
 export type SimFlag = "error" | "handoff" | "slow";
 
-/** Preview triggers are live only for an explicit non-production preview build. */
+/**
+ * Sim triggers follow the explicit preview flag.
+ * A production build without that flag ignores them.
+ * The preview server is a production `next start` with the flag set, so the triggers stay available there.
+ */
 export function previewTriggersEnabled(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
+  return process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
 }
 
 export function simFlag(search: string): SimFlag | null {
@@ -24,11 +26,4 @@ export function previewChip(flag: SimFlag | null): string | null {
   if (flag === "handoff") return "Preview · simulated handoff";
   if (flag === "slow") return "Preview · simulated slow";
   return null;
-}
-
-export const SLOW_THINKING_MS = 6000;
-
-export function thinkingDurationMs(flag: SimFlag | null, unitRandom: number): number {
-  if (flag === "slow") return SLOW_THINKING_MS;
-  return Math.max(400, thinkingWaitMs(unitRandom));
 }
