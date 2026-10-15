@@ -30,6 +30,8 @@ const COPY = {
     answering: "Answering…",
     answerReady: "Answer ready",
     handoff: "Needs a person",
+    unavailable: "Unavailable",
+    retry: "Try again",
     pause: "Pause animation",
     play: "Play animation",
     simulated: "Simulated response · preview",
@@ -53,6 +55,8 @@ const COPY = {
     answering: "Odpowiadam…",
     answerReady: "Odpowiedź gotowa",
     handoff: "Potrzebna odpowiedź człowieka",
+    unavailable: "Asystent niedostępny",
+    retry: "Spróbuj ponownie",
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
@@ -69,6 +73,7 @@ type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; need
 type Live = "idle" | "thinking" | "answering" | "answerReady" | "handoff";
 
 function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
+  if (phase === "error") return COPY[locale].unavailable;
   if (phase === "greet") return "";
   const copy = COPY[locale];
   if (live === "thinking") return copy.thinking;
@@ -131,6 +136,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       panel.removeEventListener("animationend", start);
       window.clearTimeout(fallback);
     };
+  }, []);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("sim") !== "error") return;
+    setPhase("error");
   }, []);
 
   useEffect(() => {
@@ -202,6 +212,12 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       }
       return next;
     });
+  }
+
+  function retryFromError() {
+    generation.current += 1;
+    setPhase("idle");
+    setLive("idle");
   }
 
   function ask(question: string) {
@@ -326,6 +342,9 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               );
             })}
           </ol>
+          {phase === "error" ? (
+            <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button>
+          ) : null}
           {phase === "handoff-desktop" || phase === "handoff-mobile" ? (
             <div className={styles.handoffCard} data-handoff-card>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <span aria-hidden="true">→</span></a>

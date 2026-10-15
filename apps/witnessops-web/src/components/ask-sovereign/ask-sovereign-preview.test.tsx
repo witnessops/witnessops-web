@@ -29,6 +29,9 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /Simulated response · preview/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
   assert.match(source, /PL copy pending native review/);
+  assert.match(source, /get\("sim"\) !== "error"/);
+  assert.match(source, /Unavailable/);
+  assert.match(source, /Asystent niedostępny/);
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);
 });
 
