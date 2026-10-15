@@ -15,7 +15,11 @@ export type PublicLanguagePair = {
 
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
-  { en: "/reviews", pl: "/pl/catalog" },
+  { en: "/reviews", pl: "/pl/reviews" },
+  {
+    en: "/reviews/agent-action-security-review",
+    pl: "/pl/reviews/agent-action-security-review",
+  },
   { en: "/library", pl: "/pl/library" },
   { en: "/contact", pl: "/pl/contact" },
   { en: "/docs", pl: "/pl/docs" },
@@ -29,7 +33,7 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/media-kit", pl: "/pl/media-kit" },
   {
     en: "/reviews/external-attack-surface-review",
-    pl: "/pl/catalog/offsec-external-exposure",
+    pl: "/pl/reviews/external-attack-surface-review",
   },
   {
     en: "/catalog/professional-public-footprint-audit",
@@ -217,7 +221,7 @@ export function publicExposureBreadcrumbJsonLd(locale: "en" | "pl") {
     },
     {
       name: isPolish ? "Usługi" : "Services",
-      path: isPolish ? "/pl/catalog" : "/catalog",
+      path: isPolish ? "/pl/reviews" : "/reviews",
     },
     {
       name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],

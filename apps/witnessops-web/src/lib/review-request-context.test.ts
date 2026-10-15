@@ -86,7 +86,7 @@ test("primary offer selection trusts its stable id before public query text", ()
 test("shared review CTAs keep canonical product context on detail and selected request routes", () => {
   const detailHref = reviewRequestHrefForLocation(
     "pl",
-    "/pl/catalog/offsec-external-exposure",
+    "/pl/reviews/external-attack-surface-review",
     emptySearch,
   );
   const selectedRequestHref = reviewRequestHrefForLocation(

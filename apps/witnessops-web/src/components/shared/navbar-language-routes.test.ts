@@ -18,7 +18,7 @@ test("shared navigation preserves Polish destinations and selected enquiry", () 
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
   assert.match(navbar, /href: signupUrl \|\| "\/check"/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/catalog", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
+    "/pl/reviews", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);
 });
 

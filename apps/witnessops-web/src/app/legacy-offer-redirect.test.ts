@@ -37,7 +37,7 @@ test("retired access-removal URLs preserve compatibility with permanent redirect
     },
     {
       source: "/pl/catalog/offsec-access-removed",
-      destination: "/pl/catalog",
+      destination: "/pl/reviews",
       permanent: true,
     },
   ]);
@@ -65,6 +65,16 @@ test("commercial routes with defensible replacements redirect directly", async (
   assert.deepEqual(bySource.get("/catalog/offsec-external-exposure"), {
     source: "/catalog/offsec-external-exposure",
     destination: "/reviews/external-attack-surface-review",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/pl/catalog"), {
+    source: "/pl/catalog",
+    destination: "/pl/reviews",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/pl/catalog/offsec-external-exposure"), {
+    source: "/pl/catalog/offsec-external-exposure",
+    destination: "/pl/reviews/external-attack-surface-review",
     permanent: true,
   });
   for (const source of [

@@ -6,6 +6,9 @@ import { canonicalUrl } from "@/lib/public-seo";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/reviews",
+  "/pl/reviews",
+  "/pl/reviews/agent-action-security-review",
+  "/pl/reviews/external-attack-surface-review",
   "/reviews/agent-action-security-review",
   "/reviews/external-attack-surface-review",
   "/how-it-works",
@@ -30,6 +33,8 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
 
 const EXCLUDED_SITEMAP_ROUTES = [
   "/catalog",
+  "/pl/catalog",
+  "/pl/catalog/offsec-external-exposure",
   "/catalog/offsec-external-exposure",
   "/catalog/offsec",
   "/catalog/operator-platform",

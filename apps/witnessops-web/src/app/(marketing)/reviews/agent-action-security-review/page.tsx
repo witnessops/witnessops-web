@@ -4,7 +4,7 @@ import Link from "next/link";
 import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
-import { canonicalUrl } from "@/lib/public-seo";
+import { languageAlternates } from "@/lib/public-seo";
 import { getServiceLanding } from "@/lib/service-landings";
 
 const service = buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID);
@@ -13,9 +13,10 @@ const landing = getServiceLanding(PUBLIC_AGENT_ACTION_REVIEW_ID, "en");
 export const metadata: Metadata = {
   title: PUBLIC_AGENT_ACTION_OFFER.name.en,
   description: landing.headline,
-  alternates: {
-    canonical: canonicalUrl("/reviews/agent-action-security-review"),
-  },
+  alternates: languageAlternates("/reviews/agent-action-security-review", {
+    en: "/reviews/agent-action-security-review",
+    pl: "/pl/reviews/agent-action-security-review",
+  }),
 };
 
 function visibleBoundary(item: string): boolean {

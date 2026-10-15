@@ -13,7 +13,7 @@ export const POLISH_NO_SECRETS_NOTE =
 
 export const POLISH_PUBLIC_NAV = {
   links: [
-    { label: "Usługi", href: "/pl/catalog" },
+    { label: "Usługi", href: "/pl/reviews" },
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Dokumentacja", href: "/pl/docs" },
@@ -134,6 +134,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
   /^\/catalog(?:\/(?:automation-repair|offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|professional-public-footprint-audit))?$/,
+  /^\/reviews(?:\/(?:agent-action-security-review|external-attack-surface-review))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/customer-security-review$/,

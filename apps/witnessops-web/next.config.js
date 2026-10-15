@@ -157,7 +157,17 @@ const nextConfig = {
       },
       {
         source: "/pl/catalog/offsec-access-removed",
-        destination: "/pl/catalog",
+        destination: "/pl/reviews",
+        permanent: true,
+      },
+      {
+        source: "/pl/catalog",
+        destination: "/pl/reviews",
+        permanent: true,
+      },
+      {
+        source: "/pl/catalog/offsec-external-exposure",
+        destination: "/pl/reviews/external-attack-surface-review",
         permanent: true,
       },
       {

@@ -19,7 +19,7 @@ const expectedPrices = {
   },
   "agent-action-security-review": {
     en: "€2,500 excl. VAT",
-    pl: "€2 500: cena stała · bez VAT",
+    pl: "€2 500 · bez VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",

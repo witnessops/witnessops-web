@@ -166,6 +166,7 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   price: {
     ...LEGACY_AGENT_ACTION_OFFER.price,
     en: "€2,500 excl. VAT",
+    pl: "€2 500 · bez VAT",
   },
   timing: {
     en: "Delivery timing agreed in the signed statement of work",
@@ -272,7 +273,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   productId: "OFFSEC-EXTERNAL-EXPOSURE",
   route: {
     en: "/catalog/offsec-external-exposure",
-    pl: "/pl/catalog/offsec-external-exposure",
+    pl: "/pl/reviews/external-attack-surface-review",
   },
   requestRoute: "/review/request",
   name: {

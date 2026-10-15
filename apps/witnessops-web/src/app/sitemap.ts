@@ -137,9 +137,22 @@ const staticRoutes: StaticRoute[] = [
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
 ];
 
+const REDIRECTED_POLISH_CATALOG = new Set([
+  "/pl/catalog",
+  "/pl/catalog/offsec-external-exposure",
+]);
+
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
-  { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
+  { route: "/pl/reviews", sourcePath: "src/app/pl/reviews/page.tsx" },
+  {
+    route: "/pl/reviews/agent-action-security-review",
+    sourcePath: "src/app/pl/reviews/agent-action-security-review/page.tsx",
+  },
+  {
+    route: "/pl/reviews/external-attack-surface-review",
+    sourcePath: "src/app/pl/reviews/external-attack-surface-review/page.tsx",
+  },
   { route: "/pl/library", sourcePath: "src/app/pl/library/page.tsx" },
   ...getPolishSkus().map(({ id }) => ({
     route: `/pl/catalog/${id.toLowerCase()}`,
@@ -163,7 +176,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...[...staticRoutes, ...polishRoutes]
-      .filter(({ route }) => !SITEMAP_OMITTED_ROUTES.has(route))
+      .filter(({ route }) => !SITEMAP_OMITTED_ROUTES.has(route) && !REDIRECTED_POLISH_CATALOG.has(route))
       .map(({ route }) => ({
       url: canonicalUrl(route || "/"),
       alternates: sitemapLanguageAlternates(route || "/"),
