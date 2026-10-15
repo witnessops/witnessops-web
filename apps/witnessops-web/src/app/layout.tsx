@@ -15,6 +15,7 @@ import {
 } from "@/lib/request-language";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
 import "./globals.css";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const revalidate = 300;
 
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
     "Bounded security and operational reviews with evidence references, clear limits and a practical handover. Start with a non-secret fit check.",
   metadataBase: new URL("https://witnessops.com"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "WitnessOps — Security and operational reviews",
     description:
       "Bounded security and operational reviews with evidence references, clear limits and a practical handover.",
@@ -34,6 +36,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "WitnessOps — Security and operational reviews",
     description:

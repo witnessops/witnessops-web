@@ -18,6 +18,7 @@ import {
   publicExposureServiceJsonLd,
 } from "@/lib/public-seo";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 type PageProps = { params: Promise<{ skuId: string }> };
 
@@ -274,12 +275,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates,
     openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
       title: `${title} | WitnessOps`,
       description,
       siteName: "WitnessOps",
       type: "website",
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title: `${title} | WitnessOps`,
       description,

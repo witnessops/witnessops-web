@@ -6,6 +6,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import {
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
   loadShieldSampleManifest,
   shieldArtifactDigest,
   shieldDisplayedArtifacts,
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
   ),
   robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Local server security review | WitnessOps",
     description:
       "Inspect a synthetic local server security review package and its honest verification limits.",

@@ -4,6 +4,7 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample Review Report",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-report"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample Review Report | WitnessOps",
     description:
       "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample Review Report | WitnessOps",
     description:

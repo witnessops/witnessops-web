@@ -3,6 +3,7 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample Case: Privileged Access Grant",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/privileged-access-grant",
   ),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample Case: Privileged Access Grant | WitnessOps",
     description:
       "Named sample case showing how WitnessOps reviews a privileged access grant path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
@@ -20,6 +22,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample Case: Privileged Access Grant | WitnessOps",
     description:

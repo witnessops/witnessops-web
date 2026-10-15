@@ -4,6 +4,7 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample work",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample work | WitnessOps",
     description:
       "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample work | WitnessOps",
     description:

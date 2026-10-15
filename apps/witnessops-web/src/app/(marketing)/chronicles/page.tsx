@@ -7,6 +7,7 @@ import {
   RESERVED_CHAPTERS,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "The Sovereign Chronicles",
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Sovereign Chronicles",
     description: CHRONICLE_SERIES_INTRO,
-    images: ["/chronicles/og-placeholder.svg"],
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
 };
 

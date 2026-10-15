@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import MediaKitPage from "../../media-kit/page";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const description =
   "Kanoniczny WitnessOps Logo System v1, sumy kontrolne, zasady marki, zrzuty produktu i opis spółki.";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     pl: "/pl/media-kit",
   }),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Zestaw dla mediów | WitnessOps",
     description,
     siteName: "WitnessOps",

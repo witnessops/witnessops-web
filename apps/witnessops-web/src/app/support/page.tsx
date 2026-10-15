@@ -15,6 +15,7 @@ import {
   publicContactMailto,
 } from "@/lib/public-contact";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
@@ -38,12 +39,14 @@ export function generateMetadata(): Metadata {
       pl: "/pl/support",
     }),
     openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
       title: `${title} | WitnessOps`,
       description,
       siteName: "WitnessOps",
       type: "website",
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title: `${title} | WitnessOps`,
       description,

@@ -4,6 +4,7 @@ import { VerifyConsole } from "@/components/verify/verify-console";
 import { SectionShell } from "@/components/shared/section-shell";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     pl: "/pl/verify",
   }),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Verify a Receipt | WitnessOps",
     description:
       "Upload or paste supported WitnessOps receipt JSON to run bounded receipt-only checks and see what remains unverified.",
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:

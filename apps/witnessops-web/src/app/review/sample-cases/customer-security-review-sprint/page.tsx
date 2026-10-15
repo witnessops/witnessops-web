@@ -3,6 +3,7 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/customer-security-review-sprint";
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   alternates: getCanonicalAlternates("witnessops", path),
   robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Customer Security Review Sprint | WitnessOps",
     description:
       "Inspect a synthetic questionnaire response package shape. Not live customer evidence or certification.",

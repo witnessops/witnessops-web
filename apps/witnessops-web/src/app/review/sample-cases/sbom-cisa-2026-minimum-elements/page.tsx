@@ -5,6 +5,7 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import {
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
   cisaNewsUrl,
   cisaResourceUrl,
   intentionalGaps,
@@ -28,6 +29,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/sbom-cisa-2026-minimum-elements",
   ),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: SBOM minimum-elements check | WitnessOps",
     description:
       "Inspect a synthetic SBOM package check with generation context, named gaps, and clear limits. Not a CISA compliance claim.",
@@ -35,6 +37,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample: SBOM minimum-elements check | WitnessOps",
     description:

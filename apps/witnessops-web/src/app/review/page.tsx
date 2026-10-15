@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Bounded Review",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
     canonical: "/review",
   },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Bounded Review | WitnessOps",
     description:
       "WitnessOps reviews one bounded technical action and, when scoped evidence is available, returns evidence references, receipt artifacts where produced, named limits, and a clear next step.",
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary",
     title: "Bounded Review | WitnessOps",
     description:

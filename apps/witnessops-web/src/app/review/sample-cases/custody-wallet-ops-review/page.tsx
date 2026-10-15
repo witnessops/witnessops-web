@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/custody-wallet-ops-review";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   alternates: getCanonicalAlternates("witnessops", path),
   robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Custody / wallet-ops review | WitnessOps",
     description:
       "Inspect a synthetic custody control package. No keys, balances, fund movement, or solvency claim.",

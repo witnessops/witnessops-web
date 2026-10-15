@@ -9,6 +9,7 @@ import {
   chronicleJsonLd,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -30,9 +31,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: chapter.description,
       type: "article",
       siteName: "WitnessOps",
-      images: ["/chronicles/og-placeholder.svg"],
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title,
       description: chapter.description,
