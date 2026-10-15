@@ -4,6 +4,7 @@ import { buyerServiceById, buyerServiceRequestHref, type BuyerLocale } from "@/l
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { getServiceLanding } from "@/lib/service-landings";
+import { InlineArrow } from "./inline-arrow";
 import styles from "./review-offer.module.css";
 
 const REVIEW_PATH = {
@@ -26,6 +27,7 @@ const COPY = {
     start: "How to start",
     agentEyebrow: "Review one agent action",
     externalEyebrow: "Review external exposure",
+    otherReview: "Other review",
   },
   pl: {
     all: "Wszystkie przeglądy",
@@ -35,6 +37,7 @@ const COPY = {
     start: "Jak zacząć",
     agentEyebrow: "Jedno działanie agenta",
     externalEyebrow: "Ekspozycja zewnętrzna",
+    otherReview: "Inny przegląd",
   },
 } as const;
 
@@ -73,11 +76,14 @@ export function ReviewOffer({ locale, offer }: { locale: BuyerLocale; offer: "ag
           <ol>
             {landing.steps.map(([title, body]) => <li key={title}><strong>{title}</strong> {body}</li>)}
           </ol>
-          <p className={styles.other}>
-            <Link href={REVIEW_PATH[offer === "agent" ? "external" : "agent"][locale]}>
-              {other.name[locale]} · {other.price[locale]}
-            </Link>
-          </p>
+          <div className={styles.cross}>
+            <p className={styles.eyebrow}>{copy.otherReview}</p>
+            <p className={styles.crossLead}>
+              <Link href={REVIEW_PATH[offer === "agent" ? "external" : "agent"][locale]}>
+                {other.name[locale]} · {other.price[locale]} <InlineArrow />
+              </Link>
+            </p>
+          </div>
         </div>
         <aside className={styles.rail}>
           <p className={styles.price}>{current.price[locale]}</p>
