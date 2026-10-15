@@ -22,15 +22,15 @@ function restore() {
 }
 
 test("a production build without a release GO renders the assistant absent", async () => {
-  process.env.NODE_ENV = "production";
+  Object.assign(process.env, { NODE_ENV: "production" });
   delete process.env.NEXT_PUBLIC_WO_PREVIEW;
   delete process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE;
   try {
-    const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release.ts");
+    const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release");
     assert.equal(sovereignAssistantPublished(), false);
     assert.equal(sovereignNeedsReviewVisible(), false);
-    const en = await import("../app/docs/assistant/page.tsx");
-    const pl = await import("../app/pl/docs/assistant/page.tsx");
+    const en = await import("../app/docs/assistant/page");
+    const pl = await import("../app/pl/docs/assistant/page");
     for (const page of [en.default, pl.default]) {
       assert.throws(() => page(), (error: unknown) => {
         const digest = typeof error === "object" && error && "digest" in error ? String(error.digest) : "";
@@ -55,11 +55,11 @@ test("a production build without a release GO renders the assistant absent", asy
 });
 
 test("the review rail appears only for an explicit release GO", async () => {
-  process.env.NODE_ENV = "production";
+  Object.assign(process.env, { NODE_ENV: "production" });
   delete process.env.NEXT_PUBLIC_WO_PREVIEW;
   process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = "1";
   try {
-    const { sovereignNeedsReviewVisible, sovereignAssistantPublished } = await import("./sovereign-release.ts");
+    const { sovereignNeedsReviewVisible, sovereignAssistantPublished } = await import("./sovereign-release");
     assert.equal(sovereignAssistantPublished(), true);
     assert.equal(sovereignNeedsReviewVisible(), true);
     const html = renderToStaticMarkup(createElement(AskSovereignPreview));
