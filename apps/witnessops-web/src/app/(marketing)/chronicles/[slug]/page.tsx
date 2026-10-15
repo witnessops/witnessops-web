@@ -48,17 +48,17 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[680px] px-6 py-16">
       <link rel="preload" href="/fonts/newsreader-400.woff2" as="font" type="font/woff2" crossOrigin="" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(chronicleJsonLd(chapter)).replaceAll("<", "\\u003c") }} />
-      <p className="text-sm text-text-muted">
+      <p className="wo-small text-text-muted">
         <Link href="/research" className="underline-offset-4 hover:underline">Research</Link>
         {" / "}
         <Link href="/chronicles" className="underline-offset-4 hover:underline">The Sovereign Chronicles</Link>
       </p>
-      <p className="mt-8 font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">{chapter.kicker}</p>
-      <h1 data-chronicle-title className="mt-3 text-[40px] leading-[44px] tracking-[-0.045em] text-text-primary sm:text-[72px] sm:leading-[76px]" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>{chapter.title}</h1>
-      {chapter.subtitle ? <p className="mt-4 text-lg text-text-secondary">{chapter.subtitle}</p> : null}
-      <p className="mt-4 font-mono text-xs uppercase tracking-widest text-text-secondary">{chapter.dateline}</p>
-      <p className="mt-2 text-sm text-text-muted">{chapter.meta}</p>
-      <p className="mt-6 rounded-md border border-brand-accent/40 bg-surface-inset px-4 py-3 text-sm text-text-primary">{CHRONICLE_FICTION_LABEL}</p>
+      <p className="wo-mono-caps mt-8 text-brand-accent">{chapter.kicker}</p>
+      <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">{chapter.title}</h1>
+      {chapter.subtitle ? <p className="wo-lead mt-4 text-text-secondary">{chapter.subtitle}</p> : null}
+      <p className="wo-mono-caps mt-4 text-text-secondary">{chapter.dateline}</p>
+      <p className="wo-small mt-2 text-text-muted">{chapter.meta}</p>
+      <p className="wo-small mt-6 rounded-md border border-brand-accent/40 bg-surface-inset px-4 py-3 text-text-primary">{CHRONICLE_FICTION_LABEL}</p>
       <ChronicleBody chapter={chapter} />
       <ChroniclePager chapter={chapter} />
     </main>

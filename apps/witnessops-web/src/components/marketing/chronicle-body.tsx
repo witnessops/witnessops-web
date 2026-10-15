@@ -11,7 +11,7 @@ function inlineCode(text: string) {
   const parts = text.split(/(`[^`]+`)/g);
   return parts.map((part, index) => {
     if (part.startsWith("`") && part.endsWith("`")) {
-      return <code key={index} className="font-mono text-[0.9em] text-brand-accent">{part.slice(1, -1)}</code>;
+      return <code key={index} className="wo-mono text-brand-accent">{part.slice(1, -1)}</code>;
     }
     return <span key={index}>{part}</span>;
   });
@@ -31,36 +31,36 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
   const chunks = source.split("```");
   let record = 0;
   return (
-    <div className="chronicle-prose mt-8 max-w-[568px] space-y-6 text-[18px] leading-[30px] text-text-secondary sm:text-[20px] sm:leading-[33px]" style={{ fontFamily: "var(--font-serif)" }}>
+    <div className="chronicle-prose wo-prose-stack mt-8 text-text-secondary">
       {chunks.map((chunk, index) => {
         if (index % 2 === 1) {
           record += 1;
           const id = `R-${String(record).padStart(2, "0")}`;
           return (
             <figure key={id} role="group" aria-label={`Evidence record ${id} (fiction)`} className="rounded-lg border border-surface-border bg-surface-inset p-6">
-              <figcaption className="mb-3 flex justify-between font-mono text-xs uppercase tracking-widest text-brand-accent">
+              <figcaption className="wo-mono-caps mb-3 flex justify-between text-brand-accent">
                 <span>Evidence record · {id}</span>
                 <span>Fiction</span>
               </figcaption>
-              <pre className="overflow-x-hidden whitespace-pre-wrap font-mono text-[13px] leading-5 text-text-secondary">{chunk.trim()}</pre>
+              <pre className="wo-mono overflow-x-hidden whitespace-pre-wrap text-text-secondary">{chunk.trim()}</pre>
             </figure>
           );
         }
         const blocks = chunk.trim().split(/\n{2,}/).filter(Boolean);
-        return <div key={`prose-${index}`} className="space-y-6">{blocks.map((block, blockIndex) => {
+        return <div key={`prose-${index}`} className="wo-prose-stack">{blocks.map((block, blockIndex) => {
           const trimmed = block.trim();
           const key = `prose-${index}-block-${blockIndex}`;
           if (trimmed.startsWith("### ")) {
             const heading = sectionHeading(trimmed);
             return (
-              <h2 key={key} className="pt-6 text-center text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>
-                {heading.num ? <span className="mb-2 block font-mono text-base text-brand-accent">{heading.num}</span> : null}
+              <h2 key={key} className="wo-h3 pt-6 text-center text-text-primary">
+                {heading.num ? <span className="wo-mono-caps mb-2 block text-brand-accent">{heading.num}</span> : null}
                 {heading.title}
               </h2>
             );
           }
           if (trimmed.startsWith("INCIDENT-")) {
-            return <p key={key} role="note" className="inline-block rounded-md border border-surface-border px-3 py-1 font-mono text-xs text-text-primary">{trimmed}</p>;
+            return <p key={key} role="note" className="wo-mono-caps inline-block rounded-md border border-surface-border px-3 py-1 text-text-primary">{trimmed}</p>;
           }
           return <p key={key}>{inlineCode(trimmed)}</p>;
         })}</div>;
@@ -75,10 +75,10 @@ export function ChroniclePager({ chapter }: { chapter: ChronicleChapter }) {
   const next = chapter.id === "001" ? RESERVED_CHAPTERS[0] : RESERVED_CHAPTERS[1];
   return (
     <div className="mt-12 grid gap-4 border-t border-surface-border pt-8 sm:grid-cols-2">
-      <p className="text-sm text-text-muted">
+      <p className="wo-small text-text-muted">
         {previous ? `Chapter ${previous.id}, ${previous.title}, coming soon` : <Link href="/chronicles" className="underline-offset-4 hover:underline">All chronicles</Link>}
       </p>
-      <p className="text-sm text-text-muted sm:text-right">
+      <p className="wo-small text-text-muted sm:text-right">
         {`Chapter ${next.id}, ${next.title}, coming soon. Not yet linked.`}
       </p>
     </div>
