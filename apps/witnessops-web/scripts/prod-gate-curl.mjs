@@ -6,13 +6,13 @@
  *   node scripts/prod-gate-curl.mjs
  */
 import { spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const port = process.env.PROD_GATE_PORT || "3017";
-const outPath = process.env.PROD_GATE_OUT || "/opt/cursor/artifacts/prod-gate-curl.txt";
+const outPath = process.env.PROD_GATE_OUT || "/opt/cursor/artifacts/prod-routes-curl-after.txt";
 const lines = [];
 
 function log(line) {
@@ -51,10 +51,22 @@ const startEnv = {
   NEXT_PUBLIC_WO_PREVIEW: "1",
   NEXT_PUBLIC_SOVEREIGN_RELEASE: "1",
 };
+const standaloneCandidates = [
+  resolve(appRoot, ".next/standalone/server.js"),
+  resolve(appRoot, ".next/standalone/apps/witnessops-web/server.js"),
+];
+const standaloneEntry = standaloneCandidates.find((candidate) => existsSync(candidate));
+if (!standaloneEntry) {
+  log(`STANDALONE_MISSING ${standaloneCandidates.join(" ")}`);
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, `${lines.join("\n")}\n`);
+  process.exit(1);
+}
+log(`standalone ${standaloneEntry}`);
 log(`start runtime NEXT_PUBLIC_WO_PREVIEW=1 NEXT_PUBLIC_SOVEREIGN_RELEASE=1 port ${port}`);
-const server = spawn("pnpm", ["exec", "next", "start", "-H", "127.0.0.1", "-p", port], {
-  cwd: appRoot,
-  env: startEnv,
+const server = spawn(process.execPath, [standaloneEntry], {
+  cwd: dirname(standaloneEntry),
+  env: { ...startEnv, PORT: port, HOSTNAME: "127.0.0.1" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let serverLog = "";
@@ -71,7 +83,7 @@ async function waitReady() {
       await new Promise((resolveWait) => setTimeout(resolveWait, 400));
     }
   }
-  throw new Error(`next start did not listen\n${serverLog}`);
+  throw new Error(`standalone server did not listen\n${serverLog}`);
 }
 
 function stop() {
@@ -106,6 +118,32 @@ try {
     if (path === "/" || path === "/pl" || path === "/sitemap.xml") {
       if (assistantLinks !== 0) throw new Error(`${path} links the assistant`);
       if (body.includes("/docs/assistant")) throw new Error(`${path} mentions /docs/assistant`);
+    }
+  }
+  const workflows = await fetch(`http://127.0.0.1:${port}/catalog/workflows`);
+  log(`GET /catalog/workflows ${workflows.status}`);
+  if (workflows.status !== 410) throw new Error(`/catalog/workflows returned ${workflows.status}`);
+  const support = await fetch(`http://127.0.0.1:${port}/support`);
+  const supportBody = await support.text();
+  log(`GET /support ${support.status} third-offer=${supportBody.includes("AI Agent Tools")} security-mail=${supportBody.includes("security@witnessops.com")}`);
+  if (support.status !== 200) throw new Error(`/support returned ${support.status}`);
+  if (supportBody.includes("AI Agent Tools") || supportBody.includes("security@witnessops.com")) {
+    throw new Error("/support still publishes the withdrawn offer or security@");
+  }
+  const why = await fetch(`http://127.0.0.1:${port}/why-witnessops`);
+  const whyBody = await why.text();
+  log(`GET /why-witnessops ${why.status} name=${whyBody.includes("Karol Stefanski")}`);
+  if (whyBody.includes("Karol Stefanski") || whyBody.includes("linkedin.com/in/karol")) {
+    throw new Error("/why-witnessops still names a person");
+  }
+  for (const headers of [
+    { host: "localhost:3000" },
+    { host: "witnessops.com", "x-forwarded-host": "witnessops.com", "x-forwarded-proto": "https" },
+  ]) {
+    const og = await fetch(`http://127.0.0.1:${port}/og/home`, { headers, redirect: "manual" });
+    log(`GET /og/home host=${headers.host} forwarded=${headers["x-forwarded-host"] ?? ""} ${og.status} location=${og.headers.get("location")}`);
+    if (og.status !== 308 || og.headers.get("location") !== "https://witnessops.com/opengraph-image") {
+      throw new Error(`/og/home location ${og.headers.get("location")}`);
     }
   }
   log("PROD_GATE_OK");
