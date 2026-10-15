@@ -14,19 +14,23 @@ export type PlaybackStep = {
   finished: boolean;
 };
 
+type SpriteFile = { path: string; sha256: string };
+
+type ThemeFiles = Record<"light" | "dark", Record<"@1x" | "@2x", { webp: SpriteFile; png: SpriteFile }>>;
+
 type PlayableState = {
   sequence: { frame: number; ms: number }[];
   hold_frame: number;
   loop_count: number;
   cap_ms?: number;
-  file: Record<"light" | "dark", Record<"@1x" | "@2x", { webp: string; png: string }>>;
-  reduced_motion_still: Record<"light" | "dark", Record<"@1x" | "@2x", { webp: string; png: string }>>;
+  strip: ThemeFiles;
+  still: ThemeFiles;
 };
 
 const COMPOSING_STEPS = 4;
 
 export function spriteRecord(name: SovereignSpriteState, viewport: SpriteViewport = "desktop"): PlayableState {
-  if (name === "HANDOFF") return manifest.states.HANDOFF.viewports[viewport] as PlayableState;
+  if (name === "HANDOFF") return manifest.states.HANDOFF.variants[viewport] as PlayableState;
   return manifest.states[name] as PlayableState;
 }
 
@@ -65,6 +69,6 @@ export function advancePlayback(name: SovereignSpriteState, index: number, loops
 }
 
 export function spriteAsset(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean, viewport: SpriteViewport = "desktop"): string {
-  const file = still ? spriteRecord(name, viewport).reduced_motion_still : spriteRecord(name, viewport).file;
-  return file[theme][scale].webp;
+  const file = still ? spriteRecord(name, viewport).still : spriteRecord(name, viewport).strip;
+  return file[theme][scale].webp.path;
 }

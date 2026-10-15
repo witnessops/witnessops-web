@@ -31,16 +31,17 @@ test("every manifest file sha256 matches the asset bytes", () => {
   const hashed: Array<[string, string]> = [];
   const visit = (node: unknown) => {
     if (!node || typeof node !== "object") return;
-    const record = node as { webp?: string; png?: string; webp_sha256?: string; png_sha256?: string; file?: string; sha256?: string };
-    if (typeof record.webp === "string" && typeof record.png === "string") {
-      hashed.push([record.webp, record.webp_sha256 ?? ""], [record.png, record.png_sha256 ?? ""]);
-    }
-    if (typeof record.file === "string" && typeof record.sha256 === "string" && !record.webp) {
-      hashed.push([record.file, record.sha256]);
+    const record = node as { path?: string; sha256?: string };
+    if (typeof record.path === "string" && typeof record.sha256 === "string") {
+      hashed.push([record.path, record.sha256]);
+      return;
     }
     for (const value of Object.values(record)) visit(value);
   };
   visit(manifest);
+  assert.equal(manifest.version, "2026-10-15-preview-v2");
+  assert.equal("desktop" in manifest.states.HANDOFF.variants && "mobile" in manifest.states.HANDOFF.variants, true);
+  assert.equal(hashed.length, 128);
   assert.equal(hashed.length, readdirSync(root).filter((name) => /\.(webp|png)$/.test(name)).length);
   for (const [file, hash] of hashed) {
     const digest = createHash("sha256").update(readFileSync(resolve(root, file))).digest("hex");
