@@ -14,7 +14,7 @@ mkdirSync(outDir, { recursive: true });
 
 const locales = ["en", "pl"];
 const widths = [390, 320];
-const themes = ["light", "dark"];
+const themes = ["light", "dark", "reduced"];
 const modes = ["answer", "error", "handoff"];
 const lines = [];
 
@@ -26,10 +26,12 @@ function log(line) {
 const browser = await chromium.launch({ executablePath: chrome, headless: true, args: ["--no-sandbox"] });
 
 async function openCase({ locale, width, theme, mode, height = 844, shot }) {
+  const reduced = theme === "reduced";
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
-    colorScheme: theme,
+    colorScheme: reduced ? "light" : theme,
+    reducedMotion: reduced ? "reduce" : "no-preference",
   });
   const page = await context.newPage();
   await page.addInitScript((value) => {
@@ -72,6 +74,20 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
     const retryInside = !expectRetry || (retryBox && retryBox.height > 0 && retryBox.top >= threadBox.top - 1 && retryBox.bottom <= threadBox.bottom + 1 && retryBox.right <= threadBox.right + 1);
     const fallback = root.querySelector(".sv-fallback");
     const background = fallback ? getComputedStyle(fallback).backgroundImage : "";
+    const panel = root.querySelector("section");
+    const wide = [];
+    for (const el of panel.querySelectorAll("*")) {
+      if (el.closest("[data-ask-chips]")) continue;
+      if (el.clientWidth <= 1) continue;
+      if (el.scrollWidth > el.clientWidth + 1) {
+        const name = el.getAttribute("data-ask-thread") != null ? "thread" : el.getAttribute("data-handoff-card") != null ? "handoff-card" : el.tagName;
+        wide.push(`${name}:${el.scrollWidth}>${el.clientWidth}`);
+      }
+    }
+    const turnOverflow = turns.filter((turn) => turn.getBoundingClientRect().right > threadBox.right + 0.5).length;
+    const card = root.querySelector("[data-handoff-card]");
+    const cardBox = card ? card.getBoundingClientRect() : null;
+    const cardInside = !cardBox || cardBox.right <= threadBox.right + 0.5;
     return {
       overlaps,
       retryInside,
@@ -79,6 +95,10 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
       faceReady: fallback?.hasAttribute("data-face-ready") ?? false,
       backgroundNone: background === "none",
       cls: (window.__shifts || []).filter((entry) => !entry.recent).reduce((sum, entry) => sum + entry.value, 0),
+      wide: wide.length,
+      wideSample: wide.slice(0, 3).join(" "),
+      turnOverflow,
+      cardInside,
     };
   }, mode === "error");
   if (shot) await page.screenshot({ path: `${outDir}/${shot}` });
@@ -93,8 +113,9 @@ try {
         for (const mode of modes) {
           const shot = `ask-${locale}-${width}-${theme}-${mode}.png`;
           const measured = await openCase({ locale, width, theme, mode, shot });
-          const ok = measured.overlaps === 0 && measured.retryInside && measured.nowrap === "nowrap" && measured.faceReady && measured.backgroundNone;
-          log(`${shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} nowrap=${measured.nowrap} faceReady=${measured.faceReady} backgroundNone=${measured.backgroundNone} cls=${measured.cls} ${ok ? "OK" : "FAIL"}`);
+          const horizontal = measured.wide === 0 && measured.turnOverflow === 0 && measured.cardInside;
+          const ok = measured.overlaps === 0 && measured.retryInside && measured.nowrap === "nowrap" && measured.faceReady && measured.backgroundNone && horizontal;
+          log(`${shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} nowrap=${measured.nowrap} faceReady=${measured.faceReady} backgroundNone=${measured.backgroundNone} cls=${measured.cls} wide=${measured.wide} turnOverflow=${measured.turnOverflow} cardInside=${measured.cardInside} ${measured.wideSample} ${ok ? "OK" : "FAIL"}`);
           if (!ok) throw new Error(shot);
         }
       }
@@ -112,7 +133,9 @@ try {
   ];
   for (const extra of extras) {
     const measured = await openCase(extra);
-    log(`${extra.shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} ${measured.overlaps === 0 && measured.retryInside ? "OK" : "FAIL"}`);
+    const extraOk = measured.overlaps === 0 && measured.retryInside && measured.wide === 0 && measured.turnOverflow === 0 && measured.cardInside;
+    log(`${extra.shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} wide=${measured.wide} turnOverflow=${measured.turnOverflow} cardInside=${measured.cardInside} ${extraOk ? "OK" : "FAIL"}`);
+    if (!extraOk) throw new Error(extra.shot);
   }
 
   const blocked = await browser.newContext({ viewport: { width: 390, height: 844 } });

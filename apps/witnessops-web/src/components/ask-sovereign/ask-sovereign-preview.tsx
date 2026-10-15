@@ -102,6 +102,26 @@ const COPY = {
   },
 } as const;
 
+const CONTACT_ADDRESS = "engage@mail.witnessops.com";
+
+export function ContactLine({ text }: { text: string }) {
+  const parts = text.split(CONTACT_ADDRESS);
+  if (parts.length === 1) return text;
+  const at = CONTACT_ADDRESS.indexOf("@");
+  return parts.map((part, index) => (
+    <span key={`${index}-${part.length}`}>
+      {part}
+      {index < parts.length - 1 ? (
+        <a href={`mailto:${CONTACT_ADDRESS}`}>
+          {CONTACT_ADDRESS.slice(0, at)}
+          <wbr />
+          {CONTACT_ADDRESS.slice(at)}
+        </a>
+      ) : null}
+    </span>
+  ));
+}
+
 type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean };
 type Live = "idle" | "processing" | "answered" | "handoff" | "error";
 
@@ -553,7 +573,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                       <div>
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                        <p>{turn.text}</p>
+                        <p><ContactLine text={turn.text} /></p>
                         {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                         {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
                         {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
@@ -564,7 +584,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                     <>
                       <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                       {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                      <p>{turn.text}</p>
+                      <p><ContactLine text={turn.text} /></p>
                       {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                       {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
                       {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
@@ -578,7 +598,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           {phase === "HANDOFF" ? (
             <div className={styles.handoffCard} data-handoff-card>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
-              <p>{copy.handoffMail}</p>
+              <p><ContactLine text={copy.handoffMail} /></p>
             </div>
           ) : null}
           </div>

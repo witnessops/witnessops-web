@@ -64,6 +64,8 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.equal(announcementText("en", "answer", "Scope."), "Sovereign, simulated response: Scope.");
   assert.equal(announcementText("pl", "error"), "Błąd symulowany. Pytanie nie dostało odpowiedzi. Możesz spróbować ponownie.");
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);
+  assert.match(source, /mailto:engage@mail\.witnessops\.com/);
+  assert.match(source, /<wbr \/>/);
 });
 
 function chromeBinary(): string | null {
@@ -106,6 +108,11 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /color:\s*var\(--color-text-muted\)/);
   assert.match(css, /\.sprite:global\(\.sv-fallback\)\[data-face-ready\]\s*\{\s*background-image:\s*none/);
   assert.match(css, /\.chips\.chipsRow\s*\{\s*flex-wrap:\s*nowrap/);
+  assert.match(css, /\.you, \.sovereign \{ min-width: 0; max-width: 100%; \}/);
+  assert.match(css, /\.transcript \{[^}]*min-width: 0; max-width: 100%; \}/);
+  assert.match(css, /\.handoffCard \{[^}]*min-width: 0;[^}]*max-width: 100%/);
+  assert.match(css, /overflow-wrap: anywhere/);
+  assert.doesNotMatch(css, /\.you p, \.sovereign p \{[^}]*font-size:\s*1[0-3]px/);
   const sprite = readFileSync(resolve(__dirname, "sovereign-sprite.tsx"), "utf8");
   assert.match(sprite, /data-face-ready=\{faceReady \? "" : undefined\}/);
   assert.match(sprite, /setFaceReady\(false\)/);

@@ -33,7 +33,7 @@
 .muted { color: var(--color-text-secondary); }
 .kicker { font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-brand-accent); }
 .back { margin-bottom: 24px; }
-.layout { display: grid; gap: 24px; margin-top: 24px; }
+.layout { display: grid; gap: 24px; margin-top: 24px; min-width: 0; }
 @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.8fr); } }
 .scrim { display: none; }
 .panel {
@@ -41,13 +41,14 @@
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 160px);
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-surface-border);
   border-radius: 8px;
   background: var(--color-surface-card);
   animation: sv-rise 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.thread { flex: 1; min-width: 0; min-height: 0; overflow: auto; }
+.thread { flex: 1; min-width: 0; max-width: 100%; min-height: 0; overflow: auto; }
 .stripe { height: 4px; background: var(--color-brand-accent); }
 .bar, .stripe, .askDock, .composer { flex: none; }
 .bar {
@@ -122,8 +123,8 @@
   color: var(--color-text-primary);
   text-decoration: none;
 }
-.withSprite { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
-.withSprite > div { min-width: 0; }
+.withSprite { display: flex; gap: 12px; align-items: flex-start; min-width: 0; max-width: 100%; }
+.withSprite > div { min-width: 0; max-width: 100%; }
 .dot { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 999px; background: var(--color-brand-accent); vertical-align: 1px; }
 .sprite {
   position: relative;
@@ -166,9 +167,10 @@
 .reviewTag { margin: 4px 0 0; padding-inline: 16px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); color: var(--color-text-secondary); }
 .controls { display: flex; gap: 8px; margin-left: auto; }
 .disclaimer { margin: 0; padding: 12px 16px; background: var(--color-surface-inset); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
-.transcript { display: grid; gap: 16px; margin: 0; padding: 16px; list-style: none; }
-.you p, .sovereign p { margin: 4px 0 0; }
-.you { justify-self: end; max-width: min(100%, 460px); border-radius: 8px; background: var(--color-surface-inset); padding: 12px 14px; }
+.transcript { display: grid; gap: 16px; margin: 0; padding: 16px; list-style: none; min-width: 0; max-width: 100%; }
+.you, .sovereign { min-width: 0; max-width: 100%; }
+.you p, .sovereign p { margin: 4px 0 0; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.you { justify-self: end; max-width: min(100%, 460px); min-width: 0; border-radius: 8px; background: var(--color-surface-inset); padding: 12px 14px; }
 .sim { display: block; margin: 0 0 8px; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .tag, .review span { color: var(--color-brand-accent); }
 .name span, .tag { margin-left: 8px; border-radius: 2px; border: 1px solid var(--color-surface-border); padding: 2px 6px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -185,6 +187,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   margin: 0 16px 16px 118px;
   padding: 24px;
   border: 1px solid var(--color-surface-border);
@@ -196,16 +201,21 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   min-height: 48px;
   margin-left: auto;
   padding: 0 20px;
+  overflow-wrap: anywhere;
   border-radius: 4px;
   background: var(--fill, var(--color-text-primary));
   color: var(--on-fill, var(--color-text-inverse));
   font-weight: 500;
   text-decoration: none;
 }
-.handoffCard p { margin: 12px 0 0; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
+.handoffCard p { margin: 12px 0 0; min-width: 0; max-width: 100%; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); overflow-wrap: anywhere; }
+.sovereign a, .handoffCard a { color: inherit; font-size: inherit; line-height: inherit; overflow-wrap: anywhere; }
 .askDock { flex: none; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; padding: 0 16px 16px; }
 .chips.chipsRow { flex-wrap: nowrap; overflow-x: auto; }
