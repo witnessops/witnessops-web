@@ -94,7 +94,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content h4 {
   font-weight: var(--type-h4-wt);
 }
 
-body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, li, dd) {
+:where(body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, li, dd)) {
   font-size: var(--type-body-size);
   line-height: var(--type-body-lh);
   letter-spacing: 0;
