@@ -239,7 +239,7 @@ export function ContactForm({
                 ? "Co ma zostać sprawdzone?"
                 : "What should this service review?",
         workflowPlaceholder:
-          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Np. formularz → n8n → HubSpot. Proces zgłasza sukces, ale nowe kontakty nie pojawiają się w CRM." : "For example: form → n8n → HubSpot. Runs say success, but new contacts never appear in the CRM.") :
+          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Np. formularz -> n8n -> HubSpot. Proces zgłasza sukces, ale nowe kontakty nie pojawiają się w CRM." : "For example: form -> n8n -> HubSpot. Runs say success, but new contacts never appear in the CRM.") :
           selectedNonAgentService.id === "customer-security-review-sprint"
             ? polish
               ? "Opisz ogólnie jeden kwestionariusz bezpieczeństwa, prośbę o materiały i zakres produktu."
@@ -411,8 +411,8 @@ export function ContactForm({
           : "If the system uses several related public endpoints, list them here. We’ll confirm exactly what’s included before the review starts.",
         send: polish ? "Wyślij zgłoszenie do akceptacji zakresu" : "Start a review",
         submitBoundary: polish
-          ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
-          : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
+          ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, uzgodnionego zakresu, wymaganych danych wejściowych i okna zbierania."
+          : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, agreed scope, required inputs, and the collection window are confirmed.",
       }
     : agentActionCopy ?? agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");

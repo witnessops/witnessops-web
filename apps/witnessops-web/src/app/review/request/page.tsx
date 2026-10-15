@@ -78,7 +78,7 @@ const agentActionOutputs = [
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
+  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [

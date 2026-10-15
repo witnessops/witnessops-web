@@ -61,7 +61,7 @@ const copy = {
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
-      "We assess whether the requested public system fits one authorized, fixed-scope review.",
+      "We assess whether the requested public system fits one authorized, agreed-scope review.",
       "We confirm payment, the SOW, written authority, required inputs, evidence handling, and the collection window by email.",
       "Target-facing work starts only after every condition above is confirmed.",
     ],
@@ -102,7 +102,7 @@ const copy = {
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
-      "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o stałym zakresie.",
+      "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o uzgodnionym zakresie.",
       "Potwierdzimy e-mailem płatność, SOW, pisemne upoważnienie, wymagane dane wejściowe, obsługę materiałów i okno zbierania.",
       "Praca wobec celu rozpocznie się dopiero po potwierdzeniu wszystkich tych warunków.",
     ],
