@@ -67,6 +67,7 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /max-width:\s*419px\)\s*\{\s*\.status\s*\{\s*min-height:\s*32px/);
   assert.match(css, /@keyframes sv-status \{ from \{ opacity: 0\.6; \} to \{ opacity: 1; \} \}/);
   assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*\.statusText \{ animation: none/);
+  assert.match(css, /max-width:\s*419px\)[\s\S]*\.simChip \{ order: 3; flex: 1 0 100%;/);
 });
 
 test("liveText is non-empty for every phase in English and Polish", () => {

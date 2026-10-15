@@ -206,6 +206,15 @@
   .you { max-width: 100%; }
   .page { padding-inline: 0; }
 }
+@media (max-width: 419px) {
+  .bar {
+    height: auto;
+    min-height: calc(56px + env(safe-area-inset-top));
+    flex-wrap: wrap;
+  }
+  .controls { order: 2; }
+  .simChip { order: 3; flex: 1 0 100%; margin: 0 0 8px 44px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sprite, .statusText { animation: none !important; }
   .sprite { transition: opacity 100ms linear; }
