@@ -6,7 +6,7 @@ const publicRoots = new Set([
   "operators", "runbooks", "receipts", "access-change-proof-run",
   "proof-backed-security-systems", "runner-loop", "customer-security-review",
   "verify", "verify-ui", "signals", "check", "company", "reviews",
-  "how-it-works", "about", "chronicles",
+  "how-it-works", "about", "chronicles", "withdrawn-offer",
 ]);
 
 export function usesPublicPresentation(pathname: string): boolean {

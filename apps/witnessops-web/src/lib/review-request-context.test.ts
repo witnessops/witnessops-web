@@ -13,6 +13,7 @@ import {
   type BuyerLocale,
 } from "@/lib/buyer-services";
 import { reviewRequestHrefForLocation } from "./review-request-context";
+import { isWithdrawnOfferPath } from "./withdrawn-offer-routes";
 
 const emptySearch = new URLSearchParams();
 
@@ -123,7 +124,11 @@ test("every selectable service detail keeps its catalogue-authoritative request"
         detailHref,
         emptySearch,
       );
-      assert.equal(fromDetail, expected, `${locale} ${service.id} detail`);
+      assert.equal(
+        fromDetail,
+        isWithdrawnOfferPath(detailHref) ? buyerRequestHref(locale) : expected,
+        `${locale} ${service.id} detail`,
+      );
 
       const fromSelectedRequest = reviewRequestHrefForLocation(
         locale,
@@ -194,13 +199,21 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
     ),
     /^\/review\/request\?offerId=professional-public-footprint-audit&/,
   );
-  assert.match(
+  assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/customer-security-review",
       emptySearch,
     ),
-    /^\/review\/request\?offerId=customer-security-review-sprint&/,
+    "/review/request",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("en", "/withdrawn-offer", emptySearch),
+    reviewRequestHrefForLocation("en", "/catalog/offsec-local-audit", emptySearch),
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("pl", "/pl/withdrawn-offer", emptySearch),
+    reviewRequestHrefForLocation("pl", "/pl/catalog/offsec-local-audit", emptySearch),
   );
 });
 
