@@ -152,7 +152,7 @@ const nextConfig = {
       },
       {
         source: "/catalog/offsec-access-removed",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
@@ -162,32 +162,42 @@ const nextConfig = {
       },
       {
         source: "/catalog/offsec",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/access-change-proof-run",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-s",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-m",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-l",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-rerun",
-        destination: "/catalog",
+        destination: "/reviews",
+        permanent: true,
+      },
+      {
+        source: "/catalog",
+        destination: "/reviews",
+        permanent: true,
+      },
+      {
+        source: "/catalog/offsec-external-exposure",
+        destination: "/reviews/external-attack-surface-review",
         permanent: true,
       },
     ];

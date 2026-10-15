@@ -142,7 +142,7 @@ export function Footer({
       ...ENGLISH_SERVICE_LINKS,
       { label: "Services", href: "/reviews" },
       { label: "Pricing", href: "/pricing" },
-      { label: "How it works", href: "/early-access" },
+      { label: "How it works", href: "/how-it-works" },
       { label: "Docs", href: DOCS_PUBLIC_HREF },
       { label: "Support", href: "/support" },
     ] },
