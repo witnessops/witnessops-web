@@ -168,7 +168,7 @@ export function BuyerCatalogue({
           </div>
         </section>
         <section className="mt-12 flex flex-col gap-5 border border-surface-border bg-surface-inset p-7 text-text-primary md:flex-row md:items-center md:justify-between md:p-10">
-          <div><h2 className="wo-h3 text-text-primary">{text.unsureTitle}</h2><p className="wo-small mt-2 text-text-secondary">{text.unsureBody}</p></div>
+          <div><h2 className="wo-h2 text-text-primary">{text.unsureTitle}</h2><p className="wo-small mt-2 text-text-secondary">{text.unsureBody}</p></div>
           <Link href={buyerRequestHref(locale)} className="wo-ui inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
         </section>
         {pricing ? <Link href={locale === "pl" ? "/pl/reviews" : "/reviews"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
