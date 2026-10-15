@@ -494,7 +494,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     showAnswer(text, answer);
   }
 
-  const asked = turns.some((turn) => turn.role === "you");
+  const askedText = [...turns].reverse().find((turn) => turn.role === "you")?.text;
+  const suggestions = askedText ? copy.suggestions.filter((item) => item !== askedText).slice(0, 2) : copy.suggestions;
   const showReview = sovereignNeedsReviewVisible();
   const visibleStatus = liveText(locale, live, phase);
   let spriteIndex = -1;
@@ -529,6 +530,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.stripe} />
           <header
             className={styles.bar}
+            data-header-chip={activeSim && activeSim !== "handoff" ? "" : undefined}
             onPointerDown={(event) => {
               if (!mobile) return;
               const startY = event.clientY;
@@ -543,8 +545,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             }}
           >
             <span className={styles.mark} aria-hidden="true" />
-            <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span>AI</span></p>
-            {previewChip(activeSim) ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
+            <p className={styles.name} id="ask-sovereign-title"><span className={styles.titleUnit}>Ask Sovereign <span>AI</span></span></p>
+            {activeSim && activeSim !== "handoff" && previewChip(activeSim) ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
             <div className={styles.controls}>
               <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
                 {paused ? (
@@ -558,7 +560,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               </a>
             </div>
           </header>
-          <div className={styles.thread} data-ask-thread="" ref={threadRef}>
+          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
@@ -567,6 +569,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               const withSprite = spriteIndex === index;
               return (
                 <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
+                  {activeSim === "handoff" && turn.role === "sovereign" && turn.simulated ? <p className={styles.handoffCaption}>{previewChip("handoff")}</p> : null}
                   {withSprite ? (
                     <div className={styles.withSprite}>
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
@@ -603,8 +606,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           ) : null}
           </div>
           <div className={styles.askDock}>
-          <div className={asked ? `${styles.chips} ${styles.chipsRow}` : styles.chips} data-ask-chips="">
-            {copy.suggestions.map((suggestion) => (
+          <div className={styles.chips} data-ask-chips="">
+            {suggestions.map((suggestion) => (
               <button key={suggestion} type="button" disabled={pending} onClick={() => ask(suggestion)}>{suggestion}</button>
             ))}
           </div>

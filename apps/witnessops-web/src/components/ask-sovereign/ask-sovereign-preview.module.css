@@ -48,7 +48,7 @@
   background: var(--color-surface-card);
   animation: sv-rise 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.thread { flex: 1; min-width: 0; max-width: 100%; min-height: 0; overflow: auto; }
+.thread { flex: 1; min-width: 0; max-width: 100%; min-height: 0; overflow-x: clip; overflow-y: auto; }
 .stripe { height: 4px; background: var(--color-brand-accent); }
 .bar, .stripe, .askDock, .composer { flex: none; }
 .bar {
@@ -70,6 +70,7 @@
   background-image: image-set(url("/ask-sovereign/sovereign-icon-32-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-icon-32-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.png") type("image/png") 2x);
 }
 .name { min-width: 0; flex: 1; margin: 0; overflow: hidden; font-size: var(--type-h4-size); font-weight: var(--type-h4-wt); line-height: var(--type-h4-lh); letter-spacing: 0; white-space: nowrap; text-overflow: ellipsis; }
+.titleUnit { white-space: nowrap; }
 .simChip, .turnChip {
   display: inline-flex;
   align-items: center;
@@ -172,6 +173,7 @@
 .you p, .sovereign p { margin: 4px 0 0; overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
 .you { justify-self: end; max-width: min(100%, 460px); min-width: 0; border-radius: 8px; background: var(--color-surface-inset); padding: 12px 14px; }
 .sim { display: block; margin: 0 0 8px; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
+.handoffCaption { margin: 0 0 8px; color: var(--color-text-secondary); font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; }
 .tag, .review span { color: var(--color-brand-accent); }
 .name span, .tag { margin-left: 8px; border-radius: 2px; border: 1px solid var(--color-surface-border); padding: 2px 6px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; text-transform: none; }
 .retry {
@@ -217,8 +219,7 @@
 .handoffCard p { margin: 12px 0 0; min-width: 0; max-width: 100%; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); overflow-wrap: anywhere; }
 .sovereign a, .handoffCard a { color: inherit; font-size: inherit; line-height: inherit; overflow-wrap: anywhere; }
 .askDock { flex: none; min-width: 0; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; padding: 0 16px 16px; }
-.chips.chipsRow { flex-wrap: nowrap; overflow-x: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; padding: 0 16px 16px; overflow: visible; }
 .chips button {
   box-sizing: border-box;
   max-width: 100%;
@@ -230,7 +231,7 @@
   background: transparent;
   color: var(--color-text-primary);
   padding: 8px 12px;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   text-align: start;
   white-space: normal;
   font-size: var(--type-ui-size);
@@ -238,7 +239,6 @@
   font-weight: var(--type-ui-wt);
   letter-spacing: 0;
 }
-.chips.chipsRow button { flex: 0 0 auto; max-width: none; white-space: nowrap; overflow-wrap: normal; }
 .composer {
   position: relative;
   display: flex;
@@ -264,6 +264,24 @@
 @keyframes sv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes sv-sheet { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (min-width: 768px) {
+  .page {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 72px);
+    max-height: calc(100dvh - 72px);
+    overflow: hidden;
+  }
+  .page > * { flex: none; }
+  .layout { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .panel { min-height: 0; max-height: calc(100dvh - 72px - 32px - 64px); }
+  /* The Polish review banner sits between the 72px header and this page. */
+  :global(body:has(.pl-copy-review)) .page {
+    height: calc(100dvh - 72px - 1rem - var(--type-caption-lh) - 1px);
+    max-height: calc(100dvh - 72px - 1rem - var(--type-caption-lh) - 1px);
+  }
+}
 @media (max-width: 767px) {
   .layout { min-height: 100dvh; }
   .scrim { display: block; position: fixed; inset: 0; z-index: 70; background: rgb(0 0 0 / 0.48); animation: sv-fade 240ms linear both; }
@@ -286,12 +304,16 @@
 }
 @media (max-width: 419px) {
   .bar {
-    height: auto;
+    height: calc(56px + env(safe-area-inset-top));
     min-height: calc(56px + env(safe-area-inset-top));
+    flex-wrap: nowrap;
+  }
+  .bar[data-header-chip] {
+    height: auto;
     flex-wrap: wrap;
   }
-  .controls { order: 2; }
-  .simChip { order: 3; flex: 0 0 calc(100% - 44px); max-width: calc(100% - 44px); margin: 0 0 8px 44px; }
+  .bar[data-header-chip] .controls { order: 2; }
+  .bar[data-header-chip] .simChip { order: 3; flex: 0 0 calc(100% - 44px); max-width: calc(100% - 44px); margin: 0 0 8px 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spriteFace, .statusText { animation: none !important; }

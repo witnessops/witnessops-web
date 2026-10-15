@@ -51,13 +51,14 @@ test("PL docs nav is buyer-oriented without a deep technical stub tree", () => {
 });
 
 test("PL docs with no search corpus do not expose an inert search control", () => {
-  const layout = readFileSync(resolve(__dirname, "layout.tsx"), "utf-8");
+  const frame = readFileSync(resolve(__dirname, "polish-docs-frame.tsx"), "utf-8");
   const navbar = readFileSync(
     resolve(__dirname, "../../../components/docs/docs-navbar.tsx"),
     "utf-8",
   );
 
-  assert.match(layout, /<DocsNavbar docs=\{\[\]\}/);
+  assert.match(frame, /\/pl\/docs\/assistant/);
+  assert.match(frame, /<DocsNavbar docs=\{\[\]\}/);
   assert.match(navbar, /const searchAvailable = docs\.length > 0/);
   assert.match(navbar, /\{searchAvailable \? \(/);
   assert.match(navbar, /searchAvailable && searchOpen \? \(/);

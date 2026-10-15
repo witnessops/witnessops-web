@@ -13,8 +13,8 @@ const chrome = process.env.CHROME_PATH || "/usr/local/bin/google-chrome";
 mkdirSync(outDir, { recursive: true });
 
 const locales = ["en", "pl"];
-const widths = [390, 320];
-const themes = ["light", "dark", "reduced"];
+const widths = [320, 390, 1440];
+const themes = ["light", "dark"];
 const modes = ["answer", "error", "handoff"];
 const lines = [];
 
@@ -25,12 +25,11 @@ function log(line) {
 
 const browser = await chromium.launch({ executablePath: chrome, headless: true, args: ["--no-sandbox"] });
 
-async function openCase({ locale, width, theme, mode, height = 844, shot }) {
-  const reduced = theme === "reduced";
+async function openCase({ locale, width, theme, mode, height = width >= 1200 ? 900 : 844, shot, reduced = false }) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,
-    colorScheme: reduced ? "light" : theme,
+    colorScheme: theme,
     reducedMotion: reduced ? "reduce" : "no-preference",
   });
   const page = await context.newPage();
@@ -40,6 +39,13 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
   const path = `${locale === "pl" ? "/pl" : ""}/docs/assistant${mode === "answer" ? "" : `?sim=${mode}`}`;
   await page.goto(`${base}${path}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.activeElement?.id === "ask-sovereign-draft");
+  const composerOnLoad = await page.evaluate(() => {
+    const form = document.getElementById("ask-sovereign-draft")?.closest("form");
+    if (!form) return false;
+    const box = form.getBoundingClientRect();
+    return box.height > 0 && box.top >= 0 && box.bottom <= window.innerHeight + 0.5;
+  });
+  if (locale === "en" && width === 1440 && mode === "answer") await page.screenshot({ path: `${outDir}/docs-assistant-1440-${theme}.png` });
   await page.evaluate(() => {
     window.__shifts = [];
     window.__askMark = 0;
@@ -58,7 +64,7 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
   else await page.getByText(locale === "pl" ? "Podgląd: odpowiedź symulowana" : "Simulated response · preview").waitFor();
   await page.locator(".sv-fallback[data-face-ready]").waitFor();
   await page.waitForTimeout(400);
-  const measured = await page.evaluate((expectRetry) => {
+  const measured = await page.evaluate(({ expectRetry }) => {
     const root = document.querySelector("[data-sovereign-preview]");
     const thread = root.querySelector("[data-ask-thread]");
     const chips = root.querySelector("[data-ask-chips]");
@@ -67,7 +73,12 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
     const threadBox = thread.getBoundingClientRect();
     const overlaps = turns.filter((turn) => {
       const box = turn.getBoundingClientRect();
-      return !(box.bottom <= chipBox.top + 0.5 || chipBox.bottom <= box.top + 0.5 || box.right <= chipBox.left + 0.5 || chipBox.right <= box.left + 0.5);
+      const top = Math.max(box.top, threadBox.top);
+      const bottom = Math.min(box.bottom, threadBox.bottom);
+      const left = Math.max(box.left, threadBox.left);
+      const right = Math.min(box.right, threadBox.right);
+      if (bottom <= top || right <= left) return false;
+      return !(bottom <= chipBox.top + 0.5 || chipBox.bottom <= top + 0.5 || right <= chipBox.left + 0.5 || chipBox.right <= left + 0.5);
     }).length;
     const retry = [...root.querySelectorAll("button")].find((button) => /Retry|Spróbuj ponownie/.test(button.textContent || ""));
     const retryBox = retry ? retry.getBoundingClientRect() : null;
@@ -75,33 +86,71 @@ async function openCase({ locale, width, theme, mode, height = 844, shot }) {
     const fallback = root.querySelector(".sv-fallback");
     const background = fallback ? getComputedStyle(fallback).backgroundImage : "";
     const panel = root.querySelector("section");
-    const wide = [];
-    for (const el of panel.querySelectorAll("*")) {
-      if (el.closest("[data-ask-chips]")) continue;
-      if (el.clientWidth <= 1) continue;
-      if (el.scrollWidth > el.clientWidth + 1) {
-        const name = el.getAttribute("data-ask-thread") != null ? "thread" : el.getAttribute("data-handoff-card") != null ? "handoff-card" : el.tagName;
-        wide.push(`${name}:${el.scrollWidth}>${el.clientWidth}`);
-      }
-    }
-    const turnOverflow = turns.filter((turn) => turn.getBoundingClientRect().right > threadBox.right + 0.5).length;
+    const panelBox = panel.getBoundingClientRect();
+    const header = panel.querySelector("header");
+    const headerBox = header.getBoundingClientRect();
+    const handoffChipInHeader = (header.textContent || "").includes("Preview · simulated handoff");
+    const handoffChipInThread = (thread.textContent || "").includes("Preview · simulated handoff");
+    const simulatedLabel = /Simulated response · preview|Podgląd: odpowiedź symulowana/.test(thread.textContent || "");
+    const chipButtons = [...chips.querySelectorAll("button")];
     const card = root.querySelector("[data-handoff-card]");
     const cardBox = card ? card.getBoundingClientRect() : null;
+    const fits = (el) => el.scrollWidth <= el.clientWidth + 1;
+    const turnWide = turns.filter((turn) => !fits(turn)).length;
+    const chipWide = chipButtons.filter((button) => !fits(button)).length;
+    const cardWide = card && !fits(card) ? 1 : 0;
+    const headerWide = header && !fits(header) ? 1 : 0;
+    const turnOutside = turns.filter((turn) => turn.getBoundingClientRect().right > threadBox.right + 0.5).length;
+    const chipOutside = chipButtons.filter((button) => button.getBoundingClientRect().right > chipBox.right + 0.5).length;
     const cardInside = !cardBox || cardBox.right <= threadBox.right + 0.5;
+    const headerInside = headerBox.right <= panelBox.right + 0.5;
+    const tracks = [];
+    for (const el of panel.querySelectorAll("*")) {
+      if (el.clientWidth <= 1) continue;
+      const style = getComputedStyle(el);
+      const horizontalTrack = (style.overflowX === "auto" || style.overflowX === "scroll") && el.scrollWidth > el.clientWidth + 1;
+      const verticalTrack = (style.overflowY === "auto" || style.overflowY === "scroll") && el.scrollHeight > el.clientHeight + 1;
+      if (horizontalTrack) tracks.push(`x:${el.tagName}`);
+      if (verticalTrack && !el.hasAttribute("data-ask-thread")) tracks.push(`y:${el.tagName}`);
+    }
+    const title = header.querySelector("p");
+    const unit = title?.querySelector("span");
+    const badge = unit?.querySelector("span");
+    const unitBox = unit ? unit.getBoundingClientRect() : null;
+    const badgeBox = badge ? badge.getBoundingClientRect() : null;
     return {
       overlaps,
       retryInside,
-      nowrap: chips ? getComputedStyle(chips).flexWrap : "",
+      wrap: chips ? getComputedStyle(chips).flexWrap : "",
+      chips: chipButtons.length,
       faceReady: fallback?.hasAttribute("data-face-ready") ?? false,
       backgroundNone: background === "none",
       cls: (window.__shifts || []).filter((entry) => !entry.recent).reduce((sum, entry) => sum + entry.value, 0),
-      wide: wide.length,
-      wideSample: wide.slice(0, 3).join(" "),
-      turnOverflow,
+      turnWide,
+      chipWide,
+      cardWide,
+      headerWide,
+      turnOutside,
+      chipOutside,
       cardInside,
+      headerInside,
+      tracks: tracks.length,
+      trackSample: tracks.slice(0, 3).join(" "),
+      badgeLine: !badgeBox || !unitBox || (badgeBox.top < unitBox.bottom && badgeBox.bottom > unitBox.top),
+      headerRows: headerBox.height <= 80 ? 1 : 2,
+      handoffChipInHeader,
+      handoffChipInThread,
+      simulatedLabel,
     };
-  }, mode === "error");
+  }, { expectRetry: mode === "error" });
+  measured.composerOnLoad = composerOnLoad;
   if (shot) await page.screenshot({ path: `${outDir}/${shot}` });
+  if (locale === "pl" && width === 320 && theme === "light" && mode === "handoff") {
+    await page.locator("[data-sovereign-preview] header").screenshot({ path: `${outDir}/ask-pl-320-header.png` });
+  }
+  if (width === 390 && theme === "light" && mode === "answer") {
+    await page.screenshot({ path: `${outDir}/ask-${locale}-390-chips-followup.png` });
+  }
   await context.close();
   return measured;
 }
@@ -113,13 +162,23 @@ try {
         for (const mode of modes) {
           const shot = `ask-${locale}-${width}-${theme}-${mode}.png`;
           const measured = await openCase({ locale, width, theme, mode, shot });
-          const horizontal = measured.wide === 0 && measured.turnOverflow === 0 && measured.cardInside;
-          const ok = measured.overlaps === 0 && measured.retryInside && measured.nowrap === "nowrap" && measured.faceReady && measured.backgroundNone && horizontal;
-          log(`${shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} nowrap=${measured.nowrap} faceReady=${measured.faceReady} backgroundNone=${measured.backgroundNone} cls=${measured.cls} wide=${measured.wide} turnOverflow=${measured.turnOverflow} cardInside=${measured.cardInside} ${measured.wideSample} ${ok ? "OK" : "FAIL"}`);
+          const horizontal = measured.turnWide === 0 && measured.chipWide === 0 && measured.cardWide === 0 && measured.headerWide === 0 && measured.turnOutside === 0 && measured.chipOutside === 0 && measured.cardInside && measured.headerInside && measured.tracks === 0 && measured.wrap === "wrap" && measured.chips <= 2 && measured.badgeLine && (mode !== "handoff" || (measured.handoffChipInThread && !measured.handoffChipInHeader)) && (mode === "error" || measured.simulatedLabel);
+          const composerOk = width !== 1440 || measured.composerOnLoad;
+          const headerOk = !(width === 320 && mode !== "error") || measured.headerRows === 1;
+          const ok = measured.overlaps === 0 && measured.retryInside && measured.faceReady && measured.backgroundNone && horizontal && composerOk && headerOk;
+          log(`${shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} wrap=${measured.wrap} chips=${measured.chips} turnWide=${measured.turnWide} chipWide=${measured.chipWide} cardWide=${measured.cardWide} headerWide=${measured.headerWide} turnOutside=${measured.turnOutside} chipOutside=${measured.chipOutside} cardInside=${measured.cardInside} headerInside=${measured.headerInside} tracks=${measured.tracks} ${measured.trackSample} badgeLine=${measured.badgeLine} headerRows=${measured.headerRows} composerOnLoad=${measured.composerOnLoad} ${ok ? "OK" : "FAIL"}`);
           if (!ok) throw new Error(shot);
         }
       }
     }
+  }
+
+  for (const locale of locales) {
+    const shot = `ask-${locale}-320-reduced-handoff.png`;
+    const measured = await openCase({ locale, width: 320, theme: "light", mode: "handoff", reduced: true, shot });
+    const ok = measured.overlaps === 0 && measured.retryInside && measured.turnWide === 0 && measured.chipWide === 0 && measured.cardWide === 0 && measured.headerWide === 0 && measured.turnOutside === 0 && measured.cardInside && measured.tracks === 0 && measured.wrap === "wrap" && measured.chips <= 2 && measured.badgeLine && measured.headerRows === 1 && measured.handoffChipInThread && !measured.handoffChipInHeader && measured.simulatedLabel;
+    log(`${shot} overlaps=${measured.overlaps} turnWide=${measured.turnWide} chipWide=${measured.chipWide} tracks=${measured.tracks} headerRows=${measured.headerRows} chips=${measured.chips} ${ok ? "OK" : "FAIL"}`);
+    if (!ok) throw new Error(shot);
   }
 
   const extras = [
@@ -133,8 +192,8 @@ try {
   ];
   for (const extra of extras) {
     const measured = await openCase(extra);
-    const extraOk = measured.overlaps === 0 && measured.retryInside && measured.wide === 0 && measured.turnOverflow === 0 && measured.cardInside;
-    log(`${extra.shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} wide=${measured.wide} turnOverflow=${measured.turnOverflow} cardInside=${measured.cardInside} ${extraOk ? "OK" : "FAIL"}`);
+    const extraOk = measured.overlaps === 0 && measured.retryInside && measured.turnWide === 0 && measured.chipWide === 0 && measured.cardInside && measured.tracks === 0 && measured.wrap === "wrap" && measured.chips <= 2;
+    log(`${extra.shot} overlaps=${measured.overlaps} retryInside=${measured.retryInside} turnWide=${measured.turnWide} chipWide=${measured.chipWide} tracks=${measured.tracks} chips=${measured.chips} ${extraOk ? "OK" : "FAIL"}`);
     if (!extraOk) throw new Error(extra.shot);
   }
 
