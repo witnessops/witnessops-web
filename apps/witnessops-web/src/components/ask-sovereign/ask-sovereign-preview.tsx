@@ -251,7 +251,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         >
           <div className={styles.stripe} />
           <header
-            className={styles.panelHead}
+            className={styles.bar}
             onPointerDown={(event) => {
               if (!mobile) return;
               const startY = event.clientY;
@@ -265,30 +265,54 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               window.addEventListener("pointerup", end);
             }}
           >
-            <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
-            <div>
-              <p className={styles.name} id="ask-sovereign-title">Sovereign <span>AI assistant</span></p>
-              <p className={styles.muted}>Answers from published offer facts only</p>
-              <p className={styles.status} role="status" aria-live="polite">{status}</p>
-              {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-            </div>
+            <span className={styles.mark} aria-hidden="true" />
+            <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span>AI</span></p>
             <div className={styles.controls}>
-              <button type="button" className={styles.pause} aria-pressed={paused} onClick={togglePaused}>
-                {paused ? copy.play : copy.pause}
+              <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
+                {paused ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7-4.5-7-4.5z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9M11 3.5v9" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                )}
               </button>
-              <a className={styles.close} href={copy.docs}>{copy.close}</a>
+              <a className={`${styles.iconButton} ${styles.close}`} href={copy.docs} aria-label={copy.close}>
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+              </a>
             </div>
           </header>
           <p className={styles.disclaimer}>You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
+          {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <ol className={styles.transcript}>
-            {turns.map((turn, index) => (
-              <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
-                <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                <p>{turn.text}</p>
-                {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
-              </li>
-            ))}
+            {turns.map((turn, index) => {
+              let latestSovereign = -1;
+              turns.forEach((item, itemIndex) => {
+                if (item.role === "sovereign") latestSovereign = itemIndex;
+              });
+              const latest = turn.role === "sovereign" && latestSovereign === index;
+              return (
+                <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
+                  {latest ? (
+                    <div className={styles.withSprite}>
+                      <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
+                      <div>
+                        <p className={styles.status} role="status" aria-live={phase === "error" ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" />{status}</p>
+                        <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                        {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
+                        <p>{turn.text}</p>
+                        {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                      {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
+                      <p>{turn.text}</p>
+                      {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ol>
           <div className={styles.chips}>
             {copy.suggestions.map((suggestion) => (
