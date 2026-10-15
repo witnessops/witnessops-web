@@ -757,8 +757,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <p className={styles.lead}>{copy.lead}</p>
           <h3>{copy.railAnswer}</h3>
           <ul>
-            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{PUBLIC_AGENT_ACTION_OFFER.price[locale].replace(/ ·/g, "\u00A0·")}</span></li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{EXTERNAL_ATTACK_SURFACE_OFFER.price[locale].replace(/ ·/g, "\u00A0·")}</span>. {EASR_RETEST[locale]}</li>
+            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{PUBLIC_AGENT_ACTION_OFFER.price[locale]}</span></li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}</span>. {EASR_RETEST[locale]}</li>
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

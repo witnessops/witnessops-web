@@ -55,7 +55,8 @@ test("English and Polish request pages sell only the two accepted identities", a
   });
   const polishHtml = render(polishAgent);
   assert.match(polishHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(polishHtml, /€2 500 · bez VAT/);
+  assert.match(polishHtml, /€2\u00A0500\u00A0bez VAT/);
+  assert.doesNotMatch(polishHtml, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.doesNotMatch(polishHtml, /cena stała/);
   assert.match(polishHtml, /Jedno istotne działanie agenta lub automatyzacji/);
   assert.doesNotMatch(polishHtml, /Od €2 500 · bez VAT/);

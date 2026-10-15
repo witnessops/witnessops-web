@@ -19,7 +19,7 @@ const expectedPrices = {
   },
   "agent-action-security-review": {
     en: "€2,500 excl. VAT",
-    pl: "€2 500 · bez VAT",
+    pl: "€2\u00A0500\u00A0bez VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",
@@ -27,7 +27,7 @@ const expectedPrices = {
   },
   "external-exposure-assessment": {
     en: "€1,900 excl. VAT",
-    pl: "€1 900 · bez VAT",
+    pl: "€1\u00A0900\u00A0bez VAT",
   },
   "launch-readiness-check": {
     en: "€2,500–€7,500 · excluding VAT",
@@ -57,10 +57,12 @@ test("every live buyer offer uses the canonical EN and PL VAT display", () => {
     );
     if (service.id === "agent-action-security-review" || service.id === "external-exposure-assessment") {
       assert.match(service.price.en, /^€(?:2,500|1,900) excl\. VAT$/);
+      assert.match(service.price.pl, /^€\d\u00A0\d{3}\u00A0bez VAT$/);
+      assert.doesNotMatch(service.price.pl, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     } else {
       assert.match(service.price.en, / · excluding VAT$/);
+      assert.match(service.price.pl, / · bez VAT$/);
     }
-    assert.match(service.price.pl, / · bez VAT$/);
   }
 });
 

@@ -95,7 +95,7 @@ test("shared review CTAs keep canonical product context on detail and selected r
   assert.equal(selected?.name.pl, "External Attack Surface Review");
   assert.equal(
     selected?.price.pl,
-    "€1 900 · bez VAT",
+    "€1\u00A0900\u00A0bez VAT",
   );
 });
 

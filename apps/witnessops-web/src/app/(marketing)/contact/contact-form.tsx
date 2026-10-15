@@ -311,7 +311,7 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? "To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na Agent Action Security Review. Aktualne płatne przeglądy to Agent Action Security Review za €2,500 bez VAT oraz External Attack Surface Review za €1,900 bez VAT z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu. Termin realizacji uzgodniony w podpisanym zakresie prac."
+          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na Agent Action Security Review. Aktualne płatne przeglądy to Agent Action Security Review za ${PUBLIC_AGENT_ACTION_OFFER.price.pl} oraz External Attack Surface Review za ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu. Termin realizacji uzgodniony w podpisanym zakresie prac.`
           : "This request stays the historical AI Agent Tools & Access Review. It is not reassigned to Agent Action Security Review. The current paid reviews are Agent Action Security Review at €2,500 excluding VAT, and External Attack Surface Review at €1,900 excluding VAT with one retest within 30 calendar days of report handover. Delivery timing agreed in the signed statement of work.",
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl

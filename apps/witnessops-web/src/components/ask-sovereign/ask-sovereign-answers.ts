@@ -14,15 +14,10 @@ export type SovereignAnswer = {
 
 const CONTACT = "engage@mail.witnessops.com";
 
-/** Keeps a price separator on the amount. The stored price string is unchanged. */
-function bindPrice(price: string): string {
-  return price.replace(/ ·/g, "\u00A0·");
-}
-
 function agentText(locale: SovereignLocale): string {
   const offer = PUBLIC_AGENT_ACTION_OFFER;
   if (locale === "pl") {
-    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${bindPrice(offer.price.pl)}. ${offer.timing.pl}. Tylko inspekcja i rekonstrukcja. Przegląd nie wykonuje działania i nie zmienia produkcji.`;
+    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${offer.price.pl}. ${offer.timing.pl}. Tylko inspekcja i rekonstrukcja. Przegląd nie wykonuje działania i nie zmienia produkcji.`;
   }
   return `${offer.name.en} reviews one named consequential action. The price is ${offer.price.en}. ${offer.timing.en}. Inspection and reconstruction only; the review does not execute the action or change production.`;
 }
@@ -30,7 +25,7 @@ function agentText(locale: SovereignLocale): string {
 function externalText(locale: SovereignLocale): string {
   const offer = EXTERNAL_ATTACK_SURFACE_OFFER;
   if (locale === "pl") {
-    return `${offer.name.pl} obejmuje jeden autoryzowany system dostępny z internetu. Cena: ${bindPrice(offer.price.pl)}. ${offer.result.pl} ${offer.timing.pl}. To nie jest test penetracyjny.`;
+    return `${offer.name.pl} obejmuje jeden autoryzowany system dostępny z internetu. Cena: ${offer.price.pl}. ${offer.result.pl} ${offer.timing.pl}. To nie jest test penetracyjny.`;
   }
   return `${offer.name.en} covers one authorised internet-facing system. The price is ${offer.price.en}. ${offer.result.en} ${offer.timing.en}. This is not a penetration test.`;
 }

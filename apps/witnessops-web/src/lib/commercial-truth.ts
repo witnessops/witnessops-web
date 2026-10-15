@@ -166,7 +166,7 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   price: {
     ...LEGACY_AGENT_ACTION_OFFER.price,
     en: "€2,500 excl. VAT",
-    pl: "€2 500 · bez VAT",
+    pl: "€2\u00A0500\u00A0bez VAT",
   },
   timing: {
     en: "Delivery timing agreed in the signed statement of work",
@@ -289,7 +289,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     currency: "EUR",
     vatIncluded: false,
     en: "€1,900 excl. VAT",
-    pl: "€1 900 · bez VAT",
+    pl: "€1\u00A0900\u00A0bez VAT",
   },
   // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {

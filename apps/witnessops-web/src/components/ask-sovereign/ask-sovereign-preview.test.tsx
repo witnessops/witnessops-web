@@ -243,8 +243,9 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(html, /Na co Sovereign może odpowiedzieć/);
   assert.match(html, /Jak zacząć i gdzie napisać/);
   assert.match(html, /O tym asystencie/);
-  assert.match(html, /€2 500\u00A0· bez VAT/);
-  assert.match(html, /€1 900\u00A0· bez VAT/);
+  assert.match(html, /€2\u00A0500\u00A0bez VAT/);
+  assert.match(html, /€1\u00A0900\u00A0bez VAT/);
+  assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.match(html, /Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu/);
   assert.doesNotMatch(html, /One focused retest of reported findings/);
   assert.match(html, />Dokumentacja</);

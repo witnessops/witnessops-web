@@ -151,7 +151,7 @@ test("External Attack Surface Review preserves prohibited methods and claim limi
 
   const polish = POLISH_OFFERS[productId];
   assert.ok(polish);
-  assert.equal(polish.price, "€1 900 · bez VAT");
+  assert.equal(polish.price, "€1\u00A0900\u00A0bez VAT");
   assert.match(polish.priceDetail ?? "", /Bez rozmowy sprzedażowej/);
   assert.match(polish.priceDetail ?? "", /30 dni kalendarzowych od przekazania raportu/);
   assert.doesNotMatch(polish.priceDetail ?? "", /pierwsze trzy|€2 500|€550|3 dni roboczych/);

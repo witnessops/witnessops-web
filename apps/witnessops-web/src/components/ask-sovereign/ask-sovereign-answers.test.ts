@@ -19,5 +19,9 @@ test("simulated answers use only the two locked offers and make no request", () 
   assert.match(external.text, /retest/i);
   assert.equal(handoff.kind, "handoff");
   assert.equal(handoff.needsReview, true);
-  assert.match(sovereignAnswer("ile kosztuje ekspozycja", "pl").text, /€1 900\u00A0· bez VAT/);
+  const polishExternal = sovereignAnswer("ile kosztuje ekspozycja", "pl").text;
+  const polishAgent = sovereignAnswer("ile kosztuje przegląd agenta za 2500", "pl").text;
+  assert.match(polishExternal, /€1\u00A0900\u00A0bez VAT/);
+  assert.match(polishAgent, /€2\u00A0500\u00A0bez VAT/);
+  assert.doesNotMatch(`${polishExternal}\n${polishAgent}`, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
 });

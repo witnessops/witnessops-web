@@ -27,12 +27,12 @@ const routes = [
   [
     PUBLIC_AGENT_ACTION_OFFER.name.pl,
     "/pl/reviews/agent-action-security-review",
-    "Jedno nazwane istotne działanie. €2 500 · bez VAT.",
+    `Jedno nazwane istotne działanie. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
   ],
   [
     EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
     "/pl/reviews/external-attack-surface-review",
-    "Jeden autoryzowany system dostępny z internetu. €1 900 · bez VAT.",
+    `Jeden autoryzowany system dostępny z internetu. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl}.`,
   ],
   [
     "Mam istniejące zgłoszenie",

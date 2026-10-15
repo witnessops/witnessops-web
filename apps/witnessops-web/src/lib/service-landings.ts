@@ -475,7 +475,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
     steps: [
       ["Niepoufna ocena", "Nazwij istotne działanie, systemy i termin decyzji. Bez poświadczeń, sekretów i danych produkcyjnych."],
-      ["Uzgodniony zakres i upoważnienie", "Potwierdź działanie, zasady dowodowe, odbiorców, cenę i obsługę w zaakceptowanej umowie. Opłata to €2 500 · bez VAT."],
+      ["Uzgodniony zakres i upoważnienie", `Potwierdź działanie, zasady dowodowe, odbiorców, cenę i obsługę w zaakceptowanej umowie. Opłata to ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`],
       ["Ręczna rekonstrukcja", "Odczyt, inspekcja, rekonstrukcja i raport na uzgodnionych dowodach. Bez wykonania przeglądanego działania."],
       ["Raport i omówienie", "Termin realizacji według podpisanego SOW. Decyzje o naprawach należą do Twojego zespołu."],
     ],
@@ -487,7 +487,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "Historyczny syntetyczny przykład jednego działania (nie próbka pełnego przeglądu, EN)",
-    commercialNote: "€2 500 · bez VAT po uzgodnieniu zasad dowodowych. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.",
+    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.pl} po uzgodnieniu zasad dowodowych. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.`,
     primaryCta: "Zgłoś przegląd agenta",
   },
   "one-server-security-check": {
