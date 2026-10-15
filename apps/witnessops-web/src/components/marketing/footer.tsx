@@ -2,6 +2,7 @@
 
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
+import { CompanyDetails } from "@/components/marketing/company-details";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
@@ -219,6 +220,10 @@ export function Footer({
             <span>{copyright}</span>
           </div>
         </div>
+        <CompanyDetails
+          locale={isPolishSurface ? "pl" : "en"}
+          placement="footer"
+        />
       </div>
     </footer>
   );
