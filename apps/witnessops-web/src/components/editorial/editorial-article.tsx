@@ -30,7 +30,7 @@ export function EditorialArticle({ entry, children }: { entry: EditorialEntry; c
         </p>
         <h1 className="mt-4 text-4xl font-semibold leading-[1.04] tracking-tight text-text-primary sm:text-5xl lg:text-6xl" style={{ fontFamily: 'var(--font-display)' }}>{entry.title}</h1>
         <p className="mt-6 text-lg leading-8 text-text-secondary sm:text-xl">{entry.deck}</p>
-        {entry.author && <p className="mt-6 text-sm text-text-muted">By <span className="font-medium text-text-primary">{entry.author.name}</span>, {entry.author.role}</p>}
+        {entry.author ? <p className="mt-6 text-sm text-text-muted">By <span className="font-medium text-text-primary">{entry.author.name}</span>, {entry.author.role}</p> : <p className="mt-6 text-sm font-medium text-text-primary">WitnessOps</p>}
       </header>
       {children}
     </article>

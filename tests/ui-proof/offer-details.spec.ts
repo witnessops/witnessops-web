@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
     price: "€1,900 · excluding VAT",
-    timing: "Delivery timing per signed SOW",
+    timing: "Delivery timing agreed in the signed statement of work",
     request: "/review/request",
   },
   {

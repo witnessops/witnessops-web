@@ -126,7 +126,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
       ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 fixed excluding VAT."],
       ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
-      ["Report and readout", "Delivery timing per signed SOW. Your team owns remediation decisions."],
+      ["Report and readout", "Delivery timing agreed in the signed statement of work. Your team owns remediation decisions."],
     ],
     boundaries: [
       "One consequential agent or automation action only; multi-workflow programmes need a separate quote.",
@@ -201,7 +201,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
       ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
       ["Review", "Use passive discovery where applicable, then perform only the explicitly approved, low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks against the signed target schedule. Manually validate, deduplicate, prioritise, and link findings to evidence."],
-      ["Delivery and retest", "Deliver the reports and inspection package. Delivery timing per signed SOW. Then retest the agreed reported findings once within 30 calendar days of report handover."],
+      ["Delivery and retest", "Deliver the reports and inspection package. Delivery timing agreed in the signed statement of work. Then retest the agreed reported findings once within 30 calendar days of report handover."],
     ],
     boundaries: [
       "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
+import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
 
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
   description:
     "Synthetic demonstration of a customer security questionnaire response package: proposed answers, evidence references, qualifications, and open items. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
     title: "Sample: Customer Security Review Sprint | WitnessOps",
     description:
@@ -59,6 +61,7 @@ export default function CustomerSecurityReviewSamplePage() {
           title="Customer Security Review Sprint"
           note="Synthetic demonstration only. It shows how WitnessOps packages proposed answers, evidence references, qualifications, and open items for one questionnaire and one product scope. Not live customer evidence and not certification."
         />
+        <HistoricalOfferSampleLabel />
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">

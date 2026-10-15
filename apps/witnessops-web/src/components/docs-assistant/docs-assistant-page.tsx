@@ -53,7 +53,6 @@ export function DocsAssistantPage() {
   const { reveal, resume, newReply } = useConversationFollow(conversationRef, messages);
 
   useEffect(() => {
-    trackAskEvent("opened", { surface: "page" });
     return () => { requestGenerationRef.current += 1; };
   }, []);
 

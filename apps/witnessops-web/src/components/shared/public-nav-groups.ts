@@ -1,7 +1,6 @@
 export const PUBLIC_NAV_GROUPS = [
   { label: "Product", description: "Start small. Keep the evidence.", links: [
     { label: "How the app works", href: "/early-access", description: "Checks, saved observations and reports." },
-    { label: "Free check", href: "/check", description: "A public hostname snapshot. No account needed." },
     { label: "Get started", href: "/docs/getting-started", description: "Free signup, email verification and your own workspace." },
   ] },
   { label: "Expert help", description: "One agreed scope. Clear findings.", links: [
@@ -15,5 +14,6 @@ export const PUBLIC_NAV_GROUPS = [
     { label: "Sample work", href: "/review/sample-cases", description: "Illustrative findings and evidence." },
     { label: "Research", href: "/research", description: "Notes on evidence and security decisions." },
     { label: "Verify a receipt", href: "/verify", description: "Supported receipt JSON and named checks." },
+    { label: "Tool · not a review", href: "/check", description: "A public hostname snapshot. No account needed." },
   ] },
 ] as const;

@@ -44,7 +44,11 @@ test("homepage leads with the two public paid reviews and keeps the free hostnam
   assert.match(source, /Describe the system and the security question/);
   assert.match(source, /Proof bundle example/);
   assert.match(source, /Przykład paczki dowodowej/);
-  assert.match(source, /href="\/check"/);
+  assert.doesNotMatch(source, /href="\/check"/);
+  assert.doesNotMatch(source, /Start a free check/);
+  const navGroups = readFileSync(resolve(__dirname, "../shared/public-nav-groups.ts"), "utf8");
+  assert.match(navGroups, /Tool · not a review/);
+  assert.match(navGroups, /href: "\/check"/);
   assert.doesNotMatch(source, /Proofpack/);
   assert.doesNotMatch(source, /\/catalog\/automation-repair/);
   assert.doesNotMatch(source, /agent-tools-access-review/);
@@ -65,7 +69,8 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
   assert.match(simple, /publicPaidReviews\(BUYER_SERVICES\)/);
   assert.match(simple, /data-home-offer=\{service\.id\}/);
   assert.match(simple, /buyerServiceRequestHref\("en", service\)/);
-  assert.match(simple, /href="\/check"/);
+  assert.doesNotMatch(simple, /href="\/check"/);
+  assert.doesNotMatch(simple, /Start a free check/);
   assert.doesNotMatch(simple, /INTERNET_FOOTPRINT_REVIEW_OFFER|PRIMARY_OFFER|agent-tools-access-review|automation-repair/);
   assert.match(source, /data-home-offer=\{service\.id\}/);
   assert.match(source, /buyerServiceRequestHref\(locale, service\)/);
@@ -132,7 +137,7 @@ test("External Attack Surface Review stays a registry secondary and a homepage c
   assert.equal(offer?.homepageFeatured, false);
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(offer?.price.en, "€1,900 · excluding VAT");
-  assert.equal(offer?.timing.en, "Delivery timing per signed SOW");
+  assert.equal(offer?.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.doesNotMatch(offer?.timing.en ?? "", /3 working days|10 working days|€550/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /not a penetration test/i);

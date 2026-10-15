@@ -1,5 +1,1 @@
-import { permanentRedirect } from "next/navigation";
-
-export default function ContactRedirectPage() {
-  permanentRedirect("/review/request");
-}
+export { default, metadata } from "@/app/review/request/page";

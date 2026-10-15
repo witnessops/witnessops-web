@@ -386,7 +386,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
     });
   });
 
-  await page.goto("/catalog", { waitUntil: "networkidle" });
+  await page.goto("/docs", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   await expect(page.locator("[data-mobile-assistant-link]")).toHaveCount(0);
   await page.getByRole("button", { name: "Close primary navigation" }).click();
@@ -403,7 +403,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
   await expect(page.getByLabel("Ask WitnessOps question")).toHaveAttribute("placeholder", "Ask a follow-up…");
   await page.getByRole("button", { name: "Prepare my request", exact: true }).click();
 
-  await expectPath(page, "/catalog");
+  await expectPath(page, "/docs");
   const contact = page.locator("[data-ask-contact-region]");
   await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
   await expect(contact).toContainText(agentService.name.en);
@@ -505,7 +505,7 @@ test("desktop Ask is non-modal and Escape restores its trigger", async ({ browse
   const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.route("**/api/ask-witnessops", async route => { expect(await fulfillAskTelemetry(route)).toBe(true); });
-  await page.goto("/catalog", { waitUntil: "networkidle" });
+  await page.goto("/docs", { waitUntil: "networkidle" });
   const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
   await trigger.click();
   const dialog = page.locator("#ask-witnessops-dialog");
@@ -675,9 +675,9 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   else await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
   await menu.getByRole("button", { name: "Product", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeVisible();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
   await menu.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeHidden();
+  await expect(menu.locator("#witnessops-mobile-menu-group-2").getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
   await menu.getByRole("link", { name: "Docs", exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");

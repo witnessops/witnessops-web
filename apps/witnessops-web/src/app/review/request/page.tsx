@@ -26,9 +26,9 @@ import { languageAlternates } from "@/lib/public-seo";
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
   description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
-  alternates: languageAlternates("/review/request", {
-    en: "/review/request",
-    pl: "/pl/review/request",
+  alternates: languageAlternates("/contact", {
+    en: "/contact",
+    pl: "/pl/contact",
   }),
   openGraph: {
     title: "Tell Us What You Need Reviewed | WitnessOps",
@@ -78,7 +78,7 @@ const agentActionOutputs = [
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "Delivery timing per signed SOW. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
+  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [

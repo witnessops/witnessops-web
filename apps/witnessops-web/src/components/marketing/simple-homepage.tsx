@@ -47,7 +47,6 @@ export function SimpleHomepage() {
         })}
       </div>
       <p>{text.reviewsBody}</p>
-      <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
       <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>

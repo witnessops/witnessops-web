@@ -181,9 +181,9 @@ export function MobileNavbarMenu({
             {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-sm border border-surface-border px-4 text-sm">Log in</Link>}
           </div>}
           {groups?.map((group, index) => <section key={group.label} className="border-b border-surface-border">
-            <h2><button type="button" className="flex min-h-16 w-full items-center justify-between px-3 text-left text-base text-text-primary focus-visible:outline-2 focus-visible:outline-brand-accent" aria-expanded={expandedGroup === group.label} aria-controls={`${menuId}-group-${index}`} onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}>{group.label}<span aria-hidden="true" className="text-xl text-text-muted">{expandedGroup === group.label ? "−" : "+"}</span></button></h2>
+            <h2><button type="button" className="flex min-h-16 w-full items-center justify-between px-3 text-left text-base text-text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent" aria-expanded={expandedGroup === group.label} aria-controls={`${menuId}-group-${index}`} onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}>{group.label}<span aria-hidden="true" className="text-xl text-text-muted">{expandedGroup === group.label ? "−" : "+"}</span></button></h2>
             <div id={`${menuId}-group-${index}`} hidden={expandedGroup !== group.label} className="pb-3">
-              {group.links.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={currentPath === link.href ? "page" : undefined} className="flex min-h-11 items-center rounded px-3 text-sm text-text-secondary hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-brand-accent">{link.label}</Link>)}
+              {group.links.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={currentPath === link.href ? "page" : undefined} className="flex min-h-11 items-center rounded px-3 text-sm text-text-secondary hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent">{link.label}</Link>)}
             </div>
           </section>)}
           {(groups ? [{ label: "Pricing", href: "/pricing" }] : links).map((link) => (

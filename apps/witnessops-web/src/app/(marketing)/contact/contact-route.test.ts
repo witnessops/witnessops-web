@@ -3,17 +3,27 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-test("contact route remains a redirect into the package request lane", () => {
-  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+test("contact is the canonical request page and does not redirect", () => {
+  const contact = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+  const request = readFileSync(
+    resolve(__dirname, "../../review/request/page.tsx"),
+    "utf-8",
+  );
+  const polishContact = readFileSync(
+    resolve(__dirname, "../../pl/contact/page.tsx"),
+    "utf-8",
+  );
+  const polishRequest = readFileSync(
+    resolve(__dirname, "../../pl/review/request/page.tsx"),
+    "utf-8",
+  );
 
-  assert.match(
-    source,
-    /permanentRedirect\(\"\/review\/request\"\)/,
-    "Contact route should redirect to the canonical package request lane.",
-  );
-  assert.doesNotMatch(
-    source,
-    /ContactForm|SupportIntake|fetch\(\"\/api\/review\/request\"/,
-    "Contact route should not become a separate intake surface.",
-  );
+  assert.doesNotMatch(contact, /permanentRedirect|redirect\(/);
+  assert.match(contact, /review\/request\/page/);
+  assert.match(request, /languageAlternates\("\/contact"/);
+  assert.match(request, /en: "\/contact"/);
+  assert.match(request, /pl: "\/pl\/contact"/);
+  assert.doesNotMatch(request, /permanentRedirect\("\/review\/request"\)/);
+  assert.doesNotMatch(polishContact, /permanentRedirect|redirect\(/);
+  assert.match(polishRequest, /languageAlternates\("\/pl\/contact"/);
 });

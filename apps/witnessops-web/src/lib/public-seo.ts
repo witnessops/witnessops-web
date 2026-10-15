@@ -16,11 +16,7 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
   { en: "/catalog", pl: "/pl/catalog" },
   { en: "/library", pl: "/pl/library" },
-  {
-    en: "/customer-security-review",
-    pl: "/pl/customer-security-review",
-  },
-  { en: "/review/request", pl: "/pl/review/request" },
+  { en: "/contact", pl: "/pl/contact" },
   { en: "/docs", pl: "/pl/docs" },
   { en: "/support", pl: "/pl/support" },
   { en: "/verify", pl: "/pl/verify" },
@@ -31,24 +27,8 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/security", pl: "/pl/security" },
   { en: "/media-kit", pl: "/pl/media-kit" },
   {
-    en: "/catalog/offsec-local-audit",
-    pl: "/pl/catalog/offsec-local-audit",
-  },
-  {
     en: "/catalog/offsec-external-exposure",
     pl: "/pl/catalog/offsec-external-exposure",
-  },
-  {
-    en: "/catalog/offsec-launch-ready",
-    pl: "/pl/catalog/offsec-launch-ready",
-  },
-  {
-    en: "/catalog/offsec-custody-ops",
-    pl: "/pl/catalog/offsec-custody-ops",
-  },
-  {
-    en: "/catalog/offsec-incident-ready",
-    pl: "/pl/catalog/offsec-incident-ready",
   },
   {
     en: "/catalog/professional-public-footprint-audit",

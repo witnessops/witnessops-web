@@ -43,59 +43,12 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: "Local server security review",
-    href: "/review/sample-cases/local-server-security-review",
-    situation: "A read-only local server security review was packaged for inspection.",
-    youSee:
-      "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
-    tags: ["Historical service sample", "Synthetic host"],
-    emphasize: false,
-  },
-  {
-    title: "Launch readiness review",
-    href: "/review/sample-cases/launch-readiness-review",
-    situation:
-      "One launch host needs a before-and-after readiness picture against an approved baseline.",
-    youSee:
-      "Baseline/candidate relationship, drift notes, findings, historical proofpack, and named limits, not launch approval.",
-    tags: ["Historical service sample", "OFFSEC-LAUNCH-READY"],
-    emphasize: false,
-  },
-  {
-    title: "Customer Security Review Sprint",
-    href: "/review/sample-cases/customer-security-review-sprint",
-    situation: "A security questionnaire is holding up a deal.",
-    youSee:
-      "Synthetic answer matrix shape, evidence references, open items, and ownership of final submission.",
-    tags: ["Historical service sample", "Synthetic demo"],
-    emphasize: false,
-  },
-  {
     title: "Witnessed synthetic CRM action",
     href: "/review/sample-cases/witnessed-crm-status-change",
     situation: "A recorded bounded action changes only Acme from NEW to REVIEWED.",
     youSee:
       "Original run authority, replay-only consent, the fixed action sequence, independent read-back, and an unsigned exact-byte demonstration receipt.",
     tags: ["Recorded synthetic run", "Replay + unsigned receipt"],
-    emphasize: false,
-  },
-  {
-    title: "Custody / wallet-ops review",
-    href: "/review/sample-cases/custody-wallet-ops-review",
-    situation:
-      "A proof-backed review of custody or wallet-operations controls without keys or fund movement.",
-    youSee:
-      "Sanitised posture, findings, proofpack, and hard boundaries, no solvency or custody-of-funds claim.",
-    tags: ["Historical service sample", "OFFSEC-CUSTODY-OPS"],
-    emphasize: false,
-  },
-  {
-    title: "Incident readiness review",
-    href: "/review/sample-cases/incident-readiness-review",
-    situation: "A bounded readiness record for one named incident scenario and environment.",
-    youSee:
-      "Sanitised readiness observations, open decisions, and proofpack limits, not live IR command.",
-    tags: ["Historical service sample", "OFFSEC-INCIDENT-READY"],
     emphasize: false,
   },
   {

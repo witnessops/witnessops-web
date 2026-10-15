@@ -43,7 +43,7 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
   await expect(page.locator("main")).toContainText("This synthetic one-action example is historical. It is not a complete sample of the current paid review. Its signed artifacts and verification tools do not become standard review deliverables.");
   await expect(page.locator("main")).toContainText("Non-secret fit and scoping request first.");
-  await expect(page.locator("main")).toContainText("Delivery timing per signed SOW");
+  await expect(page.locator("main")).toContainText("Delivery timing agreed in the signed statement of work");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("AI Agent Tools & Access Review");
   await expect(page.locator("main")).not.toContainText("dated, source-bounded device inventory");

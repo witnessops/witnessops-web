@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Synthetic custody and wallet-ops control review sample with sanitised observations and hard boundaries. Not live customer evidence; no keys, balances, or fund movement.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
     title: "Sample: Custody / wallet-ops review | WitnessOps",
     description:
@@ -25,6 +26,7 @@ export default function CustodyWalletOpsSamplePage() {
       productId="OFFSEC-CUSTODY-OPS"
       runId="pr_custody_demo_20260711130000"
       situation="Situation: a team needs a proof-backed review of custody or wallet-operations controls using sanitised observations only, without WitnessOps touching funds or secrets."
+      offerWithdrawn
       bannerNote="Synthetic public sample from the OffSec suite. Sanitised fixture observations only. Not live customer evidence. No keys, seed phrases, balances, fund movement, custody of funds, or solvency claim."
       catalogHref="/catalog/offsec-custody-ops"
       sampleBase="/samples/offsec-custody-ops"

@@ -102,7 +102,7 @@ test("historical offer pages are noindex and current offer pages stay indexable"
   assertIndexable(englishExternal, "/catalog/offsec-external-exposure");
   assertIndexable(polishExternal, "/pl/catalog/offsec-external-exposure");
   const robots = readFileSync(resolve(__dirname, "../app/robots.ts"), "utf8");
-  assert.match(robots, /disallow: \["\/verify\/skill"\]/);
+  assert.match(robots, /disallow: \["\/verify\/skill", "\/admin"\]/);
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.doesNotMatch(robots, new RegExp(route.replaceAll("/", "\\/")));
   }
@@ -250,9 +250,10 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/catalog", "/catalog/offsec-external-exposure", "/review/request", "/pl/catalog"]) {
+  for (const route of ["/catalog", "/catalog/offsec-external-exposure", "/contact", "/pl/contact", "/pl/catalog"]) {
     assert.equal(paths.has(route), true, route);
   }
+  assert.equal(paths.has("/review/request"), false);
   const search = await searchWitnessOpsDocs("review workflow external attack surface");
   assert.ok(search.results.some((result) => result.url.endsWith("/docs/getting-started/review-workflow")));
   for (const result of search.results) {

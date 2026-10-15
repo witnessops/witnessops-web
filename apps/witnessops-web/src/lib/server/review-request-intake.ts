@@ -25,6 +25,18 @@ type ReviewRequestIntakeOptions = {
   validation?: "engage" | "review";
 };
 
+function withoutBlankName(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const body = { ...(raw as Record<string, unknown>) };
+  if (
+    body.name == null ||
+    (typeof body.name === "string" && body.name.trim() === "")
+  ) {
+    delete body.name;
+  }
+  return body;
+}
+
 function invalidRequestResponse(error: {
   issues: Array<{ path: PropertyKey[]; message: string }>;
 }) {
@@ -63,9 +75,11 @@ export async function handleReviewRequestIntake(
       return rateLimitResponse;
     }
 
-    const raw = await readBoundedRequestJson(
-      request,
-      PUBLIC_JSON_BODY_LIMIT_BYTES,
+    const raw = withoutBlankName(
+      await readBoundedRequestJson(
+        request,
+        PUBLIC_JSON_BODY_LIMIT_BYTES,
+      ),
     );
     const parsed = (
       options.validation === "review"

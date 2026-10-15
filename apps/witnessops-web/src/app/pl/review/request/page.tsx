@@ -38,9 +38,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       : publicExposureOrder
         ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
       : "Wybierz Agent Action Security Review albo External Attack Surface Review. Stary identyfikator nie wybiera przeglądu.",
-    alternates: languageAlternates("/pl/review/request", {
-      en: "/review/request",
-      pl: "/pl/review/request",
+    alternates: languageAlternates("/pl/contact", {
+      en: "/contact",
+      pl: "/pl/contact",
     }),
   };
 }

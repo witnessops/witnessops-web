@@ -54,7 +54,6 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
         return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p>{service.price[locale]}</p><p>{service.result[locale]}</p><p>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
       })}</ul>
-      <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><Link className={styles.textLink} href="/check">{text.freeCta}<ArrowRight size={16} aria-hidden="true" /></Link></aside>
       <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p>
       <Link className={styles.sectionLink} href={`${prefix}/catalog`}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>

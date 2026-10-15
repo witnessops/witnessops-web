@@ -216,7 +216,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
           </svg>
           <input
             ref={inputRef}
-            className="min-w-0 flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted outline-none lg:text-sm"
+            className="min-w-0 flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted lg:text-sm"
             type="text"
             placeholder="Search docs..."
             value={query}

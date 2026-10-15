@@ -28,12 +28,19 @@ test("index leads with current-review examples and labels historical service sam
   assert.ok(!html.includes("How to use these pages"));
   const firstCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
   const agentCard = html.indexOf('href="/review/sample-cases/ai-agent-action-proof-run"');
-  const historicalCard = html.indexOf('href="/review/sample-cases/local-server-security-review"');
-  assert.ok(firstCard > 0 && firstCard < agentCard && agentCard < historicalCard);
-  assert.ok(historicalCard < html.indexOf("Next steps"));
+  assert.ok(firstCard > 0 && firstCard < agentCard);
+  assert.ok(agentCard < html.indexOf("Next steps"));
+  for (const withdrawn of [
+    "/review/sample-cases/local-server-security-review",
+    "/review/sample-cases/launch-readiness-review",
+    "/review/sample-cases/custody-wallet-ops-review",
+    "/review/sample-cases/incident-readiness-review",
+    "/review/sample-cases/customer-security-review-sprint",
+  ]) {
+    assert.equal(html.includes(`href="${withdrawn}"`), false, withdrawn);
+  }
   assert.ok(html.includes("Agent Action Security Review"));
   assert.ok(html.includes("External Attack Surface Review"));
-  assert.ok(html.includes("Historical service sample"));
   assert.ok(html.includes("not a complete sample of the current agent review"));
   assert.ok(html.includes("not additional reviews offered for sale"));
   assert.ok(!html.includes("External Exposure assessment"));

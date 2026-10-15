@@ -514,7 +514,7 @@ export function ContactForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: data.get("name"),
+          ...(stringField(data, "name") ? { name: stringField(data, "name") } : {}),
           org: stringField(data, "org"),
           email: data.get("email"),
           intent: submittedIntent,
@@ -923,22 +923,6 @@ export function ContactForm({
       </div>}
 
       <div className={`grid gap-5 ${landing ? "" : "md:grid-cols-2"}`}>
-        <div>
-          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
-          <input
-            id="name" name="name" type="text" autoComplete="name" required
-            maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
-            aria-invalid={fieldErrors.name ? true : undefined}
-            aria-describedby={fieldErrors.name ? "name-error" : undefined}
-            aria-errormessage={fieldErrors.name ? "name-error" : undefined}
-            onInvalid={handleInvalid} onInput={handleFieldInput}
-            className={`${inputClass} ${fieldErrors.name ? "!border-signal-red" : ""}`}
-            style={inputStyle}
-            placeholder={landing ? undefined : copy.name}
-          />
-          {fieldErrors.name && <p id="name-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.name}</p>}
-        </div>
-
         <div>
           <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} <span className="text-text-muted">{copy.required}</span></label>
           <input

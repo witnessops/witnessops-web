@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/verify/skill"],
+      disallow: ["/verify/skill", "/admin"],
     },
     sitemap: canonicalUrl("/sitemap.xml"),
   };

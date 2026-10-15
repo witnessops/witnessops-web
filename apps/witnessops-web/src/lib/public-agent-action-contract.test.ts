@@ -26,7 +26,7 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing per signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Termin realizacji według podpisanego SOW");
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.timing.en, LEGACY_AGENT_ACTION_OFFER.timing.en);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
@@ -36,7 +36,7 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   for (const locale of ["en", "pl"] as const) {
     const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
     const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
-    assert.match(rendered, locale === "en" ? /Delivery timing per signed SOW/ : /Termin realizacji według podpisanego SOW/);
+    assert.match(rendered, locale === "en" ? /Delivery timing agreed in the signed statement of work/ : /Termin realizacji według podpisanego SOW/);
     assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Jawne niewiadome/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
   }

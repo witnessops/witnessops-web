@@ -178,7 +178,7 @@ test("specimen review CTA selects the current one-action review without expandin
   );
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing per signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
 });
 
 test("historical inventory-review identity and commercial terms remain unchanged", () => {

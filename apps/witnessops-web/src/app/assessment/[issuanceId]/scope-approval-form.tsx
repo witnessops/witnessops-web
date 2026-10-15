@@ -145,7 +145,7 @@ export function ScopeApprovalForm(props: ScopeApprovalFormProps) {
         above. It does not widen scope or enable active scanning.
       </div>
       <textarea
-        className="mt-3 w-full rounded border border-zinc-800 bg-black/40 px-3 py-2 font-mono text-xs leading-6 text-zinc-100 outline-none transition-colors focus:border-emerald-500"
+        className="mt-3 w-full rounded border border-zinc-800 bg-black/40 px-3 py-2 font-mono text-xs leading-6 text-zinc-100 transition-colors focus:border-emerald-500"
         rows={4}
         value={note}
         onChange={(event) => setNote(event.target.value)}

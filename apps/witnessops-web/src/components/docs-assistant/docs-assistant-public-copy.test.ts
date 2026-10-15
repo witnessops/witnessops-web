@@ -110,7 +110,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
     PUBLIC_AGENT_ACTION_OFFER.timing.en,
-    "Delivery timing per signed SOW",
+    "Delivery timing agreed in the signed statement of work",
   );
 });
 
@@ -151,6 +151,12 @@ test("Ask WitnessOps does not cover the dedicated review request form", () => {
   assert.match(content, /HIDDEN_WIDGET_PATHS/);
   assert.match(content, /"\/review\/request"/);
   assert.match(content, /"\/review\/sample-cases\/ai-agent-action-proof-run"/);
+  assert.equal(
+    content.includes("shouldShowDocsAssistantWidget") &&
+      content.includes('"/docs"') &&
+      content.includes('"/check"'),
+    true,
+  );
 });
 
 test("Ask WitnessOps yields the floating layer while the mobile navigation is open", () => {

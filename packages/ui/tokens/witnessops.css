@@ -36,6 +36,7 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-pill: 9999px;
+  --radius-full: 9999px;
   --radius-control: var(--radius-sm);
   --radius-card: var(--radius-md);
   --radius-overlay: var(--radius-lg);
@@ -55,10 +56,11 @@
   --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
-/* The outline follows border-radius, so the ring is the element radius plus the offset. */
+/* The outline follows border-radius, so the ring is the element radius plus the offset.
+   !important beats later outline-none and focus:ring utilities. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: var(--focus-width) solid var(--focus);
-  outline-offset: var(--focus-offset);
+  outline: var(--focus-width) solid var(--focus) !important;
+  outline-offset: var(--focus-offset) !important;
 }
 
 input[type="checkbox"] { border-radius: var(--radius-label); }

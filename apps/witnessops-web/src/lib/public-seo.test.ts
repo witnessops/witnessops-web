@@ -13,6 +13,7 @@ import {
   websiteJsonLd,
 } from "./public-seo";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
+import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
 
 test("canonical URLs always use the HTTPS apex and drop query tracking", () => {
   assert.equal(CANONICAL_ORIGIN, "https://witnessops.com");
@@ -40,6 +41,17 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
         "x-default": canonicalUrl(pair.en),
       },
     });
+  }
+});
+
+test("paired pages keep en, pl and x-default, and withdrawn pages have none", () => {
+  assert.deepEqual(languagePairForPath("/contact"), {
+    en: "/contact",
+    pl: "/pl/contact",
+  });
+  assert.equal(languagePairForPath("/review/request"), undefined);
+  for (const path of WITHDRAWN_OFFER_PATHS) {
+    assert.equal(languagePairForPath(path), undefined, path);
   }
 });
 

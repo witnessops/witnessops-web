@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description:
     "Synthetic launch readiness sample: baseline vs candidate, drift, findings, and proofpack limits. Not live customer evidence and not launch approval.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
     title: "Sample: Launch readiness review | WitnessOps",
     description:
@@ -25,6 +26,7 @@ export default function LaunchReadinessSamplePage() {
       productId="OFFSEC-LAUNCH-READY"
       runId="pr_lrr_20260711120000_df6bc5d205"
       situation="Situation: one launch host needs a before-and-after readiness picture against an approved baseline: drift, findings, and open decisions on the package, never automatic launch approval."
+      offerWithdrawn
       bannerNote="Synthetic public sample from the OffSec suite. Deterministic fixture evidence only. Not a live customer launch review, not production verification, and not launch approval."
       catalogHref="/catalog/offsec-launch-ready"
       sampleBase="/samples/offsec-launch-ready"

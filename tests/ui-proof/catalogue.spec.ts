@@ -71,7 +71,7 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     const publicExposureCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
     await expect(publicExposureCard).toContainText("External Attack Surface Review");
     await expect(publicExposureCard).toContainText(polish ? "€1 900 · bez VAT" : "€1,900 · excluding VAT");
-    await expect(publicExposureCard).toContainText(polish ? "Termin realizacji według podpisanego SOW" : "Delivery timing per signed SOW");
+    await expect(publicExposureCard).toContainText(polish ? "Termin realizacji według podpisanego SOW" : "Delivery timing agreed in the signed statement of work");
     await expect(publicExposureCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|3 dni roboczych|€550|550 €/);
     await expect(agentActionCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|€550|550 €/);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal|Internet Footprint Review|Early Bird|€500/);

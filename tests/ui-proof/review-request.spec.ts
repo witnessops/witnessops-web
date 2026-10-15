@@ -210,7 +210,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
         "€2,500 fixed · excluding VAT",
         "One consequential agent or automation action",
         "Submitting this form opens fit review only",
-        "Delivery timing per signed SOW",
+        "Delivery timing agreed in the signed statement of work",
       ],
     },
     {

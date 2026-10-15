@@ -30,7 +30,7 @@ export const verificationLight = {
   body: "text-[#3f3c38]",
   muted: "text-[#6f6a63]",
   input:
-    "w-full rounded border border-[#6f6a63] bg-white px-3 py-3 text-center font-mono text-lg tracking-[0.16em] text-[#121212] outline-none transition placeholder:text-[#6f6a63] focus:border-[#b94716] focus:ring-[#b94716]/30",
+    "w-full rounded border border-[#6f6a63] bg-white px-3 py-3 text-center font-mono text-lg tracking-[0.16em] text-[#121212] transition placeholder:text-[#6f6a63] focus:border-[#b94716]",
   button:
     "w-full rounded border border-[#b94716] bg-[#b94716] px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#fafaf7] transition hover:brightness-90 disabled:cursor-not-allowed disabled:border-[#cfc9bd] disabled:bg-[#e4e0d8] disabled:text-[#6f6a63]",
   buttonSecondary:

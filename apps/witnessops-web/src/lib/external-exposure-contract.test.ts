@@ -61,7 +61,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   );
   assert.equal(sku.price.anchor_eur_min, 1900);
   assert.equal(sku.price.anchor_eur_max, 1900);
-  assert.equal(service.timing.en, "Delivery timing per signed SOW");
+  assert.equal(service.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.equal(service.timing.pl, "Termin realizacji według podpisanego SOW");
   assert.equal(service.commercialContract.timing, "delivery_timing_per_signed_sow");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.amount, "1900");

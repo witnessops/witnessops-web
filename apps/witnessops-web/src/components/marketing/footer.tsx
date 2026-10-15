@@ -3,6 +3,7 @@
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { ThemeMemory } from "@/components/marketing/theme-memory";
 import {
   COMPANY_COPYRIGHT,
   COMPANY_DETAILS,
@@ -65,7 +66,7 @@ const POLISH_FOOTER = {
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
-    { label: "Bezpłatne sprawdzenie (EN)", href: "/check" },
+    { label: "Tool · not a review", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
@@ -222,9 +223,11 @@ export function Footer({
               { label: "Sample work", href: "/review/sample-cases" },
               { label: "Research", href: "/research" },
               { label: "Verify a receipt", href: "/verify" },
+              { label: "Tool · not a review", href: "/check" },
             ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
           </nav>
         )}
+        <ThemeMemory />
         <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}

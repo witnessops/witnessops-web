@@ -27,7 +27,7 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
   assert.match(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.match(faq, /€2,500 fixed, excluding VAT/);
-  assert.match(faq, /Delivery timing per signed SOW/);
+  assert.match(faq, /Delivery timing agreed in the signed statement of work/);
   assert.match(faq, /explicit unknowns/);
   assert.match(faq, /30 calendar days of initial report handover/);
   assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope/);

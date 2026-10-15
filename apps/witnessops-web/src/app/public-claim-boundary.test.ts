@@ -172,7 +172,7 @@ const appRouter = {
 
 const HOMEPAGE_COPY_EVIDENCE_BOUNDARIES = [
   "this is not a penetration test. one focused retest of reported findings is included within 30 calendar days of initial report handover.",
-  "a public hostname snapshot. no account needed. not a review.",
+  "the free hostname check stays a separate tool, not a third review.",
   "with written findings, supporting evidence and clear limits.",
 ] as const;
 

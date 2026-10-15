@@ -32,7 +32,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     { label: "How the app works", href: "/early-access" },
     { label: "Expert help", href: "/catalog" },
     { label: "Price", href: "/pricing" },
-    { label: "Free check", href: "/check" },
+    { label: "Tool · not a review", href: "/check" },
     { label: "Docs", href: "/docs" },
   ];
   const effectiveCta = polish ? {

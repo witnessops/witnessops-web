@@ -124,7 +124,7 @@ test("library surface includes English and Polish library paths", () => {
 
 test("footer uses the bounded public funnel without deleting repair services", () => {
   const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["AI Agent Tools & Access Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  for (const label of ["AI Agent Tools & Access Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
   assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });
 

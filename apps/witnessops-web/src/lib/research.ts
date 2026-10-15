@@ -25,7 +25,6 @@ export const civilizationArticle: EditorialEntry = {
   summary: 'AI does not need to rebel to become dangerous. The deeper risk begins when humans can still operate civilization but can no longer independently understand, challenge, reconstruct, or recover it.',
   deck: 'AI does not need to rebel against humanity to become dangerous. A quieter loss of control begins when machines become indispensable to systems that humans can operate, but can no longer independently understand, challenge, or rebuild.',
   openGraphSummary: 'The real AI control problem may begin when machine intelligence becomes indispensable to systems humans can operate but can no longer independently challenge.',
-  author: { name: 'Karol Stefański', role: 'Founder of WitnessOps' },
   contentReference: 'src/app/(marketing)/articles/when-civilization-can-no-longer-understand-itself/page.tsx',
 };
 export const exposureSnapshotNote: EditorialEntry = {
@@ -43,10 +42,10 @@ export function editorialMetadata(entry: EditorialEntry): Metadata {
   const url = canonicalUrl(entry.href);
   return {
     title: entry.title, description: entry.summary, alternates: { canonical: url },
-    ...(entry.author ? { authors: [{ name: entry.author.name }] } : {}),
+    authors: [{ name: entry.author?.name ?? 'WitnessOps' }],
     openGraph: { type: 'article', url, title: entry.title, description: entry.openGraphSummary ?? entry.summary,
       publishedTime: `${entry.publishedAt}T00:00:00+02:00`, modifiedTime: `${entry.modifiedAt ?? entry.publishedAt}T00:00:00+02:00`,
-      ...(entry.author ? { authors: [entry.author.name] } : {}) },
+      authors: [entry.author?.name ?? 'WitnessOps'] },
   };
 }
 export function editorialJsonLd(entry: EditorialEntry) {
@@ -54,7 +53,9 @@ export function editorialJsonLd(entry: EditorialEntry) {
     '@context': 'https://schema.org', '@type': 'Article', headline: entry.title,
     description: entry.summary, datePublished: entry.publishedAt,
     dateModified: entry.modifiedAt ?? entry.publishedAt, mainEntityOfPage: canonicalUrl(entry.href),
-    author: entry.author ? { '@type': 'Person', name: entry.author.name } : { '@type': 'Organization', name: 'WitnessOps' },
+    author: entry.author
+      ? { '@type': 'Person', name: entry.author.name }
+      : { '@type': 'Organization', name: 'WitnessOps' },
     publisher: { '@type': 'Organization', name: 'WitnessOps', url: canonicalUrl('/') },
   };
 }

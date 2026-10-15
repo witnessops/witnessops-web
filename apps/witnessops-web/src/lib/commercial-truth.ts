@@ -164,7 +164,7 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     timing: "delivery_timing_per_signed_sow",
   },
   timing: {
-    en: "Delivery timing per signed SOW",
+    en: "Delivery timing agreed in the signed statement of work",
     pl: "Termin realizacji według podpisanego SOW",
   },
   result: {
@@ -292,7 +292,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     ...publicB2bPrice("€550", "€550"),
   },
   timing: {
-    en: "Delivery timing per signed SOW",
+    en: "Delivery timing agreed in the signed statement of work",
     pl: "Termin realizacji według podpisanego SOW",
   },
   cardSituation: {

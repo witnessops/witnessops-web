@@ -128,7 +128,7 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       await page.waitForTimeout(350);
 
-      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
       const headlineMetrics = await page
         .locator('[data-ui-proof-id="homepage-hero-headline"]')
         .evaluate((element) => {
@@ -246,7 +246,8 @@ test("English and Polish homepages preserve bounded entry points and evidence li
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
         await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
         await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
+        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
+        await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
         await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
@@ -257,7 +258,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
           "href",
           buyerServiceRequestHref("pl", external),
         );
-        await expect(page.locator('main a[href="/check"]')).toHaveCount(1);
+        await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
         await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
       } else {
         await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence.Explicit limits.");
@@ -272,7 +273,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
 
 // Desktop retains a non-modal widget. Mobile uses the dedicated page.
 async function openAskSurface(page: Page, width: number) {
-  await page.goto(width >= 1024 ? "/catalog" : "/docs/assistant", { waitUntil: "networkidle" });
+  await page.goto(width >= 1024 ? "/docs" : "/docs/assistant", { waitUntil: "networkidle" });
   if (width >= 1024) {
     await page.getByRole("button", { name: "Ask WitnessOps" }).click();
     return page.getByRole("dialog", { name: "ASK WITNESSOPS" });
@@ -464,11 +465,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
-      if (capture.path.startsWith("/review/request") || capture.path.startsWith("/pl/")) {
-        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
-      } else {
-        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
-      }
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
     } finally {
       await context.close();
     }
@@ -488,7 +485,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const footer = page.locator("footer");
       await footer.scrollIntoViewIfNeeded();
-      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await footer.screenshot({ path: screenshotPath });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);

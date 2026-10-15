@@ -75,11 +75,20 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
+const DOCS_ASSISTANT_WIDGET_SURFACES = ["/docs", "/check", "/support"] as const;
+
 export function shouldShowDocsAssistantWidget(pathname: string): boolean {
   if (pathname === "/docs/assistant") return false;
+  if (
+    HIDDEN_WIDGET_PATHS.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    )
+  ) {
+    return false;
+  }
 
-  return !HIDDEN_WIDGET_PATHS.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  return DOCS_ASSISTANT_WIDGET_SURFACES.some(
+    (surface) => pathname === surface || pathname.startsWith(`${surface}/`),
   );
 }
 

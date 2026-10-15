@@ -9,6 +9,7 @@ import {
   sitemapLanguageAlternates,
 } from "@/lib/public-seo";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
+import { SITEMAP_OMITTED_ROUTES } from "@/lib/withdrawn-offer-routes";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { listSkills } from "@/lib/skills/catalog";
 
@@ -51,7 +52,7 @@ const staticRoutes: StaticRoute[] = [
       : [],
   ),
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
-  { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
+  { route: "/contact", sourcePath: "src/app/(marketing)/contact/page.tsx" },
   {
     route: "/review/sample-cases",
     sourcePath: "src/app/review/sample-cases/page.tsx",
@@ -135,7 +136,7 @@ const polishRoutes: StaticRoute[] = [
     route: `/pl/catalog/${id.toLowerCase()}`,
     sourcePath: "src/app/pl/catalog/[skuId]/page.tsx",
   })),
-  { route: "/pl/review/request", sourcePath: "src/app/pl/review/request/page.tsx" },
+  { route: "/pl/contact", sourcePath: "src/app/pl/contact/page.tsx" },
   { route: "/pl/docs", sourcePath: "src/app/pl/docs/page.tsx" },
   { route: "/pl/support", sourcePath: "src/app/pl/support/page.tsx" },
   { route: "/pl/verify", sourcePath: "src/app/pl/verify/page.tsx" },
@@ -152,7 +153,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const docs = await getDocsSitemapEntries("witnessops");
 
   return [
-    ...[...staticRoutes, ...polishRoutes].map(({ route }) => ({
+    ...[...staticRoutes, ...polishRoutes]
+      .filter(({ route }) => !SITEMAP_OMITTED_ROUTES.has(route))
+      .map(({ route }) => ({
       url: canonicalUrl(route || "/"),
       alternates: sitemapLanguageAlternates(route || "/"),
     })),

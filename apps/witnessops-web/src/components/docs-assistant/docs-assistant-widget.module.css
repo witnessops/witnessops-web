@@ -847,7 +847,7 @@
     width: min(520px, calc(100vw - 3rem));
     height: min(760px, calc(100dvh - 3rem));
     border: 1px solid var(--proof-rule-strong);
-    border-radius: var(--radius-overlay);
+    border-radius: var(--radius-lg);
     box-shadow: 0 32px 120px rgba(0, 0, 0, 0.62);
   }
 
@@ -1011,7 +1011,7 @@
 .trigger:hover { background: var(--proof-raised); color: var(--proof-ink); }
 .triggerLabel { display: inline; font-family: var(--font-sans); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .triggerDot { width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--proof-accent); }
-@media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: var(--radius-overlay); } .dialogBody { padding-top: 8px; } }
+@media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: var(--radius-lg); } .dialogBody { padding-top: 8px; } }
 
 /* Suggestions remain pills; action controls share the public button treatment. */
 .trigger { border-radius: var(--radius-control); }
