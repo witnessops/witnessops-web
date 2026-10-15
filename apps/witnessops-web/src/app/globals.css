@@ -1274,7 +1274,7 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-public-footer nav a { font-weight: 400; color: var(--color-text-secondary); }
 .simple-public-footer nav a:hover { color: var(--color-text-primary); }
 .simple-public-footer [data-footer-brand-lockup] > a > span { font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .18em; }
-.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: #b89b62; }
+.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: var(--color-brand-accent); }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
 .simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
 .simple-public-footer [data-footer-review-cta]:hover { background: #24221d; border-color: #b89b62; }

@@ -102,6 +102,7 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
   --color-brand-primary: #0b0c0b;
   --color-brand-accent: #715a2c;
   --color-brand-accent-subtle: rgba(113, 90, 44, 0.1);
+  --focus: #715a2c;
   --hero-glow: none;
   color-scheme: light;
 }
@@ -120,6 +121,7 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
   --color-brand-primary: #f5f1e8;
   --color-brand-accent: #b89b62;
   --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
+  --focus: #b89b62;
   --hero-glow: radial-gradient(ellipse at 70% 20%, rgba(184, 155, 98, 0.08), transparent 55%);
   color-scheme: dark;
 }
@@ -132,6 +134,7 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
     --color-text-secondary: #3a3a34;
     --color-text-muted: #55544c;
     --color-brand-accent: #715a2c;
+    --focus: #715a2c;
     --hero-glow: none;
     color-scheme: light;
   }

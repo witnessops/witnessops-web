@@ -101,7 +101,6 @@
 .status { margin: 0 0 8px; font-family: var(--font-mono); font-size: 12px; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand-accent); }
 .reviewTag { margin: 4px 0 0; font-size: 12px; color: var(--color-text-secondary); }
 .controls { display: flex; gap: 8px; margin-left: auto; }
-.panel :focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 4px; }
 .disclaimer { margin: 0; padding: 12px 16px; background: var(--color-surface-inset); font-size: 14px; }
 .transcript { display: grid; gap: 16px; margin: 0; padding: 16px; list-style: none; }
 .you p, .sovereign p { margin: 4px 0 0; }
