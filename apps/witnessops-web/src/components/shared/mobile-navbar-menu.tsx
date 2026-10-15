@@ -181,7 +181,7 @@ export function MobileNavbarMenu({
           <div className="border-b border-surface-border py-3"><ThemeToggle className="inline-flex" locale={isPolishPath(currentPath) ? "pl" : "en"} /></div>
           {groups && (cta || loginUrl) && <div data-mobile-account-actions className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
             {cta && <CtaButton label={cta.label} href={cta.href} variant={cta.variant as "primary" | "secondary" | "ghost"} onClick={closeMenu} className="min-h-11" />}
-            {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-sm border border-surface-border px-4 text-sm">Log in</Link>}
+            {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-sm border border-surface-border px-4 text-sm">{isPolishPath(currentPath) ? "Zaloguj się" : "Log in"}</Link>}
           </div>}
           {groups?.map((group, index) => <section key={group.label} className="border-b border-surface-border">
             <h2><button type="button" className="flex min-h-16 w-full items-center justify-between px-3 text-left text-base text-text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent" aria-expanded={expandedGroup === group.label} aria-controls={`${menuId}-group-${index}`} onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}>{group.label}<span aria-hidden="true" className="text-xl text-text-muted">{expandedGroup === group.label ? "−" : "+"}</span></button></h2>

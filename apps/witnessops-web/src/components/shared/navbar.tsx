@@ -174,7 +174,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                 ),
               )}
               <ThemeToggle locale={polish ? "pl" : "en"} />
-              {loginHref ? <a href={loginHref} className="hidden min-h-11 items-center px-3 text-sm text-text-secondary lg:inline-flex">Log in</a> : null}
+              {loginHref ? <a href={loginHref} className="hidden min-h-11 items-center px-3 text-sm text-text-secondary lg:inline-flex">{polish ? "Zaloguj się" : "Log in"}</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}

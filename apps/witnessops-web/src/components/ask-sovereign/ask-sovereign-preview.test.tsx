@@ -7,7 +7,7 @@ import test, { mock } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { AskSovereignPreview, announcementText, armPendingQuestion, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS } from "./ask-sovereign-preview";
+import { AskSovereignPreview, announcementText, armPendingQuestion, followUpSuggestions, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS, suggestionTopic } from "./ask-sovereign-preview";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
 test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
@@ -67,8 +67,24 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /CONTACT_ADDRESS = "engage@mail\.witnessops\.com"/);
   assert.match(source, /mailto:\$\{CONTACT_ADDRESS\}/);
   assert.match(source, /<wbr \/>/);
-  assert.match(source, /\.filter\(\(item\) => item !== askedText\)\.slice\(0, 2\)/);
-  assert.match(source, /activeSim !== "handoff"/);
+  assert.match(source, /followUpSuggestions\(copy\.suggestions, askedText, actionBeats\)/);
+  assert.match(source, /activeSim === "slow" \|\| activeSim === "timeout"/);
+  assert.equal(suggestionTopic("What does the External Attack Surface Review cover?"), "easr");
+  assert.equal(suggestionTopic("What does the External Attack Surface Review include, and what does it cost?"), "easr");
+  assert.equal(suggestionTopic("Co obejmuje External Attack Surface Review i ile kosztuje?"), "easr");
+  assert.deepEqual(
+    followUpSuggestions(
+      [
+        { id: "aasr", text: "Agent" },
+        { id: "easr", text: "External include" },
+        { id: "start", text: "Start" },
+      ],
+      "What does the External Attack Surface Review cover?",
+      false,
+    ).map((item) => item.id),
+    ["aasr", "start"],
+  );
+  assert.deepEqual(followUpSuggestions([{ id: "easr", text: "External" }], "cost", true), []);
   assert.match(source, /handoffCaption/);
   assert.match(source, /visualViewport/);
   assert.match(source, /data-ask-thread="" ref=\{threadRef\} tabIndex=\{0\} aria-labelledby="ask-sovereign-title"/);
@@ -92,6 +108,7 @@ function escapeHtml(value: string): string {
 
 test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   const css = readFileSync(resolve(__dirname, "ask-sovereign-preview.module.css"), "utf8");
+  const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
   assert.match(css, /width:\s*94px/);
   assert.match(css, /height:\s*102px/);
   assert.match(css, /image-rendering:\s*pixelated/);
@@ -117,8 +134,16 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /\.chips button \{[^}]*max-width:\s*100%/);
   assert.doesNotMatch(css, /\.chips[^{]*\{[^}]*overflow-x:\s*auto/);
   assert.match(css, /calc\(100dvh - 72px - 32px - 64px\)/);
-  assert.match(css, /body:has\(\.pl-copy-review\)\) \.page \{[^}]*calc\(100dvh - 72px - 1rem - var\(--type-caption-lh\) - 1px\)/);
-  assert.match(css, /\.titleUnit \{ white-space: nowrap; \}/);
+  assert.match(css, /body:has\(\.pl-copy-review\)\) \.panel \{[^}]*calc\(100dvh - 72px - 32px - 64px - 1rem - var\(--type-caption-lh\) - 1px\)/);
+  assert.match(css, /min-width:\s*1024px\)\s*\{\s*\.thread \{ min-height: 360px; \}/);
+  assert.match(css, /\.titleUnit \{ white-space: nowrap; border: 0;/);
+  assert.match(css, /\.badge, \.tag \{/);
+  assert.doesNotMatch(css, /\.name span/);
+  assert.match(css, /\.retry \{[^}]*white-space:\s*nowrap/);
+  assert.match(css, /\.addressTail \{[^}]*white-space:\s*nowrap/);
+  assert.match(css, /\.rail \{ height: auto; align-self: start;/);
+  assert.match(source, /scrollPrimaryActionIntoView\(thread, action, reducedMotion\)/);
+  assert.match(source, /behavior: reduced \? "auto" : "smooth"/);
   assert.match(css, /\.you, \.sovereign \{ min-width: 0; max-width: 100%; \}/);
   assert.match(css, /\.transcript \{[^}]*min-width: 0; max-width: 100%; \}/);
   assert.match(css, /\.handoffCard \{[^}]*min-width: 0;[^}]*max-width: 100%/);
@@ -218,7 +243,7 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
   const cssPath = resolve(__dirname, "ask-sovereign-preview.module.css");
   const suggestionLists = [...source.matchAll(/suggestions:\s*\[([\s\S]*?)\]/g)].map((match) =>
-    [...match[1].matchAll(/"([^"]+)"/g)].map((item) => item[1]),
+    [...match[1].matchAll(/text:\s*"([^"]+)"/g)].map((item) => item[1]),
   );
   const greetings = [...source.matchAll(/greeting:\s*"([^"]+)"/g)].map((match) => match[1]);
   assert.equal(suggestionLists.length, 2);
@@ -257,7 +282,7 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
           const chipBox = chips.getBoundingClientRect();
           const retryBox = retry.getBoundingClientRect();
           const overlap = !(turnBox.bottom <= chipBox.top || chipBox.bottom <= turnBox.top || turnBox.right <= chipBox.left || chipBox.right <= turnBox.left);
-          const chipFit = [...chips.querySelectorAll("button")].every((button) => button.scrollWidth <= button.clientWidth + 1 && button.getBoundingClientRect().right <= chipBox.right + 0.5);
+          const chipFit = [...chips.querySelectorAll("button")].filter((button) => getComputedStyle(button).display !== "none").every((button) => button.scrollWidth <= button.clientWidth + 1 && button.getBoundingClientRect().right <= chipBox.right + 0.5);
           return {
             scroll: thread.scrollWidth,
             client: thread.clientWidth,

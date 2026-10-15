@@ -25,14 +25,17 @@ const EASR_RETEST = {
   pl: "Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
 } as const;
 
+export type SuggestionTopic = "aasr" | "easr" | "start" | "write";
+export type Suggestion = { id: SuggestionTopic; text: string };
+
 const COPY = {
   en: {
     greeting: "Hello. I can answer from the two published reviews. Ask about scope, price or how to start.",
     suggestions: [
-      "What does the Agent Action Security Review cover?",
-      "What does the External Attack Surface Review include, and what does it cost?",
-      "How do I start?",
-      "Where do I write?",
+      { id: "aasr", text: "What does the Agent Action Security Review cover?" },
+      { id: "easr", text: "What does the External Attack Surface Review include, and what does it cost?" },
+      { id: "start", text: "How do I start?" },
+      { id: "write", text: "Where do I write?" },
     ],
     idle: "Ready",
     checking: "Checking the published facts…",
@@ -66,10 +69,10 @@ const COPY = {
   pl: {
     greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
     suggestions: [
-      "Co obejmuje Agent Action Security Review?",
-      "Co obejmuje External Attack Surface Review i ile kosztuje?",
-      "Jak zacząć?",
-      "Gdzie napisać?",
+      { id: "aasr", text: "Co obejmuje Agent Action Security Review?" },
+      { id: "easr", text: "Co obejmuje External Attack Surface Review i ile kosztuje?" },
+      { id: "start", text: "Jak zacząć?" },
+      { id: "write", text: "Gdzie napisać?" },
     ],
     idle: "Gotowy do pytań",
     checking: "Sprawdzam opublikowane informacje…",
@@ -104,22 +107,43 @@ const COPY = {
 
 const CONTACT_ADDRESS = "engage@mail.witnessops.com";
 
+/** Same topic hides every chip for that topic, including an EASR wording that is not the exact chip. */
+export function suggestionTopic(text: string): SuggestionTopic | null {
+  const q = text.toLowerCase();
+  if (/external|attack surface|ekspozycj|powierzchn|1[,.]?\s?900|1900|retest/.test(q)) return "easr";
+  if (/agent action|consequential|istotn|2[,.]?\s?500|2500/.test(q)) return "aasr";
+  if (/how do i start|jak zacząć|\bstart\b/.test(q)) return "start";
+  if (/where do i write|gdzie napisać|\bwrite\b|napisz|email/.test(q)) return "write";
+  return null;
+}
+
+export function followUpSuggestions(suggestions: readonly Suggestion[], asked: string | undefined, action: boolean): Suggestion[] {
+  if (action) return [];
+  const topic = asked ? suggestionTopic(asked) : null;
+  const rest = topic ? suggestions.filter((item) => item.id !== topic) : [...suggestions];
+  if (!asked) return rest;
+  return rest.slice(0, 2);
+}
+
 export function ContactLine({ text }: { text: string }) {
-  const parts = text.split(CONTACT_ADDRESS);
-  if (parts.length === 1) return text;
-  const at = CONTACT_ADDRESS.indexOf("@");
-  return parts.map((part, index) => (
-    <span key={`${index}-${part.length}`}>
-      {part}
-      {index < parts.length - 1 ? (
-        <a href={`mailto:${CONTACT_ADDRESS}`}>
-          {CONTACT_ADDRESS.slice(0, at)}
-          <wbr />
-          {CONTACT_ADDRESS.slice(at)}
-        </a>
-      ) : null}
-    </span>
-  ));
+  const at = text.indexOf(CONTACT_ADDRESS);
+  if (at < 0) return text;
+  const after = at + CONTACT_ADDRESS.length;
+  const period = text[after] === "." ? "." : "";
+  const split = CONTACT_ADDRESS.indexOf("@");
+  const tailAt = CONTACT_ADDRESS.lastIndexOf(".");
+  return (
+    <>
+      {text.slice(0, at)}
+      <a href={`mailto:${CONTACT_ADDRESS}`}>
+        {CONTACT_ADDRESS.slice(0, split)}
+        <wbr />
+        {CONTACT_ADDRESS.slice(split, tailAt)}
+        <span className={styles.addressTail}>{CONTACT_ADDRESS.slice(tailAt)}{period}</span>
+      </a>
+      {text.slice(after + period.length)}
+    </>
+  );
 }
 
 type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean };
@@ -174,9 +198,21 @@ export function armPendingQuestion(
 }
 
 /** Puts the start of the turn at the top of the thread. Moves scroll only, and does not move focus. */
-export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement) {
+export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement, reduced = false) {
   const top = turn.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop;
-  thread.scrollTo({ top: Math.max(0, top) });
+  thread.scrollTo({ top: Math.max(0, top), behavior: reduced ? "auto" : "smooth" });
+}
+
+/** Scrolls only enough to put the primary action inside the thread. Reduced motion jumps. */
+export function scrollPrimaryActionIntoView(thread: HTMLElement, action: HTMLElement, reduced: boolean) {
+  const threadBox = thread.getBoundingClientRect();
+  const box = action.getBoundingClientRect();
+  const padding = 8;
+  let delta = 0;
+  if (box.top < threadBox.top + padding) delta = box.top - (threadBox.top + padding);
+  else if (box.bottom > threadBox.bottom - padding) delta = box.bottom - (threadBox.bottom - padding);
+  if (delta === 0) return;
+  thread.scrollTo({ top: Math.max(0, thread.scrollTop + delta), behavior: reduced ? "auto" : "smooth" });
 }
 
 function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setText: (value: string) => void) {
@@ -360,7 +396,17 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     }
     const turn = index >= 0 ? turnRefs.current[index] : null;
     if (!turn) return;
-    scrollTurnToThreadStart(thread, turn);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const frame = window.requestAnimationFrame(() => {
+      const action = live === "error"
+        ? turn.querySelector<HTMLElement>("[data-retry]")
+        : live === "handoff"
+          ? thread.querySelector<HTMLElement>("[data-handoff-cta]")
+          : null;
+      if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
+      else scrollTurnToThreadStart(thread, turn, reducedMotion);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [live, turns, loadError]);
 
   useEffect(() => () => {
@@ -495,28 +541,33 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }
 
   const askedText = [...turns].reverse().find((turn) => turn.role === "you")?.text;
-  const suggestions = askedText ? copy.suggestions.filter((item) => item !== askedText).slice(0, 2) : copy.suggestions;
+  const actionBeats = live === "error" || live === "handoff";
+  const suggestions = followUpSuggestions(copy.suggestions, askedText, actionBeats);
   const showReview = sovereignNeedsReviewVisible();
   const visibleStatus = liveText(locale, live, phase);
   let spriteIndex = -1;
-  if (phase === "ERROR") {
-    turns.forEach((item, itemIndex) => {
-      if (item.role === "you" && item.simulatedError) spriteIndex = itemIndex;
-    });
-  }
-  if (spriteIndex < 0) {
-    turns.forEach((item, itemIndex) => {
-      if (item.role === "sovereign") spriteIndex = itemIndex;
-    });
-  }
+  turns.forEach((item, itemIndex) => {
+    if (item.role === "sovereign") spriteIndex = itemIndex;
+  });
+
+  const errorSplit = copy.errorNote.lastIndexOf(" ");
+  const errorHead = errorSplit > 0 ? copy.errorNote.slice(0, errorSplit + 1) : "";
+  const errorTail = errorSplit > 0 ? copy.errorNote.slice(errorSplit + 1) : copy.errorNote;
+  const errorNote = (
+    <p className={styles.errorNote}>
+      <span className={styles.turnChip}>{copy.simulatedChip}</span>
+      <span className={styles.errorCaption}>
+        {errorHead}
+        <span className={styles.captionTail}>
+          {errorTail}
+          {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
+        </span>
+      </span>
+    </p>
+  );
 
   return (
     <div className={styles.page} ref={pageRef} data-sovereign-preview="">
-      <p className={styles.back} data-sheet-behind><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
-      <p className={styles.kicker} data-sheet-behind>{copy.kicker}</p>
-      <h1 data-sheet-behind>Ask Sovereign</h1>
-      <p className={styles.lead} data-sheet-behind>{copy.lead}</p>
-      {locale === "pl" ? <p className={styles.reviewTag} data-sheet-behind>PL copy pending native review</p> : null}
       <div className={styles.scrim} />
       <div className={styles.layout}>
         <section
@@ -530,7 +581,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.stripe} />
           <header
             className={styles.bar}
-            data-header-chip={activeSim && activeSim !== "handoff" ? "" : undefined}
+            data-header-chip={activeSim === "slow" || activeSim === "timeout" ? "" : undefined}
             onPointerDown={(event) => {
               if (!mobile) return;
               const startY = event.clientY;
@@ -545,8 +596,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             }}
           >
             <span className={styles.mark} aria-hidden="true" />
-            <p className={styles.name} id="ask-sovereign-title"><span className={styles.titleUnit}>Ask Sovereign <span>AI</span></span></p>
-            {activeSim && activeSim !== "handoff" && previewChip(activeSim) ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
+            <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span className={styles.titleUnit}><span className={styles.badge}>AI</span></span></p>
+            {activeSim === "slow" || activeSim === "timeout" ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
             <div className={styles.controls}>
               <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
                 {paused ? (
@@ -570,6 +621,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               return (
                 <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
                   {activeSim === "handoff" && turn.role === "sovereign" && turn.simulated ? <p className={styles.handoffCaption}>{previewChip("handoff")}</p> : null}
+                  {activeSim === "error" && turn.simulatedError ? <p className={styles.handoffCaption}>{previewChip("error")}</p> : null}
                   {withSprite ? (
                     <div className={styles.withSprite}>
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
@@ -577,10 +629,9 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                         <p><ContactLine text={turn.text} /></p>
-                        {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
-                        {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
+                        {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
+                        {turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null}
                         {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
-                        {loadError && index === 0 && turn.role === "sovereign" ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                       </div>
                     </div>
                   ) : (
@@ -588,10 +639,9 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                       <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                       {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                       <p><ContactLine text={turn.text} /></p>
-                      {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
-                      {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
+                      {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
+                      {turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null}
                       {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
-                      {loadError && index === 0 && turn.role === "sovereign" ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                     </>
                   )}
                 </li>
@@ -608,7 +658,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.askDock}>
           <div className={styles.chips} data-ask-chips="">
             {suggestions.map((suggestion) => (
-              <button key={suggestion} type="button" disabled={pending} onClick={() => ask(suggestion)}>{suggestion}</button>
+              <button key={suggestion.id} type="button" data-suggestion={suggestion.id} disabled={pending} onClick={() => ask(suggestion.text)}>{suggestion.text}</button>
             ))}
           </div>
           <label className={styles.optin}>
@@ -626,6 +676,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           </form>
         </section>
         <aside className={styles.rail} data-sheet-behind>
+          <p className={styles.back}><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
+          <p className={styles.kicker}>{copy.kicker}</p>
+          <h1>Ask Sovereign</h1>
+          <p className={styles.lead}>{copy.lead}</p>
+          {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <h3>{copy.railAnswer}</h3>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>

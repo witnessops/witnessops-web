@@ -14,10 +14,10 @@ const primaryPaths = [
   },
   {
     href: "/review/sample-cases",
-    title: "Przykłady (EN)",
+    title: "Przykładowe prace",
     description:
       "Zobacz przykładowe przeglądy, ustalenia i dowody. Materiały są w języku angielskim.",
-    cta: "Zobacz przykłady (EN)",
+    cta: "Zobacz przykłady",
   },
   {
     href: "/pl/verify",
@@ -67,7 +67,7 @@ const secondaryGroups = [
     ],
   },
   {
-    title: "Przykłady (EN)",
+    title: "Przykładowe prace",
     description: "Oznaczone przykłady przeglądów, nie dane klientów.",
     links: [
       [

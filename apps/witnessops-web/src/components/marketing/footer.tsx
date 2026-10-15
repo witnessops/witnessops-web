@@ -77,8 +77,8 @@ const POLISH_FOOTER = {
   links: [
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
-    { label: "Przykłady (EN)", href: "/review/sample-cases" },
-    { label: "Tool · not a review", href: "/check" },
+    { label: "Przykładowe prace", href: "/review/sample-cases" },
+    { label: "Narzędzie · to nie jest przegląd", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
