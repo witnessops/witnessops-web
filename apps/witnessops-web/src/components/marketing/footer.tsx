@@ -49,6 +49,17 @@ const PREMIUM_FOOTER_SUBLINE = "Proof other people can check.";
 
 type FooterLink = { label: string; href: string };
 
+export function footerResourceLinks(): FooterLink[] {
+  return [
+    { label: "Sample work", href: "/review/sample-cases" },
+    { label: "Research", href: "/research" },
+    { label: "The Sovereign Chronicles", href: "/chronicles" },
+    ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
+    { label: "Verify a receipt", href: "/verify" },
+    { label: "Tool · not a review", href: "/check" },
+  ];
+}
+
 interface FooterProps {
   appUrl?: string | null;
   brand_line: string;
@@ -223,14 +234,7 @@ export function Footer({
 
         {!isPolishSurface && (
           <nav aria-label="Resources" className="footer-resources">
-            {[
-              { label: "Sample work", href: "/review/sample-cases" },
-              { label: "Research", href: "/research" },
-              { label: "The Sovereign Chronicles", href: "/chronicles" },
-              ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
-              { label: "Verify a receipt", href: "/verify" },
-              { label: "Tool · not a review", href: "/check" },
-            ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
+            {footerResourceLinks().map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
           </nav>
         )}
         <ThemeMemory />

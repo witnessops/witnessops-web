@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import styles from "./ask-sovereign-preview.module.css";
+import "./sovereign-idle-fallback.css";
 import { advancePlayback, spriteAsset, spriteRecord, type SovereignSpriteState, type SpriteViewport } from "./sovereign-playback";
 
 const FRAME = 94;
@@ -49,9 +50,8 @@ export function SovereignSprite({
   const [hidden, setHidden] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
   const [stripReady, setStripReady] = useState(false);
-  const [stillSrc, setStillSrc] = useState<string | undefined>(undefined);
-  const [stripSrc, setStripSrc] = useState<string | undefined>(undefined);
-  const still = paused || reduced || hidden || !armed || !stripReady;
+  const [topSrc, setTopSrc] = useState<string | undefined>(undefined);
+  const still = paused || reduced || hidden || !armed || !stripReady || hold;
 
   useEffect(() => {
     setFrame(0);
@@ -77,31 +77,19 @@ export function SovereignSprite({
     if (!theme) return;
     let cancelled = false;
     const scale = scaleOf();
-    const idleStill = assetUrl("IDLE", theme, scale, true, "desktop");
-    const stillUrl = assetUrl(state, theme, scale, true, viewport);
-    const stripUrl = assetUrl(state, theme, scale, false, viewport);
+    const wantsStill = reduced || paused;
+    const url = assetUrl(state, theme, scale, wantsStill, viewport);
     setStripReady(false);
-    setStripSrc(undefined);
-    setStillSrc(idleStill);
-    void decodeImage(stillUrl).then((ok) => {
-      if (!cancelled && ok) setStillSrc(stillUrl);
-    });
-    if (reduced) {
-      setStripReady(true);
-      return () => {
-        cancelled = true;
-      };
-    }
-    void decodeImage(stripUrl).then((ok) => {
+    setTopSrc(undefined);
+    void decodeImage(url).then((ok) => {
       if (cancelled) return;
-      if (ok) setStripSrc(stripUrl);
-      else setStillSrc(idleStill);
+      if (ok) setTopSrc(url);
       setStripReady(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [state, theme, reduced, viewport]);
+  }, [state, theme, reduced, paused, viewport]);
 
   useEffect(() => {
     if (!theme) return;
@@ -128,6 +116,17 @@ export function SovereignSprite({
     }
     return cancel;
   }, [theme, reduced, viewport]);
+
+  useEffect(() => {
+    if (still) return;
+    const cap = spriteRecord(state, viewport).cap_ms;
+    if (!cap) return;
+    const timer = window.setTimeout(() => {
+      setFrame(spriteRecord(state, viewport).hold_frame);
+      setHold(true);
+    }, cap);
+    return () => window.clearTimeout(timer);
+  }, [state, still, viewport]);
 
   useEffect(() => {
     if (still || state === "COMPOSING") return;
@@ -161,21 +160,23 @@ export function SovereignSprite({
     };
   }, [state, still, viewport]);
 
-  const shown = still ? stillSrc : stripSrc ?? stillSrc;
-  const position = still || state !== "COMPOSING" || hold ? `${-frame * FRAME}px 0` : undefined;
+  const frozen = paused || reduced || !armed;
+  const position = frozen ? "0 0" : `${-frame * FRAME}px 0`;
   return (
-    <div
-      className={styles.sprite}
-      data-state={state}
-      data-viewport={state === "HANDOFF" ? viewport : undefined}
-      data-still={still ? "1" : undefined}
-      data-hold={!still && hold ? "1" : undefined}
-      style={{
-        backgroundImage: shown ? `url("${shown}")` : undefined,
-        backgroundPosition: still ? "0 0" : position,
-      }}
-      role="presentation"
-      aria-hidden="true"
-    />
+    <div className={`${styles.sprite} sv-fallback`} role="presentation" aria-hidden="true">
+      {topSrc ? (
+        <div
+          className={styles.spriteFace}
+          data-state={state}
+          data-viewport={state === "HANDOFF" ? viewport : undefined}
+          data-still={frozen || hold ? "1" : undefined}
+          data-hold={hold ? "1" : undefined}
+          style={{
+            backgroundImage: `url("${topSrc}")`,
+            backgroundPosition: frozen || hold || state !== "COMPOSING" ? position : undefined,
+          }}
+        />
+      ) : null}
+    </div>
   );
 }

@@ -1,12 +1,7 @@
 export type SimFlag = "error" | "handoff" | "slow";
 
-/**
- * Sim triggers follow the explicit preview flag.
- * A production build without that flag ignores them.
- * The preview server is a production `next start` with the flag set, so the triggers stay available there.
- */
 export function previewTriggersEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
+  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
 }
 
 export function simFlag(search: string): SimFlag | null {

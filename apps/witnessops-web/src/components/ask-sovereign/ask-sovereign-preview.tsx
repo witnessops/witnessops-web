@@ -11,11 +11,14 @@ import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
 import { previewChip, simErrorAtLoad, simFlag } from "./preview-triggers";
-import { spriteRecord, stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
+import { stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
 
 const PAUSE_KEY = "wo-sovereign-paused";
+export const PROCESSING_SHOW_DELAY_MS = 150;
+export const PENDING_TIMEOUT_MS = 15_000;
+export const SLOW_PENDING_MS = 6_000;
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
 const EASR_RETEST = "One focused retest of reported findings within 30 calendar days of initial report handover.";
 
@@ -29,17 +32,14 @@ const COPY = {
       "Where do I write?",
     ],
     idle: "Ready",
-    working: "Working on this question",
-    answerReady: "Answer ready",
+    checking: "Checking the published facts…",
     handoff: "Needs a person",
-    unavailable: "Unavailable",
+    notAnswered: "Not answered",
+    errorNote: "Not answered. Nothing was sent.",
     retry: "Retry",
     disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
-    optin: "Preview, sends nothing",
-    optinOn: "Selected on this screen only.",
-    optinOff: "Not selected.",
-    optinStored: "This choice is not sent and is not stored.",
-    attached: "Nothing from this chat is attached.",
+    optin: "Include this transcript when I contact a person",
+    optinHint: "Preview, sends nothing",
     composer: "Ask about the two reviews",
     send: "Send",
     railAnswer: "What Sovereign can answer",
@@ -66,17 +66,14 @@ const COPY = {
       "Gdzie napisać?",
     ],
     idle: "Gotowy do pytań",
-    working: "Pracuję nad tym pytaniem",
-    answerReady: "Odpowiedź gotowa",
+    checking: "Sprawdzam opublikowane informacje…",
     handoff: "Potrzebna odpowiedź człowieka",
-    unavailable: "Asystent niedostępny",
+    notAnswered: "Bez odpowiedzi",
+    errorNote: "Bez odpowiedzi. Nic nie zostało wysłane.",
     retry: "Spróbuj ponownie",
     disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się mylić.",
-    optin: "Podgląd, nic nie wysyła",
-    optinOn: "Zaznaczone tylko na tym ekranie.",
-    optinOff: "Nie zaznaczono.",
-    optinStored: "Ten wybór nie jest wysyłany i nie jest zapisywany.",
-    attached: "Nic z tej rozmowy nie jest dołączane.",
+    optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
+    optinHint: "Podgląd, nic nie wysyła",
     composer: "Zapytaj o te dwa przeglądy",
     send: "Wyślij",
     railAnswer: "Na co Sovereign może odpowiedzieć",
@@ -86,7 +83,7 @@ const COPY = {
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
-    simulatedChip: "Symulowane",
+    simulatedChip: "Symulacja",
     you: "Ty",
     close: "Zamknij",
     docs: "/pl/docs",
@@ -101,11 +98,21 @@ type Live = "idle" | "processing" | "answered" | "handoff" | "error";
 
 export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
   const copy = COPY[locale];
-  if (phase === "ERROR" || live === "error") return copy.unavailable;
-  if (phase === "PROCESSING" || live === "processing") return copy.working;
+  if (phase === "ERROR" || live === "error") return copy.notAnswered;
+  if (phase === "PROCESSING" || live === "processing") return copy.checking;
   if (phase === "HANDOFF" || live === "handoff") return copy.handoff;
-  if (live === "answered") return copy.answerReady;
   return copy.idle;
+}
+
+export function announcementText(locale: SovereignLocale, kind: "answer" | "handoff" | "error", answer = ""): string {
+  if (locale === "pl") {
+    if (kind === "handoff") return `Sovereign: tu potrzebny jest człowiek. ${answer} Link do kontaktu jest w rozmowie.`;
+    if (kind === "error") return "Błąd symulowany. Pytanie nie dostało odpowiedzi. Możesz spróbować ponownie.";
+    return `Sovereign, odpowiedź symulowana: ${answer}`;
+  }
+  if (kind === "handoff") return `Sovereign: this needs a person. ${answer} The contact link is in the conversation.`;
+  if (kind === "error") return "Simulated error. Your question was not answered. Retry is available.";
+  return `Sovereign, simulated response: ${answer}`;
 }
 
 /** A saved pause skips the greeting, so the first painted sprite is the idle still. */
@@ -113,17 +120,34 @@ export function pausedLoadPhase(storedPause: boolean): "IDLE" | "GREETING" {
   return storedPause ? "IDLE" : "GREETING";
 }
 
+function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setText: (value: string) => void) {
+  if (node && node.textContent === text) {
+    node.textContent = "";
+    setText("");
+    window.requestAnimationFrame(() => {
+      node.textContent = text;
+      setText(text);
+    });
+    return;
+  }
+  if (node) node.textContent = text;
+  setText(text);
+}
+
 export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocale }) {
   const copy = COPY[locale];
   const pageRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const composerRef = useRef<HTMLInputElement>(null);
+  const announcerRef = useRef<HTMLParagraphElement>(null);
+  const handoffRef = useRef<HTMLDivElement>(null);
   const generation = useRef(0);
+  const pendingTimers = useRef<number[]>([]);
   const lastQuestion = useRef("");
   const [armed, setArmed] = useState(false);
   const [phase, setPhase] = useState<SovereignSpriteState>("GREETING");
   const [live, setLive] = useState<Live>("idle");
-  const [announcement, setAnnouncement] = useState<string>(copy.idle);
+  const [announcement, setAnnouncement] = useState<string>("");
   const [draft, setDraft] = useState("");
   const [share, setShare] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -131,7 +155,63 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const [mobile, setMobile] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: copy.greeting }]);
   const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
+  const [pending, setPending] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const errorSpent = useRef(false);
+
+  function clearPendingTimers() {
+    for (const id of pendingTimers.current) window.clearTimeout(id);
+    pendingTimers.current = [];
+  }
+
+  function publishAnnouncement(text: string) {
+    writeAnnouncement(announcerRef.current, text, setAnnouncement);
+  }
+
+  function showAnswer(text: string, answer: { text: string; kind: string; needsReview: boolean }) {
+    clearPendingTimers();
+    setPending(false);
+    setTurns((current) => {
+      const next = current.slice();
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        const turn = next[index];
+        if (turn?.role === "you" && turn.text === text) {
+          next[index] = { ...turn, simulatedError: false };
+          break;
+        }
+      }
+      next.push({ role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview });
+      return next;
+    });
+    if (answer.kind === "handoff") {
+      setPhase("HANDOFF");
+      setLive("handoff");
+      publishAnnouncement(announcementText(locale, "handoff", answer.text));
+      return;
+    }
+    setPhase("IDLE");
+    setLive("answered");
+    publishAnnouncement(announcementText(locale, "answer", answer.text));
+  }
+
+  function failQuestion(text: string) {
+    clearPendingTimers();
+    setPending(false);
+    setTurns((current) => {
+      const next = current.slice();
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        const turn = next[index];
+        if (turn?.role === "you" && turn.text === text) {
+          next[index] = { ...turn, simulatedError: true };
+          break;
+        }
+      }
+      return next;
+    });
+    setPhase("ERROR");
+    setLive("error");
+    publishAnnouncement(announcementText(locale, "error"));
+  }
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -168,9 +248,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       const search = window.location.search;
       if (simErrorAtLoad(search)) {
         errorSpent.current = true;
+        setLoadError(true);
         setPhase("ERROR");
         setLive("error");
-        setAnnouncement(COPY[locale].unavailable);
+        writeAnnouncement(announcerRef.current, announcementText(locale, "error"), setAnnouncement);
       }
       composerRef.current?.focus({ preventScroll: true });
     };
@@ -197,30 +278,13 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }, [phase, armed, paused]);
 
   useEffect(() => {
-    if (phase !== "PROCESSING") return;
-    const cap = spriteRecord("PROCESSING").cap_ms;
-    if (!cap) return;
-    const gen = generation.current;
-    const timer = window.setTimeout(() => {
-      if (gen !== generation.current) return;
-      setTurns((current) => {
-        const next = current.slice();
-        for (let index = next.length - 1; index >= 0; index -= 1) {
-          const turn = next[index];
-          if (turn?.role === "you") {
-            next[index] = { ...turn, simulatedError: true };
-            break;
-          }
-        }
-        return next;
-      });
-      setPhase("ERROR");
-      setLive("error");
-      setAnnouncement(copy.unavailable);
-      composerRef.current?.focus({ preventScroll: true });
-    }, cap);
-    return () => window.clearTimeout(timer);
-  }, [phase, copy.unavailable]);
+    if (phase !== "HANDOFF") return;
+    handoffRef.current?.scrollIntoView({ block: "nearest" });
+  }, [phase, turns]);
+
+  useEffect(() => () => {
+    pendingTimers.current.forEach((id) => window.clearTimeout(id));
+  }, []);
 
   useEffect(() => {
     if (!mobile) return;
@@ -296,19 +360,15 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   function ask(question: string, resend = false) {
     const text = question.trim();
     if (!text) return;
+    clearPendingTimers();
     const flag = simFlag(window.location.search);
     const forceError = flag === "error" && !errorSpent.current;
     if (forceError) errorSpent.current = true;
     generation.current += 1;
+    const gen = generation.current;
     lastQuestion.current = text;
     setDraft("");
-    const pending = flag === "slow";
-    const answer = forceError || pending
-      ? null
-      : flag === "handoff"
-        ? sovereignAnswer("simulate handoff", locale)
-        : sovereignAnswer(text, locale);
-    const handoff = answer?.kind === "handoff";
+    setLoadError(false);
     setTurns((current) => {
       const next = current.slice();
       if (resend) {
@@ -322,38 +382,52 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       } else {
         next.push({ role: "you", text, simulatedError: forceError });
       }
-      if (answer) {
-        next.push({ role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview });
-      }
       return next;
     });
     if (forceError) {
+      setPending(false);
       setPhase("ERROR");
       setLive("error");
-      setAnnouncement(copy.unavailable);
-    } else if (pending) {
-      setPhase("PROCESSING");
-      setLive("processing");
-      setAnnouncement(copy.working);
-    } else if (handoff) {
-      setPhase("HANDOFF");
-      setLive("handoff");
-      setAnnouncement(copy.handoff);
-    } else {
-      setPhase("IDLE");
-      setLive("answered");
-      setAnnouncement(copy.answerReady);
+      publishAnnouncement(announcementText(locale, "error"));
+      return;
     }
-    // Handoff keeps focus on the composer. This repo has no STATE-SPEC to update.
-    composerRef.current?.focus({ preventScroll: true });
+    if (flag === "slow") {
+      setPending(true);
+      const show = window.setTimeout(() => {
+        if (generation.current !== gen) return;
+        setPhase("PROCESSING");
+        setLive("processing");
+      }, PROCESSING_SHOW_DELAY_MS);
+      const resolveAt = window.setTimeout(() => {
+        if (generation.current !== gen) return;
+        const answer = sovereignAnswer(text, locale);
+        showAnswer(text, answer);
+      }, SLOW_PENDING_MS);
+      const timeout = window.setTimeout(() => {
+        if (generation.current !== gen) return;
+        failQuestion(text);
+      }, PENDING_TIMEOUT_MS);
+      pendingTimers.current = [show, resolveAt, timeout];
+      return;
+    }
+    const answer = flag === "handoff" ? sovereignAnswer("simulate handoff", locale) : sovereignAnswer(text, locale);
+    showAnswer(text, answer);
   }
 
   const asked = turns.some((turn) => turn.role === "you");
   const showReview = sovereignNeedsReviewVisible();
+  const visibleStatus = liveText(locale, live, phase);
   let spriteIndex = -1;
-  turns.forEach((item, itemIndex) => {
-    if (phase === "ERROR" ? item.role === "you" : item.role === "sovereign") spriteIndex = itemIndex;
-  });
+  if (phase === "ERROR") {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "you" && item.simulatedError) spriteIndex = itemIndex;
+    });
+  }
+  if (spriteIndex < 0) {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "sovereign") spriteIndex = itemIndex;
+    });
+  }
 
   return (
     <div className={styles.page} ref={pageRef} data-sovereign-preview="">
@@ -370,6 +444,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           role={mobile ? "dialog" : undefined}
           aria-modal={mobile ? true : undefined}
         >
+          <p ref={announcerRef} className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{announcement}</p>
           <div className={styles.stripe} />
           <header
             className={styles.bar}
@@ -405,8 +480,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.thread}>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-          <p className={styles.status} role="status" aria-live="polite" data-live={live}><span className={styles.dot} aria-hidden="true" /><span className={styles.statusText}>{announcement}</span></p>
-          <ol className={styles.transcript}>
+          <p className={styles.status} data-live={live} aria-hidden="true"><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{phase === "PROCESSING" && activeSim === "slow" ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span>{locale === "pl" && (phase === "ERROR" || live === "error" || (phase === "PROCESSING" && activeSim === "slow")) ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+          <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
               return (
@@ -416,30 +491,31 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
                       <div>
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                        {turn.simulatedError ? <p className={styles.simChip}>{copy.simulatedChip}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                         <p>{turn.text}</p>
+                        {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
+                        {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
                         {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
+                        {loadError && index === 0 && turn.role === "sovereign" ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                       </div>
                     </div>
                   ) : (
                     <>
                       <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                      {turn.simulatedError ? <p className={styles.simChip}>{copy.simulatedChip}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                       {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                       <p>{turn.text}</p>
+                      {turn.simulatedError ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
+                      {turn.simulatedError ? <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button> : null}
                       {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
+                      {loadError && index === 0 && turn.role === "sovereign" ? <p className={styles.errorNote}><span className={styles.turnChip}>{copy.simulatedChip}</span><span>{copy.errorNote}</span>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p> : null}
                     </>
                   )}
                 </li>
               );
             })}
           </ol>
-          {phase === "ERROR" ? (
-            <button type="button" className={styles.retry} onClick={retryFromError}>{copy.retry}</button>
-          ) : null}
           {phase === "HANDOFF" ? (
-            <div className={styles.handoffCard} data-handoff-card>
+            <div className={styles.handoffCard} data-handoff-card ref={handoffRef}>
               <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
               <p>{copy.handoffMail}</p>
             </div>
@@ -452,12 +528,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             ))}
           </div>
           <label className={styles.optin}>
-            <input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
+            <input type="checkbox" checked={share} aria-describedby="ask-sovereign-optin-hint" onChange={(event) => setShare(event.target.checked)} />
             {copy.optin}
-            {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
           </label>
-          <p className={styles.muted}>{share ? copy.optinOn : copy.optinOff} {copy.optinStored}</p>
-          <p className={styles.muted}>{copy.attached}</p>
+          <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{copy.optinHint}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
           </div>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
             <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>

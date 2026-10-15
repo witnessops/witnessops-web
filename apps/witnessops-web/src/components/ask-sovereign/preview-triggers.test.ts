@@ -67,13 +67,29 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
   }
 });
 
-test("an explicit preview flag keeps sim triggers in a production preview build", () => {
+test("a production build ignores sim triggers even when the preview flag is set", () => {
   Object.assign(process.env, { NODE_ENV: "production" });
   process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
   try {
-    assert.equal(simFlag("?sim=error"), "error");
+    assert.equal(simFlag("?sim=error"), null);
+    assert.equal(simFlag("?sim=slow"), null);
+    assert.equal(simFlag("?sim=handoff"), null);
+    assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
+  } finally {
+    restore();
+  }
+});
+
+test("sim=slow never fires without the query param", () => {
+  Object.assign(process.env, { NODE_ENV: "development" });
+  process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
+  try {
+    assert.equal(simFlag(""), null);
+    assert.equal(simFlag("?"), null);
+    assert.equal(simFlag("?other=1"), null);
+    assert.equal(simFlag("?sim="), null);
+    assert.equal(simFlag("?at=slow"), null);
     assert.equal(simFlag("?sim=slow"), "slow");
-    assert.equal(simErrorAtLoad("?sim=error&at=load"), true);
   } finally {
     restore();
   }
@@ -83,5 +99,6 @@ test("preview trigger source makes no request and writes no storage", () => {
   const source = readFileSync(resolve(__dirname, "preview-triggers.ts"), "utf8");
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|sessionStorage|indexedDB/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
+  assert.match(source, /NODE_ENV !== "production"/);
   assert.doesNotMatch(source, /thinkingDurationMs|thinkingWaitMs|setTimeout/);
 });

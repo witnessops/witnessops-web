@@ -7,7 +7,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { AskSovereignPreview, liveText, pausedLoadPhase } from "./ask-sovereign-preview";
+import { AskSovereignPreview, announcementText, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS } from "./ask-sovereign-preview";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
 test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
@@ -20,27 +20,42 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
   assert.match(html, /Ask Sovereign/);
   assert.match(html, /Hello\. I can answer from the two published reviews/);
+  assert.match(html, /Include this transcript when I contact a person/);
   assert.match(html, /Preview, sends nothing/);
-  assert.match(html, /This choice is not sent and is not stored/);
+  assert.match(html, /aria-describedby="ask-sovereign-optin-hint"/);
+  assert.doesNotMatch(html, /This choice is not sent and is not stored/);
+  assert.doesNotMatch(html, /Nothing from this chat is attached/);
   assert.match(html, /Pause animation/);
   assert.equal(html.match(/role="status"/g)?.length, 1);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(html, /aria-atomic="true"/);
+  assert.match(html, /aria-hidden="true"/);
+  assert.doesNotMatch(source, /aria-live="assertive"/);
   assert.doesNotMatch(source, /key=\{status\}/);
-  assert.doesNotMatch(source, /Checking the published facts|Sprawdzam opublikowane/);
+  assert.match(source, /Checking the published facts/);
   assert.doesNotMatch(source, /revealWaitMs|thinkingDurationMs/);
   assert.match(source, /setPhase\("ERROR"\)/);
   assert.match(source, /ask\(text, true\)/);
+  assert.match(source, /scrollIntoView\(\{ block: "nearest" \}\)/);
+  assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 1);
+  assert.equal(PROCESSING_SHOW_DELAY_MS, 150);
+  assert.equal(PENDING_TIMEOUT_MS, 15_000);
+  assert.equal(SLOW_PENDING_MS, 6_000);
   assert.doesNotMatch(html, /Needs review/);
   assert.match(html, /€2,500 excl\. VAT/);
   assert.match(html, /€1,900 excl\. VAT/);
   assert.match(source, /Simulated response · preview/);
   assert.match(source, /simulatedChip: "Simulated"/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
-  assert.match(source, /simulatedChip: "Symulowane"/);
+  assert.match(source, /simulatedChip: "Symulacja"/);
+  assert.match(source, /Not answered\. Nothing was sent\./);
+  assert.match(source, /Bez odpowiedzi\. Nic nie zostało wysłane\./);
   assert.match(source, /PL copy pending native review/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
-  assert.match(source, /Unavailable/);
-  assert.match(source, /Asystent niedostępny/);
-  assert.match(source, /assetUrl\("IDLE"/);
+  assert.match(source, /sv-fallback/);
+  assert.match(source, /sovereign-idle-fallback\.css/);
+  assert.equal(announcementText("en", "answer", "Scope."), "Sovereign, simulated response: Scope.");
+  assert.equal(announcementText("pl", "error"), "Błąd symulowany. Pytanie nie dostało odpowiedzi. Możesz spróbować ponownie.");
   assert.doesNotMatch(html, /openai|gpt-|api\/ask/i);
 });
 
@@ -72,8 +87,14 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /\.status \{[^}]*min-height:\s*16px/);
   assert.match(css, /max-width:\s*419px\)\s*\{\s*\.status\s*\{\s*min-height:\s*32px/);
   assert.match(css, /@keyframes sv-status \{ from \{ opacity: 0\.6; \} to \{ opacity: 1; \} \}/);
-  assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*\.statusText \{ animation: none/);
+  assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*statusText \{ animation: none/);
   assert.match(css, /max-width:\s*419px\)[\s\S]*\.simChip \{ order: 3; flex: 0 0 calc\(100% - 44px\);/);
+  assert.match(css, /height:\s*20px/);
+  assert.match(css, /font-weight:\s*500/);
+  assert.match(css, /padding:\s*2px 6px/);
+  assert.match(css, /border:\s*1px solid var\(--color-surface-border\)/);
+  assert.match(css, /background:\s*var\(--color-surface-inset\)/);
+  assert.match(css, /color:\s*var\(--color-text-muted\)/);
 });
 
 test("liveText is non-empty for every phase in English and Polish", () => {
@@ -89,24 +110,32 @@ test("liveText is non-empty for every phase in English and Polish", () => {
   }
   assert.equal(liveText("en", "idle", "GREETING"), "Ready");
   assert.equal(liveText("pl", "idle", "GREETING"), "Gotowy do pytań");
-  assert.equal(liveText("en", "idle", "ERROR"), "Unavailable");
-  assert.equal(liveText("pl", "processing", "ERROR"), "Asystent niedostępny");
-  assert.equal(liveText("en", "processing", "PROCESSING"), "Working on this question");
-  assert.equal(liveText("en", "answered", "IDLE"), "Answer ready");
+  assert.equal(liveText("en", "idle", "ERROR"), "Not answered");
+  assert.equal(liveText("pl", "processing", "ERROR"), "Bez odpowiedzi");
+  assert.equal(liveText("en", "answered", "ERROR"), "Not answered");
+  assert.equal(liveText("en", "processing", "PROCESSING"), "Checking the published facts…");
+  assert.equal(liveText("pl", "processing", "PROCESSING"), "Sprawdzam opublikowane informacje…");
+  assert.equal(liveText("en", "answered", "IDLE"), "Ready");
+  assert.equal(liveText("en", "handoff", "HANDOFF"), "Needs a person");
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
-  assert.match(html, /role="status"[^>]*>[\s\S]*Ready/);
+  assert.match(html, /role="status" aria-live="polite" aria-atomic="true"><\/p>/);
+  assert.match(html, /aria-hidden="true"/);
+  assert.match(html, /Ready/);
   const polish = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
-  assert.match(polish, /role="status"[^>]*>[\s\S]*Gotowy do pytań/);
+  assert.match(polish, /Gotowy do pytań/);
+  assert.match(polish, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
+  assert.match(polish, /Podgląd, nic nie wysyła/);
 });
 
 test("Polish Ask Sovereign chrome stays under the review tag and keeps the locked retest line", () => {
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(html, /PL copy pending native review/);
   assert.match(html, /Rozmawiasz z asystentem AI/);
+  assert.match(html, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
   assert.match(html, /Podgląd, nic nie wysyła/);
-  assert.match(html, /Nie zaznaczono\./);
-  assert.match(html, /Ten wybór nie jest wysyłany i nie jest zapisywany/);
-  assert.match(html, /Nic z tej rozmowy nie jest dołączane/);
+  assert.doesNotMatch(html, /Nie zaznaczono\./);
+  assert.doesNotMatch(html, /Ten wybór nie jest wysyłany i nie jest zapisywany/);
+  assert.doesNotMatch(html, /Nic z tej rozmowy nie jest dołączane/);
   assert.match(html, /Zapytaj o te dwa przeglądy/);
   assert.match(html, /aria-label="Wyślij"/);
   assert.match(html, /Na co Sovereign może odpowiedzieć/);

@@ -40,11 +40,14 @@ test("a production build without a release GO renders the assistant absent", asy
     const html = renderToStaticMarkup(createElement(AskSovereignPreview));
     assert.doesNotMatch(html, /Needs review/);
     assert.doesNotMatch(html, /cloudflareinsights|witnessops-analytics/);
+    const { footerResourceLinks } = await import("../components/marketing/footer");
+    assert.equal(footerResourceLinks().some((link) => link.href === "/docs/assistant" || link.label === "Ask Sovereign"), false);
     const footer = readFileSync(resolve(__dirname, "../components/marketing/footer.tsx"), "utf8");
     const home = readFileSync(resolve(__dirname, "../components/marketing/buyer-homepage.tsx"), "utf8");
     const sitemap = readFileSync(resolve(__dirname, "../app/sitemap.ts"), "utf8");
     const beacon = readFileSync(resolve(__dirname, "../../public/witnessops-analytics.js"), "utf8");
-    assert.match(footer, /sovereignAssistantPublished\(\) \? \[\{ label: "Ask Sovereign"/);
+    assert.match(footer, /footerResourceLinks\(\)/);
+    assert.match(footer, /label: "Ask Sovereign"/);
     assert.match(home, /sovereignAssistantPublished\(\) \? <p className=\{styles\.askEntry\}/);
     assert.doesNotMatch(sitemap, /\/docs\/assistant/);
     assert.match(beacon, /\/docs\/assistant/);
