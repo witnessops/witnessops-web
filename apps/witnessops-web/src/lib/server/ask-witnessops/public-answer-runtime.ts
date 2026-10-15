@@ -90,7 +90,7 @@ const PUBLIC_SOURCES = [
     source_id: "public.reviewer",
     public_label: "Your reviewer",
     canonical_href: "https://witnessops.com/why-witnessops",
-    excerpt: "Karol Stefanski is the founder of WitnessOps and the reviewer. His public reviewer section states that he previously worked as an engineer at Waystone and Nostra. Clients work directly with Karol to agree the scope, review findings and understand next steps. No additional credentials, client history or availability are established here.",
+    excerpt: "The public reviewer section names the role Founder. Clients work directly with the founder to agree the scope, review findings and understand next steps. No personal name, employer history, additional credentials, client history or availability are established here.",
   },
 ].filter((source) => !isHistoricallyUnindexedPublicPath(source.canonical_href));
 

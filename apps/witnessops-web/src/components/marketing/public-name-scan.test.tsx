@@ -30,6 +30,14 @@ test("public why pages render no personal name or LinkedIn profile", () => {
   assert.match(html, />Założyciel</);
 });
 
+test("the public answer source does not name a person", () => {
+  const source = readFileSync(
+    resolve(__dirname, "../../lib/server/ask-witnessops/public-answer-runtime.ts"),
+    "utf8",
+  );
+  assert.doesNotMatch(source, NAME);
+});
+
 test("public route sources do not render the personal name", () => {
   const appRoot = resolve(__dirname, "../../app");
   const hits: string[] = [];
