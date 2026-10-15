@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function PolishDocsAssistantRoute() {
   return (
     <main id="main-content" tabIndex={-1} className="docs-page-enter">
-      <AskSovereignPreview />
+      <AskSovereignPreview locale="pl" />
     </main>
   );
 }

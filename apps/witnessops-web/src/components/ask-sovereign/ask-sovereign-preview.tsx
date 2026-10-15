@@ -1,133 +1,303 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
+import { revealWaitMs, stateDurationMs, thinkingWaitMs } from "./sovereign-playback";
+import { SovereignSprite } from "./sovereign-sprite";
+import type { SovereignSpriteState } from "./sovereign-playback";
 
-type Phase = "greet" | "idle" | "answering";
-type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; needsReview?: boolean };
-
-const SUGGESTIONS = [
-  "What does the Agent Action Security Review cover?",
-  "What does the External Attack Surface Review include, and what does it cost?",
-  "How do I start?",
-  "Where do I write?",
-] as const;
-
+const PAUSE_KEY = "wo-sovereign-paused";
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
 
-const GREETING = "Hello. I can answer from the two published reviews. Ask about scope, price or how to start.";
+const COPY = {
+  en: {
+    greeting: "Hello. I can answer from the two published reviews. Ask about scope, price or how to start.",
+    suggestions: [
+      "What does the Agent Action Security Review cover?",
+      "What does the External Attack Surface Review include, and what does it cost?",
+      "How do I start?",
+      "Where do I write?",
+    ],
+    idle: "Ready",
+    thinking: "Checking the published facts…",
+    answering: "Answering…",
+    answerReady: "Answer ready",
+    handoff: "Needs a person",
+    pause: "Pause animation",
+    play: "Play animation",
+    simulated: "Simulated response · preview",
+    you: "You",
+    close: "Close",
+    docs: "/docs",
+  },
+  pl: {
+    greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
+    suggestions: [
+      "Co obejmuje Agent Action Security Review?",
+      "Co obejmuje External Attack Surface Review i ile kosztuje?",
+      "Jak zacząć?",
+      "Gdzie napisać?",
+    ],
+    idle: "Gotowy do pytań",
+    thinking: "Sprawdzam opublikowane informacje…",
+    answering: "Odpowiadam…",
+    answerReady: "Odpowiedź gotowa",
+    handoff: "Potrzebna odpowiedź człowieka",
+    pause: "Zatrzymaj animację",
+    play: "Wznów animację",
+    simulated: "Podgląd: odpowiedź symulowana",
+    you: "Ty",
+    close: "Zamknij",
+    docs: "/pl/docs",
+  },
+} as const;
 
-function simulatedAnswer(question: string): { text: string; needsReview: boolean } {
-  const q = question.toLowerCase();
-  if (/retain|retention|data location|where (is|are) (the )?data|provider|openai|model|legal|disclosure|privacy law|gdpr/.test(q)) {
-    return {
-      text: "That topic is not in the published offer facts. A person has to confirm it.",
-      needsReview: true,
-    };
-  }
-  if (/external|attack surface|1,900|1900|retest/.test(q)) {
-    return {
-      text: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} covers one authorised internet-facing system. The price is ${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. One focused retest of reported findings is included within 30 calendar days of initial report handover. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}. This is not a penetration test.`,
-      needsReview: false,
-    };
-  }
-  if (/agent action|2,500|2500|consequential/.test(q)) {
-    return {
-      text: `${PUBLIC_AGENT_ACTION_OFFER.name.en} reviews one named consequential action. The price is ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}. Inspection and reconstruction only; the review does not execute the action or change production.`,
-      needsReview: false,
-    };
-  }
-  if (/start|write|email|contact|where/.test(q)) {
-    return {
-      text: `Write to engage@mail.witnessops.com or use the contact page. An enquiry does not authorise collection or start a review. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
-      needsReview: false,
-    };
-  }
-  return {
-    text: "I can only answer from the published offer facts, and this goes beyond them. A person can answer it.",
-    needsReview: false,
-  };
+type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; needsReview?: boolean };
+type Live = "idle" | "thinking" | "answering" | "answerReady" | "handoff";
+
+function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
+  if (phase === "greet") return "";
+  const copy = COPY[locale];
+  if (live === "thinking") return copy.thinking;
+  if (live === "answering") return copy.answering;
+  if (live === "answerReady") return copy.answerReady;
+  if (live === "handoff") return copy.handoff;
+  return copy.idle;
 }
 
-function Sprite({ phase }: { phase: Phase }) {
-  const frame = phase === "answering" ? "answering" : phase === "greet" ? "greet" : "idle";
-  return (
-    <span className={styles.sprite} data-sovereign-phase={phase}>
-      <Image className={styles.light} src={`/ask-sovereign/${frame}-light.webp`} alt="" width={96} height={104} />
-      <Image className={styles.dark} src={`/ask-sovereign/${frame}-dark.webp`} alt="" width={96} height={104} />
-    </span>
-  );
-}
-
-export function AskSovereignPreview() {
-  const [phase, setPhase] = useState<Phase>("greet");
+export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocale }) {
+  const copy = COPY[locale];
+  const pageRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const generation = useRef(0);
+  const [armed, setArmed] = useState(false);
+  const [phase, setPhase] = useState<SovereignSpriteState>("greet");
+  const [live, setLive] = useState<Live>("idle");
   const [draft, setDraft] = useState("");
   const [share, setShare] = useState(false);
-  const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: GREETING }]);
+  const [paused, setPaused] = useState(false);
+  const [reduced, setReduced] = useState(false);
+  const [mobile, setMobile] = useState(false);
+  const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: copy.greeting }]);
 
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      setPhase((current) => (current === "greet" ? "idle" : current));
-    }, 1400);
-    return () => window.clearTimeout(id);
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const narrow = window.matchMedia("(max-width: 767px)");
+    const sync = () => {
+      setReduced(motion.matches);
+      setMobile(narrow.matches);
+    };
+    sync();
+    motion.addEventListener("change", sync);
+    narrow.addEventListener("change", sync);
+    try {
+      setPaused(window.sessionStorage.getItem(PAUSE_KEY) === "1");
+    } catch {
+      setPaused(false);
+    }
+    return () => {
+      motion.removeEventListener("change", sync);
+      narrow.removeEventListener("change", sync);
+    };
   }, []);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      setArmed(true);
+      composerRef.current?.focus();
+    };
+    panel.addEventListener("animationend", start);
+    const fallback = window.setTimeout(start, 260);
+    return () => {
+      panel.removeEventListener("animationend", start);
+      window.clearTimeout(fallback);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "greet" || !armed || paused) return;
+    const timer = window.setTimeout(() => setPhase("idle"), stateDurationMs("greet"));
+    return () => window.clearTimeout(timer);
+  }, [phase, armed, paused]);
+
+  useEffect(() => {
+    if (!mobile) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const sheet = panel;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const viewport = window.visualViewport;
+    const syncViewport = () => {
+      if (!viewport) return;
+      sheet.style.height = `${viewport.height}px`;
+    };
+    syncViewport();
+    viewport?.addEventListener("resize", syncViewport);
+    function trap(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        window.location.assign(copy.docs);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [...sheet.querySelectorAll<HTMLElement>("a[href], button, textarea, input, select")].filter(
+        (element) => !element.hasAttribute("disabled"),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const behind = [...(pageRef.current?.querySelectorAll<HTMLElement>("[data-sheet-behind]") ?? [])];
+    behind.forEach((element) => {
+      element.inert = true;
+    });
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.removeEventListener("keydown", trap);
+      viewport?.removeEventListener("resize", syncViewport);
+      sheet.style.height = "";
+      document.body.style.overflow = previousOverflow;
+      behind.forEach((element) => {
+        element.inert = false;
+      });
+      previous?.focus();
+    };
+  }, [mobile, copy.docs]);
+
+  function togglePaused() {
+    setPaused((current) => {
+      const next = !current;
+      try {
+        window.sessionStorage.setItem(PAUSE_KEY, next ? "1" : "0");
+      } catch {
+        /* The pause flag is session-only. A blocked store still pauses this view. */
+      }
+      return next;
+    });
+  }
 
   function ask(question: string) {
     const text = question.trim();
     if (!text) return;
+    const gen = ++generation.current;
     setDraft("");
-    setPhase("answering");
+    setPhase("thinking");
+    setLive("thinking");
     setTurns((current) => [...current, { role: "you", text }]);
-    const answer = simulatedAnswer(text);
+    const answer = sovereignAnswer(text, locale);
+    const handoff = answer.kind === "handoff";
     window.setTimeout(() => {
-      setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
-      setPhase("idle");
-    }, 700);
+      if (gen !== generation.current) return;
+      if (handoff) {
+        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
+        setPhase(window.matchMedia("(max-width: 767px)").matches ? "handoff-mobile" : "handoff-desktop");
+        setLive("handoff");
+        panelRef.current?.querySelector<HTMLAnchorElement>("[data-handoff-cta]")?.focus();
+        return;
+      }
+      setPhase("answering");
+      setLive("answering");
+      window.setTimeout(() => {
+        if (gen !== generation.current) return;
+        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
+        setLive("answerReady");
+        window.setTimeout(() => {
+          if (gen !== generation.current) return;
+          setPhase("idle");
+          setLive("idle");
+        }, 400);
+      }, revealWaitMs(answer.text));
+    }, Math.max(400, thinkingWaitMs(Math.random())));
   }
 
+  const status = liveText(locale, live, phase);
+
   return (
-    <div className={styles.page}>
-      <p className={styles.back}><Link href="/docs">Docs</Link></p>
-      <p className={styles.kicker}>AI assistant</p>
-      <h1>Ask Sovereign</h1>
-      <p className={styles.lead}>Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.</p>
+    <div className={styles.page} ref={pageRef}>
+      <p className={styles.back} data-sheet-behind><Link href={copy.docs}>Docs</Link></p>
+      <p className={styles.kicker} data-sheet-behind>AI assistant</p>
+      <h1 data-sheet-behind>Ask Sovereign</h1>
+      <p className={styles.lead} data-sheet-behind>Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.</p>
+      <div className={styles.scrim} />
       <div className={styles.layout}>
-        <section className={styles.panel} aria-label="Ask Sovereign">
+        <section
+          ref={panelRef}
+          className={styles.panel}
+          aria-labelledby="ask-sovereign-title"
+          role={mobile ? "dialog" : undefined}
+          aria-modal={mobile ? true : undefined}
+        >
           <div className={styles.stripe} />
-          <header className={styles.panelHead}>
-            <Sprite phase={phase} />
+          <header
+            className={styles.panelHead}
+            onPointerDown={(event) => {
+              if (!mobile) return;
+              const startY = event.clientY;
+              const start = performance.now();
+              function end(up: PointerEvent) {
+                const distance = up.clientY - startY;
+                const velocity = distance / Math.max(1, performance.now() - start);
+                if (distance > 96 || velocity > 0.5) window.location.assign(copy.docs);
+                window.removeEventListener("pointerup", end);
+              }
+              window.addEventListener("pointerup", end);
+            }}
+          >
+            <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
             <div>
-              <p className={styles.name}>Sovereign <span>AI assistant</span></p>
+              <p className={styles.name} id="ask-sovereign-title">Sovereign <span>AI assistant</span></p>
               <p className={styles.muted}>Answers from published offer facts only</p>
+              <p className={styles.status} role="status" aria-live="polite">{status}</p>
+              {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
             </div>
-            <p className={styles.status}>{phase === "answering" ? "Answering" : phase === "greet" ? "Greeting" : "Here"}</p>
+            <div className={styles.controls}>
+              <button type="button" className={styles.pause} aria-pressed={paused} onClick={togglePaused}>
+                {paused ? copy.play : copy.pause}
+              </button>
+              <a className={styles.close} href={copy.docs}>{copy.close}</a>
+            </div>
           </header>
           <p className={styles.disclaimer}>You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
           <ol className={styles.transcript}>
             {turns.map((turn, index) => (
               <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
-                <span>{turn.role === "you" ? "You" : "Sovereign"}</span>
+                <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                 <p>{turn.text}</p>
-                {turn.simulated ? <p className={styles.sim}>Simulated response · preview</p> : null}
                 {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
               </li>
             ))}
           </ol>
           <div className={styles.chips}>
-            {SUGGESTIONS.map((suggestion) => (
+            {copy.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
             ))}
           </div>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
             <label htmlFor="ask-sovereign-draft">Ask about the two reviews</label>
-            <textarea id="ask-sovereign-draft" value={draft} rows={3} onChange={(event) => setDraft(event.target.value)} />
+            <textarea id="ask-sovereign-draft" ref={composerRef} value={draft} rows={3} onChange={(event) => setDraft(event.target.value)} />
             <button type="submit">Send</button>
           </form>
           <label className={styles.optin}>
@@ -135,9 +305,9 @@ export function AskSovereignPreview() {
             Include this transcript when I contact a person
           </label>
           <p className={styles.muted}>{share ? "Selected on this screen only." : "Not selected."} This choice is not sent and is not stored.</p>
-          <p className={styles.muted}><Link href="/contact">Contact a person</Link>. Nothing from this chat is attached.</p>
+          <p className={styles.muted}><Link href={locale === "pl" ? "/pl/contact" : "/contact"} data-handoff-cta>Contact a person</Link>. Nothing from this chat is attached.</p>
         </section>
-        <aside className={styles.rail}>
+        <aside className={styles.rail} data-sheet-behind>
           <h2>What Sovereign can answer</h2>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name.en}: {PUBLIC_AGENT_ACTION_OFFER.price.en}</li>

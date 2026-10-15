@@ -1,0 +1,638 @@
+{
+ "version": "2026-10-15-preview",
+ "source": "sovereign-sprites-source-v2.png (sheet 2)",
+ "themes": [
+  "light",
+  "dark"
+ ],
+ "dark_outline": {
+  "color": "#C9C5BC",
+  "px_at_1x": 2,
+  "px_at_2x": 4
+ },
+ "frame": {
+  "@1x": [
+   94,
+   102
+  ],
+  "@2x": [
+   188,
+   204
+  ],
+  "css_size_px": [
+   94,
+   102
+  ],
+  "baseline_y_1x": 99,
+  "anchor": "bottom-centre"
+ },
+ "layout": "horizontal strip, unique frames left to right, no padding; frame i at x = i*frame_width",
+ "naming": {
+  "strip": "sovereign-{state}-{theme}@{1|2}x.{png|webp}",
+  "still": "sovereign-{state}-still-{theme}@{1|2}x.{png|webp}",
+  "icon": "sovereign-icon-{size}-{theme}@{1|2}x.{png|webp}"
+ },
+ "states": {
+  "idle": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-idle-light@1x.webp",
+      "png": "sovereign-idle-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-idle-light@2x.webp",
+      "png": "sovereign-idle-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-idle-dark@1x.webp",
+      "png": "sovereign-idle-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-idle-dark@2x.webp",
+      "png": "sovereign-idle-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 3,
+   "frames_src": [
+    "r0c0",
+    "r0c1",
+    "r0c2"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r0c0",
+     "ms": 2400
+    },
+    {
+     "frame": 1,
+     "src": "r0c1",
+     "ms": 100
+    },
+    {
+     "frame": 2,
+     "src": "r0c2",
+     "ms": 120
+    },
+    {
+     "frame": 1,
+     "src": "r0c1",
+     "ms": 100
+    }
+   ],
+   "loop_count": 3,
+   "cycle_ms": 2720,
+   "hold_frame": 0,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-idle-still-light@1x.webp",
+      "png": "sovereign-idle-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-idle-still-light@2x.webp",
+      "png": "sovereign-idle-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-idle-still-dark@1x.webp",
+      "png": "sovereign-idle-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-idle-still-dark@2x.webp",
+      "png": "sovereign-idle-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "blink loop x3, then hold frame 0"
+  },
+  "greet": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-greet-light@1x.webp",
+      "png": "sovereign-greet-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-greet-light@2x.webp",
+      "png": "sovereign-greet-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-greet-dark@1x.webp",
+      "png": "sovereign-greet-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-greet-dark@2x.webp",
+      "png": "sovereign-greet-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 4,
+   "frames_src": [
+    "r3c0",
+    "r3c1",
+    "r3c2",
+    "r3c3"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r3c0",
+     "ms": 120
+    },
+    {
+     "frame": 1,
+     "src": "r3c1",
+     "ms": 160
+    },
+    {
+     "frame": 2,
+     "src": "r3c2",
+     "ms": 200
+    },
+    {
+     "frame": 1,
+     "src": "r3c1",
+     "ms": 160
+    },
+    {
+     "frame": 2,
+     "src": "r3c2",
+     "ms": 200
+    },
+    {
+     "frame": 3,
+     "src": "r3c3",
+     "ms": 240
+    }
+   ],
+   "loop_count": 1,
+   "cycle_ms": 1080,
+   "hold_frame": 3,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-greet-still-light@1x.webp",
+      "png": "sovereign-greet-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-greet-still-light@2x.webp",
+      "png": "sovereign-greet-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-greet-still-dark@1x.webp",
+      "png": "sovereign-greet-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-greet-still-dark@2x.webp",
+      "png": "sovereign-greet-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "wave once on first open of the session, then -> idle"
+  },
+  "thinking": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-thinking-light@1x.webp",
+      "png": "sovereign-thinking-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-thinking-light@2x.webp",
+      "png": "sovereign-thinking-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-thinking-dark@1x.webp",
+      "png": "sovereign-thinking-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-thinking-dark@2x.webp",
+      "png": "sovereign-thinking-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 2,
+   "frames_src": [
+    "r7c3",
+    "r7c0"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r7c3",
+     "ms": 1200
+    },
+    {
+     "frame": 1,
+     "src": "r7c0",
+     "ms": 400
+    }
+   ],
+   "loop_count": 0,
+   "cycle_ms": 1600,
+   "cap_ms": 5000,
+   "hold_frame": 0,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-thinking-still-light@1x.webp",
+      "png": "sovereign-thinking-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-thinking-still-light@2x.webp",
+      "png": "sovereign-thinking-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-thinking-still-dark@1x.webp",
+      "png": "sovereign-thinking-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-thinking-still-dark@2x.webp",
+      "png": "sovereign-thinking-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "hand to chin; loops until the answer starts, hard cap 5000 ms, then hold frame 0"
+  },
+  "answering": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-answering-light@1x.webp",
+      "png": "sovereign-answering-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-answering-light@2x.webp",
+      "png": "sovereign-answering-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-answering-dark@1x.webp",
+      "png": "sovereign-answering-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-answering-dark@2x.webp",
+      "png": "sovereign-answering-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 5,
+   "frames_src": [
+    "r7c1",
+    "r7c2",
+    "r7c4",
+    "r7c5",
+    "r7c0"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r7c1",
+     "ms": 140
+    },
+    {
+     "frame": 1,
+     "src": "r7c2",
+     "ms": 140
+    },
+    {
+     "frame": 2,
+     "src": "r7c4",
+     "ms": 140
+    },
+    {
+     "frame": 3,
+     "src": "r7c5",
+     "ms": 140
+    }
+   ],
+   "loop_count": 0,
+   "cycle_ms": 560,
+   "cap_ms": 5000,
+   "hold_frame": 4,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-answering-still-light@1x.webp",
+      "png": "sovereign-answering-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-answering-still-light@2x.webp",
+      "png": "sovereign-answering-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-answering-still-dark@1x.webp",
+      "png": "sovereign-answering-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-answering-still-dark@2x.webp",
+      "png": "sovereign-answering-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "typing loop, hard cap 5000 ms, then hold the still frame until the answer is done"
+  },
+  "handoff-desktop": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-handoff-desktop-light@1x.webp",
+      "png": "sovereign-handoff-desktop-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-desktop-light@2x.webp",
+      "png": "sovereign-handoff-desktop-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-handoff-desktop-dark@1x.webp",
+      "png": "sovereign-handoff-desktop-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-desktop-dark@2x.webp",
+      "png": "sovereign-handoff-desktop-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 3,
+   "frames_src": [
+    "r8c2",
+    "r9c4",
+    "r9c5"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r8c2",
+     "ms": 400
+    },
+    {
+     "frame": 1,
+     "src": "r9c4",
+     "ms": 160
+    },
+    {
+     "frame": 2,
+     "src": "r9c5",
+     "ms": 0
+    }
+   ],
+   "loop_count": 1,
+   "cycle_ms": 560,
+   "hold_frame": 2,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-handoff-desktop-still-light@1x.webp",
+      "png": "sovereign-handoff-desktop-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-desktop-still-light@2x.webp",
+      "png": "sovereign-handoff-desktop-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-handoff-desktop-still-dark@1x.webp",
+      "png": "sovereign-handoff-desktop-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-desktop-still-dark@2x.webp",
+      "png": "sovereign-handoff-desktop-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "tilt, then arrow down-right (towards the contact CTA); hold"
+  },
+  "handoff-mobile": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-handoff-mobile-light@1x.webp",
+      "png": "sovereign-handoff-mobile-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-mobile-light@2x.webp",
+      "png": "sovereign-handoff-mobile-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-handoff-mobile-dark@1x.webp",
+      "png": "sovereign-handoff-mobile-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-mobile-dark@2x.webp",
+      "png": "sovereign-handoff-mobile-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 2,
+   "frames_src": [
+    "r8c2",
+    "r10c0"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r8c2",
+     "ms": 400
+    },
+    {
+     "frame": 1,
+     "src": "r10c0",
+     "ms": 0
+    }
+   ],
+   "loop_count": 1,
+   "cycle_ms": 400,
+   "hold_frame": 1,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-handoff-mobile-still-light@1x.webp",
+      "png": "sovereign-handoff-mobile-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-mobile-still-light@2x.webp",
+      "png": "sovereign-handoff-mobile-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-handoff-mobile-still-dark@1x.webp",
+      "png": "sovereign-handoff-mobile-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-handoff-mobile-still-dark@2x.webp",
+      "png": "sovereign-handoff-mobile-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "tilt, then arrow down (towards the bottom CTA); hold"
+  },
+  "error": {
+   "file": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-error-light@1x.webp",
+      "png": "sovereign-error-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-error-light@2x.webp",
+      "png": "sovereign-error-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-error-dark@1x.webp",
+      "png": "sovereign-error-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-error-dark@2x.webp",
+      "png": "sovereign-error-dark@2x.png"
+     }
+    }
+   },
+   "frame_width": 94,
+   "frame_height": 102,
+   "frame_count": 3,
+   "frames_src": [
+    "r5c2",
+    "r5c3",
+    "r5c4"
+   ],
+   "sequence": [
+    {
+     "frame": 0,
+     "src": "r5c2",
+     "ms": 200
+    },
+    {
+     "frame": 1,
+     "src": "r5c3",
+     "ms": 200
+    },
+    {
+     "frame": 2,
+     "src": "r5c4",
+     "ms": 0
+    }
+   ],
+   "loop_count": 1,
+   "cycle_ms": 400,
+   "hold_frame": 2,
+   "reduced_motion_still": {
+    "light": {
+     "@1x": {
+      "webp": "sovereign-error-still-light@1x.webp",
+      "png": "sovereign-error-still-light@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-error-still-light@2x.webp",
+      "png": "sovereign-error-still-light@2x.png"
+     }
+    },
+    "dark": {
+     "@1x": {
+      "webp": "sovereign-error-still-dark@1x.webp",
+      "png": "sovereign-error-still-dark@1x.png"
+     },
+     "@2x": {
+      "webp": "sovereign-error-still-dark@2x.webp",
+      "png": "sovereign-error-still-dark@2x.png"
+     }
+    }
+   },
+   "note": "slump to the '> <' face; hold until retry"
+  }
+ },
+ "icons": {
+  "24": {
+   "light": {
+    "@1x": {
+     "webp": "sovereign-icon-24-light@1x.webp",
+     "png": "sovereign-icon-24-light@1x.png"
+    },
+    "@2x": {
+     "webp": "sovereign-icon-24-light@2x.webp",
+     "png": "sovereign-icon-24-light@2x.png"
+    }
+   },
+   "dark": {
+    "@1x": {
+     "webp": "sovereign-icon-24-dark@1x.webp",
+     "png": "sovereign-icon-24-dark@1x.png"
+    },
+    "@2x": {
+     "webp": "sovereign-icon-24-dark@2x.webp",
+     "png": "sovereign-icon-24-dark@2x.png"
+    }
+   }
+  },
+  "32": {
+   "light": {
+    "@1x": {
+     "webp": "sovereign-icon-32-light@1x.webp",
+     "png": "sovereign-icon-32-light@1x.png"
+    },
+    "@2x": {
+     "webp": "sovereign-icon-32-light@2x.webp",
+     "png": "sovereign-icon-32-light@2x.png"
+    }
+   },
+   "dark": {
+    "@1x": {
+     "webp": "sovereign-icon-32-dark@1x.webp",
+     "png": "sovereign-icon-32-dark@1x.png"
+    },
+    "@2x": {
+     "webp": "sovereign-icon-32-dark@2x.webp",
+     "png": "sovereign-icon-32-dark@2x.png"
+    }
+   }
+  },
+  "note": "static sheet-2 r4c0 glyph; dark has a 1 px (@1x) #C9C5BC outline"
+ },
+ "baseline_shift_1x": {
+  "r5c2": 4,
+  "r5c3": 2,
+  "r5c4": 1,
+  "r7c0": 1,
+  "r7c1": 1,
+  "r7c3": 1,
+  "r7c4": 1,
+  "r7c5": 1,
+  "r8c2": 1
+ }
+}

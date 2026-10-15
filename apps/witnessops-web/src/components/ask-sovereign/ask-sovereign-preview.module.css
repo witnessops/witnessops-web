@@ -1,40 +1,121 @@
+.sprite[data-state="idle"] { background-image: image-set(url("/ask-sovereign/sovereign-idle-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-idle-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-idle-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-idle-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="idle"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-idle-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-idle-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-idle-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-idle-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="idle"] { background-image: image-set(url("/ask-sovereign/sovereign-idle-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-idle-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-idle-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-idle-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="idle"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-idle-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-idle-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-idle-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-idle-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="greet"] { background-image: image-set(url("/ask-sovereign/sovereign-greet-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-greet-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-greet-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-greet-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="greet"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-greet-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-greet-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-greet-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-greet-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="greet"] { background-image: image-set(url("/ask-sovereign/sovereign-greet-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-greet-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-greet-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-greet-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="greet"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-greet-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-greet-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-greet-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-greet-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="thinking"] { background-image: image-set(url("/ask-sovereign/sovereign-thinking-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-thinking-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-thinking-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-thinking-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="thinking"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-thinking-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-thinking-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-thinking-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-thinking-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="thinking"] { background-image: image-set(url("/ask-sovereign/sovereign-thinking-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-thinking-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-thinking-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-thinking-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="thinking"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-thinking-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-thinking-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-thinking-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-thinking-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="answering"] { background-image: image-set(url("/ask-sovereign/sovereign-answering-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-answering-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-answering-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-answering-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="answering"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-answering-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-answering-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-answering-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-answering-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="answering"] { background-image: image-set(url("/ask-sovereign/sovereign-answering-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-answering-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-answering-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-answering-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="answering"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-answering-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-answering-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-answering-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-answering-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="handoff-desktop"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-desktop-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-desktop-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-desktop-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-desktop-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="handoff-desktop"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-desktop-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-desktop-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-desktop-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-desktop-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="handoff-desktop"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-desktop-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-desktop-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-desktop-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-desktop-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="handoff-desktop"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-desktop-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-desktop-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-desktop-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-desktop-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="handoff-mobile"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-mobile-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-mobile-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-mobile-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-mobile-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="handoff-mobile"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-mobile-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-mobile-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-mobile-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-mobile-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="handoff-mobile"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-mobile-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-mobile-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-mobile-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-mobile-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="handoff-mobile"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-handoff-mobile-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-handoff-mobile-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-handoff-mobile-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-handoff-mobile-still-dark@2x.png") type("image/png") 2x); }
+.sprite[data-state="error"] { background-image: image-set(url("/ask-sovereign/sovereign-error-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-error-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-error-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-error-light@2x.png") type("image/png") 2x); }
+.sprite[data-state="error"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-error-still-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-error-still-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-error-still-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-error-still-light@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="error"] { background-image: image-set(url("/ask-sovereign/sovereign-error-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-error-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-error-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-error-dark@2x.png") type("image/png") 2x); }
+:global(html[data-theme="dark"]) .sprite[data-state="error"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-error-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-error-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-error-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-error-still-dark@2x.png") type("image/png") 2x); }
+
 .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 64px; color: var(--color-text-primary); }
 .page h1 { margin: 8px 0 12px; font-family: var(--font-display); font-size: clamp(40px, 6vw, 56px); font-weight: 300; }
 .lead, .muted { color: var(--color-text-secondary); }
-.kicker, .status { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand-accent); }
+.kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand-accent); }
 .back { margin-bottom: 24px; }
 .layout { display: grid; gap: 24px; margin-top: 24px; }
 @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.8fr); } }
-.panel { position: relative; overflow: hidden; border: 1px solid var(--color-surface-border); border-radius: var(--radius-lg); background: var(--color-surface-card); }
-:global(html[data-theme="dark"]) .panel { outline: 1px solid var(--color-text-secondary); outline-offset: -1px; }
+.scrim { display: none; }
+.panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-surface-border);
+  border-radius: 8px;
+  background: var(--color-surface-card);
+  animation: sv-rise 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 .stripe { height: 4px; background: var(--color-brand-accent); }
 .panelHead { display: flex; gap: 12px; align-items: center; padding: 16px; }
-.sprite { position: relative; width: 72px; height: 78px; flex: none; animation: sovereign-in 700ms ease; }
-.sprite img { width: 72px; height: auto; }
-.dark { display: none; }
-:global(html[data-theme="dark"]) .light { display: none; }
-:global(html[data-theme="dark"]) .dark { display: block; }
+.sprite {
+  width: 94px;
+  height: 102px;
+  flex: none;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: auto 102px;
+  image-rendering: pixelated;
+  transition: opacity 100ms linear;
+}
+.sprite[data-still="1"], .sprite[data-hold="1"] { background-size: 94px 102px; animation: none; }
+.sprite[data-hold="1"]:not([data-still="1"]) { background-size: auto 102px; }
+.sprite[data-state="answering"]:not([data-still="1"]):not([data-hold="1"]) { animation: sv-type 560ms steps(4) infinite; }
 .name { font-weight: 500; }
-.name span, .sim, .tag { margin-left: 8px; border-radius: var(--radius-sm); border: 1px solid var(--color-surface-border); padding: 2px 6px; font-size: 12px; }
-.sim { display: inline-block; margin: 8px 0 0; }
-.tag, .review span { color: var(--color-brand-accent); }
+.status { margin: 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand-accent); }
+.reviewTag { margin: 4px 0 0; font-size: 12px; color: var(--color-text-secondary); }
+.controls { display: flex; gap: 8px; margin-left: auto; }
+.pause, .close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  text-decoration: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-surface-border);
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: 8px 10px;
+}
+.panel :focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 4px; }
 .disclaimer { margin: 0; padding: 12px 16px; background: var(--color-surface-inset); font-size: 14px; }
-.transcript { display: grid; gap: 16px; margin: 0; padding: 16px; list-style: none; }
+.transcript { display: grid; gap: 16px; margin: 0; padding: 16px; list-style: none; max-height: 360px; overflow: auto; }
 .you p, .sovereign p { margin: 4px 0 0; }
-.you { justify-self: end; max-width: min(100%, 460px); border-radius: var(--radius-lg); background: var(--color-surface-inset); padding: 12px 14px; }
+.you { justify-self: end; max-width: min(100%, 460px); border-radius: 8px; background: var(--color-surface-inset); padding: 12px 14px; }
+.sim { display: block; margin: 0 0 8px; color: var(--color-text-secondary); font-size: 13px; }
+.tag, .review span { color: var(--color-brand-accent); }
+.name span, .tag { margin-left: 8px; border-radius: 2px; border: 1px solid var(--color-surface-border); padding: 2px 6px; font-size: 12px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
-.chips button, .composer button { min-height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--color-surface-border); background: transparent; color: var(--color-text-primary); padding: 8px 12px; }
+.chips button, .composer button { min-height: 44px; border-radius: 4px; border: 1px solid var(--color-surface-border); background: transparent; color: var(--color-text-primary); padding: 8px 12px; }
 .composer { display: grid; gap: 8px; padding: 0 16px 16px; }
-.composer textarea { width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--color-surface-border); background: var(--color-surface-inset); color: var(--color-text-primary); padding: 12px; }
+.composer textarea { width: 100%; border-radius: 4px; border: 1px solid var(--color-surface-border); background: var(--color-surface-inset); color: var(--color-text-primary); padding: 12px; }
 .optin { display: flex; gap: 8px; align-items: flex-start; padding: 0 16px; font-size: 14px; }
 .panel .muted { padding: 8px 16px 16px; font-size: 13px; }
-.rail { border-radius: var(--radius-lg); border: 1px solid var(--color-surface-border); padding: 16px; }
+.rail { border-radius: 8px; border: 1px solid var(--color-surface-border); padding: 16px; }
 .rail h2 { margin: 16px 0 8px; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
 .rail ul, .review { padding-left: 18px; }
 .review { list-style: none; padding-left: 0; }
 .review li { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid var(--color-surface-border); }
-@keyframes sovereign-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (max-width: 640px) {
-  .page { padding-inline: 16px; }
+@keyframes sv-type { from { background-position: 0 0; } to { background-position: -376px 0; } }
+@keyframes sv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes sv-sheet { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 767px) {
+  .scrim { display: block; position: fixed; inset: 0; z-index: 70; background: rgb(0 0 0 / 0.48); animation: sv-fade 240ms linear both; }
+  .panel {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    height: 100dvh;
+    border-radius: 0;
+    animation: sv-sheet 240ms cubic-bezier(0.2, 0, 0, 1) both;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow: auto;
+  }
+  .pause, .close { min-width: 44px; min-height: 44px; }
   .you { max-width: 100%; }
+  .page { padding-inline: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sprite { animation: none !important; transition: opacity 100ms linear; }
+  .pause { display: none; }
+  .panel, .scrim { animation: sv-fade 100ms linear both; transform: none; }
 }
