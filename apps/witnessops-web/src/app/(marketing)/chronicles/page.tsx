@@ -34,7 +34,7 @@ export default function ChroniclesIndexPage() {
       </div>
       <p className="text-sm text-text-muted"><Link href="/research" className="underline-offset-4 hover:underline">Research</Link> / The Sovereign Chronicles</p>
       <p className="mt-8 font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Series · Fiction</p>
-      <h1 className="mt-3 text-[40px] leading-[44px] tracking-[-0.045em] text-text-primary sm:text-[72px] sm:leading-[76px]" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>The Sovereign Chronicles</h1>
+      <h1 data-chronicle-title className="mt-3 text-[40px] leading-[44px] tracking-[-0.045em] text-text-primary sm:text-[72px] sm:leading-[76px]" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>The Sovereign Chronicles</h1>
       <p className="mt-4 max-w-2xl text-text-secondary">{CHRONICLE_SERIES_INTRO}</p>
       <ol className="mt-10 divide-y divide-surface-border border-y border-surface-border">
         {rows.map((row) => (

@@ -11,7 +11,7 @@ export function WithdrawnOfferNotice({ polish }: { polish: boolean }) {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
         WitnessOps
       </p>
-      <h1 className="mt-4 text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+      <h1 className="mt-4 font-sans text-[48px] font-light leading-[56px] tracking-[-0.03em] text-text-primary">
         {copy.title}
       </h1>
       <p className="mt-6 max-w-2xl text-lg leading-8 text-text-secondary">{copy.body}</p>
