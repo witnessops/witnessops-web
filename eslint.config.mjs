@@ -15,6 +15,7 @@ export default [
       "**/.next/**",
       "**/.next-dev/**",
       "**/.next-browser/**",
+      "**/.next-preview/**",
       "**/node_modules/**",
       "**/dist/**",
       "**/coverage/**",

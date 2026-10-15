@@ -126,6 +126,8 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
             className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-0 rounded-xs text-text-primary transition-colors"
           >
+            {/* Canonical SVG master. next/image would re-encode it. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
               alt="WitnessOps"
@@ -133,6 +135,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
               height={420}
               className="wo-lockup wo-lockup--black"
             />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
               alt=""

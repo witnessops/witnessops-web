@@ -178,6 +178,7 @@ export function Footer({
               aria-label={isPolishSurface ? "WitnessOps: strona główna" : "WitnessOps home"}
               className="mb-2 inline-flex min-h-11 items-center gap-0 rounded-xs"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
                 alt="WitnessOps"
@@ -185,6 +186,7 @@ export function Footer({
                 height={420}
                 className="wo-lockup wo-lockup--footer wo-lockup--black"
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
                 alt=""

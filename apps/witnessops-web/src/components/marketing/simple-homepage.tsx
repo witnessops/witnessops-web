@@ -46,7 +46,9 @@ export function SimpleHomepage() {
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
       {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
         <div className={styles.watermark} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
         </div>
       ) : null}

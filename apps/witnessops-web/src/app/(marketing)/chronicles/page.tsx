@@ -30,7 +30,9 @@ export default function ChroniclesIndexPage() {
     <main id="main-content" tabIndex={-1} className="relative mx-auto max-w-3xl px-6 py-16">
       {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
         <div className="pointer-events-none absolute right-6 top-16" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
         </div>
       ) : null}
