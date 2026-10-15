@@ -7,6 +7,10 @@ const files = [
   "src/app/public-presentation.css",
   "src/app/public-type.css",
   "src/components/marketing/simple-homepage.module.css",
+  "src/components/marketing/buyer-homepage.module.css",
+  "src/components/marketing/review-offer.module.css",
+  "src/components/ask-sovereign/ask-sovereign-preview.module.css",
+  "src/app/footer-pages.module.css",
 ];
 
 const allowedSpacing = new Set([

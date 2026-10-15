@@ -204,3 +204,17 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
     }
   }
 });
+
+test("Ask Sovereign type classes stay on the locked roles", () => {
+  const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
+  assert.match(html, /class="[^"]*reviewTag[^"]*"/);
+  assert.match(html, /<h1[^>]*>Ask Sovereign<\/h1>/);
+  assert.doesNotMatch(html, /data-display-title/);
+  assert.match(html, /<h3[^>]*>Na co Sovereign może odpowiedzieć/);
+  const css = readFileSync(resolve(__dirname, "ask-sovereign-preview.module.css"), "utf8");
+  assert.match(css, /\.reviewTag \{[^}]*padding-inline: 16px/);
+  assert.match(css, /\.name \{[^}]*var\(--type-h4-size\)/);
+  assert.match(css, /\.status \{[^}]*var\(--type-mono-caps-size\)/);
+  assert.match(css, /\.composer input \{[^}]*var\(--type-body-size\)/);
+  assert.match(css, /\.page h1 \{[^}]*var\(--type-h1-size\)/);
+});
