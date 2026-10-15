@@ -356,7 +356,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <h2>What Sovereign can answer</h2>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name.en}: {PUBLIC_AGENT_ACTION_OFFER.price.en}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: {EXTERNAL_ATTACK_SURFACE_OFFER.price.en}, with one focused retest</li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: {EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. One focused retest of reported findings within 30 calendar days of initial report handover.</li>
             <li>How to start, and where to write</li>
           </ul>
           <h2>About this AI</h2>

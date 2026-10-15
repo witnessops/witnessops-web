@@ -195,7 +195,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Manually checked findings with evidence and clear priorities for what to fix first.",
       "An executive report and technical appendix with remediation guidance and explicit unknowns.",
       "Scope and stop-condition record, evidence manifest and artifact hashes; signed receipt and offline verifier where supported.",
-      "One focused retest within 30 calendar days of initial report handover, covering agreed reported findings.",
+      "One focused retest of reported findings within 30 calendar days of initial report handover.",
     ],
     steps: [
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
