@@ -78,7 +78,7 @@ export function ReviewOffer({ locale, offer }: { locale: BuyerLocale; offer: "ag
           </ol>
           <div className={styles.cross}>
             <p className={styles.eyebrow}>{copy.otherReview}</p>
-            <p className={styles.crossLead}>
+            <p className={styles.crosslead}>
               <Link href={REVIEW_PATH[offer === "agent" ? "external" : "agent"][locale]}>
                 {other.name[locale]} · {other.price[locale]} <InlineArrow />
               </Link>

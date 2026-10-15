@@ -29,8 +29,16 @@
 .content strong { font-weight: 500; }
 .content ul, .content ol { display: grid; gap: 12px; margin: 0; padding-left: 20px; }
 .cross { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--color-surface-border); }
-.crossLead { margin: 0; max-width: none; font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); }
-.crossLead a { display: inline-flex; align-items: center; gap: 0.35em; color: var(--color-text-primary); }
+/* The local name must contain "lead" so the public body-lg rule matches and the body-long override does not. */
+.crosslead { margin: 0; max-width: none; font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); }
+:global(body:has(nav[data-public-presentation="quiet"]) #main-content) p.crosslead {
+  margin: 0;
+  max-width: none;
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-lh);
+  font-weight: 400;
+}
+.crosslead a { display: inline-flex; align-items: center; gap: 0.35em; color: var(--color-text-primary); }
 .price { margin: 0 0 12px; color: var(--color-text-primary); font-size: var(--type-h3-size); font-weight: 400; line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-variant-numeric: tabular-nums lining-nums; }
 .rail p:not(.price) { font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .cta { font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; }
