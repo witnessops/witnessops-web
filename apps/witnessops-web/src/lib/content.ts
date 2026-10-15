@@ -85,11 +85,11 @@ function toDocument(
   section: ContentSection,
   fileName: string,
 ): ContentDocument {
-  const filePath = path.join(CONTENT_ROOT, section, fileName);
+  const filePath = path.join(CONTENT_ROOT, section, `${fileName}.mdx`);
   const raw = fs.readFileSync(filePath, "utf-8");
   const stats = fs.statSync(filePath);
   const { frontmatter, body } = parseFrontmatter(raw);
-  const slug = fileName.replace(/\.mdx$/, "");
+  const slug = path.basename(fileName);
   const validatedFrontmatter = parseContentFrontmatter(frontmatter, section);
 
   return {
@@ -101,7 +101,7 @@ function toDocument(
     draft: validatedFrontmatter.draft,
     body: stripLeadingTitle(body),
     section,
-    sourcePath: path.posix.join("content/witnessops", section, fileName),
+    sourcePath: path.posix.join("content/witnessops", section, `${fileName}.mdx`),
     lastModified: stats.mtime.toISOString(),
     trustBoundaryVariant: validatedFrontmatter.trust_boundary_variant,
   };
@@ -125,7 +125,7 @@ function loadCollection(section: ContentSection): ContentDocument[] {
 
   return sortDocuments(
     fileNames
-      .map((fileName) => toDocument(section, fileName))
+      .map((fileName) => toDocument(section, fileName.replace(/\.mdx$/, "")))
       .filter((document) => !document.draft),
   );
 }
@@ -140,7 +140,7 @@ function loadDocument(
     return null;
   }
 
-  const document = toDocument(section, `${slug}.mdx`);
+  const document = toDocument(section, slug);
   return document.draft ? null : document;
 }
 
@@ -160,10 +160,18 @@ export function loadSupportPage(slug: string): ContentDocument | null {
   return loadDocument("support", slug);
 }
 
+export type LegalLocale = "en" | "pl";
+
 export function loadLegalIndex(): ContentDocument[] {
   return loadCollection("legal");
 }
 
-export function loadLegalPage(slug: string): ContentDocument | null {
+export function loadLegalPage(
+  slug: string,
+  locale: LegalLocale = "en",
+): ContentDocument | null {
+  if (locale === "pl") {
+    return loadDocument("legal", `pl/${slug}`);
+  }
   return loadDocument("legal", slug);
 }

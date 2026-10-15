@@ -1,0 +1,100 @@
+---
+title: "Polityka prywatności"
+description: "Polityka prywatności WitnessOps."
+section: "legal"
+order: 2
+nav_label: "Polityka prywatności"
+draft: false
+trust_boundary_variant: "legal"
+---
+
+# Polityka prywatności
+
+Ostatnia aktualizacja: 21 września 2026
+
+## Zakres strony
+
+WitnessOps jest publiczną powierzchnią informacyjną i weryfikacyjną dla nadzorowanych operacji bezpieczeństwa, podpisanych zapisów i jawnych granic zaufania.
+
+Większość artefaktów dowodowych udostępnianych przez WitnessOps to publiczne materiały weryfikacyjne, przygotowane do odczytu, pobrania i niezależnego sprawdzenia.
+
+## Dane, które otrzymujemy
+
+Jeśli kontaktujesz się z WitnessOps, otrzymujemy informacje, które sam podajesz, w tym imię i nazwisko, adres e-mail, organizację i treść wiadomości.
+
+Gdy zadasz pytanie przez Ask WitnessOps, pytanie trafia na serwer WitnessOps. W przypadku pytań kwalifikujących się do odpowiedzi może zostać wysłane do OpenAI Responses API z wyszukiwaniem plików ograniczonym do zatwierdzonych publicznych materiałów WitnessOps. Żądanie do dostawcy ustawia `store: false`; samo to nie oznacza braku retencji danych, a retencja po stronie dostawcy może nadal obowiązywać.
+
+Dziennik zdarzeń dostawcy na poziomie aplikacji nie zawiera treści pytań ani odpowiedzi. Zachowuje wyłącznie zgrubne metadane żądania potrzebne do diagnostyki: identyfikator żądania u dostawcy, status odpowiedzi, czas trwania i klasę błędu.
+
+Nie umieszczaj w pytaniu Ask WitnessOps sekretów, danych uwierzytelniających, informacji poufnych, danych klientów lub systemów ani danych osobowych.
+
+Przekazanie do kontaktu nie kopiuje automatycznie pytania z Ask WitnessOps. Dane kontaktowe i notatkę, którą zdecydujesz się wpisać, wysyłasz dopiero wtedy, gdy świadomie wyślesz formularz kontaktowy.
+
+Po potwierdzeniu skrzynki dla zgłoszenia przeglądu przeglądarka może trzymać zawężony zapis zgłoszenia w session storage. Ten zapis zawiera wyłącznie referencję zgłoszenia, czas potwierdzenia, język, stały rodzaj zgłoszenia i ścieżkę źródłową. Nie zawiera adresu e-mail, notatki, kodu weryfikacyjnego, identyfikatorów wydania i wątku, identyfikatorów oceny, adresu URL ani ceny i podlega cyklowi życia session storage przeglądarki.
+
+Systemy operacyjne mogą też tworzyć minimalne dzienniki serwera i dostarczenia, potrzebne do utrzymania dostępności i bezpieczeństwa.
+
+Publiczne trasy z limitem żądań mogą trzymać krótkotrwały, lokalny dla instancji licznik żądań powiązany z adresem IP klienta. Licznik przestaje wpływać na dostęp po oknie żądania i jest usuwany przez okresowe czyszczenie albo restart procesu.
+
+## Analityka publicznej strony
+
+Publiczne strony informacyjne używają Cloudflare Web Analytics do pomiaru wczytań dokumentów i wydajności stron, także dla odwiedzin z UE. Sygnał wysyła pomiary do Cloudflare. Ta integracja nie wysyła pól formularza kontaktowego ani wiadomości Ask WitnessOps jako zdarzeń analitycznych.
+
+Sygnał nie jest ładowany na stronach administracyjnych, w callbackach uwierzytelniania, na prywatnych trasach dostarczenia i oceny ani w przeglądarkowych narzędziach check i proofpack. Hosty lokalne i podglądowe są wyłączone. Strony z aktywnym sygnałem używają nawigacji całym dokumentem, żeby jego nasłuch nie przechodził na strony prywatne. Automatyczne śledzenie tras po stronie klienta jest wyłączone. Te pomiary nie ustalają kliknięć nawigacji, tożsamości pojedynczego odwiedzającego ani czasu spędzonego na stronie.
+
+Opis pomiaru po stronie dostawcy: [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/about/).
+
+## Jak dane są używane
+
+Przesłane informacje są używane wyłącznie do:
+
+- odpowiadania na zapytania i zgłoszenia wsparcia
+- obsługi zgłoszeń podatności
+- udzielania ograniczonej pomocy Ask WitnessOps na podstawie zatwierdzonych materiałów publicznych
+- prowadzenia i zabezpieczania usługi
+- ograniczania nadużyć albo nietypowo wysokiej liczby żądań
+
+WitnessOps nie traktuje opublikowanych artefaktów weryfikacyjnych jako prywatnych albo poufnych zgłoszeń.
+
+## Artefakty weryfikacyjne
+
+Artefakty dowodowe publikowane przez WitnessOps są publiczne z założenia.
+
+Nie umieszczaj w artefakcie przeznaczonym do publikacji, weryfikacji albo dalszego rozpowszechniania:
+
+- sekretów
+- danych uwierzytelniających
+- danych osobowych
+
+## Przechowywanie
+
+### Uwierzytelnione przestrzenie robocze, w tym Early Access
+
+Uwierzytelniona przestrzeń robocza przechowuje mapowania tożsamości konta, członkostwo w przestrzeni, zapisane nazwy hostów i ukończone źródła obserwacji. Te zapisane obserwacje są prywatnymi danymi przestrzeni, a nie publicznymi artefaktami weryfikacyjnymi. Nie są podpisane. Otwarcie publicznego wyniku `/check` nie importuje go automatycznie do przestrzeni.
+
+Zdarzenia produktowe pierwszej strony zapisują ograniczone nazwy działań, identyfikatory użytkownika, przestrzeni, zasobu i uruchomienia, identyfikatory sprawdzeń tam, gdzie mają zastosowanie, znaczniki czasu i wersję zdarzenia aplikacji. Nie obejmują nazw hostów, surowych dowodów, treści źródeł ani komentarzy zwrotnych. Zdarzenia pomagają rozumieć aktywację i ponowne użycie; są zapisem zachowania, a nie dowodem bezpieczeństwa. Zdarzenie eksportu PDF zapisuje żądanie wydruku, a nie potwierdzenie, że plik został zapisany.
+
+Opcjonalna informacja zwrotna o wyniku i porównaniu przechowuje przesłaną odpowiedź i komentarz osobno od ukończonych dowodów. Nie umieszczaj w niej sekretów ani informacji poufnych. Upoważnieni operatorzy WitnessOps mogą ją przejrzeć, żeby ulepszać produkt.
+
+Dla danych uwierzytelnionego Early Access nie ma jeszcze automatycznego okresu przechowywania ani zadania usuwania. Wylogowanie ich nie usuwa, a ponowne uruchomienie nie nadpisuje wcześniejszych ukończonych źródeł. Skontaktuj się z WitnessOps w sprawie dostępu albo usunięcia; prośba o usunięcie nie jest obietnicą automatycznego ani natychmiastowego skasowania.
+
+Obsługiwane importy z Linuksa zachowują też przesłane pliki źródłowe i ich kontekst weryfikacji. Udostępnienie raportu tworzy osobną, stałą kopię wybranej treści raportu. Cofnięcie udostępnienia blokuje późniejszy dostęp przez ten link; nie cofa treści już zobaczonej, pobranej albo dostarczonej odbiorcy.
+
+### Prośba o usunięcie
+
+Użyj [wsparcia](/pl/support#contact), żeby poprosić o usunięcie. Wskaż konto albo przestrzeń oraz to, czy chcesz usunąć zapisane wyniki, cofnąć udostępnione linki, czy zamknąć konto. Do pierwszego zgłoszenia nie dołączaj dowodów źródłowych, haseł, danych uwierzytelniających ani dokumentów tożsamości. Zanim podejmiemy działanie, możemy potrzebować potwierdzenia Twojej tożsamości i upoważnienia do wspólnej przestrzeni.
+
+Usunięcie wymaga wskazanego zakresu. Usunięcie zapisanej treści przestrzeni różni się od zamknięcia konta, usunięcia zapisów u dostawcy tożsamości albo usunięcia kopii w kopiach zapasowych, dziennikach, korespondencji i u zewnętrznych dostawców. Historyczne zapisy uzgodnień i zarezerwowane nazwy raportowe mogą pozostać. Odpowiedź o zakończeniu musi wskazać, co usunięto, co pozostaje i które kopie albo wymagania przechowywania są nierozstrzygnięte; samo potwierdzenie przyjęcia prośby albo cofnięcie linku nie jest potwierdzeniem usunięcia.
+
+Do czasu potwierdzenia właściwego zakresu usunięcia i ustaleń przechowywania używaj niepoufnych danych ewaluacyjnych. Podany okres przechowywania nie jest dowodem, że automatyczne wygasanie działa.
+
+### Strona publiczna i korespondencja
+
+Przesłane informacje są przechowywane tylko tak długo, jak jest to potrzebne do:
+
+- korespondencji
+- integralności operacyjnej
+- bezpieczeństwa
+- obowiązków prawnych
+
+Krótkotrwałe liczniki ograniczające nadużycia są przechowywane tylko przez aktywne okno limitu żądań i okres cyklicznego czyszczenia.

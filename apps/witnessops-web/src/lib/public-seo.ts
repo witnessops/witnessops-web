@@ -26,6 +26,10 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/verify", pl: "/pl/verify" },
   { en: "/why-witnessops", pl: "/pl/why-witnessops" },
   { en: "/company", pl: "/pl/company" },
+  { en: "/privacy", pl: "/pl/privacy" },
+  { en: "/terms", pl: "/pl/terms" },
+  { en: "/security", pl: "/pl/security" },
+  { en: "/media-kit", pl: "/pl/media-kit" },
   {
     en: "/catalog/offsec-local-audit",
     pl: "/pl/catalog/offsec-local-audit",

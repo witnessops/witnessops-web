@@ -1,19 +1,34 @@
 import styles from "../footer-pages.module.css";
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { SectionShell } from "@/components/shared/section-shell";
+import {
+  COMPANY_DETAILS,
+  COMPANY_DETAILS_HREF,
+  type CompanyDetailsLocale,
+} from "@/lib/company-details";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
   publicContactMailto,
 } from "@/lib/public-contact";
-import { canonicalUrl } from "@/lib/public-seo";
+import { canonicalUrl, languageAlternates } from "@/lib/public-seo";
+
+export type MediaKitLocale = CompanyDetailsLocale;
+
+function tx(locale: MediaKitLocale, en: string, pl: string): string {
+  return locale === "pl" ? pl : en;
+}
 
 export const metadata: Metadata = {
   title: "Media kit",
   description:
     "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
-  alternates: { canonical: canonicalUrl("/media-kit") },
+  alternates: languageAlternates("/media-kit", {
+    en: "/media-kit",
+    pl: "/pl/media-kit",
+  }),
   openGraph: {
     title: "Media kit | WitnessOps",
     description:
@@ -248,33 +263,45 @@ const brandAssets: BrandAsset[] = [
 ];
 
 const identityColours = [
-  { name: "Canonical logo black", value: "#0B0D10", swatchClass: "bg-[#0B0D10]" },
-  { name: "Reversed logo white", value: "#FFFFFF", swatchClass: "bg-white" },
+  { name: { en: "Canonical logo black", pl: "Kanoniczna czerń logo" }, value: "#0B0D10", swatchClass: "bg-[#0B0D10]" },
+  { name: { en: "Reversed logo white", pl: "Odwrócona biel logo" }, value: "#FFFFFF", swatchClass: "bg-white" },
 ] as const;
 
 const interfaceColours = [
-  { name: "Charcoal", value: "#0B0C0B", swatchClass: "bg-[#0B0C0B]" },
-  { name: "Muted brass", value: "#B89B62", swatchClass: "bg-[#B89B62]" },
-  { name: "Warm ivory", value: "#F5F1E8", swatchClass: "bg-[#F5F1E8]" },
+  { name: { en: "Charcoal", pl: "Węgiel" }, value: "#0B0C0B", swatchClass: "bg-[#0B0C0B]" },
+  { name: { en: "Muted brass", pl: "Przygaszony mosiądz" }, value: "#B89B62", swatchClass: "bg-[#B89B62]" },
+  { name: { en: "Warm ivory", pl: "Ciepła kość słoniowa" }, value: "#F5F1E8", swatchClass: "bg-[#F5F1E8]" },
 ] as const;
 
 const screenshots = [
   {
-    title: "WitnessOps homepage — desktop",
-    description: "The desktop homepage hero and primary public navigation.",
+    title: { en: "WitnessOps homepage — desktop", pl: "Strona główna WitnessOps — komputer" },
+    description: {
+      en: "The desktop homepage hero and primary public navigation.",
+      pl: "Nagłówek strony głównej i główna nawigacja publiczna na komputerze.",
+    },
     src: "/media-kit/witnessops-homepage-desktop.png",
-    alt: "WitnessOps desktop homepage with the headline Start with a question.",
+    alt: {
+      en: "WitnessOps desktop homepage with the headline Proof other people can check.",
+      pl: "Strona główna WitnessOps na komputerze z nagłówkiem Proof other people can check.",
+    },
     width: 1506,
-    height: 738,
+    height: 900,
     fileName: "witnessops-homepage-desktop.png",
   },
   {
-    title: "WitnessOps homepage — mobile",
-    description: "The homepage hero and compact navigation on a narrow screen.",
+    title: { en: "WitnessOps homepage — mobile", pl: "Strona główna WitnessOps — telefon" },
+    description: {
+      en: "The homepage hero and compact navigation on a narrow screen.",
+      pl: "Nagłówek strony głównej i zwarta nawigacja na wąskim ekranie.",
+    },
     src: "/media-kit/witnessops-homepage-mobile.png",
-    alt: "WitnessOps mobile homepage with compact header and the headline Start with a question.",
+    alt: {
+      en: "WitnessOps mobile homepage with compact header and the headline Proof other people can check.",
+      pl: "Strona główna WitnessOps na telefonie ze zwartym nagłówkiem i tytułem Proof other people can check.",
+    },
     width: 390,
-    height: 598,
+    height: 844,
     fileName: "witnessops-homepage-mobile.png",
   },
 ] as const;
@@ -289,7 +316,60 @@ const sectionTitleClassName =
 const cardClassName =
   "min-w-0 rounded-md border border-surface-border bg-surface-card p-5 sm:p-6";
 
-function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downloads">) {
+const ASSET_PL: Record<string, { title: string; description: string; alt: string }> = {
+  "Primary stacked logo — black": {
+    title: "Główne logo piętrowe — czarne",
+    description: "Główny układ na okładki i duże, wyśrodkowane użycia.",
+    alt: "Czarne główne logo piętrowe WitnessOps",
+  },
+  "Primary stacked logo — white": {
+    title: "Główne logo piętrowe — białe",
+    description: "Odwrócony główny układ na ciemne okładki i duże użycia.",
+    alt: "Białe główne logo piętrowe WitnessOps",
+  },
+  "Horizontal logo — black": {
+    title: "Logo poziome — czarne",
+    description: "Na ciepłej bieli albo innym jasnym, spokojnym tle.",
+    alt: "Czarne poziome logo WitnessOps",
+  },
+  "Horizontal logo — white": {
+    title: "Logo poziome — białe",
+    description: "Na czerni albo innym ciemnym tle z wyraźnym kontrastem.",
+    alt: "Białe poziome logo WitnessOps",
+  },
+  "W mark — black": {
+    title: "Znak W — czarny",
+    description: "Zwarty znak na jasne tła i małe użycia.",
+    alt: "Czarny geometryczny znak W WitnessOps",
+  },
+  "W mark — white": {
+    title: "Znak W — biały",
+    description: "Zwarty znak na ciemne tła i małe użycia.",
+    alt: "Biały geometryczny znak W WitnessOps",
+  },
+  "App icon — dark": {
+    title: "Ikona aplikacji — ciemna",
+    description: "Kwadratowa ciemna ikona do aplikacji, konta i awatarów.",
+    alt: "Ciemna kwadratowa ikona aplikacji WitnessOps",
+  },
+  "App icon — light": {
+    title: "Ikona aplikacji — jasna",
+    description: "Kwadratowa jasna ikona do jasnych kont i awatarów.",
+    alt: "Jasna kwadratowa ikona aplikacji WitnessOps",
+  },
+};
+
+function assetCopy(locale: MediaKitLocale, asset: BrandAsset) {
+  return locale === "pl"
+    ? ASSET_PL[asset.title]
+    : { title: asset.title, description: asset.description, alt: asset.previewAlt };
+}
+
+function AssetDownloads({
+  locale,
+  title,
+  downloads,
+}: Pick<BrandAsset, "downloads"> & { locale: MediaKitLocale; title: string }) {
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {downloads.map((asset) => (
@@ -297,11 +377,15 @@ function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downlo
           key={asset.fileName}
           href={asset.href}
           download={asset.fileName}
-          aria-label={`Download ${title} as ${asset.format}, ${asset.dimensions}`}
+          aria-label={tx(
+            locale,
+            `Download ${title} as ${asset.format}, ${asset.dimensions}`,
+            `Pobierz ${title} jako ${asset.format}, ${asset.dimensions}`,
+          )}
           className={secondaryDownloadClassName}
         >
           <span className="break-words">
-            Download {asset.format} · {asset.dimensions}
+            {tx(locale, "Download", "Pobierz")} {asset.format} · {asset.dimensions}
           </span>
         </a>
       ))}
@@ -309,20 +393,50 @@ function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downlo
   );
 }
 
-export default function MediaKitPage() {
+export default function MediaKitPage({
+  locale = "en",
+}: {
+  locale?: MediaKitLocale;
+}) {
+  const company = COMPANY_DETAILS[locale];
   return (
     <main id="main-content" tabIndex={-1} className={`public-brand-page ${styles.mediaPage}`} data-page="media-kit">
       <SectionShell spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[760px]">
-          <p className={eyebrowClassName}>WitnessOps resources</p>
+          <p className={eyebrowClassName}>{tx(locale, "WitnessOps resources", "Materiały WitnessOps")}</p>
           <h1 className="mt-5 max-w-[10ch] text-6xl font-bold leading-[0.94] tracking-[-0.06em] text-text-primary sm:text-7xl lg:text-8xl">
-            Media kit
+            {tx(locale, "Media kit", "Zestaw dla mediów")}
           </h1>
           <p className="mt-7 max-w-[42rem] text-base leading-8 text-text-secondary sm:text-lg">
-            The exact Logo System v1 package, browser-ready exports, public interface
-            colours, product screenshots and company copy for accurate references
-            to WitnessOps.
+            {tx(
+              locale,
+              "The exact Logo System v1 package, browser-ready exports, public interface colours, product screenshots and company copy for accurate references to WitnessOps.",
+              "Dokładny pakiet Logo System v1, pliki gotowe do przeglądarki, kolory interfejsu, zrzuty produktu i opis spółki do wiernych odniesień do WitnessOps.",
+            )}
           </p>
+          <div className={`${cardClassName} mt-8`} data-media-kit-names="">
+            <h2 className="text-xl font-semibold text-text-primary">
+              {tx(locale, "Names", "Nazwy")}
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-text-secondary">
+              {tx(locale, "Brand name:", "Nazwa marki:")} WitnessOps
+            </p>
+            <p className="mt-2 text-sm leading-7 text-text-secondary">
+              {tx(locale, "Legal name:", "Nazwa prawna:")} {company.legalName}
+            </p>
+            <p className="mt-3 text-sm leading-7 text-text-secondary">
+              {tx(
+                locale,
+                "Logo System v1 is the current brand master. Write the brand as WitnessOps. Use the legal name for company references. Do not redraw the mark or replace the supplied wordmark.",
+                "Logo System v1 jest aktualnym wzorcem marki. Nazwę marki zapisuj jako WitnessOps. Nazwy prawnej używaj w odniesieniach do spółki. Nie przerysowuj znaku i nie zastępuj dostarczonego wordmarku.",
+              )}
+            </p>
+            <p className="mt-3 text-sm leading-7">
+              <Link href={COMPANY_DETAILS_HREF[locale]} className="inline-flex min-h-11 items-center text-brand-accent underline underline-offset-4">
+                {company.heading}
+              </Link>
+            </p>
+          </div>
         </div>
         <article
           data-ui-proof-id="logo-system-package"
@@ -330,23 +444,27 @@ export default function MediaKitPage() {
         >
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <p className={eyebrowClassName}>Canonical package · {LOGO_SYSTEM.version}</p>
+              <p className={eyebrowClassName}>{tx(locale, "Canonical package", "Pakiet kanoniczny")} · {LOGO_SYSTEM.version}</p>
               <span className="rounded-full border border-brand-accent/50 bg-brand-accent/10 px-3 py-1 font-mono text-[0.64rem] font-semibold uppercase tracking-[0.08em] text-brand-accent">
-                {LOGO_SYSTEM.status}
+                {tx(locale, LOGO_SYSTEM.status, "Kanoniczny zestaw produkcyjny")}
               </span>
             </div>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-text-primary sm:text-3xl">
               WitnessOps Logo System v1
             </h2>
             <p className="mt-4 max-w-[680px] text-sm leading-7 text-text-secondary">
-              Forty-six manifest payloads with forty-seven checksum entries: SVG
-              masters, PNG exports, app icons, favicons, clearspace and construction
-              references, plus the canonical geometry source. Use this package
-              instead of redrawing the mark.
+              {tx(
+                locale,
+                "Forty-six manifest payloads with forty-seven checksum entries: SVG masters, PNG exports, app icons, favicons, clearspace and construction references, plus the canonical geometry source. Use this package instead of redrawing the mark.",
+                "Czterdzieści sześć plików w manifeście i czterdzieści siedem wpisów sum kontrolnych: wzorce SVG, eksporty PNG, ikony aplikacji, favicony, odstęp i siatka konstrukcyjna oraz kanoniczne źródło geometrii. Użyj tego pakietu zamiast przerysowywać znak.",
+              )}
             </p>
             <p className="mt-3 max-w-[680px] text-xs leading-6 text-text-muted">
-              The ZIP is the byte-for-byte package authority. Loose files below are
-              browser-ready render copies of the supplied assets.
+              {tx(
+                locale,
+                "The ZIP is the byte-for-byte package authority. Loose files below are browser-ready render copies of the supplied assets.",
+                "ZIP jest wzorcem pakietu bajt w bajt. Luźne pliki poniżej to kopie tych zasobów gotowe do przeglądarki.",
+              )}
             </p>
             <p className="mt-4 font-mono text-xs leading-6 text-text-muted">
               ZIP · {LOGO_SYSTEM.bytes}
@@ -356,9 +474,9 @@ export default function MediaKitPage() {
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-sm">
               {[
-                [LOGO_SYSTEM.manifestHref, "Package manifest"],
-                [LOGO_SYSTEM.checksumsHref, "File checksums"],
-                [LOGO_SYSTEM.readmeHref, "Usage README"],
+                [LOGO_SYSTEM.manifestHref, tx(locale, "Package manifest", "Manifest pakietu")],
+                [LOGO_SYSTEM.checksumsHref, tx(locale, "File checksums", "Sumy plików")],
+                [LOGO_SYSTEM.readmeHref, tx(locale, "Usage README", "README użycia")],
               ].map(([href, label]) => (
                 <a
                   key={href}
@@ -373,39 +491,50 @@ export default function MediaKitPage() {
           <a
             href={LOGO_SYSTEM.href}
             download={LOGO_SYSTEM.fileName}
-            aria-label={`Download complete WitnessOps Logo System v1 ZIP, ${LOGO_SYSTEM.bytes}`}
+            aria-label={tx(
+              locale,
+              `Download complete WitnessOps Logo System v1 ZIP, ${LOGO_SYSTEM.bytes}`,
+              `Pobierz kompletny ZIP WitnessOps Logo System v1, ${LOGO_SYSTEM.bytes}`,
+            )}
             className={downloadClassName}
           >
-            Download complete ZIP
+            {tx(locale, "Download complete ZIP", "Pobierz kompletny ZIP")}
           </a>
         </article>
       </SectionShell>
 
       <SectionShell id="about" spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[760px]">
-          <p className={eyebrowClassName}>About WitnessOps</p>
-          <h2 className={sectionTitleClassName}>One-sentence description</h2>
+          <p className={eyebrowClassName}>{tx(locale, "About WitnessOps", "O WitnessOps")}</p>
+          <h2 className={sectionTitleClassName}>{tx(locale, "One-sentence description", "Opis jednym zdaniem")}</h2>
           <p className="mt-7 text-lg leading-8 text-text-secondary">
-            WitnessOps delivers bounded security and operational reviews with
-            evidence references, clear limits and a practical handover.
+            {tx(
+              locale,
+              "WitnessOps delivers bounded security and operational reviews with evidence references, clear limits and a practical handover.",
+              "WitnessOps prowadzi ograniczone przeglądy bezpieczeństwa i operacyjne, z odniesieniami do dowodów, jasnymi granicami i praktycznym przekazaniem.",
+            )}
           </p>
         </div>
       </SectionShell>
 
       <SectionShell id="logos" spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[720px]">
-          <p className={eyebrowClassName}>Logos and marks</p>
+          <p className={eyebrowClassName}>{tx(locale, "Logos and marks", "Logotypy i znaki")}</p>
           <h2 className={sectionTitleClassName}>
-            Use the supplied masters, not a redraw
+            {tx(locale, "Use the supplied masters, not a redraw", "Użyj dostarczonych wzorców, nie przerysowania")}
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            Choose the black or white version that keeps clear contrast. Preserve
-            the exact proportions, central gate and clearspace; do not add effects
-            or unrelated symbols.
+            {tx(
+              locale,
+              "Choose the black or white version that keeps clear contrast. Preserve the exact proportions, central gate and clearspace; do not add effects or unrelated symbols.",
+              "Wybierz wersję czarną albo białą, która zachowuje wyraźny kontrast. Zachowaj dokładne proporcje, środkową bramę i odstęp; nie dodawaj efektów ani obcych symboli.",
+            )}
           </p>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {brandAssets.map((asset) => (
+          {brandAssets.map((asset) => {
+            const copy = assetCopy(locale, asset);
+            return (
             <article key={asset.title} className={cardClassName}>
               <div
                 className={`flex min-h-48 items-center justify-center overflow-hidden rounded-md border border-surface-border p-6 ${
@@ -414,24 +543,29 @@ export default function MediaKitPage() {
               >
                 <Image
                   src={asset.previewSrc}
-                  alt={asset.previewAlt}
+                  alt={copy.alt}
                   width={asset.previewWidth}
                   height={asset.previewHeight}
                   sizes="(max-width: 767px) 80vw, 520px"
                   className="max-h-44 w-auto max-w-full object-contain"
                 />
               </div>
-              <h3 className="mt-5 text-lg font-semibold tracking-[-0.015em] text-text-primary">{asset.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-text-secondary">{asset.description}</p>
-              <AssetDownloads title={asset.title} downloads={asset.downloads} />
+              <h3 className="mt-5 text-lg font-semibold tracking-[-0.015em] text-text-primary">{copy.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-text-secondary">{copy.description}</p>
+              <AssetDownloads locale={locale} title={copy.title} downloads={asset.downloads} />
             </article>
-          ))}
+            );
+          })}
         </div>
         <figure className={`${cardClassName} mt-8`}>
           <div className="overflow-hidden rounded-md border border-surface-border bg-white p-2 sm:p-4">
             <Image
               src={LOGO_SYSTEM.brandSheetPngHref}
-              alt="WitnessOps Logo System v1 brand sheet showing the primary, horizontal and icon treatments with colour and minimum-size rules"
+              alt={tx(
+                locale,
+                "WitnessOps Logo System v1 brand sheet showing the primary, horizontal and icon treatments with colour and minimum-size rules",
+                "Arkusz marki WitnessOps Logo System v1 z układem głównym, poziomym i ikoną oraz zasadami koloru i minimalnego rozmiaru",
+              )}
               width={1800}
               height={1200}
               sizes="(max-width: 767px) 90vw, 1100px"
@@ -440,20 +574,22 @@ export default function MediaKitPage() {
           </div>
           <figcaption className="mt-6">
             <h3 className="text-xl font-semibold tracking-[-0.02em] text-text-primary">
-              Brand sheet and construction references
+              {tx(locale, "Brand sheet and construction references", "Arkusz marki i odniesienia konstrukcyjne")}
             </h3>
             <p className="mt-3 max-w-[760px] text-sm leading-7 text-text-secondary">
-              Clearspace is X = 1/8 of the mark height. Minimum digital widths are
-              24 px for the mark, 160 px for the stacked lockup and 180 px for the
-              horizontal lockup.
+              {tx(
+                locale,
+                "Clearspace is X = 1/8 of the mark height. Minimum digital widths are 24 px for the mark, 160 px for the stacked lockup and 180 px for the horizontal lockup.",
+                "Odstęp X to 1/8 wysokości znaku. Minimalne szerokości cyfrowe: 24 px dla znaku, 160 px dla układu piętrowego i 180 px dla układu poziomego.",
+              )}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               {[
-                [LOGO_SYSTEM.brandSheetPngHref, "witnessops-brand-sheet.png", "Brand sheet PNG"],
-                [LOGO_SYSTEM.brandSheetSvgHref, "witnessops-brand-sheet.svg", "Brand sheet SVG"],
-                [LOGO_SYSTEM.clearspaceHref, "witnessops-clearspace.svg", "Clearspace guide"],
-                [LOGO_SYSTEM.constructionHref, "witnessops-construction-grid.svg", "Construction grid"],
-                [LOGO_SYSTEM.markConstructionHref, "mark-construction.json", "Geometry JSON"],
+                [LOGO_SYSTEM.brandSheetPngHref, "witnessops-brand-sheet.png", tx(locale, "Brand sheet PNG", "Arkusz marki PNG")],
+                [LOGO_SYSTEM.brandSheetSvgHref, "witnessops-brand-sheet.svg", tx(locale, "Brand sheet SVG", "Arkusz marki SVG")],
+                [LOGO_SYSTEM.clearspaceHref, "witnessops-clearspace.svg", tx(locale, "Clearspace guide", "Prowadnica odstępu")],
+                [LOGO_SYSTEM.constructionHref, "witnessops-construction-grid.svg", tx(locale, "Construction grid", "Siatka konstrukcyjna")],
+                [LOGO_SYSTEM.markConstructionHref, "mark-construction.json", tx(locale, "Geometry JSON", "Geometria JSON")],
               ].map(([href, fileName, label]) => (
                 <a
                   key={href}
@@ -471,40 +607,42 @@ export default function MediaKitPage() {
 
       <SectionShell id="colour-and-type" spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[720px]">
-          <p className={eyebrowClassName}>Brand colours and typography</p>
+          <p className={eyebrowClassName}>{tx(locale, "Brand colours and typography", "Kolory marki i typografia")}</p>
           <h2 className={sectionTitleClassName}>
-            Identity first; interface second
+            {tx(locale, "Identity first; interface second", "Najpierw tożsamość, potem interfejs")}
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            The logo identity is monochrome. The website pairs charcoal surfaces
-            with warm ivory text and muted brass accents. These interface colours
-            do not recolour the master identity.
+            {tx(
+              locale,
+              "The logo identity is monochrome. The website pairs charcoal surfaces with warm ivory text and muted brass accents. These interface colours do not recolour the master identity.",
+              "Tożsamość logo jest monochromatyczna. Strona łączy powierzchnie w kolorze węgla z ciepłą kością słoniową tekstu i przygaszonym mosiądzem akcentów. Te kolory interfejsu nie przemalowują wzorca tożsamości.",
+            )}
           </p>
         </div>
-        <h3 className="mt-10 text-lg font-semibold text-text-primary">Logo identity</h3>
+        <h3 className="mt-10 text-lg font-semibold text-text-primary">{tx(locale, "Logo identity", "Tożsamość logo")}</h3>
         <div className="mt-4 grid max-w-[760px] gap-4 sm:grid-cols-2">
           {identityColours.map((colour) => (
-            <div key={colour.name} className={cardClassName}>
+            <div key={colour.value} className={cardClassName}>
               <div
                 aria-hidden="true"
                 className={`h-28 rounded-md border border-surface-border ${colour.swatchClass}`}
               />
-              <p className="mt-4 font-semibold text-text-primary">{colour.name}</p>
+              <p className="mt-4 font-semibold text-text-primary">{colour.name[locale]}</p>
               <code className="mt-1 block select-all break-all font-mono text-sm text-text-secondary">
                 {colour.value}
               </code>
             </div>
           ))}
         </div>
-        <h3 className="mt-8 text-lg font-semibold text-text-primary">Website interface</h3>
+        <h3 className="mt-8 text-lg font-semibold text-text-primary">{tx(locale, "Website interface", "Interfejs strony")}</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           {interfaceColours.map((colour) => (
-            <div key={colour.name} className={cardClassName}>
+            <div key={colour.value} className={cardClassName}>
               <div
                 aria-hidden="true"
                 className={`h-28 rounded-md border border-surface-border ${colour.swatchClass}`}
               />
-              <p className="mt-4 font-semibold text-text-primary">{colour.name}</p>
+              <p className="mt-4 font-semibold text-text-primary">{colour.name[locale]}</p>
               <code className="mt-1 block select-all break-all font-mono text-sm text-text-secondary">
                 {colour.value}
               </code>
@@ -513,36 +651,43 @@ export default function MediaKitPage() {
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <article className={cardClassName}>
-            <h3 className="font-semibold text-text-primary">Primary text</h3>
+            <h3 className="font-semibold text-text-primary">{tx(locale, "Primary text", "Tekst podstawowy")}</h3>
             <p className="mt-3 text-xl leading-8 text-text-secondary">Inter</p>
             <p className="mt-2 text-sm leading-6 text-text-muted">
-              Used for headings, body copy and navigation.
+              {tx(locale, "Used for headings, body copy and navigation.", "Do nagłówków, tekstu i nawigacji.")}
             </p>
           </article>
           <article className={cardClassName}>
-            <h3 className="font-semibold text-text-primary">Technical text</h3>
+            <h3 className="font-semibold text-text-primary">{tx(locale, "Technical text", "Tekst techniczny")}</h3>
             <p className="mt-3 font-mono text-lg leading-8 text-text-secondary">
               IBM Plex Mono
             </p>
             <p className="mt-2 text-sm leading-6 text-text-muted">
-              Used for technical labels, values and compact metadata.
+              {tx(locale, "Used for technical labels, values and compact metadata.", "Do etykiet technicznych, wartości i zwięzłych metadanych.")}
             </p>
           </article>
         </div>
         <p className="mt-5 max-w-[720px] text-sm leading-7 text-text-muted">
-          Brass is for restrained interface emphasis, never the logo. Font files are
-          not offered for download here.
+          {tx(
+            locale,
+            "Brass is for restrained interface emphasis, never the logo. Font files are not offered for download here.",
+            "Mosiądz służy do oszczędnego wyróżnienia w interfejsie, nigdy w logo. Plików fontów nie udostępniamy tutaj do pobrania.",
+          )}
         </p>
       </SectionShell>
 
       <SectionShell id="screenshots" spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[720px]">
-          <p className={eyebrowClassName}>Product screenshots</p>
+          <p className={eyebrowClassName}>{tx(locale, "Product screenshots", "Zrzuty produktu")}</p>
           <h2 className={sectionTitleClassName}>
-            Website design previews
+            {tx(locale, "Website design previews", "Podgląd projektu strony")}
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            These images preview the website design. They contain no customer evidence, completed forms or private data; they do not establish what is currently deployed.
+            {tx(
+              locale,
+              "These images preview the website design. They contain no customer evidence, completed forms or private data; they do not establish what is currently deployed.",
+              "Te obrazy pokazują projekt strony. Nie zawierają dowodów klientów, wypełnionych formularzy ani danych prywatnych i nie ustalają, co jest obecnie wdrożone.",
+            )}
           </p>
         </div>
         <div className={styles.screenshotGrid}>
@@ -553,7 +698,7 @@ export default function MediaKitPage() {
                   src={screenshot.src}
                   unoptimized
                   loading="eager"
-                  alt={screenshot.alt}
+                  alt={screenshot.alt[locale]}
                   width={screenshot.width}
                   height={screenshot.height}
                   sizes="(max-width: 767px) 90vw, 1100px"
@@ -561,16 +706,20 @@ export default function MediaKitPage() {
                 />
               </div>
               <figcaption className="mt-5">
-                <h3 className="text-lg font-semibold text-text-primary">{screenshot.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">{screenshot.description}</p>
+                <h3 className="text-lg font-semibold text-text-primary">{screenshot.title[locale]}</h3>
+                <p className="mt-2 text-sm leading-6 text-text-secondary">{screenshot.description[locale]}</p>
                 <a
                   href={screenshot.src}
                   download={screenshot.fileName}
-                  aria-label={`Download ${screenshot.title} as PNG, ${screenshot.width} × ${screenshot.height}`}
+                  aria-label={tx(
+                    locale,
+                    `Download ${screenshot.title.en} as PNG, ${screenshot.width} × ${screenshot.height}`,
+                    `Pobierz ${screenshot.title.pl} jako PNG, ${screenshot.width} × ${screenshot.height}`,
+                  )}
                   className={`${downloadClassName} mt-4`}
                 >
                   <span className="break-words">
-                    Download PNG · {screenshot.width} × {screenshot.height}
+                    {tx(locale, "Download PNG", "Pobierz PNG")} · {screenshot.width} × {screenshot.height}
                   </span>
                 </a>
               </figcaption>
@@ -581,32 +730,36 @@ export default function MediaKitPage() {
 
       <SectionShell id="usage-and-contact" spacing="spacious">
         <div className="max-w-[760px]">
-          <p className={eyebrowClassName}>Usage and contact</p>
+          <p className={eyebrowClassName}>{tx(locale, "Usage and contact", "Użycie i kontakt")}</p>
           <h2 className={sectionTitleClassName}>
-            Keep references accurate and the assets intact
+            {tx(locale, "Keep references accurate and the assets intact", "Odniesienia mają być wierne, a pliki nienaruszone")}
           </h2>
           <ul className="mt-7 space-y-3 text-base leading-7 text-text-secondary marker:text-brand-accent">
-            <li>Do not stretch, redraw or add decorative effects to the logo or mark.</li>
-            <li>Use the black or white version that preserves clear contrast.</li>
-            <li>Keep at least X = 1/8 of the mark height as clearspace.</li>
-            <li>Do not recolour the logo orange; the master identity is monochrome.</li>
-            <li>Do not use these assets to imply certification, endorsement or customer status.</li>
+            <li>{tx(locale, "Do not stretch, redraw or add decorative effects to the logo or mark.", "Nie rozciągaj, nie przerysowuj i nie dodawaj ozdobnych efektów do logo ani znaku.")}</li>
+            <li>{tx(locale, "Use the black or white version that preserves clear contrast.", "Użyj wersji czarnej albo białej, która zachowuje wyraźny kontrast.")}</li>
+            <li>{tx(locale, "Keep at least X = 1/8 of the mark height as clearspace.", "Zachowaj co najmniej X = 1/8 wysokości znaku jako odstęp.")}</li>
+            <li>{tx(locale, "Do not recolour the logo orange; the master identity is monochrome.", "Nie przemalowuj logo na pomarańczowo; wzorzec tożsamości jest monochromatyczny.")}</li>
+            <li>{tx(locale, "Do not use these assets to imply certification, endorsement or customer status.", "Nie używaj tych plików, żeby sugerować certyfikację, rekomendację albo status klienta.")}</li>
           </ul>
         </div>
         <div className={`${cardClassName} mt-10 max-w-[760px]`}>
-          <h3 className="font-semibold text-text-primary">General contact</h3>
+          <h3 className="font-semibold text-text-primary">{tx(locale, "General contact", "Kontakt ogólny")}</h3>
           <p className="mt-3 text-sm leading-7 text-text-secondary">
-            For questions about WitnessOps or these files, contact{" "}
+            {tx(locale, "For questions about WitnessOps or these files, contact", "W sprawach WitnessOps albo tych plików napisz na")}{" "}
             <a
               href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
               className="inline-flex min-h-11 max-w-full items-center break-all font-semibold text-brand-accent underline decoration-surface-border-strong underline-offset-4 hover:text-text-primary hover:decoration-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
             >
               {PUBLIC_CONTACT_EMAIL}
             </a>
-            . This is the general public contact, not a dedicated press inbox.
+            . {tx(locale, "This is the general public contact, not a dedicated press inbox.", "To ogólny kontakt publiczny, a nie osobna skrzynka dla mediów.")}
           </p>
           <p className="mt-3 text-xs leading-6 text-text-muted">
-            Do not send passwords, private keys, API keys, tokens, recovery codes or customer evidence.
+            {tx(
+              locale,
+              "Do not send passwords, private keys, API keys, tokens, recovery codes or customer evidence.",
+              "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów, kodów odzyskiwania ani dowodów klientów.",
+            )}
           </p>
         </div>
       </SectionShell>

@@ -95,13 +95,13 @@ test("footer provides Polish homepage labels without changing route contracts", 
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
-    'label: "External Attack Surface Review"',
-    'href: "/pl/catalog/offsec-external-exposure"',
+    "PUBLIC_AGENT_ACTION_OFFER",
+    "EXTERNAL_ATTACK_SURFACE_OFFER",
     'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
-    'label: "Prywatność", href: "/privacy"',
-    'label: "Warunki", href: "/terms"',
-    'label: "Bezpieczeństwo", href: "/security"',
+    'label: "Prywatność", href: "/pl/privacy"',
+    'label: "Warunki", href: "/pl/terms"',
+    'label: "Bezpieczeństwo", href: "/pl/security"',
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
@@ -131,10 +131,10 @@ test("footer uses the bounded public funnel without deleting repair services", (
 test("footer keeps Media kit in the English secondary row immediately before GitHub", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
-  assert.match(source, /const MEDIA_KIT_HREF = "\/media-kit"/);
+  assert.match(source, /en: "\/media-kit", pl: "\/pl\/media-kit"/);
   assert.match(
     source,
-    /!isPolishSurface[\s\S]*Media kit[\s\S]*href=\{GITHUB_PROFILE_HREF\}/,
+    /MEDIA_KIT_HREF\[isPolishSurface \? "pl" : "en"\][\s\S]*href=\{GITHUB_PROFILE_HREF\}/,
   );
   assert.doesNotMatch(
     source,

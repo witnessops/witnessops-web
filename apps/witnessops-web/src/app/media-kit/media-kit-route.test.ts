@@ -33,6 +33,7 @@ test("media kit uses the homepage-native public shell and approved section struc
 
 test("media kit metadata has the exact title and canonical route", () => {
   assert.match(pageSource, /title: "Media kit"/);
+  assert.match(pageSource, /languageAlternates\("\/media-kit"/);
   assert.match(pageSource, /canonicalUrl\("\/media-kit"\)/);
   assert.match(pageSource, /title: "Media kit \| WitnessOps"/);
 });
@@ -51,8 +52,8 @@ test("media kit preserves the approved description, palette and type wording", (
 
 test("media kit downloads are same-origin, complete and descriptively labelled", () => {
   assert.match(pageSource, /download=\{asset\.fileName\}/);
-  assert.match(pageSource, /aria-label=\{`Download \$\{title\}/);
-  assert.match(pageSource, /Download \{asset\.format\} · \{asset\.dimensions\}/);
+  assert.match(pageSource, /aria-label=\{tx\(/);
+  assert.match(pageSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
   assert.match(pageSource, /download=\{screenshot\.fileName\}/);
   assert.match(pageSource, /Download complete ZIP/);
   assert.match(pageSource, /WitnessOps_Logo_System_v1\.zip/);

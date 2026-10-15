@@ -9,14 +9,36 @@ import {
   COMPANY_DETAILS_HREF,
 } from "@/lib/company-details";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
+import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
+} from "@/lib/commercial-truth";
 import { isPolishPath } from "@/lib/public-i18n";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
-const MEDIA_KIT_HREF = "/media-kit";
+const MEDIA_KIT_HREF = { en: "/media-kit", pl: "/pl/media-kit" } as const;
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
+const AGENT_ACTION_REVIEW = buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID);
+
+function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
+  return [
+    {
+      label: PUBLIC_AGENT_ACTION_OFFER.name[locale],
+      href: buyerServiceRequestHref(locale, AGENT_ACTION_REVIEW),
+    },
+    {
+      label: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
+      href: EXTERNAL_ATTACK_SURFACE_OFFER.route[locale],
+    },
+  ];
+}
+
+const POLISH_SERVICE_LINKS = lockedOfferFooterLinks("pl");
+const ENGLISH_SERVICE_LINKS = lockedOfferFooterLinks("en");
 const FOOTER_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_LEGAL_LINK_CLASS =
@@ -40,7 +62,6 @@ interface FooterProps {
 const POLISH_FOOTER = {
   subline: "Weryfikacja bezpieczeństwa z jasnymi ustaleniami, materiałami źródłowymi i praktycznymi kolejnymi krokami.",
   links: [
-    { label: "External Attack Surface Review", href: "/pl/catalog/offsec-external-exposure" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
@@ -49,16 +70,13 @@ const POLISH_FOOTER = {
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
   legal_links: [
-    { label: "Prywatność", href: "/privacy" },
-    { label: "Warunki", href: "/terms" },
-    { label: "Bezpieczeństwo", href: "/security" },
+    { label: "Prywatność", href: "/pl/privacy" },
+    { label: "Warunki", href: "/pl/terms" },
+    { label: "Bezpieczeństwo", href: "/pl/security" },
   ],
 };
 
 const SERVICE_NAV_HREFS = new Set([
-  "/catalog/offsec-external-exposure",
-  "/pl/catalog/offsec-external-exposure",
-  PRIMARY_OFFER.route,
   "/why-witnessops",
   "/pl/why-witnessops",
 ]);
@@ -108,8 +126,11 @@ export function Footer({
   const navigationLinks = content.links.filter((link) => !isFooterRequestHref(link.href));
   const groups = isPolishSurface ? [
     {
-      label: isPolishSurface ? "Usługi" : "Services",
-      links: navigationLinks.filter((link) => SERVICE_NAV_HREFS.has(link.href)),
+      label: "Usługi",
+      links: [
+        ...POLISH_SERVICE_LINKS,
+        ...navigationLinks.filter((link) => SERVICE_NAV_HREFS.has(link.href)),
+      ],
     },
     {
       label: isPolishSurface ? "Zasoby" : "Resources",
@@ -117,6 +138,7 @@ export function Footer({
     },
   ] : [
     { label: "Product", links: [
+      ...ENGLISH_SERVICE_LINKS,
       { label: "Services", href: "/catalog" },
       { label: "Pricing", href: "/pricing" },
       { label: "How it works", href: "/early-access" },
@@ -214,10 +236,13 @@ export function Footer({
             >
               {COMPANY_DETAILS[isPolishSurface ? "pl" : "en"].heading}
             </Link>
-            {!isPolishSurface ? (
-              <Link href={MEDIA_KIT_HREF} className={FOOTER_LEGAL_LINK_CLASS}
-                style={FOOTER_NAV_STYLE}>Media kit</Link>
-            ) : null}
+            <Link
+              href={MEDIA_KIT_HREF[isPolishSurface ? "pl" : "en"]}
+              className={FOOTER_LEGAL_LINK_CLASS}
+              style={FOOTER_NAV_STYLE}
+            >
+              {isPolishSurface ? "Zestaw dla mediów" : "Media kit"}
+            </Link>
             <a href={GITHUB_PROFILE_HREF} target="_blank" rel="noreferrer"
               aria-label={isPolishSurface
                 ? "WitnessOps na GitHub (otwiera nową kartę)"

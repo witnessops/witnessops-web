@@ -140,6 +140,10 @@ const polishRoutes: StaticRoute[] = [
   { route: "/pl/support", sourcePath: "src/app/pl/support/page.tsx" },
   { route: "/pl/verify", sourcePath: "src/app/pl/verify/page.tsx" },
   { route: "/pl/why-witnessops", sourcePath: "src/app/pl/why-witnessops/page.tsx" },
+  { route: "/pl/privacy", sourcePath: "src/app/pl/privacy/page.tsx" },
+  { route: "/pl/terms", sourcePath: "src/app/pl/terms/page.tsx" },
+  { route: "/pl/security", sourcePath: "src/app/pl/security/page.tsx" },
+  { route: "/pl/media-kit", sourcePath: "src/app/pl/media-kit/page.tsx" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
