@@ -27,7 +27,8 @@ function selectedServiceFromHref(href: string) {
   return offerId ? buyerServiceByPublicOfferId(offerId) : undefined;
 }
 
-test("shared review CTAs keep the workflow offer selected from its detail route", () => {
+test("the withdrawn workflows route does not preselect that offer", () => {
+  assert.equal(isWithdrawnOfferPath("/catalog/workflows"), true);
   const headerHref = reviewRequestHrefForLocation(
     "en",
     "/catalog/workflows",
@@ -39,21 +40,13 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
     emptySearch,
   );
 
-  assert.equal(
-    headerHref,
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
-  );
+  assert.equal(headerHref, "/review/request");
   assert.equal(footerHref, headerHref);
+  assert.equal(selectedServiceFromHref(headerHref), undefined);
 
-  for (const href of [headerHref, footerHref]) {
-    const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "AI Agent Tools & Access Review");
-    assert.equal(selected?.price.en, "Starting at €2,500 · excluding VAT");
-    assert.equal(
-      selected?.timing.en,
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
-  }
+  const record = buyerServiceByPublicOfferId("agent-tools-access-review");
+  assert.equal(record?.name.en, "AI Agent Tools & Access Review");
+  assert.equal(record?.price.en, "Starting at €2,500 · excluding VAT");
 });
 
 test("primary offer selection trusts its stable id before public query text", () => {
