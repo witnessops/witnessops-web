@@ -1,50 +1,18 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
-import { GET } from "./route";
+const webRoot = resolve(__dirname, "../../../..");
 
-const PUBLIC_IMAGE = "https://witnessops.com/opengraph-image";
-
-test("retired home OG route redirects permanently and stays off the Edge runtime", () => {
-  const source = readFileSync(resolve(__dirname, "route.tsx"), "utf-8");
-
-  assert.doesNotMatch(source, /export\s+const\s+runtime\s*=\s*["']edge["']/);
-  assert.match(source, /NextResponse\.redirect\(/);
-  assert.match(source, /["']\/opengraph-image["']/);
-  assert.match(source, /\b308\b/);
-  assert.doesNotMatch(source, /ImageResponse/);
-  assert.doesNotMatch(source, /request\.url/);
-});
-
-test("the Open Graph redirect ignores Host and X-Forwarded-Host", () => {
-  const cases = [
-    new Request("http://127.0.0.1:3000/og/home"),
-    new Request("http://localhost:3000/og/home", { headers: { host: "witnessops.com" } }),
-    new Request("http://localhost:3000/og/home", {
-      headers: {
-        host: "localhost:3000",
-        "x-forwarded-host": "witnessops.com",
-        "x-forwarded-proto": "https",
-      },
-    }),
-    new Request("http://evil.example/og/home", {
-      headers: {
-        host: "evil.example",
-        "x-forwarded-host": "evil.example",
-        "x-forwarded-proto": "http",
-      },
-    }),
-  ];
-
-  for (const request of cases) {
-    assert.ok(request.headers.get("host") !== null || new URL(request.url).host.length > 0);
-    const response = GET();
-    assert.equal(response.status, 308);
-    assert.equal(response.headers.get("location"), PUBLIC_IMAGE);
-    assert.equal(response.headers.get("location")?.includes(new URL(request.url).host), false);
-  }
+test("/og/home is a permanent config redirect to a relative path", () => {
+  const source = readFileSync(resolve(webRoot, "next.config.js"), "utf8");
+  assert.match(
+    source,
+    /source:\s*"\/og\/home",\s*destination:\s*"\/opengraph-image",\s*permanent:\s*true/,
+  );
+  assert.equal(existsSync(resolve(__dirname, "route.tsx")), false);
+  assert.doesNotMatch(source, /trustHostHeader|request\.url/);
 });
 
 function filesUnder(dir: string, out: string[] = []) {

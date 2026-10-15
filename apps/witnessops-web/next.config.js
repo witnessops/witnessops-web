@@ -147,6 +147,13 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        // Relative Location. A route handler would build the target from the
+        // listen host (localhost under next start, 0.0.0.0 under standalone).
+        source: "/og/home",
+        destination: "/opengraph-image",
+        permanent: true,
+      },
+      {
         source: "/review/sample-cases/offsec-shield-local-server-audit",
         destination: "/review/sample-cases/local-server-security-review",
         permanent: true,
