@@ -53,7 +53,7 @@ test("axe audits Ask Sovereign in English and Polish at desktop and mobile", asy
       await page.goto(`http://127.0.0.1:3001${target.path}`, { waitUntil: "networkidle0", timeout: 30000 });
       await page.addScriptTag({ content: axe.source });
       const result = await page.evaluate(async () => {
-        const axeRuntime = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null; help: string; nodes: unknown[] }> }> } }).axe;
+        const axeRuntime = (globalThis as unknown as { axe: { run: (options?: { include?: string[] }) => Promise<{ violations: Array<{ id: string; impact: string | null; help: string; nodes: unknown[] }> }> } }).axe;
         const ran = await axeRuntime.run({ include: ["[data-sovereign-preview]"] });
         return ran.violations.map((item) => ({ id: item.id, impact: item.impact, help: item.help, nodes: item.nodes.length }));
       });
