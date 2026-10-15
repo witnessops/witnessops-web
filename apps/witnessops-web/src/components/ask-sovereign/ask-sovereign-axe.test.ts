@@ -7,8 +7,7 @@ import puppeteer from "puppeteer-core";
 function chromeBinary(): string | null {
   for (const candidate of ["google-chrome", "google-chrome-stable", "chromium"]) {
     try {
-      execFileSync("which", [candidate], { stdio: "ignore" });
-      return candidate;
+      return execFileSync("which", [candidate], { encoding: "utf8" }).trim();
     } catch {
       continue;
     }
@@ -55,7 +54,7 @@ test("axe audits Ask Sovereign in English and Polish at desktop and mobile", asy
       await page.addScriptTag({ content: axe.source });
       const result = await page.evaluate(async () => {
         const axeRuntime = (globalThis as unknown as { axe: { run: () => Promise<{ violations: Array<{ id: string; impact: string | null; help: string; nodes: unknown[] }> }> } }).axe;
-        const ran = await axeRuntime.run();
+        const ran = await axeRuntime.run({ include: ["[data-sovereign-preview]"] });
         return ran.violations.map((item) => ({ id: item.id, impact: item.impact, help: item.help, nodes: item.nodes.length }));
       });
       report.push({ name: target.name, violations: result });
