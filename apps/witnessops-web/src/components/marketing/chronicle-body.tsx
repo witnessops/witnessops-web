@@ -47,21 +47,22 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
           );
         }
         const blocks = chunk.trim().split(/\n{2,}/).filter(Boolean);
-        return <div key={`prose-${index}`} className="space-y-6">{blocks.map((block) => {
+        return <div key={`prose-${index}`} className="space-y-6">{blocks.map((block, blockIndex) => {
           const trimmed = block.trim();
+          const key = `prose-${index}-block-${blockIndex}`;
           if (trimmed.startsWith("### ")) {
             const heading = sectionHeading(trimmed);
             return (
-              <h2 key={`heading-${index}-${trimmed.slice(0, 24)}`} className="pt-6 text-center text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>
+              <h2 key={key} className="pt-6 text-center text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>
                 {heading.num ? <span className="mb-2 block font-mono text-base text-brand-accent">{heading.num}</span> : null}
                 {heading.title}
               </h2>
             );
           }
           if (trimmed.startsWith("INCIDENT-")) {
-            return <p key={trimmed} role="note" className="inline-block rounded-md border border-surface-border px-3 py-1 font-mono text-xs text-text-primary">{trimmed}</p>;
+            return <p key={key} role="note" className="inline-block rounded-md border border-surface-border px-3 py-1 font-mono text-xs text-text-primary">{trimmed}</p>;
           }
-          return <p key={trimmed}>{inlineCode(trimmed)}</p>;
+          return <p key={key}>{inlineCode(trimmed)}</p>;
         })}</div>;
       })}
     </div>

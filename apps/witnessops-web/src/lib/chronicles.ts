@@ -20,11 +20,37 @@ const BRANDS: Array<[RegExp, string]> = [
   [/\bGit\b/g, "version control"],
 ];
 
+const SENTENCE_ROLES = [
+  "the researcher",
+  "the coordinator",
+  "the editor",
+  "the chat room",
+  "the social network",
+  "the code host",
+  "the ticket tracker",
+  "a card game",
+  "version-control hook",
+  "version control",
+];
+
+/** Capitalise a role only where a removed name left a sentence starting in lower case. */
+function capitalizeSentenceRoles(text: string): string {
+  const alternation = SENTENCE_ROLES.map((role) => role.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  return text.replace(
+    new RegExp(`(^|[\\n.!?])(\\s*["“”']?)(${alternation})\\b`, "g"),
+    (_match, boundary: string, gap: string, role: string) =>
+      `${boundary}${gap}${role[0].toUpperCase()}${role.slice(1)}`,
+  );
+}
+
 /** Shipped preview text. Brand names stay out. The attendance row uses Sovereign Dot. */
 export function chroniclePreviewText(source: string): string {
   const attendance = source.replace("Grok / Sovereign Bot", "Grok / Sovereign Dot");
-  return BRANDS.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), attendance)
-    .replace(/\\~/g, "~");
+  const replaced = BRANDS.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), attendance)
+    .replace(/\\~/g, "~")
+    .replace(/Agent: the researcher Social Research/g, "Agent: The researcher, social research")
+    .replace(/Source: the social network/g, "Source: The social network");
+  return capitalizeSentenceRoles(replaced);
 }
 
 export type ChronicleChapter = {
