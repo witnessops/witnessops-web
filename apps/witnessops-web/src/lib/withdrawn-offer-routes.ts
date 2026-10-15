@@ -16,6 +16,7 @@ export const WITHDRAWN_OFFER_PATHS = [
   "/pl/catalog/automation-repair",
   "/customer-security-review",
   "/pl/customer-security-review",
+  "/catalog/workflows",
 ] as const;
 
 /** Sample pages for withdrawn offers. They stay reachable, with noindex. */

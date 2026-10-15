@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
+} from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   publicContactMailto,
@@ -9,12 +11,8 @@ import {
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { languageAlternates } from "@/lib/public-seo";
 
-const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 const SUPPORT_MAILTO = publicContactMailto("WitnessOps support request");
-const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
-  "pl",
-  PRIMARY_OFFER.id,
-);
+const VULNERABILITY_MAILTO = publicContactMailto("Private vulnerability report");
 
 export const metadata: Metadata = {
   title: "Wsparcie",
@@ -27,9 +25,14 @@ export const metadata: Metadata = {
 
 const routes = [
   [
-    PRIMARY_OFFER.name.pl,
-    PRIMARY_OFFER_HREF,
-    "Opisz sytuację bez danych poufnych i wybierz ofertę.",
+    PUBLIC_AGENT_ACTION_OFFER.name.pl,
+    "/pl/reviews/agent-action-security-review",
+    "Jedno nazwane istotne działanie. €2 500 · bez VAT.",
+  ],
+  [
+    EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
+    "/pl/reviews/external-attack-surface-review",
+    "Jeden autoryzowany system dostępny z internetu. €1 900 · bez VAT.",
   ],
   [
     "Mam istniejące zgłoszenie",
@@ -89,9 +92,9 @@ export default function PolishSupportPage() {
           Prywatne zgłoszenia podatności kieruj wyłącznie na{" "}
           <a
             className="text-brand-accent hover:underline"
-            href={`mailto:${SECURITY_CONTACT_EMAIL}?subject=${encodeURIComponent("Private vulnerability report")}`}
+            href={VULNERABILITY_MAILTO}
           >
-            {SECURITY_CONTACT_EMAIL}
+            {PUBLIC_CONTACT_EMAIL}
           </a>
           . Ten adres nie służy do zwykłych zgłoszeń klientów.
         </p>

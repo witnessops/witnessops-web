@@ -23,9 +23,11 @@ test("withdrawn offer paths are the catalog URLs, customer security review, and 
     "/pl/catalog/automation-repair",
     "/customer-security-review",
     "/pl/customer-security-review",
+    "/catalog/workflows",
   ]);
   assert.equal(isWithdrawnOfferPath("/catalog/offsec-local-audit/"), true);
   assert.equal(isWithdrawnOfferPath("/customer-security-review"), true);
+  assert.equal(isWithdrawnOfferPath("/catalog/workflows"), true);
   assert.equal(isWithdrawnOfferPath("/catalog/offsec-external-exposure"), false);
 });
 

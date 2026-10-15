@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { useState, useEffect, useRef } from "react";
-import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_NO_SECRETS_NOTE, publicContactMailto } from "@/lib/public-contact";
 import {
   normalizedEmailSchema,
   supportResponseSchema,
@@ -387,10 +387,10 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               </Link>
               . Vulnerabilities go to{" "}
               <a
-                href="mailto:security@witnessops.com?subject=Private%20vulnerability%20report"
+                href={publicContactMailto("Private vulnerability report")}
                 className="font-semibold text-brand-accent underline-offset-4 hover:underline"
               >
-                security@witnessops.com
+                {PUBLIC_CONTACT_EMAIL}
               </a>
               .
             </p>
