@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { CtaButton } from "./cta-button";
+import { isPolishPath } from "@/lib/public-i18n";
 import { ThemeToggle } from "./theme-toggle";
 
 interface MobileNavbarMenuProps {
@@ -177,7 +178,7 @@ export function MobileNavbarMenu({
         }`}
       >
         <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
-          {groups && <div className="border-b border-surface-border py-3"><ThemeToggle className="inline-flex" /></div>}
+          <div className="border-b border-surface-border py-3"><ThemeToggle className="inline-flex" locale={isPolishPath(currentPath) ? "pl" : "en"} /></div>
           {groups && (cta || loginUrl) && <div data-mobile-account-actions className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
             {cta && <CtaButton label={cta.label} href={cta.href} variant={cta.variant as "primary" | "secondary" | "ghost"} onClick={closeMenu} className="min-h-11" />}
             {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-sm border border-surface-border px-4 text-sm">Log in</Link>}
