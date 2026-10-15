@@ -58,9 +58,12 @@ test("the public footer consumes the shared palette without a local override", (
   );
 });
 
-test("navbar and footer marks inherit the active shell contrast", () => {
+test("navbar and footer lockups use the canonical black and white files", () => {
   for (const source of [navbar, footer]) {
-    assert.match(source, /tone="current"/);
-    assert.match(source, /text-text-primary/);
+    assert.match(source, /witnessops-horizontal-black\.svg/);
+    assert.match(source, /witnessops-horizontal-white\.svg/);
+    assert.match(source, /alt="WitnessOps"/);
+    assert.doesNotMatch(source, /tone="current"/);
+    assert.doesNotMatch(source, /WitnessOpsMark/);
   }
 });

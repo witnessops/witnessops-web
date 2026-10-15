@@ -9,9 +9,7 @@
 .page .eyebrow { margin: 0 0 12px; color: var(--color-brand-accent); font-family: var(--font-sans); font-size: var(--type-eyebrow-size); font-weight: var(--type-eyebrow-wt); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
 .rule { display: block; width: 24px; height: 2px; margin: 0 0 16px; background: var(--color-brand-accent); }
 .hero { position: relative; overflow: hidden; padding-block: 120px; background-image: var(--hero-glow); }
-.watermark { position: absolute; top: 32px; right: max(40px, calc((100% - 1152px) / 2)); width: 320px; color: var(--color-text-primary); opacity: 0.06; pointer-events: none; }
-.watermark svg { display: block; width: 320px; height: auto; }
-:global(html[data-theme="dark"]) .watermark { opacity: 0.05; }
+.watermark { position: absolute; top: 32px; right: max(40px, calc((100% - 1152px) / 2)); pointer-events: none; }
 .heroCopy { position: relative; max-width: 880px; }
 .linkRow { border-top: 1px solid var(--color-surface-border); }
 .linkRow .frame { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; }

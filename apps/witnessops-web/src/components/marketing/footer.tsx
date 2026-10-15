@@ -9,7 +9,6 @@ import {
   COMPANY_DETAILS,
   COMPANY_DETAILS_HREF,
 } from "@/lib/company-details";
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
@@ -45,7 +44,6 @@ const FOOTER_LINK_CLASS =
 const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-xs text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
-const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
 const PREMIUM_FOOTER_SUBLINE = "Proof other people can check.";
 
 type FooterLink = { label: string; href: string };
@@ -111,7 +109,6 @@ export function isFooterRequestHref(href: string): boolean {
 
 export function Footer({
   appUrl = null,
-  brand_line,
   links,
   legal_links,
   build_label,
@@ -179,14 +176,22 @@ export function Footer({
             <Link
               href={isPolishSurface ? "/pl" : "/"}
               aria-label={isPolishSurface ? "WitnessOps: strona główna" : "WitnessOps home"}
-              className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-xs"
+              className="mb-2 inline-flex min-h-11 items-center gap-0 rounded-xs"
             >
-              <WitnessOpsMark variant="mark" size="md" tone="current" decorative
-                className="shrink-0 text-text-primary" />
-              <span className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
-                style={FOOTER_DISPLAY_STYLE}>
-                {brand_line}
-              </span>
+              <img
+                src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
+                alt="WitnessOps"
+                width={1500}
+                height={420}
+                className="wo-lockup wo-lockup--footer wo-lockup--black"
+              />
+              <img
+                src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
+                alt=""
+                width={1500}
+                height={420}
+                className="wo-lockup wo-lockup--footer wo-lockup--white"
+              />
             </Link>
             <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
               {content.subline}
@@ -196,8 +201,7 @@ export function Footer({
           <div className="footer-navigation grid grid-cols-2 gap-x-6">
             {groups.map((group) => (
               <nav key={group.label} aria-label={group.label}>
-                <p className="mb-1 text-sm font-semibold text-text-primary"
-                  style={FOOTER_DISPLAY_STYLE}>
+                <p className="footer-heading mb-1">
                   {group.label}
                 </p>
                 <div className="flex flex-col items-start">

@@ -101,12 +101,15 @@ test("tablet uses the compact navigation instead of overflowing desktop links", 
   assert.match(mobileNavbar, /lg:hidden/);
 });
 
-test("mobile header keeps the WitnessOps mark and readable wordmark", () => {
-  assert.match(navbar, /WitnessOpsMark/);
+test("mobile header uses the canonical horizontal lockup without a live wordmark", () => {
+  assert.match(navbar, /alt="WitnessOps"/);
+  assert.match(navbar, /witnessops-horizontal-black\.svg/);
+  assert.match(navbar, /witnessops-horizontal-white\.svg/);
   assert.match(navbar, /aria-label=\{polish \? "WitnessOps: strona główna" : "WitnessOps home"\}/);
-  assert.match(navbar, /text-xs font-medium uppercase leading-none/);
   assert.match(navbar, /mobile-brand-navbar/);
+  assert.doesNotMatch(navbar, /WitnessOpsMark/);
   assert.doesNotMatch(navbar, /HOME_BRAND_LINE/);
+  assert.doesNotMatch(navbar, />\s*WitnessOps\s*</);
 });
 
 test("mobile menu is a viewport-bounded scrolling sheet with one orange action", () => {

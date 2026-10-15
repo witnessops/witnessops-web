@@ -56,10 +56,7 @@ const fontPreloads = (
   </>
 );
 
-const appShellStyle: React.CSSProperties & {
-  "--app-navbar-height": string;
-} = {
-  "--app-navbar-height": "72px",
+const appShellStyle: React.CSSProperties = {
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
 };
 

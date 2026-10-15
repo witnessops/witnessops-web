@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import {
   CHRONICLE_SERIES_INTRO,
   PUBLISHED_CHAPTERS,
@@ -29,9 +28,12 @@ const rows = [
 export default function ChroniclesIndexPage() {
   return (
     <main id="main-content" tabIndex={-1} className="relative mx-auto max-w-3xl px-6 py-16">
-      <div className="pointer-events-none absolute right-6 top-16 opacity-[0.07]" aria-hidden="true">
-        <WitnessOpsMark variant="mark" size="lg" tone="current" decorative />
-      </div>
+      {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
+        <div className="pointer-events-none absolute right-6 top-16" aria-hidden="true">
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
+        </div>
+      ) : null}
       <p className="wo-small text-text-muted"><Link href="/research" className="underline-offset-4 hover:underline">Research</Link> / The Sovereign Chronicles</p>
       <p className="wo-mono-caps mt-8 text-brand-accent">Series · Fiction</p>
       <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">The Sovereign Chronicles</h1>

@@ -4,7 +4,6 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import styles from "./simple-homepage.module.css";
 
@@ -45,9 +44,12 @@ export function SimpleHomepage() {
   const services = publicPaidReviews(BUYER_SERVICES);
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agents-act">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
-      <div className={styles.watermark} aria-hidden="true">
-        <WitnessOpsMark variant="mark" size="lg" tone="current" decorative />
-      </div>
+      {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
+        <div className={styles.watermark} aria-hidden="true">
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
+        </div>
+      ) : null}
       <div className={styles.frame}>
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />

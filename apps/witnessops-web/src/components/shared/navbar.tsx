@@ -8,7 +8,6 @@ import { DesktopNavbarMenu } from "./desktop-navbar-menu";
 import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { ThemeToggle } from "./theme-toggle";
-import { WitnessOpsMark } from "./witnessops-mark";
 import {
   isPolishPath,
   POLISH_PUBLIC_NAV,
@@ -47,7 +46,6 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
   };
   const loginHref = appUrl ? new URL("/login", appUrl).href : null;
   const effectiveAnnouncement = announcement;
-  const brandLabel = "WitnessOps";
 
   useLayoutEffect(() => {
     const navElement = navRef.current;
@@ -122,26 +120,26 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
         className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
       >
-        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="wo-navbar-bar mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 sm:px-6 lg:flex-nowrap">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
-            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded-xs text-text-primary transition-colors"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-0 rounded-xs text-text-primary transition-colors"
           >
-            <WitnessOpsMark
-              variant="mark"
-              size="sm"
-              tone="current"
-              decorative
-              className="text-text-primary"
+            <img
+              src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
+              alt="WitnessOps"
+              width={1500}
+              height={420}
+              className="wo-lockup wo-lockup--black"
             />
-            <span
-              className="text-xs font-medium uppercase leading-none tracking-[0.18em] text-text-primary"
-              style={{ fontFamily: "var(--font-display)" }}
-              aria-hidden="true"
-            >
-              {brandLabel}
-            </span>
+            <img
+              src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
+              alt=""
+              width={1500}
+              height={420}
+              className="wo-lockup wo-lockup--white"
+            />
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">

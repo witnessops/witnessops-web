@@ -207,12 +207,23 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   text-shadow: none;
 }
 
-/* Keep the compact geometric mark at its established mobile size. */
-@media (max-width: 63.999rem) {
-  nav.mobile-brand-navbar .mobile-brand-lockup .witnessops-mark svg {
-    width: auto;
-    height: 22px;
-  }
+/* Header bar matches the lockup: 64px through 1199, 72px from 1200. */
+:root { --app-navbar-height: 64px; }
+.wo-navbar-bar { min-height: 64px; }
+.wo-lockup { display: block; height: 54px; width: auto; margin-inline-start: calc(-54px * 54 / 420); }
+.wo-lockup--white { display: none; }
+html[data-theme="dark"] .wo-lockup--black { display: none; }
+html[data-theme="dark"] .wo-lockup--white { display: block; }
+.mobile-brand-lockup { gap: 0; }
+.wo-watermark { display: block; height: 320px; width: auto; opacity: 0.06; }
+.wo-watermark--white { display: none; }
+html[data-theme="dark"] .wo-watermark--black { display: none; }
+html[data-theme="dark"] .wo-watermark--white { display: block; }
+@media (min-width: 1200px) {
+  :root { --app-navbar-height: 72px; }
+  .wo-navbar-bar { min-height: 72px; }
+  .wo-lockup { height: 60px; margin-inline-start: calc(-60px * 54 / 420); }
+  .wo-lockup--footer { height: 54px; margin-inline-start: calc(-54px * 54 / 420); }
 }
 
 /* ═══ OFFSEC MARK ═══ */
@@ -1218,10 +1229,9 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-public-footer > div { padding-block: 40px max(32px, env(safe-area-inset-bottom)); }
 .simple-public-footer .footer-main { display: grid; gap: 32px; }
 .simple-public-footer .footer-heading,
-.simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted); }
+.simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-text-muted); }
 .simple-public-footer nav a { font-weight: 400; color: var(--color-text-secondary); }
 .simple-public-footer nav a:hover { color: var(--color-text-primary); }
-.simple-public-footer [data-footer-brand-lockup] > a > span { font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .18em; }
 .simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: var(--color-brand-accent); }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
 .simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }

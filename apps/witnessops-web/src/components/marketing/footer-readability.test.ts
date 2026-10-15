@@ -29,9 +29,9 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.doesNotMatch(source, /label: "Reports"/);
   assert.doesNotMatch(source, /label: "Settings"/);
   assert.match(source, /FOOTER_NAV_STYLE/);
-  assert.match(source, /FOOTER_DISPLAY_STYLE/);
   assert.match(source, /fontFamily: "var\(--font-sans\)"/);
-  assert.match(source, /fontFamily: "var\(--font-display\)"/);
+  assert.match(globals, /--type-eyebrow-size/);
+  assert.match(globals, /--type-eyebrow-ls/);
   assert.match(source, /public-footer/);
   assert.match(source, /grid-cols-2/);
   assert.match(source, /md:pr-32/);
@@ -73,18 +73,20 @@ test("footer contact route keeps a concise credential-handling boundary and disp
   assert.doesNotMatch(source, /border border-text-primary bg-text-primary/);
 });
 
-test("footer brand lockup uses the approved geometric mark without decorative effects", () => {
+test("footer brand lockup uses the canonical horizontal files without a live wordmark", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
-  assert.match(source, /WitnessOpsMark/);
-  assert.match(source, /variant="mark"/);
-  assert.match(source, /tone="current"/);
-  assert.match(source, /className="shrink-0 text-text-primary"/);
+  assert.match(source, /alt="WitnessOps"/);
+  assert.match(source, /witnessops-horizontal-black\.svg/);
+  assert.match(source, /witnessops-horizontal-white\.svg/);
+  assert.match(source, /wo-lockup--footer/);
   assert.match(source, /className="public-shell public-footer border-t/);
-  assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);
   assert.match(source, /data-brand-footer="approved-2026-07-30"/);
   assert.match(source, /min-h-11/);
+  assert.doesNotMatch(source, /WitnessOpsMark/);
+  assert.doesNotMatch(source, /tone="current"/);
+  assert.doesNotMatch(source, />\s*\{brand_line\}\s*</);
   assert.doesNotMatch(source, /Package Security Workflow/);
   assert.doesNotMatch(source, /shadow-\[0_0_6px/);
   assert.doesNotMatch(
