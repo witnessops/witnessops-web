@@ -491,10 +491,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
 
   return (
     <div className={styles.page} ref={pageRef} data-sovereign-preview="">
-      <p className={styles.back} data-sheet-behind><Link href={copy.docs} prefetch={false}>{copy.back}</Link>{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
-      <p className={styles.kicker} data-sheet-behind>{copy.kicker}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+      <p className={styles.back} data-sheet-behind><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
+      <p className={styles.kicker} data-sheet-behind>{copy.kicker}</p>
       <h1 data-sheet-behind>Ask Sovereign</h1>
-      <p className={styles.lead} data-sheet-behind>{copy.lead}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</p>
+      <p className={styles.lead} data-sheet-behind>{copy.lead}</p>
+      {locale === "pl" ? <p className={styles.reviewTag} data-sheet-behind>PL copy pending native review</p> : null}
       <div className={styles.scrim} />
       <div className={styles.layout}>
         <section
@@ -605,7 +606,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <h3>{copy.railAnswer}</h3>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST[locale]}{locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}</li>
+            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST[locale]}</li>
+            {locale === "pl" ? <li className={styles.reviewTag}>PL copy pending native review</li> : null}
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>
