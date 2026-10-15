@@ -32,7 +32,7 @@ export default function AgentActionSecurityReviewPage() {
           All reviews
         </Link>
         <p className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent">Review one agent action</p>
-        <h1 className="mt-3 max-w-3xl text-4xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}>
+        <h1 className="mt-3 max-w-3xl text-4xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}>
           {PUBLIC_AGENT_ACTION_OFFER.name.en}
         </h1>
         <p className="mt-4 max-w-3xl text-lg text-text-secondary">{landing.headline}</p>
@@ -43,11 +43,11 @@ export default function AgentActionSecurityReviewPage() {
         <Link href={requestHref} className="mt-6 inline-flex min-h-11 items-center bg-text-primary px-5 text-sm font-medium text-text-inverse">
           {landing.primaryCta}
         </Link>
-        <h2 className="mt-12 text-2xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}>What you receive</h2>
+        <h2 className="mt-12 text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}>What you receive</h2>
         <ul className="mt-4 max-w-3xl list-disc space-y-2 pl-5 text-text-secondary">
           {landing.deliverables.map((item) => <li key={item}>{item}</li>)}
         </ul>
-        <h2 className="mt-10 text-2xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}>Scope and limits</h2>
+        <h2 className="mt-10 text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}>Scope and limits</h2>
         <ul className="mt-4 max-w-3xl list-disc space-y-2 pl-5 text-text-secondary">
           {landing.boundaries.filter(visibleBoundary).map((item) => <li key={item}>{item}</li>)}
         </ul>

@@ -53,7 +53,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
         <Link href="/chronicles" className="underline-offset-4 hover:underline">The Sovereign Chronicles</Link>
       </p>
       <p className="mt-8 font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">{chapter.kicker}</p>
-      <h1 className="mt-3 text-4xl text-text-primary sm:text-5xl" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>{chapter.title}</h1>
+      <h1 className="mt-3 text-[40px] leading-[44px] tracking-[-0.045em] text-text-primary sm:text-[72px] sm:leading-[76px]" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>{chapter.title}</h1>
       {chapter.subtitle ? <p className="mt-4 text-lg text-text-secondary">{chapter.subtitle}</p> : null}
       <p className="mt-4 font-mono text-xs uppercase tracking-widest text-text-secondary">{chapter.dateline}</p>
       <p className="mt-2 text-sm text-text-muted">{chapter.meta}</p>

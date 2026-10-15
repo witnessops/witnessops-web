@@ -13,7 +13,7 @@ export default function AboutPage() {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent">Organization</p>
-      <h1 className="mt-3 text-4xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}>
+      <h1 className="mt-3 text-4xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}>
         About WitnessOps
       </h1>
       <p className="mt-4 text-text-secondary">

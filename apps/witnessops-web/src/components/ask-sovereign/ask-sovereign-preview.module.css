@@ -28,7 +28,7 @@
 :global(html[data-theme="dark"]) .sprite[data-state="error"][data-still="1"] { background-image: image-set(url("/ask-sovereign/sovereign-error-still-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-error-still-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-error-still-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-error-still-dark@2x.png") type("image/png") 2x); }
 
 .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 64px; color: var(--color-text-primary); }
-.page h1 { margin: 8px 0 12px; font-family: var(--font-display); font-size: clamp(40px, 6vw, 56px); font-weight: 300; }
+.page h1 { margin: 8px 0 12px; font-family: var(--font-sans); font-size: 72px; line-height: 80px; font-weight: 300; letter-spacing: -0.035em; }
 .lead, .muted { color: var(--color-text-secondary); }
 .kicker { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand-accent); }
 .back { margin-bottom: 24px; }

@@ -19,7 +19,7 @@ export default function HowItWorksPage() {
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent">How a review works</p>
-      <h1 className="mt-3 text-4xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 300 }}>
+      <h1 className="mt-3 text-4xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 300 }}>
         Scope before work. Evidence beside findings.
       </h1>
       <ol className="mt-8 space-y-6">

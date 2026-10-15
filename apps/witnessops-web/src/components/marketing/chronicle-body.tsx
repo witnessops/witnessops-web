@@ -31,7 +31,7 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
   const chunks = source.split("```");
   let record = 0;
   return (
-    <div className="mt-8 space-y-6 text-[17px] leading-7 text-text-secondary sm:text-lg sm:leading-8">
+    <div className="chronicle-prose mt-8 max-w-[568px] space-y-6 text-[18px] leading-[30px] text-text-secondary sm:text-[20px] sm:leading-[33px]" style={{ fontFamily: "var(--font-serif)" }}>
       {chunks.map((chunk, index) => {
         if (index % 2 === 1) {
           record += 1;
@@ -52,7 +52,7 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
           if (trimmed.startsWith("### ")) {
             const heading = sectionHeading(trimmed);
             return (
-              <h2 key={trimmed} className="pt-6 text-center text-2xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>
+              <h2 key={`heading-${index}-${trimmed.slice(0, 24)}`} className="pt-6 text-center text-2xl text-text-primary" style={{ fontFamily: "var(--font-sans)", fontWeight: 600 }}>
                 {heading.num ? <span className="mb-2 block font-mono text-base text-brand-accent">{heading.num}</span> : null}
                 {heading.title}
               </h2>

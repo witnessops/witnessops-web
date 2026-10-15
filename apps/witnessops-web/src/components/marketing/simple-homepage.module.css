@@ -1,11 +1,11 @@
 .page { display: flow-root; color: var(--color-text-primary); background: var(--color-surface-bg); font-family: var(--font-sans); }
 .frame { width: min(1152px, calc(100% - 80px)); margin-inline: auto; }
-.page h1, .page h2, .page h3 { font-family: var(--font-display); font-weight: 300; text-wrap: pretty; }
-.page h1 { max-width: 16ch; margin: 16px 0; font-size: clamp(48px, 6vw, 72px); line-height: 1.05; letter-spacing: -.035em; }
-.page h2 { margin: 16px 0 20px; font-size: clamp(28px, 3vw, 38px); line-height: 1.15; letter-spacing: -.025em; }
+.page h1, .page h2, .page h3 { font-family: var(--font-sans); font-weight: 300; text-wrap: pretty; }
+.page h1 { max-width: 16ch; margin: 16px 0; font-size: 72px; line-height: 80px; letter-spacing: -.035em; }
+.page h2 { margin: 16px 0 20px; font-size: 40px; line-height: 48px; letter-spacing: -.025em; }
 .page h3 { font-size: 20px; line-height: 1.35; }
 .page p { color: var(--color-text-secondary); font-size: 15px; line-height: 1.65; }
-.page .eyebrow { margin: 0; color: var(--color-brand-accent); font-size: 11px; font-weight: 500; line-height: 1.7; letter-spacing: .12em; text-transform: uppercase; }
+.page .eyebrow { margin: 0; color: var(--color-brand-accent); font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: .14em; text-transform: uppercase; }
 .hero { position: relative; overflow: hidden; padding-block: 64px 36px; background-image: var(--hero-glow); }
 .watermark { position: absolute; top: 24px; right: 6%; color: var(--color-text-primary); opacity: 0.08; pointer-events: none; transform: scale(8); transform-origin: top right; }
 .heroCopy { position: relative; max-width: 880px; }
@@ -34,8 +34,7 @@
 .offers { padding-bottom: 48px; }
 .cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 0 0 16px; }
 .cards article { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--color-surface-border-strong); border-radius: var(--radius-card); background: var(--color-surface-card); }
-.cards h2 { margin: 0; font-size: clamp(22px, 2.2vw, 28px); line-height: 1.25; letter-spacing: -.02em; }
-.cards h3 { margin-top: 14px; font-size: 16px; }
+.cards h2, .cards h3 { margin: 0; font-family: var(--font-sans); font-size: 24px; font-weight: 400; line-height: 32px; letter-spacing: 0; }
 .cards p { margin-top: 12px; font-size: 14px; }
 .cards .price { color: var(--color-text-primary); font-size: 20px; }
 .cards .scope { color: var(--color-text-muted); font-size: 13px; line-height: 1.6; }
@@ -78,7 +77,8 @@
 @media (max-width: 800px) {
   .frame { width: calc(100% - 40px); }
   .hero { padding-block: 30px; }
-  .page h1 { font-size: 36px; }
+  .page h1 { font-size: 48px; line-height: 56px; }
+  .page h2 { font-size: 32px; line-height: 40px; }
   .page .lead { font-size: 16px; line-height: 1.6; }
   .cards, .boundaries > .frame, .enquiry > .frame, .steps, .principles { grid-template-columns: 1fr; gap: 24px; }
   .watermark { transform: scale(4); }
