@@ -21,3 +21,10 @@ export const COMPANY_DETAILS = {
 } as const;
 
 export type CompanyDetailsLocale = keyof typeof COMPANY_DETAILS;
+
+export const COMPANY_COPYRIGHT = `© 2026 ${COMPANY_DETAILS.en.legalName}`;
+
+export const COMPANY_DETAILS_HREF = {
+  en: "/company",
+  pl: "/pl/company",
+} as const;

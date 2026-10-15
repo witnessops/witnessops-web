@@ -2,8 +2,12 @@
 
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CompanyDetails } from "@/components/marketing/company-details";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import {
+  COMPANY_COPYRIGHT,
+  COMPANY_DETAILS,
+  COMPANY_DETAILS_HREF,
+} from "@/lib/company-details";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
@@ -92,7 +96,6 @@ export function Footer({
   links,
   legal_links,
   build_label,
-  copyright,
 }: FooterProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -203,6 +206,14 @@ export function Footer({
         <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
+            <Link
+              href={COMPANY_DETAILS_HREF[isPolishSurface ? "pl" : "en"]}
+              className={FOOTER_LEGAL_LINK_CLASS}
+              style={FOOTER_NAV_STYLE}
+              data-company-details-link={isPolishSurface ? "pl" : "en"}
+            >
+              {COMPANY_DETAILS[isPolishSurface ? "pl" : "en"].heading}
+            </Link>
             {!isPolishSurface ? (
               <Link href={MEDIA_KIT_HREF} className={FOOTER_LEGAL_LINK_CLASS}
                 style={FOOTER_NAV_STYLE}>Media kit</Link>
@@ -217,13 +228,9 @@ export function Footer({
           </div>
           <div className="flex flex-wrap items-center gap-x-2 text-xs leading-5 text-text-secondary">
             {isPublicBuildLabel(build_label) ? <span>{build_label}</span> : null}
-            <span>{copyright}</span>
+            <span data-company-copyright="">{COMPANY_COPYRIGHT}</span>
           </div>
         </div>
-        <CompanyDetails
-          locale={isPolishSurface ? "pl" : "en"}
-          placement="footer"
-        />
       </div>
     </footer>
   );

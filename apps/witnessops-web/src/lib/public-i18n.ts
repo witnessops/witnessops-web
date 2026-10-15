@@ -142,6 +142,7 @@ const POLISH_TRANSLATED_PATHS = [
   /^\/verify$/,
   /^\/support$/,
   /^\/contact$/,
+  /^\/company$/,
 ] as const;
 
 const PAIRED_DOC_PATHS = new Set(["/docs/faq", "/docs/glossary"]);
