@@ -132,18 +132,24 @@ export function ContactLine({ text }: { text: string }) {
   const period = text[after] === "." ? "." : "";
   const split = CONTACT_ADDRESS.indexOf("@");
   const tailAt = CONTACT_ADDRESS.lastIndexOf(".");
+  const before = text.slice(0, at).replace(/\s+$/, "");
+  const rest = text.slice(after + period.length).replace(/^\s+/, "");
   return (
     <>
-      {text.slice(0, at)}
-      <a href={`mailto:${CONTACT_ADDRESS}`}>
+      {before ? <>{before} </> : null}
+      <a className={styles.replyAddress} data-reply-address="" href={`mailto:${CONTACT_ADDRESS}`}>
         {CONTACT_ADDRESS.slice(0, split)}
         <wbr />
         {CONTACT_ADDRESS.slice(split, tailAt)}
         <span className={styles.addressTail}>{CONTACT_ADDRESS.slice(tailAt)}{period}</span>
       </a>
-      {text.slice(after + period.length)}
+      {rest ? <> {rest}</> : null}
     </>
   );
+}
+
+function withoutErrorTurn(turns: Turn[]): Turn[] {
+  return turns.filter((turn) => !(turn.role === "sovereign" && turn.simulatedError));
 }
 
 type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean };
@@ -260,6 +266,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const [loadError, setLoadError] = useState(false);
   const [followUpsReady, setFollowUpsReady] = useState(true);
   const errorSpent = useRef(false);
+  const focusComposer = useRef(false);
 
   function clearPendingTimers() {
     pendingCancel.current?.();
@@ -274,7 +281,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     clearPendingTimers();
     setPending(false);
     setTurns((current) => {
-      const next = current.slice();
+      const next = withoutErrorTurn(current);
       for (let index = next.length - 1; index >= 0; index -= 1) {
         const turn = next[index];
         if (turn?.role === "you" && turn.text === text) {
@@ -300,14 +307,17 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     clearPendingTimers();
     setPending(false);
     setTurns((current) => {
-      const next = current.slice();
+      const next = withoutErrorTurn(current);
+      let at = next.length;
       for (let index = next.length - 1; index >= 0; index -= 1) {
         const turn = next[index];
         if (turn?.role === "you" && turn.text === text) {
-          next[index] = { ...turn, simulatedError: true };
+          next[index] = { ...turn, simulatedError: false };
+          at = index + 1;
           break;
         }
       }
+      next.splice(at, 0, { role: "sovereign", text: "", simulatedError: true });
       return next;
     });
     setPhase("ERROR");
@@ -485,10 +495,18 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }
 
   function retryFromError() {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.hasAttribute("data-retry")) focusComposer.current = true;
     const text = lastQuestion.current;
     if (!text) return;
     ask(text, true);
   }
+
+  useLayoutEffect(() => {
+    if (!focusComposer.current) return;
+    focusComposer.current = false;
+    composerRef.current?.focus({ preventScroll: true });
+  });
 
   function ask(question: string, resend = false) {
     const text = question.trim();
@@ -504,18 +522,19 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     setDraft("");
     setLoadError(false);
     setTurns((current) => {
-      const next = current.slice();
+      const next = withoutErrorTurn(current);
       if (resend) {
         for (let index = next.length - 1; index >= 0; index -= 1) {
           const turn = next[index];
           if (turn?.role === "you") {
-            next[index] = { ...turn, text, simulatedError: forceError };
+            next[index] = { ...turn, text, simulatedError: false };
             break;
           }
         }
       } else {
-        next.push({ role: "you", text, simulatedError: forceError });
+        next.push({ role: "you", text });
       }
+      if (forceError) next.push({ role: "sovereign", text: "", simulatedError: true });
       return next;
     });
     if (forceError) {
@@ -557,7 +576,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   let spriteIndex = -1;
   if (phase === "ERROR") {
     turns.forEach((item, itemIndex) => {
-      if (item.role === "you" && item.simulatedError) spriteIndex = itemIndex;
+      if (item.role === "sovereign" && item.simulatedError) spriteIndex = itemIndex;
     });
   }
   if (spriteIndex < 0) {
@@ -575,7 +594,6 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       <span className={styles.errorCaption}>
         {errorHead}
         <span className={styles.captionTail}>{errorTail}</span>
-        {locale === "pl" ? <span className={styles.reviewTag}>PL copy pending native review</span> : null}
       </span>
     </p>
   );
@@ -627,7 +645,6 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           </header>
           <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
-          {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
             {turns.map((turn, index) => {
@@ -642,11 +659,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                   <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                   {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                   <p><ContactLine text={turn.text} /></p>
-                  {turn.simulatedError || (loadError && index === 0 && turn.role === "sovereign") ? errorNote : null}
+                  {turn.role === "sovereign" && (turn.simulatedError || (loadError && index === 0 && !turns.some((item) => item.simulatedError))) ? errorNote : null}
                   {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                 </>
               );
-              const retry = turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
+              const retry = turn.role === "sovereign" && turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
               const body = withSprite ? (
                 <div className={styles.withSprite}>
                   <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />
@@ -656,7 +673,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               return (
                 <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign}>
                   {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
-                  {turn.role === "you" ? <div className={styles.youBubble}>{body}{retry}</div> : <>{body}{retry}</>}
+                  {turn.role === "you" ? <div className={styles.youBubble}>{body}</div> : <>{body}{retry}</>}
                 </li>
               );
             })}
@@ -699,12 +716,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <p className={styles.back}><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
           <p className={styles.kicker}>{copy.kicker}</p>
           <p className={styles.lead}>{copy.lead}</p>
-          {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
           <h3>{copy.railAnswer}</h3>
           <ul>
             <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: {PUBLIC_AGENT_ACTION_OFFER.price[locale]}</li>
             <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: {EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}. {EASR_RETEST[locale]}</li>
-            {locale === "pl" ? <li className={styles.reviewTag}>PL copy pending native review</li> : null}
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

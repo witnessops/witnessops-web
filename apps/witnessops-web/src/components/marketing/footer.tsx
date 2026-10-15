@@ -165,14 +165,13 @@ export function Footer({
 
   function renderLink(link: FooterLink, className: string) {
     const href = resolveFooterHref(link.href);
-    const classes = isPolishSurface && href === "/check" ? `${className} whitespace-nowrap` : className;
     return isExternalFooterHref(href) ? (
       <a key={href} href={href} target="_blank" rel="noreferrer"
-        className={classes} style={FOOTER_NAV_STYLE}>
+        className={`${className} max-w-full min-w-0 whitespace-normal`} style={FOOTER_NAV_STYLE}>
         {link.label}
       </a>
     ) : (
-      <Link key={href} href={href} prefetch={false} className={classes} style={FOOTER_NAV_STYLE}>
+      <Link key={href} href={href} prefetch={false} className={`${className} max-w-full min-w-0 whitespace-normal`} style={FOOTER_NAV_STYLE}>
         {link.label}
       </Link>
     );

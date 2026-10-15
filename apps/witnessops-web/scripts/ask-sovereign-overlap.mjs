@@ -245,7 +245,19 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const emailRects = address ? [...address.getClientRects()].filter((rect) => rect.width > 1) : [];
     const emailLines = new Set(emailRects.map((rect) => Math.round(rect.top))).size;
     const emailBreak = address ? getComputedStyle(address).wordBreak : "";
-    const spriteOnYou = !retry || Boolean(retry.closest("li")?.contains(fallback));
+    const reply = thread.querySelector("[data-reply-address]");
+    const replyRects = reply ? [...reply.getClientRects()].filter((rect) => rect.width > 1) : [];
+    const replyLines = new Set(replyRects.map((rect) => Math.round(rect.top))).size;
+    const replyTail = reply?.querySelector("[class*='addressTail']");
+    const replyTailLines = replyTail ? new Set([...replyTail.getClientRects()].filter((rect) => rect.width > 1).map((rect) => Math.round(rect.top))).size : 0;
+    const youBubble = root.querySelector("[class*='youBubble']");
+    const youLi = youBubble?.closest("li") ?? null;
+    const errorLi = retry?.closest("li") ?? null;
+    const faceInYou = Boolean(youBubble?.querySelector(".sv-fallback, [class*='sprite']"));
+    const plainYou = !youLi || (!youLi.querySelector("[data-retry]") && !youLi.querySelector("[class*='errorNote']") && !youLi.querySelector(".sv-fallback"));
+    const errorFollows = Boolean(errorLi && youLi && errorLi.previousElementSibling === youLi);
+    const faceOnError = Boolean(errorLi?.querySelector(".sv-fallback"));
+    const panelReviewTags = root.querySelectorAll("[class*='reviewTag']").length;
     const errorCaption = thread.querySelector("[class*='errorCaption']");
     let errorRects = [];
     if (errorCaption) {
@@ -304,7 +316,14 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       simulatedLabel,
       emailLines,
       emailBreak,
-      spriteOnYou,
+      replyLines,
+      replyTailLines,
+      faceInYou,
+      plainYou,
+      errorFollows,
+      faceOnError,
+      panelReviewTags,
+      youWidth: youBubble ? youBubble.getBoundingClientRect().width : 0,
       hanging,
       errorWrapped: errorRects.length >= 2,
       contrastLow: labels.filter((item) => item.ratio < 4.5),
@@ -324,11 +343,20 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       const visible = [...chips.querySelectorAll("button")].filter((button) => getComputedStyle(button).display !== "none").length;
       const answer = /Simulated response · preview|Podgląd: odpowiedź symulowana/.test(document.body.textContent || "");
       const cls = (window.__shifts || []).filter((entry) => !entry.recent).reduce((sum, entry) => sum + entry.value, 0);
-      return { visible, answer, cls };
+      const bubble = document.querySelector("[class*='youBubble']");
+      return {
+        visible,
+        answer,
+        cls,
+        youWidth: bubble ? bubble.getBoundingClientRect().width : 0,
+        active: document.activeElement?.id || "",
+      };
     });
     measured.retryCls = afterRetry.cls;
     measured.retryChips = afterRetry.visible;
     measured.retryAnswer = afterRetry.answer;
+    measured.retryYouWidth = afterRetry.youWidth;
+    measured.retryActive = afterRetry.active;
     clsLines.push(`${locale} ${width}x${height} ${theme} retry cls=${afterRetry.cls} chips=${afterRetry.visible} answer=${afterRetry.answer}`);
   }
   await context.close();
@@ -359,11 +387,14 @@ function problems(measured, { locale, width, height, mode }) {
   if (width >= 1024 && measured.threadHeight < 360) issues.push(`thread ${measured.threadHeight}`);
   if (width >= 1200 && height >= 860 && !measured.composerOnLoad) issues.push("composer below fold");
   if (mode === "error" && !measured.retryNowrap) issues.push("retry wraps");
-  if (mode === "error" && !measured.spriteOnYou) issues.push("error face not on the you turn");
+  if (mode === "error" && (measured.faceInYou || !measured.plainYou || !measured.errorFollows || !measured.faceOnError)) issues.push("error face not on the sovereign turn after the question");
+  if (mode === "error" && measured.panelReviewTags) issues.push("review tag in panel");
+  if (mode === "error" && (Math.abs((measured.youWidth || 0) - (measured.retryYouWidth || 0)) > 0.5 || measured.retryActive !== "ask-sovereign-draft")) issues.push(`you width ${measured.youWidth}->${measured.retryYouWidth} focus=${measured.retryActive}`);
   if (mode === "error" && (!measured.errorChipInThread || measured.errorChipInHeader || !measured.captionOutside || !measured.captionVisible)) issues.push(`error caption ${measured.captionText}`);
   if (mode === "handoff" && (!measured.handoffChipInThread || measured.handoffChipInHeader || !measured.captionOutside || !measured.simulatedLabel)) issues.push(`handoff caption ${measured.captionText}`);
   if (mode === "answer" && !measured.simulatedLabel) issues.push("simulated label missing");
   if (mode === "handoff" && width <= 320 && (measured.emailLines < 1 || measured.emailLines > 2)) issues.push(`email lines ${measured.emailLines}`);
+  if (mode === "handoff" && width <= 320 && (measured.replyLines < 1 || measured.replyLines > 2 || measured.replyTailLines !== 1)) issues.push(`reply email lines ${measured.replyLines} tail ${measured.replyTailLines}`);
   if (mode === "handoff" && measured.emailBreak === "break-all") issues.push("email breaks anywhere");
   if (locale === "pl" && mode === "error" && width <= 390 && !measured.hanging) issues.push("error note indent");
   if (locale === "pl" && mode === "error" && width === 320 && !measured.errorWrapped) issues.push("error note did not wrap");
@@ -410,19 +441,100 @@ try {
     if (issues.length) throw new Error(shot);
   }
 
-  const footer = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  const footerPage = await footer.newPage();
-  await footerPage.goto(`${base}/pl`, { waitUntil: "networkidle" });
-  const footerLink = footerPage.locator("footer a", { hasText: "Narzędzie, nie przegląd" });
-  const footerState = await footerLink.evaluate((el) => ({
-    text: (el.textContent || "").trim(),
-    lines: el.getClientRects().length,
-    nowrap: getComputedStyle(el).whiteSpace,
-  }));
-  const footerOk = footerState.text === "Narzędzie, nie przegląd" && footerState.lines === 1;
-  log(`pl-footer text=${JSON.stringify(footerState.text)} lines=${footerState.lines} whiteSpace=${footerState.nowrap} ${footerOk ? "OK" : "FAIL"}`);
-  if (!footerOk) throw new Error("PL footer link");
-  await footer.close();
+  const focusLines = ["# Focus after Retry. Real pointer and keyboard activation. activeElement must be the composer."];
+  for (const activation of ["mouse", "Enter", "Space"]) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    const page = await context.newPage();
+    await page.goto(`${base}/docs/assistant?sim=error`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => document.activeElement?.id === "ask-sovereign-draft");
+    await page.getByRole("button", { name: "What does the Agent Action Security Review cover?" }).click();
+    const retry = page.getByRole("button", { name: "Retry" });
+    await retry.waitFor();
+    const before = await page.locator("[class*='youBubble']").evaluate((el) => el.getBoundingClientRect().width);
+    if (activation === "mouse") await retry.click();
+    else {
+      await retry.focus();
+      await page.keyboard.press(activation);
+    }
+    await page.getByText("Simulated response · preview").waitFor();
+    const after = await page.evaluate(() => ({
+      active: document.activeElement?.id || document.activeElement?.tagName || "",
+      you: document.querySelector("[class*='youBubble']")?.getBoundingClientRect().width ?? 0,
+    }));
+    const same = Math.abs(before - after.you) <= 0.5;
+    const focused = after.active === "ask-sovereign-draft";
+    const line = `${activation} active=${after.active} you ${before.toFixed(1)}->${after.you.toFixed(1)} ${focused && same ? "OK" : "FAIL"}`;
+    focusLines.push(line);
+    log(line);
+    await context.close();
+    if (!focused || !same) throw new Error(line);
+  }
+  writeFileSync(`${outDir}/focus-retry.txt`, `${focusLines.join("\n")}\n`);
+
+  const widthLines = ["# documentElement.scrollWidth <= viewport, both languages, matrix sizes."];
+  const widthRoutes = [
+    ["en", "/"],
+    ["en", "/library"],
+    ["en", "/check"],
+    ["en", "/docs/assistant"],
+    ["pl", "/pl"],
+    ["pl", "/pl/library"],
+    ["pl", "/pl/check"],
+    ["pl", "/pl/docs/assistant"],
+  ];
+  let widthFails = 0;
+  for (const viewport of viewports) {
+    for (const theme of themes) {
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        deviceScaleFactor: 1,
+        colorScheme: theme,
+      });
+      const page = await context.newPage();
+      await page.addInitScript((value) => localStorage.setItem("wo-theme", value), theme);
+      for (const [locale, path] of widthRoutes) {
+        await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded", timeout: 45000 });
+        const measured = await page.evaluate(() => ({
+          scroll: document.documentElement.scrollWidth,
+          banner: Boolean(document.querySelector(".pl-copy-review")),
+        }));
+        const widthOk = measured.scroll <= viewport.width;
+        const bannerOk = !path.startsWith("/pl/") && path !== "/pl" || measured.banner || path === "/pl/check";
+        if (!widthOk || !bannerOk) widthFails += 1;
+        const line = `${widthOk && bannerOk ? "OK" : "FAIL"} ${theme} ${locale} ${viewport.key} ${path} scroll=${measured.scroll} viewport=${viewport.width} banner=${measured.banner}`;
+        widthLines.push(line);
+        log(line);
+      }
+      await context.close();
+    }
+  }
+  widthLines.push(widthFails ? `PAGE_WIDTH_FAIL ${widthFails}` : "PAGE_WIDTH_OK");
+  writeFileSync(`${outDir}/page-width.txt`, `${widthLines.join("\n")}\n`);
+  log(widthLines.at(-1));
+  if (widthFails) throw new Error(widthLines.at(-1));
+
+  for (const width of [320, 390]) {
+    const footer = await browser.newContext({ viewport: { width, height: 844 } });
+    const footerPage = await footer.newPage();
+    await footerPage.goto(`${base}/pl`, { waitUntil: "networkidle" });
+    const footerLink = footerPage.locator("footer a", { hasText: "Narzędzie, nie przegląd" });
+    const footerState = await footerLink.evaluate((el) => {
+      const rects = [...el.getClientRects()].filter((rect) => rect.width > 1);
+      return {
+        text: (el.textContent || "").trim(),
+        lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+        nowrap: getComputedStyle(el).whiteSpace,
+        scroll: document.documentElement.scrollWidth,
+      };
+    });
+    const footerOk = footerState.text === "Narzędzie, nie przegląd"
+      && footerState.nowrap !== "nowrap"
+      && footerState.lines === 1
+      && footerState.scroll <= width;
+    log(`pl-footer ${width} text=${JSON.stringify(footerState.text)} lines=${footerState.lines} whiteSpace=${footerState.nowrap} scroll=${footerState.scroll} ${footerOk ? "OK" : "FAIL"}`);
+    await footer.close();
+    if (!footerOk) throw new Error(`PL footer link at ${width}`);
+  }
 
   const clsBad = clsLines.filter((line) => /cls=/.test(line)).filter((line) => !/cls=0(?:\s|$)/.test(line));
   log(`cls ${clsBad.length === 0 ? "OK" : `FAIL ${clsBad.join("; ")}`}`);

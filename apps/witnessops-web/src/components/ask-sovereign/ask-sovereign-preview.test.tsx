@@ -41,7 +41,7 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /ask\(text, true\)/);
   assert.doesNotMatch(source, /scrollIntoView/);
   assert.match(source, /scrollTurnToThreadStart/);
-  assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 1);
+  assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 2);
   assert.equal(PROCESSING_SHOW_DELAY_MS, 150);
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
   assert.equal(SLOW_PENDING_MS, 6_000);
@@ -54,7 +54,7 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /simulatedChip: "Symulacja"/);
   assert.match(source, /Not answered\. Nothing was sent\./);
   assert.match(source, /Bez odpowiedzi\. Nic nie zostało wysłane\./);
-  assert.match(source, /PL copy pending native review/);
+  assert.doesNotMatch(source, /PL copy pending native review/);
   assert.match(source, /NEXT_PUBLIC_WO_PREVIEW === "1"/);
   assert.match(source, /if \(pending\) return/);
   assert.match(source, /disabled=\{pending\}/);
@@ -149,7 +149,15 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /:where\(\.sovereign, \.handoffCard\) a:not\(\.handoffCta\)/);
   assert.match(css, /max-height:\s*699px\)[\s\S]*\.chips button:nth-child\(n\+3\)/);
   assert.match(source, /if \(phase === "ERROR"\)/);
-  assert.match(source, /item\.role === "you" && item\.simulatedError/);
+  assert.match(source, /item\.role === "sovereign" && item\.simulatedError/);
+  assert.match(source, /focusComposer\.current = true/);
+  assert.match(css, /scrollbar-width:\s*thin/);
+  assert.match(css, /scrollbar-color:\s*var\(--color-surface-border\)/);
+  assert.match(css, /\.disclaimer \{[^}]*text-wrap:\s*pretty/);
+  assert.match(css, /\.errorNote \{[^}]*text-wrap:\s*pretty/);
+  assert.match(css, /\.rail \.lead \{[^}]*var\(--type-body-lg-size\)/);
+  assert.match(css, /\.replyAddress \{[^}]*display:\s*block/);
+  assert.match(source, /data-reply-address=""/);
   assert.match(source, /scrollPrimaryActionIntoView\(thread, action, reducedMotion\)/);
   assert.match(source, /behavior: reduced \? "auto" : "smooth"/);
   assert.match(css, /\.you, \.sovereign \{ min-width: 0; max-width: 100%; \}/);
@@ -196,9 +204,15 @@ test("liveText is non-empty for every phase in English and Polish", () => {
   assert.match(polish, /Podgląd, nic nie wysyła/);
 });
 
-test("Polish Ask Sovereign chrome stays under the review tag and keeps the locked retest line", () => {
+test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review to the page banner", () => {
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
-  assert.match(html, /PL copy pending native review/);
+  const layout = readFileSync(resolve(__dirname, "../../app/pl/layout.tsx"), "utf8");
+  assert.doesNotMatch(html, /PL copy pending native review/);
+  assert.match(layout, /PL copy pending native review/);
+  assert.match(layout, /Narzędzie, nie przegląd/);
+  assert.match(layout, /Podgląd · symulowane przekazanie/);
+  assert.match(layout, /Podgląd · symulowany błąd/);
+  assert.match(layout, /className="[^"]*reviewTag/);
   const status = html.match(/<p class="[^"]*status[^"]*"[\s\S]*?<\/p>/);
   const hint = html.match(/<p id="ask-sovereign-optin-hint"[\s\S]*?<\/p>/);
   assert.ok(status);
@@ -377,7 +391,7 @@ test("a preview timeout reaches the error state and a second question waits", ()
 
 test("Ask Sovereign type classes stay on the locked roles", () => {
   const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
-  assert.match(html, /class="[^"]*reviewTag[^"]*"/);
+  assert.doesNotMatch(html, /reviewTag/);
   assert.doesNotMatch(html, /<h1[^>]*>Ask Sovereign<\/h1>/);
   assert.match(html, /id="ask-sovereign-title"/);
   assert.doesNotMatch(html, /data-display-title/);

@@ -1234,6 +1234,12 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 }
 .simple-public-footer > div { padding-block: 40px max(32px, env(safe-area-inset-bottom)); }
 .simple-public-footer .footer-main { display: grid; gap: 32px; }
+.simple-public-footer .footer-navigation { min-width: 0; }
+.simple-public-footer .footer-navigation > nav { min-width: 0; }
+.simple-public-footer .footer-navigation .flex { min-width: 0; width: 100%; }
+@media (max-width: 419px) {
+  .simple-public-footer .footer-navigation { grid-template-columns: 1fr; }
+}
 .simple-public-footer .footer-heading,
 .simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-text-muted); }
 .simple-public-footer :is(nav a, .footer-resources a, .footer-legal a) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; color: var(--color-text-secondary); }
