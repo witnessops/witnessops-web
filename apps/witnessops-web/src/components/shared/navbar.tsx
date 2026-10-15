@@ -22,7 +22,7 @@ interface NavbarProps {
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ announcement, signupUrl = null, appUrl = null }: NavbarProps) {
+export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
@@ -36,9 +36,9 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     { label: "Docs", href: "/docs" },
   ];
   const effectiveCta = polish ? {
-    label: signupUrl ? "Sign up" : "Free check",
-    href: signupUrl || "/check",
-    variant: "primary",
+    label: POLISH_PUBLIC_NAV.cta.label,
+    href: POLISH_PUBLIC_NAV.cta.href,
+    variant: POLISH_PUBLIC_NAV.cta.variant,
   } : {
     label: "Discuss a review",
     href: "/contact",

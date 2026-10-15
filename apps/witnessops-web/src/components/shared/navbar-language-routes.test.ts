@@ -11,12 +11,14 @@ test("primary navigation exposes the simplified website destinations", () => {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.match(navbar, /label: signupUrl \? "Sign up" : "Free check"/);
+  assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
+  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Opisz swój system");
+  assert.equal(POLISH_PUBLIC_NAV.cta.href, "/pl/review/request");
 });
 
 test("shared navigation preserves Polish destinations and selected enquiry", () => {
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
-  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
+  assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
     "/pl/reviews", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);

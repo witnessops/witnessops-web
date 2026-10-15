@@ -217,7 +217,7 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
   );
 });
 
-test("header uses the configured signup destination while footer and service enquiries preserve their selected context", () => {
+test("Polish header uses the review request while footer and service enquiries preserve their selected context", () => {
   const navbar = readFileSync(
     resolve(__dirname, "../components/shared/navbar.tsx"),
     "utf-8",
@@ -231,7 +231,8 @@ test("header uses the configured signup destination while footer and service enq
     "utf-8",
   );
 
-  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
+  assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
+  assert.doesNotMatch(navbar, /href: signupUrl \|\| "\/check"/);
   assert.match(footer, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /primaryHref=\{reviewRequestHref\}/);
   assert.match(serviceDetail, /href=\{requestHref\}/);
