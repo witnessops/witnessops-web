@@ -7,7 +7,8 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { AskSovereignPreview } from "./ask-sovereign-preview";
+import { AskSovereignPreview, liveText, pausedLoadPhase } from "./ask-sovereign-preview";
+import type { SovereignSpriteState } from "./sovereign-playback";
 
 test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
   const files = ["ask-sovereign-preview.tsx", "sovereign-sprite.tsx", "ask-sovereign-answers.ts", "sovereign-playback.ts", "preview-triggers.ts"];
@@ -62,6 +63,42 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /border-radius:\s*8px/);
   assert.match(css, /border-radius:\s*0/);
   assert.doesNotMatch(css, /filter:/);
+  assert.match(css, /\.status \{[^}]*min-height:\s*16px/);
+  assert.match(css, /max-width:\s*419px\)\s*\{\s*\.status\s*\{\s*min-height:\s*32px/);
+  assert.match(css, /@keyframes sv-status \{ from \{ opacity: 0\.6; \} to \{ opacity: 1; \} \}/);
+  assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*\.statusText \{ animation: none/);
+});
+
+test("liveText is non-empty for every phase in English and Polish", () => {
+  const phases: SovereignSpriteState[] = ["greet", "idle", "thinking", "answering", "handoff-desktop", "handoff-mobile", "error"];
+  const lives = ["idle", "thinking", "answering", "answerReady", "handoff"] as const;
+  for (const locale of ["en", "pl"] as const) {
+    for (const phase of phases) {
+      for (const live of lives) {
+        const text = liveText(locale, live, phase).trim();
+        assert.ok(text.length > 0, `${locale} ${phase} ${live}`);
+      }
+    }
+  }
+  assert.equal(liveText("en", "idle", "greet"), "Ready");
+  assert.equal(liveText("pl", "idle", "greet"), "Gotowy do pytań");
+  assert.equal(liveText("en", "idle", "error"), "Unavailable");
+  assert.equal(liveText("pl", "thinking", "error"), "Asystent niedostępny");
+  const html = renderToStaticMarkup(createElement(AskSovereignPreview));
+  assert.match(html, /role="status"[^>]*>[\s\S]*Ready/);
+  const polish = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
+  assert.match(polish, /role="status"[^>]*>[\s\S]*Gotowy do pytań/);
+});
+
+test("paused-on-load shows Ready and the idle sprite", () => {
+  assert.equal(pausedLoadPhase(true), "idle");
+  assert.equal(pausedLoadPhase(false), "greet");
+  assert.equal(liveText("en", "idle", pausedLoadPhase(true)), "Ready");
+  assert.equal(liveText("pl", "idle", pausedLoadPhase(true)), "Gotowy do pytań");
+  const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
+  assert.match(source, /setPhase\(\(current\) => \(current === "greet" \? pausedLoadPhase\(true\) : current\)\)/);
+  assert.match(source, /setPhase\(pausedLoadPhase\(true\)\)/);
+  assert.match(source, /<SovereignSprite state=\{phase\}/);
 });
 
 test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t) => {

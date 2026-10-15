@@ -73,15 +73,20 @@ const COPY = {
 type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; needsReview?: boolean };
 type Live = "idle" | "thinking" | "answering" | "answerReady" | "handoff";
 
-function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
+export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
   if (phase === "error") return COPY[locale].unavailable;
-  if (phase === "greet") return "";
   const copy = COPY[locale];
+  if (phase === "greet") return copy.idle;
   if (live === "thinking") return copy.thinking;
   if (live === "answering") return copy.answering;
   if (live === "answerReady") return copy.answerReady;
   if (live === "handoff") return copy.handoff;
   return copy.idle;
+}
+
+/** A saved pause skips greet, so the first painted sprite is the idle still. */
+export function pausedLoadPhase(storedPause: boolean): "idle" | "greet" {
+  return storedPause ? "idle" : "greet";
 }
 
 export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocale }) {
@@ -114,7 +119,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     motion.addEventListener("change", sync);
     narrow.addEventListener("change", sync);
     try {
-      setPaused(window.sessionStorage.getItem(PAUSE_KEY) === "1");
+      if (window.sessionStorage.getItem(PAUSE_KEY) === "1") {
+        setPaused(true);
+        setPhase((current) => (current === "greet" ? pausedLoadPhase(true) : current));
+      }
     } catch {
       setPaused(false);
     }
@@ -159,7 +167,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   }, [announceError]);
 
   useEffect(() => {
-    if (phase !== "greet" || !armed || paused) return;
+    if (phase !== "greet" || !armed) return;
+    if (paused) {
+      setPhase(pausedLoadPhase(true));
+      return;
+    }
     const timer = window.setTimeout(() => setPhase("idle"), stateDurationMs("greet"));
     return () => window.clearTimeout(timer);
   }, [phase, armed, paused]);
@@ -349,7 +361,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                     <div className={styles.withSprite}>
                       <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
                       <div>
-                        <p className={styles.status} role="status" aria-live={announceError ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" />{status}</p>
+                        <p className={styles.status} role="status" aria-live={announceError ? "assertive" : "polite"}><span className={styles.dot} aria-hidden="true" /><span key={status} className={styles.statusText}>{status}</span></p>
                         <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
                         {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
                         <p>{turn.text}</p>
