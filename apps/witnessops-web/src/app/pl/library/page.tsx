@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -183,7 +184,7 @@ export default function PolishLibraryPage() {
                   {path.description}
                 </p>
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
-                  {path.cta} →
+                  {path.cta} <InlineArrow />
                 </p>
               </Link>
             ))}

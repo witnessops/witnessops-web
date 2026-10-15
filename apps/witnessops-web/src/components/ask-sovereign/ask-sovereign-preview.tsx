@@ -11,6 +11,7 @@ import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
 import { previewChip, simErrorAtLoad, simFlag, thinkingDurationMs } from "./preview-triggers";
 import { revealWaitMs, stateDurationMs } from "./sovereign-playback";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
@@ -410,7 +411,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           ) : null}
           {phase === "handoff-desktop" || phase === "handoff-mobile" ? (
             <div className={styles.handoffCard} data-handoff-card>
-              <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <span aria-hidden="true">→</span></a>
+              <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
               <p>{copy.handoffMail}</p>
             </div>
           ) : null}

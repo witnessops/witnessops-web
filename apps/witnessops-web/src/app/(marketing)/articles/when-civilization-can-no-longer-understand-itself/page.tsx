@@ -1,4 +1,5 @@
 import { EditorialArticle, editorialBodyClass as bodyClass, editorialHeadingClass as headingClass, editorialQuoteClass as quoteClass } from '@/components/editorial/editorial-article';
+import { InlineArrow } from '@/components/marketing/inline-arrow';
 import { civilizationArticle, editorialMetadata } from '@/lib/research';
 
 export const metadata = editorialMetadata(civilizationArticle);
@@ -86,7 +87,7 @@ export default function ArticlePage() {
           <h2 className={headingClass}>AI Can Also Shape the Human</h2>
           <p className={bodyClass}>Advanced AI will not only operate infrastructure. It will increasingly mediate information.</p>
           <p className={bodyClass}>A personalized assistant may decide what you read, what gets summarized, which messages deserve attention, what products are recommended, which arguments appear persuasive, which risks are emphasized, and which facts never reach you.</p>
-          <p className="mt-7 text-center text-xl font-semibold tracking-tight text-text-primary">World → AI → Human</p>
+          <p className="mt-7 text-center text-xl font-semibold tracking-tight text-text-primary">World <InlineArrow /> AI <InlineArrow /> Human</p>
           <p className={bodyClass}>Traditional advertising sends one message to many people. Algorithmic platforms choose different content for different people. Generative AI can go further: generate a message for one person, observe the response, adapt, and try again.</p>
           <p className={bodyClass}>The human becomes part of the optimization loop.</p>
           <p className={bodyClass}>The system learns which explanation persuades you. Which tone reassures you. Which framing makes you buy. Which argument changes your mind. Which emotional state makes you most responsive.</p>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
@@ -172,7 +173,7 @@ export default function SampleCasesIndexPage() {
                 <p className="mt-1 text-base leading-7 text-text-secondary">{item.situation}</p>
                 <p className="mt-4 text-sm font-semibold text-text-muted">What you can inspect</p>
                 <p className="mt-1 text-base leading-7 text-text-secondary">{item.youSee}</p>
-                <p className="mt-6 text-sm font-semibold text-brand-accent">Open example →</p>
+                <p className="mt-6 text-sm font-semibold text-brand-accent">Open example <InlineArrow /></p>
               </Link>
             ))}
           </div>
@@ -216,7 +217,7 @@ export default function SampleCasesIndexPage() {
               >
                 <h3 className="text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-text-secondary">{item.description}</p>
-                <p className="mt-5 text-sm font-semibold text-brand-accent">{item.label} →</p>
+                <p className="mt-5 text-sm font-semibold text-brand-accent">{item.label} <InlineArrow /></p>
               </Link>
             ))}
           </div>

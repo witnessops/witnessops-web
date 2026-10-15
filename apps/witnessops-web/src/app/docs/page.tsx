@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
@@ -178,7 +179,7 @@ export default async function DocsIndexPage() {
                 {path.description}
               </p>
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
-                {path.cta} →
+                {path.cta} <InlineArrow />
               </p>
             </Link>
           ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { useState, useEffect, useRef } from "react";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
 import {
@@ -360,7 +361,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                       style={{ ...mono, fontSize: 14, color: "var(--color-text-secondary)" }}
                     >
                       <span>{r.title}</span>
-                      <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}>→ DOCS</span>
+                      <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}><InlineArrow /> DOCS</span>
                     </Link>
                   ))}
                 </div>

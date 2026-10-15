@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
 import type { BuyerLocale } from "@/lib/buyer-services";
+import { InlineArrow } from "./inline-arrow";
 import { ReviewerProfile } from "./reviewer-profile";
 
 export function WhyWitnessOps({ locale }: { locale: BuyerLocale }) {
@@ -36,7 +37,7 @@ export function WhyWitnessOps({ locale }: { locale: BuyerLocale }) {
           ["/review/sample-cases/ai-agent-action-proof-run", pl ? "Demo weryfikacji (EN)" : "Verification demo"],
           [`${prefix}/verify`, pl ? "Zweryfikuj zapis" : "Verify a receipt"],
           [`${prefix}/docs`, pl ? "Dokumentacja" : "Read the documentation"],
-        ].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-primary underline underline-offset-4">{label} →</Link>)}</div>
+        ].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-primary underline underline-offset-4">{label} <InlineArrow /></Link>)}</div>
       </section>
       <section className="py-9" aria-labelledby="why-scope-heading">
         <h2 id="why-scope-heading" className="text-2xl font-semibold text-text-primary">{pl ? "Jasne granice wniosków" : "Clear limits on every conclusion"}</h2>

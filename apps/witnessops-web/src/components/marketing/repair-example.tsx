@@ -1,10 +1,11 @@
 import { ChevronRight } from "lucide-react";
+import { InlineArrow } from "./inline-arrow";
 import type { BuyerLocale } from "@/lib/buyer-services";
 export function RepairExample({ locale }: { locale: BuyerLocale }) {
   const pl = locale === "pl";
   return <article className="reviewFinding_finding" id="repair-example">
     <p className="reviewFinding_specimenLabel">{pl ? "Fikcyjny przykład · Nie testowano systemu" : "Fictional example · No system tested"}</p>
-    <p className="reviewFinding_findingMeta">{pl ? "Formularz → CRM → Powiadomienie" : "Lead form → CRM → Notification"}</p>
+    <p className="reviewFinding_findingMeta">{pl ? <>Formularz <InlineArrow /> CRM <InlineArrow /> Powiadomienie</> : <>Lead form <InlineArrow /> CRM <InlineArrow /> Notification</>}</p>
     <h3 className="reviewFinding_findingTitle">{pl ? "Proces jest zielony. Leada nie ma w CRM." : "The run is green. The lead is missing."}</h3>
     <dl className="reviewFinding_findingFacts">
       <div><dt>{pl ? "Problem" : "Problem"}</dt><dd>{pl ? "Kontakt nie trafia do handlowca, mimo że proces zgłasza sukces." : "Sales never receives the contact, even though the workflow reports success."}</dd></div>

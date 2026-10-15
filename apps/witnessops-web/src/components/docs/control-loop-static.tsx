@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 
 const controlStages = [
   {
@@ -79,7 +80,7 @@ export function ControlLoopStatic() {
                 WitnessOps System
               </p>
               <p className="mt-2 font-mono text-xs text-text-muted">
-                Intent → governed execution → action → receipt
+                Intent <InlineArrow /> governed execution <InlineArrow /> action <InlineArrow /> receipt
               </p>
             </div>
             <div className="rounded-xs border border-orange-400/20 bg-orange-400/10 px-3 py-1 text-xs text-orange-300">
@@ -129,7 +130,7 @@ export function ControlLoopStatic() {
                     {item}
                   </span>
                   {i < controlPath.length - 1 && (
-                    <span className="text-white/25">→</span>
+                    <span className="text-white/25"><InlineArrow /></span>
                   )}
                 </div>
               ))}
