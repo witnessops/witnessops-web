@@ -225,6 +225,16 @@ test("Ask WitnessOps keeps a human handoff available alongside the composer and 
   assert.match(contact, /Do not include secrets/);
 });
 
+test("Ask WitnessOps widget uses only the locked type weights", () => {
+  const styles = source("docs-assistant-widget.module.css");
+  assert.match(styles, /font-synthesis:\s*none/);
+  const weights = [...styles.matchAll(/font-weight:\s*([^;]+)/g)].map((match) => match[1].trim());
+  assert.ok(weights.length > 0);
+  for (const weight of weights) {
+    assert.ok(["300", "400", "500", "inherit", "normal"].includes(weight), weight);
+  }
+});
+
 test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoint", () => {
   const content = source("docs-assistant-widget.tsx");
   const styles = source("docs-assistant-widget.module.css");
