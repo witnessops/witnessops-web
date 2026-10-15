@@ -51,10 +51,10 @@
   --spacing-section: 120px;
   --spacing-section-sm: 80px;
 
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Newsreader", "Inter", system-ui, sans-serif;
-  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", serif;
-  --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --font-serif: "Newsreader", "Newsreader Fallback", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 /* The outline follows border-radius, so the ring is the element radius plus the offset.

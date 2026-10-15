@@ -46,6 +46,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
   if (!chapter) notFound();
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[680px] px-6 py-16">
+      <link rel="preload" href="/fonts/newsreader-400.woff2" as="font" type="font/woff2" crossOrigin="" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(chronicleJsonLd(chapter)).replaceAll("<", "\\u003c") }} />
       <p className="text-sm text-text-muted">
         <Link href="/research" className="underline-offset-4 hover:underline">Research</Link>

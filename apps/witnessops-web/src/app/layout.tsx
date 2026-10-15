@@ -49,6 +49,13 @@ export const metadata: Metadata = {
   },
 };
 
+const fontPreloads = (
+  <>
+    <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossOrigin="" />
+    <link rel="preload" href="/fonts/inter-300.woff2" as="font" type="font/woff2" crossOrigin="" />
+  </>
+);
+
 const appShellStyle: React.CSSProperties & {
   "--app-navbar-height": string;
 } = {
@@ -73,6 +80,7 @@ export default async function RootLayout({
       <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
         <head>
           <meta name="color-scheme" content="light dark" />
+          {fontPreloads}
           <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         </head>
         <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
@@ -106,6 +114,7 @@ export default async function RootLayout({
     <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="light dark" />
+        {fontPreloads}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <meta name="penguin" content="respect" />
         {/*
