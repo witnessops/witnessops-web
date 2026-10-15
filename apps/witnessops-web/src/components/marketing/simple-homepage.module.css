@@ -1,17 +1,26 @@
 .page { display: flow-root; color: var(--color-text-primary); background: var(--color-surface-bg); font-family: var(--font-sans); }
 .frame { width: min(1152px, calc(100% - 80px)); margin-inline: auto; }
 .page h1, .page h2, .page h3 { font-family: var(--font-sans); text-wrap: balance; }
-.page h1 { max-width: 14ch; margin: 12px 0 16px; font-size: var(--type-display-size); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); }
-.page h2 { margin: 0 0 16px; max-width: 24ch; font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); }
+:global(body:has(nav[data-public-presentation="quiet"]) #main-content) .heroCopy h1 { max-width: none; margin: 12px 0 0; font-size: var(--type-hero-size); line-height: var(--type-hero-lh); letter-spacing: var(--type-hero-ls); font-weight: var(--type-hero-wt); text-wrap: balance; }
+.heroLine { display: block; }
+.page h2 { margin: 0 0 16px; max-width: var(--measure-h2); font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); }
 .page h2.eyebrow { max-width: none; margin: 0 0 12px; font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
 .page h3 { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); }
 .page p { color: var(--color-text-secondary); font-size: var(--type-body-size); line-height: var(--type-body-lh); letter-spacing: 0; text-wrap: pretty; max-width: var(--measure-body); }
 .page .eyebrow { margin: 0 0 12px; color: var(--color-brand-accent); font-family: var(--font-sans); font-size: var(--type-eyebrow-size); font-weight: var(--type-eyebrow-wt); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
 .rule { display: block; width: 24px; height: 2px; margin: 0 0 16px; background: var(--color-brand-accent); }
-.hero { position: relative; overflow: hidden; padding-block: 120px; background-image: var(--hero-glow); }
-.watermark { position: absolute; top: 32px; right: max(40px, calc((100% - 1152px) / 2)); pointer-events: none; }
-.heroCopy { position: relative; max-width: 880px; }
-.linkRow { border-top: 1px solid var(--color-surface-border); }
+.hero { position: relative; overflow: hidden; padding: 56px 0 48px; background-image: var(--hero-glow); }
+.watermark { display: none; position: absolute; pointer-events: none; }
+.heroCopy { position: relative; max-width: none; }
+.split { display: grid; gap: 24px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--color-surface-border-strong); }
+.split .lead, .split .subline { margin: 0; }
+:global(body:has(nav[data-public-presentation="quiet"]) #main-content) .split .subline { margin: 0; color: var(--color-text-primary); font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); font-weight: 500; letter-spacing: 0; max-width: none; }
+.split .actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.split .actions a { width: 100%; }
+.split .primary, .split .secondary { min-height: 52px; border-radius: 4px; }
+.split .secondary { gap: 0.35em; border-color: var(--color-text-primary); text-decoration: none; }
+.linkRow { border-block: 1px solid var(--color-surface-border); }
+.linkRow .frame { padding-block: 4px; }
 .linkRow .frame { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; }
 .subline { margin: 0; color: var(--color-text-muted); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .steps, .principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 28px 0 0; padding: 0; list-style: none; }
@@ -46,7 +55,7 @@
 .freeCheck h3 { font-size: var(--type-h4-size); line-height: var(--type-h4-lh); font-weight: var(--type-h4-wt); letter-spacing: 0; }
 .freeCheck p { font-size: var(--type-small-size); line-height: var(--type-small-lh); margin-top: 4px; }
 .freeCheck strong { font-weight: 500; color: var(--color-text-primary); }
-.sectionLinks { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 20px; }
+.sectionLinks { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 8px 0; }
 .receive { max-width: 780px; margin-top: 24px; }
 .receive p { margin-top: 12px; }
 .section { padding-block: 96px; scroll-margin-top: 80px; }
@@ -77,11 +86,25 @@
 .enquiryForm form > p { font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .page a:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
 
+@media (min-width: 768px) {
+  .hero { padding: 96px 0 80px; }
+  .split { grid-template-columns: 1fr 1fr; column-gap: 56px; align-items: start; margin-top: 56px; padding-top: 40px; }
+  .split .actions { flex-direction: row; align-items: center; gap: 32px; margin-top: 40px; }
+  .split .actions a { width: auto; }
+  .split .primary { min-height: 48px; }
+  .split .secondary { min-height: 0; padding: 0; border: 0; background: transparent; border-radius: 0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .split .secondary:hover { background: transparent; }
+}
+@media (min-width: 1200px) {
+  .hero { padding: 112px 0; }
+  .split { column-gap: 96px; margin-top: 64px; padding-top: 48px; }
+  .watermark { display: block; top: 112px; right: max(40px, calc((100% - 1152px) / 2)); }
+  .watermark :global(.wo-watermark) { height: 128px; opacity: 0.05; }
+}
 @media (max-width: 800px) {
   .frame { width: calc(100% - 40px); }
-  .hero, .section, .boundaries, .enquiry { padding-block: 64px; }
+  .section, .boundaries, .enquiry { padding-block: 64px; }
   .cards, .boundaries > .frame, .enquiry > .frame, .steps, .principles { grid-template-columns: 1fr; gap: 24px; }
-  .watermark { display: none; }
   .freeCheck { align-items: flex-start; flex-direction: column; gap: 8px; }
   .specimenRows > div { grid-template-columns: 1fr; gap: 10px; }
 }

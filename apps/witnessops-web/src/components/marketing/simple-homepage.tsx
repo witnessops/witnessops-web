@@ -5,6 +5,7 @@ import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
+import { InlineArrow } from "./inline-arrow";
 import styles from "./simple-homepage.module.css";
 
 const text = HOMEPAGE_TWO_OFFER_COPY.en;
@@ -56,13 +57,18 @@ export function SimpleHomepage() {
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>Sovereign evidence</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+          <h1 data-ui-proof-id="homepage-hero-headline"><span className={styles.heroLine}>Proof other</span> <span className={styles.heroLine}>people can{"\u00A0"}check.</span></h1>
+        </div>
+        <div className={styles.split}>
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
-          <div className={styles.actions}>
-            {services.map((service) => {
-              const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-              return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
-            })}
+          <div>
+            <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
+            <div className={styles.actions}>
+              {services.map((service) => {
+                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : <>{text.externalCta} <InlineArrow /></>}</Link>;
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -74,7 +80,6 @@ export function SimpleHomepage() {
           <TextLink href="/pricing">See all prices</TextLink>
           <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
         </div>
-        <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
       </div>
     </nav>
     <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
