@@ -44,7 +44,7 @@ export default function ChroniclesIndexPage() {
             {row.href ? (
               <h2 className="mt-2 text-2xl text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h2>
             ) : (
-              <h2 className="mt-2 text-2xl text-text-muted" aria-disabled="true">Chapter 002, {row.title}, coming soon</h2>
+              <p className="mt-2 text-2xl text-text-muted">Chapter 002, {row.title}, coming soon</p>
             )}
             {"teaser" in row && row.teaser ? <p className="mt-2 text-sm text-text-muted">{row.teaser} · Coming soon · Not yet linked</p> : null}
           </li>

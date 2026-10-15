@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import {
-  CHRONICLE_FICTION_LABEL,
   PUBLISHED_CHAPTERS,
   RESERVED_CHAPTERS,
   chronicleBodySource,
