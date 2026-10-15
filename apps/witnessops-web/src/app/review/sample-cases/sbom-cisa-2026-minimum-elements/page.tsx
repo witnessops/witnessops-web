@@ -92,7 +92,7 @@ export default function SbomCisa2026SamplePage() {
             {statusChips.map((chip) => (
               <span
                 key={chip.label}
-                className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-xs text-text-muted"
+                className="rounded-xs border border-surface-border bg-surface-bg px-3 py-1 text-xs text-text-muted"
               >
                 <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
                 {chip.value}

@@ -162,7 +162,7 @@ export default async function DocsIndexPage() {
                   ? path.href
                   : pub(path.href)
               }
-              className={`block rounded-xl border p-5 transition-colors hover:border-brand-accent ${
+              className={`block rounded-md border p-5 transition-colors hover:border-brand-accent ${
                 index === 0
                   ? "border-brand-accent/50 bg-brand-accent/5"
                   : "border-surface-border bg-surface-bg"

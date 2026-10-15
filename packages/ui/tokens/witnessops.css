@@ -29,9 +29,22 @@
   --color-accent-trust: #64a8ac;
   --color-accent-trust-subtle: rgba(100, 168, 172, 0.18);
 
-  --radius: 2px;
-  --radius-sm: 2px;
-  --radius-lg: 4px;
+  /* Radius scale. Theme-independent: one definition, referenced by aliases. */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 9999px;
+  --radius-control: var(--radius-sm);
+  --radius-card: var(--radius-md);
+  --radius-overlay: var(--radius-lg);
+  --radius-label: var(--radius-xs);
+  --radius: var(--radius-control);
+  --public-control-radius: var(--radius-control);
+  --focus-width: 2px;
+  --focus-offset: 4px;
+  --focus: var(--color-brand-accent);
   --max-width-content: 1200px;
   --max-width-narrow: 720px;
   --spacing-section: 120px;
@@ -41,6 +54,15 @@
   --font-display: var(--font-barlow-condensed, "Barlow Condensed"), "Inter", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
+
+/* The outline follows border-radius, so the ring is the element radius plus the offset. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+input[type="checkbox"] { border-radius: var(--radius-label); }
+input[type="radio"] { border-radius: var(--radius-pill); }
 
 /* Quiet Utility footer palette; other public surfaces keep their existing theme. */
 footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {

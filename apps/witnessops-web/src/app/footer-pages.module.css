@@ -6,7 +6,7 @@
 .policyNav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
 .policyNav a {
   display: inline-flex; align-items: center; min-height: 44px; padding: 8px 18px;
-  border: 1px solid var(--color-surface-border); border-radius: 4px;
+  border: 1px solid var(--color-surface-border); border-radius: var(--radius-control);
   color: var(--color-text-secondary); font-size: 14px;
 }
 .policyNav a[aria-current="page"] { border-color: var(--color-brand-accent); color: var(--color-text-primary); background: var(--color-surface-card); }
@@ -23,14 +23,14 @@
 .legalBody a { overflow-wrap: anywhere; text-decoration-thickness: 1px; }
 .relatedPolicies { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--color-surface-border); }
 .relatedGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
-.relatedGrid a { border-radius: 6px; }
+.relatedGrid a { border-radius: var(--radius-card); }
 .mediaPage > section { padding-top: 64px; padding-bottom: 64px; }
 .mediaPage > section:first-child { padding-top: 72px; }
 .mediaPage h2 { max-width: 28ch; }
 .primaryDownload, .secondaryDownload {
   display: inline-flex; align-items: center; justify-content: center; min-height: 48px;
   max-width: 100%; padding: 12px 18px; border: 1px solid var(--color-surface-border-strong);
-  border-radius: 4px; font-size: 14px; font-weight: 500; line-height: 1.5; text-align: center;
+  border-radius: var(--radius-control); font-size: 14px; font-weight: 500; line-height: 1.5; text-align: center;
   transition: background-color .15s, border-color .15s;
 }
 .primaryDownload { background: var(--color-text-primary); border-color: var(--color-text-primary); color: var(--color-text-inverse); }

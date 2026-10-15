@@ -13,9 +13,9 @@ const DOCS_PL_HREF = "/pl/docs";
 const MEDIA_KIT_HREF = "/media-kit";
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
 const FOOTER_LINK_CLASS =
-  "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+  "inline-flex min-h-11 items-center rounded-xs text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_LEGAL_LINK_CLASS =
-  "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+  "inline-flex min-h-11 items-center rounded-xs text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
 const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
 const PREMIUM_FOOTER_SUBLINE = "REPEATABLE. INDEPENDENT.";
@@ -155,7 +155,7 @@ export function Footer({
             <Link
               href={isPolishSurface ? "/pl" : "/"}
               aria-label={isPolishSurface ? "WitnessOps: strona główna" : "WitnessOps home"}
-              className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-xs"
             >
               <WitnessOpsMark variant="mark" size="md" tone="current" decorative
                 className="shrink-0 text-[#f5f1e8]" />

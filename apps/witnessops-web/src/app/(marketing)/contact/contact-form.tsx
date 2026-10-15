@@ -59,16 +59,14 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputClass =
-  "min-h-12 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+  "min-h-12 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg";
 
 const textareaClass =
-  "min-h-32 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg md:min-h-24";
+  "min-h-32 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg md:min-h-24";
 
-const buttonFocusClass =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+const buttonFocusClass = "";
 
-const lightButtonFocusClass =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]";
+const lightButtonFocusClass = "";
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
@@ -1033,7 +1031,7 @@ export function ContactForm({
 
       {landing ? null : optionalContext ? (
         <details className="border-t border-surface-border pt-4">
-          <summary className="cursor-pointer text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+          <summary className="cursor-pointer text-sm font-semibold text-text-primary">
             {polish ? "Dodaj kontekst (opcjonalnie)" : "Add context (optional)"}
           </summary>
           <div className="mt-4 space-y-5">{additionalContextFields}</div>

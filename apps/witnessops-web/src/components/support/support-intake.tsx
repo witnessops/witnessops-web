@@ -30,10 +30,10 @@ const label: React.CSSProperties = {
 };
 
 const inputClass =
-  "w-full rounded-lg bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3";
+  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3";
 
 const selectClass =
-  "w-full rounded-lg bg-transparent border border-surface-border text-text-primary focus:border-brand-accent focus:outline-none p-3 pr-10 cursor-pointer";
+  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary focus:border-brand-accent p-3 pr-10 cursor-pointer";
 
 const inputFont: React.CSSProperties = {
   ...mono,
@@ -280,7 +280,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-surface-border">
+    <div className="overflow-hidden rounded-md border border-surface-border">
       {/* Header */}
       <div
         className="flex items-center justify-between border-b border-surface-border px-5 py-3"
@@ -425,7 +425,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 required
                 maxLength={8_000}
                 rows={4}
-                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3"
+                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3"
                 style={{ ...inputFont, resize: "vertical", lineHeight: 1.6 }}
                 placeholder="What you expected, what happened instead, and any receipt IDs or error messages..."
               />

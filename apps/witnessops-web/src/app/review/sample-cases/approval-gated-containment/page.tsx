@@ -189,7 +189,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               {statusChips.map((chip) => (
                 <div
                   key={chip.label}
-                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                  className="rounded-xs border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
                 >
                   <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
                   {chip.value}
@@ -203,7 +203,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </div>
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-2">
+          <section className="grid gap-4 rounded-md border border-surface-border bg-surface-card/40 p-6 md:grid-cols-2">
             {caseFacts.map((fact) => (
               <div key={fact.label}>
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
@@ -216,7 +216,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             ))}
           </section>
 
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Artifact manifest
             </h2>
@@ -234,7 +234,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </dl>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Review boundary
             </h2>
@@ -245,7 +245,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Authority map
             </h2>
@@ -263,7 +263,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </dl>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Execution path observed
             </h2>
@@ -274,7 +274,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </ol>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Evidence inspected
             </h2>
@@ -285,7 +285,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Replayability judgment
             </h2>
@@ -305,7 +305,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Integrity risks
             </h2>
@@ -334,7 +334,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </div>
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-3 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Operator recommendation
             </h2>
@@ -346,7 +346,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             </p>
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-3 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Boundary note
             </h2>

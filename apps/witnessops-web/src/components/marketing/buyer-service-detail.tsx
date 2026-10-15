@@ -39,7 +39,7 @@ const ui = {
   },
 } as const;
 
-const summaryClass = "cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+const summaryClass = "cursor-pointer py-4 text-base font-semibold text-text-primary";
 
 export function BuyerServiceDetail({
   locale, service, technicalId, requestHref: requestHrefOverride, claim, notIncluded,
@@ -73,7 +73,7 @@ export function BuyerServiceDetail({
       data-price-contract={service.commercialContract.price}
       data-timing-contract={service.commercialContract.timing}>
       <div className="mx-auto max-w-6xl px-6 py-6 md:py-10 lg:py-12">
-        <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+        <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline">
           ← {text.back}
         </Link>
 
@@ -109,7 +109,7 @@ export function BuyerServiceDetail({
             {selling ? <p className="mt-3 text-xs leading-5 text-text-muted">{firstStep}</p> : null}
           </section>
           {landing.sampleHref ? (
-            <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent lg:-mt-4">
+            <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary lg:-mt-4">
               {landing.sampleLabel ?? text.sampleFallback} →
             </Link>
           ) : null}

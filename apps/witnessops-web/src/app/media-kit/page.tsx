@@ -331,7 +331,7 @@ export default function MediaKitPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
               <p className={eyebrowClassName}>Canonical package · {LOGO_SYSTEM.version}</p>
-              <span className="rounded-full border border-brand-accent/50 bg-brand-accent/10 px-3 py-1 font-mono text-[0.64rem] font-semibold uppercase tracking-[0.08em] text-brand-accent">
+              <span className="rounded-xs border border-brand-accent/50 bg-brand-accent/10 px-3 py-1 font-mono text-[0.64rem] font-semibold uppercase tracking-[0.08em] text-brand-accent">
                 {LOGO_SYSTEM.status}
               </span>
             </div>
@@ -599,7 +599,7 @@ export default function MediaKitPage() {
             For questions about WitnessOps or these files, contact{" "}
             <a
               href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
-              className="inline-flex min-h-11 max-w-full items-center break-all font-semibold text-brand-accent underline decoration-surface-border-strong underline-offset-4 hover:text-text-primary hover:decoration-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+              className="inline-flex min-h-11 max-w-full items-center break-all font-semibold text-brand-accent underline decoration-surface-border-strong underline-offset-4 hover:text-text-primary hover:decoration-brand-accent"
             >
               {PUBLIC_CONTACT_EMAIL}
             </a>

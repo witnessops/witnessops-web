@@ -77,7 +77,7 @@ export default function LocalServerSecurityReviewSamplePage() {
               {statusChips.map((chip) => (
                 <span
                   key={chip.label}
-                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-xs text-text-muted"
+                  className="rounded-xs border border-surface-border bg-surface-bg px-3 py-1 text-xs text-text-muted"
                 >
                   <span className="font-semibold text-text-primary">
                     {chip.label}:
@@ -98,7 +98,7 @@ export default function LocalServerSecurityReviewSamplePage() {
           </section>
 
           {!manifest ? (
-            <section className="rounded-2xl border border-amber-500/40 bg-surface-card/40 p-6 text-sm text-text-secondary">
+            <section className="rounded-md border border-amber-500/40 bg-surface-card/40 p-6 text-sm text-text-secondary">
               Sample files not published yet. Operator:{" "}
               <code className="font-mono text-xs">
                 publish-shield-sample-witnessops.sh
@@ -106,7 +106,7 @@ export default function LocalServerSecurityReviewSamplePage() {
             </section>
           ) : (
             <>
-              <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+              <section className="rounded-md border border-surface-border bg-surface-card/40 p-6">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
                   Run metadata
                 </h2>
@@ -126,7 +126,7 @@ export default function LocalServerSecurityReviewSamplePage() {
                 </dl>
               </section>
 
-              <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+              <section className="rounded-md border border-surface-border bg-surface-card/40 p-6">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
                   Download artifacts
                 </h2>
@@ -136,7 +136,7 @@ export default function LocalServerSecurityReviewSamplePage() {
                     return (
                       <li
                         key={file}
-                        className="rounded-xl border border-surface-border bg-surface-bg p-4"
+                        className="rounded-md border border-surface-border bg-surface-bg p-4"
                       >
                         <a
                           href={shieldSampleHref(file)}
@@ -152,7 +152,7 @@ export default function LocalServerSecurityReviewSamplePage() {
                       </li>
                     );
                   })}
-                  <li className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                  <li className="rounded-md border border-surface-border bg-surface-bg p-4">
                     <a
                       href={shieldSampleHref("proofpack-demo-host-local-fixture-b.zip")}
                       className="font-mono text-sm font-semibold text-brand-accent hover:underline"
@@ -169,7 +169,7 @@ export default function LocalServerSecurityReviewSamplePage() {
             </>
           )}
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Full suite product sample (OFFSEC-LOCAL-AUDIT)
             </h2>
@@ -192,7 +192,7 @@ export default function LocalServerSecurityReviewSamplePage() {
               ].map((file) => (
                 <li
                   key={file}
-                  className="rounded-xl border border-surface-border bg-surface-bg p-4"
+                  className="rounded-md border border-surface-border bg-surface-bg p-4"
                 >
                   <a
                     href={`/samples/offsec-local-audit/${file}`}
@@ -213,7 +213,7 @@ export default function LocalServerSecurityReviewSamplePage() {
             </p>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Proof boundary
             </h2>

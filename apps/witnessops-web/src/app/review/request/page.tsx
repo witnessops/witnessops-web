@@ -185,7 +185,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         </section>
 
         <details className="border-y border-surface-border">
-          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What happens next and scope</summary>
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">What happens next and scope</summary>
           <div className="space-y-4 pb-5">
           {selectedOffer ? (
             <section className="border border-surface-border bg-surface-bg p-5">
@@ -347,7 +347,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </div>
 
       <details className="mt-5 max-w-3xl border-t border-surface-border">
-        <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What the review includes</summary>
+        <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">What the review includes</summary>
         <div
           className="mb-4"
           style={{

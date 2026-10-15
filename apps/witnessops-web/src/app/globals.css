@@ -26,6 +26,17 @@
   --color-signal-red: var(--color-signal-red);
   --color-signal-copper: var(--color-signal-copper);
   --color-accent-trust: var(--color-accent-trust);
+
+  /* Same scale as witnessops.css :root, so Tailwind does not keep the rem defaults. */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius: 4px;
+  --radius-xl: initial;
+  --radius-2xl: initial;
+  --radius-3xl: initial;
+  --radius-4xl: initial;
 }
 
 @font-face {
@@ -269,7 +280,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   color: var(--color-text-inverse);
   font-weight: 600;
   font-size: 0.875rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-label);
   text-decoration: none;
   transition: top 0.2s ease;
 }
@@ -590,7 +601,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .docs-prose pre {
   background: var(--color-surface-bg-alt);
   border: 1px solid var(--color-surface-border);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   padding: 16px 20px;
   overflow-x: auto;
   font-family: var(--font-mono);
@@ -757,7 +768,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   bottom: 4px;
   width: 2px;
   background: var(--color-brand-accent);
-  border-radius: 1px;
+  border-radius: var(--radius-none);
 }
 
 /* ═══ Doc Toolbar (Listen / Copy) ═══ */
@@ -766,8 +777,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 3px;
-  border-radius: 8px;
+  padding: 2px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--color-surface-border);
   background: var(--color-surface-card);
 }
@@ -777,7 +788,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: var(--radius-label);
   border: none;
   background: transparent;
   color: var(--color-text-muted);
@@ -856,7 +867,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .doc-toolbar-wave-bar {
   display: block;
   width: 2.5px;
-  border-radius: 2px;
+  border-radius: var(--radius-label);
   background: linear-gradient(180deg, rgba(255, 140, 80, 0.9) 0%, rgba(255, 107, 53, 0.6) 100%);
   box-shadow: 0 0 6px rgba(255, 107, 53, 0.25);
   animation: doc-wave-flow 0.8s ease-in-out infinite alternate;
@@ -922,7 +933,6 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   font-family: var(--font-mono);
   font-size: 11px;
   padding: 4px 0;
-  outline: none;
   letter-spacing: 0.06em;
 }
 
@@ -1109,14 +1119,14 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 /* --- Scrollbar --- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: var(--radius-label); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
 /* Shared buyer reading scale; evidence viewers keep their own density. */
 .buyer-page .text-xs { font-size: .875rem; line-height: 1.5; }
 .buyer-page :is(p, dd, li).text-sm,
 .buyer-page :is(dl, ul, ol, details > div).text-sm { font-size: 1rem; line-height: 1.65; }
-.buyer-page :is(a, button, summary):focus-visible { outline: 3px solid var(--color-brand-accent); outline-offset: 3px; }
+.buyer-page :is(a, button, summary):focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
 .sidebar-kb-item { min-height: 44px; font-size: .875rem; line-height: 1.5; }
 .sidebar-kb-section-header { min-height: 44px; font-size: .875rem; line-height: 1.5; }
 .sidebar-kb-search-input { min-height: 44px; font-size: 1rem; }
@@ -1132,7 +1142,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   padding: clamp(1.25rem, 2.5vw, 2.25rem);
   border: 1px solid var(--finding-rule);
   border-left: 2px solid var(--finding-accent);
-  border-radius: 4px;
+  border-radius: var(--radius-card);
   background: var(--finding-paper);
   color: var(--finding-ink);
   color-scheme: dark;
@@ -1182,7 +1192,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .reviewFinding_findingEvidence dl { padding-top: 1.5rem; font-size: .9375rem; line-height: 1.7; }
 .reviewFinding_findingEvidence :is(dt, dd) { color: var(--finding-muted); }
 .reviewFinding_findingEvidence dt { color: var(--finding-ink); }
-.reviewFinding_findingEvidence summary:focus-visible { outline: 2px solid var(--finding-accent); outline-offset: 6px; border-radius: 2px; }
+.reviewFinding_findingEvidence summary:focus-visible { outline: var(--focus-width) solid var(--finding-accent); outline-offset: var(--focus-offset); border-radius: var(--radius-label); }
 @media (max-width: 700px) {
   .reviewFinding_specimenLabel, .reviewFinding_findingMeta, .reviewFinding_findingFacts dt { font-size: .75rem; }
   .reviewFinding_specimenLabel { margin-bottom: 1.25rem; }
@@ -1197,7 +1207,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .simple-public-navbar { font-family: var(--font-sans); }
 .simple-public-navbar > div { max-width: 1200px; min-height: 64px; padding-block: 0; gap: 20px; }
 .simple-public-navbar a { font-weight: 400; }
-.simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: 8px; font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
+.simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
 .simple-public-navbar a:not([data-public-primary-cta]):hover { transform: none; }
 /* Footer palette is scoped here so shared shell styles cannot override it. */
 footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
@@ -1213,7 +1223,7 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-public-footer [data-footer-brand-lockup] > a > span { font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .18em; }
 .simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: #b89b62; }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
-.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: 4px; background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
 .simple-public-footer [data-footer-review-cta]:hover { background: #24221d; border-color: #b89b62; }
 .simple-public-footer [data-public-contact-route] p { max-width: 34ch; }
 .simple-public-footer [data-public-contact-route] a[href^="mailto:"] { overflow-wrap: anywhere; display: inline-flex; align-items: center; }
@@ -1237,21 +1247,20 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 
 /* Compact public enquiry, shared by the landing and price pages. */
 .simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 400 !important; }
-.simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: 8px; background: var(--color-surface-bg); border-color: var(--color-text-muted); }
+.simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: var(--radius-control); background: var(--color-surface-bg); border-color: var(--color-text-muted); }
 .simple-enquiry-form select option { background: var(--color-surface-bg); color: var(--color-text-primary); }
-.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: 8px; font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
+.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
 
 /* Shared public navigation follows the approved presentation palette. */
 body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {
   background: var(--color-text-primary);
   color: var(--color-text-inverse);
   border-color: var(--color-text-primary);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
 }
 
 /* Shared interaction treatment for the quiet public website. */
 body:has(nav[data-public-presentation="quiet"]) {
-  --public-control-radius: 6px;
   --public-control-hover: #e7e2d7;
   --public-control-pressed: #d8d1c3;
 }
@@ -1261,8 +1270,8 @@ body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, te
   transition-timing-function: ease;
 }
 body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--color-brand-accent) !important;
-  outline-offset: 3px !important;
+  outline: var(--focus-width) solid var(--focus) !important;
+  outline-offset: var(--focus-offset) !important;
   box-shadow: none !important;
 }
 body:has(nav[data-public-presentation="quiet"]) :is(.public-cta-button, [data-public-primary-cta], [data-footer-review-cta], button[type="submit"], input:not([type="checkbox"]):not([type="radio"]), select, textarea) {

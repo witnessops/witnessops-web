@@ -84,7 +84,7 @@ export function DocsAssistantInline() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Example: Leads stopped reaching our CRM."
-          className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+          className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent "
         />
         <button
           type="submit"

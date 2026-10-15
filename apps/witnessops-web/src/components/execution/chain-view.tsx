@@ -9,7 +9,7 @@ interface ChainViewProps {
 export function ChainView({ receipts }: ChainViewProps) {
   if (receipts.length === 0) {
     return (
-      <div className="rounded-lg border border-surface-border bg-surface-card p-8 text-center">
+      <div className="rounded-md border border-surface-border bg-surface-card p-8 text-center">
         <p className="text-text-muted">No receipts in chain.</p>
       </div>
     );
@@ -36,7 +36,7 @@ export function ChainView({ receipts }: ChainViewProps) {
             </div>
 
             {/* Receipt card */}
-            <div className="flex-1 rounded-lg border border-surface-border bg-surface-card p-4">
+            <div className="flex-1 rounded-md border border-surface-border bg-surface-card p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="font-mono text-sm font-medium text-text-primary">
                   {receipt.receiptId}

@@ -172,7 +172,7 @@ export function ReviewRequestConfirmed({
         </p>
         <Link
           href={locale === "pl" ? "/pl/review/request" : "/review/request"}
-          className="mt-7 inline-flex min-h-12 items-center border border-[#b94716] bg-[#b94716] px-5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2"
+          className="mt-7 inline-flex min-h-12 items-center border border-[#b94716] bg-[#b94716] px-5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#111111] "
         >
           {text.restart}
         </Link>
@@ -284,7 +284,7 @@ export function ReviewRequestConfirmed({
             <div className="space-y-2 text-sm">
               <Link
                 href={proofResource?.href ?? selectedServiceResource.href}
-                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 ${verificationLight.title}`}
+                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] ${verificationLight.title}`}
               >
                 {proofResource?.label ?? selectedServiceResource.label}
               </Link>
@@ -295,7 +295,7 @@ export function ReviewRequestConfirmed({
                     ? "/pl/docs/how-receipts-work"
                     : "/docs/how-it-works/proof-model"
                 }
-                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 ${verificationLight.title}`}
+                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] ${verificationLight.title}`}
               >
                 {text.proofModel}
               </Link>

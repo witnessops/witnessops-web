@@ -35,16 +35,16 @@ body:has(nav[data-public-presentation="quiet"]) #main-content :is(.max-w-6xl, .m
   max-width: var(--public-reading-width);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(article.border, section.border, [data-app-plan]) {
-  border-radius: 6px;
+  border-radius: var(--radius-card);
   background-color: var(--color-surface-card);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button, summary):focus-visible {
-  outline: 2px solid var(--color-brand-accent);
-  outline-offset: 4px;
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"], .public-cta-button) {
   min-height: 48px;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-family: var(--font-sans) !important;
   font-size: 14px;
   font-weight: 500;
@@ -67,7 +67,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .public-cta-button
   transform: none;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   border-color: var(--color-surface-border-strong);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content form label {
@@ -112,13 +112,13 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [data-app-plan="Co
   border-color: var(--color-brand-accent);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] {
-  border-radius: 6px;
-  padding: 4px;
+  border-radius: var(--radius-control);
+  padding: 2px;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] button[aria-pressed="true"] {
   background: var(--color-text-primary);
   color: var(--color-text-inverse);
-  border-radius: 3px;
+  border-radius: var(--radius-label);
 }
 @media (max-width: 640px) {
   body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
@@ -134,7 +134,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billi
 /* The docs utility bar and sidebar are part of the same public reading surface. */
 body:has(nav[data-public-presentation="quiet"]) [data-docs-nav-surface="utility-nav"] :is(a, button) {
   min-height: 40px;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-family: var(--font-sans);
   letter-spacing: 0;
   text-transform: none;
@@ -158,7 +158,7 @@ body:has(nav[data-public-presentation="quiet"]) .reviewFinding_finding {
 body:has(nav[data-public-presentation="quiet"]) nav.public-shell .public-cta-button.bg-brand-accent {
   background: var(--color-text-primary);
   color: var(--color-text-inverse);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-family: var(--font-sans) !important;
   font-weight: 500;
   box-shadow: none;
@@ -168,7 +168,7 @@ body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, [data-docs-nav-
   line-height: 1.25;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content a.block.border {
-  border-radius: 6px;
+  border-radius: var(--radius-card);
   background-color: var(--color-surface-card);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content .card-hover:hover {
@@ -200,7 +200,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider::aft
     background: var(--color-text-primary) !important;
     border-color: var(--color-text-primary) !important;
     color: var(--color-text-inverse) !important;
-    border-radius: 4px !important;
+    border-radius: var(--radius-control) !important;
     box-shadow: none !important;
   }
 }

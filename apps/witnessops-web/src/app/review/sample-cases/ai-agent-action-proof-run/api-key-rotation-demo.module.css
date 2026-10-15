@@ -24,20 +24,20 @@
 .demo h3 { margin: 0; font-size: 17px; line-height: 1.4; }
 .demo p { color: var(--sample-muted); font-size: 14px; line-height: 1.65; }
 .demo button, .demo a, .demo summary { -webkit-tap-highlight-color: transparent; }
-.demo button:focus-visible, .demo a:focus-visible, .demo summary:focus-visible { outline: 2px solid var(--sample-accent); outline-offset: 4px; }
+.demo button:focus-visible, .demo a:focus-visible, .demo summary:focus-visible { outline: var(--focus-width) solid var(--sample-accent); outline-offset: var(--focus-offset); }
 .demo button { font: inherit; cursor: pointer; }
 .demo button:disabled { cursor: wait; opacity: .55; }
 .demo a { text-underline-offset: 4px; }
 .microLabel, .buttonBoundary { color: var(--sample-muted); font-size: 12px; line-height: 1.5; }
 
-.replayStage { padding: 24px; border: 1px solid var(--sample-rule); border-radius: 8px; background: var(--sample-panel); }
+.replayStage { padding: 24px; border: 1px solid var(--sample-rule); border-radius: var(--radius-card); background: var(--sample-panel); }
 .replayControls { grid-area: controls; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .replayControls h2 { margin-bottom: 4px; }
-.replayButton { min-height: 44px; flex-shrink: 0; padding: 10px 20px; border: 1px solid var(--sample-accent); border-radius: 5px; background: var(--sample-accent); color: #160b05; font-size: 14px !important; font-weight: 650 !important; }
+.replayButton { min-height: 44px; flex-shrink: 0; padding: 10px 20px; border: 1px solid var(--sample-accent); border-radius: var(--radius-control); background: var(--sample-accent); color: #160b05; font-size: 14px !important; font-weight: 650 !important; }
 .replayButton:hover:not(:disabled) { filter: brightness(1.08); }
 .demo .buttonBoundary { grid-area: boundary; margin: 12px 0 20px; font-size: 12px; }
 .stateCards { grid-area: cards; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.keyCard { min-width: 0; padding: 18px; border: 1px solid var(--sample-rule); border-radius: 5px; background: var(--sample-bg); }
+.keyCard { min-width: 0; padding: 18px; border: 1px solid var(--sample-rule); border-radius: var(--radius-card); background: var(--sample-bg); }
 .keyCard h3 { margin-bottom: 8px; font-size: 14px; color: var(--sample-muted); }
 .keyCard > strong { display: block; min-height: 22px; font-size: 17px; line-height: 1.3; }
 .keyCard > span { display: block; font-size: 12px; line-height: 1.6; }
@@ -51,11 +51,11 @@
 .consumerRail > span { color: var(--sample-muted); }
 .consumerRail strong { font-weight: 500; }
 .stepRail { grid-area: steps; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 0; margin: 14px 0; list-style: none; }
-.stepRail button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 56px; padding: 8px 2px; border: 1px solid var(--sample-rule); border-radius: 4px; color: var(--sample-muted); background: var(--sample-bg); font-size: 12px; line-height: 1.3; }
+.stepRail button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 56px; padding: 8px 2px; border: 1px solid var(--sample-rule); border-radius: var(--radius-control); color: var(--sample-muted); background: var(--sample-bg); font-size: 12px; line-height: 1.3; }
 .stepRail button > span:first-child { font-family: var(--font-mono); }
 .stepRail button[aria-pressed="true"] { border-color: var(--sample-accent); box-shadow: inset 0 -2px var(--sample-accent); color: var(--sample-ink); }
 .stepRail .stepComplete > span:first-child { color: var(--sample-pass); }
-.eventDetail { grid-area: event; min-width: 0; padding: 18px; border: 1px solid var(--sample-rule); border-radius: 5px; background: var(--sample-bg); }
+.eventDetail { grid-area: event; min-width: 0; padding: 18px; border: 1px solid var(--sample-rule); border-radius: var(--radius-card); background: var(--sample-bg); }
 .eventMeta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; font-size: 12px; line-height: 1.5; color: var(--sample-muted); }
 .eventDetail > p { margin: 8px 0 0; min-height: 46px; }
 .eventEvidence { margin-top: 8px; }
@@ -63,7 +63,7 @@
 .eventEvidence p { margin: 8px 0; }
 .eventEvidence time { font-family: var(--font-mono); font-size: 12px; }
 
-.disclosure { margin-top: 12px; border: 1px solid var(--sample-rule); border-radius: 5px; }
+.disclosure { margin-top: 12px; border: 1px solid var(--sample-rule); border-radius: var(--radius-card); }
 .disclosure > summary { min-height: 52px; padding: 16px 20px; color: var(--sample-ink); font-size: 14px; line-height: 1.4; font-weight: 550; cursor: pointer; }
 .disclosure[open] > summary { border-bottom: 1px solid var(--sample-rule); }
 .disclosureBody { min-width: 0; padding: 20px; }
@@ -86,7 +86,7 @@
 .challengeStrip { padding-left: 32px; border-left: 1px solid var(--sample-rule); }
 .challengeStrip h2 { font-size: 18px; }
 .challengeStrip p { margin: 10px 0 14px; }
-.challengeButton { min-height: 44px; padding: 10px 16px; border: 1px solid var(--sample-accent); border-radius: 5px; background: transparent; color: var(--sample-accent); font-size: 13px !important; }
+.challengeButton { min-height: 44px; padding: 10px 16px; border: 1px solid var(--sample-accent); border-radius: var(--radius-control); background: transparent; color: var(--sample-accent); font-size: 13px !important; }
 .challengeButton:hover:not(:disabled) { background: color-mix(in srgb, var(--sample-accent) 8%, transparent); }
 .challengeResult { display: grid; gap: 4px; margin-top: 12px; color: var(--sample-muted); font-size: 12px; line-height: 1.5; }
 .challengeResult code { overflow-wrap: anywhere; font-size: 12px; }
@@ -94,13 +94,13 @@
 .checkLimit { color: #d8bd82; }
 .verifierError { overflow-wrap: anywhere; }
 
-.nextStep { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 28px; border: 1px solid color-mix(in srgb, var(--sample-accent) 45%, var(--sample-rule)); border-radius: 6px; background: color-mix(in srgb, var(--sample-accent) 4%, var(--sample-bg)); }
+.nextStep { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 28px; border: 1px solid color-mix(in srgb, var(--sample-accent) 45%, var(--sample-rule)); border-radius: var(--radius-card); background: color-mix(in srgb, var(--sample-accent) 4%, var(--sample-bg)); }
 .nextStep h2 { margin: 10px 0; font-size: 25px; }
 .nextStep p { margin: 8px 0; }
 .offerPrice { display: block; margin-top: 12px; font-size: 16px; font-weight: 600; }
 .demo .offerTiming { font-size: 12px; }
 .offerAction { flex-shrink: 0; text-align: center; }
-.offerAction > a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 150px; padding: 12px 24px; border-radius: 5px; background: var(--sample-accent); color: #160b05; font-size: 14px; font-weight: 650; text-decoration: none; }
+.offerAction > a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 150px; padding: 12px 24px; border-radius: var(--radius-control); background: var(--sample-accent); color: #160b05; font-size: 14px; font-weight: 650; text-decoration: none; }
 .offerAction > span { display: block; margin-top: 10px; font-size: 12px; color: var(--sample-muted); }
 
 .evidenceSection { margin-top: 44px; }
@@ -112,11 +112,11 @@
 .checkRow strong { font-size: 14px; font-weight: 550; }
 .checkRow p { margin: 6px 0 0; overflow-wrap: anywhere; font-size: 12px; }
 .checkRow > span { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; }
-.commandBlock { display: flex; align-items: center; gap: 12px; margin: 20px 0; padding: 12px; border: 1px solid var(--sample-rule); border-radius: 4px; background: var(--sample-panel); }
+.commandBlock { display: flex; align-items: center; gap: 12px; margin: 20px 0; padding: 12px; border: 1px solid var(--sample-rule); border-radius: var(--radius-card); background: var(--sample-panel); }
 .commandBlock code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }
-.commandBlock button { min-height: 44px; padding: 10px 14px; border: 1px solid var(--sample-rule); border-radius: 4px; color: var(--sample-ink); background: var(--sample-bg); font-size: 12px; }
+.commandBlock button { min-height: 44px; padding: 10px 14px; border: 1px solid var(--sample-rule); border-radius: var(--radius-control); color: var(--sample-ink); background: var(--sample-bg); font-size: 12px; }
 .downloadLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
-.downloadLinks a { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 76px; padding: 14px; border: 1px solid var(--sample-rule); border-radius: 4px; color: var(--sample-ink); text-decoration: none; }
+.downloadLinks a { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 76px; padding: 14px; border: 1px solid var(--sample-rule); border-radius: var(--radius-control); color: var(--sample-ink); text-decoration: none; }
 .downloadLinks span { overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 12px; }
 .downloadLinks small { margin-top: 8px; color: var(--sample-muted); font-size: 12px; }
 .truthBoundary { margin-top: 24px; padding: 20px; border-left: 2px solid var(--sample-accent); background: var(--sample-panel); }

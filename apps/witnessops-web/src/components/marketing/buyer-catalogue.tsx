@@ -113,7 +113,7 @@ export function BuyerCatalogue({
             <section key={service.id} id={groupId} aria-labelledby={`${groupId}-heading`} className="scroll-mt-28 mb-10">
               <h2 id={`${groupId}-heading`} className="text-2xl font-semibold tracking-tight text-text-primary">{ai ? text.aiGroup : text.externalGroup}</h2>
               <p className="mt-2 mb-5 max-w-2xl text-sm leading-6 text-text-secondary">{ai ? text.aiSummary : text.externalSummary}</p>
-              <div className="grid max-w-3xl gap-px border border-surface-border bg-surface-border">
+              <div className="grid max-w-3xl gap-px overflow-hidden rounded-md border border-surface-border bg-surface-border">
                 <article
                   id={service.id}
                   data-buyer-service={service.id}
@@ -135,7 +135,7 @@ export function BuyerCatalogue({
                   </div>}
                   <p className="mt-2 text-sm leading-6 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
                   <details className="mt-3 border-t border-surface-border">
-                    <summary className="cursor-pointer py-3 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.boundary}</summary>
+                    <summary className="cursor-pointer py-3 text-sm text-text-secondary">{text.boundary}</summary>
                     <p className="pb-3 text-sm leading-6 text-text-muted">{service.boundary[locale]}</p>
                     <ul className="list-disc space-y-2 pb-4 pl-5 text-sm leading-6 text-text-secondary">
                       {landing.scopeLimits?.map((item) => <li key={item}>{item}</li>)}
@@ -143,15 +143,15 @@ export function BuyerCatalogue({
                     </ul>
                   </details>
                   {!pricing ? <details className="border-t border-surface-border">
-                    <summary className="cursor-pointer py-3 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.how}</summary>
+                    <summary className="cursor-pointer py-3 text-sm text-text-secondary">{text.how}</summary>
                     <ol className="list-decimal space-y-3 pb-4 pl-5 text-sm leading-6 text-text-secondary">
                       {landing.steps.map(([title, body]) => <li key={title}><strong className="font-semibold text-text-primary">{title}.</strong> {body}</li>)}
                     </ol>
                   </details> : null}
                   <div className="mt-auto flex flex-wrap gap-3 pt-3">
-                    <Link href={serviceRequestHref} className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{ai ? text.aiCta : text.externalCta}</Link>
-                    {detailHref ? <Link href={detailHref} className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{text.detailCta}</Link> : null}
-                    {!ai ? <Link href="/review/sample-cases/external-exposure-assessment" className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{text.sampleCta}</Link> : null}
+                    <Link href={serviceRequestHref} className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110">{ai ? text.aiCta : text.externalCta}</Link>
+                    {detailHref ? <Link href={detailHref} className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset">{text.detailCta}</Link> : null}
+                    {!ai ? <Link href="/review/sample-cases/external-exposure-assessment" className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset">{text.sampleCta}</Link> : null}
                   </div>
                 </article>
               </div>
@@ -169,9 +169,9 @@ export function BuyerCatalogue({
         </section>
         <section className="mt-12 flex flex-col gap-5 border border-surface-border bg-surface-inset p-7 text-text-primary md:flex-row md:items-center md:justify-between md:p-10">
           <div><h2 className="text-2xl font-semibold">{text.unsureTitle}</h2><p className="mt-2 max-w-2xl text-sm leading-7 text-text-secondary">{text.unsureBody}</p></div>
-          <Link href={buyerRequestHref(locale)} className="inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg">{text.enquiryCta}</Link>
+          <Link href={buyerRequestHref(locale)} className="inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
         </section>
-        {pricing ? <Link href={locale === "pl" ? "/pl/catalog" : "/catalog"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{text.catalogueCta}</Link> : null}
+        {pricing ? <Link href={locale === "pl" ? "/pl/catalog" : "/catalog"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
       </div>
     </main>
   );

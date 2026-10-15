@@ -121,7 +121,7 @@ export default function PolishSupportPage() {
         </p>
         <a
           href={SUPPORT_MAILTO}
-          className="mt-4 inline-flex min-h-11 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+          className="mt-4 inline-flex min-h-11 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse hover:brightness-110"
         >
           Napisz do wsparcia: {PUBLIC_CONTACT_EMAIL}
         </a>

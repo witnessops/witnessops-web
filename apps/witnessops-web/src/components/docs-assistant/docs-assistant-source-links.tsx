@@ -78,7 +78,7 @@ export function DocsAssistantSourceLinks({
                   ? (event) => focusInPageSource(event, sourceId)
                   : undefined
               }
-              className="rounded border border-surface-border px-2 py-0.5 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              className="rounded border border-surface-border px-2 py-0.5 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent"
             >
               {citationLabel(citation)}
             </a>
@@ -93,7 +93,7 @@ export function DocsAssistantSourceLinks({
               key={citation.citation_id}
               id={docsAssistantSourceId(citation)}
               tabIndex={-1}
-              className="scroll-mt-28 rounded border border-surface-border px-3 py-2 text-xs text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent"
+              className="scroll-mt-28 rounded border border-surface-border px-3 py-2 text-xs text-text-muted "
             >
               <p
                 className="uppercase tracking-wider"

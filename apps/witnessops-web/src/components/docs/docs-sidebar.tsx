@@ -339,7 +339,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
               </span>
               <button
                 type="button"
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-card hover:text-text-primary"
                 onClick={closeDrawer}
                 aria-label="Close navigation"
                 data-docs-drawer-initial-focus

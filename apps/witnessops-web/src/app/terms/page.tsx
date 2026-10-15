@@ -64,7 +64,7 @@ export default function TermsPage() {
               <Link
                 key={entry.slug}
                 href={`/${entry.slug}`}
-                className="block rounded-lg border border-surface-border bg-surface-card p-4 transition-colors hover:border-brand-accent/30"
+                className="block rounded-md border border-surface-border bg-surface-card p-4 transition-colors hover:border-brand-accent/30"
               >
                 <h3 className="font-medium text-text-primary">{entry.navLabel}</h3>
                 <p className="mt-1 text-sm text-text-secondary">

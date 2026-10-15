@@ -179,7 +179,7 @@ export function ManualCommercialConfirmation({
 
         <Link
           href={locale === "pl" ? "/pl/catalog" : "/catalog"}
-          className="inline-flex min-h-11 items-center border border-zinc-700 px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          className="inline-flex min-h-11 items-center border border-zinc-700 px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 "
         >
           {text.catalogue}
         </Link>

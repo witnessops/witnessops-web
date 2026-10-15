@@ -111,7 +111,7 @@ export function DocsNavbar({
               <Link
                 key={link.href}
                 href={link.href}
-                className={`inline-flex h-8 items-center border px-3 text-xs font-medium uppercase tracking-[0.14em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg ${
+                className={`inline-flex h-8 items-center border px-3 text-xs font-medium uppercase tracking-[0.14em] transition-colors ${
                   active
                     ? "border-brand-accent/50 bg-brand-accent/10 text-brand-accent"
                     : "border-surface-border bg-transparent text-text-muted hover:border-brand-accent/40 hover:text-text-primary"

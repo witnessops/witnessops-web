@@ -106,7 +106,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
           />
         </section>
         <details className="border-y border-surface-border">
-          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">Kolejne kroki i zakres</summary>
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">Kolejne kroki i zakres</summary>
           <div className="space-y-4 pb-5">
           <section className="border border-surface-border bg-surface-bg p-5">
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">

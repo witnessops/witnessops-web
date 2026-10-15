@@ -337,7 +337,7 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <Link
           href="/catalog"
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline"
         >
           ← Back to services
         </Link>

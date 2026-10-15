@@ -50,7 +50,7 @@ export function DocsAssistantBoundaryMeta({ answer, compact = false }: Props) {
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded border border-surface-border px-2 py-0.5 transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                  className="rounded border border-surface-border px-2 py-0.5 transition-colors hover:border-brand-accent hover:text-brand-accent"
                   title="Open source line for this boundary"
                 >
                   {boundaryLabel(label)}
