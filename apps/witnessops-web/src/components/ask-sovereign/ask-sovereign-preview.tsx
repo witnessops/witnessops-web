@@ -265,7 +265,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     <div className={styles.page} ref={pageRef}>
       <p className={styles.back} data-sheet-behind><Link href={copy.docs}>Docs</Link></p>
       <p className={styles.kicker} data-sheet-behind>AI assistant</p>
-      <h1 data-sheet-behind>Ask Sovereign</h1>
+      <h1 data-display-title data-sheet-behind>Ask Sovereign</h1>
       <p className={styles.lead} data-sheet-behind>Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.</p>
       <div className={styles.scrim} />
       <div className={styles.layout}>

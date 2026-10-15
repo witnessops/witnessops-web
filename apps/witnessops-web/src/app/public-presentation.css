@@ -11,18 +11,25 @@ body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-dir
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) :is(h1, h2, h3) {
   font-family: var(--font-sans) !important;
-  font-weight: 500;
+  font-weight: 300;
   text-transform: none;
   text-wrap: pretty;
   letter-spacing: -.025em;
 }
-body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
-  font-size: clamp(36px, 4.2vw, 60px);
-  line-height: 1.1;
-  letter-spacing: -.045em;
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1:not([data-display-title]):not([data-chronicle-title]) {
+  font-size: 48px;
+  line-height: 56px;
+  letter-spacing: -.03em;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h2 {
-  line-height: 1.25;
+  font-size: 40px;
+  line-height: 48px;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content h1[data-chronicle-title] {
+  font-size: 72px;
+  line-height: 76px;
+  font-weight: 600;
+  letter-spacing: -.045em;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h3 {
   line-height: 1.4;
@@ -120,10 +127,29 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billi
   color: var(--color-text-inverse);
   border-radius: var(--radius-label);
 }
-@media (max-width: 640px) {
-  body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
-    font-size: clamp(32px, 8.5vw, 42px);
+@media (max-width: 767px) {
+  body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1:not([data-chronicle-title]) {
+    font-size: 40px;
+    line-height: 48px;
     overflow-wrap: anywhere;
+  }
+  body:has(nav[data-public-presentation="quiet"]) #main-content h1[data-chronicle-title] {
+    font-size: 40px;
+    line-height: 44px;
+    font-weight: 600;
+  }
+  body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h2 {
+    font-size: 32px;
+    line-height: 40px;
+  }
+  body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2 {
+    font-size: 26px;
+    line-height: 1.25;
+  }
+  body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
   }
   body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button).public-cta-button {
     white-space: normal;
