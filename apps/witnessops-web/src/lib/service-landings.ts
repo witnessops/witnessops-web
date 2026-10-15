@@ -124,7 +124,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
     steps: [
       ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
-      ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 fixed excluding VAT."],
+      ["Fixed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 excl. VAT."],
       ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
       ["Report and readout", "Delivery timing agreed in the signed statement of work. Your team owns remediation decisions."],
     ],
@@ -136,7 +136,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
-    commercialNote: "€2,500 fixed excluding VAT after evidence rules are agreed. The request is not a booking, checkout or authorization.",
+    commercialNote: "€2,500 excl. VAT after evidence rules are agreed. The request is not a booking, checkout or authorization.",
     primaryCta: "Request an agent review",
   },
   "one-server-security-check": {
@@ -195,7 +195,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Manually checked findings with evidence and clear priorities for what to fix first.",
       "An executive report and technical appendix with remediation guidance and explicit unknowns.",
       "Scope and stop-condition record, evidence manifest and artifact hashes; signed receipt and offline verifier where supported.",
-      "A 45-minute handover and one focused retest within 30 calendar days of initial report handover, covering agreed reported findings.",
+      "One focused retest within 30 calendar days of initial report handover, covering agreed reported findings.",
     ],
     steps: [
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
@@ -549,7 +549,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Ręcznie sprawdzone ustalenia z dowodami i jasnymi priorytetami: co poprawić najpierw.",
       "Raport dla osób decyzyjnych i załącznik techniczny z zaleceniami napraw oraz jawnymi niewiadomymi.",
       "Zapis zakresu i warunków zatrzymania, manifest i skróty plików; podpisany zapis i weryfikator offline, jeśli obsługiwane.",
-      "45-minutowe omówienie i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu, obejmujące uzgodnione ustalenia.",
+      "Jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu, obejmujące uzgodnione ustalenia.",
     ],
     steps: [
       ["Zamówienie", "Wskaż autoryzowany system dostępny z internetu i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Podaj podstawę upoważnienia, ale nie wysyłaj sekretów ani materiałów produkcyjnych."],

@@ -116,7 +116,7 @@ test("model-authored fees, deadlines, destinations, completed actions and certif
     "We have submitted your request.",
     "We saved your email as a lead.",
     "The fee is €100.",
-    "It is priced at €2,500 fixed, excluding VAT.",
+    "It is priced at €2,500 excl. VAT.",
     "We can finish in three working days.",
     "Go to https://evil.example to book.",
     "Contact someone@example.com.",
@@ -324,7 +324,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const withdrawn = 'One Server Security Check';
   const agentAnswer = catalogueClarification({question:`What does ${agent} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:withdrawn}]})!;
   assert.equal(agentAnswer.recommendation?.service_id, 'agent-action-security-review');
-  assert.match(agentAnswer.text, /€2,500 fixed/);
+  assert.match(agentAnswer.text, /€2,500 excl\. VAT/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation?.service_id, 'external-exposure-assessment');
   assert.match(externalAnswer.text, /€1,900/);

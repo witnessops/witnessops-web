@@ -46,6 +46,7 @@ export function editorialMetadata(entry: EditorialEntry): Metadata {
     openGraph: { type: 'article', url, title: entry.title, description: entry.openGraphSummary ?? entry.summary,
       publishedTime: `${entry.publishedAt}T00:00:00+02:00`, modifiedTime: `${entry.modifiedAt ?? entry.publishedAt}T00:00:00+02:00`,
       authors: [entry.author?.name ?? 'WitnessOps'] },
+    twitter: { card: 'summary_large_image', title: entry.title, description: entry.openGraphSummary ?? entry.summary },
   };
 }
 export function editorialJsonLd(entry: EditorialEntry) {

@@ -15,7 +15,7 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
   assert.equal(PRIMARY_OFFER.timing.en, "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
   assert.match(buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id), /offerId=agent-tools-access-review/);
   assert.equal(buyerServiceById("professional-public-footprint-audit").price.en, "€4,900 · excluding VAT");
-  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 · excluding VAT");
+  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 excl. VAT");
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");
   assert.equal(buyerServiceById("external-exposure-assessment").detailHref.en, "/catalog/offsec-external-exposure");
 });
@@ -26,7 +26,7 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
   assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
   assert.match(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
-  assert.match(faq, /€2,500 fixed, excluding VAT/);
+  assert.match(faq, /€2,500 excl. VAT/);
   assert.match(faq, /Delivery timing agreed in the signed statement of work/);
   assert.match(faq, /explicit unknowns/);
   assert.match(faq, /30 calendar days of initial report handover/);

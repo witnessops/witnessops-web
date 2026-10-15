@@ -53,7 +53,7 @@ These are illustrative questions and outputs, not observed findings or customer 
 
 - **Internal ID:** `bounded-workflow-review`.
 - **Entry:** non-secret fit check first.
-- **Fixed price:** €2,500 fixed · excluding VAT.
+- **Fixed price:** €2,500 excl. VAT.
 - **Scope:** one bounded consequential agent or automation action.
 - **Delivery:** within 10 working days after evidence rules are agreed.
 - **Historical canonical route:** `/catalog/workflows`; this neutral route now presents the distinct current offer.

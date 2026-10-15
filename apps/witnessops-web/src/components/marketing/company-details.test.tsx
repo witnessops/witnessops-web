@@ -253,8 +253,8 @@ test("company details render on the company and contact pages, and the footer ke
     }),
     "/review/request",
   );
-  assert.match(priced, /€2,500 fixed · excluding VAT/);
-  assert.match(external, /€1,900 · excluding VAT/);
+  assert.match(priced, /€2,500 excl. VAT/);
+  assert.match(external, /€1,900 excl. VAT/);
 });
 
 test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t) => {

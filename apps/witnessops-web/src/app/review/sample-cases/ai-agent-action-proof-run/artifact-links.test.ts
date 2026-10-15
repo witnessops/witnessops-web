@@ -176,7 +176,7 @@ test("specimen review CTA selects the current one-action review without expandin
     buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id),
     "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review",
   );
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 excl. VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
 });

@@ -29,7 +29,7 @@ const offers = [
     path: "/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
-    price: "€1,900 · excluding VAT",
+    price: "€1,900 excl. VAT",
     timing: "Delivery timing agreed in the signed statement of work",
     request: "/review/request",
   },
@@ -146,7 +146,7 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main.locator('[data-one-pager], a[href$=".pdf"]')).toHaveCount(0);
       if (offer.service === "external-exposure-assessment") {
         await expect(main).toContainText(
-          offer.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 · excluding VAT",
+          offer.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 excl. VAT",
         );
         const sampleLink = main.locator(
           'a[href="/review/sample-cases/external-exposure-assessment"]',

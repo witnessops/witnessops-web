@@ -18,7 +18,7 @@ const expectedPrices = {
     pl: "Od €2 500 · bez VAT",
   },
   "agent-action-security-review": {
-    en: "€2,500 fixed · excluding VAT",
+    en: "€2,500 excl. VAT",
     pl: "€2 500: cena stała · bez VAT",
   },
   "one-server-security-check": {
@@ -26,7 +26,7 @@ const expectedPrices = {
     pl: "Standardowo 4 100 zł (ok. €950) · bez VAT",
   },
   "external-exposure-assessment": {
-    en: "€1,900 · excluding VAT",
+    en: "€1,900 excl. VAT",
     pl: "€1 900 · bez VAT",
   },
   "launch-readiness-check": {
@@ -55,7 +55,11 @@ test("every live buyer offer uses the canonical EN and PL VAT display", () => {
       { en: service.price.en, pl: service.price.pl },
       expectedPrices[service.id],
     );
-    assert.match(service.price.en, / · excluding VAT$/);
+    if (service.id === "agent-action-security-review" || service.id === "external-exposure-assessment") {
+      assert.match(service.price.en, /^€(?:2,500|1,900) excl\. VAT$/);
+    } else {
+      assert.match(service.price.en, / · excluding VAT$/);
+    }
     assert.match(service.price.pl, / · bez VAT$/);
   }
 });

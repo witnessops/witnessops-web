@@ -11,10 +11,10 @@ The historical playbooks below are not current new-sales instructions.
 | --- | --- |
 | Enquiry | Non-secret description of one consequential agent action or one internet-facing system, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
 | Fit | Select `agent-action-security-review` or external product `OFFSEC-EXTERNAL-EXPOSURE`; confirm that the bounded review fits the need. Do not reinterpret a historical request or offer the private pilot. |
-| Agreement | Confirm selected scope, exclusions, authority, handling, inputs, payment terms and capacity. Agent: €2,500 fixed excluding VAT. External: €1,900 fixed excluding VAT. Delivery timing agreed in the signed statement of work. |
+| Agreement | Confirm selected scope, exclusions, authority, handling, inputs, payment terms and capacity. Agent: €2,500 excl. VAT. External: €1,900 excl. VAT. Delivery timing agreed in the signed statement of work. |
 | Work | Agent: read, inspect, reconstruct and report one action. External: approved low-impact unauthenticated checks and manual validation within the signed target schedule and caps. Stop and re-scope when the authorised boundary no longer holds. |
 | Package | Match the selected offer's deliverables, link findings to evidence, prioritise recommendations and state unknowns. Do not promise execution, remediation, certification or complete security. |
-| Handover | Agent: action map, sourced findings, prioritised recommendations, documented unknowns and readout. External: package from the offer record and one 45-minute handover. |
+| Handover | Agent: action map, sourced findings, prioritised recommendations, documented unknowns and readout. External: package from the offer record and one focused retest of reported findings. |
 | Follow-up | External only: one focused retest of reported findings within 30 calendar days of initial report handover; record that date and the agreed retest window. No agent retest or additional/late external retest is offered. |
 
 For external work, the maximum scope is one system, 1 registrable root domain,

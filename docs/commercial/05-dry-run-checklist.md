@@ -11,7 +11,7 @@ synthetic material. A dry run does not authorise customer access or testing.
   private pilot are not new-sales choices.
 - [ ] Agent request identity is `agent-action-security-review`; external product
   identity is `OFFSEC-EXTERNAL-EXPOSURE`. Historical IDs retain their old meaning.
-- [ ] Price is €2,500 fixed excluding VAT for the agent review, or €1,900 fixed
+- [ ] Price is €2,500 excl. VAT for the agent review, or €1,900 fixed
   excluding VAT for the external review. Delivery timing is per signed SOW.
 - [ ] The [current scope block](./06-scope-agreement-skeleton.md) matches the
   selected review. Scope, authority, handling, required inputs, payment terms

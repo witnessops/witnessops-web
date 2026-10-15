@@ -163,6 +163,10 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
     timing: "delivery_timing_per_signed_sow",
   },
+  price: {
+    ...LEGACY_AGENT_ACTION_OFFER.price,
+    en: "€2,500 excl. VAT",
+  },
   timing: {
     en: "Delivery timing agreed in the signed statement of work",
     pl: "Termin realizacji według podpisanego SOW",
@@ -283,7 +287,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     amount: "1900",
     currency: "EUR",
     vatIncluded: false,
-    ...publicB2bPrice("€1,900", "€1 900"),
+    en: "€1,900 excl. VAT",
+    pl: "€1 900 · bez VAT",
   },
   // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {
@@ -304,8 +309,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     pl: "Dla zespołów SaaS i technologicznych przed uruchomieniem usługi, zmianą infrastruktury lub oceną bezpieczeństwa przez klienta. Kontrole o niskim wpływie na jeden autoryzowany system dostępny z internetu, ręcznie zweryfikowane ustalenia i praktyczne priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
   },
   result: {
-    en: "An external attack-surface map, manually validated findings, remediation priorities, a 45-minute handover and one focused retest within 30 calendar days of initial report handover.",
-    pl: "Mapa zewnętrznej powierzchni ataku, ręcznie zweryfikowane ustalenia, priorytety napraw, 45-minutowe omówienie i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
+    en: "An external attack-surface map, manually validated findings, remediation priorities and one focused retest within 30 calendar days of initial report handover.",
+    pl: "Mapa zewnętrznej powierzchni ataku, ręcznie zweryfikowane ustalenia, priorytety napraw i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
   },
   boundary: {
     en: "This is not a penetration test. No exploitation, authenticated testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, exfiltration, certification, or security guarantee.",

@@ -72,7 +72,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
       "Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami.",
       "Przekazujemy raporty i pakiet do sprawdzenia oraz wykonujemy jeden ukierunkowany retest w ciągu 30 dni.",
     ],
-    deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
+    deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "jeden retest w ciągu 30 dni"],
     inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik, bez sekretów i materiałów produkcyjnych."],
     timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
     price: publicPolishPrice("OFFSEC-EXTERNAL-EXPOSURE"),

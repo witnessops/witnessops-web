@@ -14,15 +14,15 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     aiDescription:
       "Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.",
     // Approved homepage display. Matches the public agent-action price label.
-    aiPrice: "€2,500 fixed · excluding VAT",
+    aiPrice: "€2,500 excl. VAT",
     aiCta: "Request an agent review",
     externalQuestion: "Understand what your public-facing system exposes—and what to fix first.",
     externalHeadline: "Understand what your public-facing system exposes—and what to fix first.",
     externalWhoFor: "For SaaS and technology teams preparing for a launch, infrastructure change or customer security review.",
     externalDescription:
-      "Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities and a 45-minute handover.",
-    // Approved homepage display. The registry label stays "€1,900 · excluding VAT".
-    externalPrice: "€1,900 fixed · excluding VAT",
+      "Review one authorised internet-facing system. Receive an exposure map, manually validated findings and practical remediation priorities.",
+    // Approved homepage display. The registry label stays "€1,900 excl. VAT".
+    externalPrice: "€1,900 excl. VAT",
     externalScopeNote:
       "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.",
     externalCta: "Request an external review",
