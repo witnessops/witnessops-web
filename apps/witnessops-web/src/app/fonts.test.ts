@@ -165,11 +165,17 @@ test("public font files are the locked weights plus the admin Inter 600 face", (
   assert.equal(globals.includes("inter-600.woff2"), false);
   assert.equal(globals.includes("ibm-plex-mono-300"), false);
   assert.match(admin, /inter-600\.woff2/);
+  assert.match(admin, /inter-600-latin-ext\.woff2/);
+  assert.equal(globals.includes("inter-600-latin-ext.woff2"), false);
 });
 
 test("latin plus latin-ext cover Polish, euro and punctuation in every public weight", () => {
   for (const [key, glyphs] of coverage) {
-    if (key === "Inter 600") continue;
+    if (key === "Inter 600") {
+      const polish = Array.from("ąćęłńśźżĄĆĘŁŃŚŹŻ").filter((char) => !glyphs.has(char.codePointAt(0)!));
+      assert.deepEqual(polish, [], key);
+      continue;
+    }
     const missing = REQUIRED.filter((char) => !glyphs.has(char.codePointAt(0)!));
     assert.deepEqual(missing, [], key);
   }

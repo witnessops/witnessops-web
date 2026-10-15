@@ -65,12 +65,20 @@ export const viewport: Viewport = {
   ],
 };
 
-const fontPreloads = (
-  <>
-    <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossOrigin="" />
-    <link rel="preload" href="/fonts/inter-300.woff2" as="font" type="font/woff2" crossOrigin="" />
-  </>
-);
+function fontPreloads(language: string) {
+  return (
+    <>
+      <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossOrigin="" />
+      <link rel="preload" href="/fonts/inter-300.woff2" as="font" type="font/woff2" crossOrigin="" />
+      {language === "pl" ? (
+        <>
+          <link rel="preload" href="/fonts/inter-400-latin-ext.woff2" as="font" type="font/woff2" crossOrigin="" />
+          <link rel="preload" href="/fonts/inter-300-latin-ext.woff2" as="font" type="font/woff2" crossOrigin="" />
+        </>
+      ) : null}
+    </>
+  );
+}
 
 const appShellStyle: React.CSSProperties = {
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
@@ -93,7 +101,7 @@ export default async function RootLayout({
       <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
         <head>
           <meta name="color-scheme" content="light dark" />
-          {fontPreloads}
+          {fontPreloads(documentLanguage)}
           <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         </head>
         <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
@@ -127,7 +135,7 @@ export default async function RootLayout({
     <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="light dark" />
-        {fontPreloads}
+        {fontPreloads(documentLanguage)}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <meta name="penguin" content="respect" />
         {/*
