@@ -15,7 +15,7 @@ export type PublicLanguagePair = {
 
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
-  { en: "/catalog", pl: "/pl/catalog" },
+  { en: "/reviews", pl: "/pl/catalog" },
   { en: "/library", pl: "/pl/library" },
   { en: "/contact", pl: "/pl/contact" },
   { en: "/docs", pl: "/pl/docs" },
@@ -28,7 +28,7 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/security", pl: "/pl/security" },
   { en: "/media-kit", pl: "/pl/media-kit" },
   {
-    en: "/catalog/offsec-external-exposure",
+    en: "/reviews/external-attack-surface-review",
     pl: "/pl/catalog/offsec-external-exposure",
   },
   {

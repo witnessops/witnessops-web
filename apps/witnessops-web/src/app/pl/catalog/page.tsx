@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Porównaj Agent Action Security Review oraz External Attack Surface Review. Poznaj zakres, materiały, cenę i warunki rozpoczęcia.",
   alternates: languageAlternates("/pl/catalog", {
-    en: "/catalog",
+    en: "/reviews",
     pl: "/pl/catalog",
   }),
 };

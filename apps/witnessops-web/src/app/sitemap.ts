@@ -31,11 +31,17 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/(library)/library/[slug]/page.tsx",
   })),
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
-  { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
+  { route: "/reviews", sourcePath: "src/app/(marketing)/reviews/page.tsx" },
   {
-    route: "/catalog/offsec-external-exposure",
-    sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
+    route: "/reviews/agent-action-security-review",
+    sourcePath: "src/app/(marketing)/reviews/agent-action-security-review/page.tsx",
   },
+  {
+    route: "/reviews/external-attack-surface-review",
+    sourcePath: "src/app/(marketing)/reviews/external-attack-surface-review/page.tsx",
+  },
+  { route: "/how-it-works", sourcePath: "src/app/(marketing)/how-it-works/page.tsx" },
+  { route: "/about", sourcePath: "src/app/(marketing)/about/page.tsx" },
   ...BUYER_SERVICES.filter(
     (service) =>
       service.productId &&
