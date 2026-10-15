@@ -36,8 +36,9 @@ test("the 410 copy names the withdrawal and the two current reviews", () => {
 
   assert.equal(english.title, "This offer has been withdrawn");
   assert.equal(polish.title, "Ta oferta została wycofana");
-  assert.ok(english.links.some(([href]) => href === "/catalog#agent-action-security-review"));
-  assert.ok(english.links.some(([href]) => href === "/catalog/offsec-external-exposure"));
+  assert.ok(english.links.some(([href]) => href === "/reviews/agent-action-security-review"));
+  assert.ok(english.links.some(([href]) => href === "/reviews/external-attack-surface-review"));
+  assert.doesNotMatch(combined, /\/catalog/);
   assert.ok(english.links.some(([href]) => href === "/contact"));
   assert.ok(polish.links.some(([href]) => href === "/pl/contact"));
   assert.doesNotMatch(combined, /€|\$|Karol|Stef/i);
@@ -48,4 +49,7 @@ test("middleware returns the withdrawn-offer response before the page renders", 
   assert.match(source, /isWithdrawnOfferPath\(pathname\)/);
   assert.match(source, /status: 410/);
   assert.match(source, /\/withdrawn-offer/);
+  assert.match(source, /if \(!rendered\.ok\) return withdrawnFallback\(\)/);
+  assert.match(source, /AbortSignal\.timeout\(8000\)/);
+  assert.match(source, /cache-control": "no-store"/);
 });
