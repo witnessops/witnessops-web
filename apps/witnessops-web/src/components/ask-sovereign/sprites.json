@@ -33,26 +33,34 @@
   "icon": "sovereign-icon-{size}-{theme}@{1|2}x.{png|webp}"
  },
  "states": {
-  "idle": {
+  "IDLE": {
    "file": {
     "light": {
      "@1x": {
       "webp": "sovereign-idle-light@1x.webp",
-      "png": "sovereign-idle-light@1x.png"
+      "png": "sovereign-idle-light@1x.png",
+      "webp_sha256": "108c7dc372534b072f1a1056ccc63f6e88452f516cb02576ba794b5b287b0230",
+      "png_sha256": "b95050034aef1d4773fd9b640f40d41f07c4677a1f642b70bfe6752b3be8e42b"
      },
      "@2x": {
       "webp": "sovereign-idle-light@2x.webp",
-      "png": "sovereign-idle-light@2x.png"
+      "png": "sovereign-idle-light@2x.png",
+      "webp_sha256": "e7297f92a43391c260d847bc17fbe6169140c64c1557a84ce815d53924bb7eb5",
+      "png_sha256": "7e89bf7ca57f319e814ce0bba2d36a140e3f369230a51f92794e303be8e8a61e"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-idle-dark@1x.webp",
-      "png": "sovereign-idle-dark@1x.png"
+      "png": "sovereign-idle-dark@1x.png",
+      "webp_sha256": "4b1b55d00765300f6af690197b0fa8391b455eb77c62432677a8103da0ea6141",
+      "png_sha256": "ce7387b0b858f3ad95e7f84dcfa19d5f07f8f96ea29c972d15e4bd6060248938"
      },
      "@2x": {
       "webp": "sovereign-idle-dark@2x.webp",
-      "png": "sovereign-idle-dark@2x.png"
+      "png": "sovereign-idle-dark@2x.png",
+      "webp_sha256": "a6017fda201d4189bdd4a14d2060080dab99e7e0298fe105589b56df20911386",
+      "png_sha256": "b03b938cab13cbb153e6e2fcf973655c849e88b0723fa9e75c4262d47b16646e"
      }
     }
    },
@@ -93,46 +101,62 @@
     "light": {
      "@1x": {
       "webp": "sovereign-idle-still-light@1x.webp",
-      "png": "sovereign-idle-still-light@1x.png"
+      "png": "sovereign-idle-still-light@1x.png",
+      "webp_sha256": "fbe861bc487650236fc11fba0deffdb3e8882f922a4d6d910ea7e0636e22417c",
+      "png_sha256": "30e5e7c706038dbea525a5f8a1762ee81a3910cabbd21303efa6a8fadb82943e"
      },
      "@2x": {
       "webp": "sovereign-idle-still-light@2x.webp",
-      "png": "sovereign-idle-still-light@2x.png"
+      "png": "sovereign-idle-still-light@2x.png",
+      "webp_sha256": "029127dbe0101577a91f94d580ce682d8e410063866145d3e3da37e2ecb81058",
+      "png_sha256": "d894aca20f3ff7e100534e11806a87cfa31e94e2f9c4d1d1c6701504771d25a9"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-idle-still-dark@1x.webp",
-      "png": "sovereign-idle-still-dark@1x.png"
+      "png": "sovereign-idle-still-dark@1x.png",
+      "webp_sha256": "0944b59b25e76d99a392a2dab082b92036dfd24d9f9f46966085236165bed2bb",
+      "png_sha256": "dcd4d9d035e07c84baaf296dafd1d05a4ade9f16799d62fb8244f43041256370"
      },
      "@2x": {
       "webp": "sovereign-idle-still-dark@2x.webp",
-      "png": "sovereign-idle-still-dark@2x.png"
+      "png": "sovereign-idle-still-dark@2x.png",
+      "webp_sha256": "aeaad139910343031696c86e7269252f8cdb20fc2bc7b78eacd1bd012aa401f2",
+      "png_sha256": "942b8927efb06b69ff3f94071ac5cea3736b827300837962993b78f47457226d"
      }
     }
    },
    "note": "blink loop x3, then hold frame 0"
   },
-  "greet": {
+  "GREETING": {
    "file": {
     "light": {
      "@1x": {
       "webp": "sovereign-greet-light@1x.webp",
-      "png": "sovereign-greet-light@1x.png"
+      "png": "sovereign-greet-light@1x.png",
+      "webp_sha256": "b87b155dc7f00af9a4a2234a6c1f07fe06f6501aabfdea1894ad5e33527b835d",
+      "png_sha256": "fd910c7192d05f95b25babd18fbe13490e9a71c8122f1037d26f9fcbae0bdefd"
      },
      "@2x": {
       "webp": "sovereign-greet-light@2x.webp",
-      "png": "sovereign-greet-light@2x.png"
+      "png": "sovereign-greet-light@2x.png",
+      "webp_sha256": "60148835e4e071889f2d0e3e1c28384f45784791ad220c6f166fd2e941eda1d4",
+      "png_sha256": "f513702f62d9bbfa489a673ab93308da24af4fb6039032fd5d9a4c7c3d09b915"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-greet-dark@1x.webp",
-      "png": "sovereign-greet-dark@1x.png"
+      "png": "sovereign-greet-dark@1x.png",
+      "webp_sha256": "ae86dc15258f946ea1c2840b56e95c8333ac7f42d1a19fadafaa688874b0cb97",
+      "png_sha256": "079497c31416a944d21b2ebe99f0c01df2e506a07cf2da39f8807ae38390e221"
      },
      "@2x": {
       "webp": "sovereign-greet-dark@2x.webp",
-      "png": "sovereign-greet-dark@2x.png"
+      "png": "sovereign-greet-dark@2x.png",
+      "webp_sha256": "452865a5be03b58a43b649705fecc67982b5bd368a507f483c0fe2a738b7397f",
+      "png_sha256": "0c004896d7de4eecf882666b9b3c7d6c293de57e081f105466d22ad1147627cd"
      }
     }
    },
@@ -184,46 +208,62 @@
     "light": {
      "@1x": {
       "webp": "sovereign-greet-still-light@1x.webp",
-      "png": "sovereign-greet-still-light@1x.png"
+      "png": "sovereign-greet-still-light@1x.png",
+      "webp_sha256": "ac99f6a77a7fca3661a4189de966047da59ad4a15e075817adf00e9ac32beaa4",
+      "png_sha256": "6913e1d99b55ad62531398458d440f0f8e61d52aaa96e0a65c0c0d1aec0b424e"
      },
      "@2x": {
       "webp": "sovereign-greet-still-light@2x.webp",
-      "png": "sovereign-greet-still-light@2x.png"
+      "png": "sovereign-greet-still-light@2x.png",
+      "webp_sha256": "6d95312d315ddd4062dad9448ac3afb3f0522186e5adbedf7cc614f8cfea2b75",
+      "png_sha256": "c004cd36308d5cf4089e55d34ccc06d0ee5665f72fbc16836a107703d73ea769"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-greet-still-dark@1x.webp",
-      "png": "sovereign-greet-still-dark@1x.png"
+      "png": "sovereign-greet-still-dark@1x.png",
+      "webp_sha256": "c337c154de11e5e38d58672c5378e73dec19677d977ffcc32ff02e97503ab1db",
+      "png_sha256": "779a09cfc9747cda6ff344fd8a27b368a376bd8d12c41a9b8ce9edd0efc95c73"
      },
      "@2x": {
       "webp": "sovereign-greet-still-dark@2x.webp",
-      "png": "sovereign-greet-still-dark@2x.png"
+      "png": "sovereign-greet-still-dark@2x.png",
+      "webp_sha256": "ca0b15760dcc2baaebbb063a3c7a16806b67ab97749da51933464f25207b56c1",
+      "png_sha256": "1a55c395530d53463c6eafe8ca210b8f2d9b7b1c47e0e501d8a6a9b353f61f51"
      }
     }
    },
    "note": "wave once on first open of the session, then -> idle"
   },
-  "thinking": {
+  "PROCESSING": {
    "file": {
     "light": {
      "@1x": {
       "webp": "sovereign-thinking-light@1x.webp",
-      "png": "sovereign-thinking-light@1x.png"
+      "png": "sovereign-thinking-light@1x.png",
+      "webp_sha256": "dfbb441e25eabda1f89a75518f529ba58a01f56321f5f0e4aea4eaf78ec3b7d3",
+      "png_sha256": "17d3e3a976606e89bc653bd201c8c68b54ceb1976036d869ed5430652a7ed584"
      },
      "@2x": {
       "webp": "sovereign-thinking-light@2x.webp",
-      "png": "sovereign-thinking-light@2x.png"
+      "png": "sovereign-thinking-light@2x.png",
+      "webp_sha256": "f942b1556b6b5be2ed4b0be46f54c1753a2042a1ab6fe8e03978283372d9ee3c",
+      "png_sha256": "f31e48d2f81834de028e9d9f1f4fb43425633b8ca782c436bed5fe1bad49e4aa"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-thinking-dark@1x.webp",
-      "png": "sovereign-thinking-dark@1x.png"
+      "png": "sovereign-thinking-dark@1x.png",
+      "webp_sha256": "fe058364458fd25e88a0a6e3ea240b5622d2940a3fba7abea37a05064b49bf4a",
+      "png_sha256": "d38db0b849d2021a7c693f17e72639e3366b162c4daa382af802b9c3c72e08d0"
      },
      "@2x": {
       "webp": "sovereign-thinking-dark@2x.webp",
-      "png": "sovereign-thinking-dark@2x.png"
+      "png": "sovereign-thinking-dark@2x.png",
+      "webp_sha256": "6af141401c4ee97515138e10cb200cac4483f1bce704ab17728d1772d698f7b9",
+      "png_sha256": "4613f2db591b5a1a2288356481e31192d828931fd8fac7a58734afe3f1df9963"
      }
     }
    },
@@ -254,46 +294,62 @@
     "light": {
      "@1x": {
       "webp": "sovereign-thinking-still-light@1x.webp",
-      "png": "sovereign-thinking-still-light@1x.png"
+      "png": "sovereign-thinking-still-light@1x.png",
+      "webp_sha256": "4f23b66b0bd2c584b04a56e90ba48212a1ee1931bdbb439d33c452a1a47c4fbe",
+      "png_sha256": "5d7117d526bd76026f3512b0844571c94603f66e0f2d2f0c4ac56f7b2bc32998"
      },
      "@2x": {
       "webp": "sovereign-thinking-still-light@2x.webp",
-      "png": "sovereign-thinking-still-light@2x.png"
+      "png": "sovereign-thinking-still-light@2x.png",
+      "webp_sha256": "628d94e0fb80b87515e96763e5033575db531ac475c6b4fc949d4fd3bd0f0aac",
+      "png_sha256": "87b4fc0df084334089a2672bc784a266c725119cc6209991503b9fe7e0b38316"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-thinking-still-dark@1x.webp",
-      "png": "sovereign-thinking-still-dark@1x.png"
+      "png": "sovereign-thinking-still-dark@1x.png",
+      "webp_sha256": "4a30186f3f5b55ee1e8636d61fef6bbfd6e3825b0a80f8f48cf86cc3c5276a9a",
+      "png_sha256": "d628be27a337e3cfd1b0f7dd166572434fb5aef4a9030fac004e5a90fb15d9c6"
      },
      "@2x": {
       "webp": "sovereign-thinking-still-dark@2x.webp",
-      "png": "sovereign-thinking-still-dark@2x.png"
+      "png": "sovereign-thinking-still-dark@2x.png",
+      "webp_sha256": "098c9db711565d54c456ededee290158abba502893d0e64785eb15de0174ab51",
+      "png_sha256": "d5a7e82201f212e84a186adf437e5a17e47d12a15240952b4262cd3228d63eeb"
      }
     }
    },
    "note": "hand to chin; loops until the answer starts, hard cap 5000 ms, then hold frame 0"
   },
-  "answering": {
+  "COMPOSING": {
    "file": {
     "light": {
      "@1x": {
       "webp": "sovereign-answering-light@1x.webp",
-      "png": "sovereign-answering-light@1x.png"
+      "png": "sovereign-answering-light@1x.png",
+      "webp_sha256": "50f7705bb7bb7a8d2b73209f975ea819f0cc02efd425947f33445a14e5d11ddb",
+      "png_sha256": "25fa85d88a727d030caf3d66c4c04b84a6b89a8735dcd67ee038a51ba4fe8855"
      },
      "@2x": {
       "webp": "sovereign-answering-light@2x.webp",
-      "png": "sovereign-answering-light@2x.png"
+      "png": "sovereign-answering-light@2x.png",
+      "webp_sha256": "17738b2999a03cd72e44ebd9057338afe40ebc2d5bcd38b5d7034313d872fa8a",
+      "png_sha256": "80576d7cba72e277404cf80ee0784bf65d23cfb80ebcbee8f31244c86f2a1b50"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-answering-dark@1x.webp",
-      "png": "sovereign-answering-dark@1x.png"
+      "png": "sovereign-answering-dark@1x.png",
+      "webp_sha256": "a2077b005b3879df088057f9327e2ff4027aa3757a7cadbf017a3650c13affcb",
+      "png_sha256": "c65c34b409afc5395ed7d1e9d3f912e8c7ce5f823829be67dcc843addf96b699"
      },
      "@2x": {
       "webp": "sovereign-answering-dark@2x.webp",
-      "png": "sovereign-answering-dark@2x.png"
+      "png": "sovereign-answering-dark@2x.png",
+      "webp_sha256": "2b3d33c0712a678cbfaab16eb9c19a130a72948b5059e0e2ec937a458a6a4e97",
+      "png_sha256": "6b6523dc8b682a5eac4de3c75be690016a12f675990c1c95b1e814fa817910ff"
      }
     }
    },
@@ -337,190 +393,242 @@
     "light": {
      "@1x": {
       "webp": "sovereign-answering-still-light@1x.webp",
-      "png": "sovereign-answering-still-light@1x.png"
+      "png": "sovereign-answering-still-light@1x.png",
+      "webp_sha256": "9316865b873cca6b4d895aeb33aecb162d27c178218c5f63d323d6ae8c01f627",
+      "png_sha256": "2449f9003d293155e382391781ef44f7879f2a21302814aa66b9a3656d4063b5"
      },
      "@2x": {
       "webp": "sovereign-answering-still-light@2x.webp",
-      "png": "sovereign-answering-still-light@2x.png"
+      "png": "sovereign-answering-still-light@2x.png",
+      "webp_sha256": "9e20869c406b456624d915ee7474395200bda7e5bcb35e02498327a798c812c7",
+      "png_sha256": "18dfbcabe14d6e9e7e535dd6849410e5b596a28134652a3c93ea83184a4fe279"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-answering-still-dark@1x.webp",
-      "png": "sovereign-answering-still-dark@1x.png"
+      "png": "sovereign-answering-still-dark@1x.png",
+      "webp_sha256": "631e2578357b828c82239b60a8287f75ed9d775632dfd6232e982d9a43429d54",
+      "png_sha256": "c5c9ad0e2de57a32217f6087d5d871cde1549cf9bd1785d61d1fa0bfe4c554bc"
      },
      "@2x": {
       "webp": "sovereign-answering-still-dark@2x.webp",
-      "png": "sovereign-answering-still-dark@2x.png"
+      "png": "sovereign-answering-still-dark@2x.png",
+      "webp_sha256": "dcaf5bc6db329714205886dc3f66fd8ddf26806e67dbdfefa547b7d77333ad0f",
+      "png_sha256": "c2e8a547b76537be13e299a060dcaf41e2943fc89f41b3327d4b55e8044e7262"
      }
     }
    },
    "note": "typing loop, hard cap 5000 ms, then hold the still frame until the answer is done"
   },
-  "handoff-desktop": {
-   "file": {
-    "light": {
-     "@1x": {
-      "webp": "sovereign-handoff-desktop-light@1x.webp",
-      "png": "sovereign-handoff-desktop-light@1x.png"
+  "HANDOFF": {
+   "viewports": {
+    "desktop": {
+     "file": {
+      "light": {
+       "@1x": {
+        "webp": "sovereign-handoff-desktop-light@1x.webp",
+        "png": "sovereign-handoff-desktop-light@1x.png",
+        "webp_sha256": "e9f00d10e907e29a82c35b8229cbaba79558181089730d5bd3af6fac430d9fe8",
+        "png_sha256": "94674f22bd01985a2d83a8dcdc5b10dd484f96763c07777307ee59a3adf1bcd7"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-desktop-light@2x.webp",
+        "png": "sovereign-handoff-desktop-light@2x.png",
+        "webp_sha256": "0d432c35c4052978badf1f92ca15d095a8f00a434f50730193c187a8bc440a86",
+        "png_sha256": "0626850c4d73924cca815cb47361e68bbf0567a78566f27312c5d09c16a4d213"
+       }
+      },
+      "dark": {
+       "@1x": {
+        "webp": "sovereign-handoff-desktop-dark@1x.webp",
+        "png": "sovereign-handoff-desktop-dark@1x.png",
+        "webp_sha256": "75850fb1fed895bd98e653c125250b44bd6f11e13761dbba9dcb9b3eee808b62",
+        "png_sha256": "576bf27366160a5bbe8dc906db65d22c7e52880b18aad07dd1292bcaf95229b2"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-desktop-dark@2x.webp",
+        "png": "sovereign-handoff-desktop-dark@2x.png",
+        "webp_sha256": "efcb966add33a1afb170aafebedadc71ae79e2cf89c27e120d8f4448eb6c1086",
+        "png_sha256": "2f8f03fc10e2b0e2266fe1794e815a97da02dad49228e5b4dfb43511753ce059"
+       }
+      }
      },
-     "@2x": {
-      "webp": "sovereign-handoff-desktop-light@2x.webp",
-      "png": "sovereign-handoff-desktop-light@2x.png"
-     }
+     "frame_width": 94,
+     "frame_height": 102,
+     "frame_count": 3,
+     "frames_src": [
+      "r8c2",
+      "r9c4",
+      "r9c5"
+     ],
+     "sequence": [
+      {
+       "frame": 0,
+       "src": "r8c2",
+       "ms": 400
+      },
+      {
+       "frame": 1,
+       "src": "r9c4",
+       "ms": 160
+      },
+      {
+       "frame": 2,
+       "src": "r9c5",
+       "ms": 0
+      }
+     ],
+     "loop_count": 1,
+     "cycle_ms": 560,
+     "hold_frame": 2,
+     "reduced_motion_still": {
+      "light": {
+       "@1x": {
+        "webp": "sovereign-handoff-desktop-still-light@1x.webp",
+        "png": "sovereign-handoff-desktop-still-light@1x.png",
+        "webp_sha256": "e0ec47b8fe8799aec45050fcd44429f29385a1beedf65e8f31fce03a50e8c7d4",
+        "png_sha256": "70e4dc9553f4a394c8822e052e73a755e432b42d6bf522a1224ebed3d84965db"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-desktop-still-light@2x.webp",
+        "png": "sovereign-handoff-desktop-still-light@2x.png",
+        "webp_sha256": "78d499208f44a79661fc5f88b394ad06307574d945b6b5f501bed74cf87bbd3d",
+        "png_sha256": "5fb8899820a45b5e1b8373ca8ab8574949748becf465f1b1c4fb481520882a78"
+       }
+      },
+      "dark": {
+       "@1x": {
+        "webp": "sovereign-handoff-desktop-still-dark@1x.webp",
+        "png": "sovereign-handoff-desktop-still-dark@1x.png",
+        "webp_sha256": "2485c6bc7622344a7c95b8b41ce2ce6b7f2a0cbab5d13f0cb17966156f3873b8",
+        "png_sha256": "5802a34476f9e4a8fa7696abc4dd4cf297630e06ff52320f80ffe8438f8a8633"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-desktop-still-dark@2x.webp",
+        "png": "sovereign-handoff-desktop-still-dark@2x.png",
+        "webp_sha256": "7a8e56eab60c1f0f23c78131136113c724b7f8d55b02ba2ddabbe3079ae342d6",
+        "png_sha256": "791493bf7c409fa20cbae8158552363d92bed08d7280c8d20ead807e8008c276"
+       }
+      }
+     },
+     "note": "tilt, then arrow down-right (towards the contact CTA); hold"
     },
-    "dark": {
-     "@1x": {
-      "webp": "sovereign-handoff-desktop-dark@1x.webp",
-      "png": "sovereign-handoff-desktop-dark@1x.png"
+    "mobile": {
+     "file": {
+      "light": {
+       "@1x": {
+        "webp": "sovereign-handoff-mobile-light@1x.webp",
+        "png": "sovereign-handoff-mobile-light@1x.png",
+        "webp_sha256": "df8dbc99913a2e7f5a0a0e3e8ff476a46aaa22084cb7a2002274533a83b93a61",
+        "png_sha256": "b74a9d6610807f037efa22ebb55bc20299b623fa613d249cae02cf7bbf74f2c7"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-mobile-light@2x.webp",
+        "png": "sovereign-handoff-mobile-light@2x.png",
+        "webp_sha256": "0fb10c1cb58394ac7010866886e763dc938fa7892a822ddd8202ea139e0da03e",
+        "png_sha256": "50fd061edd8734562f4fa74e385ec5b229087a44a8c04df0ae5863e5b0f2a59b"
+       }
+      },
+      "dark": {
+       "@1x": {
+        "webp": "sovereign-handoff-mobile-dark@1x.webp",
+        "png": "sovereign-handoff-mobile-dark@1x.png",
+        "webp_sha256": "a815e500a04baf4d545ca093c4aeebae553c4b3bb389a09ee13f9b0f23b37616",
+        "png_sha256": "abf50788f5ce445fcdeccd275e22ad2aa6bbc41379823a473fcc09a96ef499de"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-mobile-dark@2x.webp",
+        "png": "sovereign-handoff-mobile-dark@2x.png",
+        "webp_sha256": "0a433ffa0f47877b6e5f229066d70bf625aa54a863d83b7e9c5712f6cd5953e4",
+        "png_sha256": "fe70085b1f61945c98fe9341cab7f5e8e5fb71bbe12e9e4494ff1bfdd9ec6655"
+       }
+      }
      },
-     "@2x": {
-      "webp": "sovereign-handoff-desktop-dark@2x.webp",
-      "png": "sovereign-handoff-desktop-dark@2x.png"
-     }
+     "frame_width": 94,
+     "frame_height": 102,
+     "frame_count": 2,
+     "frames_src": [
+      "r8c2",
+      "r10c0"
+     ],
+     "sequence": [
+      {
+       "frame": 0,
+       "src": "r8c2",
+       "ms": 400
+      },
+      {
+       "frame": 1,
+       "src": "r10c0",
+       "ms": 0
+      }
+     ],
+     "loop_count": 1,
+     "cycle_ms": 400,
+     "hold_frame": 1,
+     "reduced_motion_still": {
+      "light": {
+       "@1x": {
+        "webp": "sovereign-handoff-mobile-still-light@1x.webp",
+        "png": "sovereign-handoff-mobile-still-light@1x.png",
+        "webp_sha256": "24978964494cca276aeeea0acba63b7d69f5ae3c9004be92319d20b989c525d9",
+        "png_sha256": "a9f10ccbb564b96be8da4a5a78193783e233813c57231fe021c33be41af5edc4"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-mobile-still-light@2x.webp",
+        "png": "sovereign-handoff-mobile-still-light@2x.png",
+        "webp_sha256": "19afa95719708187867826b40905e97947642b0afb379b7c16f873512142b587",
+        "png_sha256": "b7d8e520bbf40f870882d6c052f2c71a7e91a050581f1c80058b5686f3cf0bb6"
+       }
+      },
+      "dark": {
+       "@1x": {
+        "webp": "sovereign-handoff-mobile-still-dark@1x.webp",
+        "png": "sovereign-handoff-mobile-still-dark@1x.png",
+        "webp_sha256": "1a6c10a30cb9eeb115ddc47783d04b70565e3316250066c79b917a2cec47bc8e",
+        "png_sha256": "182947ed304e828b3e0946efbe9d99dcc21cfe0b31094140c28eea3bb4f3b3b7"
+       },
+       "@2x": {
+        "webp": "sovereign-handoff-mobile-still-dark@2x.webp",
+        "png": "sovereign-handoff-mobile-still-dark@2x.png",
+        "webp_sha256": "d553bbb59783428efb3da31b45c26482939a190fa97ac21a4bbf83a795d5fede",
+        "png_sha256": "47d61fdf20a5d6d0206806e3fa85dedcf7d0a24e15c4d55e6aba1f97dcf4c01a"
+       }
+      }
+     },
+     "note": "tilt, then arrow down (towards the bottom CTA); hold"
     }
-   },
-   "frame_width": 94,
-   "frame_height": 102,
-   "frame_count": 3,
-   "frames_src": [
-    "r8c2",
-    "r9c4",
-    "r9c5"
-   ],
-   "sequence": [
-    {
-     "frame": 0,
-     "src": "r8c2",
-     "ms": 400
-    },
-    {
-     "frame": 1,
-     "src": "r9c4",
-     "ms": 160
-    },
-    {
-     "frame": 2,
-     "src": "r9c5",
-     "ms": 0
-    }
-   ],
-   "loop_count": 1,
-   "cycle_ms": 560,
-   "hold_frame": 2,
-   "reduced_motion_still": {
-    "light": {
-     "@1x": {
-      "webp": "sovereign-handoff-desktop-still-light@1x.webp",
-      "png": "sovereign-handoff-desktop-still-light@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-desktop-still-light@2x.webp",
-      "png": "sovereign-handoff-desktop-still-light@2x.png"
-     }
-    },
-    "dark": {
-     "@1x": {
-      "webp": "sovereign-handoff-desktop-still-dark@1x.webp",
-      "png": "sovereign-handoff-desktop-still-dark@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-desktop-still-dark@2x.webp",
-      "png": "sovereign-handoff-desktop-still-dark@2x.png"
-     }
-    }
-   },
-   "note": "tilt, then arrow down-right (towards the contact CTA); hold"
+   }
   },
-  "handoff-mobile": {
-   "file": {
-    "light": {
-     "@1x": {
-      "webp": "sovereign-handoff-mobile-light@1x.webp",
-      "png": "sovereign-handoff-mobile-light@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-mobile-light@2x.webp",
-      "png": "sovereign-handoff-mobile-light@2x.png"
-     }
-    },
-    "dark": {
-     "@1x": {
-      "webp": "sovereign-handoff-mobile-dark@1x.webp",
-      "png": "sovereign-handoff-mobile-dark@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-mobile-dark@2x.webp",
-      "png": "sovereign-handoff-mobile-dark@2x.png"
-     }
-    }
-   },
-   "frame_width": 94,
-   "frame_height": 102,
-   "frame_count": 2,
-   "frames_src": [
-    "r8c2",
-    "r10c0"
-   ],
-   "sequence": [
-    {
-     "frame": 0,
-     "src": "r8c2",
-     "ms": 400
-    },
-    {
-     "frame": 1,
-     "src": "r10c0",
-     "ms": 0
-    }
-   ],
-   "loop_count": 1,
-   "cycle_ms": 400,
-   "hold_frame": 1,
-   "reduced_motion_still": {
-    "light": {
-     "@1x": {
-      "webp": "sovereign-handoff-mobile-still-light@1x.webp",
-      "png": "sovereign-handoff-mobile-still-light@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-mobile-still-light@2x.webp",
-      "png": "sovereign-handoff-mobile-still-light@2x.png"
-     }
-    },
-    "dark": {
-     "@1x": {
-      "webp": "sovereign-handoff-mobile-still-dark@1x.webp",
-      "png": "sovereign-handoff-mobile-still-dark@1x.png"
-     },
-     "@2x": {
-      "webp": "sovereign-handoff-mobile-still-dark@2x.webp",
-      "png": "sovereign-handoff-mobile-still-dark@2x.png"
-     }
-    }
-   },
-   "note": "tilt, then arrow down (towards the bottom CTA); hold"
-  },
-  "error": {
+  "ERROR": {
    "file": {
     "light": {
      "@1x": {
       "webp": "sovereign-error-light@1x.webp",
-      "png": "sovereign-error-light@1x.png"
+      "png": "sovereign-error-light@1x.png",
+      "webp_sha256": "4ed57d79ee1095c1702129b7d2383726af66f29f57cae2a070577635cbcd8914",
+      "png_sha256": "368fbc84a8ba33837535d14510f052697c2107728cd0f2c5477eeefd588b8642"
      },
      "@2x": {
       "webp": "sovereign-error-light@2x.webp",
-      "png": "sovereign-error-light@2x.png"
+      "png": "sovereign-error-light@2x.png",
+      "webp_sha256": "89d236a58851dd519d3429100b94bde418ab171a97578680930e3b6e232e4da9",
+      "png_sha256": "83adab268d20dad51845cc444fc4a3bc0f7cb2a21c44116683c2666e083e03d2"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-error-dark@1x.webp",
-      "png": "sovereign-error-dark@1x.png"
+      "png": "sovereign-error-dark@1x.png",
+      "webp_sha256": "a7b4d0949ca6393296c71015db3062f338ef0da568eb7f7efd5aaaf1d9022b68",
+      "png_sha256": "7bf0c649b30e0aa0acaf181c1e8958e1b8214c2e6119087a8fd74f926b2e9520"
      },
      "@2x": {
       "webp": "sovereign-error-dark@2x.webp",
-      "png": "sovereign-error-dark@2x.png"
+      "png": "sovereign-error-dark@2x.png",
+      "webp_sha256": "1082b36f976d88a7061369e8b87c441e9a94fd76cac84e53b6c4267c847dbc70",
+      "png_sha256": "b74ee9551882b5151ba0830d29f645b55a32494f1bf5a8d5ba52ca9fa9e988ac"
      }
     }
    },
@@ -556,74 +664,69 @@
     "light": {
      "@1x": {
       "webp": "sovereign-error-still-light@1x.webp",
-      "png": "sovereign-error-still-light@1x.png"
+      "png": "sovereign-error-still-light@1x.png",
+      "webp_sha256": "b901ece42a01c4f9aea083571576f8575eeab38c9e70c7a89bf739c880072c2e",
+      "png_sha256": "9d69e114b96bc17f7b386c9d09336aa8f134bf57c8db8d456c7e51d4daa6a195"
      },
      "@2x": {
       "webp": "sovereign-error-still-light@2x.webp",
-      "png": "sovereign-error-still-light@2x.png"
+      "png": "sovereign-error-still-light@2x.png",
+      "webp_sha256": "c073d22fb9eb067eddb8fc2048f0b049bdd86d82c189b6a58b881a4d605ecae9",
+      "png_sha256": "080f42edc2db2b23137e43df66ea89ad924e97a92c65e53404eb2ced51a60830"
      }
     },
     "dark": {
      "@1x": {
       "webp": "sovereign-error-still-dark@1x.webp",
-      "png": "sovereign-error-still-dark@1x.png"
+      "png": "sovereign-error-still-dark@1x.png",
+      "webp_sha256": "ba3b6bbec3323532f82921f15eca73f369276b22b9100089b5b82699d444bacd",
+      "png_sha256": "b05fc9de673333edefde1df20398137fd1a131de6f297abd041cf8764852a813"
      },
      "@2x": {
       "webp": "sovereign-error-still-dark@2x.webp",
-      "png": "sovereign-error-still-dark@2x.png"
+      "png": "sovereign-error-still-dark@2x.png",
+      "webp_sha256": "a85b2c573e8874d0672e3480bca264a503b83b69d28ba1ca299fcf39805e6368",
+      "png_sha256": "42319778cd3775b4fd3c036e3bea1c01af2c95b382dfe7670b1d3ff2dcd59cf7"
      }
     }
    },
    "note": "slump to the '> <' face; hold until retry"
   }
  },
- "icons": {
-  "24": {
-   "light": {
-    "@1x": {
-     "webp": "sovereign-icon-24-light@1x.webp",
-     "png": "sovereign-icon-24-light@1x.png"
-    },
-    "@2x": {
-     "webp": "sovereign-icon-24-light@2x.webp",
-     "png": "sovereign-icon-24-light@2x.png"
-    }
-   },
-   "dark": {
-    "@1x": {
-     "webp": "sovereign-icon-24-dark@1x.webp",
-     "png": "sovereign-icon-24-dark@1x.png"
-    },
-    "@2x": {
-     "webp": "sovereign-icon-24-dark@2x.webp",
-     "png": "sovereign-icon-24-dark@2x.png"
-    }
-   }
+ "icons": [
+  {
+   "file": "sovereign-icon-32-dark@1x.png",
+   "sha256": "0d25b2b6e52786bc393c047bdefd642ada2a09ae0c24eb4ebd330e229220e56a"
   },
-  "32": {
-   "light": {
-    "@1x": {
-     "webp": "sovereign-icon-32-light@1x.webp",
-     "png": "sovereign-icon-32-light@1x.png"
-    },
-    "@2x": {
-     "webp": "sovereign-icon-32-light@2x.webp",
-     "png": "sovereign-icon-32-light@2x.png"
-    }
-   },
-   "dark": {
-    "@1x": {
-     "webp": "sovereign-icon-32-dark@1x.webp",
-     "png": "sovereign-icon-32-dark@1x.png"
-    },
-    "@2x": {
-     "webp": "sovereign-icon-32-dark@2x.webp",
-     "png": "sovereign-icon-32-dark@2x.png"
-    }
-   }
+  {
+   "file": "sovereign-icon-32-dark@1x.webp",
+   "sha256": "dbfbb8b5fa1dc81482771801c78b87aef859f0dcf8bd82fa50bea4f60f93a571"
   },
-  "note": "static sheet-2 r4c0 glyph; dark has a 1 px (@1x) #C9C5BC outline"
- },
+  {
+   "file": "sovereign-icon-32-dark@2x.png",
+   "sha256": "05d0df9734d6cf9bdcceca6ee2cba900075d573d4d1973a27b48ec1fc7152c7e"
+  },
+  {
+   "file": "sovereign-icon-32-dark@2x.webp",
+   "sha256": "31a8e25fec1fb82c1aa0eb42b1806fc68d7460b7e10b969c5ecd9ea0cf0c1677"
+  },
+  {
+   "file": "sovereign-icon-32-light@1x.png",
+   "sha256": "f911f8866ea30801322dc2fc1a7c4f01c5a12b5e940a8a5bacd26b51342f9826"
+  },
+  {
+   "file": "sovereign-icon-32-light@1x.webp",
+   "sha256": "001cfff8535c8b34392f22b66dd31dc5b31f3976c8416146d00cf74130ae20af"
+  },
+  {
+   "file": "sovereign-icon-32-light@2x.png",
+   "sha256": "fa0cdf35b19d2c7c28901d02180650e8d63404c34743822be9ea5df6d89059ee"
+  },
+  {
+   "file": "sovereign-icon-32-light@2x.webp",
+   "sha256": "2f127ff84ecb668c5b1ee6f533aeeeb1b1aebb762f35e35e486c18c39fee00ad"
+  }
+ ],
  "baseline_shift_1x": {
   "r5c2": 4,
   "r5c3": 2,

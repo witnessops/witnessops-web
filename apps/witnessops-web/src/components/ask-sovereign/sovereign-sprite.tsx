@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "./ask-sovereign-preview.module.css";
-import { advancePlayback, spriteAsset, spriteState, type SovereignSpriteState } from "./sovereign-playback";
+import { advancePlayback, spriteAsset, spriteRecord, type SovereignSpriteState, type SpriteViewport } from "./sovereign-playback";
 
 const FRAME = 94;
 
@@ -15,8 +15,8 @@ function scaleOf(): "@1x" | "@2x" {
   return window.devicePixelRatio >= 1.5 ? "@2x" : "@1x";
 }
 
-function assetUrl(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean): string {
-  return `/ask-sovereign/${spriteAsset(name, theme, scale, still)}`;
+function assetUrl(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean, viewport: SpriteViewport): string {
+  return `/ask-sovereign/${spriteAsset(name, theme, scale, still, viewport)}`;
 }
 
 function decodeImage(src: string): Promise<boolean> {
@@ -36,11 +36,13 @@ export function SovereignSprite({
   paused,
   reduced,
   armed,
+  viewport = "desktop",
 }: {
   state: SovereignSpriteState;
   paused: boolean;
   reduced: boolean;
   armed: boolean;
+  viewport?: SpriteViewport;
 }) {
   const [frame, setFrame] = useState(0);
   const [hold, setHold] = useState(false);
@@ -49,15 +51,12 @@ export function SovereignSprite({
   const [stripReady, setStripReady] = useState(false);
   const [stillSrc, setStillSrc] = useState<string | undefined>(undefined);
   const [stripSrc, setStripSrc] = useState<string | undefined>(undefined);
-  const capLeft = useRef<number | null>(null);
   const still = paused || reduced || hidden || !armed || !stripReady;
-  const spec = spriteState(state);
 
   useEffect(() => {
     setFrame(0);
     setHold(false);
-    capLeft.current = null;
-  }, [state, paused, reduced]);
+  }, [state, paused, reduced, viewport]);
 
   useEffect(() => {
     const onVisibility = () => setHidden(document.hidden);
@@ -78,9 +77,12 @@ export function SovereignSprite({
     if (!theme) return;
     let cancelled = false;
     const scale = scaleOf();
-    const stillUrl = assetUrl(state, theme, scale, true);
-    const stripUrl = assetUrl(state, theme, scale, false);
+    const idleStill = assetUrl("IDLE", theme, scale, true, "desktop");
+    const stillUrl = assetUrl(state, theme, scale, true, viewport);
+    const stripUrl = assetUrl(state, theme, scale, false, viewport);
     setStripReady(false);
+    setStripSrc(undefined);
+    setStillSrc(idleStill);
     void decodeImage(stillUrl).then((ok) => {
       if (!cancelled && ok) setStillSrc(stillUrl);
     });
@@ -93,29 +95,28 @@ export function SovereignSprite({
     void decodeImage(stripUrl).then((ok) => {
       if (cancelled) return;
       if (ok) setStripSrc(stripUrl);
+      else setStillSrc(idleStill);
       setStripReady(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [state, theme, reduced]);
+  }, [state, theme, reduced, viewport]);
 
   useEffect(() => {
     if (!theme) return;
     const scale = scaleOf();
-    const narrow = window.matchMedia("(max-width: 767px)").matches;
-    const handoff: SovereignSpriteState = narrow ? "handoff-mobile" : "handoff-desktop";
     const immediate: SovereignSpriteState[] = reduced
-      ? ["greet", "idle", "thinking", "answering", handoff, "error"]
-      : ["greet", "idle", "thinking"];
-    const later: SovereignSpriteState[] = reduced ? [] : ["answering", handoff, "error"];
+      ? ["GREETING", "IDLE", "PROCESSING", "COMPOSING", "HANDOFF", "ERROR"]
+      : ["GREETING", "IDLE", "PROCESSING"];
+    const later: SovereignSpriteState[] = reduced ? [] : ["COMPOSING", "HANDOFF", "ERROR"];
     immediate.forEach((name) => {
-      void decodeImage(assetUrl(name, theme, scale, reduced));
+      void decodeImage(assetUrl(name, theme, scale, reduced, name === "HANDOFF" ? viewport : "desktop"));
     });
     let cancel = () => {};
     const warm = () => {
       later.forEach((name) => {
-        void decodeImage(assetUrl(name, theme, scale, false));
+        void decodeImage(assetUrl(name, theme, scale, false, name === "HANDOFF" ? viewport : "desktop"));
       });
     };
     if (typeof window.requestIdleCallback === "function") {
@@ -126,15 +127,15 @@ export function SovereignSprite({
       cancel = () => window.clearTimeout(id);
     }
     return cancel;
-  }, [theme, reduced]);
+  }, [theme, reduced, viewport]);
 
   useEffect(() => {
-    if (still || state === "answering") return;
+    if (still || state === "COMPOSING") return;
     let alive = true;
     let index = 0;
     let loops = 0;
     let timer = 0;
-    const current = spriteState(state);
+    const current = spriteRecord(state, viewport);
     function tick() {
       if (!alive) return;
       const step = current.sequence[index];
@@ -142,7 +143,7 @@ export function SovereignSprite({
       setFrame(step.frame);
       if (step.ms === 0) return;
       timer = window.setTimeout(() => {
-        const next = advancePlayback(state, index, loops);
+        const next = advancePlayback(state, index, loops, viewport);
         index = next.index;
         loops = next.loops;
         if (next.finished) {
@@ -158,30 +159,15 @@ export function SovereignSprite({
       alive = false;
       window.clearTimeout(timer);
     };
-  }, [state, still]);
-
-  useEffect(() => {
-    const cap = "cap_ms" in spec ? spec.cap_ms : undefined;
-    if (!cap || still) return;
-    const wait = capLeft.current ?? cap;
-    const started = performance.now();
-    const timer = window.setTimeout(() => {
-      capLeft.current = 0;
-      setHold(true);
-      setFrame(spec.hold_frame);
-    }, wait);
-    return () => {
-      window.clearTimeout(timer);
-      if (capLeft.current !== 0) capLeft.current = Math.max(0, wait - (performance.now() - started));
-    };
-  }, [spec, still]);
+  }, [state, still, viewport]);
 
   const shown = still ? stillSrc : stripSrc ?? stillSrc;
-  const position = still || state !== "answering" || hold ? `${-frame * FRAME}px 0` : undefined;
+  const position = still || state !== "COMPOSING" || hold ? `${-frame * FRAME}px 0` : undefined;
   return (
     <div
       className={styles.sprite}
       data-state={state}
+      data-viewport={state === "HANDOFF" ? viewport : undefined}
       data-still={still ? "1" : undefined}
       data-hold={!still && hold ? "1" : undefined}
       style={{
