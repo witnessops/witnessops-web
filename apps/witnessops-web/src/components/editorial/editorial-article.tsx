@@ -1,6 +1,7 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { editorialDate, editorialJsonLd, type EditorialEntry, type EditorialHeroImage } from '@/lib/research';
+import { editorialArticles, editorialDate, editorialJsonLd, type EditorialEntry, type EditorialHeroImage } from '@/lib/research';
 
 export const editorialBodyClass = 'mt-5 text-[1.04rem] leading-8 text-text-secondary';
 export const editorialHeadingClass = 'mt-16 text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl';
@@ -33,6 +34,15 @@ export function EditorialArticle({ entry, children }: { entry: EditorialEntry; c
         {entry.author ? <p className="mt-6 text-sm text-text-muted">By <span className="font-medium text-text-primary">{entry.author.name}</span>, {entry.author.role}</p> : <p className="mt-6 text-sm font-medium text-text-primary">WitnessOps</p>}
       </header>
       {children}
+      <EditorialNeighbors href={entry.href} />
     </article>
   </main>;
+}
+
+function EditorialNeighbors({ href }: { href: string }) {
+  const ordered = [...editorialArticles].sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
+  const index = ordered.findIndex((entry) => entry.href === href);
+  const next = index >= 0 ? ordered[index + 1] : undefined;
+  if (!next) return null;
+  return <p className="mt-16 border-t border-surface-border pt-6 text-sm text-text-secondary">Next · <Link href={next.href} className="underline-offset-4 hover:underline">{next.title}</Link></p>;
 }
