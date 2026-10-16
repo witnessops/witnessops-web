@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
-import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
+import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
@@ -9,41 +10,82 @@ import styles from "./simple-homepage.module.css";
 
 const text = HOMEPAGE_TWO_OFFER_COPY.en;
 
+export type HomepageType = "a" | "b" | "c";
+
 function TextLink({ href, children, uiProofId }: { href: string; children: React.ReactNode; uiProofId?: string }) {
   return <Link className={styles.textLink} href={href} data-ui-proof-id={uiProofId}>{children}<ArrowUpRight size={15} strokeWidth={1.5} aria-hidden="true" /></Link>;
 }
 
-export function SimpleHomepage() {
+function ReviewActions({ services }: { services: readonly BuyerService[] }) {
+  return <div className={styles.actions}>
+    {services.map((service) => {
+      const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+      return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
+    })}
+  </div>;
+}
+
+function ReviewIndex({ services }: { services: readonly BuyerService[] }) {
+  return <>
+    <p className={styles.indexKicker}>{text.reviewsTitle}</p>
+    <ul>
+      {services.map((service) => {
+        const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+        return <li key={service.id}>
+          <span>{service.name.en}</span>
+          <strong>{ai ? text.aiPrice : text.externalPrice}</strong>
+        </li>;
+      })}
+    </ul>
+    <p>{text.reviewsBody}</p>
+  </>;
+}
+
+function TypeSwitch({ type }: { type: HomepageType }) {
+  return <nav className={styles.typeSwitch} aria-label="Homepage types">
+    {(["a", "b", "c"] as const).map((id) => (
+      <Link key={id} href={`/homepage-types?home=${id}`} aria-current={type === id ? "page" : undefined}>{id.toUpperCase()}</Link>
+    ))}
+  </nav>;
+}
+
+export function SimpleHomepage({ type = "a", showTypeSwitch = false }: { type?: HomepageType; showTypeSwitch?: boolean }) {
   const services = publicPaidReviews(BUYER_SERVICES);
-  return <main id="main-content" tabIndex={-1} className={`${styles.page} ${styles.product}`} data-page="home" data-home-direction="agents-act">
+  const typeClass = type === "b" ? styles.typeB : type === "c" ? styles.typeC : styles.typeA;
+  return <main id="main-content" tabIndex={-1} className={`${styles.page} ${styles.product} ${typeClass}`} data-page="home" data-home-direction="agents-act" data-homepage-type={type}>
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
       <div className={styles.frame}>
-        <div className={styles.heroGrid}>
+        {showTypeSwitch ? <TypeSwitch type={type} /> : null}
+        {type === "b" ? <article className={`${styles.story} ${styles.plate}`}>
+          <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
+          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+          <ReviewActions services={services} />
+          <div className={styles.storyFoot}><ReviewIndex services={services} /></div>
+        </article> : null}
+        {type === "c" ? <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
             <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
             <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
-            <div className={styles.actions}>
-              {services.map((service) => {
-                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
-              })}
-            </div>
+            <ReviewActions services={services} />
+          </div>
+          <aside className={`${styles.markPanel} ${styles.plate}`} aria-label={text.reviewsTitle}>
+            <WitnessOpsMark className={styles.heroMark} size="lg" tone="white" />
+            <ReviewIndex services={services} />
+          </aside>
+        </div> : null}
+        {type === "a" ? <div className={styles.heroGrid}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
+            <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+            <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+            <ReviewActions services={services} />
           </div>
           <aside className={`${styles.offerIndex} ${styles.plate}`} aria-label={text.reviewsTitle}>
-            <p className={styles.indexKicker}>{text.reviewsTitle}</p>
-            <ul>
-              {services.map((service) => {
-                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-                return <li key={service.id}>
-                  <span>{service.name.en}</span>
-                  <strong>{ai ? text.aiPrice : text.externalPrice}</strong>
-                </li>;
-              })}
-            </ul>
-            <p>{text.reviewsBody}</p>
+            <ReviewIndex services={services} />
           </aside>
-        </div>
+        </div> : null}
       </div>
     </section>
     <section className={styles.offers} aria-label="Public reviews"><div className={styles.frame}>
