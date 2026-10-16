@@ -10,7 +10,6 @@ import { fetchLinuxCheck } from '../lib/linux-reopen';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { LinuxComparison } from '../lib/linux-comparison';
 import type { Asset, LinuxCheckRun, Workspace } from '../lib/model';
-import { BuyerReportDocument } from '../../../witnessops-web/src/components/proofpack/buyer-report';
 import { useBuyerReportPrint } from '../../../witnessops-web/src/components/proofpack/buyer-report-print';
 import { isBuyerReport, type ProofpackReportV1 } from '../../../witnessops-web/src/lib/proofpack/report-model';
 
@@ -109,6 +108,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
       <p className="eyebrow">One Server Security Check</p><h1>Saved check</h1>
       <div className="support"><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p></div>
       <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run <span className="identifier">{run.id}</span></p>
+      <p className="quiet">Source digest <span className="mono">{run.sourceDigest}</span></p>
     </div></header>
     <ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceHref={context.evidenceHref} />
     <section className="linux-export-panel" aria-labelledby="linux-export-heading">
@@ -117,7 +117,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
       {error ? <p className="error" role="alert">{error}</p> : null}
     </section>
     <LinuxChanges comparison={comparison} />
-    <BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} />
+    <p className="quiet boundary">Package verification does not establish that a server is secure, uncompromised or compliant.</p>
   </>;
 }
 

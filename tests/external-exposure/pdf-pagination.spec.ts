@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { assertReportPdf } from '../proofpack/report-pdf';
+import { assertReportPdf, pdfPages } from '../proofpack/report-pdf';
+import { wordingViolations } from '../../apps/witnessops-web/src/lib/external-exposure/unsigned-run-record';
 import { externalExposureAdapter, validateExternalSnapshot } from '../../apps/witnessops-web/src/lib/external-exposure/adapter';
 import { snapshotFixture } from './fixture';
 import { createBundle } from '../proofpack/create-bundle';
@@ -37,8 +38,20 @@ for (const shape of ['captured-clean', 'attention', 'long-finding'] as const) {
     await page.goto('/check');
     await page.getByLabel('Public hostname', { exact: true }).fill(snapshot.target);
     await page.getByRole('button', { name: 'Run free check', exact: true }).click();
-    await page.getByRole('button', { name: 'View full report', exact: true }).click();
-    await assertReportPdf(page, info);
+    await expect(page.getByRole('article', { name: 'Snapshot results' })).toBeVisible();
+    await page.emulateMedia({ media: 'print' });
+    const root = page.locator('[data-run-record-print]');
+    await expect(root).toBeVisible();
+    await expect(root).toContainText('Integrity hash (SHA-256), not yet signed');
+    expect(await page.locator('body > :not([data-run-record-print])').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).display === 'none'))).toBe(true);
+    const session = await page.context().newCDPSession(page);
+    const { data } = await session.send('Page.printToPDF', { printBackground: true, preferCSSPageSize: true, paperWidth: 210 / 25.4, paperHeight: 297 / 25.4 });
+    await session.detach();
+    const pages = pdfPages(Buffer.from(data, 'base64'));
+    expect(pages.length).toBeGreaterThan(0);
+    expect(pages.every(item => item.runs > 2)).toBe(true);
+    expect(wordingViolations(pages.map(item => item.text).join('\n'))).toEqual([]);
+    await info.attach('page-text', { body: pages.map(item => item.text).join('\n\n'), contentType: 'text/plain' });
   });
 }
 

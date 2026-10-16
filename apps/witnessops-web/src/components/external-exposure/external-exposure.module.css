@@ -2,6 +2,8 @@
 /* Preserve the existing report's inherited heading treatment, including print. */
 .workspace h2 { font-size:27px; line-height:1.25; letter-spacing:-.02em; margin:0 0 16px; }
 .screen { max-width:1280px; margin:auto; padding-bottom:40px; }
+.screen:has(.resultsLead) { display: flex; flex-direction: column; }
+.resultsLead { order: -1; display: grid; gap: 16px; padding-top: 24px; }
 .intro { padding:clamp(48px,6vw,80px) 0 28px; max-width:860px; }
 .screen .eyebrow { font:500 13px/1.5 var(--font-mono); letter-spacing:.14em; color:var(--color-brand-accent); margin:0 0 18px; }
 .screen .title { font-size:clamp(36px,5.3vw,64px); font-weight:500; line-height:1.08; letter-spacing:-.05em; margin:0 0 20px; }

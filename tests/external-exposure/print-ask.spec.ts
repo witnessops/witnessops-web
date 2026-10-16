@@ -9,15 +9,15 @@ test.beforeEach(async({page,baseURL})=>{
  await page.addInitScript(()=>{window.print=()=>{};});
 });
 test('website navigation exports only the unchanged buyer report',async({page,browserName},info)=>{
- await page.goto('/');await page.getByRole('link',{name:'Free check',exact:true}).first().click();
+ await page.goto('/check');
  await page.getByLabel('Public hostname',{exact:true}).fill('example.com');await page.getByRole('button',{name:'Run free check',exact:true}).click();
- await page.getByRole('button',{name:'View full report',exact:true}).click();
- const before=await page.locator('#external-buyer-report article').innerHTML();
+ const report=page.getByRole('article',{name:'Snapshot results'});
+ await expect(report).toContainText('Integrity hash (SHA-256), not yet signed');
  await page.getByRole('button',{name:'Save report as PDF',exact:true}).click();
- await page.emulateMedia({media:'print'});const printed=page.locator('[data-buyer-print-root] article');await expect(printed).toBeVisible();expect(await printed.innerHTML()).toBe(before);
+ await page.emulateMedia({media:'print'});const printed=page.locator('[data-run-record-print]');await expect(printed).toBeVisible();
  for(const selector of ['nav[aria-label="Primary navigation"]','#site-footer','form[aria-label="Run an external exposure snapshot"]'])await expect(page.locator(selector)).not.toBeVisible();
- expect(await page.locator('body > :not([data-buyer-print-root])').evaluateAll(xs=>xs.every(x=>getComputedStyle(x).display==='none'))).toBe(true);
- await expect(printed).toContainText(snapshot.checks.find(x=>x.status==='NEEDS_ATTENTION')!.title);await expect(printed).toContainText('This snapshot covers ten defined public observations');await expect(printed).toContainText('Verification appendix');await expect(page.locator('body')).toHaveCSS('background-color','rgb(255, 255, 255)');
+ expect(await page.locator('body > :not([data-run-record-print])').evaluateAll(xs=>xs.every(x=>getComputedStyle(x).display==='none'))).toBe(true);
+ await expect(printed).toContainText(snapshot.checks.find(x=>x.status==='NEEDS_ATTENTION')!.title);await expect(printed).toContainText('This lists only the checks named here. It does not show that the domain is secure.');await expect(page.locator('body')).toHaveCSS('background-color','rgb(255, 255, 255)');
  if(browserName==='chromium')await page.pdf({path:info.outputPath('report-only-A4.pdf'),format:'A4',printBackground:true});
  await page.emulateMedia({media:'screen'});await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('result-mobile.png'),fullPage:true});
 });

@@ -28,7 +28,7 @@ for (const width of [1440, 390]) {
     await expect(save).toContainText('Create an account, verify your email, then create your workspace.');
     await expect(save).not.toContainText('Workspace access requires an invitation');
     await expect(page.getByRole('button', { name: 'Download source JSON', exact: true })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText('Keep a copy before you leave.');
+    await expect(page.locator('main')).toContainText('Keep a copy before you leave.');
     const openWorkspace = save.getByRole('link', { name: 'Open workspace', exact: true });
     const appDestination = await openWorkspace.count() ? await openWorkspace.getAttribute('href') : null;
     if (appDestination) {

@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
-import { assertReportPdf } from "../proofpack/report-pdf";
+import { pdfPages } from "../proofpack/report-pdf";
+import { wordingViolations } from "../../apps/witnessops-web/src/lib/external-exposure/unsigned-run-record";
 import { validateExternalSnapshot } from "../../apps/witnessops-web/src/lib/external-exposure/adapter";
 import { canonicalSource } from "../../apps/witnessops-app/src/lib/source-digest";
 import { RECOMMENDED_PROFILE, type Run, type Workspace } from "../../apps/witnessops-app/src/lib/model";
@@ -46,17 +47,22 @@ for (const shape of ["informational", "attention", "long-evidence"] as const) {
     });
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`/reports/${run.id}`);
-    const preview = page.locator("main article[aria-label='Derived buyer report']");
+    const preview = page.locator("main article[aria-label='Snapshot results']");
     await expect(preview).toBeVisible();
     await expect(preview).toContainText(run.sourceDigest);
     await expect(preview).toContainText("Saved run");
+    await expect(preview).toContainText("Checks with collected evidence:");
+    await expect(preview).toContainText("Integrity hash (SHA-256), not yet signed");
+    await expect(preview).toContainText("This lists only the checks named here. It does not show that the domain is secure.");
+    const attention = snapshot.checks.filter(check => check.status === "NEEDS_ATTENTION");
+    for (const check of attention) await expect(preview).toContainText(check.interpretation);
+    await preview.getByText("Raw results", { exact: true }).click();
     await expect(preview).toContainText("canonical JSON");
-    await expect(preview).toContainText("10 coverage items");
-    await expect(preview).toContainText("No verification receipt or signed proofpack was issued.");
     for (const check of snapshot.checks) {
       for (const value of [check.check_id, check.check_version, check.method, check.interpretation, ...check.limitations]) await expect(preview).toContainText(value);
     }
     if (shape === "long-evidence") await expect(preview).toContainText("END_OF_LONG_RECORDED_EVIDENCE");
+    expect(wordingViolations(await preview.innerText())).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: info.outputPath("saved-report-desktop.png") });
     const downloadEvent = page.waitForEvent("download");
@@ -64,54 +70,38 @@ for (const shape of ["informational", "attention", "long-evidence"] as const) {
     const downloaded = readFileSync((await (await downloadEvent).path())!, "utf8");
     expect(downloaded).toBe(canonicalSource(snapshot));
     expect(createHash("sha256").update(downloaded, "utf8").digest("hex")).toBe(run.sourceDigest);
+    const recordDownload = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download run record", exact: true }).click();
+    const recordText = readFileSync((await (await recordDownload).path())!, "utf8");
+    expect(JSON.parse(recordText).integrity).toMatchObject({ algorithm: "sha256", digest: run.sourceDigest, signed: false });
+    expect(wordingViolations(recordText)).toEqual([]);
     await page.evaluate(() => { (window as Window & { printCalls?: number }).printCalls = 0; window.print = () => { (window as Window & { printCalls: number }).printCalls++; }; });
     await page.getByRole("button", { name: "Save report as PDF", exact: true }).click();
     expect(await page.evaluate(() => (window as Window & { printCalls: number }).printCalls)).toBe(1);
-    const root = page.locator("[data-buyer-print-root]");
-    // The evidence and explanatory content must match; screen-only actions and drafts must not print.
+    const root = page.locator("[data-run-record-print]");
     const documentContent = (article: Element) => {
       const copy = article.cloneNode(true) as Element;
-      copy.querySelectorAll('.finding-interactive').forEach(node => node.remove());
-      copy.querySelectorAll('[id], [tabindex], details[open]').forEach(node => { node.removeAttribute('id'); node.removeAttribute('tabindex'); node.removeAttribute('open'); });
+      copy.removeAttribute("data-theme");
+      copy.querySelectorAll("[data-run-record-actions]").forEach(node => node.remove());
+      copy.querySelectorAll("[id], [tabindex], details[open]").forEach(node => { node.removeAttribute("id"); node.removeAttribute("tabindex"); node.removeAttribute("open"); });
       return copy.innerHTML;
     };
     expect(await root.locator("article").evaluate(documentContent)).toBe(await preview.evaluate(documentContent));
-    await expect(root.locator('.finding-interactive')).toHaveCount(0);
-    await expect(root).toContainText('What to do next');
+    await expect(root.locator("button")).toHaveCount(0);
     await expect(root).not.toContainText("PDF Workspace");
     await expect(root).not.toContainText("Sign out");
-    const { textRuns, pageTexts } = await assertReportPdf(page, info);
-    // Detaching the PDF CDP session restores media; reapply it for computed-style assertions.
-    await page.emulateMedia({ media: 'print' });
-    const finding = root.locator('.finding-follow-through').first().locator('..');
-    await expect(finding).toHaveCSS('break-inside', 'auto');
-    await expect(root.locator('article > section').first()).toHaveCSS('min-height', '0px');
-    const metadata = root.locator('article section').filter({ has: page.getByRole('heading', { name: 'Unsigned source observations', exact: true }) }).last().locator(':scope > div').first();
-    await expect(metadata).toHaveCSS('break-inside', 'avoid');
-    await expect(metadata).toHaveCSS('break-after', 'avoid');
-    const compact = (s: string) => s.replace(/\s/g, '');
-    const pages = pageTexts.map(compact);
-    const findingsPage = pages.findIndex(text => text.includes('THEFINDINGS'));
-    expect(findingsPage).toBeGreaterThan(0);
-    const firstFinding = shape === 'informational' ? 'Vulnerability reporting contact' : 'HTTP Strict Transport Security';
-    expect(pages[findingsPage], 'Chapter introduction must share a page with its first finding').toContain(compact(firstFinding));
-    expect(pages[findingsPage]).toContain(compact('WHAT WE OBSERVED'));
-    const appendixPage = pages.findIndex(text => text.includes(compact('Unsigned source observations')));
-    expect(appendixPage).toBeGreaterThan(0);
-    expect(pages[appendixPage]).toContain('external-exposure-snapshot.json');
-    expect(pages[appendixPage]).toContain(run.sourceDigest);
-    expect(pages[appendixPage]).toContain('"version":');
-    expect(pages.at(-1)!.length, 'Final page must contain substantial source content, not an isolated digest').toBeGreaterThan(250);
-    const pdfText = pages.join('');
-    for (const check of snapshot.checks) {
-      for (const text of [check.interpretation, ...check.limitations]) expect(pdfText).toContain(compact(text));
-    }
-    for (const control of ['Ask about this finding', 'Copy request', 'Publish link', 'Cancel draft']) expect(pdfText).not.toContain(compact(control));
-    if (shape === 'informational') {
-      expect(pages[0]).toContain(compact('This report is a derived presentation of the source evidence.'));
-      expect(pages[1]).toContain('THESCOPE');
-    }
-    expect(textRuns.length).toBeGreaterThan(5);
+    await page.emulateMedia({ media: "print" });
+    await expect(root).toBeVisible();
+    const session = await page.context().newCDPSession(page);
+    const { data } = await session.send("Page.printToPDF", { printBackground: true, preferCSSPageSize: true, paperWidth: 210 / 25.4, paperHeight: 297 / 25.4 });
+    await session.detach();
+    const printed = pdfPages(Buffer.from(data, "base64"));
+    expect(printed.length).toBeGreaterThan(0);
+    expect(printed.every(item => item.runs > 2)).toBe(true);
+    const pdfText = printed.map(item => item.text).join("\n");
+    expect(pdfText).toContain("Integrity hash (SHA-256), not yet signed");
+    expect(pdfText).toContain(run.sourceDigest);
+    expect(wordingViolations(pdfText)).toEqual([]);
     expect(canonicalSource(run)).toBe(before);
     expect(unexpected).toEqual([]);
     expect(events.sort()).toEqual(["pdf_export_requested", "report_opened", "source_json_downloaded"]);

@@ -3,35 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { takeAskCheck, normalizeAskHostname, type AskCheckContext } from '@/lib/external-exposure/ask-handoff';
 import { DocsAssistantContactHandoff } from '@/components/docs-assistant/docs-assistant-contact-handoff';
-import { useBuyerReportPrint } from '@/components/proofpack/buyer-report-print';
-import { BuyerReportDocument } from '@/components/proofpack/buyer-report';
+import { DomainCheckResults } from '@/components/external-exposure/domain-check-results';
+import { publicCheckRunId } from '@/lib/external-exposure/unsigned-run-record';
 import { createReportModel, type ProofpackReportV1, type ReportModelInput } from '@/lib/proofpack/report-model';
-import { EXCLUSIONS, EXTERNAL_VERSION, SNAPSHOT_BOUNDARY, type ExternalSnapshotV1, type CheckStatus } from '@/lib/external-exposure/contracts';
+import { EXCLUSIONS, EXTERNAL_VERSION, SNAPSHOT_BOUNDARY, type ExternalSnapshotV1 } from '@/lib/external-exposure/contracts';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '@/lib/commercial-truth';
 import { buyerOfferRequestHref } from '@/lib/buyer-services';
 import styles from './external-exposure.module.css';
 
-const statusLabels: Record<CheckStatus, string> = {
-  OBSERVED_EXPECTED: 'Observed as expected', NEEDS_ATTENTION: 'Needs attention',
-  INFORMATIONAL: 'Informational', UNDETERMINED: 'Undetermined', CHECK_ERROR: 'Collection error',
-};
 const CHECK_GROUPS = [
   { title: 'Connection security', description: 'Where the hostname points and how it connects.', topics: 'Public DNS target · TLS certificate · Legacy TLS' },
   { title: 'Web configuration', description: 'How the site handles HTTPS and public security information.', topics: 'HTTPS redirect · HSTS · Response headers · security.txt' },
   { title: 'Email & certificate policy', description: 'Published policies for email senders and certificate issuers.', topics: 'SPF · DMARC · CAA' },
 ];
-function saveSource(snapshot: ExternalSnapshotV1) {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot)], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `external-exposure-${snapshot.target}.json`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-function formatUtcTime(value: string) {
-  return `${new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value))} UTC`;
-}
-
 export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUrl?: string | null }) {
   const [askContext, setAskContext] = useState<AskCheckContext | null>(null);
   const [discuss, setDiscuss] = useState(false);
@@ -41,14 +25,10 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<{ snapshot: ExternalSnapshotV1; model: ProofpackReportV1 } | null>(null);
-  const [reportOpen, setReportOpen] = useState(false);
   const active = useRef<{ id: number; controller: AbortController } | null>(null);
   const sequence = useRef(0);
-  const resultHeading = useRef<HTMLHeadingElement>(null);
   const hostnameInput = useRef<HTMLInputElement>(null);
   useEffect(() => () => { active.current?.controller.abort(); }, []);
-  useEffect(() => { if (result) resultHeading.current?.focus(); }, [result]);
-
   useEffect(() => {
     if (handoffRead.current) return;
     handoffRead.current = true;
@@ -78,7 +58,6 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
     setBusy(false);
     setHostname(nextHostname);
     setResult(null);
-    setReportOpen(false);
     setError('');
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -92,8 +71,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
     active.current = { id, controller };
     setBusy(true);
     setError('');
-    setResult(null);
-    setReportOpen(false);
+      setResult(null);
     try {
       const response = await fetch('/api/external-exposure', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -112,20 +90,15 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
     }
   }
 
-  const attention = result?.snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION') ?? [];
-  const expected = result?.snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED') ?? [];
-  const unknowns = result?.snapshot.checks.filter(check => check.status === 'UNDETERMINED' || check.status === 'CHECK_ERROR') ?? [];
-  const information = result?.snapshot.checks.filter(check => check.status === 'INFORMATIONAL') ?? [];
-  const { print: exportPdf, printRoot } = useBuyerReportPrint(result?.model ?? null);
-  const IntroHeading = reportOpen ? 'h2' : 'h1';
+  const IntroHeading = 'h1';
 
-  return <>{printRoot}<main id="main-content" className={styles.workspace}>
+  return <main id="main-content" className={styles.workspace}>
     <div className={styles.screen}>
-      <section className={styles.intro}>
+      {!result && <section className={styles.intro}>
         <p className={styles.eyebrow}>FREE HOSTNAME CHECK</p>
         <IntroHeading className={styles.title}>Check your public exposure.</IntroHeading>
         <p className={styles.lead}>Ten checks of one public hostname. No account or email required.</p>
-      </section>
+      </section>}
       <form className={styles.form} onSubmit={submit} aria-label="Run an external exposure snapshot">
         <label htmlFor="external-hostname">Public hostname</label>
         <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button ref={runButton} type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
@@ -137,32 +110,17 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
         {error && <p className={styles.error} role="alert">{error}</p>}
       </form>
       {!result && <section className={styles.included}><h2>What gets checked</h2><ul>{CHECK_GROUPS.map(group => <li key={group.title}><h3>{group.title}</h3><p>{group.description}</p><small>{group.topics}</small></li>)}</ul><details><summary>Scope and limitations</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
-      {result && <>
-        <section className={styles.result} aria-label="Snapshot results">
-          <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
-          <h2 ref={resultHeading} tabIndex={-1}>{result.snapshot.target}</h2>
-          <p className={styles.muted}>{result.snapshot.checks.length} check results · {formatUtcTime(result.snapshot.finished_at)} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
-          <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{expected.length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
-          <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
-          <div className={styles.actions} aria-label="Report actions"><button className={styles.reportPrimary} type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
-          <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account. Saving as PDF opens your browser’s print dialog; choose Save as PDF.</p>
-          <div className={styles.resultColumns}>
-            <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
-            <section aria-labelledby="expected-heading"><h3 id="expected-heading">What was observed as expected?</h3><p>{expected.length} of the ten checks returned an expected observation. This is not an overall security assessment.</p>{expected.length > 0 && <details className={styles.information}><summary>Inspect expected observations</summary><ul>{expected.map(check => <li key={check.check_id} data-status={check.status}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}</section>
-          </div>
-          {information.length > 0 && <details className={styles.information}><summary>{information.length} informational {information.length === 1 ? 'observation' : 'observations'}</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
-          <div className={styles.unknowns}><section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section></div>
-          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the full report.</p></div><details><summary>Source data and report details</summary><p className={styles.muted}>{EXTERNAL_VERSION}. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
-        </section>
+      {result && <div className={styles.resultsLead}>
+        <DomainCheckResults snapshot={result.snapshot} runId={publicCheckRunId(result.snapshot)} surface="public" headingLevel={1} />
+        <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account. Saving as PDF opens your browser’s print dialog; choose Save as PDF.</p>
         <section className={styles.nextStep} aria-label="Save a persistent baseline"><div><h2>Keep a history in your workspace</h2><p>After sign-in, add your hostname and authorize a new saved check. Come back after a change, run again, and compare the recorded results.</p><p className={styles.muted}>Create an account, verify your email, then create your workspace. This transient snapshot is not automatically imported.</p>{workspaceUrl ? <a className={styles.textLink} href="/early-access">How workspace access works →</a> : null}</div><a className={styles.primaryLink} href={workspaceUrl ?? '/early-access'}>{workspaceUrl ? 'Open workspace' : 'See workspace access'}</a></section>
         {askContext?.email && <section aria-label="Optional follow-up" className={styles.nextStep}>
           {!discuss ? <button type="button" onClick={() => setDiscuss(true)}>Discuss this result</button> : <DocsAssistantContactHandoff expanded initialEmail={askContext.email} surface="page" onExpandedChange={setDiscuss} />}
         </section>}
 
         <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>
-      </>}
+      </div>}
       <aside className={styles.offer}><div><p className={styles.eyebrow}>EXPERT HELP</p><h2>Need a closer look?</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: agree the scope of a human review before work begins.</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p><a className={styles.textLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope →</a></div><a className={styles.secondaryLink} href={buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId)}>Ask an expert</a></aside>
     </div>
-    {result && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
-  </main></>;
+  </main>;
 }
