@@ -14,7 +14,7 @@ Run the repository health gate and summarise the result. This skill does not dep
 
 1. Work from the repository root.
 2. Check `node -v` and `pnpm -v`. This repo expects Node 22 (`.nvmrc`, `package.json` `engines`) and pnpm `9.15.4`.
-3. If Node is not major 22, stop. Say that `pnpm health` on another major is not release-quality evidence. Do not start `pnpm health:node22` unless the user asks; that wrapper needs a container engine.
+3. If Node is not major 22, stop. Say that `pnpm health` on another major is not release-quality evidence. Do not start `pnpm health:node22` unless the user asks. That wrapper uses Podman here: `CONTAINER_CMD=podman pnpm health:node22`.
 4. Do not run `deploy:k3s` deploy, status, smoke, teardown, or hygiene scripts, `kubectl`, `git push --force`, or `rm -rf`.
 
 ## Run

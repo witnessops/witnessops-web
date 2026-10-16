@@ -1,4 +1,5 @@
 # Cloud agent base image for witnessops-web.
+# Local check uses Podman: podman build -f .cursor/Dockerfile .cursor
 # Node matches deploy/app/Dockerfile (22.23.2). pnpm matches packageManager (9.15.4).
 # python3-venv is required by packages/wops-cli installer tests inside pnpm health.
 # Checksum is the official nodejs.org SHASUMS256.txt entry for this tarball.
