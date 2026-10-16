@@ -57,11 +57,11 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   );
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    "https://witnessops.com/og/home",
+    "https://witnessops.com/og/witnessops-home-editorial-a-2026-10.png",
   );
   await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
     "content",
-    "https://witnessops.com/og/home",
+    "https://witnessops.com/og/witnessops-home-editorial-a-2026-10.png",
   );
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator('[aria-controls="ask-witnessops-dialog"]')).toHaveCount(0);

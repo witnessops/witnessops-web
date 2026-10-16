@@ -13,9 +13,9 @@ seo:
   description: "Check public exposure, compare saved workspace observations and keep findings tied to evidence. Start with a free check or explore expert reviews."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
-  og_image: "/og/home"
-  og_title: "Find security gaps in your systems."
-  og_description: "Verify what is exposed, what changed, what acted, and what the evidence actually supports."
+  og_image: "/og/witnessops-home-editorial-a-2026-10.png"
+  og_title: "Proof other people can check. | WitnessOps"
+  og_description: "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits."
   twitter_card: "summary_large_image"
 
 theme:
