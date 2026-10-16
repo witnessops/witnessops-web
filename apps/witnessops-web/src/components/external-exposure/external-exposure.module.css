@@ -92,7 +92,7 @@
 .lead { font-size: 17px; line-height: 1.7; }
 .form { max-width: none; padding: 28px; border-radius: var(--radius-card); border-color: var(--color-surface-border); }
 .screen button,.primaryLink,.secondaryLink { font-family: var(--font-sans); border-radius: var(--radius-control); }
-.inputRow>button,.screen .reportPrimary { background: var(--color-text-primary); border-color: var(--color-text-primary); color: var(--color-text-inverse); }
+.inputRow>button,.screen .reportPrimary { background: var(--color-action-fill); border-color: var(--color-action-fill); color: var(--color-action-on-fill); }
 .screen button:disabled { opacity: .45; }
 .form .promise { margin-top: 16px; font-size: 12px; color: var(--color-text-muted); }
 .included { max-width: none; margin-block: 36px; }

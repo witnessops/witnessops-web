@@ -54,7 +54,7 @@ export function SimpleHomepage() {
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
         </div>
       ) : null}
-      <div className={styles.frame}>
+      <div className={`${styles.frame} ${styles.heroFrame} crop-frame`}>
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>Sovereign evidence</p>
@@ -92,7 +92,7 @@ export function SimpleHomepage() {
       <div className={styles.cards}>
         {services.map((service) => {
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-          return <article key={service.id} data-home-offer={service.id}>
+          return <article key={service.id} className="crop" data-home-offer={service.id}>
             <p className={styles.eyebrow}>{ai ? "Review one agent action" : "Review external exposure"}</p>
             <h3>{service.name.en}</h3>
             <p className={styles.price}><PriceText text={ai ? text.aiPrice : text.externalPrice} /></p>
@@ -113,7 +113,7 @@ export function SimpleHomepage() {
         <p className={styles.eyebrow}>Historical synthetic one-action example</p>
         <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
         <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
-        <dl className={styles.specimenRows}>
+        <dl className={`${styles.specimenRows} crop`}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
           <div><dt>Executing identity</dt><dd><code>svc-agent-refunds@example.com</code> — a reserved example of the identity an agent would run as, not the one that configured it.</dd></div>
           <div><dt>Permission / authority boundary</dt><dd>The roles, scopes and approval steps that stand between an identity and an action, as configured.<small>Read from configuration under agreed evidence rules. Not assumed; none inspected here.</small></dd></div>
@@ -149,7 +149,7 @@ export function SimpleHomepage() {
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
       <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
-      <div className={styles.enquiryForm}><ContactForm compact landing /></div>
+      <div className={`${styles.enquiryForm} crop`}><ContactForm compact landing /></div>
     </div></section>
   </main>;
 }

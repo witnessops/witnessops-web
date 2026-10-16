@@ -130,7 +130,7 @@ export default function SupportPage() {
           <section id="support-request" className="scroll-mt-24" aria-label="Contact support">
             <h2 className="mb-3 text-xl font-medium">Contact support</h2>
             <p className="mb-5 text-sm leading-6 text-text-secondary">For account issues or a human follow-up, send a non-secret request. Verify your email to place it in the support queue. The question box on this page does not send anything.</p>
-            <SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} />
+            <div className="crop"><SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} /></div>
           </section>
         </div>
 

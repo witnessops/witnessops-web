@@ -86,7 +86,7 @@ export function ReviewOffer({ locale, offer }: { locale: BuyerLocale; offer: "ag
             </p>
           </div>
         </div>
-        <aside className={styles.rail}>
+        <aside className={`${styles.rail} crop`}>
           <p className={styles.price}><PriceText text={current.price[locale]} /></p>
           <p>{current.timing[locale]}</p>
           <Link className={styles.cta} href={requestHref}>{landing.primaryCta}</Link>

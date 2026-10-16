@@ -41,14 +41,18 @@ body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-acc
   box-shadow: none;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]) {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  color: var(--color-text-inverse);
+  background: var(--color-action-fill);
+  border-color: var(--color-action-fill);
+  color: var(--color-action-on-fill);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]) {
-  background: var(--color-text-secondary);
-  border-color: var(--color-text-secondary);
+  background: var(--color-action-fill-hover, var(--color-text-secondary));
+  border-color: var(--color-action-fill-hover, var(--color-text-secondary));
   box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-action-fill-press, var(--color-text-secondary));
+  border-color: var(--color-action-fill-press, var(--color-text-secondary));
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content button[type="submit"]:is(:disabled, [aria-disabled="true"]) {
   background: var(--color-surface-card);
@@ -149,8 +153,8 @@ body:has(nav[data-public-presentation="quiet"]) .reviewFinding_finding {
   --finding-rule: var(--color-surface-border);
 }
 body:has(nav[data-public-presentation="quiet"]) nav.public-shell .public-cta-button.bg-brand-accent {
-  background: var(--color-text-primary);
-  color: var(--color-text-inverse);
+  background: var(--color-action-fill);
+  color: var(--color-action-on-fill);
   border-radius: var(--radius-control);
   font-family: var(--font-sans) !important;
   font-weight: 500;
@@ -186,9 +190,9 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider::aft
 /* Important utilities take precedence over unlayered important rules. */
 @layer utilities {
   body:has(nav[data-public-presentation="quiet"]) nav:not([data-public-signup-variant="secondary"]) #witnessops-mobile-menu a[href$="/signup"] {
-    background: var(--color-text-primary) !important;
-    border-color: var(--color-text-primary) !important;
-    color: var(--color-text-inverse) !important;
+    background: var(--color-action-fill) !important;
+    border-color: var(--color-action-fill) !important;
+    color: var(--color-action-on-fill) !important;
     border-radius: var(--radius-control) !important;
     box-shadow: none !important;
   }

@@ -193,6 +193,63 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Dark public ground: a hairline grid anchored to the page centre. Page wrappers
+   turn transparent so it shows; bands, cards, header and footer stay opaque. */
+html[data-theme="dark"] body:not(:has([data-admin-shell])) {
+  background-image:
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
+  background-size:
+    var(--grid-major-step) var(--grid-major-step),
+    var(--grid-major-step) var(--grid-major-step),
+    var(--grid-step) var(--grid-step),
+    var(--grid-step) var(--grid-step);
+  background-position: calc(50% - 0.5px) 0;
+}
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page) {
+  background: transparent;
+}
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar {
+  background-color: color-mix(in srgb, var(--color-surface-bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+/* Crop marks: four brass L-marks just outside the host's corners, dark only.
+   The host must be positioned and must not use its own ::before. */
+:where(.crop, .crop-frame) { position: relative; }
+html[data-theme="dark"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before {
+  --crop-c: var(--crop-color);
+  --crop-a: var(--crop-arm);
+  --crop-s: var(--crop-stroke);
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--crop-offset));
+  pointer-events: none;
+  background:
+    linear-gradient(var(--crop-c), var(--crop-c)) left top / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left top / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right top / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right top / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left bottom / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left bottom / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-s) var(--crop-a) no-repeat;
+}
+html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before {
+  --crop-a: 24px;
+  inset: var(--crop-frame-inset, 0);
+  opacity: var(--crop-frame-opacity);
+}
+@media (max-width: 767px) {
+  html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before { display: none; }
+}
+@media print, (forced-colors: active) {
+  html body { background-image: none !important; }
+  html body :is(.crop, .crop-frame)::before { display: none !important; }
+}
+
 /* Shared public chrome consumes the canonical token contract on every route. */
 footer.public-shell.public-footer[data-brand-footer] {
   background: var(--color-surface-bg);
@@ -1282,9 +1339,9 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 
 /* Shared public navigation follows the approved presentation palette. */
 body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {
-  background: var(--color-text-primary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-text-primary);
+  background: var(--color-action-fill);
+  color: var(--color-action-on-fill);
+  border-color: var(--color-action-fill);
   border-radius: var(--radius-control);
 }
 

@@ -33,8 +33,8 @@
   border-radius: var(--radius-control); font-size: var(--type-ui-size); font-weight: var(--type-ui-wt); line-height: var(--type-ui-lh); text-align: center;
   transition: background-color .15s, border-color .15s;
 }
-.primaryDownload { background: var(--color-text-primary); border-color: var(--color-text-primary); color: var(--color-text-inverse); }
-.primaryDownload:hover { background: var(--color-text-secondary); border-color: var(--color-text-secondary); }
+.primaryDownload { background: var(--color-action-fill); border-color: var(--color-action-fill); color: var(--color-action-on-fill); }
+.primaryDownload:hover { background: var(--color-action-fill-hover, var(--color-text-secondary)); border-color: var(--color-action-fill-hover, var(--color-text-secondary)); }
 .secondaryDownload { color: var(--color-text-primary); background: transparent; }
 .secondaryDownload:hover { background: var(--color-surface-inset); border-color: var(--color-brand-accent); }
 .screenshotGrid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 32px; }
