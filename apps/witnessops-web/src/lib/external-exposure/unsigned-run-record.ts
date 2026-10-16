@@ -11,16 +11,24 @@ export const UNSIGNED_RUN_RECORD_WORKFLOW = "external_exposure_snapshot" as cons
  * UTF-16 surrogate is escaped by JSON string encoding rather than rejected.
  *
  * - null, boolean, and string: JSON.stringify
- * - finite number: JSON.stringify, so -0 is 0, 1.0 is 1, and values that
- *   JSON.stringify writes in scientific notation stay in that form
+ * - finite number: JSON.stringify, which is ECMA-262 Number::toString, so -0
+ *   is 0, 1.0 is 1, and values written in scientific notation stay in that
+ *   form (1e21 is 1e+21). A non-finite number throws.
  * - array: elements in recorded order, joined by commas, no whitespace
  * - plain object: keys sorted by UTF-16 code unit, each key JSON-encoded,
  *   then a colon and the canonical value, joined by commas, no whitespace
  * - any other value throws
  *
- * The integrity digest is SHA-256 of the UTF-8 bytes of that document for the
- * raw snapshot (the Download source JSON). It does not cover the other fields
- * of this run record.
+ * String escaping, including object keys: " and \ are escaped. U+0000–U+001F
+ * become \b, \t, \n, \f, \r, or lowercase \u00xx. A lone surrogate becomes
+ * lowercase \udxxx. Every other code unit stays literal, including non-ASCII,
+ * /, U+2028, and U+2029.
+ *
+ * The canonical document is the JavaScript string from those rules. Its output
+ * bytes are the UTF-8 encoding of that string, with no BOM and no trailing
+ * newline. The integrity digest is SHA-256 of those bytes for the raw snapshot
+ * (the Download source JSON). It does not cover the other fields of this run
+ * record.
  */
 export const CANONICALIZATION_ID = "witnessops-canonical-json-v1" as const;
 
@@ -236,14 +244,14 @@ export function publicCheckRunId(snapshot: ExternalSnapshotV1): string {
   return `public-check:${sourceDigest(snapshot).slice(0, 24)}`;
 }
 
-/** snapshot.network has no egress field today. A recorded region token is included when present. */
+/** snapshot.network has no egress field today. Only an egress_region token is included. */
 export function vantageDescription(snapshot: ExternalSnapshotV1): string {
   for (const event of snapshot.network) {
-    const extra = event as { egress_region?: unknown; region?: unknown };
-    const region = extra.egress_region ?? extra.region;
+    const extra = event as { egress_region?: unknown };
+    const region = extra.egress_region;
     if (typeof region === "string" && REGION.test(region)) return `${VANTAGE_BASE} Egress region: ${region}.`;
   }
-  return VANTAGE_BASE;
+  return `${VANTAGE_BASE} Egress region: not recorded.`;
 }
 
 export function buildUnsignedRunRecord(snapshot: ExternalSnapshotV1, runId: string): UnsignedRunRecord {
@@ -293,7 +301,7 @@ export function buildUnsignedRunRecord(snapshot: ExternalSnapshotV1, runId: stri
 }
 
 function validVantage(description: unknown): boolean {
-  if (description === VANTAGE_BASE) return true;
+  if (description === `${VANTAGE_BASE} Egress region: not recorded.`) return true;
   const prefix = `${VANTAGE_BASE} Egress region: `;
   if (typeof description !== "string" || !description.startsWith(prefix) || !description.endsWith(".")) return false;
   return REGION.test(description.slice(prefix.length, -1));

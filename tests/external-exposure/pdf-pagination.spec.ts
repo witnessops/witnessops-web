@@ -43,6 +43,9 @@ for (const shape of ['captured-clean', 'attention', 'long-finding'] as const) {
     await page.emulateMedia({ media: 'print' });
     const root = page.locator('[data-run-record-print]');
     await expect(root).toBeVisible();
+    await expect(root).toContainText(shape === 'captured-clean'
+      ? '10 checks run · 8 observed as expected · 0 need attention · 0 not run · 0 collection errors'
+      : '9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error');
     await expect(root).toContainText('Run record — integrity hash (SHA-256), not yet signed.');
     expect(await page.locator('body > :not([data-run-record-print])').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).display === 'none'))).toBe(true);
     const session = await page.context().newCDPSession(page);

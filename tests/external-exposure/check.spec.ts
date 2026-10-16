@@ -64,7 +64,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('button', { name: 'Run free check', exact: true })).toBeFocused();
   await collect(page);
   const resultRegion = page.getByRole('article', { name: 'Snapshot results' });
-  await expect(resultRegion).toContainText('9 checks run · 5 observed as expected · 1 need attention · 0 not run');
+  await expect(resultRegion).toContainText('9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error');
   await expect(resultRegion).toContainText('Checks with collected evidence: 8/10');
   await expect(resultRegion).toContainText('Collection error: web.hsts.v1.');
   await expect(resultRegion.getByRole('heading', { name: 'Needs attention', exact: true })).toBeVisible();
@@ -125,8 +125,8 @@ test('source download and the immutable report use the same identity and print d
 });
 
 for (const [name, fixture, line, collected, clear] of [
-  ['clean', cleanSnapshotFixture(), '10 checks run · 8 observed as expected · 0 need attention · 0 not run', 'Checks with collected evidence: 10/10', true],
-  ['attention', snapshotFixture(), '9 checks run · 5 observed as expected · 1 need attention · 0 not run', 'Checks with collected evidence: 8/10', false],
+  ['clean', cleanSnapshotFixture(), '10 checks run · 8 observed as expected · 0 need attention · 0 not run · 0 collection errors', 'Checks with collected evidence: 10/10', true],
+  ['attention', snapshotFixture(), '9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error', 'Checks with collected evidence: 8/10', false],
 ] as const) test(`short results keep outcome counts in browser and print: ${name}`, async ({ page, browserName }, testInfo) => {
   const snapshot = validateExternalSnapshot(fixture), model = externalExposureAdapter(snapshot);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: 200, json: { snapshot, model } }));
@@ -223,7 +223,7 @@ test('uncollected timeout observations remain unknown and a long hostname wraps'
   await expect(page.getByRole('heading', { name: target, exact: true })).toBeVisible();
   await expect(page.locator('main [data-status=NEEDS_ATTENTION]')).toHaveCount(0);
   await expect(page.locator('main [data-status=UNDETERMINED]')).toHaveCount(10);
-  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('10 checks run · 0 observed as expected · 0 need attention · 0 not run');
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('10 checks run · 0 observed as expected · 0 need attention · 0 not run · 0 collection errors');
   await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('Checks with collected evidence: 0/10');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Clear', exact: true }).click();

@@ -100,6 +100,8 @@ export function RunRecordDocument({
 }) {
   const record = buildUnsignedRunRecord(snapshot, runId);
   const groups = resultGroups(snapshot.checks);
+  const attention = groups.attention.length;
+  const collectionErrors = record.collection_errors.length;
   const when = displayTimestamp(snapshot.finished_at);
   const Heading = headingLevel === 1 ? "h1" : "h2";
   const href = (checkId: string) => observationHref?.(checkId);
@@ -109,7 +111,7 @@ export function RunRecordDocument({
       <p>{surface === "saved" ? "Saved run" : "Free check"}</p>
       <Heading ref={headingRef} tabIndex={-1} className={styles.domain}>{snapshot.target}</Heading>
       <p className={styles.mono}>{when.warsaw} · {when.utc}</p>
-      <p className={styles.counts}>{record.checks_performed.length} checks run · {groups.ok.length} observed as expected · {groups.attention.length} need attention · {record.checks_not_run.length} not run</p>
+      <p className={styles.counts}>{record.checks_performed.length} checks run · {groups.ok.length} observed as expected · {attention} {attention === 1 ? "needs" : "need"} attention · {record.checks_not_run.length} not run · {collectionErrors} collection error{collectionErrors === 1 ? "" : "s"}</p>
       <p>{collectedEvidenceSentence(record.collected_evidence.count)}</p>
     </header>
     <section className={styles.attention} aria-labelledby="needs-attention-heading">

@@ -119,6 +119,15 @@ test("a collection error is not a performed check and is not labeled not applica
   assert.match(checksPerformedSentence(record.checks_performed, record.checks_not_run, record.collection_errors), /Collection error: web\.hsts\.v1\./);
   assert.equal(JSON.stringify(record).includes("not_applicable"), false);
   assert.equal(record.checks_performed.length, 9);
+  const one = renderToStaticMarkup(<RunRecordDocument snapshot={snapshotFixture()} runId="run-one-error" theme="dark" surface="saved" />);
+  assert.match(one, /9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error(?!s)/);
+  const many = snapshotFixture();
+  const caa = many.checks.find(check => check.check_id === "dns.caa.v1");
+  assert.ok(caa);
+  caa.status = "CHECK_ERROR";
+  caa.collected = false;
+  const plural = renderToStaticMarkup(<RunRecordDocument snapshot={many} runId="run-two-errors" theme="dark" surface="saved" />);
+  assert.match(plural, /8 checks run · 5 observed as expected · 1 needs attention · 0 not run · 2 collection errors/);
 });
 
 test("canonical json v1 is recomputable and is not RFC 8785 lone-surrogate rejection", () => {
@@ -128,16 +137,40 @@ test("canonical json v1 is recomputable and is not RFC 8785 lone-surrogate rejec
   const surrogate = "\uD800";
   assert.equal(canonicalSource({ s: surrogate }), '{"s":"\\ud800"}');
   assert.equal(sourceDigest({ s: surrogate }), sha256Hex('{"s":"\\ud800"}'));
+  assert.throws(() => canonicalSource({ n: Number.POSITIVE_INFINITY }), /Source must contain only JSON values/);
+  assert.throws(() => canonicalSource({ n: Number.NaN }), /Source must contain only JSON values/);
 });
 
-test("vantage names a recorded egress region and otherwise leaves it out", () => {
+test("canonical bytes and SHA-256 are pinned for a non-ASCII string and a control character", () => {
+  const cafe = canonicalSource({ label: "café" });
+  assert.equal(cafe, '{"label":"café"}');
+  assert.equal(cafe.endsWith("\n"), false);
+  const cafeBytes = new TextEncoder().encode(cafe);
+  assert.equal(cafeBytes[0], 0x7b);
+  assert.equal(sha256Hex(cafe), "2d7fba14f0a7cffed454bc268d791c0f32d11f62946998a323087ccf5df29075");
+  assert.equal(createHash("sha256").update(cafeBytes).digest("hex"), "2d7fba14f0a7cffed454bc268d791c0f32d11f62946998a323087ccf5df29075");
+  const control = canonicalSource({ note: "a\u0001b" });
+  assert.equal(control, '{"note":"a\\u0001b"}');
+  assert.equal(control.endsWith("\n"), false);
+  const controlBytes = new TextEncoder().encode(control);
+  assert.equal(controlBytes[0], 0x7b);
+  assert.equal(sha256Hex(control), "d6acd35d4956c944a6dbf34db76a5d67c19dc4143a4196b51ea09790412a5b16");
+  assert.equal(createHash("sha256").update(controlBytes).digest("hex"), "d6acd35d4956c944a6dbf34db76a5d67c19dc4143a4196b51ea09790412a5b16");
+});
+
+test("vantage names a recorded egress region and otherwise says it was not recorded", () => {
   const plain = buildUnsignedRunRecord(snapshotFixture(), "run-vantage");
-  assert.equal(plain.vantage.description.includes("Egress region"), false);
+  assert.match(plain.vantage.description, /Egress region: not recorded\./);
+  const regionOnly = snapshotFixture();
+  Object.assign(regionOnly.network[0], { region: "eu-central-1" });
+  assert.match(buildUnsignedRunRecord(regionOnly, "run-region-only").vantage.description, /Egress region: not recorded\./);
   const snapshot = snapshotFixture();
   Object.assign(snapshot.network[0], { egress_region: "eu-central-1" });
   const recorded = buildUnsignedRunRecord(snapshot, "run-region");
   assert.match(recorded.vantage.description, /Egress region: eu-central-1\./);
   assert.equal(validateUnsignedRunRecord(recorded).valid, true);
+  const bare = { ...plain, vantage: { kind: "external" as const, description: plain.vantage.description.replace(" Egress region: not recorded.", "") } };
+  assert.equal(validateUnsignedRunRecord(bare).valid, false);
 });
 
 test("wording lint covers the record, the results UI and the print document", () => {
@@ -157,7 +190,7 @@ test("wording lint covers the record, the results UI and the print document", ()
   assert.match(html, /Keep a copy; the hash only helps if you hold the original\./);
   assert.doesNotMatch(html, /This lists only the checks named here/);
   assert.match(html, /Checks with collected evidence: 8\/10/);
-  assert.match(html, /9 checks run · 5 observed as expected · 1 need attention · 0 not run/);
+  assert.match(html, /9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error(?!s)/);
   assert.match(html, /Collection error: web\.hsts\.v1\./);
   assert.match(html, /Result: partial for the checks listed, at 2026-09-08T12:00:02\.000Z \(2026-09-08T14:00:02\.000\+02:00 Europe\/Warsaw\), against example\.com as observed by WitnessOps from /);
   assert.doesNotMatch(html, /Derived from the integrity hash/);
