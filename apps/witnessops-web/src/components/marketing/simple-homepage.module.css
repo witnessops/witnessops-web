@@ -108,6 +108,24 @@
 }
 .product .primary,
 .product .secondary { border-radius: 0; }
+.product.typeA {
+  --color-surface-bg: #f3efe4;
+  --color-surface-bg-alt: #e7e1d2;
+  --color-surface-card: #faf7f0;
+  --color-surface-inset: #e7e1d2;
+  --color-surface-border: #d4cdbd;
+  --color-surface-border-strong: #b3aa96;
+  --color-text-primary: #1c1a16;
+  --color-text-secondary: #3f3b34;
+  --color-text-muted: #6d675c;
+  --color-text-inverse: #f3efe4;
+  --color-brand-accent: #8a6230;
+  color: var(--color-text-primary);
+  background-color: #f3efe4;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-brand-accent) 28%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-brand-accent) 28%, transparent) 1px, transparent 1px);
+}
 .product .lead { max-width: 46ch; margin-top: 20px; font-size: 17px; }
 .product .heroGrid {
   display: grid;
