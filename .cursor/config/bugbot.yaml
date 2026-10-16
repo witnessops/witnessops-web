@@ -8,8 +8,43 @@ triggers:
   frequency: everyPush
 
 review:
-  effort: default
-  smartPrompt: ""
+  effort: smart
+  smartPrompt: |
+    Review public copy and catalogue edits against the offer and claim-boundary
+    rules. Flag violations. Do not suggest weakening a test or a CI gate.
+
+    Public new-sales offers are only Agent Action Security Review at €2,500
+    excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
+    The public contact address is engage@mail.witnessops.com only.
+    Delivery timing for both offers is exactly "Delivery timing per signed SOW".
+
+    Held terms must not return in current public copy or new-sales selection:
+    three-working-day, three working days, 3 working days, 10 working days,
+    €550, and fixed quote after scope. The held-term test also rejects 7–10
+    on current public surfaces.
+
+    Historical offer names stay historical and must not be renamed onto a
+    current offer: AI Agent Tools & Access Review, Public Exposure Review,
+    Customer Security Review Sprint, One Server Security Check,
+    Agent Risk & Control Review, Agent Workflow Reconstruction, and
+    Early Bird — Internet Footprint Review.
+
+    Do not introduce these as positive public claims: verified, certified,
+    proof that a system is secure, signed as assurance, tamper-proof,
+    independently verified, guaranteed, "your domain is secure", a check mark
+    as a passed security result, Declared as an assurance label, or Not proven
+    as a marketing heading.
+    Approved replacements already used in the repo: checked; not verified;
+    not a penetration test or certification; does not certify compliance;
+    labelled sample; a proof claim requires a named receipt;
+    External Exposure snapshots are unsigned; a report presents a recorded
+    observation; tamper-evident evidence bindings; were not independently
+    checked; does not guarantee; This is not a security guarantee.;
+    A public hostname snapshot. No account needed. Not a review.;
+    what remains unproven.
+    Read content/witnessops/skills/claim-boundary-copy/SKILL.md and
+    apps/witnessops-web/src/app/public-claim-boundary.test.ts before treating
+    a claim sentence as acceptable.
   incremental: true
 
 prSummary:

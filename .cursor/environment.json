@@ -5,8 +5,15 @@
     "dockerfile": "Dockerfile"
   },
   "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "dev-server",
+      "command": "bash .cursor/dev-server.sh",
+      "description": "Start the public site dev server once on 127.0.0.1:3001."
+    }
+  ],
   "ports": [
-    { "name": "web", "port": 3000 },
-    { "name": "ui-proof", "port": 3001 }
+    { "name": "web", "port": 3001 }
   ]
 }

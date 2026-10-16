@@ -194,10 +194,17 @@ test("cursor quick-check propagates proof:test and the skill marks k3s deploy re
   const grokScript = fs.readFileSync(path.join(root, ".grok/skills/optimize-witnessops-web/scripts/quick-check.sh"), "utf8");
   const cursorSkill = fs.readFileSync(path.join(root, ".cursor/skills/optimize-witnessops-web/SKILL.md"), "utf8");
   const grokSkill = fs.readFileSync(path.join(root, ".grok/skills/optimize-witnessops-web/SKILL.md"), "utf8");
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 
-  assert.match(cursorScript, /"\$\{PNPM\[@\]\}" proof:test/);
-  assert.doesNotMatch(cursorScript, /merkle\.test\.ts/);
-  assert.match(grokScript, /merkle\.test\.ts/);
+  assert.equal(
+    pkg.scripts["optimize:quick-check"],
+    "bash .cursor/skills/optimize-witnessops-web/scripts/quick-check.sh",
+  );
+  for (const script of [cursorScript, grokScript]) {
+    assert.match(script, /"\$\{PNPM\[@\]\}" proof:test/);
+    assert.doesNotMatch(script, /merkle\.test\.ts/);
+    assert.doesNotMatch(script, /proof:test[^\n]*2>\/dev\/null/);
+  }
   assert.match(cursorSkill, /docs\/DEPLOYMENT_AUTHORITY\.md/);
   assert.match(cursorSkill, /retired-production-deploy\.mjs/);
   assert.doesNotMatch(cursorSkill, /Dual-lane build and deploy \(private k3s\) — current/);
