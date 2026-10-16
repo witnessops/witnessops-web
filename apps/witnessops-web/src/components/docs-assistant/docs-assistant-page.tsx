@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { askLanguage } from "@/lib/docs-assistant/conversation-guidance";
+import { PriceText } from "@/lib/price-unit";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
   askWitnessOpsAnswerText,
@@ -168,7 +169,7 @@ export function DocsAssistantPage() {
                         msg.error ? "text-red-400" : "text-text-primary"
                       }`}
                     >
-                      {msg.content}
+                      <PriceText text={msg.content} />
                     </p>
                     {msg.answer && (
                       <>

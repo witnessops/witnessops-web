@@ -11,7 +11,7 @@ import { PriceText, PriceUnit } from "@/lib/price-unit";
 import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
-import { previewChip, simErrorAtLoad, simFlag } from "./preview-triggers";
+import { previewChip, simErrorAtLoad, simFlag, sovereignPreviewCaption } from "./preview-triggers";
 import { stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
@@ -20,6 +20,18 @@ const PAUSE_KEY = "wo-sovereign-paused";
 export const PROCESSING_SHOW_DELAY_MS = 150;
 export const PENDING_TIMEOUT_MS = 15_000;
 export const SLOW_PENDING_MS = 6_000;
+function applyThreadFade(thread: HTMLElement) {
+  const overflow = thread.scrollHeight > thread.clientHeight + 1;
+  const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+  const notice = thread.parentElement?.querySelector<HTMLElement>("[data-sheet-notice]");
+  const sheetVisible = Boolean(notice && getComputedStyle(notice).display !== "none");
+  const fadeBottom = overflow && !atEnd;
+  const fadeTop = sheetVisible && thread.scrollTop > 1;
+  thread.classList.toggle(styles.threadFade, fadeBottom && !fadeTop);
+  thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom);
+  thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop);
+}
+
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
 const EASR_RETEST = {
   en: "One focused retest of reported findings within 30 calendar days of initial report handover.",
@@ -445,9 +457,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         : null;
     if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
     else scrollTurnToThreadStart(thread, turn, reducedMotion);
-    const overflow = thread.scrollHeight > thread.clientHeight + 1;
-    const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
-    thread.classList.toggle(styles.threadFade, overflow && !atEnd);
+    applyThreadFade(thread);
   }, [live, turns, loadError, followUpsReady]);
 
   useEffect(() => () => {
@@ -457,11 +467,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   useEffect(() => {
     const thread = threadRef.current;
     if (!thread) return;
-    const syncFade = () => {
-      const overflow = thread.scrollHeight > thread.clientHeight + 1;
-      const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
-      thread.classList.toggle(styles.threadFade, overflow && !atEnd);
-    };
+    const syncFade = () => applyThreadFade(thread);
     syncFade();
     thread.addEventListener("scroll", syncFade, { passive: true });
     const observer = new ResizeObserver(syncFade);
@@ -694,11 +700,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
             {turns.map((turn, index) => {
               const withSprite = spriteIndex === index;
               const showError = turn.role === "sovereign" && (turn.simulatedError || (loadError && index === 0 && !turns.some((item) => item.simulatedError)));
-              const caption = activeSim === "handoff" && turn.role === "sovereign" && turn.simulated
-                ? previewChip("handoff", locale)
-                : activeSim === "error" && showError
-                  ? previewChip("error", locale)
-                  : null;
+              const errorCaptionText = activeSim === "error" && showError ? previewChip("error", locale) : null;
+              const previewCaption = !showError && turn.role === "sovereign"
+                ? sovereignPreviewCaption(locale, copy.simulated, activeSim === "handoff", Boolean(turn.simulated))
+                : null;
               const retry = turn.role === "sovereign" && turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
               const sprite = <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />;
               const latestAnswer = turn.role === "sovereign" && turn.simulated && !turn.simulatedError;
@@ -709,12 +714,12 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                       {withSprite ? sprite : null}
                       <div className={styles.errorFaceCopy}>
                         <span>Sovereign</span>
-                        {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
+                        {errorCaptionText ? <p className={styles.handoffCaption}>{errorCaptionText}</p> : null}
                         {turn.text ? <p><ContactLine text={turn.text} /></p> : null}
-                      </div>
-                      <div className={styles.errorBody}>
-                        {errorNote}
-                        {retry}
+                        <div className={styles.errorBody}>
+                          {errorNote}
+                          {retry}
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -723,7 +728,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               const content = (
                 <>
                   <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                  {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
+                  {previewCaption && activeSim !== "handoff" ? <p className={styles.sim} data-preview-caption="">{previewCaption}</p> : null}
                   {turn.text ? <p data-answer-copy={latestAnswer ? "" : undefined}><ContactLine text={turn.text} /></p> : null}
                   {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                 </>
@@ -736,7 +741,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               ) : content;
               return (
                 <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign} data-latest-answer={latestAnswer ? "" : undefined}>
-                  {caption ? <p className={styles.handoffCaption}>{caption}</p> : null}
+                  {previewCaption && activeSim === "handoff" ? <p className={styles.handoffCaption} data-preview-caption="">{previewCaption}</p> : null}
                   {turn.role === "you" ? <div className={styles.youBubble}>{body}</div> : body}
                 </li>
               );

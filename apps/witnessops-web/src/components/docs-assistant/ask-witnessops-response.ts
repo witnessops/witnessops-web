@@ -4,6 +4,7 @@ import {
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 
 export interface AskWitnessOpsRecommendation {
@@ -346,12 +347,17 @@ function asRecommendation(value: unknown): AskWitnessOpsRecommendation | null {
     name: service.name.en,
     price_label: service.pricingVisible === false
       ? (service.availability?.label.en ?? "Available by request")
-      : service.price.en,
+      : plainOfferPrice(service.price.en),
     delivery_label: service.timing.en,
     detail_href: service.detailHref.en ?? "/catalog",
     request_href: `${requestUrl.pathname}${requestUrl.search}`,
   };
-  if (Object.entries(expected).some(([key, entry]) => record[key] !== entry)) {
+  if (Object.entries(expected).some(([key, entry]) => {
+    const actual = key === "price_label" && typeof record[key] === "string"
+      ? plainOfferPrice(record[key])
+      : record[key];
+    return actual !== entry;
+  })) {
     throw new Error("Ask WitnessOps returned an outdated review recommendation.");
   }
   return expected;
@@ -448,7 +454,7 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
       id: PUBLIC_AGENT_ACTION_OFFER.id,
       offer: {
         name: PUBLIC_AGENT_ACTION_OFFER.name.en,
-        price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+        price_label: plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en),
         unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
         fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
         delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
@@ -458,7 +464,7 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
       id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
       offer: {
         name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-        price_label: EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+        price_label: plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en),
         unit_label:
           "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
         fit_check_label: "Non-secret fit check first. This is not a penetration test.",
@@ -470,7 +476,8 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
   const offer =
     matchedOffer &&
     offerRecord?.name === matchedOffer.offer.name &&
-    offerRecord.price_label === matchedOffer.offer.price_label &&
+    (offerRecord.price_label === matchedOffer.offer.price_label ||
+      (typeof offerRecord.price_label === "string" && plainOfferPrice(offerRecord.price_label) === matchedOffer.offer.price_label)) &&
     offerRecord.unit_label === matchedOffer.offer.unit_label &&
     offerRecord.fit_check_label === matchedOffer.offer.fit_check_label &&
     offerRecord.delivery_label === matchedOffer.offer.delivery_label

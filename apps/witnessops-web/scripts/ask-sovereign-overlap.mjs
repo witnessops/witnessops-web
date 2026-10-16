@@ -32,6 +32,42 @@ function log(line) {
   console.log(line);
 }
 
+function reportStamp() {
+  const sha = process.env.ASK_SHA || "uncommitted";
+  const at = new Date().toISOString();
+  return [`# sha ${sha}`, `# at ${at}`];
+}
+
+function writeReport(name, bodyLines) {
+  writeFileSync(`${outDir}/${name}`, `${[...reportStamp(), ...bodyLines].join("\n")}\n`);
+}
+
+async function publicRoutePaths() {
+  const response = await fetch(`${base}/sitemap.xml`);
+  if (!response.ok) throw new Error(`sitemap ${response.status}`);
+  const xml = await response.text();
+  const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => {
+    try { return new URL(match[1]).pathname || "/"; } catch { return null; }
+  }).filter(Boolean);
+  const extras = [
+    "/",
+    "/check",
+    "/company",
+    "/docs/assistant",
+    "/early-access",
+    "/library",
+    "/pl",
+    "/pl/company",
+    "/pl/docs/assistant",
+    "/pl/library",
+    "/pl/review/request",
+    "/pl/support",
+    "/review/request",
+    "/support",
+  ];
+  return [...new Set([...paths, ...extras])].filter((path) => path !== "/pl/check").sort();
+}
+
 async function gotoReady(page, url) {
   let last;
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -221,6 +257,7 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const errorLabel = liveLocale === "pl" ? "Podgląd\u00A0· symulowany błąd" : "Preview\u00A0· simulated error";
     const caption = thread.querySelector("[class*='handoffCaption']");
     const captionText = caption ? (caption.textContent || "").trim() : "";
+    const previewCaptions = thread.querySelectorAll("[data-preview-caption]").length;
     const captionOutside = !caption || !caption.closest("[class*='youBubble']");
     const captionVisible = !caption || (caption.getBoundingClientRect().height > 0 && getComputedStyle(caption).visibility !== "hidden");
     const handoffChipInHeader = (header.textContent || "").includes(handoffLabel);
@@ -301,6 +338,15 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const spriteBox = sprite ? sprite.getBoundingClientRect() : null;
     const faceCopy = errorLi?.querySelector("[class*='errorFaceCopy']");
     const faceCopyBox = faceCopy ? faceCopy.getBoundingClientRect() : null;
+    let copyBottom = null;
+    if (faceCopy) {
+      for (const child of faceCopy.children) {
+        if (child.querySelector("[class*='errorNote']")) continue;
+        const box = child.getBoundingClientRect();
+        if (box.height > 1) copyBottom = box.bottom;
+      }
+    }
+    const chipGap = noteBox && copyBottom !== null ? noteBox.top - copyBottom : null;
     const stackedNote = Boolean(noteBox && spriteBox && noteBox.left <= spriteBox.left + 4);
     const textLeft = stackedNote ? noteBox.left : faceCopyBox ? faceCopyBox.left : noteBox ? noteBox.left : 0;
     let middotStarts = 0;
@@ -400,7 +446,10 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       captionText,
       captionOutside,
       captionVisible,
+      previewCaptions,
       simulatedLabel,
+      chipGap,
+      chipWidth: noteChipBox ? noteChipBox.width : 0,
       emailLines,
       emailBreak,
       replyLines,
@@ -498,13 +547,25 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       const overflow = thread.scrollHeight > thread.clientHeight + 1;
       const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
       const beforeMask = maskOf();
+      const beforeTop = thread.scrollTop;
+      const notice = document.querySelector("[data-sheet-notice]");
+      const sheetOn = Boolean(notice && getComputedStyle(notice).display !== "none");
+      const fadesBottom = (mask) => mask.includes("calc(100% - 16px)");
+      const fadesTop = (mask) => /rgba\(0,\s*0,\s*0,\s*0\)\s+0px|transparent\s+0px/.test(mask);
+      const beforeOk = !overflow
+        ? beforeMask === "none"
+        : atEnd
+          ? (sheetOn && beforeTop > 1 ? fadesTop(beforeMask) && !fadesBottom(beforeMask) : beforeMask === "none")
+          : fadesBottom(beforeMask);
       const previous = thread.scrollTop;
       thread.scrollTop = thread.scrollHeight;
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const endMask = maskOf();
+      const endTop = thread.scrollTop;
+      const endOk = !fadesBottom(endMask) && (sheetOn && endTop > 1 ? fadesTop(endMask) : endMask === "none");
       thread.scrollTop = previous;
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const fadeOk = (overflow ? (atEnd ? beforeMask === "none" : beforeMask !== "none") : beforeMask === "none") && endMask === "none";
+      const fadeOk = beforeOk && endOk;
       return {
         visible,
         answer,
@@ -557,13 +618,14 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "error" && measured.panelReviewTags) issues.push("review tag in panel");
   if (mode === "error" && (Math.abs((measured.youWidth || 0) - (measured.retryYouWidth || 0)) > 0.5 || measured.retryActive !== "ask-sovereign-draft")) issues.push(`you width ${measured.youWidth}->${measured.retryYouWidth} focus=${measured.retryActive}`);
   if (mode === "error" && (!measured.errorChipInThread || measured.errorChipInHeader || !measured.captionOutside || !measured.captionVisible)) issues.push(`error caption ${measured.captionText}`);
-  if (mode === "handoff" && (!measured.handoffChipInThread || measured.handoffChipInHeader || !measured.captionOutside || !measured.simulatedLabel)) issues.push(`handoff caption ${measured.captionText}`);
+  if (mode === "handoff" && (!measured.handoffChipInThread || measured.handoffChipInHeader || !measured.captionOutside || measured.simulatedLabel || measured.previewCaptions !== 1)) issues.push(`handoff caption ${measured.captionText} captions=${measured.previewCaptions}`);
   if (mode === "answer" && !measured.simulatedLabel) issues.push("simulated label missing");
   if (mode === "handoff" && width <= 320 && (measured.emailLines < 1 || measured.emailLines > 2)) issues.push(`email lines ${measured.emailLines}`);
   if (mode === "handoff" && width <= 320 && (measured.replyLines < 1 || measured.replyLines > 2 || measured.replyTailLines !== 1)) issues.push(`reply email lines ${measured.replyLines} tail ${measured.replyTailLines}`);
   if (mode === "handoff" && measured.emailBreak === "break-all") issues.push("email breaks anywhere");
   if (locale === "pl" && mode === "error" && width <= 390 && measured.errorWrapped && !measured.hanging) issues.push("error note indent");
-  if (mode === "error" && width < 480 && (measured.noteWidth < measured.turnWidth * 0.75 || !measured.noteBelowFace)) issues.push(`error note squeezed ${Math.round(measured.noteWidth)}/${Math.round(measured.turnWidth)}`);
+  if (mode === "error" && width < 480 && (measured.chipGap == null || measured.chipGap > 24 || measured.chipGap < 8)) issues.push(`error chip gap ${measured.chipGap}`);
+  if (mode === "error" && width < 480 && measured.chipWidth > 160) issues.push(`chip width ${Math.round(measured.chipWidth)}`);
   if (mode === "error" && width >= 480 && measured.retryLeft < measured.spriteRight - 1) issues.push("retry under the face");
   if (mode === "error" && !measured.retryWithText) issues.push("retry not in the text column");
   if (measured.middotStarts) issues.push(`middot starts a line ${measured.middotStarts}`);
@@ -590,7 +652,63 @@ function problems(measured, { locale, width, height, mode }) {
   return issues;
 }
 
+async function runPageWidth() {
+  const widthLines = ["# documentElement.scrollWidth <= clientWidth. The scrollbar is outside clientWidth."];
+  const widthRoutes = await publicRoutePaths();
+  let widthFails = 0;
+  for (const viewport of viewports) {
+    for (const theme of themes) {
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        deviceScaleFactor: 1,
+        colorScheme: theme,
+      });
+      const page = await context.newPage();
+      await page.addInitScript((value) => localStorage.setItem("wo-theme", value), theme);
+      for (const path of widthRoutes) {
+        const locale = path === "/pl" || path.startsWith("/pl/") ? "pl" : "en";
+        await gotoReady(page, `${base}${path}`);
+        const measured = await page.evaluate(() => {
+          const root = document.documentElement;
+          const bar = document.querySelector(".wo-navbar-bar");
+          const navWraps = bar ? [...bar.querySelectorAll("a, button")].filter((el) => {
+            if (el.closest("#witnessops-mobile-menu")) return false;
+            const style = getComputedStyle(el);
+            if (style.display === "none" || style.visibility === "hidden") return false;
+            const rects = [...el.getClientRects()].filter((rect) => rect.width > 1 && rect.height > 1);
+            return new Set(rects.map((rect) => Math.round(rect.top))).size > 1;
+          }).map((el) => (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 48)) : [];
+          return {
+            scroll: root.scrollWidth,
+            client: root.clientWidth,
+            banner: Boolean(document.querySelector(".pl-copy-review")),
+            navWraps,
+          };
+        });
+        const widthOk = measured.scroll <= measured.client;
+        const bannerOk = locale !== "pl" || measured.banner;
+        const navOk = measured.navWraps.length === 0;
+        if (!widthOk || !bannerOk || !navOk) widthFails += 1;
+        const line = `${widthOk && bannerOk && navOk ? "OK" : "FAIL"} ${theme} ${locale} ${viewport.key} ${path} scroll=${measured.scroll} client=${measured.client} banner=${measured.banner} navWrap=${measured.navWraps.join("|") || "none"}`;
+        widthLines.push(line);
+        log(line);
+      }
+      await context.close();
+    }
+  }
+  widthLines.push(widthFails ? `PAGE_WIDTH_FAIL ${widthFails}` : "PAGE_WIDTH_OK");
+  const widthFile = process.env.ASK_WIDTH_FILE || `${outDir}/page-width.txt`;
+  writeFileSync(widthFile, `${[...reportStamp(), ...widthLines].join("\n")}\n`);
+  log(widthLines.at(-1));
+  if (widthFails) throw new Error(widthLines.at(-1));
+}
+
 try {
+  if (process.env.ASK_ONLY === "width") {
+    await runPageWidth();
+    await browser.close();
+    process.exit(0);
+  }
   for (const viewport of viewports) {
     for (const locale of locales) {
       for (const theme of themes) {
@@ -646,48 +764,9 @@ try {
     await context.close();
     if (!focused || !same) throw new Error(line);
   }
-  writeFileSync(`${outDir}/focus-retry.txt`, `${focusLines.join("\n")}\n`);
+  writeReport("focus-retry.txt", focusLines);
 
-  const widthLines = ["# documentElement.scrollWidth <= viewport, both languages, matrix sizes."];
-  const widthRoutes = [
-    ["en", "/"],
-    ["en", "/library"],
-    ["en", "/check"],
-    ["en", "/docs/assistant"],
-    ["pl", "/pl"],
-    ["pl", "/pl/library"],
-    ["pl", "/pl/docs/assistant"],
-  ];
-  let widthFails = 0;
-  for (const viewport of viewports) {
-    for (const theme of themes) {
-      const context = await browser.newContext({
-        viewport: { width: viewport.width, height: viewport.height },
-        deviceScaleFactor: 1,
-        colorScheme: theme,
-      });
-      const page = await context.newPage();
-      await page.addInitScript((value) => localStorage.setItem("wo-theme", value), theme);
-      for (const [locale, path] of widthRoutes) {
-        await gotoReady(page, `${base}${path}`);
-        const measured = await page.evaluate(() => ({
-          scroll: document.documentElement.scrollWidth,
-          banner: Boolean(document.querySelector(".pl-copy-review")),
-        }));
-        const widthOk = measured.scroll <= viewport.width;
-        const bannerOk = !path.startsWith("/pl/") && path !== "/pl" || measured.banner;
-        if (!widthOk || !bannerOk) widthFails += 1;
-        const line = `${widthOk && bannerOk ? "OK" : "FAIL"} ${theme} ${locale} ${viewport.key} ${path} scroll=${measured.scroll} viewport=${viewport.width} banner=${measured.banner}`;
-        widthLines.push(line);
-        log(line);
-      }
-      await context.close();
-    }
-  }
-  widthLines.push(widthFails ? `PAGE_WIDTH_FAIL ${widthFails}` : "PAGE_WIDTH_OK");
-  writeFileSync(`${outDir}/page-width.txt`, `${widthLines.join("\n")}\n`);
-  log(widthLines.at(-1));
-  if (widthFails) throw new Error(widthLines.at(-1));
+  await runPageWidth();
 
   for (const width of [320, 390]) {
     const footer = await browser.newContext({ viewport: { width, height: 844 } });
@@ -701,12 +780,13 @@ try {
         lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
         nowrap: getComputedStyle(el).whiteSpace,
         scroll: document.documentElement.scrollWidth,
+        client: document.documentElement.clientWidth,
       };
     });
     const footerOk = footerState.text === "Narzędzie, nie przegląd"
       && footerState.nowrap !== "nowrap"
       && footerState.lines === 1
-      && footerState.scroll <= width;
+      && footerState.scroll <= footerState.client;
     log(`pl-footer ${width} text=${JSON.stringify(footerState.text)} lines=${footerState.lines} whiteSpace=${footerState.nowrap} scroll=${footerState.scroll} ${footerOk ? "OK" : "FAIL"}`);
     await footer.close();
     if (!footerOk) throw new Error(`PL footer link at ${width}`);
@@ -902,21 +982,21 @@ try {
     }
   }
   priceLines.push(priceFails ? `PRICE_UNIT_FAIL ${priceFails}` : "PRICE_UNIT_OK");
-  writeFileSync(`${outDir}/price-unit.txt`, `${priceLines.join("\n")}\n`);
+  writeReport("price-unit.txt", priceLines);
   log(priceLines.at(-1));
   if (priceFails) throw new Error(priceLines.at(-1));
 
   log("OVERLAP_OK");
 } catch (error) {
   log(`OVERLAP_FAIL ${error instanceof Error ? error.message : String(error)}`);
-  writeFileSync(`${outDir}/overlap-check.txt`, `${lines.join("\n")}\n`);
-  writeFileSync(`${outDir}/cls.txt`, `${clsLines.join("\n")}\n`);
-  writeFileSync(`${outDir}/contrast.txt`, `${contrastLines.join("\n")}\n`);
+  writeReport("overlap-check.txt", lines);
+  writeReport("cls.txt", clsLines);
+  writeReport("contrast.txt", contrastLines);
   await browser.close();
   process.exit(1);
 }
 
-writeFileSync(`${outDir}/overlap-check.txt`, `${lines.join("\n")}\n`);
-writeFileSync(`${outDir}/cls.txt`, `${clsLines.join("\n")}\n`);
-writeFileSync(`${outDir}/contrast.txt`, `${contrastLines.join("\n")}\n`);
+writeReport("overlap-check.txt", lines);
+writeReport("cls.txt", clsLines);
+writeReport("contrast.txt", contrastLines);
 await browser.close();

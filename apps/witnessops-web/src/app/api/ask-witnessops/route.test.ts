@@ -51,7 +51,7 @@ function askRequest(question: string, ip: string, context: Record<string, unknow
 
 const CURRENT_AGENT_ACTION_OFFER = {
   name: "Agent Action Security Review",
-  price_label: "€2,500\u00A0excl.\u00A0VAT",
+  price_label: "€2,500 excl. VAT",
   unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "Delivery timing agreed in the signed statement of work",
@@ -317,8 +317,8 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   const cases = [
-    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500\u00A0excl.\u00A0VAT", words: "The listed price below covers one consequential action.", deterministic: true },
-    { question: "What does the External Attack Surface Review cost?", id: "external-exposure-assessment", price: "€1,900\u00A0excl.\u00A0VAT", words: "The listed price below covers one authorised public-facing system.", deterministic: true },
+    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
+    { question: "What does the External Attack Surface Review cost?", id: "external-exposure-assessment", price: "€1,900 excl. VAT", words: "The listed price below covers one authorised public-facing system.", deterministic: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
     { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with the founder to agree the scope and review the findings.", deterministic: false },
@@ -755,7 +755,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "€2,500\u00A0excl.\u00A0VAT",
+    "€2,500 excl. VAT",
   );
 
   const multiResponse = await POST(
@@ -770,7 +770,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "€2,500\u00A0excl.\u00A0VAT",
+    "€2,500 excl. VAT",
   );
 
   const unrelatedResponse = await POST(

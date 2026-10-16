@@ -312,7 +312,8 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   for (const assessment of [assessments[0], assessments[2]]) {
     assert.equal(assessment.offer_id, PUBLIC_AGENT_ACTION_OFFER.id);
     assert.equal(assessment.offer?.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
-    assert.equal(assessment.offer?.price_label, PUBLIC_AGENT_ACTION_OFFER.price.en);
+    assert.equal(assessment.offer?.price_label, "€2,500 excl. VAT");
+    assert.doesNotMatch(assessment.offer?.price_label ?? "", /\u00A0/);
     assert.equal(assessment.offer?.unit_label, PUBLIC_AGENT_ACTION_OFFER.unit.en);
     assert.equal(assessment.offer?.fit_check_label, PUBLIC_AGENT_ACTION_OFFER.fitCheck.en);
     assert.equal(assessment.offer?.delivery_label, PUBLIC_AGENT_ACTION_OFFER.timing.en);

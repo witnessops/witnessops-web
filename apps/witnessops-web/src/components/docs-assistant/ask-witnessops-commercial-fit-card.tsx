@@ -6,6 +6,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { PriceText } from "@/lib/price-unit";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
@@ -151,7 +152,7 @@ export function AskWitnessOpsCommercialFitCard({
       <div className="mt-4 border-t border-brand-accent/30 pt-3">
         <p className="text-xs font-semibold text-text-primary">{selectedService?.name[language] ?? offer.name}</p>
         <p className="mt-1 text-[11px] text-text-muted">
-          {(selectedService?.price[language] ?? offer.price_label)} · {external
+          <PriceText text={selectedService?.price[language] ?? offer.price_label} /> · {external
             ? (pl
               ? "Jeden autoryzowany system dostępny z internetu. Jedno sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania raportu."
               : offer.unit_label)

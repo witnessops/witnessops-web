@@ -125,7 +125,7 @@ export default function SupportPage() {
           </div>
         </header>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start [&>*]:min-w-0">
           <SupportStart />
           <section id="support-request" className="scroll-mt-24" aria-label="Contact support">
             <h2 className="mb-3 text-xl font-medium">Contact support</h2>
@@ -143,7 +143,7 @@ export default function SupportPage() {
             Choose the right path
             <span className="h-px flex-1 bg-surface-border" />
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] [&>*]:min-w-0">
             {situationLanes.map((lane) => {
               const className = `block border p-5 transition-colors hover:border-brand-accent ${
                 lane.emphasize

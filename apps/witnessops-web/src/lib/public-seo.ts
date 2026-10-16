@@ -5,6 +5,7 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 
 export const CANONICAL_ORIGIN = "https://witnessops.com";
 
@@ -123,7 +124,7 @@ export function primaryOfferServiceJsonLd() {
       url,
       lowPrice: PRIMARY_OFFER.price.amount,
       priceCurrency: PRIMARY_OFFER.price.currency,
-      description: `${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}.`,
+      description: `${plainOfferPrice(PRIMARY_OFFER.price.en)}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}.`,
     },
   } as const;
 }
@@ -164,7 +165,7 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
       url,
       price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
       priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
-      description: `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
+      description: `${plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,

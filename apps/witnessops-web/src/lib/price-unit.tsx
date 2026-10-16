@@ -10,6 +10,7 @@ export {
   EXTERNAL_PRICE_PL,
   isOfferPriceUnit,
   OFFER_PRICE_UNIT_PATTERN,
+  plainOfferPrice,
   PRICE_UNIT_GAP,
 } from "./offer-price-unit";
 

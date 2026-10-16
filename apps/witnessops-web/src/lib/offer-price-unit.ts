@@ -33,3 +33,8 @@ export function bindOfferPriceUnits(text: string): string {
 export function isOfferPriceUnit(text: string): boolean {
   return (OFFER_PRICE_UNITS as readonly string[]).includes(text);
 }
+
+/** API, JSON, email, and other plain-text output. Rendered HTML keeps the NBSP unit. */
+export function plainOfferPrice(value: string): string {
+  return value.replaceAll("\u00A0", " ");
+}

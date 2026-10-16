@@ -8,6 +8,7 @@ import {
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { isHistoricallyUnindexedPublicPath } from "@/lib/historical-public-routes";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsRuntimeEnabledConfig } from "@/lib/docs-assistant/runtime-config";
 import type { NormalizedAskRequest } from "./ask-request-normalizer";
@@ -22,7 +23,7 @@ const CANONICAL_NO_BOUNDARIES = new Set(BUYER_SERVICES.flatMap((service) =>
 function publicPrice(service: (typeof BUYER_SERVICES)[number], language: "en" | "pl" = "en") {
   return service.pricingVisible === false
     ? (service.availability?.label[language] ?? "Available by request")
-    : service.price[language];
+    : plainOfferPrice(service.price[language]);
 }
 
 // Only public buyer material is supplied to the model. No authority artifacts,

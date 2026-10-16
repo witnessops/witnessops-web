@@ -256,11 +256,11 @@ export default function SbomCisa2026SamplePage() {
             <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
               Package files
             </h3>
-            <ul className="mt-3 grid gap-1 font-mono text-xs leading-6 text-text-muted sm:grid-cols-2">
+            <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-1 font-mono text-xs leading-6 text-text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               {packageFiles.map((file) => (
-                <li key={file} className="flex gap-2">
+                <li key={file} className="flex min-w-0 gap-2">
                   <span className="text-brand-accent">✓</span>
-                  <span>{file}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{file}</span>
                 </li>
               ))}
             </ul>

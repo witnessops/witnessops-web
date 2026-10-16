@@ -14,6 +14,7 @@ import Link from "next/link";
 import { ArrowUp, X } from "lucide-react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
+import { PriceText } from "@/lib/price-unit";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 
 import {
@@ -638,7 +639,7 @@ export function DocsAssistantWidget() {
                       {previousTurns.map((turn, index) => (
                         <div key={index} className={styles.earlierTurn}>
                           <p><strong>You:</strong> {turn.question}</p>
-                          <p><strong>AI:</strong> {askWitnessOpsAnswerText(turn.answer)}</p>
+                          <p><strong>AI:</strong> <PriceText text={askWitnessOpsAnswerText(turn.answer)} /></p>
                         </div>
                       ))}
                     </div>
@@ -653,7 +654,7 @@ export function DocsAssistantWidget() {
                         <span>PUBLIC GUIDE UNAVAILABLE</span>
                         <span>NO FIT CLAIM</span>
                       </div>
-                      <p className={styles.errorPanelCopy} role="alert">{answer.content}</p>
+                      <p className={styles.errorPanelCopy} role="alert"><PriceText text={answer.content} /></p>
                       <button type="button" className={styles.retryButton} onClick={() => void handleAsk()} disabled={!question.trim()}>Retry question</button>
                     </section>
                   ) : (
@@ -666,7 +667,7 @@ export function DocsAssistantWidget() {
                         <span>NO EVIDENCE REVIEWED</span>
                       </div>
                       <div className={styles.answerSheetBody}>
-                        <p className={styles.answerCopy}>{answer.content}</p>
+                        <p className={styles.answerCopy}><PriceText text={answer.content} /></p>
                         {answer.answer && shouldShowServiceCard(answer.answer, previousTurns.at(-1)?.answer) && (
                           <AskWitnessOpsCommercialFitCard
                             answer={answer.answer}

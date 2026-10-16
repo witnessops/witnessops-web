@@ -146,7 +146,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
-            <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
+            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5"}>
               {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
@@ -154,7 +154,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border border-transparent px-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none"
+                    className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm border border-transparent px-2 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none xl:px-3"
                   >
                     {link.label}
                   </a>
@@ -163,7 +163,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                     key={link.href}
                     href={link.href}
                     aria-current={currentPath === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border px-3 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none ${
+                    className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm border px-2 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none xl:px-3 ${
                       currentPath === link.href
                         ? "border-surface-border-strong bg-surface-inset text-text-primary"
                         : "border-transparent text-text-secondary"
@@ -174,7 +174,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                 ),
               )}
               <ThemeToggle locale={polish ? "pl" : "en"} />
-              {loginHref ? <a href={loginHref} className="hidden min-h-11 items-center px-3 text-sm text-text-secondary lg:inline-flex">{polish ? "Zaloguj się" : "Log in"}</a> : null}
+              {loginHref ? <a href={loginHref} className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm text-text-secondary lg:inline-flex xl:px-3">{polish ? "Zaloguj się" : "Log in"}</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
@@ -182,7 +182,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
-                  className={desktopCtaClassName}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-3 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}
@@ -192,7 +192,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   href={effectiveCta.href}
                   data-public-primary-cta
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
-                  className={desktopCtaClassName}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-3 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}

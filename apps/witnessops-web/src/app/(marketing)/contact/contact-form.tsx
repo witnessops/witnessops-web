@@ -33,6 +33,7 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import {
   NEW_SALES_AGENT_ACTION_OFFER_ID,
   newSalesEnquiryOptions,
@@ -501,7 +502,7 @@ export function ContactForm({
         : externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : agentActionOrder
-          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${PUBLIC_AGENT_ACTION_OFFER.price.en} terms`
+          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} terms`
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
           : agentToolsAccessReview

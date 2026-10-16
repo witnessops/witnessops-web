@@ -71,7 +71,7 @@ export default function PolishSupportPage() {
         </p>
       </header>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2">
+      <section className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] [&>*]:min-w-0">
         {routes.map(([title, href, body]) => (
           <Link
             key={title}

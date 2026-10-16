@@ -24,6 +24,18 @@ export function simErrorAtLoad(search: string): boolean {
 /** A non-breaking space before "·" keeps the separator on the previous word. */
 const MIDDOT = "\u00A0· ";
 
+/** One caption for a simulated sovereign turn. A handoff replaces the generic label. */
+export function sovereignPreviewCaption(
+  locale: "en" | "pl",
+  simulatedLabel: string,
+  handoff: boolean,
+  simulated: boolean,
+): string | null {
+  if (!simulated) return null;
+  if (handoff) return previewChip("handoff", locale);
+  return simulatedLabel;
+}
+
 export function previewChip(flag: SimFlag | null, locale: "en" | "pl" = "en"): string | null {
   if (locale === "pl" && flag === "error") return `Podgląd${MIDDOT}symulowany błąd`;
   if (locale === "pl" && flag === "handoff") return `Podgląd${MIDDOT}symulowane przekazanie`;

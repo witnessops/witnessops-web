@@ -3,6 +3,7 @@ import {
   buyerServiceRequestHref,
   type BuyerService,
 } from "@/lib/buyer-services";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 
 export type AdminServiceRequestContext =
   | {
@@ -71,7 +72,7 @@ export function listAdminBuyerServices(): AdminBuyerServiceRecord[] {
     return {
       id: service.id,
       name: service.name.en,
-      price: service.price.en,
+      price: plainOfferPrice(service.price.en),
       timing: service.timing.en,
       publicHref: service.detailHref.en ?? "/catalog",
       requestHref,

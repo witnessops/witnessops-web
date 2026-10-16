@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
+import { PriceText } from "@/lib/price-unit";
 import { AskAiDisclosure } from "./ask-ai-disclosure";
 import { askConversationHistory, askPageService, clearAskConversation, getAskConversation,
   getEmptyAskConversation, rememberAskTurn, subscribeAskConversation } from "./ask-conversation";
@@ -119,7 +120,7 @@ export function DocsAssistantInline() {
             {askWitnessOpsModeLabel(response)}
           </p>
           <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">
-            {askWitnessOpsAnswerText(response)}
+            <PriceText text={askWitnessOpsAnswerText(response)} />
           </p>
 
           <AskWitnessOpsCommercialFitCard answer={response} />

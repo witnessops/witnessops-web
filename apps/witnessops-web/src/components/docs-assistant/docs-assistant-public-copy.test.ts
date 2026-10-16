@@ -60,10 +60,10 @@ test("Ask WitnessOps retains the answer text when a suggested review is shown", 
   const page = source("docs-assistant-page.tsx");
   const inline = source("docs-assistant-inline.tsx");
 
-  assert.match(widget, /<p className=\{styles\.answerCopy\}>\{answer\.content\}<\/p>\s*\{answer\.answer && [^\n]+\(\s*<AskWitnessOpsCommercialFitCard/);
+  assert.match(widget, /<p className=\{styles\.answerCopy\}><PriceText text=\{answer\.content\} \/><\/p>\s*\{answer\.answer && [^\n]+\(\s*<AskWitnessOpsCommercialFitCard/);
   assert.doesNotMatch(widget, /!hasPaidScopeCta\s*&&\s*\(\s*<p className=\{styles\.answerCopy\}/);
-  assert.match(page, /\{msg\.content\}\s*<\/p>\s*\{msg\.answer && \(/);
-  assert.match(inline, /\{askWitnessOpsAnswerText\(response\)\}\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
+  assert.match(page, /<PriceText text=\{msg\.content\} \/>\s*<\/p>\s*\{msg\.answer && \(/);
+  assert.match(inline, /<PriceText text=\{askWitnessOpsAnswerText\(response\)\} \/>\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
   assert.match(widget, /Try a product question/);
   assert.match(widget, /Ask a follow-up/);
   assert.match(widget, /Start over/);

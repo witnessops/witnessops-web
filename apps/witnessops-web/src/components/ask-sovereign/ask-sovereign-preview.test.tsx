@@ -160,8 +160,10 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /\.errorNote \{[^}]*text-wrap:\s*pretty/);
   assert.match(css, /\.threadFade \{[^}]*mask-image:\s*linear-gradient\(to bottom, #000 0, #000 calc\(100% - 16px\), transparent 100%\)/);
   assert.match(css, /\.offerPrice \{[^}]*white-space:\s*nowrap/);
-  assert.match(css, /\.errorBody \{[^}]*grid-column:\s*1 \/ -1/);
-  assert.match(css, /min-width:\s*480px\)[\s\S]*\.errorBody \{ grid-column: 2; \}/);
+  assert.match(css, /\.errorBody \{[^}]*margin-top:\s*16px/);
+  assert.match(css, /\.threadFadeTop \{[^}]*transparent 0, #000 16px/);
+  assert.match(source, /sovereignPreviewCaption/);
+  assert.match(source, /data-preview-caption/);
   assert.match(css, /\.sheetNotice \{[^}]*display:\s*none/);
   assert.match(css, /max-width:\s*767px\)[\s\S]*\.sheetNotice \{ display: block; \}/);
   assert.match(source, /scrollTurnToThreadStart\(thread, turn, reducedMotion\)/);

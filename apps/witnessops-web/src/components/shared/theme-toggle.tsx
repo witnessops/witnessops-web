@@ -47,7 +47,7 @@ export function ThemeToggle({
       aria-pressed={theme === "dark"}
       aria-label={copy.name}
       title={copy.name}
-      className={`min-h-11 min-w-11 items-center justify-center rounded-sm border border-surface-border px-3 text-sm text-text-primary ${className}`}
+      className={`min-h-11 min-w-11 shrink-0 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-3 text-sm text-text-primary ${className}`}
       onClick={() => choose(next)}
     >
       {copy.label}

@@ -18,6 +18,7 @@ import {
   AGENT_PRICE_PL,
   bindOfferPriceUnits,
   EXTERNAL_PRICE_EN,
+  plainOfferPrice,
   EXTERNAL_PRICE_PL,
 } from "@/lib/offer-price-unit";
 import { PriceText } from "@/lib/price-unit";
@@ -81,6 +82,14 @@ test("simulated answer sources use the unbreakable price unit and no middot", ()
   assert.equal(bindOfferPriceUnits(EXTERNAL_PRICE_EN), EXTERNAL_PRICE_EN);
   assert.equal(bindOfferPriceUnits("Od €2 500 · bez VAT"), "Od €2 500 · bez VAT");
   assert.equal(bindOfferPriceUnits("od €2 500 bez VAT"), "od €2 500 bez VAT");
+});
+
+test("plain offer prices use normal spaces outside rendered HTML", () => {
+  assert.equal(plainOfferPrice(AGENT_PRICE_EN), "€2,500 excl. VAT");
+  assert.equal(plainOfferPrice(EXTERNAL_PRICE_EN), "€1,900 excl. VAT");
+  assert.equal(plainOfferPrice(AGENT_PRICE_PL), "€2 500 bez VAT");
+  assert.equal(plainOfferPrice(EXTERNAL_PRICE_PL), "€1 900 bez VAT");
+  assert.doesNotMatch(plainOfferPrice(AGENT_PRICE_PL), /\u00A0/);
 });
 
 test("rendered Ask and homepage prices are nowrap units", () => {

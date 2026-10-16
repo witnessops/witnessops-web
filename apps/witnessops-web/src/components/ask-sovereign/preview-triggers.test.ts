@@ -7,6 +7,7 @@ import {
   previewChip,
   simErrorAtLoad,
   simFlag,
+  sovereignPreviewCaption,
 } from "./preview-triggers";
 
 const saved = {
@@ -100,6 +101,17 @@ test("sim=slow never fires without the query param", () => {
   } finally {
     restore();
   }
+});
+
+test("a Polish handoff turn shows exactly one preview caption", () => {
+  const simulated = "Podgląd: odpowiedź symulowana";
+  const caption = sovereignPreviewCaption("pl", simulated, true, true);
+  assert.equal(caption, "Podgląd\u00A0· symulowane przekazanie");
+  assert.notEqual(caption, simulated);
+  assert.equal(sovereignPreviewCaption("pl", simulated, false, true), simulated);
+  assert.equal(sovereignPreviewCaption("en", "Simulated response\u00A0· preview", true, true), "Preview\u00A0· simulated handoff");
+  assert.equal(sovereignPreviewCaption("en", "Simulated response\u00A0· preview", false, true), "Simulated response\u00A0· preview");
+  assert.equal(sovereignPreviewCaption("pl", simulated, true, false), null);
 });
 
 test("preview trigger source makes no request and writes no storage", () => {

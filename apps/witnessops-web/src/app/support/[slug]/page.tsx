@@ -40,7 +40,7 @@ export default async function SupportDocumentPage({ params }: Props) {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[720px] px-6 py-24">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[720px] px-6 py-24 [&_a]:[overflow-wrap:anywhere]">
       <Link
         href="/support"
         className="mb-8 inline-block text-sm text-text-muted hover:text-brand-accent"
@@ -57,7 +57,7 @@ export default async function SupportDocumentPage({ params }: Props) {
 
       <MarkdownContent source={doc.body} />
 
-      <p className="mt-12 text-sm text-text-muted">Source: {doc.sourcePath}</p>
+      <p className="mt-12 text-sm text-text-muted [overflow-wrap:anywhere]">Source: {doc.sourcePath}</p>
     </main>
   );
 }

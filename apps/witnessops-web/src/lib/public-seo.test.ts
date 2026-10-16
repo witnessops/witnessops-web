@@ -91,6 +91,8 @@ test("structured trust data is factual and syntactically serializable", () => {
     EXTERNAL_ATTACK_SURFACE_OFFER.situation.pl,
   );
   assert.match(service.description, /not a penetration test/i);
+  assert.equal(service.offers.description, "€1,900 excl. VAT. Delivery timing agreed in the signed statement of work.");
+  assert.doesNotMatch(service.offers.description, /\u00A0/);
   assert.equal(service.offers.priceCurrency, "EUR");
   assert.equal(service.offers.priceSpecification.valueAddedTaxIncluded, false);
   assert.equal("inLanguage" in service, false);
