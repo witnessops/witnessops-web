@@ -149,6 +149,7 @@ test("company details render on the company and contact pages, and the footer ke
     "src/app/pl/terms/page.tsx",
     "src/app/media-kit/page.tsx",
     "src/app/pl/media-kit/page.tsx",
+    "src/components/marketing/media-kit-content.tsx",
   ]) {
     const source = readFileSync(resolve(appRoot, relative), "utf8");
     assert.doesNotMatch(

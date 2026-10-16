@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import MediaKitPage from "../../media-kit/page";
+import { MediaKitContent } from "@/components/marketing/media-kit-content";
 import { languageAlternates } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
@@ -25,5 +25,5 @@ export const metadata: Metadata = {
 };
 
 export default function PolishMediaKitPage() {
-  return <MediaKitPage locale="pl" />;
+  return <MediaKitContent locale="pl" />;
 }

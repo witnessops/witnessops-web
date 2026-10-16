@@ -5,6 +5,10 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const pageSource = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const contentSource = readFileSync(
+  resolve(__dirname, "../../components/marketing/media-kit-content.tsx"),
+  "utf-8",
+);
 const publicRoot = resolve(__dirname, "../../../public");
 
 function sha256(path: string): string {
@@ -12,13 +16,13 @@ function sha256(path: string): string {
 }
 
 test("media kit uses the homepage-native public shell and approved section structure", () => {
-  assert.match(pageSource, /public-brand-page \$\{styles\.mediaPage\}/);
-  assert.doesNotMatch(pageSource, /className="buyer-page"/);
-  assert.match(pageSource, /SectionShell/);
-  assert.match(pageSource, /spacing="spacious"/);
-  assert.match(pageSource, /text-brand-accent/);
-  assert.match(pageSource, /bg-surface-card/);
-  assert.match(pageSource, /<h1[\s\S]*Media kit/);
+  assert.match(contentSource, /public-brand-page \$\{styles\.mediaPage\}/);
+  assert.doesNotMatch(contentSource, /className="buyer-page"/);
+  assert.match(contentSource, /SectionShell/);
+  assert.match(contentSource, /spacing="spacious"/);
+  assert.match(contentSource, /text-brand-accent/);
+  assert.match(contentSource, /bg-surface-card/);
+  assert.match(contentSource, /<h1[\s\S]*Media kit/);
 
   for (const heading of [
     "About WitnessOps",
@@ -27,7 +31,7 @@ test("media kit uses the homepage-native public shell and approved section struc
     "Product screenshots",
     "Usage and contact",
   ]) {
-    assert.ok(pageSource.includes(heading), `Missing Media kit section: ${heading}`);
+    assert.ok(contentSource.includes(heading), `Missing Media kit section: ${heading}`);
   }
 });
 
@@ -36,30 +40,31 @@ test("media kit metadata has the exact title and canonical route", () => {
   assert.match(pageSource, /languageAlternates\("\/media-kit"/);
   assert.match(pageSource, /canonicalUrl\("\/media-kit"\)/);
   assert.match(pageSource, /title: "Media kit \| WitnessOps"/);
+  assert.match(pageSource, /export default function MediaKitPage\(\) \{\s*return <MediaKitContent locale="en" \/>;/);
 });
 
 test("media kit preserves the approved description, palette and type wording", () => {
   assert.match(
-    pageSource,
+    contentSource,
     /WitnessOps delivers bounded security and operational reviews with[\s\S]*evidence references, clear limits and a practical handover\./,
   );
   for (const marker of ["#0B0C0B", "#B89B62", "#F5F1E8", "Inter", "IBM Plex Mono"]) {
-    assert.ok(pageSource.includes(marker), `Missing Media kit marker: ${marker}`);
+    assert.ok(contentSource.includes(marker), `Missing Media kit marker: ${marker}`);
   }
-  assert.doesNotMatch(pageSource, /Barlow Condensed/);
-  assert.doesNotMatch(pageSource, /Download font/i);
+  assert.doesNotMatch(contentSource, /Barlow Condensed/);
+  assert.doesNotMatch(contentSource, /Download font/i);
 });
 
 test("media kit downloads are same-origin, complete and descriptively labelled", () => {
-  assert.match(pageSource, /download=\{asset\.fileName\}/);
-  assert.match(pageSource, /aria-label=\{tx\(/);
-  assert.match(pageSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
-  assert.match(pageSource, /download=\{screenshot\.fileName\}/);
-  assert.match(pageSource, /Download complete ZIP/);
-  assert.match(pageSource, /WitnessOps_Logo_System_v1\.zip/);
-  assert.match(pageSource, /Package manifest/);
-  assert.match(pageSource, /File checksums/);
-  assert.doesNotMatch(pageSource, /https:\/\/drive\.google\.com|docs\.google\.com/);
+  assert.match(contentSource, /download=\{asset\.fileName\}/);
+  assert.match(contentSource, /aria-label=\{tx\(/);
+  assert.match(contentSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
+  assert.match(contentSource, /download=\{screenshot\.fileName\}/);
+  assert.match(contentSource, /Download complete ZIP/);
+  assert.match(contentSource, /WitnessOps_Logo_System_v1\.zip/);
+  assert.match(contentSource, /Package manifest/);
+  assert.match(contentSource, /File checksums/);
+  assert.doesNotMatch(contentSource, /https:\/\/drive\.google\.com|docs\.google\.com/);
 });
 
 test("canonical logo package and published masters retain their exact bytes", () => {
@@ -69,7 +74,7 @@ test("canonical logo package and published masters retain their exact bytes", ()
     sha256(zipPath),
     "189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53",
   );
-  assert.match(pageSource, /189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53/);
+  assert.match(contentSource, /189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53/);
 
   const manifest = JSON.parse(readFileSync(resolve(packageRoot, "manifest.json"), "utf8"));
   assert.equal(manifest.status, "CANONICAL_PRODUCTION_ASSET_SET");
@@ -136,7 +141,7 @@ test("media kit avoids unsupported authority and newsroom claims", () => {
     "press coverage",
     "newsroom",
   ]) {
-    assert.doesNotMatch(pageSource.toLowerCase(), new RegExp(phrase));
+    assert.doesNotMatch(contentSource.toLowerCase(), new RegExp(phrase));
   }
-  assert.match(pageSource, /not a dedicated press inbox/);
+  assert.match(contentSource, /not a dedicated press inbox/);
 });
