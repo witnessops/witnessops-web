@@ -1,0 +1,12 @@
+{
+  "name": "witnessops-web",
+  "user": "ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "install": "bash .cursor/install.sh",
+  "ports": [
+    { "name": "web", "port": 3000 },
+    { "name": "ui-proof", "port": 3001 }
+  ]
+}

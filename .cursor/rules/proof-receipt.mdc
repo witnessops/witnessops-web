@@ -1,0 +1,12 @@
+---
+description: Receipt-only proof package and public verifier boundary
+globs: packages/proof/**,apps/witnessops-web/src/app/api/verify/**,apps/witnessops-web/src/app/verify/**,apps/witnessops-web/src/app/pl/verify/**
+alwaysApply: false
+---
+
+- Keep `packages/proof` on the receipt-only lane. Do not widen it into canonical bundle or corpus verification unless a separate lane authorizes that work.
+- `/verify` and `/api/verify` accept untrusted input. Invalid, incomplete, ambiguous, or malformed input must not be presented as verified.
+- The public verifier does not issue, sign, mutate, backfill, or store receipts.
+- App import, storage, and report-sharing paths do not widen verifier inputs or confer new proof authority.
+- Preserve original source evidence, material unknowns, and synthetic labels.
+- After proof or verify edits, `pnpm --filter @witnessops/proof test` is the focused check. `pnpm optimize:quick-check` is the fast regression. Release-quality evidence is still `pnpm health` on Node 22.
