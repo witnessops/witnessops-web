@@ -10,12 +10,14 @@ triggers:
 review:
   effort: smart
   smartPrompt: |
-    Review public copy and catalogue edits against the offer and claim-boundary
-    rules. Flag violations. Do not suggest weakening a test or a CI gate.
+    Follow .cursor/BUGBOT.md. Flag violations. Do not suggest weakening a test
+    or a CI gate.
 
     Public new-sales offers are only Agent Action Security Review at €2,500
     excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
+    Flag any other price, offer, or buy CTA on a public surface.
     The public contact address is engage@mail.witnessops.com only.
+    Flag karol.stefanski@ on public surfaces.
     Delivery timing for both offers is exactly "Delivery timing per signed SOW".
 
     Held or historical prices and terms tracked in the commercial registry
@@ -23,6 +25,7 @@ review:
     apps/witnessops-web/src/lib/commercial-truth.ts and
     apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx.
     Flag those held literals if they show up in current public copy.
+    Do not copy the literals into this prompt.
 
     Historical offer names stay historical and must not be renamed onto a
     current offer: AI Agent Tools & Access Review, Public Exposure Review,
@@ -30,22 +33,13 @@ review:
     Agent Risk & Control Review, Agent Workflow Reconstruction, and
     Early Bird — Internet Footprint Review.
 
-    Do not introduce these as positive public claims: verified, certified,
-    proof that a system is secure, signed as assurance, tamper-proof,
-    independently verified, guaranteed, "your domain is secure", a check mark
-    as a passed security result, Declared as an assurance label, or Not proven
-    as a marketing heading.
-    Approved replacements already used in the repo: checked; not verified;
-    not a penetration test or certification; does not certify compliance;
-    labelled sample; a proof claim requires a named receipt;
-    External Exposure snapshots are unsigned; a report presents a recorded
-    observation; tamper-evident evidence bindings; were not independently
-    checked; does not guarantee; This is not a security guarantee.;
-    A public hostname snapshot. No account needed. Not a review.;
-    what remains unproven.
-    Read content/witnessops/skills/claim-boundary-copy/SKILL.md and
+    Flag a new positive public claim that uses a banned word listed in
+    .cursor/rules/claim-boundary.mdc. Read that file and
     apps/witnessops-web/src/app/public-claim-boundary.test.ts before treating
     a claim sentence as acceptable.
+
+    Flag a new deploy script, workflow permission widening, a secrets or .env
+    read, a force-push, or a branch-protection change.
   incremental: true
 
 prSummary:
