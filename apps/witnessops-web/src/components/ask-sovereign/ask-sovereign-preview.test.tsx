@@ -161,7 +161,7 @@ test("the answering sprite is a pixelated steps animation at 94 by 102", () => {
   assert.match(css, /\.threadFade \{[^}]*mask-image:\s*linear-gradient\(to bottom, #000 0, #000 calc\(100% - 16px\), transparent 100%\)/);
   assert.match(css, /\.offerPrice \{[^}]*white-space:\s*nowrap/);
   assert.match(css, /\.errorBody \{[^}]*margin-top:\s*16px/);
-  assert.match(css, /\.threadFadeTop \{[^}]*transparent 0, #000 16px/);
+  assert.match(css, /\.threadFadeTop \{[^}]*transparent 0, #000 var\(--thread-fade, var\(--type-body-lh\)\)/);
   assert.match(source, /sovereignPreviewCaption/);
   assert.match(source, /data-preview-caption/);
   assert.match(css, /\.sheetNotice \{[^}]*display:\s*none/);
@@ -418,7 +418,8 @@ test("Ask Sovereign type classes stay on the locked roles", () => {
   assert.match(css, /max-width:\s*479px\)[\s\S]*\.errorBody\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/);
   assert.match(css, /max-width:\s*479px\)[\s\S]*\.errorBody\s*\{[^}]*width:\s*100%/);
   assert.match(css, /max-width:\s*479px\)[\s\S]*\.errorBody \.retry\s*\{[^}]*width:\s*100%/);
-  assert.match(css, /max-width:\s*479px\)[\s\S]*\.turnChip\s*\{[^}]*width:\s*100%/);
+  assert.match(css, /max-width:\s*479px\)[\s\S]*\.turnChip\s*\{[^}]*width:\s*max-content/);
+  assert.match(css, /max-width:\s*479px\)[\s\S]*\.errorBody \.errorNote \{[^}]*row-gap:\s*4px/);
   const faceStart = source.indexOf("styles.errorFaceCopy");
   const bodyStart = source.indexOf("styles.errorBody", faceStart);
   const face = source.slice(faceStart, bodyStart);
@@ -426,8 +427,12 @@ test("Ask Sovereign type classes stay on the locked roles", () => {
   assert.doesNotMatch(face, /errorBody/);
   assert.match(source, /const fadeTop = thread\.scrollTop > 1/);
   assert.doesNotMatch(source, /fadeTop = sheetVisible &&/);
-  assert.match(source, /threadFadeTopCover/);
-  assert.match(css, /\.threadFadeTopCover \{[^}]*transparent var\(--thread-top-cover/);
+  assert.doesNotMatch(source, /threadFadeTopCover|threadTopCover|--thread-top-cover/);
+  assert.match(source, /snapThreadClearOfFade/);
+  assert.match(source, /flag === "typing"/);
+  assert.match(source, /setPhase\("COMPOSING"\)/);
+  assert.match(css, /\.threadFadeTop \{[^}]*var\(--thread-fade, var\(--type-body-lh\)\)/);
+  assert.doesNotMatch(css, /threadFadeTopCover|thread-top-cover/);
   const cardAt = source.indexOf("data-handoff-card>");
   const card = source.slice(cardAt, cardAt + 700);
   assert.equal(card.match(/mailto:\$\{CONTACT_ADDRESS\}/g)?.length, 1);

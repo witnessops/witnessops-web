@@ -1,4 +1,4 @@
-export type SimFlag = "error" | "handoff" | "slow" | "timeout";
+export type SimFlag = "error" | "handoff" | "slow" | "timeout" | "typing";
 
 /**
  * ?sim is dev-only. Next replaces NODE_ENV with "production" in every
@@ -12,7 +12,7 @@ export function previewTriggersEnabled(): boolean {
 export function simFlag(search: string): SimFlag | null {
   if (!previewTriggersEnabled()) return null;
   const value = new URLSearchParams(search).get("sim");
-  if (value === "error" || value === "handoff" || value === "slow" || value === "timeout") return value;
+  if (value === "error" || value === "handoff" || value === "slow" || value === "timeout" || value === "typing") return value;
   return null;
 }
 
@@ -43,5 +43,6 @@ export function previewChip(flag: SimFlag | null, locale: "en" | "pl" = "en"): s
   if (flag === "handoff") return `Preview${MIDDOT}simulated handoff`;
   if (flag === "slow") return `Preview${MIDDOT}simulated slow`;
   if (flag === "timeout") return `Preview${MIDDOT}simulated timeout`;
+  if (flag === "typing") return `Preview${MIDDOT}simulated typing`;
   return null;
 }

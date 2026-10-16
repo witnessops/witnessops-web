@@ -57,6 +57,7 @@
   min-width: 0;
   max-width: 100%;
   min-height: 0;
+  padding-bottom: 96px;
   overflow-x: clip;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -67,20 +68,12 @@
   mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 16px), transparent 100%);
 }
 .threadFadeTop {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--thread-fade, var(--type-body-lh)), #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--thread-fade, var(--type-body-lh)), #000 100%);
 }
 .threadFadeBoth {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-}
-.threadFadeTopCover {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 100%);
-}
-.threadFadeBothCover {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--thread-fade, var(--type-body-lh)), #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--thread-fade, var(--type-body-lh)), #000 calc(100% - 16px), transparent 100%);
 }
 .thread::-webkit-scrollbar { width: 8px; height: 8px; }
 .thread::-webkit-scrollbar-track { background: transparent; }
@@ -189,12 +182,13 @@
 .errorBody .errorNote { margin: 0; }
 @media (max-width: 479px) {
   .errorStack > .sprite { grid-row: 1; }
+  .errorStack > .sprite:has([data-hold="1"]) { height: 72px; }
   .errorBody { grid-column: 1 / -1; width: 100%; }
   .errorBody .errorNote,
   .errorBody .errorCaption { width: 100%; max-width: 100%; }
   .errorBody .retry { width: 100%; max-width: 100%; }
-  .errorBody .errorNote .turnChip { width: 100%; max-width: 100%; }
-  .errorBody .errorNote { grid-template-columns: minmax(0, 1fr); }
+  .errorBody .errorNote .turnChip { width: max-content; max-width: 100%; }
+  .errorBody .errorNote { grid-template-columns: minmax(0, 1fr); row-gap: 4px; }
 }
 .errorFaceCopy .handoffCaption { margin-top: 4px; }
 .dot { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 999px; background: var(--color-brand-accent); vertical-align: 1px; }

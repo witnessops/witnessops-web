@@ -218,7 +218,7 @@ async function settle() {
   });
 }
 
-async function holdSprite(state: SovereignSpriteState, elapsed: number) {
+async function holdSprite(state: SovereignSpriteState, elapsed: number, armed = true) {
   const restore = installDom();
   const host = (globalThis as unknown as { document: Doc }).document.createElement("div");
   (globalThis as unknown as { document: Doc }).document.body.appendChild(host);
@@ -226,10 +226,10 @@ async function holdSprite(state: SovereignSpriteState, elapsed: number) {
   try {
     await act(async () => {
       root = createRoot(host as unknown as Element);
-      root.render(<SovereignSprite state={state} paused={false} reduced={false} armed />);
+      root.render(<SovereignSprite state={state} paused={false} reduced={false} armed={armed} />);
     });
     for (let attempt = 0; attempt < 6; attempt += 1) await settle();
-    for (let step = 0; step < 40; step += 1) {
+    for (let step = 0; step < (armed ? 40 : 0); step += 1) {
       await act(async () => {
         mock.timers.tick(elapsed);
       });
@@ -261,20 +261,37 @@ async function holdSprite(state: SovereignSpriteState, elapsed: number) {
 test("a finished idle, wave, or typing loop holds one strip frame", async () => {
   mock.timers.enable({ apis: ["setTimeout"] });
   try {
+    const cycle = (state: SovereignSpriteState) => spriteRecord(state).sequence.reduce((sum, step) => sum + step.ms, 0) * spriteRecord(state).loop_count;
     const cases = [
-      { state: "IDLE" as const, elapsed: spriteRecord("IDLE").sequence.reduce((sum, step) => sum + step.ms, 0) * spriteRecord("IDLE").loop_count },
-      { state: "GREETING" as const, elapsed: spriteRecord("GREETING").sequence.reduce((sum, step) => sum + step.ms, 0) * spriteRecord("GREETING").loop_count },
-      { state: "COMPOSING" as const, elapsed: spriteRecord("COMPOSING").cap_ms ?? 0 },
+      { state: "IDLE" as const, elapsed: cycle("IDLE"), expected: "" },
+      { state: "GREETING" as const, elapsed: cycle("GREETING"), expected: "" },
+      { state: "COMPOSING" as const, elapsed: spriteRecord("COMPOSING").cap_ms ?? 0, expected: "" },
+      { state: "HANDOFF" as const, elapsed: cycle("HANDOFF"), expected: "" },
+      { state: "ERROR" as const, elapsed: cycle("ERROR"), expected: `${-spriteRecord("ERROR").hold_frame * 94}px -40px` },
     ];
     for (const item of cases) {
       const face = await holdSprite(item.state, item.elapsed);
-      const stripHold = face.size === "auto 102px" && face.position === face.expectedPosition && !face.image.includes("-still-");
+      const expected = item.expected || face.expectedPosition;
+      const stripHold = face.size === "auto 102px" && face.position === expected && !face.image.includes("-still-") && face.hold === "1" && face.still == null;
       const stillAsset = face.image.includes("-still-") && face.hold === "1";
       assert.ok(
         stripHold || stillAsset,
-        `${item.state} hold size=${face.size} position=${face.position} expected=${face.expectedPosition} still=${face.still} hold=${face.hold} image=${face.image}`,
+        `${item.state} hold size=${face.size} position=${face.position} expected=${expected} still=${face.still} hold=${face.hold} image=${face.image}`,
       );
     }
+  } finally {
+    mock.timers.reset();
+  }
+});
+
+test("an unarmed sprite shows the still asset instead of a squeezed strip", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const face = await holdSprite("GREETING", 0, false);
+    const squeezed = !face.image.includes("-still-") && face.size === "94px 102px";
+    assert.equal(squeezed, false, `unarmed size=${face.size} still=${face.still} image=${face.image}`);
+    assert.ok(face.image.includes("-still-") || face.size === "auto 102px", face.image);
+    assert.equal(face.still, "1");
   } finally {
     mock.timers.reset();
   }

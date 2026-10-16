@@ -182,7 +182,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
-                  className={`${desktopCtaClassName}${polish ? " lg:px-3 xl:px-4" : ""}`}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-2 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}
@@ -192,7 +192,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   href={effectiveCta.href}
                   data-public-primary-cta
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
-                  className={`${desktopCtaClassName}${polish ? " lg:px-3 xl:px-4" : ""}`}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-2 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}

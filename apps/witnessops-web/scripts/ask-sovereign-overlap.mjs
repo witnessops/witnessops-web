@@ -364,6 +364,27 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const hardCover = /transparent[^,]*,\s*transparent\s+(\d+(?:\.\d+)?)px/.exec(threadMask);
     const coverPx = hardCover ? Number(hardCover[1]) : 16;
     let partialLine = false;
+    let strongHits = 0;
+    if (thread.scrollTop > 1) {
+      const fade = parseFloat(thread.style.getPropertyValue("--thread-fade")) || 24;
+      const bandFrame = thread.getBoundingClientRect();
+      const bandTop = bandFrame.top + fade * 0.3;
+      const bandBottom = bandFrame.top + fade;
+      const bandWalker = document.createTreeWalker(thread, NodeFilter.SHOW_TEXT);
+      let bandNode = bandWalker.nextNode();
+      while (bandNode) {
+        const parent = bandNode.parentElement;
+        if (parent && !parent.closest("[class*='srOnly']") && (bandNode.textContent || "").trim()) {
+          const range = document.createRange();
+          range.selectNodeContents(bandNode);
+          for (const rect of range.getClientRects()) {
+            if (rect.width < 1 || rect.height < 1) continue;
+            if (rect.bottom > bandTop + 0.5 && rect.top < bandBottom - 0.5) strongHits += 1;
+          }
+        }
+        bandNode = bandWalker.nextNode();
+      }
+    }
     const noticeEl = root.querySelector("[data-sheet-notice]");
     const noticeOn = Boolean(noticeEl && getComputedStyle(noticeEl).display !== "none" && noticeEl.getBoundingClientRect().height > 0);
     if (noticeOn && thread.scrollTop > 1) {
@@ -495,6 +516,7 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       emailCount,
       errorTopFade,
       partialLine,
+      strongHits,
       emailLines,
       emailBreak,
       replyLines,
@@ -554,11 +576,15 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       if (!thread || !answer) return false;
       const frame = thread.getBoundingClientRect();
       const box = answer.getBoundingClientRect();
-      const delta = box.top - frame.top;
-      const desired = delta + thread.scrollTop;
-      const max = thread.scrollHeight - thread.clientHeight;
-      if (desired <= max + 2) return Math.abs(delta) <= 3;
-      return Math.abs(thread.scrollTop - max) <= 2 && box.top >= frame.top - 1 && box.bottom <= frame.bottom + 1;
+      const fade = parseFloat(thread.style.getPropertyValue("--thread-fade")) || 0;
+      const clearTop = frame.top + (thread.scrollTop > 1 ? fade : 0);
+      const copy = answer.querySelector("[data-answer-copy]") || answer;
+      const range = document.createRange();
+      range.selectNodeContents(copy);
+      const first = [...range.getClientRects()].find((rect) => rect.width > 1 && rect.height > 1);
+      const fits = box.height <= frame.height - 1;
+      const inside = box.top >= frame.top - 1 && (fits ? box.bottom <= frame.bottom + 1 : box.top <= frame.bottom);
+      return Boolean(first && first.top >= clearTop - 1 && inside);
     }, { timeout: 3000 }).catch(() => {});
     if (width === 320 && height === 640 && theme === "light") {
       await page.screenshot({ path: `${outDir}/ask-after-retry-320-${locale}.png` });
@@ -573,10 +599,6 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       const answerTurn = document.querySelector("[data-latest-answer]");
       const threadBox = thread.getBoundingClientRect();
       const answerBox = answerTurn ? answerTurn.getBoundingClientRect() : null;
-      const desired = answerBox ? answerBox.top - threadBox.top + thread.scrollTop : 0;
-      const maxScroll = thread.scrollHeight - thread.clientHeight;
-      const reachedStart = Boolean(answerBox && desired <= maxScroll + 2 && Math.abs(answerBox.top - threadBox.top) <= 3);
-      const reachedEnd = Boolean(answerBox && desired > maxScroll + 2 && Math.abs(thread.scrollTop - maxScroll) <= 2 && answerBox.top >= threadBox.top - 1 && answerBox.bottom <= threadBox.bottom + 1);
       const copy = answerTurn?.querySelector("[data-answer-copy]");
       let firstTop = null;
       if (copy) {
@@ -585,6 +607,11 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
         const rect = [...range.getClientRects()].find((item) => item.width > 1 && item.height > 1);
         firstTop = rect ? rect.top : null;
       }
+      const fade = parseFloat(thread.style.getPropertyValue("--thread-fade")) || 0;
+      const clearTop = threadBox.top + (thread.scrollTop > 1 ? fade : 0);
+      const fits = Boolean(answerBox && answerBox.height <= threadBox.height - 1);
+      const inside = Boolean(answerBox && answerBox.top >= threadBox.top - 1 && (fits ? answerBox.bottom <= threadBox.bottom + 1 : answerBox.top <= threadBox.bottom));
+      const reachedStart = Boolean(inside && firstTop !== null && firstTop >= clearTop - 1);
       const maskOf = () => {
         const style = getComputedStyle(thread);
         return style.maskImage && style.maskImage !== "none" ? style.maskImage : style.webkitMaskImage || "none";
@@ -615,7 +642,7 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
         cls,
         youWidth: bubble ? bubble.getBoundingClientRect().width : 0,
         active: document.activeElement?.id || "",
-        aligned: reachedStart || reachedEnd,
+        aligned: reachedStart,
         topCut: firstTop !== null && firstTop < threadBox.top - 1,
         fadeOk,
       };
@@ -668,7 +695,7 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "handoff" && measured.emailBreak === "break-all") issues.push("email breaks anywhere");
   if (locale === "pl" && mode === "error" && width <= 390 && measured.errorWrapped && !measured.hanging) issues.push("error note indent");
   if (mode === "error" && width < 480 && (measured.faceGap == null || measured.faceGap > 24 || measured.faceGap < 8)) issues.push(`error chip gap ${measured.faceGap}`);
-  if (mode === "error" && width < 480 && !(measured.chipWidth >= measured.bubbleWidth - 1 && measured.noteWidth >= measured.bubbleWidth - 1 && measured.retryWidth >= measured.bubbleWidth - 1)) issues.push(`error width chip=${Math.round(measured.chipWidth)} note=${Math.round(measured.noteWidth)} retry=${Math.round(measured.retryWidth)} bubble=${Math.round(measured.bubbleWidth)}`);
+  if (mode === "error" && width < 480 && !(measured.noteWidth >= measured.bubbleWidth - 1 && measured.retryWidth >= measured.bubbleWidth - 1 && measured.chipWidth > 0 && measured.chipWidth < measured.bubbleWidth - 8)) issues.push(`error width chip=${Math.round(measured.chipWidth)} note=${Math.round(measured.noteWidth)} retry=${Math.round(measured.retryWidth)} bubble=${Math.round(measured.bubbleWidth)}`);
   if (mode === "error" && width >= 480 && measured.retryLeft < measured.spriteRight - 1) issues.push("retry under the face");
   if (mode === "error" && !measured.retryWithText) issues.push("retry not in the text column");
   if (measured.middotStarts) issues.push(`middot starts a line ${measured.middotStarts}`);
@@ -682,6 +709,7 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "error" && width <= 390 && measured.fadeOk === false) issues.push("thread fade");
   if (mode === "error" && width <= 390 && measured.errorTopFade === false) issues.push("error top fade");
   if (locale === "pl" && mode === "handoff" && width < 768 && measured.partialLine) issues.push("partial line under the notice");
+  if (measured.strongHits) issues.push(`fade band ${measured.strongHits}`);
   if (!measured.disclaimerFull) issues.push("disclaimer not full width");
   if (width >= 900 && !measured.bottomsAligned) issues.push(`bottoms ${measured.panelBottom.toFixed(0)}/${measured.railBottom.toFixed(0)}`);
   if (locale === "pl" && width === 1440 && height === 900 && !measured.railInFold) issues.push(`rail past fold ${measured.railBottom.toFixed(0)}`);

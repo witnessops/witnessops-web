@@ -80,11 +80,9 @@ export function SovereignSprite({
     if (!theme) return;
     let cancelled = false;
     const scale = scaleOf();
-    const wantsStill = reduced || paused;
+    const wantsStill = reduced || paused || !armed;
     const url = assetUrl(state, theme, scale, wantsStill, viewport);
     setStripReady(false);
-    setTopSrc(undefined);
-    setFaceReady(false);
     void decodeImage(url).then((ok) => {
       if (cancelled) return;
       if (ok) {
@@ -99,7 +97,7 @@ export function SovereignSprite({
     return () => {
       cancelled = true;
     };
-  }, [state, theme, reduced, paused, viewport]);
+  }, [state, theme, reduced, paused, armed, viewport]);
 
   useEffect(() => {
     if (!theme) return;
@@ -150,7 +148,10 @@ export function SovereignSprite({
       const step = current.sequence[index];
       if (!step) return;
       setFrame(step.frame);
-      if (step.ms === 0) return;
+      if (step.ms === 0) {
+        setHold(true);
+        return;
+      }
       timer = window.setTimeout(() => {
         const next = advancePlayback(state, index, loops, viewport);
         index = next.index;
@@ -184,7 +185,7 @@ export function SovereignSprite({
           data-hold={hold && !frozen ? "1" : undefined}
           style={{
             backgroundImage: `url("${topSrc}")`,
-            backgroundPosition: frozen || hold || state !== "COMPOSING" ? position : undefined,
+            backgroundPosition: frozen ? "0px 0px" : hold || state !== "COMPOSING" ? position : undefined,
             backgroundSize: state === "ERROR" && !frozen ? "auto 102px" : undefined,
           }}
         />

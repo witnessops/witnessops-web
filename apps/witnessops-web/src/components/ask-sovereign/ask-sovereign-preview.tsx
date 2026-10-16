@@ -15,53 +15,32 @@ import { previewChip, simErrorAtLoad, simFlag, sovereignPreviewCaption } from ".
 import { stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
+import { snapThreadClearOfFade, threadFadePx } from "./thread-fade";
 
 const PAUSE_KEY = "wo-sovereign-paused";
 export const PROCESSING_SHOW_DELAY_MS = 150;
 export const PENDING_TIMEOUT_MS = 15_000;
 export const SLOW_PENDING_MS = 6_000;
-/** How far a hard top cover must reach so a line crossing the 16px fade is fully hidden. */
-export function threadTopCover(thread: HTMLElement): number {
-  const frame = thread.getBoundingClientRect();
-  let depth = 16;
-  const walker = document.createTreeWalker(thread, NodeFilter.SHOW_TEXT);
-  let node = walker.nextNode();
-  while (node) {
-    const parent = node.parentElement;
-    if (!parent || parent.closest("[class*='srOnly']")) {
-      node = walker.nextNode();
-      continue;
-    }
-    if ((node.textContent || "").trim()) {
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      for (const rect of range.getClientRects()) {
-        if (rect.width < 1 || rect.height < 1) continue;
-        if (rect.bottom <= frame.top + 0.5) continue;
-        if (rect.top >= frame.top + 16 - 0.5) continue;
-        depth = Math.max(depth, Math.ceil(rect.bottom - frame.top));
-      }
-    }
-    node = walker.nextNode();
-  }
-  return depth;
-}
+let fading = false;
 
-function applyThreadFade(thread: HTMLElement) {
-  const overflow = thread.scrollHeight > thread.clientHeight + 1;
-  const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
-  const notice = thread.parentElement?.querySelector<HTMLElement>("[data-sheet-notice]");
-  const sheetVisible = Boolean(notice && getComputedStyle(notice).display !== "none");
-  const fadeBottom = overflow && !atEnd;
-  const fadeTop = thread.scrollTop > 1;
-  const covered = sheetVisible && fadeTop;
-  const cover = covered ? threadTopCover(thread) : 16;
-  thread.style.setProperty("--thread-top-cover", `${cover}px`);
-  thread.classList.toggle(styles.threadFade, fadeBottom && !fadeTop);
-  thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom && !covered);
-  thread.classList.toggle(styles.threadFadeTopCover, fadeTop && !fadeBottom && covered);
-  thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop && !covered);
-  thread.classList.toggle(styles.threadFadeBothCover, fadeBottom && fadeTop && covered);
+/** One top fade for both languages: a full line, then a snap so no line sits in the strong part. */
+function applyThreadFade(thread: HTMLElement, snap = false) {
+  if (fading) return;
+  fading = true;
+  try {
+    const fade = threadFadePx(thread);
+    thread.style.setProperty("--thread-fade", `${fade}px`);
+    if (snap && thread.scrollTop > 1) snapThreadClearOfFade(thread, fade);
+    const overflow = thread.scrollHeight > thread.clientHeight + 1;
+    const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+    const fadeBottom = overflow && !atEnd;
+    const fadeTop = thread.scrollTop > 1;
+    thread.classList.toggle(styles.threadFade, fadeBottom && !fadeTop);
+    thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom);
+    thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop);
+  } finally {
+    fading = false;
+  }
 }
 
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
@@ -275,7 +254,10 @@ export function armPendingQuestion(
 /** Puts the start of the turn at the top of the thread. Moves scroll only, and does not move focus. */
 export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement, reduced = false) {
   const top = turn.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop;
-  thread.scrollTo({ top: Math.max(0, top), behavior: reduced ? "auto" : "smooth" });
+  const next = Math.max(0, top);
+  if (Math.abs(next - thread.scrollTop) < 0.5) return;
+  thread.scrollTo({ top: next, behavior: reduced ? "auto" : "smooth" });
+  if (!reduced) thread.scrollTop = next;
 }
 
 /** Scrolls the primary action fully inside the thread when it fits. Otherwise brings its top in. Reduced motion jumps. */
@@ -292,7 +274,9 @@ export function scrollPrimaryActionIntoView(thread: HTMLElement, action: HTMLEle
     delta = box.top - (threadBox.top + padding);
   }
   if (delta === 0) return;
-  thread.scrollTo({ top: Math.max(0, thread.scrollTop + delta), behavior: reduced ? "auto" : "smooth" });
+  const next = Math.max(0, thread.scrollTop + delta);
+  thread.scrollTo({ top: next, behavior: reduced ? "auto" : "smooth" });
+  if (!reduced) thread.scrollTop = next;
 }
 
 function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setText: (value: string) => void) {
@@ -489,7 +473,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
         : null;
     if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
     else scrollTurnToThreadStart(thread, turn, reducedMotion);
-    applyThreadFade(thread);
+    applyThreadFade(thread, true);
   }, [live, turns, loadError, followUpsReady]);
 
   useEffect(() => () => {
@@ -500,12 +484,17 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     const thread = threadRef.current;
     if (!thread) return;
     const syncFade = () => applyThreadFade(thread);
+    const snapFade = () => applyThreadFade(thread, true);
     syncFade();
     thread.addEventListener("scroll", syncFade, { passive: true });
-    const observer = new ResizeObserver(syncFade);
+    thread.addEventListener("scrollend", syncFade);
+    const observer = new ResizeObserver(snapFade);
     observer.observe(thread);
+    const transcript = thread.querySelector("ol");
+    if (transcript) observer.observe(transcript);
     return () => {
       thread.removeEventListener("scroll", syncFade);
+      thread.removeEventListener("scrollend", syncFade);
       observer.disconnect();
     };
   }, [turns, live, followUpsReady, mobile]);
@@ -625,6 +614,13 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       publishAnnouncement(announcementText(locale, "error"));
       return;
     }
+    if (flag === "typing") {
+      setPending(true);
+      setPhase("COMPOSING");
+      setLive("processing");
+      publishAnnouncement(copy.checking);
+      return;
+    }
     if (flag === "slow" || flag === "timeout") {
       setPending(true);
       setLive("processing");
@@ -694,7 +690,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <div className={styles.stripe} />
           <header
             className={styles.bar}
-            data-header-chip={activeSim === "slow" || activeSim === "timeout" ? "" : undefined}
+            data-header-chip={activeSim === "slow" || activeSim === "timeout" || activeSim === "typing" ? "" : undefined}
             onPointerDown={(event) => {
               if (!mobile) return;
               const startY = event.clientY;
@@ -710,7 +706,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           >
             <span className={styles.mark} aria-hidden="true" />
             <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span className={styles.titleUnit}><span className={styles.badge}>AI</span></span></p>
-            {activeSim === "slow" || activeSim === "timeout" ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
+            {activeSim === "slow" || activeSim === "timeout" || activeSim === "typing" ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
             <div className={styles.controls}>
               <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
                 {paused ? (

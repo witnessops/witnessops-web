@@ -30,6 +30,7 @@ test("a production build without the preview flag ignores sim triggers", () => {
     assert.equal(simFlag("?sim=handoff"), null);
     assert.equal(simFlag("?sim=slow"), null);
     assert.equal(simFlag("?sim=timeout"), null);
+    assert.equal(simFlag("?sim=typing"), null);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
     assert.equal(previewChip(simFlag("?sim=error")), null);
   } finally {
@@ -57,6 +58,7 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(simFlag("?sim=handoff"), "handoff");
     assert.equal(simFlag("?sim=slow"), "slow");
     assert.equal(simFlag("?sim=timeout"), "timeout");
+    assert.equal(simFlag("?sim=typing"), "typing");
     assert.equal(simFlag("?sim=other"), null);
     assert.equal(simErrorAtLoad("?sim=error"), false);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), true);
@@ -65,6 +67,8 @@ test("an enabled preview reads the spec triggers and nothing else", () => {
     assert.equal(previewChip("handoff"), "Preview\u00A0· simulated handoff");
     assert.equal(previewChip("slow"), "Preview\u00A0· simulated slow");
     assert.equal(previewChip("timeout"), "Preview\u00A0· simulated timeout");
+    assert.equal(previewChip("typing"), "Preview\u00A0· simulated typing");
+    assert.equal(previewChip("typing", "pl"), "Preview\u00A0· simulated typing");
     assert.equal(previewChip("error", "pl"), "Podgląd\u00A0· symulowany błąd");
     assert.equal(previewChip("handoff", "pl"), "Podgląd\u00A0· symulowane przekazanie");
     assert.equal(previewChip("slow", "pl"), "Preview\u00A0· simulated slow");
@@ -82,6 +86,7 @@ test("a production build ignores sim triggers even when the preview flag is set"
     assert.equal(simFlag("?sim=slow"), null);
     assert.equal(simFlag("?sim=handoff"), null);
     assert.equal(simFlag("?sim=timeout"), null);
+    assert.equal(simFlag("?sim=typing"), null);
     assert.equal(simErrorAtLoad("?sim=error&at=load"), false);
   } finally {
     restore();
