@@ -22,7 +22,7 @@ for(const width of [390,1440]) for(const role of ['owner','viewer'] as const) te
  await expect(article).toBeVisible();
  await expect(page.getByRole('region',{name:'Visual report overview'})).toHaveCount(0);
  await expect(article).toContainText(check.recommendation);
- await expect(article).toContainText('Integrity hash (SHA-256), not yet signed');
+ await expect(article).toContainText('Run record — integrity hash (SHA-256), not yet signed.');
  await expect(article).toContainText(run.sourceDigest);
  await expect(article.getByRole('button',{name:'Ask about this finding'})).toHaveCount(0);
  const open=article.getByRole('link',{name:'Open the recorded check'}).first();

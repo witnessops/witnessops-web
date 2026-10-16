@@ -64,14 +64,14 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('button', { name: 'Run free check', exact: true })).toBeFocused();
   await collect(page);
   const resultRegion = page.getByRole('article', { name: 'Snapshot results' });
-  await expect(resultRegion).toContainText('10 checked · 5 ok · 1 need attention · 0 not run');
+  await expect(resultRegion).toContainText('9 checks run · 5 observed as expected · 1 need attention · 0 not run');
   await expect(resultRegion).toContainText('Checks with collected evidence: 8/10');
-  await expect(resultRegion).toContainText(RUN_RECORD_WORDING.scopeLine);
+  await expect(resultRegion).toContainText('Collection error: web.hsts.v1.');
   await expect(resultRegion.getByRole('heading', { name: 'Needs attention', exact: true })).toBeVisible();
   const undetermined = resultRegion.locator('details').filter({ has: page.getByText('Undetermined', { exact: true }) }).first();
   await undetermined.locator('summary').click();
   await expect(resultRegion.locator('[data-status=CHECK_ERROR]')).toContainText('Collection error');
-  const expectedDetails = resultRegion.locator('details').filter({ has: page.getByText('No issues', { exact: true }) }).first();
+  const expectedDetails = resultRegion.locator('details').filter({ has: page.getByText('Observed as expected', { exact: true }) }).first();
   await expect(expectedDetails).toHaveJSProperty('open', false);
   await expectedDetails.locator('summary').click();
   for (const check of snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED'))
@@ -125,8 +125,8 @@ test('source download and the immutable report use the same identity and print d
 });
 
 for (const [name, fixture, line, collected, clear] of [
-  ['clean', cleanSnapshotFixture(), '10 checked · 8 ok · 0 need attention · 0 not run', 'Checks with collected evidence: 10/10', true],
-  ['attention', snapshotFixture(), '10 checked · 5 ok · 1 need attention · 0 not run', 'Checks with collected evidence: 8/10', false],
+  ['clean', cleanSnapshotFixture(), '10 checks run · 8 observed as expected · 0 need attention · 0 not run', 'Checks with collected evidence: 10/10', true],
+  ['attention', snapshotFixture(), '9 checks run · 5 observed as expected · 1 need attention · 0 not run', 'Checks with collected evidence: 8/10', false],
 ] as const) test(`short results keep outcome counts in browser and print: ${name}`, async ({ page, browserName }, testInfo) => {
   const snapshot = validateExternalSnapshot(fixture), model = externalExposureAdapter(snapshot);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: 200, json: { snapshot, model } }));
@@ -140,7 +140,7 @@ for (const [name, fixture, line, collected, clear] of [
     const visible = media === 'print' ? page.locator("[data-run-record-print] article") : report;
     await expect(visible).toContainText(line);
     await expect(visible).toContainText(collected);
-    await expect(visible).toContainText(RUN_RECORD_WORDING.scopeLine);
+    await expect(visible).toContainText('Result:');
     if (clear) await expect(visible).toContainText(RUN_RECORD_WORDING.noIssues);
     else await expect(visible.getByRole('heading', { name: 'Needs attention', exact: true })).toBeVisible();
     expect(await report.innerHTML()).toBe(before);
@@ -223,7 +223,7 @@ test('uncollected timeout observations remain unknown and a long hostname wraps'
   await expect(page.getByRole('heading', { name: target, exact: true })).toBeVisible();
   await expect(page.locator('main [data-status=NEEDS_ATTENTION]')).toHaveCount(0);
   await expect(page.locator('main [data-status=UNDETERMINED]')).toHaveCount(10);
-  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('10 checked · 0 ok · 0 need attention · 0 not run');
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('10 checks run · 0 observed as expected · 0 need attention · 0 not run');
   await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('Checks with collected evidence: 0/10');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Clear', exact: true }).click();

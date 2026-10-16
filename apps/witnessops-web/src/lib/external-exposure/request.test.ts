@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { sourceDigest } from './unsigned-run-record';
 import { snapshotFixture } from '../../../../../tests/external-exposure/fixture';
 import { createExternalExposureHandler, readExternalRequestBody } from './request';
 
@@ -24,7 +24,7 @@ test('same-origin JSON request returns source-identical unsigned model and priva
   assert.equal(response.headers.get('x-robots-tag'), 'noindex, nofollow');
   assert.equal(response.headers.get('access-control-allow-origin'), null);
   const { model, snapshot } = await response.json();
-  assert.equal(createHash('sha256').update(JSON.stringify(snapshot)).digest('hex'), model.identity.sourceDigest);
+  assert.equal(sourceDigest(snapshot), model.identity.sourceDigest);
   assert.deepEqual(model.sourceArtifacts[0].content, snapshot);
 });
 

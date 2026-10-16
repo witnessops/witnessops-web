@@ -1,8 +1,4 @@
 import { canonicalSource } from "../../../../witnessops-app/src/lib/source-digest";
-import {
-  PUBLIC_EXPOSURE_REVIEW_REQUIRED_CLAIMS,
-  PUBLIC_EXPOSURE_REVIEW_REQUIRED_LIMITATIONS,
-} from "../../../../../packages/proof/src/receipt/public-exposure-review";
 import { CHECK_IDS, type CheckId, type CheckStatus, type ExternalCheckResultV1, type ExternalSnapshotV1 } from "./contracts";
 
 /** Proposed schema id. This is an unsigned run record, not witnessops.receipt.v0. */
@@ -10,35 +6,61 @@ export const UNSIGNED_RUN_RECORD_VERSION = "witnessops.run-record.unsigned.v0" a
 export const UNSIGNED_RUN_RECORD_WORKFLOW = "external_exposure_snapshot" as const;
 
 /**
- * Canonicalization for the integrity digest, reused from
- * apps/witnessops-app/src/lib/source-digest.ts (`canonicalSource`):
- * witnessops-canonical-json-v1. Object keys are sorted by UTF-16 code unit,
- * arrays keep recorded order, strings and numbers use JSON encoding, and the
- * document has no whitespace. The digest is SHA-256 over the UTF-8 bytes of
- * that document for the raw snapshot. It is not a hash of this run record.
+ * witnessops-canonical-json-v1, implemented by `canonicalSource`.
+ * Pending a witnessops-contracts addition. This is not RFC 8785: a lone
+ * UTF-16 surrogate is escaped by JSON string encoding rather than rejected.
+ *
+ * - null, boolean, and string: JSON.stringify
+ * - finite number: JSON.stringify, so -0 is 0, 1.0 is 1, and values that
+ *   JSON.stringify writes in scientific notation stay in that form
+ * - array: elements in recorded order, joined by commas, no whitespace
+ * - plain object: keys sorted by UTF-16 code unit, each key JSON-encoded,
+ *   then a colon and the canonical value, joined by commas, no whitespace
+ * - any other value throws
+ *
+ * The integrity digest is SHA-256 of the UTF-8 bytes of that document for the
+ * raw snapshot (the Download source JSON). It does not cover the other fields
+ * of this run record.
  */
 export const CANONICALIZATION_ID = "witnessops-canonical-json-v1" as const;
 
 export const RUN_RECORD_WORDING = {
-  integrityLabel: "Integrity hash (SHA-256), not yet signed",
-  integrityMeaning: "This hash lets you detect if this record changes after it was issued. It does not show who issued it, and it is not independent verification.",
+  integrityLabel: "Run record — integrity hash (SHA-256), not yet signed.",
+  integrityMeaning: "This hash lets you detect if the source data (Download source JSON) changes after it was issued. It does not cover the other fields of this run record, it does not show who issued it, and it is not independent verification.",
   keepCopy: "Keep a copy; the hash only helps if you hold the original.",
   noIssues: "no issues found by the listed checks",
-  /** DRAFT COPY — needs Karol's OK before this sentence is treated as final. */
-  scopeLine: "This lists only the checks named here. It does not show that the domain is secure.",
+  derivedRunId: "Derived from the integrity hash. WitnessOps does not keep free checks.",
   recheck: "How to re-check: sha256sum of the Download source JSON file.",
 } as const;
 
-/** Human labels for the adopted limitation ids. The ids stay in the record. */
-export const WHAT_THIS_IS_NOT_LABELS: Record<(typeof PUBLIC_EXPOSURE_REVIEW_REQUIRED_LIMITATIONS)[number], string> = {
+/** Local limitation ids for this unsigned record. They are not receipt claim ids. */
+export const WHAT_THIS_IS_NOT = [
+  "not_a_penetration_test",
+  "not_a_certification",
+  "not_an_attestation",
+  "not_a_compliance_determination",
+  "not_a_security_statement",
+  "not_a_completeness_statement",
+  "not_third_party_acceptance",
+  "not_a_statement_of_no_vulnerabilities",
+] as const;
+
+/** Short local list. Public-exposure review claims are not copied into this record. */
+export const CLAIMS_NOT_ASSERTED = [
+  "signer_identified",
+  "independent_verification",
+] as const;
+
+/** Human labels for the local limitation ids. The ids stay in the record. */
+export const WHAT_THIS_IS_NOT_LABELS: Record<(typeof WHAT_THIS_IS_NOT)[number], string> = {
   not_a_penetration_test: "Not a penetration test",
   not_a_certification: "Not a certification",
   not_an_attestation: "Not an attestation",
   not_a_compliance_determination: "Not a compliance determination",
-  not_proof_of_security: "Not a statement that the domain is secure",
-  not_proof_of_completeness: "Not a statement of complete coverage",
-  not_proof_of_third_party_acceptance: "Not acceptance by another party",
-  not_proof_of_absence_of_vulnerabilities: "Not a statement that vulnerabilities are absent",
+  not_a_security_statement: "Not a statement that the domain is secure",
+  not_a_completeness_statement: "Not a statement of complete coverage",
+  not_third_party_acceptance: "Not acceptance by another party",
+  not_a_statement_of_no_vulnerabilities: "Not a statement that vulnerabilities are absent",
 };
 
 export type RunRecordOverall = "pass" | "partial" | "fail" | "inconclusive";
@@ -52,6 +74,7 @@ export type UnsignedRunRecord = {
   vantage: { kind: "external"; description: string };
   checks_performed: CheckId[];
   checks_not_run: CheckId[];
+  collection_errors: CheckId[];
   results: Array<{
     check_id: CheckId;
     title: string;
@@ -63,7 +86,6 @@ export type UnsignedRunRecord = {
   evidence_refs: string[];
   claims_not_asserted: readonly string[];
   what_this_is_not: readonly string[];
-  scope_line: typeof RUN_RECORD_WORDING.scopeLine;
   recheck: typeof RUN_RECORD_WORDING.recheck;
   collected_evidence: { count: number; total: 10 };
   integrity: {
@@ -71,15 +93,17 @@ export type UnsignedRunRecord = {
     digest: string;
     signed: false;
     canonicalization: typeof CANONICALIZATION_ID;
+    covers: "source_json";
   };
 };
 
-const VANTAGE = "Public DNS, TLS and HTTP from the WitnessOps collection service. No customer-network position is included.";
+const VANTAGE_BASE = "Public DNS, TLS and HTTP from the WitnessOps collection service. No customer-network position is included.";
+const REGION = /^[A-Za-z0-9._-]{1,64}$/;
 const DIGEST = /^(?!f{64}$)[a-f0-9]{64}$/;
 const RECORD_KEYS = [
   "version", "workflow_class", "run_id", "domain", "timestamp", "vantage",
-  "checks_performed", "checks_not_run", "results", "overall", "evidence_refs",
-  "claims_not_asserted", "what_this_is_not", "scope_line", "recheck",
+  "checks_performed", "checks_not_run", "collection_errors", "results", "overall", "evidence_refs",
+  "claims_not_asserted", "what_this_is_not", "recheck",
   "collected_evidence", "integrity",
 ] as const;
 
@@ -137,8 +161,13 @@ export function sourceDigest(snapshot: unknown): string {
   return sha256Hex(canonicalSource(snapshot));
 }
 
-export function checksPerformedSentence(performed: readonly string[], notRun: readonly string[]): string {
-  return `Checks performed: ${performed.length ? performed.join(", ") : "none"}. Not checked: ${notRun.length ? notRun.join(", ") : "none"}.`;
+export function checksPerformedSentence(performed: readonly string[], notRun: readonly string[], collectionErrors: readonly string[] = []): string {
+  const list = (items: readonly string[]) => items.length ? items.join(", ") : "none";
+  return `Checks performed: ${list(performed)}. Not checked: ${list(notRun)}. Collection error: ${list(collectionErrors)}.`;
+}
+
+export function resultSentence(record: Pick<UnsignedRunRecord, "overall" | "timestamp" | "domain" | "vantage">): string {
+  return `Result: ${record.overall} for the checks listed, at ${record.timestamp.utc} (${record.timestamp.europe_warsaw} Europe/Warsaw), against ${record.domain} as observed by WitnessOps from ${record.vantage.description}`;
 }
 
 export function collectedEvidenceSentence(count: number): string {
@@ -207,11 +236,23 @@ export function publicCheckRunId(snapshot: ExternalSnapshotV1): string {
   return `public-check:${sourceDigest(snapshot).slice(0, 24)}`;
 }
 
+/** snapshot.network has no egress field today. A recorded region token is included when present. */
+export function vantageDescription(snapshot: ExternalSnapshotV1): string {
+  for (const event of snapshot.network) {
+    const extra = event as { egress_region?: unknown; region?: unknown };
+    const region = extra.egress_region ?? extra.region;
+    if (typeof region === "string" && REGION.test(region)) return `${VANTAGE_BASE} Egress region: ${region}.`;
+  }
+  return VANTAGE_BASE;
+}
+
 export function buildUnsignedRunRecord(snapshot: ExternalSnapshotV1, runId: string): UnsignedRunRecord {
   if (!runId || runId.length > 200) throw new Error("Run record id is missing.");
   const present = new Set(snapshot.checks.map(check => check.check_id));
-  const checksPerformed = CHECK_IDS.filter(id => present.has(id));
+  const errorIds = new Set(snapshot.checks.filter(check => check.status === "CHECK_ERROR").map(check => check.check_id));
+  const checksPerformed = CHECK_IDS.filter(id => present.has(id) && !errorIds.has(id));
   const checksNotRun = CHECK_IDS.filter(id => !present.has(id));
+  const collectionErrors = CHECK_IDS.filter(id => errorIds.has(id));
   const ordered = [...snapshot.checks].sort(bySchedule);
   const results = ordered.map(check => ({
     check_id: check.check_id,
@@ -227,15 +268,15 @@ export function buildUnsignedRunRecord(snapshot: ExternalSnapshotV1, runId: stri
     run_id: runId,
     domain: snapshot.target,
     timestamp: recordTimestamp(snapshot.finished_at),
-    vantage: { kind: "external", description: VANTAGE },
+    vantage: { kind: "external", description: vantageDescription(snapshot) },
     checks_performed: checksPerformed,
     checks_not_run: checksNotRun,
+    collection_errors: collectionErrors,
     results,
     overall: overallFor(results, checksNotRun.length),
     evidence_refs: evidence,
-    claims_not_asserted: PUBLIC_EXPOSURE_REVIEW_REQUIRED_CLAIMS,
-    what_this_is_not: PUBLIC_EXPOSURE_REVIEW_REQUIRED_LIMITATIONS,
-    scope_line: RUN_RECORD_WORDING.scopeLine,
+    claims_not_asserted: CLAIMS_NOT_ASSERTED,
+    what_this_is_not: WHAT_THIS_IS_NOT,
     recheck: RUN_RECORD_WORDING.recheck,
     collected_evidence: { count: snapshot.checks.filter(check => check.collected).length, total: 10 },
     integrity: {
@@ -243,11 +284,19 @@ export function buildUnsignedRunRecord(snapshot: ExternalSnapshotV1, runId: stri
       digest: sourceDigest(snapshot),
       signed: false,
       canonicalization: CANONICALIZATION_ID,
+      covers: "source_json",
     },
   };
   const validation = validateUnsignedRunRecord(record);
   if (!validation.valid) throw new Error(validation.errors.join(" "));
   return record;
+}
+
+function validVantage(description: unknown): boolean {
+  if (description === VANTAGE_BASE) return true;
+  const prefix = `${VANTAGE_BASE} Egress region: `;
+  if (typeof description !== "string" || !description.startsWith(prefix) || !description.endsWith(".")) return false;
+  return REGION.test(description.slice(prefix.length, -1));
 }
 
 function sameList(value: unknown, expected: readonly string[]): boolean {
@@ -265,21 +314,24 @@ export function validateUnsignedRunRecord(input: unknown): { valid: boolean; err
   if (typeof input.run_id !== "string" || input.run_id.length < 1 || input.run_id.length > 200) errors.push("Run id is invalid.");
   if (typeof input.domain !== "string" || input.domain.length < 1 || input.domain.length > 253) errors.push("Domain is invalid.");
   if (!isRecord(input.timestamp) || typeof input.timestamp.utc !== "string" || typeof input.timestamp.europe_warsaw !== "string") errors.push("Timestamp must include UTC and Europe/Warsaw.");
-  if (!isRecord(input.vantage) || input.vantage.kind !== "external" || input.vantage.description !== VANTAGE) errors.push("Vantage is invalid.");
-  if (!Array.isArray(input.checks_performed) || !Array.isArray(input.checks_not_run)) errors.push("Check lists are invalid.");
+  if (!isRecord(input.vantage) || input.vantage.kind !== "external" || !validVantage(input.vantage.description)) errors.push("Vantage is invalid.");
+  if (!Array.isArray(input.checks_performed) || !Array.isArray(input.checks_not_run) || !Array.isArray(input.collection_errors)) errors.push("Check lists are invalid.");
   const performed = new Set(Array.isArray(input.checks_performed) ? input.checks_performed : []);
   const notRun = new Set(Array.isArray(input.checks_not_run) ? input.checks_not_run : []);
-  if (performed.size + notRun.size !== CHECK_IDS.length || CHECK_IDS.some(id => performed.has(id) === notRun.has(id))) errors.push("Performed and not-run checks must partition the ten checks.");
+  const collectionErrors = new Set(Array.isArray(input.collection_errors) ? input.collection_errors : []);
+  const listed = [performed, notRun, collectionErrors];
+  const partitioned = performed.size + notRun.size + collectionErrors.size === CHECK_IDS.length
+    && CHECK_IDS.every(id => listed.filter(group => group.has(id)).length === 1);
+  if (!partitioned) errors.push("Performed, not-run and collection-error checks must partition the ten checks.");
   if (!Array.isArray(input.results)) errors.push("Results are missing.");
-  else if (input.results.length !== performed.size) errors.push("Each performed check needs one result.");
+  else if (input.results.length !== performed.size + collectionErrors.size) errors.push("Each performed or collection-error check needs one result.");
   if (!["pass", "partial", "fail", "inconclusive"].includes(String(input.overall))) errors.push("Overall outcome is invalid.");
   if (!Array.isArray(input.evidence_refs)) errors.push("Evidence refs are missing.");
-  if (!sameList(input.claims_not_asserted, PUBLIC_EXPOSURE_REVIEW_REQUIRED_CLAIMS)) errors.push("Claim list must be the adopted public exposure review claims, not asserted.");
-  if (!sameList(input.what_this_is_not, PUBLIC_EXPOSURE_REVIEW_REQUIRED_LIMITATIONS)) errors.push("What-this-is-not list must be the adopted limitation ids.");
-  if (input.scope_line !== RUN_RECORD_WORDING.scopeLine) errors.push("Scope line does not match the draft copy.");
+  if (!sameList(input.claims_not_asserted, CLAIMS_NOT_ASSERTED)) errors.push("Claim list must be the local claims that this record does not assert.");
+  if (!sameList(input.what_this_is_not, WHAT_THIS_IS_NOT)) errors.push("What-this-is-not list must be the local limitation ids.");
   if (input.recheck !== RUN_RECORD_WORDING.recheck) errors.push("Re-check note is missing.");
   if (!isRecord(input.collected_evidence) || input.collected_evidence.total !== 10 || typeof input.collected_evidence.count !== "number") errors.push("Collected evidence count is invalid.");
-  if (!isRecord(input.integrity) || input.integrity.algorithm !== "sha256" || input.integrity.signed !== false || input.integrity.canonicalization !== CANONICALIZATION_ID || typeof input.integrity.digest !== "string" || !DIGEST.test(input.integrity.digest)) errors.push("Integrity must be an unsigned SHA-256 digest.");
+  if (!isRecord(input.integrity) || input.integrity.algorithm !== "sha256" || input.integrity.signed !== false || input.integrity.canonicalization !== CANONICALIZATION_ID || input.integrity.covers !== "source_json" || typeof input.integrity.digest !== "string" || !DIGEST.test(input.integrity.digest)) errors.push("Integrity must be an unsigned SHA-256 digest of the source JSON.");
   return { valid: errors.length === 0, errors };
 }
 
@@ -288,8 +340,7 @@ const ALLOWED_WORDING = [
   "\"signed\": false",
   "\"signed\":false",
   "signed: false",
-  ...PUBLIC_EXPOSURE_REVIEW_REQUIRED_CLAIMS,
-  ...PUBLIC_EXPOSURE_REVIEW_REQUIRED_LIMITATIONS,
+  "The server check is imported from a signed Local Audit Proofpack; adding an asset does not run a network scan.",
 ];
 
 const FORBIDDEN_WORDING: Array<[string, RegExp]> = [
@@ -301,6 +352,7 @@ const FORBIDDEN_WORDING: Array<[string, RegExp]> = [
   ["independently verified", /independently verified/i],
   ["guaranteed", /\bguaranteed\b/i],
   ["your domain is secure", /your domain is secure/i],
+  ["no issues", /\bno issues\b(?! found by the listed checks)/i],
   ["check mark", /[✓✔✅]/],
   ["Declared", /\bDeclared\b/],
   ["Not proven", /Not proven/],
@@ -319,6 +371,7 @@ export function resultGroups(checks: readonly ExternalCheckResultV1[]) {
     attention: ordered.filter(check => check.status === "NEEDS_ATTENTION"),
     ok: ordered.filter(check => check.status === "OBSERVED_EXPECTED"),
     informational: ordered.filter(check => check.status === "INFORMATIONAL"),
-    undetermined: ordered.filter(check => check.status === "UNDETERMINED" || check.status === "CHECK_ERROR"),
+    undetermined: ordered.filter(check => check.status === "UNDETERMINED"),
+    errors: ordered.filter(check => check.status === "CHECK_ERROR"),
   };
 }

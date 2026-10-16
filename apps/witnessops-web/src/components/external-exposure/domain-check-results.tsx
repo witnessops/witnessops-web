@@ -9,6 +9,7 @@ import {
   checksPerformedSentence,
   collectedEvidenceSentence,
   displayTimestamp,
+  resultSentence,
   resultGroups,
   RUN_RECORD_WORDING,
   type UnsignedRunRecord,
@@ -20,7 +21,7 @@ type ThemeName = "dark" | "light";
 
 const STATUS_TEXT: Record<CheckStatus, string> = {
   NEEDS_ATTENTION: "Needs attention",
-  OBSERVED_EXPECTED: "No issues",
+  OBSERVED_EXPECTED: "Observed as expected",
   INFORMATIONAL: "Informational",
   UNDETERMINED: "Undetermined",
   CHECK_ERROR: "Collection error",
@@ -82,7 +83,7 @@ function Group({ title, count, status, children }: { title: string; count: numbe
 }
 
 export function RunRecordDocument({
-  snapshot, runId, theme, surface, headingLevel = 2, observationHref, headingRef, onPrint, onSource, onRecord, showActions = true,
+  snapshot, runId, theme, surface, headingLevel = 2, observationHref, headingRef,   onPrint, onSource, onRecord, showActions = true, expandRaw = false,
 }: {
   snapshot: ExternalSnapshotV1;
   runId: string;
@@ -95,6 +96,7 @@ export function RunRecordDocument({
   onSource?: () => void;
   onRecord?: () => void;
   showActions?: boolean;
+  expandRaw?: boolean;
 }) {
   const record = buildUnsignedRunRecord(snapshot, runId);
   const groups = resultGroups(snapshot.checks);
@@ -107,16 +109,15 @@ export function RunRecordDocument({
       <p>{surface === "saved" ? "Saved run" : "Free check"}</p>
       <Heading ref={headingRef} tabIndex={-1} className={styles.domain}>{snapshot.target}</Heading>
       <p className={styles.mono}>{when.warsaw} · {when.utc}</p>
-      <p className={styles.counts}>{record.checks_performed.length} checked · {groups.ok.length} ok · {groups.attention.length} need attention · {record.checks_not_run.length} not run</p>
+      <p className={styles.counts}>{record.checks_performed.length} checks run · {groups.ok.length} observed as expected · {groups.attention.length} need attention · {record.checks_not_run.length} not run</p>
       <p>{collectedEvidenceSentence(record.collected_evidence.count)}</p>
-      <p>{RUN_RECORD_WORDING.scopeLine}</p>
     </header>
     <section className={styles.attention} aria-labelledby="needs-attention-heading">
       <h2 id="needs-attention-heading">Needs attention</h2>
       {groups.attention.length ? <ul className={styles.list}>{groups.attention.map(check => <CheckLine key={check.check_id} check={check} href={href(check.check_id)} />)}</ul> : <p>{RUN_RECORD_WORDING.noIssues}</p>}
     </section>
     <div className={styles.groups}>
-      <Group title="No issues" count={groups.ok.length} status="OBSERVED_EXPECTED">
+      <Group title="Observed as expected" count={groups.ok.length} status="OBSERVED_EXPECTED">
         {groups.ok.length ? <ul className={styles.list}>{groups.ok.map(check => <CheckLine key={check.check_id} check={check} href={href(check.check_id)} />)}</ul> : <p>None of the performed checks are in this group.</p>}
       </Group>
       <Group title="Informational" count={groups.informational.length} status="INFORMATIONAL">
@@ -124,6 +125,9 @@ export function RunRecordDocument({
       </Group>
       <Group title="Undetermined" count={groups.undetermined.length} status="UNDETERMINED">
         {groups.undetermined.length ? <ul className={styles.list}>{groups.undetermined.map(check => <CheckLine key={check.check_id} check={check} href={href(check.check_id)} />)}</ul> : <p>No undetermined results.</p>}
+      </Group>
+      <Group title="Collection error" count={groups.errors.length} status="CHECK_ERROR">
+        {groups.errors.length ? <ul className={styles.list}>{groups.errors.map(check => <CheckLine key={check.check_id} check={check} href={href(check.check_id)} />)}</ul> : <p>Collection error: none.</p>}
       </Group>
       <Group title="Not run" count={record.checks_not_run.length} status="NOT_RUN">
         {record.checks_not_run.length ? <ul className={styles.list}>{record.checks_not_run.map(id => <li key={id}><span className={styles.mono}>{id}</span></li>)}</ul> : <p>Not checked: none. A check that was not run is listed here. Undetermined is a different outcome.</p>}
@@ -136,16 +140,18 @@ export function RunRecordDocument({
       <p>{RUN_RECORD_WORDING.integrityMeaning}</p>
       <p>{RUN_RECORD_WORDING.keepCopy}</p>
       <p>{RUN_RECORD_WORDING.recheck}</p>
-      <p>{checksPerformedSentence(record.checks_performed, record.checks_not_run)}</p>
+      <p>{checksPerformedSentence(record.checks_performed, record.checks_not_run, record.collection_errors)}</p>
+      <p>{resultSentence(record)}</p>
       {record.overall === "pass" ? <p>{RUN_RECORD_WORDING.noIssues}</p> : null}
       <dl className={styles.facts}>
-        <div><dt>Run id</dt><dd className={styles.mono}>{record.run_id}</dd></div>
+        <div><dt>Run id</dt><dd><span className={styles.mono}>{record.run_id}</span>{surface === "public" ? <span className={styles.note}>{RUN_RECORD_WORDING.derivedRunId}</span> : null}</dd></div>
         <div><dt>Workflow</dt><dd className={styles.mono}>{record.workflow_class}</dd></div>
         <div><dt>UTC</dt><dd className={styles.mono}>{record.timestamp.utc}</dd></div>
         <div><dt>Europe/Warsaw</dt><dd className={styles.mono}>{record.timestamp.europe_warsaw}</dd></div>
         <div><dt>Vantage</dt><dd>{record.vantage.description}</dd></div>
         <div><dt>Overall</dt><dd className={styles.mono}>{record.overall}</dd></div>
         <div><dt>Canonicalization</dt><dd className={styles.mono}>{record.integrity.canonicalization}</dd></div>
+        <div><dt>Covers</dt><dd className={styles.mono}>{record.integrity.covers}</dd></div>
       </dl>
       <h3>What this is not</h3>
       <ul>{record.what_this_is_not.map(id => <li key={id}>{WHAT_THIS_IS_NOT_LABELS[id as keyof typeof WHAT_THIS_IS_NOT_LABELS]}</li>)}</ul>
@@ -155,7 +161,7 @@ export function RunRecordDocument({
       <button type="button" className={styles.secondary} onClick={onSource}>Download source JSON</button>
       <button type="button" className={styles.secondary} onClick={onRecord}>Download run record</button>
     </div> : null}
-    <details className={styles.raw}>
+    <details className={styles.raw} open={expandRaw}>
       <summary>Raw results</summary>
       <p className={styles.note}>Reading view of the recorded results. Download source JSON is the canonical JSON file the hash refers to.</p>
       <pre className={styles.mono}>{JSON.stringify(snapshot, null, 2)}</pre>
@@ -170,7 +176,7 @@ function useRunRecordPrint(snapshot: ExternalSnapshotV1, runId: string, surface:
     print: () => window.print(),
     printRoot: body ? createPortal(
       <div className={printStyles.root} data-run-record-print>
-        <RunRecordDocument snapshot={snapshot} runId={runId} theme="light" surface={surface} headingLevel={headingLevel} observationHref={observationHref} showActions={false} />
+        <RunRecordDocument snapshot={snapshot} runId={runId} theme="light" surface={surface} headingLevel={headingLevel} observationHref={observationHref} showActions={false} expandRaw />
       </div>,
       body,
     ) : null,

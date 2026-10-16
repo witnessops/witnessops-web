@@ -217,9 +217,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.screenshot({ path: info.outputPath("run-viewport.png") });
     await page.getByRole("link", { name: "View report", exact: true }).click();
     await expect(page.locator("main article")).toHaveAttribute("aria-label", "Snapshot results");
-    await expect(page.locator("main article")).toContainText("10 checked ·");
+    await expect(page.locator("main article")).toContainText("10 checks run ·");
     await expect(page.locator("main article")).toContainText("Saved run");
-    await expect(page.locator("main article")).toContainText("Integrity hash (SHA-256), not yet signed");
+    await expect(page.locator("main article")).toContainText("Run record — integrity hash (SHA-256), not yet signed.");
     await expect(page.locator("main article")).toContainText(ws!.runs[1].sourceDigest);
     await expect(page.getByRole("button", { name: "Save report as PDF", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Download run record", exact: true })).toBeVisible();
@@ -239,7 +239,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     expect(await printRoot.locator("article").evaluate(documentContent)).toBe(await page.locator("main article").evaluate(documentContent));
     await expect(printRoot.locator("[data-run-record-actions]")).toHaveCount(0);
     await expect(printRoot).toContainText(ws!.runs[1].sourceDigest);
-    await expect(printRoot).toContainText("Integrity hash (SHA-256), not yet signed");
+    await expect(printRoot).toContainText("Run record — integrity hash (SHA-256), not yet signed.");
     await expect(printRoot).not.toContainText("Acme Owner");
     await page.getByRole("link", { name: "← Open observation", exact: true }).click();
     await expect(printRoot).toHaveCount(0);

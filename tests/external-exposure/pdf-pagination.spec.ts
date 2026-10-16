@@ -14,7 +14,8 @@ test.skip(({ browserName }) => browserName !== 'chromium', 'PDF generation is a 
 // smoke. No customer material, credentials, or new network collection is involved.
 const capturedBytes = readFileSync(resolve('tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json'));
 const captured = validateExternalSnapshot(JSON.parse(capturedBytes.toString('utf8')));
-const sourceDigest = '551ca3acf6e92029ae8ccac717ee4a960f5a78aade1820748caada9b49dfedfe';
+const fileDigest = '551ca3acf6e92029ae8ccac717ee4a960f5a78aade1820748caada9b49dfedfe';
+const sourceDigest = 'c02eb1ec0d6257f2b71f5f1a07d7409128dce8e1f51308eb67d041b0c3e2feaf';
 
 
 test.beforeEach(async ({ page, baseURL }) => {
@@ -25,13 +26,13 @@ test.beforeEach(async ({ page, baseURL }) => {
 
 for (const shape of ['captured-clean', 'attention', 'long-finding'] as const) {
   test(`A4 has meaningful final content: ${shape}`, async ({ page }, info) => {
-    expect(createHash('sha256').update(capturedBytes).digest('hex')).toBe(sourceDigest);
+    expect(createHash('sha256').update(capturedBytes).digest('hex')).toBe(fileDigest);
     const snapshot = shape === 'captured-clean' ? captured : snapshotFixture();
     if (shape === 'long-finding') snapshot.checks[1].interpretation = 'Long deterministic finding; no real observation. '.repeat(40);
     const model = externalExposureAdapter(validateExternalSnapshot(snapshot));
     if (shape === 'captured-clean') {
       expect(model.identity.sourceDigest).toBe(sourceDigest);
-      expect(model.identity.reportId).toBe('external-20260910202549352-551ca3acf6e92029');
+      expect(model.identity.reportId).toBe('external-20260910202549352-c02eb1ec0d6257f2');
       expect(snapshot.checks).toHaveLength(10);
     }
     await page.route('**/api/external-exposure', route => route.fulfill({ json: { snapshot, model } }));
@@ -42,7 +43,7 @@ for (const shape of ['captured-clean', 'attention', 'long-finding'] as const) {
     await page.emulateMedia({ media: 'print' });
     const root = page.locator('[data-run-record-print]');
     await expect(root).toBeVisible();
-    await expect(root).toContainText('Integrity hash (SHA-256), not yet signed');
+    await expect(root).toContainText('Run record — integrity hash (SHA-256), not yet signed.');
     expect(await page.locator('body > :not([data-run-record-print])').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).display === 'none'))).toBe(true);
     const session = await page.context().newCDPSession(page);
     const { data } = await session.send('Page.printToPDF', { printBackground: true, preferCSSPageSize: true, paperWidth: 210 / 25.4, paperHeight: 297 / 25.4 });

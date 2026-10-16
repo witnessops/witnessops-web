@@ -12,7 +12,10 @@
   --rr-tag-bg: #2a2a28;
   --rr-button: #f4f1ea;
   --rr-button-fg: #1c1b19;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 720px;
+  min-width: 0;
   color: var(--rr-fg);
   background: var(--rr-bg);
   border: 1px solid var(--rr-line);
@@ -35,7 +38,7 @@
   --rr-button: #1c1b19;
   --rr-button-fg: #f7f4ee;
 }
-.summary { display: grid; gap: 6px; }
+.summary { display: grid; gap: 6px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .domain { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 560; letter-spacing: -0.03em; }
 .counts { margin: 0; font-size: 16px; line-height: 1.4; }
 .summary p, .attention p, .record p, .groupBody p { margin: 0; color: var(--rr-secondary); }
@@ -58,22 +61,23 @@
 .status.notRun { color: var(--rr-muted); }
 .icon { width: 16px; height: 16px; flex: 0 0 auto; }
 .note { color: var(--rr-muted); }
-.groups { display: grid; margin-top: 12px; }
-.group { border-top: 1px solid var(--rr-line); }
+.groups { display: grid; margin-top: 12px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.group { border-top: 1px solid var(--rr-line); min-width: 0; }
 .group summary {
   min-height: 44px; height: 46px; max-height: 48px; display: flex; align-items: center; gap: 8px;
-  cursor: pointer; list-style: none; overflow: hidden;
+  min-width: 0; cursor: pointer; list-style: none; overflow: hidden;
 }
 .group summary::-webkit-details-marker { display: none; }
 .group summary span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .count { margin-left: auto; color: var(--rr-muted); }
 .groupBody { padding: 0 0 12px; }
-.record { margin-top: 16px; display: grid; gap: 8px; }
+.record { margin-top: 16px; display: grid; gap: 8px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .record h2 { display: flex; align-items: center; gap: 8px; }
-.facts { display: grid; gap: 8px; margin: 0; }
+.facts { display: grid; gap: 8px; margin: 0; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .facts div { display: grid; gap: 2px; }
 .facts dt { color: var(--rr-muted); font-size: 12px; }
-.facts dd { margin: 0; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.facts dd .note { display: block; margin-top: 4px; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .primary, .secondary {
   min-height: 44px; padding: 8px 14px; border-radius: 7px; font: inherit; font-size: 14px; cursor: pointer;

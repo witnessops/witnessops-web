@@ -52,8 +52,9 @@ for (const shape of ["informational", "attention", "long-evidence"] as const) {
     await expect(preview).toContainText(run.sourceDigest);
     await expect(preview).toContainText("Saved run");
     await expect(preview).toContainText("Checks with collected evidence:");
-    await expect(preview).toContainText("Integrity hash (SHA-256), not yet signed");
-    await expect(preview).toContainText("This lists only the checks named here. It does not show that the domain is secure.");
+    await expect(preview).toContainText("Run record — integrity hash (SHA-256), not yet signed.");
+    await expect(preview).toContainText("Result:");
+    await expect(preview).not.toContainText("This lists only the checks named here.");
     const attention = snapshot.checks.filter(check => check.status === "NEEDS_ATTENTION");
     for (const check of attention) await expect(preview).toContainText(check.interpretation);
     await preview.getByText("Raw results", { exact: true }).click();
@@ -99,7 +100,7 @@ for (const shape of ["informational", "attention", "long-evidence"] as const) {
     expect(printed.length).toBeGreaterThan(0);
     expect(printed.every(item => item.runs > 2)).toBe(true);
     const pdfText = printed.map(item => item.text).join("\n");
-    expect(pdfText).toContain("Integrity hash (SHA-256), not yet signed");
+    expect(pdfText).toContain("Run record — integrity hash (SHA-256), not yet signed.");
     expect(pdfText).toContain(run.sourceDigest);
     expect(wordingViolations(pdfText)).toEqual([]);
     expect(canonicalSource(run)).toBe(before);

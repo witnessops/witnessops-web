@@ -12,12 +12,12 @@ test('website navigation exports only the unchanged buyer report',async({page,br
  await page.goto('/check');
  await page.getByLabel('Public hostname',{exact:true}).fill('example.com');await page.getByRole('button',{name:'Run free check',exact:true}).click();
  const report=page.getByRole('article',{name:'Snapshot results'});
- await expect(report).toContainText('Integrity hash (SHA-256), not yet signed');
+ await expect(report).toContainText('Run record — integrity hash (SHA-256), not yet signed.');
  await page.getByRole('button',{name:'Save report as PDF',exact:true}).click();
  await page.emulateMedia({media:'print'});const printed=page.locator('[data-run-record-print]');await expect(printed).toBeVisible();
  for(const selector of ['nav[aria-label="Primary navigation"]','#site-footer','form[aria-label="Run an external exposure snapshot"]'])await expect(page.locator(selector)).not.toBeVisible();
  expect(await page.locator('body > :not([data-run-record-print])').evaluateAll(xs=>xs.every(x=>getComputedStyle(x).display==='none'))).toBe(true);
- await expect(printed).toContainText(snapshot.checks.find(x=>x.status==='NEEDS_ATTENTION')!.title);await expect(printed).toContainText('This lists only the checks named here. It does not show that the domain is secure.');await expect(page.locator('body')).toHaveCSS('background-color','rgb(255, 255, 255)');
+ await expect(printed).toContainText(snapshot.checks.find(x=>x.status==='NEEDS_ATTENTION')!.title);await expect(printed).toContainText('Result: partial for the checks listed');await expect(printed).not.toContainText('This lists only the checks named here');await expect(page.locator('body')).toHaveCSS('background-color','rgb(255, 255, 255)');
  if(browserName==='chromium')await page.pdf({path:info.outputPath('report-only-A4.pdf'),format:'A4',printBackground:true});
  await page.emulateMedia({media:'screen'});await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('result-mobile.png'),fullPage:true});
 });
