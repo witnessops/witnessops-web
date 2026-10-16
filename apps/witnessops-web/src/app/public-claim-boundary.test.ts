@@ -25,6 +25,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/homepage-two-offer-copy.ts",
   "src/components/marketing/simple-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
+  "src/components/marketing/external-exposure-snapshot.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/external-exposure/catalog.ts",
   "src/lib/external-exposure/copy.ts",
@@ -146,6 +147,7 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/simple-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/components/marketing/offsec-suite-sample.tsx",
+  "src/components/marketing/external-exposure-snapshot.tsx",
   "src/lib/external-exposure/catalog.ts",
   "src/lib/external-exposure/copy.ts",
   "../../content/witnessops/legal/privacy.mdx",
@@ -174,6 +176,9 @@ const EXPOSURE_SNAPSHOT_BOUNDARY_MARKERS = [
 ] as const;
 
 const EXPOSURE_SNAPSHOT_SOURCE_BOUNDARIES: Record<string, readonly string[]> = {
+  "src/components/marketing/external-exposure-snapshot.tsx": [
+    "data-needs-review",
+  ],
   "src/lib/external-exposure/catalog.ts": [
     "no credentials, no exploitation, and no penetration test",
   ],
@@ -326,8 +331,13 @@ test("external exposure snapshot preserves its rendered claim boundaries", () =>
 
   assert.deepEqual(prohibitedClaimsIn(rendered), []);
   assert.deepEqual(missingBoundaries(rendered, EXPOSURE_SNAPSHOT_BOUNDARY_MARKERS), []);
+  assert.ok(PUBLIC_CLAIM_SOURCES.includes("src/components/marketing/external-exposure-snapshot.tsx"));
   assert.ok(PUBLIC_CLAIM_SOURCES.includes("src/lib/external-exposure/copy.ts"));
   assert.ok(PUBLIC_CLAIM_SOURCES.includes("src/lib/external-exposure/catalog.ts"));
+  assert.equal(
+    claimSurfaces().some((surface) => surface.path === RENDERED_EXPOSURE_SNAPSHOT_SOURCE),
+    true,
+  );
 });
 
 test("homepage copy source and rendered homepage keep evidence boundaries", () => {
