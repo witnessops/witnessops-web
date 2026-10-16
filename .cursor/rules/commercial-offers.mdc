@@ -1,0 +1,12 @@
+---
+description: Public offer identity and pricing boundaries
+globs: docs/commercial/**,packages/catalog/**
+alwaysApply: false
+---
+
+- Start from `docs/commercial/README.md` and `docs/commercial/OFFER_IDENTITY_AND_NAMING_POLICY.md`.
+- The only public paid offers are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
+- The private pilot is not a public offer. The free hostname check is not a third paid review.
+- Keep historical offer records for old lookups. Do not present them as new public offers.
+- Naming policy does not grant rename, billing, collection, migration, or deployment authority.
+- Buyer-path changes also need `pnpm smoke:buyer-path:test`.
