@@ -240,7 +240,7 @@ export default function SupportPage() {
               </p>
               <a
                 href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
-                className="mt-4 inline-flex items-center border border-surface-border px-4 py-2 text-sm text-text-secondary transition-colors hover:border-brand-accent/40 hover:text-text-primary"
+                className="mt-4 inline-block max-w-full border border-surface-border px-4 py-2 text-sm text-text-secondary [overflow-wrap:anywhere] transition-colors hover:border-brand-accent/40 hover:text-text-primary"
               >
                 {PUBLIC_CONTACT_EMAIL}
               </a>
@@ -250,7 +250,7 @@ export default function SupportPage() {
               <p className="mt-2 text-xs leading-6 text-text-muted">
                 Vulnerabilities:{" "}
                 <a
-                  className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+                  className="font-semibold text-brand-accent underline-offset-4 [overflow-wrap:anywhere] hover:underline"
                   href={publicContactMailto("Private vulnerability report")}
                 >
                   {PUBLIC_CONTACT_EMAIL}

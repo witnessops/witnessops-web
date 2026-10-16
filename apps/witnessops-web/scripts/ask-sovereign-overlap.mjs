@@ -5,7 +5,10 @@
  * Requires `next dev` with NEXT_PUBLIC_WO_PREVIEW=1. ?sim is dev-only.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
+import { mergeWidthRoutes, sampleCaseRoutes } from "./public-width-routes.mjs";
 
 const base = process.env.ASK_BASE || "http://127.0.0.1:3001";
 const outDir = process.env.ASK_OUT || "/opt/cursor/artifacts";
@@ -65,7 +68,8 @@ async function publicRoutePaths() {
     "/review/request",
     "/support",
   ];
-  return [...new Set([...paths, ...extras])].filter((path) => path !== "/pl/check").sort();
+  const samples = sampleCaseRoutes(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+  return mergeWidthRoutes([...paths, ...extras], samples);
 }
 
 async function gotoReady(page, url) {
@@ -347,6 +351,40 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       }
     }
     const chipGap = noteBox && copyBottom !== null ? noteBox.top - copyBottom : null;
+    const faceGap = noteBox && spriteBox ? noteBox.top - spriteBox.bottom : null;
+    const bubbleWidth = errorLi ? errorLi.clientWidth : 0;
+    const retryWidth = retryBox ? retryBox.width : 0;
+    const emailText = address ? (address.textContent || "").replace(/\s+/g, "") : "";
+    const emailPeriod = emailText.endsWith(".");
+    const emailCount = ((thread.textContent || "").match(/engage@mail\.witnessops\.com/g) || []).length;
+    const threadStyle = getComputedStyle(thread);
+    const threadMask = threadStyle.maskImage && threadStyle.maskImage !== "none" ? threadStyle.maskImage : threadStyle.webkitMaskImage || "none";
+    const fadesTopMask = (mask) => /rgba\(0,\s*0,\s*0,\s*0\)\s+0px|transparent\s+0px/.test(mask);
+    const errorTopFade = thread.scrollTop <= 1 || fadesTopMask(threadMask);
+    const hardCover = /transparent[^,]*,\s*transparent\s+(\d+(?:\.\d+)?)px/.exec(threadMask);
+    const coverPx = hardCover ? Number(hardCover[1]) : 16;
+    let partialLine = false;
+    const noticeEl = root.querySelector("[data-sheet-notice]");
+    const noticeOn = Boolean(noticeEl && getComputedStyle(noticeEl).display !== "none" && noticeEl.getBoundingClientRect().height > 0);
+    if (noticeOn && thread.scrollTop > 1) {
+      const frame = thread.getBoundingClientRect();
+      const walker = document.createTreeWalker(thread, NodeFilter.SHOW_TEXT);
+      let textNode = walker.nextNode();
+      while (textNode && !partialLine) {
+        const parent = textNode.parentElement;
+        if (parent && !parent.closest("[class*='srOnly']") && (textNode.textContent || "").trim()) {
+          const range = document.createRange();
+          range.selectNodeContents(textNode);
+          for (const rect of range.getClientRects()) {
+            if (rect.width < 1 || rect.height < 1) continue;
+            if (rect.bottom <= frame.top + 0.5) continue;
+            if (rect.top >= frame.top + 16 - 0.5) continue;
+            if (rect.bottom > frame.top + coverPx + 0.5) partialLine = true;
+          }
+        }
+        textNode = walker.nextNode();
+      }
+    }
     const stackedNote = Boolean(noteBox && spriteBox && noteBox.left <= spriteBox.left + 4);
     const textLeft = stackedNote ? noteBox.left : faceCopyBox ? faceCopyBox.left : noteBox ? noteBox.left : 0;
     let middotStarts = 0;
@@ -449,7 +487,14 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       previewCaptions,
       simulatedLabel,
       chipGap,
+      faceGap,
+      bubbleWidth,
+      retryWidth,
       chipWidth: noteChipBox ? noteChipBox.width : 0,
+      emailPeriod,
+      emailCount,
+      errorTopFade,
+      partialLine,
       emailLines,
       emailBreak,
       replyLines,
@@ -548,21 +593,19 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
       const beforeMask = maskOf();
       const beforeTop = thread.scrollTop;
-      const notice = document.querySelector("[data-sheet-notice]");
-      const sheetOn = Boolean(notice && getComputedStyle(notice).display !== "none");
       const fadesBottom = (mask) => mask.includes("calc(100% - 16px)");
       const fadesTop = (mask) => /rgba\(0,\s*0,\s*0,\s*0\)\s+0px|transparent\s+0px/.test(mask);
       const beforeOk = !overflow
         ? beforeMask === "none"
         : atEnd
-          ? (sheetOn && beforeTop > 1 ? fadesTop(beforeMask) && !fadesBottom(beforeMask) : beforeMask === "none")
-          : fadesBottom(beforeMask);
+          ? (beforeTop > 1 ? fadesTop(beforeMask) && !fadesBottom(beforeMask) : beforeMask === "none")
+          : fadesBottom(beforeMask) && (beforeTop > 1 ? fadesTop(beforeMask) : true);
       const previous = thread.scrollTop;
       thread.scrollTop = thread.scrollHeight;
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const endMask = maskOf();
       const endTop = thread.scrollTop;
-      const endOk = !fadesBottom(endMask) && (sheetOn && endTop > 1 ? fadesTop(endMask) : endMask === "none");
+      const endOk = !fadesBottom(endMask) && (endTop > 1 ? fadesTop(endMask) : endMask === "none");
       thread.scrollTop = previous;
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const fadeOk = beforeOk && endOk;
@@ -620,12 +663,12 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "error" && (!measured.errorChipInThread || measured.errorChipInHeader || !measured.captionOutside || !measured.captionVisible)) issues.push(`error caption ${measured.captionText}`);
   if (mode === "handoff" && (!measured.handoffChipInThread || measured.handoffChipInHeader || !measured.captionOutside || measured.simulatedLabel || measured.previewCaptions !== 1)) issues.push(`handoff caption ${measured.captionText} captions=${measured.previewCaptions}`);
   if (mode === "answer" && !measured.simulatedLabel) issues.push("simulated label missing");
-  if (mode === "handoff" && width <= 320 && (measured.emailLines < 1 || measured.emailLines > 2)) issues.push(`email lines ${measured.emailLines}`);
-  if (mode === "handoff" && width <= 320 && (measured.replyLines < 1 || measured.replyLines > 2 || measured.replyTailLines !== 1)) issues.push(`reply email lines ${measured.replyLines} tail ${measured.replyTailLines}`);
+  if (mode === "handoff" && (measured.emailCount !== 1 || measured.emailLines !== 1 || !measured.emailPeriod)) issues.push(`card email count=${measured.emailCount} lines=${measured.emailLines} period=${measured.emailPeriod}`);
+  if (mode === "handoff" && measured.replyLines !== 0) issues.push(`reply email duplicated lines ${measured.replyLines}`);
   if (mode === "handoff" && measured.emailBreak === "break-all") issues.push("email breaks anywhere");
   if (locale === "pl" && mode === "error" && width <= 390 && measured.errorWrapped && !measured.hanging) issues.push("error note indent");
-  if (mode === "error" && width < 480 && (measured.chipGap == null || measured.chipGap > 24 || measured.chipGap < 8)) issues.push(`error chip gap ${measured.chipGap}`);
-  if (mode === "error" && width < 480 && measured.chipWidth > 160) issues.push(`chip width ${Math.round(measured.chipWidth)}`);
+  if (mode === "error" && width < 480 && (measured.faceGap == null || measured.faceGap > 24 || measured.faceGap < 8)) issues.push(`error chip gap ${measured.faceGap}`);
+  if (mode === "error" && width < 480 && !(measured.chipWidth >= measured.bubbleWidth - 1 && measured.noteWidth >= measured.bubbleWidth - 1 && measured.retryWidth >= measured.bubbleWidth - 1)) issues.push(`error width chip=${Math.round(measured.chipWidth)} note=${Math.round(measured.noteWidth)} retry=${Math.round(measured.retryWidth)} bubble=${Math.round(measured.bubbleWidth)}`);
   if (mode === "error" && width >= 480 && measured.retryLeft < measured.spriteRight - 1) issues.push("retry under the face");
   if (mode === "error" && !measured.retryWithText) issues.push("retry not in the text column");
   if (measured.middotStarts) issues.push(`middot starts a line ${measured.middotStarts}`);
@@ -637,6 +680,8 @@ function problems(measured, { locale, width, height, mode }) {
   if (locale === "pl" && width === 1440 && !measured.disclaimerBound) issues.push("disclaimer tail");
   if (mode === "error" && measured.answerAligned === false) issues.push("answer not at block start after retry");
   if (mode === "error" && width <= 390 && measured.fadeOk === false) issues.push("thread fade");
+  if (mode === "error" && width <= 390 && measured.errorTopFade === false) issues.push("error top fade");
+  if (locale === "pl" && mode === "handoff" && width < 768 && measured.partialLine) issues.push("partial line under the notice");
   if (!measured.disclaimerFull) issues.push("disclaimer not full width");
   if (width >= 900 && !measured.bottomsAligned) issues.push(`bottoms ${measured.panelBottom.toFixed(0)}/${measured.railBottom.toFixed(0)}`);
   if (locale === "pl" && width === 1440 && height === 900 && !measured.railInFold) issues.push(`rail past fold ${measured.railBottom.toFixed(0)}`);
@@ -655,7 +700,10 @@ function problems(measured, { locale, width, height, mode }) {
 async function runPageWidth() {
   const widthLines = ["# documentElement.scrollWidth <= clientWidth. The scrollbar is outside clientWidth."];
   const widthRoutes = await publicRoutePaths();
+  widthLines.push(`# routes ${widthRoutes.length}`);
+  log(`# routes ${widthRoutes.length}`);
   let widthFails = 0;
+  const navX = new Map();
   for (const viewport of viewports) {
     for (const theme of themes) {
       const context = await browser.newContext({
@@ -692,6 +740,28 @@ async function runPageWidth() {
         const line = `${widthOk && bannerOk && navOk ? "OK" : "FAIL"} ${theme} ${locale} ${viewport.key} ${path} scroll=${measured.scroll} client=${measured.client} banner=${measured.banner} navWrap=${measured.navWraps.join("|") || "none"}`;
         widthLines.push(line);
         log(line);
+        if (viewport.width === 1024 && (path === "/" || path === "/pl")) {
+          const positions = await page.evaluate(() => {
+            const bar = document.querySelector(".wo-navbar-bar");
+            if (!bar) return [];
+            return [...bar.querySelectorAll("a, button")].filter((el) => {
+              if (el.closest("#witnessops-mobile-menu")) return false;
+              const style = getComputedStyle(el);
+              if (style.display === "none" || style.visibility === "hidden") return false;
+              const box = el.getBoundingClientRect();
+              return box.width > 1 && box.height > 1;
+            }).map((el) => Math.round(el.getBoundingClientRect().x));
+          });
+          navX.set(`${path}:${theme}`, positions);
+          if (theme === "dark") {
+            const light = navX.get(`${path}:light`) || [];
+            const same = light.length > 0 && light.length === positions.length && light.every((value, index) => value === positions[index]);
+            const navLine = `${same ? "OK" : "FAIL"} nav-x ${path} 1024 light=${light.join(",")} dark=${positions.join(",")}`;
+            widthLines.push(navLine);
+            log(navLine);
+            if (!same) widthFails += 1;
+          }
+        }
       }
       await context.close();
     }
@@ -796,6 +866,68 @@ try {
   log(`cls ${clsBad.length === 0 ? "OK" : `FAIL ${clsBad.join("; ")}`}`);
   if (clsBad.length) throw new Error(`CLS ${clsBad.join("; ")}`);
 
+  for (const theme of themes) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 640 }, deviceScaleFactor: 1, colorScheme: theme });
+    const page = await context.newPage();
+    await page.addInitScript((value) => localStorage.setItem("wo-theme", value), theme);
+    for (const path of ["/support", "/pl/support"]) {
+      await gotoReady(page, `${base}${path}`);
+      const rows = await page.evaluate(() => {
+        function parseColor(input) {
+          const match = String(input).match(/rgba?\(([^)]+)\)/);
+          if (!match) return { r: 255, g: 255, b: 255, a: 1 };
+          const parts = match[1].split(",").map((part) => Number.parseFloat(part.trim()));
+          return { r: parts[0], g: parts[1], b: parts[2], a: parts[3] ?? 1 };
+        }
+        function composite(fg, bg) {
+          const alpha = fg.a;
+          return { r: fg.r * alpha + bg.r * (1 - alpha), g: fg.g * alpha + bg.g * (1 - alpha), b: fg.b * alpha + bg.b * (1 - alpha), a: 1 };
+        }
+        function channel(value) {
+          const scaled = value / 255;
+          return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
+        }
+        function luminance(color) {
+          return 0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b);
+        }
+        function contrast(fg, bg) {
+          const left = luminance(fg);
+          const right = luminance(bg);
+          return (Math.max(left, right) + 0.05) / (Math.min(left, right) + 0.05);
+        }
+        function backing(element) {
+          const layers = [];
+          let node = element;
+          while (node) {
+            const color = parseColor(getComputedStyle(node).backgroundColor);
+            if (color.a > 0) layers.push(color);
+            if (color.a >= 0.99) break;
+            node = node.parentElement;
+          }
+          let paint = layers.length ? layers[layers.length - 1] : { r: 255, g: 255, b: 255, a: 1 };
+          for (let index = layers.length - 2; index >= 0; index -= 1) paint = composite(layers[index], paint);
+          return paint;
+        }
+        return [...document.querySelectorAll("button:disabled")].filter((button) => {
+          const box = button.getBoundingClientRect();
+          return box.width > 1 && box.height > 1;
+        }).map((button) => {
+          const color = parseColor(getComputedStyle(button).color);
+          return {
+            text: (button.textContent || "").replace(/\s+/g, " ").trim().slice(0, 70),
+            ratio: Number(contrast(color, backing(button)).toFixed(2)),
+          };
+        });
+      });
+      for (const row of rows) {
+        const ok = row.ratio >= 3;
+        const contrastLine = `${theme} ${path} 320 disabled BUTTON ${row.ratio.toFixed(2)} ${ok ? "OK" : "FAIL"} ${JSON.stringify(row.text)}`;
+        contrastLines.push(contrastLine);
+        log(contrastLine);
+      }
+    }
+    await context.close();
+  }
   const contrastBad = contrastLines.filter((line) => line.includes(" FAIL "));
   contrastLines.push(contrastBad.length ? `CONTRAST_FAIL ${contrastBad.length}` : "CONTRAST_OK");
   log(contrastBad.length ? `contrast FAIL ${contrastBad.length}` : "contrast OK");

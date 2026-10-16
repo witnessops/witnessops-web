@@ -40,9 +40,9 @@ function contactText(locale: SovereignLocale): string {
 
 function handoffText(locale: SovereignLocale): string {
   if (locale === "pl") {
-    return `Tego tematu nie ma w opublikowanych warunkach dwóch przeglądów. Napisz na ${CONTACT}.`;
+    return "Tego tematu nie ma w opublikowanych warunkach dwóch przeglądów.";
   }
-  return `That topic is not in the published offer facts for the two reviews. Write to ${CONTACT}.`;
+  return "That topic is not in the published offer facts for the two reviews.";
 }
 
 export function sovereignAnswer(question: string, locale: SovereignLocale): SovereignAnswer {

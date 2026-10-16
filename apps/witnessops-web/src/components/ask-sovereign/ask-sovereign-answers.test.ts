@@ -19,6 +19,12 @@ test("simulated answers use only the two locked offers and make no request", () 
   assert.match(external.text, /retest/i);
   assert.equal(handoff.kind, "handoff");
   assert.equal(handoff.needsReview, true);
+  assert.doesNotMatch(handoff.text, /engage@/);
+  assert.match(handoff.text, /\.$/);
+  const polishHandoff = sovereignAnswer("gdzie są dane i jaki model", "pl");
+  assert.equal(polishHandoff.kind, "handoff");
+  assert.doesNotMatch(polishHandoff.text, /engage@/);
+  assert.match(polishHandoff.text, /\.$/);
   const polishExternal = sovereignAnswer("ile kosztuje ekspozycja", "pl").text;
   const polishAgent = sovereignAnswer("ile kosztuje przegląd agenta za 2500", "pl").text;
   assert.match(polishExternal, /€1\u00A0900\u00A0bez\u00A0VAT/);

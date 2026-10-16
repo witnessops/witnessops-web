@@ -129,8 +129,9 @@ export default function CustomerSecurityReviewSamplePage() {
                 </ul>
               </div>
               <div
-                className="overflow-x-auto"
+                className="min-w-0 max-w-full overflow-x-auto"
                 tabIndex={0}
+                role="region"
                 aria-label="Synthetic example response table"
               >
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -179,7 +180,7 @@ export default function CustomerSecurityReviewSamplePage() {
               <li key={file} className="border-t border-surface-border pt-3 font-mono text-xs sm:text-sm">
                 <a
                   href={`/samples/csr-sprint-synthetic/${file}`}
-                  className="text-brand-accent underline-offset-4 hover:underline"
+                  className="[overflow-wrap:anywhere] text-brand-accent underline-offset-4 hover:underline"
                   target="_blank"
                   rel="noreferrer"
                 >

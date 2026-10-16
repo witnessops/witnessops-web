@@ -91,8 +91,8 @@ export default function PolishSupportPage() {
         <p className="mt-2 text-sm leading-6 text-text-muted">
           Prywatne zgłoszenia podatności kieruj wyłącznie na{" "}
           <a
-            className="text-brand-accent hover:underline"
             href={VULNERABILITY_MAILTO}
+            className="[overflow-wrap:anywhere] text-brand-accent hover:underline"
           >
             {PUBLIC_CONTACT_EMAIL}
           </a>
@@ -124,7 +124,7 @@ export default function PolishSupportPage() {
         </p>
         <a
           href={SUPPORT_MAILTO}
-          className="mt-4 inline-flex min-h-11 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse hover:brightness-110"
+          className="mt-4 inline-block max-w-full min-h-11 border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-text-inverse [overflow-wrap:anywhere] hover:brightness-110"
         >
           Napisz do wsparcia: {PUBLIC_CONTACT_EMAIL}
         </a>

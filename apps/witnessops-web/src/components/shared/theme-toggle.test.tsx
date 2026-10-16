@@ -42,6 +42,7 @@ test("/pl renders no English theme strings", () => {
   const buttons = toggles(renderAt("/pl"));
   assert.ok(buttons.length >= 1);
   for (const button of buttons) {
+    assert.match(button, /w-24/);
     assert.match(button, />Ciemny</);
     assert.match(button, /aria-label="Przełącz na ciemny motyw"/);
     assert.match(button, /title="Przełącz na ciemny motyw"/);
@@ -53,6 +54,7 @@ test("English theme toggle labels stay in English", () => {
   const buttons = toggles(renderAt("/"));
   assert.ok(buttons.length >= 1);
   for (const button of buttons) {
+    assert.match(button, /w-24/);
     assert.match(button, />Dark</);
     assert.match(button, /aria-label="Switch to dark theme"/);
     assert.match(button, /title="Switch to dark theme"/);

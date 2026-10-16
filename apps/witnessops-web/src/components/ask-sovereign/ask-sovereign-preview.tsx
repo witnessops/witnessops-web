@@ -20,16 +20,48 @@ const PAUSE_KEY = "wo-sovereign-paused";
 export const PROCESSING_SHOW_DELAY_MS = 150;
 export const PENDING_TIMEOUT_MS = 15_000;
 export const SLOW_PENDING_MS = 6_000;
+/** How far a hard top cover must reach so a line crossing the 16px fade is fully hidden. */
+export function threadTopCover(thread: HTMLElement): number {
+  const frame = thread.getBoundingClientRect();
+  let depth = 16;
+  const walker = document.createTreeWalker(thread, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    const parent = node.parentElement;
+    if (!parent || parent.closest("[class*='srOnly']")) {
+      node = walker.nextNode();
+      continue;
+    }
+    if ((node.textContent || "").trim()) {
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 1 || rect.height < 1) continue;
+        if (rect.bottom <= frame.top + 0.5) continue;
+        if (rect.top >= frame.top + 16 - 0.5) continue;
+        depth = Math.max(depth, Math.ceil(rect.bottom - frame.top));
+      }
+    }
+    node = walker.nextNode();
+  }
+  return depth;
+}
+
 function applyThreadFade(thread: HTMLElement) {
   const overflow = thread.scrollHeight > thread.clientHeight + 1;
   const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
   const notice = thread.parentElement?.querySelector<HTMLElement>("[data-sheet-notice]");
   const sheetVisible = Boolean(notice && getComputedStyle(notice).display !== "none");
   const fadeBottom = overflow && !atEnd;
-  const fadeTop = sheetVisible && thread.scrollTop > 1;
+  const fadeTop = thread.scrollTop > 1;
+  const covered = sheetVisible && fadeTop;
+  const cover = covered ? threadTopCover(thread) : 16;
+  thread.style.setProperty("--thread-top-cover", `${cover}px`);
   thread.classList.toggle(styles.threadFade, fadeBottom && !fadeTop);
-  thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom);
-  thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop);
+  thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom && !covered);
+  thread.classList.toggle(styles.threadFadeTopCover, fadeTop && !fadeBottom && covered);
+  thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop && !covered);
+  thread.classList.toggle(styles.threadFadeBothCover, fadeBottom && fadeTop && covered);
 }
 
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
@@ -716,10 +748,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                         <span>Sovereign</span>
                         {errorCaptionText ? <p className={styles.handoffCaption}>{errorCaptionText}</p> : null}
                         {turn.text ? <p><ContactLine text={turn.text} /></p> : null}
-                        <div className={styles.errorBody}>
-                          {errorNote}
-                          {retry}
-                        </div>
+                      </div>
+                      <div className={styles.errorBody}>
+                        {errorNote}
+                        {retry}
                       </div>
                     </div>
                   </li>
@@ -755,7 +787,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
                 <a href={`mailto:${CONTACT_ADDRESS}`}>
                   {CONTACT_ADDRESS.slice(0, CONTACT_ADDRESS.indexOf("@"))}
                   <wbr />
-                  {CONTACT_ADDRESS.slice(CONTACT_ADDRESS.indexOf("@"))}
+                  {CONTACT_ADDRESS.slice(CONTACT_ADDRESS.indexOf("@"))}.
                 </a>
               </p>
             </div>

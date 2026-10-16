@@ -74,6 +74,14 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
 }
+.threadFadeTopCover {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 100%);
+}
+.threadFadeBothCover {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, transparent var(--thread-top-cover, 16px), #000 var(--thread-top-cover, 16px), #000 calc(100% - 16px), transparent 100%);
+}
 .thread::-webkit-scrollbar { width: 8px; height: 8px; }
 .thread::-webkit-scrollbar-track { background: transparent; }
 .thread::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: 8px; }
@@ -175,10 +183,19 @@
   min-width: 0;
   max-width: 100%;
 }
-.errorStack > .sprite { grid-column: 1; grid-row: 1; }
+.errorStack > .sprite { grid-column: 1; grid-row: 1 / span 2; }
 .errorFaceCopy { grid-column: 2; grid-row: 1; min-width: 0; }
-.errorBody { margin-top: 16px; min-width: 0; max-width: 100%; }
+.errorBody { grid-column: 2; grid-row: 2; margin-top: 16px; min-width: 0; max-width: 100%; }
 .errorBody .errorNote { margin: 0; }
+@media (max-width: 479px) {
+  .errorStack > .sprite { grid-row: 1; }
+  .errorBody { grid-column: 1 / -1; width: 100%; }
+  .errorBody .errorNote,
+  .errorBody .errorCaption { width: 100%; max-width: 100%; }
+  .errorBody .retry { width: 100%; max-width: 100%; }
+  .errorBody .errorNote .turnChip { width: 100%; max-width: 100%; }
+  .errorBody .errorNote { grid-template-columns: minmax(0, 1fr); }
+}
 .errorFaceCopy .handoffCaption { margin-top: 4px; }
 .dot { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 999px; background: var(--color-brand-accent); vertical-align: 1px; }
 .sprite {

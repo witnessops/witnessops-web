@@ -146,7 +146,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
-            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5"}>
+            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5"}>
               {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a

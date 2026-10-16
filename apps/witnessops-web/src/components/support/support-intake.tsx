@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { useState, useEffect, useRef } from "react";
 import { PUBLIC_CONTACT_EMAIL, PUBLIC_NO_SECRETS_NOTE, publicContactMailto } from "@/lib/public-contact";
@@ -104,6 +105,7 @@ const KB_ENTRIES = [
 ];
 
 export function SupportIntake({ supportEmail }: { supportEmail: string }) {
+  const searchPlaceholder = (usePathname() || "").startsWith("/pl") ? "konto, CLI, wyniki" : "signup, CLI, results";
   const [status, setStatus] = useState<
     | "idle"
     | "form"
@@ -347,7 +349,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={inputClass}
                 style={inputFont}
-                placeholder="signup, invitations, CLI, results..."
+                placeholder={searchPlaceholder}
                 autoComplete="off"
               />
 
@@ -372,7 +374,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               type="submit"
               form="si-email-form"
               disabled={!email.trim()}
-              className="mt-5 w-full py-3 border border-surface-border text-text-muted disabled:opacity-30 transition-all hover:border-brand-accent/40 hover:text-text-primary"
+              className="mt-5 w-full py-3 border border-surface-border text-text-secondary disabled:text-text-secondary transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
               Still need help? Email support
@@ -388,7 +390,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               . Vulnerabilities go to{" "}
               <a
                 href={publicContactMailto("Private vulnerability report")}
-                className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+                className="font-semibold text-brand-accent underline-offset-4 [overflow-wrap:anywhere] hover:underline"
               >
                 {PUBLIC_CONTACT_EMAIL}
               </a>
