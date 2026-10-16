@@ -1,0 +1,11 @@
+---
+description: Public article and research editorial boundaries
+globs: apps/witnessops-web/src/app/**/articles/**,apps/witnessops-web/src/app/research/**
+alwaysApply: false
+---
+
+- Read `docs/editorial/WITNESSOPS_EDITORIAL_STYLE.md` and `docs/editorial/ARTICLE_CONTRACT.md` before drafting or changing an article.
+- These routes supplement root and app rules. They do not authorize publication.
+- Use the shared editorial shell and metadata registry. Preserve existing canonical URLs and approved text unless a rewrite is explicitly requested.
+- Do not invent author experience or evidence.
+- `/research` is the discovery index. Do not duplicate article bodies there.

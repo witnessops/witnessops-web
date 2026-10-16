@@ -1,0 +1,20 @@
+# Bugbot repository config. Cursor reads this from the pull request base branch.
+# https://cursor.com/docs/bugbot
+# Autofix stays disabled: the founder reviews and merges by hand.
+version: 1
+
+triggers:
+  drafts: false
+  frequency: everyPush
+
+review:
+  effort: default
+  smartPrompt: ""
+  incremental: true
+
+prSummary:
+  mode: comment
+  riskScore: true
+
+autofix:
+  mode: disabled
