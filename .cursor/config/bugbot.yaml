@@ -18,10 +18,11 @@ review:
     The public contact address is engage@mail.witnessops.com only.
     Delivery timing for both offers is exactly "Delivery timing per signed SOW".
 
-    Held terms must not return in current public copy or new-sales selection:
-    three-working-day, three working days, 3 working days, 10 working days,
-    €550, and fixed quote after scope. The held-term test also rejects 7–10
-    on current public surfaces.
+    Held or historical prices and terms tracked in the commercial registry
+    must never appear on public surfaces or in new-sales selection. Read
+    apps/witnessops-web/src/lib/commercial-truth.ts and
+    apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx.
+    Flag those held literals if they show up in current public copy.
 
     Historical offer names stay historical and must not be renamed onto a
     current offer: AI Agent Tools & Access Review, Public Exposure Review,

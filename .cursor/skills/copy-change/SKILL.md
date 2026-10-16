@@ -21,7 +21,7 @@ Public website and content edits stay inside the current two offers and the clai
 - Public new-sales offers are only Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
 - Public contact is `engage@mail.witnessops.com` only.
 - Timing copy is `Delivery timing per signed SOW`.
-- Do not reintroduce `three-working-day`, `10 working days`, `€550`, or `fixed quote after scope`.
+- Do not reintroduce held or historical prices and terms tracked in the commercial registry. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`, and keep them off public surfaces and new-sales selection.
 - Keep historical offer names as historical records. Do not rename them.
 - Replace banned claim words using `.cursor/rules/claim-boundary.mdc`. State the limit in the same sentence as any positive result.
 
