@@ -1,0 +1,22 @@
+---
+description: Code Engineer limits for connectors, secrets, git, and the closing readback.
+alwaysApply: true
+---
+
+# Agent guardrails
+
+These limits apply to every task in this repository.
+
+- Do not use Desktop Commander or other machine connectors. That includes the `desktop-commander` and `Dc-xai` MCP namespaces, their CLIs, and any device bridge they open.
+- Do not read, write, copy, or print credential files, `.env*` files, `*device.json` files, or token stores. The blocked locations include `.desktop-commander-device/`, `.claude-server-commander/`, `.hscli`, and `.witnessops-token-store/`.
+- Do not merge, deploy, force-push, or write to `main`. Commit and push only on the task branch.
+- Open draft PRs only. Start each task from a new branch off `main`. One PR per task.
+- Do not weaken tests, CI gates, or hook denials to make a check pass.
+
+End every task with a readback:
+
+- branch name
+- head SHA
+- files changed
+- commands run, each with pass and fail counts
+- unknowns

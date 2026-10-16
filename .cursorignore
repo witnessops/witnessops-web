@@ -1,0 +1,39 @@
+# Sensitive or noisy paths for Cursor indexing.
+# https://cursor.com/docs/reference/ignore-file
+# Syntax matches .gitignore. Cursor also ignores .gitignore entries and its default binary list.
+# Public sample receipts, ask-authority artifacts, and deploy/topology.env.example stay readable.
+
+# Operator topology file. The example template is not ignored.
+deploy/topology.env
+
+# Tracked supply-chain approval evidence.
+security/supply-chain/
+
+# Local agent and deploy scratch, including var/cursor-agent-shell.log.
+var/
+
+# Private operational receipts. May exist on an operator machine; listed in .gitignore.
+ops/receipts/
+
+# Playwright UI-proof output. Produced under artifacts/ui-proof/ by the root Playwright config.
+artifacts/ui-proof/
+
+# Workstation secrets and local cloud CLI state named by .gitignore.
+.env
+.env.*
+.witnessops-token-store/
+.azure/
+infra/main.parameters.json
+
+# Vendored tarball. *.tgz is outside Cursor's default ignore list.
+vendor/**/*.tgz
+
+# Generated output from local builds and pnpm health.
+**/.next/
+**/.next-dev/
+**/dist/
+.turbo/
+**/*.tsbuildinfo
+tmp/
+out/
+output/
