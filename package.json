@@ -24,7 +24,7 @@
     "test:pdf-pagination": "playwright test --config tests/external-exposure/pdf.playwright.config.ts",
     "proof:test": "pnpm --filter @witnessops/proof test",
     "verify:skill-contract": "pnpm --filter witnessops-web test:skill-contract && node --test tests/governed-agent-verifier-signing-gate.test.mjs",
-    "optimize:quick-check": "bash .grok/skills/optimize-witnessops-web/scripts/quick-check.sh",
+    "optimize:quick-check": "bash .cursor/skills/optimize-witnessops-web/scripts/quick-check.sh",
     "route-parity": "node --import tsx --test tests/route-parity/route-parity.test.ts",
     "receipt-smoke": "node --import tsx --test tests/receipt-smoke/receipt-smoke.test.ts",
     "smoke:buyer-path": "node --import tsx ./scripts/smoke-buyer-path.ts",

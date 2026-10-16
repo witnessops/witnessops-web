@@ -9,6 +9,20 @@ cd "$ROOT"
 corepack prepare pnpm@9.15.4 --activate
 pnpm install --frozen-lockfile
 
+# Browsers and their system libraries are baked into the image at
+# PLAYWRIGHT_BROWSERS_PATH. This step only checks that cache.
 # Root Playwright config and several suite configs use Chromium.
 # App, funnel, hero, proofpack, and external-exposure configs also use WebKit.
-pnpm exec playwright install --with-deps chromium webkit
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-/opt/ms-playwright}"
+node <<'NODE'
+const fs = require("node:fs");
+const { chromium, webkit } = require("@playwright/test");
+for (const browser of [chromium, webkit]) {
+  const executable = browser.executablePath();
+  if (!fs.existsSync(executable)) {
+    console.error(`Playwright browser cache missing: ${executable}`);
+    process.exit(1);
+  }
+  console.log(`cached ${executable}`);
+}
+NODE
