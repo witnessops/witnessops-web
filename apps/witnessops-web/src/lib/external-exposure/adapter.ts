@@ -1,10 +1,10 @@
-import { createHash } from 'node:crypto';
 import { isIP } from 'node:net';
 import { z } from 'zod';
 import type { ProofpackReportV1 } from '../proofpack/report-model';
 import { externalExposureReportModel } from './report-model';
 import { normalizeExternalHostname } from './input';
 import { CHECK_IDS, EXTERNAL_VERSION, type ExternalSnapshotV1 } from './contracts';
+import { sourceDigest } from './unsigned-run-record';
 
 const status = z.enum(['OBSERVED_EXPECTED', 'NEEDS_ATTENTION', 'INFORMATIONAL', 'UNDETERMINED', 'CHECK_ERROR']);
 const timestamp = z.string().datetime({ offset: true });
@@ -61,6 +61,6 @@ export function validateExternalSnapshot(input: unknown): ExternalSnapshotV1 {
 /** Admission checks establish data consistency only. Source observations remain unsigned. */
 export function externalExposureAdapter(input: unknown): ProofpackReportV1 {
   const snapshot = validateExternalSnapshot(input);
-  const digest = createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');
-  return externalExposureReportModel(snapshot, { digest, serialization: 'json-stringify' });
+  const digest = sourceDigest(snapshot);
+  return externalExposureReportModel(snapshot, { digest, serialization: 'witnessops-canonical-json-v1' });
 }

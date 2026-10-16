@@ -1,0 +1,94 @@
+.results {
+  --rr-bg: #121316;
+  --rr-fg: #f4f1ea;
+  --rr-secondary: #d5d0c6;
+  --rr-muted: #c3bfb6;
+  --rr-line: #3a3a36;
+  --rr-attention: #f0b4a6;
+  --rr-ok: #9dceb0;
+  --rr-info: #b7c7ea;
+  --rr-undetermined: #e3d7a8;
+  --rr-error: #f0b4a6;
+  --rr-tag-bg: #2a2a28;
+  --rr-button: #f4f1ea;
+  --rr-button-fg: #1c1b19;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 720px;
+  min-width: 0;
+  color: var(--rr-fg);
+  background: var(--rr-bg);
+  border: 1px solid var(--rr-line);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.results[data-theme="light"] {
+  --rr-bg: #f7f4ee;
+  --rr-fg: #1c1b19;
+  --rr-secondary: #3f3c37;
+  --rr-muted: #3f3c37;
+  --rr-line: #c9c3b8;
+  --rr-attention: #8a2f28;
+  --rr-ok: #1d5c3a;
+  --rr-info: #1e3f73;
+  --rr-undetermined: #6a4e12;
+  --rr-error: #8a2f28;
+  --rr-tag-bg: #e6e1d8;
+  --rr-button: #1c1b19;
+  --rr-button-fg: #f7f4ee;
+}
+.summary { display: grid; gap: 6px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.domain { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 560; letter-spacing: -0.03em; }
+.counts { margin: 0; font-size: 16px; line-height: 1.4; }
+.summary p, .attention p, .record p, .groupBody p { margin: 0; color: var(--rr-secondary); }
+.tag {
+  display: inline-flex; align-items: center; min-height: 24px; width: fit-content;
+  margin: 0; padding: 0 8px; border-radius: 4px; background: var(--rr-tag-bg); color: var(--rr-fg);
+  font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; line-height: 1.45; color: var(--rr-fg); overflow-wrap: anywhere; word-break: break-word; }
+.attention { margin-top: 16px; }
+.attention h2, .record h2, .record h3 { margin: 0 0 8px; font-size: 16px; font-weight: 560; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.checkHead { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.status { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; font-size: 13px; color: var(--rr-fg); }
+.attention .status, .status.attention { color: var(--rr-attention); }
+.status.ok { color: var(--rr-ok); }
+.status.info { color: var(--rr-info); }
+.status.undetermined { color: var(--rr-undetermined); }
+.status.error { color: var(--rr-error); }
+.status.notRun { color: var(--rr-muted); }
+.icon { width: 16px; height: 16px; flex: 0 0 auto; }
+.note { color: var(--rr-muted); }
+.groups { display: grid; margin-top: 12px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.group { border-top: 1px solid var(--rr-line); min-width: 0; }
+.group summary {
+  min-height: 44px; height: 46px; max-height: 48px; display: flex; align-items: center; gap: 8px;
+  min-width: 0; cursor: pointer; list-style: none; overflow: hidden;
+}
+.group summary::-webkit-details-marker { display: none; }
+.group summary span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.count { margin-left: auto; color: var(--rr-muted); }
+.groupBody { padding: 0 0 12px; }
+.record { margin-top: 16px; display: grid; gap: 8px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.record h2 { display: flex; align-items: center; gap: 8px; }
+.facts { display: grid; gap: 8px; margin: 0; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.facts div { display: grid; gap: 2px; }
+.facts dt { color: var(--rr-muted); font-size: 12px; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.facts dd .note { display: block; margin-top: 4px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.primary, .secondary {
+  min-height: 44px; padding: 8px 14px; border-radius: 7px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.primary { border: 0; background: var(--rr-button); color: var(--rr-button-fg); }
+.secondary { border: 1px solid var(--rr-line); background: transparent; color: var(--rr-fg); }
+.raw { margin-top: 12px; }
+.raw summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.raw pre { margin: 8px 0 0; white-space: pre-wrap; max-width: 100%; }
+.results a { color: var(--rr-fg); text-underline-offset: 3px; }
+@media (max-width: 390px) {
+  .results { padding: 12px; }
+  .domain { font-size: 24px; }
+}

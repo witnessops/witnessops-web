@@ -1,0 +1,13 @@
+.root { display: none; }
+@media print {
+  :global(body):has(> .root) > :not(.root) { display: none !important; }
+  :global(html):has(.root), :global(body):has(> .root) {
+    display: block !important; background: #fff !important; color: #1c1b19 !important;
+    color-scheme: light !important; margin: 0 !important; padding: 0 !important;
+    height: auto !important; min-height: 0 !important; overflow: visible !important;
+  }
+  .root { display: block !important; margin: 0; padding: 12px 12px 0; background: #fff; }
+  .root :global(article) {
+    max-width: none; border: 0; border-radius: 0; padding-bottom: 0; background: transparent;
+  }
+}

@@ -1,7 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { canonicalSource } from '../../apps/witnessops-app/src/lib/source-digest';
 import { externalExposureAdapter, validateExternalSnapshot } from '../../apps/witnessops-web/src/lib/external-exposure/adapter';
+import { RUN_RECORD_WORDING } from '../../apps/witnessops-web/src/lib/external-exposure/unsigned-run-record';
 import { buyerOfferRequestHref } from '../../apps/witnessops-web/src/lib/buyer-services';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '../../apps/witnessops-web/src/lib/commercial-truth';
 import { cleanSnapshotFixture, snapshotFixture } from './fixture';
@@ -61,28 +63,26 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await page.keyboard.press(nextControl);
   await expect(page.getByRole('button', { name: 'Run free check', exact: true })).toBeFocused();
   await collect(page);
-  await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText(/10 check results · .* UTC · 2\.0 seconds/);
-  await expect(page.locator('[data-status=CHECK_ERROR]')).toContainText('Collection error');
-  await expect(page.getByRole('heading', { name: 'What needs attention?', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'What remains unknown?', exact: true })).toBeVisible();
-  const resultRegion = page.getByRole('region', { name: 'Snapshot results' });
-  expect(await resultRegion.locator('h3, details > summary').allTextContents()).toEqual([
-    'What needs attention?', 'What was observed as expected?', 'Inspect expected observations',
-    '1 informational observation', 'What remains unknown?', 'Full evidence', 'Source data and report details',
-  ]);
-  const expectedDetails = page.getByText('Inspect expected observations', { exact: true }).locator('..');
+  const resultRegion = page.getByRole('article', { name: 'Snapshot results' });
+  await expect(resultRegion).toContainText('9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error');
+  await expect(resultRegion).toContainText('Checks with collected evidence: 8/10');
+  await expect(resultRegion).toContainText('Collection error: web.hsts.v1.');
+  await expect(resultRegion.getByRole('heading', { name: 'Needs attention', exact: true })).toBeVisible();
+  const undetermined = resultRegion.locator('details').filter({ has: page.getByText('Undetermined', { exact: true }) }).first();
+  await undetermined.locator('summary').click();
+  await expect(resultRegion.locator('[data-status=CHECK_ERROR]')).toContainText('Collection error');
+  const expectedDetails = resultRegion.locator('details').filter({ has: page.getByText('Observed as expected', { exact: true }) }).first();
   await expect(expectedDetails).toHaveJSProperty('open', false);
   await expectedDetails.locator('summary').click();
   for (const check of snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED'))
     await expect(expectedDetails).toContainText(check.interpretation);
   for (const check of snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION'))
-    await expect(page.locator('[data-status=NEEDS_ATTENTION]').getByRole('heading', { name: check.title, exact: true })).toBeVisible();
-  const information = page.getByText('1 informational observation', { exact: true }).locator('..');
+    await expect(resultRegion.locator('[data-status=NEEDS_ATTENTION]').getByText(check.title, { exact: true })).toBeVisible();
+  const information = resultRegion.locator('details').filter({ has: page.getByText('Informational', { exact: true }) }).first();
   await expect(information).toHaveJSProperty('open', false);
   await expect(information.getByText('Mock observation 3', { exact: true })).not.toBeVisible();
   await information.locator('summary').click();
   await expect(information.getByText('Mock observation 3', { exact: true })).toBeVisible();
-  await expect(page.getByText('No score or severity ranking is assigned.', { exact: false })).toBeVisible();
   await expect(page.locator('input[type=email]')).toHaveCount(0);
   await expect(page.locator('main').getByRole('link', { name: 'Ask an expert', exact: true })).toHaveAttribute('href', buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -98,23 +98,13 @@ test('source download and the immutable report use the same identity and print d
   await page.getByRole('button', { name: 'Download source JSON' }).click();
   const download = await downloadEvent;
   const source = await readFile((await download.path())!);
-  expect(createHash('sha256').update(source).digest('hex')).toBe(model.identity.sourceDigest);
-  await page.getByRole('button', { name: 'View full report', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Hide full report', exact: true })).toHaveAttribute('aria-expanded', 'true');
-  const report = page.getByRole('article', { name: 'Derived buyer report' });
+  expect(source.toString('utf8')).toBe(canonicalSource(snapshot));
+  expect(createHash('sha256').update(source).digest('hex')).toBe(createHash('sha256').update(canonicalSource(snapshot), 'utf8').digest('hex'));
+  const report = page.locator("main article[aria-label='Snapshot results']");
   await expect(report).toBeVisible();
-  await expect(report).toContainText('Snapshot data validation');
-  await expect(report).toContainText('Severity not assessed');
+  await expect(report).toContainText(RUN_RECORD_WORDING.integrityLabel);
+  await report.getByText('Raw results', { exact: true }).click();
   await expect(report).toContainText('CHECK_ERROR');
-  const chapterHeading = report.getByRole('heading', { name: 'Recorded findings', level: 2, exact: true });
-  const expectChapterTypography = async () => {
-    await expect(chapterHeading).toHaveCSS('font-size', '27px');
-    await expect(chapterHeading).toHaveCSS('line-height', '33.75px');
-    await expect(chapterHeading).toHaveCSS('margin-bottom', '16px');
-  };
-  await expectChapterTypography();
-  const desktopWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  expect(await report.boundingBox()).toMatchObject({ x: (desktopWidth - 960) / 2, width: 960 });
   const before = await report.innerHTML();
   await page.getByRole('button', { name: 'Save report as PDF', exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { __snapshotPrints: number }).__snapshotPrints)).toBe(1);
@@ -124,65 +114,51 @@ test('source download and the immutable report use the same identity and print d
   await expect(page.locator('nav[aria-label="Primary navigation"]')).not.toBeVisible();
   await expect(page.locator('#site-footer')).not.toBeVisible();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' })).not.toBeVisible();
-  await expect(report).toBeVisible();
-  // The print root uses the report's 27pt heading, not the workspace's 27px override.
-  await expect(chapterHeading).toHaveCSS('font-size', '36px');
+  const printed = page.locator('[data-run-record-print]');
+  await expect(printed).toBeVisible();
+  await expect(printed).toContainText(RUN_RECORD_WORDING.integrityLabel);
   expect(await report.innerHTML()).toBe(before);
-  expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
-    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
-  // Public reports retain the full-page cover; authenticated summaries use natural height.
-  expect(await report.locator('section').first().evaluate(el => parseFloat(getComputedStyle(el).minHeight))).toBeCloseTo(265 * 96 / 25.4, 1);
   if (browserName === 'chromium') await page.pdf({ path: testInfo.outputPath('mock-external-snapshot.pdf'), format: 'A4', printBackground: true });
   await page.emulateMedia({ media: 'screen' });
-  // Screen content remains intact.
-  expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
-    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, true, true, true, true]);
   await page.setViewportSize({ width: 390, height: 844 });
-  const mobileWidth = await page.evaluate(() => document.documentElement.clientWidth);
-  expect(await report.boundingBox()).toMatchObject({ x: 8, width: mobileWidth - 16 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-for (const [name, fixture, values] of [
-  ['clean', cleanSnapshotFixture(), ['0', '2', '10 / 10', '0']],
-  ['attention', snapshotFixture(), ['1', '1', '8 / 10', '3']],
-] as const) test(`cover presents outcomes above data validation in browser and print: ${name}`, async ({ page, browserName }, testInfo) => {
+for (const [name, fixture, line, collected, clear] of [
+  ['clean', cleanSnapshotFixture(), '10 checks run · 8 observed as expected · 0 need attention · 0 not run · 0 collection errors', 'Checks with collected evidence: 10/10', true],
+  ['attention', snapshotFixture(), '9 checks run · 5 observed as expected · 1 needs attention · 0 not run · 1 collection error', 'Checks with collected evidence: 8/10', false],
+] as const) test(`short results keep outcome counts in browser and print: ${name}`, async ({ page, browserName }, testInfo) => {
   const snapshot = validateExternalSnapshot(fixture), model = externalExposureAdapter(snapshot);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: 200, json: { snapshot, model } }));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/check');
   await collect(page);
-  await page.getByRole('button', { name: 'View full report', exact: true }).click();
-  const report = page.getByRole('article', { name: 'Derived buyer report' });
-  const cover = report.locator(':scope > section').first();
-  const outcomes = cover.getByRole('group', { name: 'Check outcomes', exact: true });
-  const validation = cover.getByLabel('Data validation and check summary', { exact: true });
+  const report = page.locator("main article[aria-label='Snapshot results']");
   const before = await report.innerHTML();
   for (const media of ['screen', 'print'] as const) {
     await page.emulateMedia({ media });
-    await expect(outcomes.locator(':scope > div > span')).toHaveText(['Needs attention', 'Informational', 'Checks with collected evidence', 'Undetermined']);
-    await expect(outcomes.locator(':scope > div > strong')).toHaveText([...values]);
-    await expect(validation).toContainText('Snapshot data validation: Passed.');
-    await expect(validation).toContainText('These are individual results, not an overall security grade.');
-    await expect(cover.locator('strong').filter({ hasText: /^Passed$/ })).toHaveCount(0);
-    expect(await outcomes.locator('strong').first().evaluate(element => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThan(
-      await validation.evaluate(element => parseFloat(getComputedStyle(element).fontSize)));
+    const visible = media === 'print' ? page.locator("[data-run-record-print] article") : report;
+    await expect(visible).toContainText(line);
+    await expect(visible).toContainText(collected);
+    await expect(visible).toContainText('Result:');
+    if (clear) await expect(visible).toContainText(RUN_RECORD_WORDING.noIssues);
+    else await expect(visible.getByRole('heading', { name: 'Needs attention', exact: true })).toBeVisible();
     expect(await report.innerHTML()).toBe(before);
   }
   if (browserName === 'chromium') await page.pdf({ path: testInfo.outputPath(`${name}-cover.pdf`), format: 'A4', printBackground: true });
   await page.emulateMedia({ media: 'screen' });
-  await cover.screenshot({ path: testInfo.outputPath(`${name}-cover-desktop.png`) });
+  await report.screenshot({ path: testInfo.outputPath(`${name}-cover-desktop.png`) });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await cover.screenshot({ path: testInfo.outputPath(`${name}-cover-mobile.png`) });
-  await expect(outcomes.locator('strong')).toHaveText([...values]);
+  await report.screenshot({ path: testInfo.outputPath(`${name}-cover-mobile.png`) });
+  await expect(report).toContainText(line);
 });
 
 test('input changes clear old results immediately and duplicate submission cannot start a second request', async ({ page }) => {
   await page.goto('/check');
   await collect(page);
-  await page.getByRole('button', { name: 'View full report', exact: true }).click();
   await page.getByLabel('Public hostname', { exact: true }).fill('changed.example.com');
-  await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'example.com', exact: true })).toHaveCount(0);
   let requests = 0;
   let release: (() => void) | undefined;
@@ -207,12 +183,12 @@ test('invalid response cannot restore a report; clear removes results and the ho
   await page.getByRole('button', { name: 'Clear', exact: true }).click();
   await expect(page.getByLabel('Public hostname', { exact: true })).toHaveValue('');
   await expect(page.getByLabel('Public hostname', { exact: true })).toBeFocused();
-  await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toHaveCount(0);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: 200, json: { ...payload, model: { ...model, verification: { ...model.verification, status: 'UNSIGNED' } } } }));
   await page.getByLabel('Public hostname', { exact: true }).fill('example.com');
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' }).getByRole('alert')).toBeVisible();
-  await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toHaveCount(0);
 });
 
 for (const rejection of [
@@ -223,7 +199,7 @@ for (const rejection of [
   await collect(page);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: rejection.status, json: { error: rejection.error } }));
   await page.getByLabel('Public hostname', { exact: true }).fill(rejection.input);
-  await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' }).getByRole('alert')).toHaveText(rejection.error);
   await expect(page.getByRole('button', { name: 'Save report as PDF', exact: true })).toHaveCount(0);
@@ -245,14 +221,14 @@ test('uncollected timeout observations remain unknown and a long hostname wraps'
   await page.getByLabel('Public hostname', { exact: true }).fill(target);
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.getByRole('heading', { name: target, exact: true })).toBeVisible();
-  await expect(page.locator('[data-status=NEEDS_ATTENTION]')).toHaveCount(0);
-  await expect(page.locator('[data-status=UNDETERMINED]')).toHaveCount(10);
-  await page.getByRole('button', { name: 'View full report', exact: true }).click();
-  await expect(page.getByRole('group', { name: 'Check outcomes', exact: true }).locator('strong')).toHaveText(['0', '0', '0 / 10', '10']);
+  await expect(page.locator('main [data-status=NEEDS_ATTENTION]')).toHaveCount(0);
+  await expect(page.locator('main [data-status=UNDETERMINED]')).toHaveCount(10);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('10 checks run · 0 observed as expected · 0 need attention · 0 not run · 0 collection errors');
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toContainText('Checks with collected evidence: 0/10');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Clear', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Snapshot results' })).toHaveCount(0);
-  await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
+  await expect(page.getByRole('article', { name: 'Snapshot results' })).toHaveCount(0);
 });
 
 test('a new visitor can reach the free check from shared desktop and mobile navigation', async ({ page }) => {

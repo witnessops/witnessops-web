@@ -16,7 +16,7 @@ const value = (model: ReturnType<typeof savedRunReport>, id: string) => model.pr
 
 test("shared report extraction leaves the captured public model byte-identical", () => {
   const model = externalExposureAdapter(source);
-  assert.equal(createHash("sha256").update(JSON.stringify(model)).digest("hex"), "2e66d080b721d941000f3936b5b3cd91c76a5220df190215dd6a5f2bf45117ad");
+  assert.equal(createHash("sha256").update(JSON.stringify(model)).digest("hex"), "9c37e3cf5d655def462747c95b91193254ee9563a4d00e9c0bfb0180da3998a2");
   assert.ok(!model.provenance.some(item => item.id === "saved-run"));
 });
 
@@ -24,7 +24,7 @@ test("saved report keeps the canonical run digest and all original observations 
   const saved = run(), before = canonicalSource(saved);
   const model = savedRunReport(saved), publicModel = externalExposureAdapter(source);
   assert.equal(model.identity.sourceDigest, saved.sourceDigest);
-  assert.notEqual(model.identity.sourceDigest, publicModel.identity.sourceDigest);
+  assert.equal(model.identity.sourceDigest, publicModel.identity.sourceDigest);
   assert.equal(model.identity.reportId, "saved-run-current");
   assert.deepEqual(model.summary, publicModel.summary);
   assert.deepEqual(model.findings, publicModel.findings);

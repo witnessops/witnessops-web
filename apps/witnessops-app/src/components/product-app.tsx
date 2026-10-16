@@ -2,8 +2,6 @@
 import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
-import { reportFollowThrough } from "./report-follow-through";
-import { ReportOverview } from "./report-overview";
 import { Billing } from "./billing";
 import { ReportShare } from "./report-share";
 import { Members } from "./members";
@@ -14,16 +12,15 @@ import { AccessGate, ComparisonViewed, DeeperReview, ProductActivity, RunFeedbac
 import { EARLY_ACCESS_DATA_NOTE, type WorkspaceAccessState } from "../lib/early-access";
 import { publicContactMailto } from "../../../witnessops-web/src/lib/public-contact";
 import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
-import { BuyerReportDocument } from "../../../witnessops-web/src/components/proofpack/buyer-report";
-import { useBuyerReportPrint } from "../../../witnessops-web/src/components/proofpack/buyer-report-print";
-import { savedRunReport } from "../lib/report-model";
+import { DomainCheckResults, downloadRunRecord } from "../../../witnessops-web/src/components/external-exposure/domain-check-results";
+import { buildUnsignedRunRecord } from "../../../witnessops-web/src/lib/external-exposure/unsigned-run-record";
 import { AppHelp } from "./app-help";
 import { helpPage } from "../lib/help-context";
 import { logout } from "../app/actions/logout";
 import { canonicalSource } from "../lib/source-digest";
 import { nextAction, observationFacts, observationSummary } from "../lib/observation-presentation";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, useRef, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, useRef, type FormEvent, type ReactNode } from "react";
 import {
   CHECK_IDS,
   CHECK_LABELS,
@@ -241,7 +238,7 @@ function downloadSource(run: Run) {
 function RunPage({ workspace, run, busy, onRun }: { workspace: Workspace; run: Run; busy: boolean; onRun: (asset: Asset) => Promise<void> }) {
   const { event } = useProductActivity();
   const asset = workspace.assets.find((item) => item.id === run.assetId);
-  return <><Link className="back" href={`/assets/${run.assetId}`}>← Back to asset</Link><Header title="Observation" eyebrow={run.snapshot.target} eyebrowIsIdentifier><p>Observed {date(run.snapshot.finished_at)}</p><p>What these public checks observed at the recorded time. This is not a complete security assessment.</p></Header><ResultSummary run={run} /><Changes workspace={workspace} current={run} previous={previousRun(workspace, run)} /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={run} /></section>{asset && hasWorkspaceCapability(workspace.role, "assets:create") ? <RunControl asset={asset} latest={run} busy={busy} onRun={onRun} /> : null}<details className="method-panel"><summary>Method and source evidence</summary><div className="actions"><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><dl className="facts"><div><dt>Source representation</dt><dd>ExternalSnapshotV1 · {run.snapshot.version}</dd></div><div><dt>Run ID</dt><dd>{run.id}</dd></div><div><dt>Source digest</dt><dd className="mono">{run.sourceDigest}</dd></div><div><dt>Started</dt><dd>{date(run.snapshot.started_at)}</dd></div><div><dt>Finished</dt><dd>{date(run.snapshot.finished_at)}</dd></div></dl><h3>Collection usage</h3><pre>{JSON.stringify(run.snapshot.usage, null, 2)}</pre><h3>Network attempt ledger</h3><p className="quiet">Operations and attempts, not independent proof of responses or source-system truth.</p><pre>{JSON.stringify(run.snapshot.network, null, 2)}</pre></details><p className="quiet boundary">{SNAPSHOT_BOUNDARY}</p><DeeperReview run={run} /></>;
+  return <><Link className="back" href={`/assets/${run.assetId}`}>← Back to asset</Link><Header title="Observation" eyebrow={run.snapshot.target} eyebrowIsIdentifier><p>Observed {date(run.snapshot.finished_at)}</p><p>What these public checks observed at the recorded time. This is not a complete security assessment.</p></Header><ResultSummary run={run} /><Changes workspace={workspace} current={run} previous={previousRun(workspace, run)} /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={run} /></section>{asset && hasWorkspaceCapability(workspace.role, "assets:create") ? <RunControl asset={asset} latest={run} busy={busy} onRun={onRun} /> : null}<details className="method-panel"><summary>Method and source evidence</summary><div className="actions"><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button><button className="button secondary" onClick={() => { const record = buildUnsignedRunRecord(run.snapshot, run.id); if (record.integrity.digest !== run.sourceDigest) return; downloadRunRecord(record, `${run.id}-run-record.json`); }}>Download run record</button></div><dl className="facts"><div><dt>Source representation</dt><dd>ExternalSnapshotV1 · {run.snapshot.version}</dd></div><div><dt>Run ID</dt><dd>{run.id}</dd></div><div><dt>Source digest</dt><dd className="mono">{run.sourceDigest}</dd></div><div><dt>Started</dt><dd>{date(run.snapshot.started_at)}</dd></div><div><dt>Finished</dt><dd>{date(run.snapshot.finished_at)}</dd></div></dl><h3>Collection usage</h3><pre>{JSON.stringify(run.snapshot.usage, null, 2)}</pre><h3>Network attempt ledger</h3><p className="quiet">Operations and attempts. This ledger does not establish responses or source-system truth.</p><pre>{JSON.stringify(run.snapshot.network, null, 2)}</pre></details><p className="quiet boundary">{SNAPSHOT_BOUNDARY}</p><DeeperReview run={run} /></>;
 }
 
 function DetailSection({ title, children }: { title: string; children: ReactNode }) {
@@ -255,11 +252,22 @@ function ObservationPage({ run, check }: { run: Run; check: ExternalCheckResultV
 
 function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
   const { event } = useProductActivity();
-  const previous = previousRun(workspace, run);
-  const model = useMemo(() => savedRunReport(run, previous), [run, previous]);
-  const context = { linux: false, evidenceHref: (finding: typeof model.findings[number]) => `/runs/${run.id}/observations/${encodeURIComponent(finding.checkId ?? finding.id)}`, recheckHref: hasWorkspaceCapability(workspace.role, "hostname:run") ? `/assets/${run.assetId}#run-observation` : undefined };
-  const { print, printRoot } = useBuyerReportPrint(model, reportFollowThrough(model, context, false));
-  return <>{printRoot}<ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceHref={context.evidenceHref} /><div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={() => { print(); event("pdf_export_requested", run); }}>Save report as PDF</button><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role}/><BuyerReportDocument model={model} followThrough={reportFollowThrough(model, context)} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
+  return <>
+    <Link className="back" href={`/runs/${run.id}`}>← Open observation</Link>
+    <DomainCheckResults
+      snapshot={run.snapshot}
+      runId={run.id}
+      surface="saved"
+      storedDigest={run.sourceDigest}
+      headingLevel={1}
+      observationHref={(checkId) => `/runs/${run.id}/observations/${encodeURIComponent(checkId)}`}
+      onPdfRequested={() => event("pdf_export_requested", run)}
+      onSourceDownloaded={() => event("source_json_downloaded", run)}
+    />
+    <p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p>
+    <ReportShare key={`${workspace.id}:${run.id}`} workspaceId={workspace.id} runId={run.id} role={workspace.role} />
+    <Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link>
+  </>;
 }
 
 function SignInLinks() {

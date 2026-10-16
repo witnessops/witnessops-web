@@ -1,11 +1,12 @@
 import '../../../../../tests/proofpack/register-report-css.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createHash } from 'node:crypto';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { BuyerReportDocument } from '../../components/proofpack/buyer-report';
 import { createReportModel, printBuyerReport, type ReportModelInput } from '../proofpack/report-model';
 import { cleanSnapshotFixture, snapshotFixture } from '../../../../../tests/external-exposure/fixture';
+import { canonicalSource } from '../../../../witnessops-app/src/lib/source-digest';
+import { sourceDigest } from './unsigned-run-record';
 import { externalExposureAdapter, validateExternalSnapshot } from './adapter';
 import { CHECK_IDS, EXCLUSIONS, SNAPSHOT_BOUNDARY } from './contracts';
 
@@ -31,7 +32,8 @@ test('source digest identifies exactly the owned source and includes network eve
   const input = snapshotFixture();
   const model = externalExposureAdapter(input);
   const source = model.sourceArtifacts[0].content;
-  assert.equal(createHash('sha256').update(JSON.stringify(source)).digest('hex'), model.identity.sourceDigest);
+  assert.equal(sourceDigest(source), model.identity.sourceDigest);
+  assert.equal(canonicalSource(source).endsWith('\n'), false);
   assert.deepEqual(source, validateExternalSnapshot(input));
   assert.ok(JSON.stringify(source).includes('93.184.216.34'));
   assert.deepEqual(model, externalExposureAdapter(input));
