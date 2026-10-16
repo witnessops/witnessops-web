@@ -5,7 +5,7 @@ const publicRoots = new Set([
   "privacy", "terms", "security", "media-kit", "governed-execution",
   "operators", "runbooks", "receipts", "access-change-proof-run",
   "proof-backed-security-systems", "runner-loop", "customer-security-review",
-  "verify", "verify-ui", "signals", "check",
+  "verify", "verify-ui", "signals", "check", "external-exposure-snapshot",
 ]);
 
 export function usesPublicPresentation(pathname: string): boolean {

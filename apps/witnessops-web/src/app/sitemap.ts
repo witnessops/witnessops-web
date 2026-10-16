@@ -125,6 +125,10 @@ const staticRoutes: StaticRoute[] = [
   { route: "/terms", sourcePath: "src/app/terms/page.tsx" },
   { route: "/verify", sourcePath: "src/app/verify/page.tsx" },
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
+  {
+    route: "/external-exposure-snapshot",
+    sourcePath: "src/app/external-exposure-snapshot/page.tsx",
+  },
 ];
 
 const polishRoutes: StaticRoute[] = [
