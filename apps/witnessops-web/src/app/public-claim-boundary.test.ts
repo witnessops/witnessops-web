@@ -9,6 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import PricingPage from "@/app/(marketing)/pricing/page";
 import HomePage from "@/app/page";
 import PolishHomePage from "@/app/pl/page";
+import { ExternalExposureSnapshotPage } from "@/components/marketing/external-exposure-snapshot";
 import { SimpleHomepage } from "@/components/marketing/simple-homepage";
 
 const webRoot = resolve(__dirname, "../..");
@@ -25,6 +26,8 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/simple-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
+  "src/lib/external-exposure/catalog.ts",
+  "src/lib/external-exposure/copy.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
   "src/app/docs/page.tsx",
@@ -143,6 +146,8 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/simple-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/components/marketing/offsec-suite-sample.tsx",
+  "src/lib/external-exposure/catalog.ts",
+  "src/lib/external-exposure/copy.ts",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
@@ -160,6 +165,22 @@ function readPublicClaimSources(): Array<{ path: string; content: string }> {
 const HOMEPAGE_COPY_SOURCE = "src/components/marketing/homepage-two-offer-copy.ts";
 const RENDERED_HOMEPAGE_SOURCE = "rendered:/";
 const RENDERED_POLISH_HOMEPAGE_SOURCE = "rendered:/pl";
+const RENDERED_EXPOSURE_SNAPSHOT_SOURCE = "rendered:/external-exposure-snapshot";
+
+const EXPOSURE_SNAPSHOT_BOUNDARY_MARKERS = [
+  "no credentials, no exploitation, no pen test",
+  "not a vulnerability scan dump, not a guarantee, not a compliance claim",
+  "an enquiry is not authorisation to test",
+] as const;
+
+const EXPOSURE_SNAPSHOT_SOURCE_BOUNDARIES: Record<string, readonly string[]> = {
+  "src/lib/external-exposure/catalog.ts": [
+    "no credentials, no exploitation, and no penetration test",
+  ],
+  "src/lib/external-exposure/copy.ts": [
+    "not a vulnerability scan dump, not a guarantee, not a compliance claim",
+  ],
+};
 
 const appRouter = {
   back() {},
@@ -219,18 +240,33 @@ function renderPolishHomepage(): string {
   return renderRoute(createElement(PolishHomePage));
 }
 
+function renderExposureSnapshot(): string {
+  return renderRoute(createElement(ExternalExposureSnapshotPage));
+}
+
 function claimSurfaces(): Array<{ path: string; content: string }> {
   return [
     ...readPublicClaimSources(),
     { path: RENDERED_HOMEPAGE_SOURCE, content: renderHomepage() },
     { path: RENDERED_POLISH_HOMEPAGE_SOURCE, content: renderPolishHomepage() },
+    {
+      path: RENDERED_EXPOSURE_SNAPSHOT_SOURCE,
+      content: renderExposureSnapshot(),
+    },
   ];
 }
 
 function boundaryMarkersFor(path: string): readonly string[] {
-  return path === RENDERED_POLISH_HOMEPAGE_SOURCE
-    ? POLISH_HOMEPAGE_BOUNDARY_MARKERS
-    : REQUIRED_BOUNDARY_MARKERS;
+  if (path === RENDERED_POLISH_HOMEPAGE_SOURCE) {
+    return POLISH_HOMEPAGE_BOUNDARY_MARKERS;
+  }
+  if (path === RENDERED_EXPOSURE_SNAPSHOT_SOURCE) {
+    return EXPOSURE_SNAPSHOT_BOUNDARY_MARKERS;
+  }
+  if (path in EXPOSURE_SNAPSHOT_SOURCE_BOUNDARIES) {
+    return EXPOSURE_SNAPSHOT_SOURCE_BOUNDARIES[path];
+  }
+  return REQUIRED_BOUNDARY_MARKERS;
 }
 
 function missingBoundaries(content: string, markers: readonly string[]): string[] {
@@ -283,6 +319,15 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
   assert.match(pricingHtml, /do not grant compliance certification/);
   assert.match(pricingHtml, /does not authorise collection or start a review/);
   assert.deepEqual(failures, []);
+});
+
+test("external exposure snapshot preserves its rendered claim boundaries", () => {
+  const rendered = renderExposureSnapshot();
+
+  assert.deepEqual(prohibitedClaimsIn(rendered), []);
+  assert.deepEqual(missingBoundaries(rendered, EXPOSURE_SNAPSHOT_BOUNDARY_MARKERS), []);
+  assert.ok(PUBLIC_CLAIM_SOURCES.includes("src/lib/external-exposure/copy.ts"));
+  assert.ok(PUBLIC_CLAIM_SOURCES.includes("src/lib/external-exposure/catalog.ts"));
 });
 
 test("homepage copy source and rendered homepage keep evidence boundaries", () => {
