@@ -67,25 +67,47 @@
 .enquiryForm form > p { font-size: 12px; line-height: 1.65; }
 .page a:focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 4px; }
 
+.product {
+  background-color: var(--color-surface-bg);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-brand-accent) 22%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-brand-accent) 22%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
 .product .hero {
-  padding-block: clamp(56px, 8vw, 96px) 64px;
-  border-bottom: 1px solid var(--color-surface-border);
-  background:
-    radial-gradient(ellipse 70% 80% at 100% 0%, color-mix(in srgb, var(--color-brand-accent) 16%, transparent), transparent 58%);
+  padding-block: clamp(56px, 8vw, 88px) 56px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-brand-accent) 35%, transparent);
+  background: transparent;
 }
 .product h1,
 .product h2 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  text-transform: none;
 }
 .product h1 {
-  max-width: 12ch;
-  margin: 12px 0 0;
-  font-size: clamp(52px, 6.4vw, 84px);
-  line-height: 0.92;
+  max-width: 11ch;
+  margin: 14px 0 0;
+  font-size: clamp(46px, 5.4vw, 72px);
+  line-height: 0.98;
 }
+.product .plate {
+  position: relative;
+  border: 0;
+  background-color: color-mix(in srgb, var(--color-surface-bg) 72%, transparent);
+  background-image:
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) left top / 16px 1px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) left top / 1px 16px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) right top / 16px 1px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) right top / 1px 16px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) left bottom / 16px 1px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) left bottom / 1px 16px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) right bottom / 16px 1px no-repeat,
+    linear-gradient(var(--color-brand-accent), var(--color-brand-accent)) right bottom / 1px 16px no-repeat;
+}
+.product .primary,
+.product .secondary { border-radius: 0; }
 .product .lead { max-width: 46ch; margin-top: 20px; font-size: 17px; }
 .product .heroGrid {
   display: grid;
@@ -93,21 +115,17 @@
   gap: clamp(32px, 5vw, 72px);
   align-items: end;
 }
-.product .offerIndex {
-  padding: 22px 22px 18px;
-  border: 1px solid var(--color-surface-border-strong);
-  border-top: 2px solid var(--color-brand-accent);
-  background: color-mix(in srgb, var(--color-surface-card) 88%, transparent);
-}
+.product .offerIndex { padding: 22px 22px 18px; }
 .product .indexKicker {
   margin: 0;
+  max-width: 18ch;
   color: var(--color-text-primary);
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-transform: none;
 }
 .product .offerIndex ul { display: grid; margin: 18px 0 0; padding: 0; list-style: none; }
 .product .offerIndex li {
@@ -130,26 +148,20 @@
 }
 .product .offerIndex p { margin-top: 8px; font-size: 13px; }
 .product .offers { padding-block: 64px 56px; }
-.product .cards { counter-reset: offer; gap: 20px; }
-.product .cards article {
-  position: relative;
-  padding: 28px 28px 22px;
-  border-color: var(--color-surface-border-strong);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--color-brand-accent) 7%, transparent), transparent 72px),
-    var(--color-surface-card);
-}
-.product .cards article::before {
-  content: counter(offer, decimal-leading-zero);
-  counter-increment: offer;
-  display: block;
-  margin-bottom: 18px;
+.product .cards { gap: 20px; }
+.product .cards article { padding: 28px 28px 22px; }
+.product .cardIndex {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  margin: 0;
   color: var(--color-brand-accent);
   font-family: var(--font-mono);
   font-size: 12px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
 }
-.product .cards h2 { font-size: clamp(26px, 2.4vw, 34px); line-height: 1.05; }
+.product .cards h2 { max-width: 16ch; margin-top: 28px; padding-right: 72px; font-size: clamp(28px, 2.5vw, 40px); line-height: 1.02; }
+.product .specimenRows { border: 0; border-radius: 0; }
 .product .cards h3 {
   margin-top: 16px;
   color: var(--color-text-muted);
@@ -161,22 +173,18 @@
 }
 .product .cards .price {
   margin-top: 22px;
-  font-family: var(--font-display);
-  font-size: 28px;
+  color: var(--color-brand-accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .product .cards .textLink {
   margin-top: 8px;
   padding: 10px 0 0;
   color: var(--color-brand-accent);
 }
-.product .freeCheck {
-  margin-top: 20px;
-  border-style: solid;
-  border-top: 2px solid var(--color-brand-accent);
-  background: var(--color-surface-card);
-}
+.product .freeCheck { margin-top: 20px; border-style: none; }
 .product .sectionLinks { margin-top: 8px; padding-top: 8px; }
 .product .receive { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--color-surface-border); }
 .product .specimenHead {
@@ -188,27 +196,20 @@
 .product .specimenHead h2 { margin-bottom: 0; }
 .product .specimenHead .labels { margin: 0; justify-content: flex-end; }
 .product .labels span {
-  background: var(--color-surface-inset);
-  color: var(--color-text-primary);
+  background: transparent;
+  color: var(--color-brand-accent);
   font-family: var(--font-mono);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.product .specimenRows { background: var(--color-surface-card); }
+.product .specimenRows,
+.product .limits > div,
+.product .enquiryForm { background-color: color-mix(in srgb, var(--color-surface-bg) 72%, transparent); }
 .product .specimenRows dt { color: var(--color-brand-accent); font-family: var(--font-mono); }
-.product .limits > div {
-  padding: 24px;
-  border: 1px solid var(--color-surface-border);
-  background: var(--color-surface-card);
-}
+.product .limits > div { padding: 24px; border: 0; }
 .product .limits h3 { border-bottom-color: var(--color-brand-accent); }
 .product .enquiry > .frame { align-items: start; gap: 64px; }
-.product .enquiryForm {
-  padding: 28px;
-  border: 1px solid var(--color-surface-border-strong);
-  border-top: 2px solid var(--color-brand-accent);
-  background: var(--color-surface-card);
-}
+.product .enquiryForm { padding: 28px; border: 0; }
 
 @media (max-width: 800px) {
   .frame { width: calc(100% - 40px); }

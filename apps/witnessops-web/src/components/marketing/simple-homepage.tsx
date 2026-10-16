@@ -30,7 +30,7 @@ export function SimpleHomepage() {
               })}
             </div>
           </div>
-          <aside className={styles.offerIndex} aria-label={text.reviewsTitle}>
+          <aside className={`${styles.offerIndex} ${styles.plate}`} aria-label={text.reviewsTitle}>
             <p className={styles.indexKicker}>{text.reviewsTitle}</p>
             <ul>
               {services.map((service) => {
@@ -48,9 +48,10 @@ export function SimpleHomepage() {
     </section>
     <section className={styles.offers} aria-label="Public reviews"><div className={styles.frame}>
       <div className={styles.cards}>
-        {services.map((service) => {
+        {services.map((service, index) => {
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-          return <article key={service.id} data-home-offer={service.id}>
+          return <article key={service.id} className={styles.plate} data-home-offer={service.id}>
+            <p className={styles.cardIndex}>{String(index + 1).padStart(2, "0")} / {String(services.length).padStart(2, "0")}</p>
             <h2>{ai ? text.aiQuestion : text.externalQuestion}</h2>
             <h3>{service.name.en}</h3>
             <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
@@ -62,7 +63,7 @@ export function SimpleHomepage() {
           </article>;
         })}
       </div>
-      <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
+      <aside className={`${styles.freeCheck} ${styles.plate}`} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
       <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
@@ -75,7 +76,7 @@ export function SimpleHomepage() {
           </div>
           <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
         </div>
-        <dl className={styles.specimenRows}>
+        <dl className={`${styles.specimenRows} ${styles.plate}`}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
           <div><dt>Executing identity</dt><dd><code>svc-agent-refunds@example.com</code> — a reserved example of the identity an agent would run as, not the one that configured it.</dd></div>
           <div><dt>Permission / authority boundary</dt><dd>The roles, scopes and approval steps that stand between an identity and an action, as configured.<small>Read from configuration under agreed evidence rules. Not assumed; none inspected here.</small></dd></div>
@@ -91,11 +92,11 @@ export function SimpleHomepage() {
       <div className={styles.limits}>{[
         ["The app can", "Record one bounded check", "Keep the snapshot", "Compare saved checks", "Read and export reports", "Keep findings tied to their evidence"],
         ["The app cannot", "Monitor continuously", "Certify a system", "Replace a penetration test", "Treat missing data as a finding", "Make a universal verification claim"],
-      ].map(([title, ...items]) => <div key={title}><h3>{title}</h3><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div>
+      ].map(([title, ...items]) => <div key={title} className={styles.plate}><h3>{title}</h3><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
       <div><p className={styles.eyebrow}>Ask an expert</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
-      <div className={styles.enquiryForm}><ContactForm compact landing /></div>
+      <div className={`${styles.enquiryForm} ${styles.plate}`}><ContactForm compact landing /></div>
     </div></section>
   </main>;
 }
