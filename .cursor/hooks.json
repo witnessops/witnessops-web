@@ -7,6 +7,20 @@
         "timeout": 15,
         "failClosed": true
       }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "node .cursor/hooks/guard-mcp.mjs",
+        "timeout": 15,
+        "failClosed": true
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "node .cursor/hooks/guard-read.mjs",
+        "timeout": 15,
+        "failClosed": true
+      }
     ]
   }
 }

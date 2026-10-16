@@ -15,9 +15,10 @@ metadata:
 # Optimize witnessops-web
 
 This is the Cursor project copy of `.grok/skills/optimize-witnessops-web/SKILL.md`.
-The original stays in place. `pnpm optimize:quick-check` still runs the `.grok` script.
-Do not delete the original. This copy's quick-check propagates a `pnpm proof:test` failure,
-and its deploy section follows `docs/DEPLOYMENT_AUTHORITY.md`. Leave the `.grok` skill unchanged
+The original stays in place. `pnpm optimize:quick-check` runs this copy's
+`scripts/quick-check.sh`, which propagates a `pnpm proof:test` failure.
+The `.grok` script has the same fail-closed `proof:test` line. Do not delete the original.
+This copy's deploy section follows `docs/DEPLOYMENT_AUTHORITY.md`. Leave the `.grok` skill unchanged
 unless a separate change asks to update it.
 
 Repo root for all paths below: **this monorepo** (`witnessops-web`).
@@ -115,9 +116,7 @@ Do not run those deploy, status, smoke, teardown, or hygiene commands from this 
 
 ```bash
 pnpm optimize:quick-check
-# still runs the .grok script:
-# bash .grok/skills/optimize-witnessops-web/scripts/quick-check.sh
-# Cursor copy propagates a proof:test failure instead of a narrower fallback:
+# runs the fail-closed Cursor copy:
 # bash .cursor/skills/optimize-witnessops-web/scripts/quick-check.sh
 ```
 

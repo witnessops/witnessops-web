@@ -7,7 +7,8 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    COREPACK_HOME=/opt/corepack
+    COREPACK_HOME=/opt/corepack \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ARG NODE_VERSION=22.23.2
 ARG NODE_SHA256=d60acfe00a2932254bb0ad20e01b0d74397a0875595de719654b214f4b03f307
 ARG PNPM_VERSION=9.15.4
@@ -36,6 +37,18 @@ RUN apt-get update \
     && chmod 440 /etc/sudoers.d/ubuntu \
     && node -v \
     && pnpm -v
+
+# uv on the default PATH. UV_UNMANAGED_INSTALL avoids a shell-rc install.
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL=/usr/local/bin sh \
+    && uv --version
+
+# Playwright 1.59.1 matches pnpm-lock.yaml (@playwright/test@1.59.1 and
+# playwright@1.59.1). Chromium and WebKit are the CI browser projects.
+# System libraries are installed here so install.sh only checks the cache.
+RUN npx --yes playwright@1.59.1 install --with-deps chromium webkit \
+    && chmod -R a+rX /opt/ms-playwright \
+    && chown -R ubuntu:ubuntu /opt/ms-playwright \
+    && rm -rf /var/lib/apt/lists/*
 
 USER ubuntu
 WORKDIR /workspace

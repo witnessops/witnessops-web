@@ -1,12 +1,15 @@
 ---
 description: Public offer identity and pricing boundaries
-globs: docs/commercial/**,packages/catalog/**
+globs: apps/witnessops-web/src/**,content/**,apps/witnessops-web/messages/**,docs/commercial/**,packages/catalog/**
 alwaysApply: false
 ---
 
 - Start from `docs/commercial/README.md` and `docs/commercial/OFFER_IDENTITY_AND_NAMING_POLICY.md`.
 - The only public paid offers are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
+- The public contact address is `engage@mail.witnessops.com` only.
+- Delivery timing for both public offers is `Delivery timing per signed SOW`.
+- Held or historical prices and terms tracked in the commercial registry must never appear on public surfaces or in new-sales selection. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`. Do not copy those held literals into current public copy.
 - The private pilot is not a public offer. The free hostname check is not a third paid review.
-- Keep historical offer records for old lookups. Do not present them as new public offers.
+- Keep historical offer records for old lookups. Preserve their names. Do not rename them onto a current offer, and do not present them as new public offers. That includes AI Agent Tools & Access Review, Public Exposure Review, Customer Security Review Sprint, One Server Security Check, Agent Risk & Control Review, Agent Workflow Reconstruction, and Early Bird — Internet Footprint Review.
 - Naming policy does not grant rename, billing, collection, migration, or deployment authority.
 - Buyer-path changes also need `pnpm smoke:buyer-path:test`.

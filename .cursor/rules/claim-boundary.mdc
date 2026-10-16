@@ -1,0 +1,44 @@
+---
+description: Public claim limits and the tests to run before committing copy.
+globs: apps/witnessops-web/src/**,content/**
+alwaysApply: false
+---
+
+# Claim boundary
+
+Before drafting or editing public copy, read `content/witnessops/skills/claim-boundary-copy/SKILL.md` and `apps/witnessops-web/src/app/public-claim-boundary.test.ts`.
+
+A public sentence stays inside what the artefact established. Say the limit in the same breath as any positive result. Prefer `labelled sample` unless the artefact is a real customer record. Do not call the work a pentest, a certification, or proof that a system is secure.
+
+## Banned words and the repo's replacements
+
+Do not introduce these in new public copy. Where an existing test already pins a string, leave that string in place.
+
+- `verified` as a positive result. Write `checked`, or the required limit `not verified`.
+- `certified`, or certification as an outcome. Write `not a penetration test or certification` and `does not certify compliance`.
+- `proof` that a system is secure. Write `labelled sample`. `a proof claim requires a named receipt`.
+- `signed` as assurance for a snapshot or report. Write `External Exposure snapshots are unsigned. A report presents a recorded observation; its digest identifies source bytes, but does not authenticate an issuer`.
+- `tamper-proof`. Legal pages that already say `tamper-evident evidence bindings` keep that phrase. A digest is `not signing, source-system authentication or tamper-proof storage`.
+- `independently verified`. The media kit test forbids that phrase. Write `were not independently checked`.
+- `guaranteed`. Write `does not guarantee` or `This is not a security guarantee.`
+- `your domain is secure`. Write `A public hostname snapshot. No account needed. Not a review.` A snapshot `does not prove that a server is secure`.
+- a check mark (`✓`) used as a passed security result. Use a plain text list. A check glyph is not a verification result.
+- `Declared` as a new public assurance label. Write `recorded observation` or `recorded as supplied`.
+- `Not proven` as a new marketing heading. Write `what remains unproven`.
+
+## Before committing
+
+From `apps/witnessops-web`, run the claim-boundary test and the nearby wording and held-term tests:
+
+```bash
+NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test \
+  src/app/public-claim-boundary.test.ts \
+  src/lib/historical-held-term-surfaces.test.tsx \
+  src/lib/public-contact.test.ts \
+  src/lib/public-agent-action-contract.test.ts \
+  src/components/marketing/buyer-homepage-trust.test.ts \
+  src/components/docs-assistant/docs-assistant-public-copy.test.ts \
+  src/app/media-kit/media-kit-route.test.ts
+```
+
+When the change is buyer-visible or a proof surface, also run `pnpm smoke:buyer-path:test` from the repository root.

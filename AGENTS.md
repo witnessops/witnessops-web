@@ -10,6 +10,33 @@ Published remote: `https://github.com/witnessops/witnessops-web`
 Default branch: `main`
 Release authority: explicit operator action; merge alone is not deployment authority.
 
+## Cloud agent quick start
+
+Node 22 and pnpm 9.15.4 are preinstalled in the Cloud Agent image. `.nvmrc` is `22`. `packageManager` and `engines.pnpm` are `pnpm@9.15.4`. CI installs the same pnpm version and Node 22.
+
+Targeted web tests run from `apps/witnessops-web`:
+
+```bash
+NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test <file>
+```
+
+| Local command | CI job |
+| --- | --- |
+| `pnpm install --frozen-lockfile` | Frozen install step in each Node job |
+| `pnpm health` | Authenticated app validation, "Full repository health (app, CLI, verifier, report, lint, types)" |
+| `pnpm lint`, `pnpm typecheck` | Included in `pnpm health`; also run them before push |
+| `pnpm --filter witnessops-web build` | Build witnessops-web image, and the build step in Homepage Hero UI Proof, PDF Pagination Gate, and Release witnessops-web |
+| `pnpm --filter witnessops-web test`, `pnpm smoke:buyer-path:test` | Homepage Hero UI Proof, "Run commercial-truth regression tests" |
+| `pnpm ui-proof:hero:ci`, `pnpm ui-proof:skill-conformance` | Homepage Hero UI Proof browser jobs |
+| `pnpm test:pdf-pagination` | PDF Pagination Gate |
+| `pnpm test:app-browser --project=chromium` or `--project=webkit` | Authenticated app validation, "App browser" |
+| `pnpm morpheus:handoff:test` | Authenticated app validation, "Morpheus read-only handoff intake" |
+| `pnpm --filter @witnessops/app test:db` and the `:live`, `:cli`, and `:server` variants | Authenticated app validation database steps |
+| `pnpm proof:test`, `pnpm optimize:quick-check` | Proof and verify coverage inside `pnpm health`; quick-check is the local fail-closed subset |
+| AWS phase 3 shell, node, and python checks named in `.github/workflows/aws-phase3-validate.yml` | Validate AWS Phase 3 source |
+| Python validators under `tools/witnessops-security-validators` | WitnessOps Security Validators |
+| Supply-chain admission script invoked by `.github/workflows/supply-chain-gate.yml` | WitnessOps Supply Chain Gate |
+
 ## Repository-wide rules
 
 - Keep live package names on the `@witnessops/*` surface.
@@ -99,7 +126,7 @@ For security-sensitive changes, preserve these boundaries:
 
 - Before proposing a new runtime (Go/Rust sidecar, WASM crypto, full rewrite), read [`docs/OPTIMIZATION-LANGUAGE.md`](./docs/OPTIMIZATION-LANGUAGE.md).
 - Grok project skill: `.grok/skills/optimize-witnessops-web/SKILL.md` (`/optimize-witnessops-web`).
-- Fast regression after proof/verify edits: `pnpm optimize:quick-check` (requires `pnpm install`).
+- Fast regression after proof/verify edits: `pnpm optimize:quick-check` (requires `pnpm install`). The command runs `.cursor/skills/optimize-witnessops-web/scripts/quick-check.sh`. A failing `proof:test` fails the command; its output is not discarded and there is no smaller fallback suite.
 - Release-quality validation uses Node 22: see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md) and use `pnpm health:node22` when the host is not already on Node 22.
 
 ## Validation
