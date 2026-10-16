@@ -1,33 +1,40 @@
 :root {
   /* Canonical WitnessOps public palette. Public pages and shared chrome consume
      these semantic tokens instead of redefining route-local color systems. */
-  --color-brand-primary: #fafaf7;
-  --color-brand-primary-hover: #fafaf7;
-  --color-brand-secondary: #d0ccc4;
-  --color-brand-accent: #f27a3d;
-  --color-brand-accent-subtle: rgba(242, 122, 61, 0.14);
-  --color-brand-muted: #9e9a93;
+  --color-brand-primary: #f5f1e8;
+  --color-brand-primary-hover: #ffffff;
+  --color-brand-secondary: #c3bfb6;
+  --color-brand-accent: #b89b62;
+  --color-brand-accent-hover: #cbb27d;
+  --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
+  --color-brand-muted: #a7a399;
 
-  --color-surface-bg: #050505;
-  --color-surface-bg-alt: #0d0d0c;
-  --color-surface-inset: #141413;
-  --color-surface-card: #0d0d0c;
-  --color-surface-card-hover: #141413;
-  --color-surface-border: #2a2a28;
-  --color-surface-border-hover: #474743;
-  --color-surface-border-strong: #474743;
+  --color-surface-bg: #0b0c0b;
+  --color-surface-bg-alt: #0f100e;
+  --color-surface-inset: #0b0c0b;
+  --color-surface-card: #121310;
+  --color-surface-card-hover: #1a1b17;
+  --color-surface-border: #2f302b;
+  --color-surface-border-hover: #a7a399;
+  --color-surface-border-strong: #6f6e64;
+  --color-surface-border-accent: #4c432d;
 
-  --color-text-primary: #fafaf7;
-  --color-text-secondary: #d0ccc4;
-  --color-text-muted: #9e9a93;
-  --color-text-inverse: #160b05;
+  --color-text-primary: #f5f1e8;
+  --color-text-secondary: #c3bfb6;
+  --color-text-muted: #a7a399;
+  --color-text-inverse: #0b0c0b;
 
-  --color-signal-green: #6bc498;
-  --color-signal-amber: #e3b060;
-  --color-signal-red: #e07570;
-  --color-signal-copper: #d59565;
-  --color-accent-trust: #64a8ac;
-  --color-accent-trust-subtle: rgba(100, 168, 172, 0.18);
+  /* Primary button fill. Hover and press are declared per theme only, so call
+     sites can fall back to their existing light treatment. */
+  --color-action-fill: #b89b62;
+  --color-action-on-fill: #0b0c0b;
+
+  --color-signal-green: #86be8e;
+  --color-signal-amber: #d6c49e;
+  --color-signal-red: #f28b93;
+  --color-signal-copper: #b89b62;
+  --color-accent-trust: #b89b62;
+  --color-accent-trust-subtle: rgba(184, 155, 98, 0.12);
 
   /* Radius scale. Theme-independent: one definition, referenced by aliases. */
   --radius-none: 0px;
@@ -140,13 +147,26 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
   --color-surface-border: #d3cdbf;
   --color-surface-border-hover: #7c786c;
   --color-surface-border-strong: #7c786c;
+  --color-surface-border-accent: #7c786c;
   --color-text-primary: #0b0c0b;
   --color-text-secondary: #3a3a34;
   --color-text-muted: #55544c;
   --color-text-inverse: #f5f1e8;
   --color-brand-primary: #0b0c0b;
+  --color-brand-primary-hover: #0b0c0b;
+  --color-brand-secondary: #3a3a34;
+  --color-brand-muted: #9e9a93;
   --color-brand-accent: #715a2c;
+  --color-brand-accent-hover: #5e4a23;
   --color-brand-accent-subtle: rgba(113, 90, 44, 0.1);
+  --color-action-fill: #0b0c0b;
+  --color-action-on-fill: #f5f1e8;
+  --color-signal-green: #6bc498;
+  --color-signal-amber: #e3b060;
+  --color-signal-red: #e07570;
+  --color-signal-copper: #715a2c;
+  --color-accent-trust: #715a2c;
+  --color-accent-trust-subtle: rgba(113, 90, 44, 0.1);
   --focus: #715a2c;
   --hero-glow: none;
   color-scheme: light;
@@ -154,21 +174,57 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
 
 html[data-theme="dark"] body:not(:has([data-admin-shell])) {
   --color-surface-bg: #0b0c0b;
-  --color-surface-bg-alt: #111210;
-  --color-surface-card: #131411;
-  --color-surface-inset: #191a16;
+  --color-surface-bg-alt: #0f100e;
+  --color-surface-card: #121310;
+  --color-surface-card-hover: #1a1b17;
+  --color-surface-inset: #0b0c0b;
   --color-surface-border: #2f302b;
-  --color-surface-border-strong: #6e6e64;
+  --color-surface-border-hover: #a7a399;
+  --color-surface-border-strong: #6f6e64;
+  --color-surface-border-accent: #4c432d;
   --color-text-primary: #f5f1e8;
-  --color-text-secondary: #c9c5bc;
+  --color-text-secondary: #c3bfb6;
   --color-text-muted: #a7a399;
   --color-text-inverse: #0b0c0b;
   --color-brand-primary: #f5f1e8;
+  --color-brand-primary-hover: #ffffff;
+  --color-brand-secondary: #c3bfb6;
+  --color-brand-muted: #a7a399;
   --color-brand-accent: #b89b62;
+  --color-brand-accent-hover: #cbb27d;
   --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
+  --color-action-fill: #b89b62;
+  --color-action-fill-hover: #cbb27d;
+  --color-action-fill-press: #a68b57;
+  --color-action-on-fill: #0b0c0b;
+  --color-signal-green: #86be8e;
+  --color-signal-amber: #d6c49e;
+  --color-signal-red: #f28b93;
+  --color-signal-copper: #b89b62;
+  --color-accent-trust: #b89b62;
+  --color-accent-trust-subtle: rgba(184, 155, 98, 0.12);
   --focus: #b89b62;
-  --hero-glow: radial-gradient(ellipse at 70% 20%, rgba(184, 155, 98, 0.08), transparent 55%);
+  --hero-glow: none;
+  --public-control-hover: var(--color-action-fill-hover);
+  --public-control-pressed: var(--color-action-fill-press);
+  /* Dark-only page grid and crop marks. Light and print leave them unset. */
+  --grid-minor: #171815;
+  --grid-major: #22231f;
+  --grid-step: 32px;
+  --grid-major-step: 128px;
+  --crop-color: #b89b62;
+  --crop-arm: 18px;
+  --crop-stroke: 1.5px;
+  --crop-offset: 13px;
+  --crop-frame-opacity: 0.7;
   color-scheme: dark;
+}
+
+@media (max-width: 767px) {
+  html[data-theme="dark"] body:not(:has([data-admin-shell])) {
+    --crop-arm: 12px;
+    --crop-offset: 8px;
+  }
 }
 
 @media print {
