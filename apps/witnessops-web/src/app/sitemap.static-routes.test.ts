@@ -9,6 +9,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/pl/catalog/automation-repair",
   "/catalog",
   "/catalog/offsec-external-exposure",
+  "/external-exposure-snapshot",
   "/catalog/offsec-local-audit",
   "/catalog/offsec-launch-ready",
   "/catalog/offsec-custody-ops",

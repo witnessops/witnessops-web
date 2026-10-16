@@ -3,7 +3,7 @@ import test from "node:test";
 import { usesPublicPresentation } from "./public-presentation";
 
 test("public pages and their translated/detail routes share presentation", () => {
-  for (const path of ["/", "/pl", "/pricing", "/early-access", "/catalog/workflows", "/pl/catalog/offsec-external-exposure", "/review/sample-cases/ai-agent-action-proof-run", "/review/request", "/support/access", "/docs/cli", "/pl/docs/cli", "/research", "/privacy", "/media-kit", "/verify", "/check"]) {
+  for (const path of ["/", "/pl", "/pricing", "/early-access", "/catalog/workflows", "/pl/catalog/offsec-external-exposure", "/review/sample-cases/ai-agent-action-proof-run", "/review/request", "/support/access", "/docs/cli", "/pl/docs/cli", "/research", "/privacy", "/media-kit", "/verify", "/check", "/external-exposure-snapshot"]) {
     assert.equal(usesPublicPresentation(path), true, path);
   }
 });
