@@ -1,5 +1,6 @@
 # Cloud agent base image for witnessops-web.
 # Node matches deploy/app/Dockerfile (22.23.2). pnpm matches packageManager (9.15.4).
+# python3-venv is required by packages/wops-cli installer tests inside pnpm health.
 # Checksum is the official nodejs.org SHASUMS256.txt entry for this tarball.
 # Cursor checks the repository out separately; do not COPY the repo into this image.
 FROM ubuntu:24.04
@@ -16,6 +17,8 @@ RUN apt-get update \
         curl \
         git \
         python3 \
+        python3-pip \
+        python3-venv \
         build-essential \
         xz-utils \
         sudo \
