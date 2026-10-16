@@ -22,7 +22,7 @@ export function SupportStart() {
         <label htmlFor="support-ai-question">Your question</label>
         <textarea id="support-ai-question" value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={2_000} required rows={3} placeholder="How do I sign in with the Linux CLI?" aria-describedby="support-ai-boundary" />
         <p id="support-ai-boundary" className={styles.note}>Nothing is sent. Do not include passwords, tokens, private evidence or account details.</p>
-        <button type="submit" disabled={!question.trim()}>Check <InlineArrow direction="up-right" /></button>
+        <button type="submit" disabled={!question.trim()} aria-disabled={!question.trim()}>Check <InlineArrow direction="up-right" /></button>
         {unavailable && <p role="alert">Chat is unavailable or busy. Try again, or contact support using the form.</p>}
       </form>
       <a href="#support-request">Prefer a person? Contact support <InlineArrow /></a>

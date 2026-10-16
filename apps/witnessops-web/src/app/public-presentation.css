@@ -45,10 +45,28 @@ body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-acc
   border-color: var(--color-text-primary);
   color: var(--color-text-inverse);
 }
-body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover {
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-text-secondary);
   border-color: var(--color-text-secondary);
   box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content button[type="submit"]:is(:disabled, [aria-disabled="true"]) {
+  background: var(--color-surface-card);
+  border-color: var(--color-surface-border-strong);
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+  color: var(--color-surface-border-strong);
+  cursor: not-allowed;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content button[type="submit"]:is(:disabled, [aria-disabled="true"]):is(:hover, :focus, :focus-visible, :active) {
+  background: var(--color-surface-card);
+  border-color: var(--color-surface-border-strong);
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+  color: var(--color-surface-border-strong);
+  cursor: not-allowed;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content .public-cta-button:hover {
   box-shadow: none;

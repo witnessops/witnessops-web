@@ -908,20 +908,43 @@ try {
           for (let index = layers.length - 2; index >= 0; index -= 1) paint = composite(layers[index], paint);
           return paint;
         }
+        function parseAny(input) {
+          const value = String(input).trim();
+          const hex = value.match(/^#([0-9a-f]{6})$/i);
+          if (!hex) return parseColor(value);
+          return {
+            r: Number.parseInt(hex[1].slice(0, 2), 16),
+            g: Number.parseInt(hex[1].slice(2, 4), 16),
+            b: Number.parseInt(hex[1].slice(4, 6), 16),
+            a: 1,
+          };
+        }
         return [...document.querySelectorAll("button:disabled")].filter((button) => {
           const box = button.getBoundingClientRect();
           return box.width > 1 && box.height > 1;
         }).map((button) => {
-          const color = parseColor(getComputedStyle(button).color);
+          const style = getComputedStyle(button);
+          const color = parseColor(style.color);
+          const fill = parseColor(style.backgroundColor);
+          const enabledFill = parseAny(style.getPropertyValue("--color-text-primary"));
+          const enabledInk = parseAny(style.getPropertyValue("--color-text-inverse"));
           return {
             text: (button.textContent || "").replace(/\s+/g, " ").trim().slice(0, 70),
             ratio: Number(contrast(color, backing(button)).toFixed(2)),
+            state: Number(Math.max(contrast(fill, enabledFill), contrast(color, enabledInk)).toFixed(2)),
+            cursor: style.cursor,
+            ariaDisabled: button.getAttribute("aria-disabled"),
           };
         });
       });
+      if (path === "/support" && rows.length < 2) {
+        const missing = `${theme} ${path} 320 disabled BUTTON missing ${rows.length}`;
+        contrastLines.push(`${missing} FAIL`);
+        log(`${missing} FAIL`);
+      }
       for (const row of rows) {
-        const ok = row.ratio >= 3;
-        const contrastLine = `${theme} ${path} 320 disabled BUTTON ${row.ratio.toFixed(2)} ${ok ? "OK" : "FAIL"} ${JSON.stringify(row.text)}`;
+        const ok = row.ratio >= 3 && row.ratio <= 4.5 && row.state >= 1.5 && row.cursor === "not-allowed" && row.ariaDisabled === "true";
+        const contrastLine = `${theme} ${path} 320 disabled BUTTON ${row.ratio.toFixed(2)} state=${row.state.toFixed(2)} cursor=${row.cursor} aria-disabled=${row.ariaDisabled} ${ok ? "OK" : "FAIL"} ${JSON.stringify(row.text)}`;
         contrastLines.push(contrastLine);
         log(contrastLine);
       }

@@ -374,6 +374,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               type="submit"
               form="si-email-form"
               disabled={!email.trim()}
+              aria-disabled={!email.trim()}
               className="mt-5 w-full py-3 border border-surface-border text-text-secondary disabled:text-text-secondary transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
