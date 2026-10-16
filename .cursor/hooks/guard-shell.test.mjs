@@ -34,6 +34,31 @@ const allowed = [
   "echo hello",
   "echo \"kubectl get pods\"",
   "echo 'rm -rf /tmp/example'",
+  "echo '$(kubectl get pods)'",
+  "echo '`kubectl get pods`'",
+  "echo 'ok\nkubectl get pods'",
+  "echo \"ok\nkubectl get pods\"",
+  "echo ok \\\nkubectl get pods",
+  "echo ok # kubectl get pods",
+  "cat deploy/k8s/apply.sh",
+  "cat deploy/scripts/k3s-deploy-dev.sh",
+  "git diff deploy/scripts/k3s-deploy-prod.sh",
+  "git diff -- deploy/k8s/apply.sh",
+  "echo deploy/scripts/retired-production-deploy.mjs",
+  "echo deploy:k3s:prod",
+  "bash -n deploy/k8s/apply.sh",
+  "bash -n deploy/aws/host/install-witnessops-deploy-v1.sh",
+  "bash -n deploy/aws/candidate-acceptance.sh",
+  "node --check deploy/scripts/retired-production-deploy.mjs",
+  "node --test deploy/ghcr/workflows.test.mjs",
+  "pnpm deploy:aws:candidate",
+  "gh workflow run ui-proof-homepage-hero.yml",
+  "gh run list",
+  "bash deploy/aws/host/test_install_witnessops_deploy_v1.sh",
+  "python3 -c \"print(1)\" deploy/k8s/apply.sh",
+  "node -e \"console.log(1)\" deploy/k8s/apply.sh",
+  "bash -c \"echo hi\" deploy/k8s/apply.sh",
+  "perl -e 'print 1' deploy/k8s/apply.sh",
 ];
 
 const blocked = [
@@ -72,6 +97,42 @@ const blocked = [
   ["bash -c \"kubectl get pods\"", "kubectl"],
   ["bash -c 'rm -rf /tmp/foo'", "rm -rf"],
   ["bash -c 'pnpm deploy:k3s:prod'", "deploy:k3s"],
+  ["echo ok\nkubectl get pods", "kubectl"],
+  ["echo ok\r\nkubectl get pods", "kubectl"],
+  ["echo \"$(kubectl get pods)\"", "kubectl"],
+  ["(kubectl get pods)", "kubectl"],
+  ["`kubectl get pods`", "kubectl"],
+  ["echo \"`kubectl get pods`\"", "kubectl"],
+  ["$(kubectl get pods)", "kubectl"],
+  ["echo ok && (kubectl get pods)", "kubectl"],
+  ["{ kubectl get pods; }", "kubectl"],
+  ["<(kubectl get pods)", "kubectl"],
+  ["echo ${var:-$(kubectl get pods)}", "kubectl"],
+  ["k3s kubectl get pods", "kubectl"],
+  ["bash deploy/k8s/apply.sh", "deploy script"],
+  ["sh deploy/k8s/apply.sh", "deploy script"],
+  ["./deploy/k8s/apply.sh", "deploy script"],
+  ["source deploy/k8s/apply.sh", "deploy script"],
+  [". deploy/k8s/apply.sh", "deploy script"],
+  ["source deploy/scripts/k3s-lib.sh", "deploy script"],
+  ["node deploy/ghcr/publish.mjs stage", "deploy script"],
+  ["node deploy/ghcr/publish.mjs promote", "deploy script"],
+  ["python3 deploy/k8s/apply.sh", "deploy script"],
+  ["perl deploy/scripts/k3s-deploy-dev.sh", "deploy script"],
+  ["php -f deploy/k8s/apply.sh", "deploy script"],
+  ["bash deploy/aws/host/install-witnessops-deploy-v1.sh --apply", "deploy script"],
+  ["bash deploy/aws/host/install-witnessops-deploy-v1.sh --check", "deploy script"],
+  ["aws ssm send-command --instance-ids i-example --document-name deploy", "aws deploy"],
+  ["gh workflow run aws-release.yml", "workflow dispatch"],
+  ["gh workflow run .github/workflows/aws-release-reusable.yml", "workflow dispatch"],
+  ["gh workflow run \"WitnessOps AWS release control\"", "workflow dispatch"],
+  ["pnpm exec bash deploy/k8s/apply.sh", "deploy script"],
+  ["$(kubectl", "unparsed shell syntax"],
+  ["echo \"$(kubectl\"", "unparsed shell syntax"],
+  ["`kubectl", "unparsed shell syntax"],
+  ["echo 'unterminated", "unparsed shell syntax"],
+  ["cat <<EOF\nkubectl get pods\nEOF", "unparsed shell syntax"],
+  ["echo $'kubectl'", "unparsed shell syntax"],
 ];
 
 test("allows health, tests, ordinary git push, and non-recursive rm", () => {
@@ -125,6 +186,22 @@ test("cli prints schema-shaped JSON and appends a gitignored log line", () => {
   assert.equal(parsed[0].permission, "allow");
   assert.equal(parsed[1].reasons.includes("kubectl"), true);
   assert.equal(parsed[3].command, "rm -rf tmp");
+});
+
+test("cursor quick-check propagates proof:test and the skill marks k3s deploy retired", () => {
+  const root = fileURLToPath(new URL("../..", import.meta.url));
+  const cursorScript = fs.readFileSync(path.join(root, ".cursor/skills/optimize-witnessops-web/scripts/quick-check.sh"), "utf8");
+  const grokScript = fs.readFileSync(path.join(root, ".grok/skills/optimize-witnessops-web/scripts/quick-check.sh"), "utf8");
+  const cursorSkill = fs.readFileSync(path.join(root, ".cursor/skills/optimize-witnessops-web/SKILL.md"), "utf8");
+  const grokSkill = fs.readFileSync(path.join(root, ".grok/skills/optimize-witnessops-web/SKILL.md"), "utf8");
+
+  assert.match(cursorScript, /"\$\{PNPM\[@\]\}" proof:test/);
+  assert.doesNotMatch(cursorScript, /merkle\.test\.ts/);
+  assert.match(grokScript, /merkle\.test\.ts/);
+  assert.match(cursorSkill, /docs\/DEPLOYMENT_AUTHORITY\.md/);
+  assert.match(cursorSkill, /retired-production-deploy\.mjs/);
+  assert.doesNotMatch(cursorSkill, /Dual-lane build and deploy \(private k3s\) — current/);
+  assert.match(grokSkill, /Dual-lane build and deploy \(private k3s\) — current/);
 });
 
 test("unparseable stdin is denied", () => {

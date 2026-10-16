@@ -3,9 +3,15 @@
  * beforeShellExecution hook.
  * Schema: https://cursor.com/docs/hooks
  *
- * Blocks deploy:k3s commands and the repo's k3s deploy/status/teardown scripts,
- * kubectl, git push --force (including --force-with-lease and +refspecs),
- * and rm -rf. Allows pnpm health and the deploy:* test scripts that health runs.
+ * Blocks live deploy entrypoints, kubectl (including `k3s kubectl`), git push --force
+ * (including --force-with-lease and +refspecs), and rm -rf.
+ * Package-script tests that `pnpm health` runs stay allowed.
+ *
+ * Unquoted newlines are command separators. Command substitutions, backticks,
+ * subshells, and process substitutions are inspected. Single-quoted text stays
+ * literal. Input the scanner cannot segment is denied.
+ * Deploy script names match only in executable position, or as the script
+ * operand of an interpreter/source. `bash -n` / `node --check` do not execute.
  *
  * Appends one JSON line per attempt to var/cursor-agent-shell.log
  * (already gitignored via var/). Override with WITNESSOPS_CURSOR_SHELL_LOG.
@@ -15,7 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-const OPERATORS = new Set([";", "|", "&", "&&", "||"]);
+const OPERATORS = new Set([";", "|", "&", "&&", "||", "\n", "{", "}"]);
 
 const DEPLOY_SCRIPT_PATTERNS = [
   /(?<![\w.-])k3s-deploy-dev\.sh\b/,
@@ -26,15 +32,151 @@ const DEPLOY_SCRIPT_PATTERNS = [
   /(?<![\w.-])k3s-dev-teardown\.sh\b/,
   /(?<![\w.-])k3s-status\.sh\b/,
   /(?<![\w.-])k3s-status-prod-readonly\.sh\b/,
+  /(?<![\w.-])k3s-lib\.sh\b/,
   /(?<![\w.-])smoke-prod-dev\.sh\b/,
   /(?<![\w.-])retired-production-deploy\.mjs\b/,
   /(?<![\w.-])k3s-parity\.sh\b/,
   /(?<![\w.-])run-status-with-topology\.mjs\b/,
   /(?<![\w.-])deploy\/scripts\/deploy\.sh\b/,
+  /(?<![\w.-])apply\.sh\b/,
+  /(?<![\w.-])publish\.mjs\b/,
+  /(?<![\w.-])install-witnessops-deploy-v1\.sh\b/,
 ];
 
-export function tokenize(command) {
+const AWS_RELEASE_TARGETS = [
+  /(?:^|\/)aws-release\.yml$/,
+  /(?:^|\/)aws-release-reusable\.yml$/,
+  /^WitnessOps AWS release control$/,
+  /^WitnessOps reusable AWS release$/,
+];
+
+const PACKAGE_RUNNERS = new Set(["pnpm", "npm", "yarn", "npx", "bun"]);
+const WRAPPERS = new Set(["sudo", "command", "exec", "nohup"]);
+const SHELLS = new Set(["bash", "sh", "dash", "zsh", "ksh"]);
+
+function unquote(token) {
+  if (token.length >= 2 && (token[0] === '"' || token[0] === "'") && token.at(-1) === token[0]) {
+    return token.slice(1, -1);
+  }
+  return token;
+}
+
+function baseName(token) {
+  const value = unquote(token);
+  const parts = value.split("/");
+  return parts[parts.length - 1] || value;
+}
+
+function matchesBlockedScript(value) {
+  return DEPLOY_SCRIPT_PATTERNS.some((pattern) => {
+    pattern.lastIndex = 0;
+    return pattern.test(value);
+  });
+}
+
+function isWordBoundary(character) {
+  if (character === undefined) return true;
+  return /[\s;&|<>(){}]/.test(character);
+}
+
+function readBalanced(input, start, open, close) {
+  let depth = 1;
+  let index = start + 1;
+  let quote = null;
+  let body = "";
+  while (index < input.length) {
+    const character = input[index];
+    if (quote === "'") {
+      body += character;
+      if (character === "'") quote = null;
+      index += 1;
+      continue;
+    }
+    if (quote === '"') {
+      if (character === "\\" && index + 1 < input.length) {
+        body += character + input[index + 1];
+        index += 2;
+        continue;
+      }
+      body += character;
+      if (character === '"') quote = null;
+      index += 1;
+      continue;
+    }
+    if (character === "\\") {
+      if (index + 1 < input.length) {
+        body += character + input[index + 1];
+        index += 2;
+        continue;
+      }
+    }
+    if (character === "'") {
+      quote = "'";
+      body += character;
+      index += 1;
+      continue;
+    }
+    if (character === '"') {
+      quote = '"';
+      body += character;
+      index += 1;
+      continue;
+    }
+    if (character === open) {
+      depth += 1;
+      body += character;
+      index += 1;
+      continue;
+    }
+    if (character === close) {
+      depth -= 1;
+      if (depth === 0) return quote ? null : { body, end: index };
+      body += character;
+      index += 1;
+      continue;
+    }
+    body += character;
+    index += 1;
+  }
+  return null;
+}
+
+function readBacktick(input, start) {
+  let index = start + 1;
+  let body = "";
+  while (index < input.length) {
+    if (input[index] === "\\" && index + 1 < input.length) {
+      body += input[index] + input[index + 1];
+      index += 2;
+      continue;
+    }
+    if (input[index] === "`") return { body, end: index };
+    body += input[index];
+    index += 1;
+  }
+  return null;
+}
+
+function pushNested(nested, body) {
+  if (body.trim()) nested.push(body);
+}
+
+function takeDollarParen(command, dollarIndex, nested) {
+  const open = dollarIndex + 1;
+  const got = readBalanced(command, open, "(", ")");
+  if (!got) return null;
+  if (command[open + 1] === "(" && got.body.startsWith("(") && got.body.endsWith(")")) {
+    pushNested(nested, got.body.slice(1, -1));
+  } else {
+    pushNested(nested, got.body);
+  }
+  return got;
+}
+
+export function scanShell(command, depth = 0) {
   const tokens = [];
+  const nested = [];
+  if (depth > 32) return { ok: false, tokens, nested };
   let current = "";
   let quote = null;
 
@@ -42,29 +184,140 @@ export function tokenize(command) {
     if (current.length > 0) tokens.push(current);
     current = "";
   };
+  const fail = () => ({ ok: false, tokens, nested });
 
   for (let index = 0; index < command.length; index += 1) {
     const character = command[index];
-    if (quote) {
+
+    if (quote === "'") {
       current += character;
-      if (character === "\\" && quote === '"' && index + 1 < command.length) {
-        current += command[index + 1];
+      if (character === "'") quote = null;
+      continue;
+    }
+
+    if (quote === '"') {
+      if (character === "\\" && index + 1 < command.length) {
+        const next = command[index + 1];
+        if (next === "\n") {
+          index += 1;
+          continue;
+        }
+        current += character + next;
         index += 1;
         continue;
       }
-      if (character === quote) quote = null;
+      if (character === '"') {
+        current += character;
+        quote = null;
+        continue;
+      }
+      if (character === "`") {
+        const got = readBacktick(command, index);
+        if (!got) return fail();
+        pushNested(nested, got.body);
+        current += "``";
+        index = got.end;
+        continue;
+      }
+      if (character === "$" && command[index + 1] === "(") {
+        const got = takeDollarParen(command, index, nested);
+        if (!got) return fail();
+        current += "$()";
+        index = got.end;
+        continue;
+      }
+      current += character;
       continue;
     }
-    if (character === "'" || character === '"') {
-      quote = character;
+
+    if (character === "'") {
+      quote = "'";
+      current += character;
+      continue;
+    }
+    if (character === '"') {
+      quote = '"';
       current += character;
       continue;
     }
     if (character === "\\") {
       if (index + 1 < command.length) {
-        current += command[index + 1];
+        const next = command[index + 1];
+        if (next === "\n") {
+          index += 1;
+          continue;
+        }
+        current += next;
         index += 1;
       }
+      continue;
+    }
+    if (character === "$" && (command[index + 1] === "'" || command[index + 1] === '"')) {
+      return fail();
+    }
+    if (character === "$" && command[index + 1] === "(") {
+      const got = takeDollarParen(command, index, nested);
+      if (!got) return fail();
+      current += "$()";
+      index = got.end;
+      continue;
+    }
+    if (character === "$" && command[index + 1] === "{") {
+      const got = readBalanced(command, index + 1, "{", "}");
+      if (!got) return fail();
+      const inner = scanShell(got.body, depth + 1);
+      if (!inner.ok) return fail();
+      nested.push(...inner.nested);
+      current += "${}";
+      index = got.end;
+      continue;
+    }
+    if (character === "`") {
+      const got = readBacktick(command, index);
+      if (!got) return fail();
+      pushNested(nested, got.body);
+      current += "``";
+      index = got.end;
+      continue;
+    }
+    if (character === "<" && command[index + 1] === "<") {
+      if (command[index + 2] === "<") {
+        index += 2;
+        continue;
+      }
+      return fail();
+    }
+    if ((character === "<" || character === ">") && command[index + 1] === "(") {
+      const got = readBalanced(command, index + 1, "(", ")");
+      if (!got) return fail();
+      pushNested(nested, got.body);
+      index = got.end;
+      continue;
+    }
+    if (character === "(") {
+      const got = readBalanced(command, index, "(", ")");
+      if (!got) return fail();
+      if (got.body.startsWith("(") && got.body.endsWith(")")) pushNested(nested, got.body.slice(1, -1));
+      else pushNested(nested, got.body);
+      push();
+      index = got.end;
+      continue;
+    }
+    if (character === ")") return fail();
+    if (character === "\n" || character === "\r") {
+      push();
+      tokens.push("\n");
+      if (character === "\r" && command[index + 1] === "\n") index += 1;
+      continue;
+    }
+    if (character === "#" && current.length === 0) {
+      while (index + 1 < command.length && command[index + 1] !== "\n" && command[index + 1] !== "\r") {
+        index += 1;
+      }
+      continue;
+    }
+    if ((character === "{" || character === "}") && current.length === 0 && isWordBoundary(command[index + 1])) {
+      tokens.push(character);
       continue;
     }
     if (/\s/.test(character)) {
@@ -90,40 +343,198 @@ export function tokenize(command) {
     }
     current += character;
   }
+
+  if (quote) return fail();
   push();
-  return tokens;
+  return { ok: true, tokens, nested };
 }
 
-function unquote(token) {
-  if (token.length >= 2 && (token[0] === '"' || token[0] === "'") && token.at(-1) === token[0]) {
-    return token.slice(1, -1);
+export function tokenize(command) {
+  return scanShell(command).tokens;
+}
+
+function walkShellArgs(args) {
+  let syntaxOnly = false;
+  let commandString = null;
+  let script = null;
+  let index = 0;
+  while (index < args.length) {
+    const arg = unquote(args[index]);
+    if (arg === "--") {
+      if (!commandString && args[index + 1]) script = unquote(args[index + 1]);
+      break;
+    }
+    if (arg === "--syntax-check" || /^-[A-Za-z]*n[A-Za-z]*$/.test(arg)) syntaxOnly = true;
+    if (arg === "--rcfile" || arg === "--init-file" || arg === "-o" || arg === "-O") {
+      index += 2;
+      continue;
+    }
+    if (arg.startsWith("--rcfile=") || arg.startsWith("--init-file=")) {
+      index += 1;
+      continue;
+    }
+    if (arg === "-c" || /^-[A-Za-z]*c[A-Za-z]*$/.test(arg)) {
+      if (commandString === null && args[index + 1] !== undefined) commandString = unquote(args[index + 1]);
+      index += 2;
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      index += 1;
+      continue;
+    }
+    if (!commandString) script = arg;
+    break;
   }
-  return token;
+  return { syntaxOnly, commandString, script };
 }
 
-function baseName(token) {
-  const value = unquote(token);
-  const parts = value.split("/");
-  return parts[parts.length - 1] || value;
+function nodeOperands(args) {
+  let syntaxOnly = false;
+  let evalMode = false;
+  const scripts = [];
+  const valued = new Set([
+    "-p", "--print", "-r", "--require", "--import", "--loader",
+    "--experimental-loader", "--input-type", "--test-reporter",
+    "--test-reporter-destination", "--test-name-pattern", "--test-timeout",
+    "--watch-path", "--env-file",
+  ]);
+  let index = 0;
+  while (index < args.length) {
+    const arg = unquote(args[index]);
+    if (arg === "--") {
+      if (!evalMode) {
+        for (const item of args.slice(index + 1)) scripts.push(unquote(item));
+      }
+      break;
+    }
+    if (arg === "--check" || arg === "-c") syntaxOnly = true;
+    if (arg === "-e" || arg === "--eval") {
+      evalMode = true;
+      index += 2;
+      continue;
+    }
+    if (arg.startsWith("--eval=")) {
+      evalMode = true;
+      index += 1;
+      continue;
+    }
+    if (valued.has(arg)) {
+      index += 2;
+      continue;
+    }
+    if (/^--(require|import|loader|test-reporter|test-name-pattern|env-file)=/.test(arg)) {
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      index += 1;
+      continue;
+    }
+    if (!evalMode) scripts.push(arg);
+    index += 1;
+  }
+  return syntaxOnly ? [] : scripts;
 }
 
-const PACKAGE_RUNNERS = new Set(["pnpm", "npm", "yarn", "npx", "bun"]);
-const WRAPPERS = new Set(["sudo", "command", "exec", "nohup"]);
+function interpreterOperands(args, codeFlags, valuedFlags) {
+  const scripts = [];
+  let codeMode = false;
+  let index = 0;
+  while (index < args.length) {
+    const arg = unquote(args[index]);
+    if (arg === "--") {
+      if (!codeMode && args[index + 1]) scripts.push(unquote(args[index + 1]));
+      break;
+    }
+    if (codeFlags.has(arg)) {
+      codeMode = true;
+      index += 2;
+      continue;
+    }
+    if (valuedFlags.has(arg)) {
+      index += 2;
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      index += 1;
+      continue;
+    }
+    if (!codeMode) scripts.push(arg);
+    break;
+  }
+  return scripts;
+}
 
-function matchesBlockedScript(value) {
-  return DEPLOY_SCRIPT_PATTERNS.some((pattern) => {
-    pattern.lastIndex = 0;
-    return pattern.test(value);
-  });
+function scriptOperands(commandName, args) {
+  if (SHELLS.has(commandName)) {
+    const walked = walkShellArgs(args);
+    if (walked.syntaxOnly || walked.commandString || !walked.script) return [];
+    return [walked.script];
+  }
+  if (commandName === "node") return nodeOperands(args);
+  if (commandName === "python" || commandName === "python3") {
+    return interpreterOperands(args, new Set(["-c", "-m"]), new Set(["-W", "-X"]));
+  }
+  if (commandName === "perl") {
+    return interpreterOperands(args, new Set(["-e", "-E"]), new Set(["-I", "-m", "-M"]));
+  }
+  if (commandName === "ruby") {
+    return interpreterOperands(args, new Set(["-e"]), new Set(["-I", "-r"]));
+  }
+  if (commandName === "php") {
+    const scripts = [];
+    let codeMode = false;
+    let index = 0;
+    while (index < args.length) {
+      const arg = unquote(args[index]);
+      if (arg === "-f" && args[index + 1]) {
+        scripts.push(unquote(args[index + 1]));
+        index += 2;
+        continue;
+      }
+      if (arg === "-r") {
+        codeMode = true;
+        index += 2;
+        continue;
+      }
+      if (arg === "-d") {
+        index += 2;
+        continue;
+      }
+      if (arg === "--") {
+        if (!codeMode && args[index + 1]) scripts.push(unquote(args[index + 1]));
+        break;
+      }
+      if (arg.startsWith("-")) {
+        index += 1;
+        continue;
+      }
+      if (!codeMode) scripts.push(arg);
+      break;
+    }
+    return scripts;
+  }
+  if (commandName === "source" || commandName === ".") return interpreterOperands(args, new Set(), new Set());
+  return [];
 }
 
 function deployReasons(commandName, args) {
   const reasons = [];
-  const values = [commandName, ...args.map(unquote)];
-  if (PACKAGE_RUNNERS.has(commandName) && values.some((value) => /deploy:k3s:(?!test-)/.test(value))) {
+  const plainArgs = args.map(unquote);
+  if (PACKAGE_RUNNERS.has(commandName) && plainArgs.some((value) => /(?:^|[^\w.-])deploy:k3s:(?!test-)/.test(value))) {
     reasons.push("deploy:k3s");
   }
-  if (values.some((value) => matchesBlockedScript(value))) reasons.push("deploy script");
+  if (matchesBlockedScript(commandName) || scriptOperands(commandName, args).some(matchesBlockedScript)) {
+    reasons.push("deploy script");
+  }
+  if (commandName === "aws") {
+    const ssmAt = plainArgs.indexOf("ssm");
+    if (ssmAt >= 0 && plainArgs.slice(ssmAt + 1).includes("send-command")) reasons.push("aws deploy");
+  }
+  if (commandName === "gh" && plainArgs.includes("workflow") && plainArgs.includes("run")) {
+    const dispatched = plainArgs.some((value) => AWS_RELEASE_TARGETS.some((pattern) => pattern.test(value)));
+    if (dispatched) reasons.push("workflow dispatch");
+  }
   return reasons;
 }
 
@@ -224,9 +635,22 @@ function reasonsForParsed(parsed) {
   if (!parsed.commandName) return reasons;
   if (parsed.commandName === "rm" && rmForceRecursive(parsed.args)) reasons.push("rm -rf");
   if (parsed.commandName === "kubectl") reasons.push("kubectl");
+  if (parsed.commandName === "k3s" && parsed.args.map(unquote).includes("kubectl")) reasons.push("kubectl");
   if (parsed.commandName === "git" && isForcePush(parsed.args)) reasons.push("git push --force");
   reasons.push(...deployReasons(parsed.commandName, parsed.args));
   return reasons;
+}
+
+function packageExec(parsed) {
+  if (!PACKAGE_RUNNERS.has(parsed.commandName)) return [];
+  const args = parsed.args.map(unquote);
+  const execWords = parsed.commandName === "bun" ? ["exec", "x"] : ["exec", "dlx"];
+  const execAt = args.findIndex((value) => execWords.includes(value));
+  if (execAt < 0) return [];
+  let rest = args.slice(execAt + 1);
+  while (rest.length > 0 && rest[0].startsWith("-") && rest[0] !== "--") rest = rest.slice(1);
+  if (rest[0] === "--") rest = rest.slice(1);
+  return rest.length > 0 ? [rest.join(" ")] : [];
 }
 
 function nestedCommands(parsed) {
@@ -235,24 +659,33 @@ function nestedCommands(parsed) {
     const command = args.filter((value) => !value.startsWith("-")).join(" ");
     return command ? [command] : [];
   }
-  if (parsed.commandName === "bash" || parsed.commandName === "sh" || parsed.commandName === "dash" || parsed.commandName === "zsh") {
-    const flagIndex = args.findIndex((value) => value === "-c" || value === "-lc");
-    return flagIndex >= 0 && args[flagIndex + 1] ? [args[flagIndex + 1]] : [];
+  if (SHELLS.has(parsed.commandName)) {
+    const walked = walkShellArgs(parsed.args);
+    if (walked.syntaxOnly || !walked.commandString) return [];
+    return [walked.commandString];
   }
   if (parsed.commandName === "env") {
     const command = args.filter((value) => !value.startsWith("-") && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(value)).join(" ");
     return command ? [command] : [];
   }
-  return [];
+  return packageExec(parsed);
 }
 
 export function evaluateCommand(command, depth = 0) {
-  const reasons = new Set();
-  if (depth > 4 || typeof command !== "string" || command.trim() === "") {
+  if (typeof command !== "string" || command.trim() === "") {
     return { permission: "allow", reasons: [] };
   }
+  if (depth > 4) {
+    return { permission: "deny", reasons: ["unparsed shell syntax"] };
+  }
 
-  const tokens = tokenize(command);
+  const scanned = scanShell(command);
+  if (!scanned.ok) {
+    return { permission: "deny", reasons: ["unparsed shell syntax"] };
+  }
+
+  const reasons = new Set();
+  const tokens = scanned.tokens;
   let index = 0;
   while (index < tokens.length) {
     if (OPERATORS.has(tokens[index])) {
@@ -265,6 +698,9 @@ export function evaluateCommand(command, depth = 0) {
       for (const reason of evaluateCommand(nested, depth + 1).reasons) reasons.add(reason);
     }
     index = Math.max(parsed.next, index + 1);
+  }
+  for (const nested of scanned.nested) {
+    for (const reason of evaluateCommand(nested, depth + 1).reasons) reasons.add(reason);
   }
 
   return {
@@ -290,7 +726,7 @@ function decisionPayload(result) {
   return {
     permission: "deny",
     user_message: `Blocked shell command (${why}). Deploy, kubectl, force-push, and rm -rf stay with the founder.`,
-    agent_message: `Blocked: ${why}. Do not retry through a wrapper, sudo, or bash -c. pnpm health, pnpm test, pnpm deploy:aws:test, pnpm deploy:ghcr:test, and pnpm deploy:k3s:test-* stay allowed.`,
+    agent_message: `Blocked: ${why}. Do not retry through a wrapper, sudo, bash -c, a newline, or command substitution. pnpm health, pnpm test, pnpm deploy:aws:test, pnpm deploy:ghcr:test, and pnpm deploy:k3s:test-* stay allowed.`,
   };
 }
 

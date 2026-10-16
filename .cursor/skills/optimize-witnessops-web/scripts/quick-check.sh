@@ -15,14 +15,9 @@ PNPM=(pnpm)
 if ! command -v pnpm >/dev/null 2>&1; then
   PNPM=(npx --yes pnpm@9.15.4)
 fi
-if "${PNPM[@]}" proof:test 2>/dev/null; then
-  :
-else
-  node --import tsx --test packages/proof/src/receipt/merkle.test.ts \
-    packages/proof/src/receipt/verify-receipt.test.ts \
-    packages/proof/src/receipt/tier1-freeze-v2_1/emit-v0.test.ts \
-    packages/proof/src/receipt/tier1-freeze-v2_1/verify.test.ts
-fi
+# A proof:test failure is the result. Do not replace it with a narrower suite:
+# the fallback used to omit public-exposure-review.test.ts and still print OK.
+"${PNPM[@]}" proof:test
 APP="$ROOT/apps/witnessops-web"
 export TSX_TSCONFIG_PATH=tsconfig.test.json
 (

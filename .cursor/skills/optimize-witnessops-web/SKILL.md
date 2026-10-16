@@ -2,23 +2,27 @@
 name: optimize-witnessops-web
 description: >
   Investigate and apply performance or architecture optimizations for the witnessops-web
-  monorepo (Next.js 15, TypeScript, @witnessops/proof, private dual-lane k3s deploy).
-  Use when the user asks to optimize witnessops-web, choose a language for verify/UI/deploy,
-  run pnpm health, mesh/prod deploy smoke, or runs /optimize-witnessops-web. Read
+  monorepo (Next.js 15, TypeScript, @witnessops/proof).
+  Use when the user asks to optimize witnessops-web, choose a language for verify/UI,
+  run pnpm health, or runs /optimize-witnessops-web. Read
   docs/OPTIMIZATION-LANGUAGE.md before proposing rewrites or new runtimes.
+  Deployment classification is docs/DEPLOYMENT_AUTHORITY.md.
+  pnpm deploy:k3s:build, deploy:k3s:prod, and deploy:k3s:both are retired.
 metadata:
-  short-description: "Optimize witnessops-web (TS-first, dual-lane k3s)"
+  short-description: "Optimize witnessops-web (TS-first; see DEPLOYMENT_AUTHORITY)"
 ---
 
 # Optimize witnessops-web
 
 This is the Cursor project copy of `.grok/skills/optimize-witnessops-web/SKILL.md`.
 The original stays in place. `pnpm optimize:quick-check` still runs the `.grok` script.
-If this workflow changes, update both copies. Do not delete the original.
+Do not delete the original. This copy's quick-check propagates a `pnpm proof:test` failure,
+and its deploy section follows `docs/DEPLOYMENT_AUTHORITY.md`. Leave the `.grok` skill unchanged
+unless a separate change asks to update it.
 
 Repo root for all paths below: **this monorepo** (`witnessops-web`).
 
-The shell hook in `.cursor/hooks.json` blocks `deploy:k3s` deploy, status, smoke, teardown, and hygiene commands, plus `kubectl`, `git push --force`, and `rm -rf`. Report those as founder actions. Do not work around the hook.
+The shell hook in `.cursor/hooks.json` blocks live deploy entrypoints (`deploy:k3s` deploy, status, smoke, teardown, and hygiene; `deploy/k8s/apply.sh`; registry publish; the host-adapter installer; and `gh workflow run` of the AWS release workflows), plus `kubectl`, `git push --force`, and `rm -rf`. Report those as founder actions. Do not work around the hook.
 
 ## Four deliverables (this lane)
 
@@ -46,7 +50,7 @@ Do not recommend a full language rewrite without user authorization and a writte
 - `/verify` and `/api/verify` accept **untrusted** receipt input; never overclaim verification.
 - `packages/proof` stays receipt-only unless a separate lane widens scope.
 - Mesh gate (`/api/mesh-gate`, `src/lib/mesh-gate.ts`) is **operator mesh hygiene** — not customer security proof.
-- Deploy: **private k3s dual-lane** (prod + mesh-dev) per `docs/DEPLOYMENT_AUTHORITY.md`; no Azure ACA from this repo.
+- Deploy: follow [`docs/DEPLOYMENT_AUTHORITY.md`](../../../docs/DEPLOYMENT_AUTHORITY.md). `pnpm deploy:k3s:build`, `pnpm deploy:k3s:prod`, and `pnpm deploy:k3s:both` are retired. The active routine website release is `.github/workflows/aws-release.yml` with `aws-release-reusable.yml` and `deploy/aws/**`. A merge does not deploy.
 
 ## Investigation workflow
 
@@ -83,34 +87,19 @@ pnpm smoke:buyer-path:test
 
 If `pnpm` is missing on a fleet VM, use the same commands from a host with Node 22 + corepack, or run tests via `node --import tsx` as in `package.json` scripts.
 
-## Dual-lane build and deploy (private k3s) — current
+## Deployment authority
 
-From monorepo root (prefer these over ad-hoc docker/kubectl):
+Routine production deploy is not a local `pnpm deploy:k3s:*` command.
+`pnpm deploy:k3s:build`, `pnpm deploy:k3s:prod`, and `pnpm deploy:k3s:both` run
+`deploy/scripts/retired-production-deploy.mjs` and exit with an error. They are retired.
 
-| Goal | Command |
-|------|---------|
-| Shared image + prod + mesh-dev | `pnpm deploy:k3s:both` |
-| Prod only | `pnpm deploy:k3s:prod` |
-| Mesh-dev only (`MESH_DEV_URL`) | `pnpm deploy:k3s:dev` |
-| Smoke (HTTP 200 + CSS match) | `pnpm deploy:k3s:smoke` |
-| Scripts | `deploy/scripts/k3s-*.sh`, lib `k3s-lib.sh` |
-| Mesh-dev manifest | `deploy/k8s/dev-mesh-deployment.yaml` |
+Current classification is [`docs/DEPLOYMENT_AUTHORITY.md`](../../../docs/DEPLOYMENT_AUTHORITY.md):
 
-Env: source the private ignored `deploy/topology.env`; `ALLOW_DIRTY=1` if intentionally needed.
+- Active routine website release: `.github/workflows/aws-release.yml` and `.github/workflows/aws-release-reusable.yml`, with `deploy/aws/**` as the website deployment source. Dispatch is a separate operator action. A merge does not deploy.
+- `deploy/k8s/**` and retained `deploy/scripts/k3s-*` helpers are retained runtime, dev, and recovery source, not the routine production path.
+- Legacy Compose/GHCR direct-deploy helpers and retired Azure material stay historical.
 
-Smoke after dual-lane deploy:
-
-```bash
-pnpm deploy:k3s:smoke
-curl -sI https://witnessops.com/
-curl -sI "${MESH_DEV_URL}/"   # requires the private network path
-curl -sS -X POST https://witnessops.com/api/mesh-gate -H 'content-type: application/json' -d '{}' | head
-```
-
-### Historical / optional mesh paths
-
-Older Compose / bastion scripts may still exist on operator machines.
-They are **not** current production authority; use in-repo `pnpm deploy:k3s:*` first.
+Do not run those deploy, status, smoke, teardown, or hygiene commands from this skill. The shell hook blocks them. Report production publication as a founder action.
 
 ## Hot files (optimization touch map)
 
@@ -126,12 +115,14 @@ They are **not** current production authority; use in-repo `pnpm deploy:k3s:*` f
 
 ```bash
 pnpm optimize:quick-check
-# or: bash .grok/skills/optimize-witnessops-web/scripts/quick-check.sh
-# Cursor copy of the same script:
+# still runs the .grok script:
+# bash .grok/skills/optimize-witnessops-web/scripts/quick-check.sh
+# Cursor copy propagates a proof:test failure instead of a narrower fallback:
 # bash .cursor/skills/optimize-witnessops-web/scripts/quick-check.sh
 ```
 
 Runs proof tests + verify + mesh-gate route tests (faster than full `pnpm health`).
+A `pnpm proof:test` failure in the Cursor copy stops the script.
 
 ## When to stop and ask the user
 
