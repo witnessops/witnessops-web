@@ -15,7 +15,7 @@ Cursor project rules in `.cursor/rules/*.mdc` are not loaded on a Bugbot run. Th
 
 ## Public contact and timing
 
-- Public contact must be `engage@mail.witnessops.com`. Flag `karol.stefanski@` on public surfaces.
+- Public contact must be `engage@mail.witnessops.com`. Flag any other email address on public surfaces, including any personal or individual mailbox.
 - Timing copy is `Delivery timing per signed SOW` only.
 
 ## Claim boundary
