@@ -187,11 +187,11 @@ test("catalogue smoke preserves the two public review request paths", () => {
   for (const marker of [
     "Two focused security reviews.",
     "Agent Action Security Review",
-    "€2,500 excl. VAT",
+    "€2,500\u00A0excl.\u00A0VAT",
     "Delivery timing agreed in the signed statement of work",
     "Request an agent review",
     "External Attack Surface Review",
-    "€1,900 excl. VAT",
+    "€1,900\u00A0excl.\u00A0VAT",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -292,7 +292,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const englishOpen = routeContract(
     "/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(englishOpen.requiredMarkers.includes("€2,500 excl. VAT"));
+  assert.ok(englishOpen.requiredMarkers.includes("€2,500\u00A0excl.\u00A0VAT"));
   assert.ok(
     englishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',

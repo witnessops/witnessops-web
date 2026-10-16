@@ -115,7 +115,7 @@ test("External Attack Surface Review keeps its historical registry metadata and 
   assert.equal(publicExposure.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(
     publicExposure.price.en,
-    "€1,900 excl. VAT",
+    "€1,900\u00A0excl.\u00A0VAT",
   );
   assert.equal(
     publicExposure.commercialContract.price,

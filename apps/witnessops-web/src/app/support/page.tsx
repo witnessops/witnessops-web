@@ -54,13 +54,13 @@ const situationLanes = [
   {
     href: "/reviews/agent-action-security-review",
     title: PUBLIC_AGENT_ACTION_OFFER.name.en,
-    body: "One named consequential action. €2,500 excl. VAT. Describe the action without secrets.",
+    body: `One named consequential action. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. Describe the action without secrets.`,
     emphasize: true,
   },
   {
     href: "/reviews/external-attack-surface-review",
     title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    body: "One authorised internet-facing system. €1,900 excl. VAT, with one focused retest.",
+    body: `One authorised internet-facing system. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}, with one focused retest.`,
     emphasize: true,
   },
   {

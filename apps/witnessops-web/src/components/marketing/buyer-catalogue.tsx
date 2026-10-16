@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PriceText } from "@/lib/price-unit";
 import { getServiceLanding } from "@/lib/service-landings";
 
 import {
@@ -124,7 +125,7 @@ export function BuyerCatalogue({
                   className="scroll-mt-28 flex h-full min-w-0 flex-col bg-surface-card p-5 md:p-7"
                 >
                   <h3 className="wo-h3 text-text-primary">{service.name[locale]}</h3>
-                  <p className="wo-price mt-3 text-text-primary"><span className="sr-only">{text.price}: </span>{service.price[locale]}</p>
+                  <p className="wo-price mt-3 text-text-primary"><span className="sr-only">{text.price}: </span><PriceText text={service.price[locale]} /></p>
                   <p className="wo-body mt-4 text-text-primary">{service.cardSituation[locale]}</p>
                   <p className="wo-small mt-3 text-text-secondary">{landing.whoFor}</p>
                   {pricing ? <p className="wo-small mt-3 text-text-secondary">{service.result[locale]}</p> : <div className="mt-5">

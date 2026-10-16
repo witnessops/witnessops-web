@@ -4,6 +4,7 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { PriceText } from "@/lib/price-unit";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import { InlineArrow } from "./inline-arrow";
 import styles from "./simple-homepage.module.css";
@@ -94,7 +95,7 @@ export function SimpleHomepage() {
           return <article key={service.id} data-home-offer={service.id}>
             <p className={styles.eyebrow}>{ai ? "Review one agent action" : "Review external exposure"}</p>
             <h3>{service.name.en}</h3>
-            <p className={styles.price}>{ai ? text.aiPrice : text.externalPrice}</p>
+            <p className={styles.price}><PriceText text={ai ? text.aiPrice : text.externalPrice} /></p>
             <p>{ai ? text.aiQuestion : text.externalQuestion}</p>
             <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
             <p>{ai ? text.aiDescription : text.externalDescription}</p>

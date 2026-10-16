@@ -124,7 +124,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
     steps: [
       ["Non-secret fit check", "Name the consequential action, systems involved and decision deadline. Do not send credentials, secrets or production data."],
-      ["Agreed scope and authority", "Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is €2,500 excl. VAT."],
+      ["Agreed scope and authority", `Confirm the action, evidence rules, recipients, price and handling in an accepted agreement. The fee is ${PUBLIC_AGENT_ACTION_OFFER.price.en}.`],
       ["Manual reconstruction", "Read, inspect, reconstruct and report against the agreed evidence. No execution of the reviewed action."],
       ["Report and readout", "Delivery timing agreed in the signed statement of work. Your team owns remediation decisions."],
     ],
@@ -136,7 +136,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
-    commercialNote: "€2,500 excl. VAT after evidence rules are agreed. The request is not a booking, checkout or authorization.",
+    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.en} after evidence rules are agreed. The request is not a booking, checkout or authorization.`,
     primaryCta: "Request an agent review",
   },
   "one-server-security-check": {

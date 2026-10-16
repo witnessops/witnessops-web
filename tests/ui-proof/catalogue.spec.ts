@@ -137,7 +137,7 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   await page.getByRole("link", { name: "Compare scopes and prices" }).click();
   await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
   const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
-  await expect(card).toContainText("€1,900 excl. VAT");
+  await expect(card).toContainText("€1,900\u00A0excl.\u00A0VAT");
   await expect(card).toContainText("One focused retest within 30 calendar days of report handover is included");
   await expect(card).not.toContainText(/3 working days|three working days|€550|550 €/);
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");

@@ -7,6 +7,8 @@ import "./sovereign-idle-fallback.css";
 import { advancePlayback, spriteAsset, spriteRecord, type SovereignSpriteState, type SpriteViewport } from "./sovereign-playback";
 
 const FRAME = 94;
+/** Transparent rows above the error ink. The held and still face starts at y=40. */
+const ERROR_FRAME_TOP = [15, 26, 40] as const;
 
 function themeOf(node: Element): "light" | "dark" {
   return node.getAttribute("data-theme") === "dark" ? "dark" : "light";
@@ -169,7 +171,8 @@ export function SovereignSprite({
   }, [state, still, viewport]);
 
   const frozen = paused || reduced || !armed;
-  const position = frozen ? "0 0" : `${-frame * FRAME}px 0`;
+  const errorTop = state === "ERROR" ? (frozen ? 40 : ERROR_FRAME_TOP[frame] ?? 40) : 0;
+  const position = `${frozen ? 0 : -frame * FRAME}px ${errorTop ? -errorTop : 0}px`;
   return (
     <div className={`${styles.sprite} sv-fallback`} data-face-ready={faceReady ? "" : undefined} role="presentation" aria-hidden="true">
       {topSrc ? (
@@ -182,6 +185,7 @@ export function SovereignSprite({
           style={{
             backgroundImage: `url("${topSrc}")`,
             backgroundPosition: frozen || hold || state !== "COMPOSING" ? position : undefined,
+            backgroundSize: state === "ERROR" && !frozen ? "auto 102px" : undefined,
           }}
         />
       ) : null}

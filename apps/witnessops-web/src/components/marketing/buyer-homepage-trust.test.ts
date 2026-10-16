@@ -96,8 +96,8 @@ test("EN and PL homepage sources project only the two new-sales reviews", () => 
     `${HOMEPAGE_TWO_OFFER_COPY.en.aiDescription} ${HOMEPAGE_TWO_OFFER_COPY.en.externalScopeNote}`,
     /10 working days|3 working days|€550|550 €|fixed quote after scope/,
   );
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500 excl. VAT");
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalPrice, "€1,900 excl. VAT");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.externalPrice, "€1,900\u00A0excl.\u00A0VAT");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "Evidence survives the dashboard.");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
   assert.equal(
@@ -136,7 +136,7 @@ test("External Attack Surface Review stays a registry secondary and a homepage c
   assert.equal(offer?.commercialRole, "secondary");
   assert.equal(offer?.homepageFeatured, false);
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
-  assert.equal(offer?.price.en, "€1,900 excl. VAT");
+  assert.equal(offer?.price.en, "€1,900\u00A0excl.\u00A0VAT");
   assert.equal(offer?.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.doesNotMatch(offer?.timing.en ?? "", /3 working days|10 working days|€550/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);

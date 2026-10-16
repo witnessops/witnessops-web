@@ -189,8 +189,8 @@ test("buyer docs and historical request copy use the signed-statement timing lin
       assert.match(html, /€1,900/);
     }
     if (locale === "pl") {
-      assert.match(html, /€2\u00A0500\u00A0bez VAT/);
-      assert.match(html, /€1\u00A0900\u00A0bez VAT/);
+      assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     }
     assert.doesNotMatch(html, HELD_TERM);

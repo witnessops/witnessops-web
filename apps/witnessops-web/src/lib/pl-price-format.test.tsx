@@ -25,7 +25,7 @@ import { homepageReviewsJsonLd, publicExposureServiceJsonLd } from "@/lib/public
 import { getServiceLanding } from "@/lib/service-landings";
 
 const FORBIDDEN = /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/;
-const LOCKED = /€\d\u00A0\d{3}\u00A0bez VAT/;
+const LOCKED = /€\d\u00A0\d{3}\u00A0bez\u00A0VAT/;
 
 function render(node: ReactNode) {
   return renderToStaticMarkup(
@@ -95,18 +95,18 @@ test("Polish rendered prices drop the middot and keep a non-breaking space", asy
     EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
   ].join("\n");
 
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 excl. VAT");
-  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 excl. VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900\u00A0excl.\u00A0VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.amount, "1900");
   assert.doesNotMatch(rendered, FORBIDDEN);
   assert.match(PUBLIC_AGENT_ACTION_OFFER.price.pl, LOCKED);
   assert.match(EXTERNAL_ATTACK_SURFACE_OFFER.price.pl, LOCKED);
-  const prices = rendered.match(/€[0-9\u00A0][^\n]{0,24}bez VAT/g) ?? [];
+  const prices = rendered.match(/€[0-9\u00A0][^\n]{0,24}bez\u00A0VAT/g) ?? [];
   assert.ok(prices.length >= 2);
   for (const price of prices) {
     assert.match(price, LOCKED);
   }
-  assert.match(rendered, /€2\u00A0500\u00A0bez VAT/);
-  assert.match(rendered, /€1\u00A0900\u00A0bez VAT/);
+  assert.match(rendered, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(rendered, /€1\u00A0900\u00A0bez\u00A0VAT/);
 });

@@ -290,6 +290,12 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
     const hanging = errorLineLefts.length < 2 || Math.abs(errorLineLefts[0] - errorLineLefts[1]) <= 1.5;
     const errorNote = thread.querySelector("[class*='errorNote']");
     const noteBox = errorNote ? errorNote.getBoundingClientRect() : null;
+    const noteChip = errorNote?.querySelector("[class*='turnChip']");
+    const noteCaption = errorNote?.querySelector("[class*='errorCaption']");
+    const noteChipBox = noteChip ? noteChip.getBoundingClientRect() : null;
+    const noteCaptionBox = noteCaption ? noteCaption.getBoundingClientRect() : null;
+    const errorFace = errorLi?.querySelector("[class*='spriteFace']");
+    const errorFacePosition = errorFace ? getComputedStyle(errorFace).backgroundPosition : "";
     const turnBox = errorLi ? errorLi.getBoundingClientRect() : null;
     const sprite = errorLi?.querySelector(".sv-fallback");
     const spriteBox = sprite ? sprite.getBoundingClientRect() : null;
@@ -415,11 +421,15 @@ async function openCase({ locale, width, height, theme, mode, shot, reduced = fa
       retryLeft: retryBox ? retryBox.left : 0,
       textLeft,
       noteBelowFace: Boolean(noteBox && spriteBox && noteBox.top >= spriteBox.bottom - 8),
+      errorNoteStacked: Boolean(noteChipBox && noteCaptionBox && noteCaptionBox.top >= noteChipBox.bottom - 1 && Math.abs(noteCaptionBox.left - noteChipBox.left) <= 3),
+      errorFacePosition,
+      errorFaceLift: /-40px/.test(errorFacePosition),
       retryWithText: Boolean(retryBox && faceCopyBox && Math.abs(retryBox.left - textLeft) <= 3),
       middotStarts,
       priceFits,
       priceText,
       sheetVisible,
+      sheetOpaque: !sheetVisible || (noticeStyle.backgroundColor !== "transparent" && noticeStyle.backgroundColor !== "rgba(0, 0, 0, 0)"),
       sheetBelow,
       titleLine,
       disclaimerTail,
@@ -558,7 +568,9 @@ function problems(measured, { locale, width, height, mode }) {
   if (mode === "error" && !measured.retryWithText) issues.push("retry not in the text column");
   if (measured.middotStarts) issues.push(`middot starts a line ${measured.middotStarts}`);
   if ((width === 1024 || width === 1440) && !measured.priceFits) issues.push(`price ${measured.priceText}`);
-  if (locale === "pl" && width < 768 && (!measured.sheetVisible || !measured.sheetBelow || !measured.titleLine)) issues.push("sheet notice");
+  if (locale === "pl" && width < 768 && (!measured.sheetVisible || !measured.sheetBelow || !measured.titleLine || !measured.sheetOpaque)) issues.push("sheet notice");
+  if (locale === "pl" && mode === "error" && width < 480 && !measured.errorNoteStacked) issues.push("pl error note beside the chip");
+  if (mode === "error" && !measured.errorFaceLift) issues.push(`error face offset ${measured.errorFacePosition}`);
   if ((locale !== "pl" || width >= 768) && measured.sheetVisible) issues.push("sheet notice visible");
   if (locale === "pl" && width === 1440 && !measured.disclaimerBound) issues.push("disclaimer tail");
   if (mode === "error" && measured.answerAligned === false) issues.push("answer not at block start after retry");
@@ -644,7 +656,6 @@ try {
     ["en", "/docs/assistant"],
     ["pl", "/pl"],
     ["pl", "/pl/library"],
-    ["pl", "/pl/check"],
     ["pl", "/pl/docs/assistant"],
   ];
   let widthFails = 0;
@@ -664,7 +675,7 @@ try {
           banner: Boolean(document.querySelector(".pl-copy-review")),
         }));
         const widthOk = measured.scroll <= viewport.width;
-        const bannerOk = !path.startsWith("/pl/") && path !== "/pl" || measured.banner || path === "/pl/check";
+        const bannerOk = !path.startsWith("/pl/") && path !== "/pl" || measured.banner;
         if (!widthOk || !bannerOk) widthFails += 1;
         const line = `${widthOk && bannerOk ? "OK" : "FAIL"} ${theme} ${locale} ${viewport.key} ${path} scroll=${measured.scroll} viewport=${viewport.width} banner=${measured.banner}`;
         widthLines.push(line);
@@ -748,6 +759,153 @@ try {
   log(`state-change after-load backgroundNone=${after === "none"} ${after === "none" ? "OK" : "FAIL"}`);
   if (after !== "none") throw new Error("fallback remained after the new frame loaded");
   await changing.close();
+
+  const priceLines = ["# Offer price units. One getClientRects line top per unit at 320 and 390."];
+  let priceFails = 0;
+  const recordPrice = (line, ok) => {
+    const text = `${ok ? "OK" : "FAIL"} ${line}`;
+    priceLines.push(text);
+    log(text);
+    if (!ok) priceFails += 1;
+  };
+  const questions = {
+    en: {
+      aasr: "What does the Agent Action Security Review cover?",
+      easr: "What does the External Attack Surface Review include?",
+    },
+    pl: {
+      aasr: "Co obejmuje Agent Action Security Review?",
+      easr: "Co obejmuje External Attack Surface Review?",
+    },
+  };
+  const priceSizes = [
+    { width: 320, height: 640 },
+    { width: 390, height: 844 },
+  ];
+  for (const locale of ["en", "pl"]) {
+    for (const size of priceSizes) {
+      for (const kind of ["aasr", "easr"]) {
+        const context = await browser.newContext({ viewport: size, deviceScaleFactor: 1 });
+        const page = await context.newPage();
+        await gotoReady(page, `${base}${locale === "pl" ? "/pl" : ""}/docs/assistant`);
+        await page.waitForFunction(() => document.activeElement?.id === "ask-sovereign-draft");
+        await page.fill("#ask-sovereign-draft", questions[locale][kind]);
+        await page.locator("form button[type=submit]").click();
+        await page.getByText(/Simulated response\s·\s*preview|Podgląd: odpowiedź symulowana/).waitFor();
+        await page.locator("[data-answer-copy] [data-price-unit]").waitFor();
+        const measuredPrices = await page.evaluate(() => {
+          function linesOf(el) {
+            const rects = [...el.getClientRects()].filter((rect) => rect.width > 1 && rect.height > 1);
+            return new Set(rects.map((rect) => Math.round(rect.top))).size;
+          }
+          const answer = document.querySelector("[data-answer-copy]");
+          const answerUnits = [...(answer ? answer.querySelectorAll("[data-price-unit]") : [])];
+          const railUnits = [...document.querySelectorAll("[data-offer-price]")];
+          const answerText = answer ? answer.textContent || "" : "";
+          const pairs = [...document.querySelectorAll("[class*='offerPair']")].map((pair) => {
+            const name = pair.querySelector("[class*='offerName']");
+            const tail = pair.querySelector("[class*='offerNameTail']");
+            const price = pair.querySelector("[data-offer-price]");
+            if (!name || !tail || !price) return { ok: false };
+            const nameBox = name.getBoundingClientRect();
+            const tailBox = tail.getBoundingClientRect();
+            const priceBox = price.getBoundingClientRect();
+            const oneLine = Math.abs(priceBox.top - nameBox.top) <= 3;
+            const stacked = priceBox.top >= nameBox.bottom - 2;
+            const colonWithName = linesOf(tail) === 1 && tailBox.top >= nameBox.top - 1 && tailBox.bottom <= nameBox.bottom + 1;
+            const colonClear = stacked ? tailBox.bottom <= priceBox.top + 2 : Math.abs(tailBox.top - priceBox.top) <= 3;
+            return { ok: colonWithName && colonClear && (oneLine || stacked) && linesOf(price) === 1, oneLine, stacked };
+          });
+          return {
+            answerLines: answerUnits.map((el) => linesOf(el)),
+            answerNowrap: answerUnits.every((el) => getComputedStyle(el).whiteSpace === "nowrap"),
+            railLines: railUnits.map((el) => linesOf(el)),
+            railNowrap: railUnits.every((el) => getComputedStyle(el).whiteSpace === "nowrap"),
+            middot: /·\s*bez VAT/.test(answerText),
+            loose: /€(?:2,500|1,900|2[\s\u00a0]500|1[\s\u00a0]900)(?!\u00a0(?:excl\.|bez)\u00a0VAT)/.test(answerText),
+            pairs,
+          };
+        });
+        const priceOk = measuredPrices.answerLines.length === 1
+          && measuredPrices.answerLines.every((count) => count === 1)
+          && measuredPrices.answerNowrap
+          && measuredPrices.railLines.length === 2
+          && measuredPrices.railLines.every((count) => count === 1)
+          && measuredPrices.railNowrap
+          && !measuredPrices.middot
+          && !measuredPrices.loose
+          && measuredPrices.pairs.length === 2
+          && measuredPrices.pairs.every((pair) => pair.ok);
+        recordPrice(`${locale} ${size.width}x${size.height} ${kind} answer=${measuredPrices.answerLines.join(",")} rail=${measuredPrices.railLines.join(",")} pairs=${JSON.stringify(measuredPrices.pairs)} middot=${measuredPrices.middot} loose=${measuredPrices.loose}`, priceOk);
+        if (locale === "en" && size.width === 320 && kind === "easr") {
+          await page.screenshot({ path: `${outDir}/ask-easr-320x640-en.png` });
+        }
+        if (locale === "pl" && size.width === 390 && kind === "aasr") {
+          await page.screenshot({ path: `${outDir}/ask-aasr-390x844-pl.png` });
+        }
+        if (locale === "pl" && size.width === 320 && kind === "aasr") {
+          await page.locator("[data-ask-thread]").evaluate((el) => { el.scrollTop = 160; });
+          await page.screenshot({ path: `${outDir}/ask-pl-sheet-scrolled-320.png` });
+        }
+        await context.close();
+      }
+    }
+  }
+  const cardRoutes = [
+    ["en", "/"],
+    ["pl", "/pl"],
+    ["en", "/reviews"],
+    ["pl", "/pl/reviews"],
+    ["en", "/reviews/agent-action-security-review"],
+    ["en", "/reviews/external-attack-surface-review"],
+    ["pl", "/pl/reviews/agent-action-security-review"],
+    ["pl", "/pl/reviews/external-attack-surface-review"],
+  ];
+  for (const size of priceSizes) {
+    const context = await browser.newContext({ viewport: size, deviceScaleFactor: 1 });
+    const page = await context.newPage();
+    for (const [locale, path] of cardRoutes) {
+      await gotoReady(page, `${base}${path}`);
+      const cards = await page.evaluate(() => [...document.querySelectorAll("[data-price-unit]")].map((el) => {
+        const rects = [...el.getClientRects()].filter((rect) => rect.width > 1 && rect.height > 1);
+        return {
+          lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+          nowrap: getComputedStyle(el).whiteSpace,
+        };
+      }));
+      recordPrice(`${locale} ${size.width} cards ${path} n=${cards.length} lines=${cards.map((card) => card.lines).join(",")}`, cards.length >= 1 && cards.every((card) => card.lines === 1 && card.nowrap === "nowrap"));
+    }
+    await context.close();
+  }
+  for (const width of [1024, 1440]) {
+    for (const locale of ["en", "pl"]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
+      const page = await context.newPage();
+      await gotoReady(page, `${base}${locale === "pl" ? "/pl" : ""}/docs/assistant`);
+      const rail = await page.evaluate(() => [...document.querySelectorAll("[data-offer-price]")].map((el) => {
+        const rects = [...el.getClientRects()].filter((rect) => rect.width > 1);
+        const pair = el.closest("[class*='offerPair']");
+        const name = pair?.querySelector("[class*='offerName']");
+        const tail = pair?.querySelector("[class*='offerNameTail']");
+        const nameBox = name?.getBoundingClientRect();
+        const priceBox = el.getBoundingClientRect();
+        const tailBox = tail?.getBoundingClientRect();
+        return {
+          lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+          oneLine: Boolean(nameBox && Math.abs(priceBox.top - nameBox.top) <= 3),
+          stacked: Boolean(nameBox && priceBox.top >= nameBox.bottom - 2),
+          colon: Boolean(tailBox && nameBox && tailBox.top >= nameBox.top - 1 && tailBox.bottom <= nameBox.bottom + 1),
+        };
+      }));
+      recordPrice(`${locale} ${width} rail ${JSON.stringify(rail)}`, rail.length === 2 && rail.every((item) => item.lines === 1 && item.colon && (item.oneLine || item.stacked)));
+      await context.close();
+    }
+  }
+  priceLines.push(priceFails ? `PRICE_UNIT_FAIL ${priceFails}` : "PRICE_UNIT_OK");
+  writeFileSync(`${outDir}/price-unit.txt`, `${priceLines.join("\n")}\n`);
+  log(priceLines.at(-1));
+  if (priceFails) throw new Error(priceLines.at(-1));
+
   log("OVERLAP_OK");
 } catch (error) {
   log(`OVERLAP_FAIL ${error instanceof Error ? error.message : String(error)}`);

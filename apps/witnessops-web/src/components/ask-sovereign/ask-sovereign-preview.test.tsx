@@ -46,8 +46,8 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
   assert.equal(SLOW_PENDING_MS, 6_000);
   assert.doesNotMatch(html, /Needs review/);
-  assert.match(html, /€2,500 excl\. VAT/);
-  assert.match(html, /€1,900 excl\. VAT/);
+  assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
+  assert.match(html, /€1,900\u00A0excl\.\u00A0VAT/);
   assert.match(source, /Simulated response\\u00A0· preview/);
   assert.match(source, /simulatedChip: "Simulated"/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
@@ -243,8 +243,8 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(html, /Na co Sovereign może odpowiedzieć/);
   assert.match(html, /Jak zacząć i gdzie napisać/);
   assert.match(html, /O tym asystencie/);
-  assert.match(html, /€2\u00A0500\u00A0bez VAT/);
-  assert.match(html, /€1\u00A0900\u00A0bez VAT/);
+  assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.match(html, /Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu/);
   assert.doesNotMatch(html, /One focused retest of reported findings/);

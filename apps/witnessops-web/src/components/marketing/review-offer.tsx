@@ -4,6 +4,7 @@ import { buyerServiceById, buyerServiceRequestHref, type BuyerLocale } from "@/l
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { getServiceLanding } from "@/lib/service-landings";
+import { PriceText } from "@/lib/price-unit";
 import { InlineArrow } from "./inline-arrow";
 import styles from "./review-offer.module.css";
 
@@ -80,13 +81,13 @@ export function ReviewOffer({ locale, offer }: { locale: BuyerLocale; offer: "ag
             <p className={styles.eyebrow}>{copy.otherReview}</p>
             <p className={styles.crosslead}>
               <Link href={REVIEW_PATH[offer === "agent" ? "external" : "agent"][locale]}>
-                {other.name[locale]} · {other.price[locale]} <InlineArrow />
+                {other.name[locale]} · <PriceText text={other.price[locale]} /> <InlineArrow />
               </Link>
             </p>
           </div>
         </div>
         <aside className={styles.rail}>
-          <p className={styles.price}>{current.price[locale]}</p>
+          <p className={styles.price}><PriceText text={current.price[locale]} /></p>
           <p>{current.timing[locale]}</p>
           <Link className={styles.cta} href={requestHref}>{landing.primaryCta}</Link>
         </aside>

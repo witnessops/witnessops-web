@@ -21,7 +21,7 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 excl. VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
@@ -59,5 +59,5 @@ test("public new-sales projection selects one-action and external only, never pi
   const chosen = publicPaidReviews([historic, privatePilot, external, inventory, current]);
   assert.deepEqual(chosen, [current, external]);
   assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, ["agent-action-security-review", "external-exposure-assessment"]);
-  assert.equal(external.price, "€1,900 excl. VAT");
+  assert.equal(external.price, "€1,900\u00A0excl.\u00A0VAT");
 });

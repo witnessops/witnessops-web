@@ -299,7 +299,7 @@
   border-left: 1px solid var(--rule);
 }
 
-.reviewGrid span {
+.reviewGrid > li > span {
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: var(--type-mono-caps-size);

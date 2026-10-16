@@ -7,6 +7,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { PriceText, PriceUnit } from "@/lib/price-unit";
 import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
@@ -127,7 +128,7 @@ export function followUpSuggestions(suggestions: readonly Suggestion[], asked: s
 
 export function ContactLine({ text }: { text: string }) {
   const at = text.indexOf(CONTACT_ADDRESS);
-  if (at < 0) return text;
+  if (at < 0) return <PriceText text={text} />;
   const after = at + CONTACT_ADDRESS.length;
   const period = text[after] === "." ? "." : "";
   const split = CONTACT_ADDRESS.indexOf("@");
@@ -136,15 +137,39 @@ export function ContactLine({ text }: { text: string }) {
   const rest = text.slice(after + period.length).replace(/^\s+/, "");
   return (
     <>
-      {before ? <>{before} </> : null}
+      {before ? <>
+        <PriceText text={before} />
+        {" "}
+      </> : null}
       <a className={styles.replyAddress} data-reply-address="" href={`mailto:${CONTACT_ADDRESS}`}>
         {CONTACT_ADDRESS.slice(0, split)}
         <wbr />
         {CONTACT_ADDRESS.slice(split, tailAt)}
         <span className={styles.addressTail}>{CONTACT_ADDRESS.slice(tailAt)}{period}</span>
       </a>
-      {rest ? <> {rest}</> : null}
+      {rest ? <>
+        {" "}
+        <PriceText text={rest} />
+      </> : null}
     </>
+  );
+}
+
+function OfferFact({ name, price, tail }: { name: string; price: string; tail?: string }) {
+  const words = name.split(" ");
+  const last = words.pop() ?? name;
+  const head = words.join(" ");
+  return (
+    <li>
+      <span className={styles.offerPair}>
+        <span className={styles.offerName}>
+          {head ? <>{head}{" "}</> : null}
+          <span className={styles.offerNameTail}>{last}:</span>
+        </span>
+        <PriceUnit value={price} offer className={styles.offerPrice} />
+      </span>
+      {tail ? <> {tail}</> : null}
+    </li>
   );
 }
 
@@ -607,7 +632,7 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
   const errorHead = errorSplit > 0 ? copy.errorNote.slice(0, errorSplit + 1) : "";
   const errorTail = errorSplit > 0 ? copy.errorNote.slice(errorSplit + 1) : copy.errorNote;
   const errorNote = (
-    <p className={styles.errorNote}>
+    <p className={styles.errorNote} data-locale={locale}>
       <span className={styles.turnChip}>{copy.simulatedChip}</span>
       <span className={styles.errorCaption}>
         {errorHead}
@@ -757,8 +782,8 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <p className={styles.lead}>{copy.lead}</p>
           <h3>{copy.railAnswer}</h3>
           <ul>
-            <li>{PUBLIC_AGENT_ACTION_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{PUBLIC_AGENT_ACTION_OFFER.price[locale]}</span></li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]}: <span className={styles.offerPrice} data-offer-price="">{EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]}</span>. {EASR_RETEST[locale]}</li>
+            <OfferFact name={PUBLIC_AGENT_ACTION_OFFER.name[locale]} price={PUBLIC_AGENT_ACTION_OFFER.price[locale]} />
+            <OfferFact name={EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]} price={EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]} tail={EASR_RETEST[locale]} />
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

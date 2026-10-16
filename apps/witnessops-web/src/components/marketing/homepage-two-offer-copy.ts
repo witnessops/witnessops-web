@@ -1,3 +1,5 @@
+import { AGENT_PRICE_EN, EXTERNAL_PRICE_EN } from "@/lib/offer-price-unit";
+
 /**
  * Homepage presentation of the two current reviews.
  * These strings do not select an intake identity or amend offer contracts.
@@ -13,16 +15,14 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     aiScopeNote: "One consequential action, such as issuing a refund, changing a record or granting access. Inspection and reconstruction only; we do not execute the action or change production.",
     aiDescription:
       "Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.",
-    // Approved homepage display. Matches the public agent-action price label.
-    aiPrice: "€2,500 excl. VAT",
+    aiPrice: AGENT_PRICE_EN,
     aiCta: "Request an agent review",
     externalQuestion: "Understand what your public-facing system exposes—and what to fix first.",
     externalHeadline: "Understand what your public-facing system exposes—and what to fix first.",
     externalWhoFor: "For SaaS and technology teams preparing for a launch, infrastructure change or customer security review.",
     externalDescription:
       "Review one authorised internet-facing system. Receive an exposure map, manually validated findings and practical remediation priorities.",
-    // Approved homepage display. The registry label stays "€1,900 excl. VAT".
-    externalPrice: "€1,900 excl. VAT",
+    externalPrice: EXTERNAL_PRICE_EN,
     externalScopeNote:
       "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.",
     externalCta: "Request an external review",
