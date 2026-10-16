@@ -180,8 +180,8 @@ export function SovereignSprite({
           className={styles.spriteFace}
           data-state={state}
           data-viewport={state === "HANDOFF" ? viewport : undefined}
-          data-still={frozen || hold ? "1" : undefined}
-          data-hold={hold ? "1" : undefined}
+          data-still={frozen ? "1" : undefined}
+          data-hold={hold && !frozen ? "1" : undefined}
           style={{
             backgroundImage: `url("${topSrc}")`,
             backgroundPosition: frozen || hold || state !== "COMPOSING" ? position : undefined,
