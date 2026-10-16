@@ -1,0 +1,13 @@
+---
+description: Deployment boundary for deploy scripts, topology, and release workflows
+globs: deploy/**,.github/workflows/**
+alwaysApply: false
+---
+
+- Read root `AGENTS.md` and `docs/DEPLOYMENT_AUTHORITY.md` before changing these paths.
+- A source change or merge does not deploy. Production mutation needs a separate explicit operator action.
+- Do not run `pnpm deploy:k3s:*` deploy, status, smoke, teardown, or hygiene scripts, `kubectl`, or `git push --force`. The shell hook in `.cursor/hooks.json` blocks those commands. `pnpm deploy:k3s:test-*`, `pnpm deploy:aws:test`, and `pnpm deploy:ghcr:test` are local checks.
+- Do not commit `deploy/topology.env` or restate host identity, cloud account identifiers, secret inventories, private network topology, rollback endpoints, or credential locations.
+- Retired paths stay historical. Do not reactivate one without a separately authorized lane.
+- Do not rename, move, or semantically change existing production workflow paths or trust bindings.
+- `pnpm release` builds the public website only. It does not deploy the app under `deploy/app/`.
