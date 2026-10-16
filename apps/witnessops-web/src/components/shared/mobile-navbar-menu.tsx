@@ -227,7 +227,7 @@ export function MobileNavbarMenu({
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className={`mt-2 h-12 w-full !rounded-sm !border !border-brand-accent !bg-brand-accent !text-text-inverse !shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:!brightness-110 hover:!shadow-[0_12px_30px_rgba(242,122,61,0.24)] ${
+            className={`mt-2 h-12 w-full !rounded-sm !border !border-brand-accent !bg-brand-accent !text-text-inverse !shadow-none hover:!brightness-110 ${
               currentPath === cta.href ? "ring-2 ring-brand-accent" : ""
             }`}
             ariaCurrent={currentPath === cta.href ? "page" : undefined}

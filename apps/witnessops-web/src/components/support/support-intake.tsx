@@ -498,7 +498,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 active:scale-[0.98]"
               style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
             >
               {status === "sending" ? "Submitting..." : "Send Request"}
@@ -582,7 +582,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <button
               type="submit"
               disabled={status === "verifying" || !verificationCode.trim()}
-              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 active:scale-[0.98]"
               style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
             >
               {status === "verifying" ? "Verifying..." : "Verify code"}

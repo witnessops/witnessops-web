@@ -89,7 +89,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
       return `${baseClassName} text-text-muted hover:bg-surface-bg-alt hover:text-text-primary`;
     }
 
-    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
+    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98]`;
   }
 
   const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta?.variant ?? "secondary")} ${
