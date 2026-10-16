@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { buildCliArtifact } from '../../../scripts/build-cli-artifact.mjs';
 
 test('versioned archive installs and runs without a repository checkout', async () => {
-  const scratch = await mkdtemp(path.join(tmpdir(), 'witnessops-cli-distribution-'));
+  const scratch = await realpath(await mkdtemp(path.join(tmpdir(), 'witnessops-cli-distribution-')));
   try {
     const output = path.join(scratch, 'artifact');
     const built = await buildCliArtifact(['--output', output]);
@@ -25,6 +25,8 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.match(listing.stdout, /package\/ops\/producer\/identity\.json/);
     assert.match(listing.stdout, /package\/ops\/producer\/local-audit-1\.2\.2\.tar\.gz/);
     assert.match(listing.stdout, /package\/ops\/wops-sudo-launcher\.sh\.in/);
+    assert.match(listing.stdout, /package\/AGENT_OBSERVATION\.md/);
+    assert.match(listing.stdout, /package\/src\/agent\/schema\.json/);
     assert.doesNotMatch(listing.stdout, /\.test\.mjs/);
     assert.doesNotMatch(listing.stdout, /test_wops_sudo_launcher\.py/);
     const sourceProducer = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/server-check/producer');
@@ -55,9 +57,10 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.equal(help.status, 0, help.stderr);
     assert.match(help.stdout, /wops auth login \[--server URL\]/);
     assert.match(help.stdout, /sudo wops server check/);
+    assert.match(help.stdout, /wops agent inspect/);
     assert.match(help.stdout, /reconcile retained state/);
 
-    for (const args of [['auth', '--help'], ['server', 'check', '--help']]) {
+    for (const args of [['auth', '--help'], ['server', 'check', '--help'], ['agent', 'inspect', '--help']]) {
       const before = await readdir(scratch);
       const result = spawnSync(path.join(prefix, 'bin/wops'), args, {
         encoding: 'utf8',
@@ -68,9 +71,18 @@ test('versioned archive installs and runs without a repository checkout', async 
       assert.equal(result.status, 0, result.stderr);
       assert.equal(result.stderr, '');
       assert.match(result.stdout, /^Usage:/);
-      assert.match(result.stdout, args[0] === 'auth' ? /wops auth logout/ : /accepted root-owned Local Audit runtime/);
+      assert.match(result.stdout, args[0] === 'auth' ? /wops auth logout/ : args[0] === 'agent' ? /no sign-in, sudo, upload, network/ : /accepted root-owned Local Audit runtime/);
       assert.deepEqual(await readdir(scratch), before, 'help must not create authentication or collection state');
     }
+    const inspect = spawnSync(process.execPath, [path.join(prefix, 'bin/wops'), 'agent', 'inspect'], {
+      cwd: scratch, encoding: 'utf8', env: { ...process.env, PATH: output }, timeout: 5000,
+    });
+    assert.equal(inspect.status, ['linux', 'darwin'].includes(process.platform) && process.getuid() !== 0 ? 0 : 2, inspect.stderr);
+    const record = JSON.parse(await readFile(path.join(scratch, 'agent-observation.json'), 'utf8'));
+    assert.equal(record.schema, 'wops.agent-observation.v1');
+    assert.equal(record.collector.version, built.version);
+    assert.deepEqual(record.observations, []);
+    assert.ok(record.unknowns.length > 0);
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }

@@ -41,7 +41,7 @@ test("review request route issues a security-workflow package verification email
       body: JSON.stringify({
         name: "K. Witness",
         email: "security@witnessops.com",
-        intent: "ai-agent-action-proof-run",
+        intent: "agent-action-security-review",
         scope:
           "AI agent action: coding agent applied a configuration change after approval.",
       }),
@@ -66,7 +66,7 @@ test("review request route issues a security-workflow package verification email
   assert.ok(payload.issuanceId.startsWith("iss_"));
 
   const intake = await getIntakeById(payload.intakeId);
-  assert.equal(intake?.submission.intent, "ai-agent-action-proof-run");
+  assert.equal(intake?.submission.intent, "agent-action-security-review");
   assert.equal(
     intake?.submission.scope,
     "AI agent action: coding agent applied a configuration change after approval.",
@@ -86,7 +86,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Confirm your AI Agent Action Proof Run request\.$/m,
+    /^Confirm your Agent Action Security Review request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
@@ -102,7 +102,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
-  assert.match(mailRaw, /Confirm your AI Agent Action Proof Run request/);
+  assert.match(mailRaw, /Confirm your Agent Action Security Review request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });
@@ -195,6 +195,7 @@ test("review request route redacts upstream issuance errors", async () => {
       body: JSON.stringify({
         name: "Synthetic Buyer",
         email: "security@witnessops.com",
+        intent: "agent-action-security-review",
         scope: "One bounded review request.",
       }),
       headers: { "Content-Type": "application/json" },
@@ -219,6 +220,7 @@ test("review request enforces the durable public issuance budget before a second
         body: JSON.stringify({
           name: "Synthetic Buyer",
           email,
+          intent: "OFFSEC-EXTERNAL-EXPOSURE",
           scope: "One bounded review request.",
         }),
         headers: { "Content-Type": "application/json" },
@@ -250,7 +252,7 @@ test("short inquiry reaches stored intake and operator notification through loca
   const summary = "Our support agent can issue refunds. We need its approval boundary checked.";
   const issued = await POST(new Request("http://localhost/api/review/request", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "Synthetic Buyer", email: "buyer@example.org", intent: "review", locale: "en", scope: summary }),
+    body: JSON.stringify({ name: "Synthetic Buyer", email: "buyer@example.org", intent: "agent-action-security-review", locale: "en", scope: summary }),
   }));
   assert.equal(issued.status, 201);
   const payload = await issued.json() as { intakeId: string; issuanceId: string; email: string };
@@ -278,4 +280,64 @@ test("short inquiry reaches stored intake and operator notification through loca
   const notification = await readFile(path.join(outbox, after.find((f) => !files.includes(f))!), "utf8");
   assert.match(notification, /Reply-To: buyer@example.org/);
   assert.ok(notification.includes(summary));
+});
+
+test("review request route rejects legacy, ambiguous, and unsupported identities before issuance", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-reject-"));
+  applyTestEnv(baseDir);
+
+  const cases = [
+    { intent: "agent-tools-access-review", reason: "historical" },
+    { intent: "bounded-workflow-review", reason: "historical" },
+    { intent: "external-exposure-assessment", reason: "wrong-role" },
+    { intent: "OFFSEC-PILOT", reason: "unsupported" },
+    { intent: "review", reason: "unsupported" },
+    { intent: "AI Agent Tools & Access Review", reason: "unsupported" },
+  ] as const;
+
+  for (const item of cases) {
+    const response = await POST(
+      new Request("https://witnessops.com/api/review/request", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "Synthetic Buyer",
+          email: "security@witnessops.com",
+          intent: item.intent,
+          scope: "One bounded review request.",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-forwarded-for": "203.0.113.55",
+        },
+      }),
+    );
+    assert.equal(response.status, 400, item.intent);
+    const payload = (await response.json()) as { ok: false; field: string; reason: string };
+    assert.equal(payload.ok, false);
+    assert.equal(payload.field, "intent");
+    assert.equal(payload.reason, item.reason);
+  }
+
+  const ambiguous = await POST(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        intent: "agent-action-security-review",
+        productId: "OFFSEC-EXTERNAL-EXPOSURE",
+        scope: "One bounded review request.",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "203.0.113.55",
+      },
+    }),
+  );
+  assert.equal(ambiguous.status, 400);
+  assert.equal(((await ambiguous.json()) as { reason: string }).reason, "ambiguous");
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!).catch(() => [])).length,
+    0,
+  );
 });

@@ -1,5 +1,23 @@
 # WitnessOps CLI
 
+## Local Agent/MCP observation candidate
+
+`wops agent inspect` creates a private local `agent-observation.json` on Linux or macOS,
+without signing in. It inspects fixed command names in bounded PATH locations.
+MCP declarations are read only from explicitly selected JSON files:
+
+```sh
+wops agent inspect --mcp-config ./selected-mcp.json
+```
+
+This is an observation record with meanings, unknowns and collection failures,
+not a security verdict. No upload, workspace integration, runtime process scan or
+Morpheus adapter is included. Read the [contract and privacy boundary](./AGENT_OBSERVATION.md)
+before collecting or sharing a record. `wops agent inspect --help` explains bounds
+and exit codes. Existing files are never overwritten.
+
+## Assisted CLI distribution and existing server check
+
 This package is the dependency-free command-line client used by an assisted
 WitnessOps Linux pilot. The private CLI archive is installed from a reviewed,
 operator-supplied artifact; it is not published to the npm registry.

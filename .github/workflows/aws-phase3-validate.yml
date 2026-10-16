@@ -155,8 +155,8 @@ jobs:
                   found && /^$/ { exit 1 }
                 '\'' /lib/apk/db/installed
               }
-              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"
-              test "$(installed_apk_version libssl3)" = "3.5.8-r0"
+              test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"
+              test "$(installed_apk_version libssl3)" = "3.5.9-r0"
               node --version
               gws --version
             '

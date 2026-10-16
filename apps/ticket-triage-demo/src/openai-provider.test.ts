@@ -6,6 +6,7 @@ import {
   buildOpenAIResponsesRequest,
   createOpenAIProvider,
   extractOpenAIOutputText,
+  type TicketTriageProviderEvent,
 } from "./openai-provider.js";
 import { PINNED_DEMO_MODEL, type TicketTriageInput } from "./types.js";
 
@@ -71,4 +72,34 @@ test("adds only bounded validation paths to the single repair request", async ()
     request.input[2]?.content ?? "",
     /printer unavailable|requester/i,
   );
+});
+
+test("triage records both initial and repair usage without ticket or output data", async () => {
+  const events: TicketTriageProviderEvent[] = [];
+  let calls = 0;
+  const provider = createOpenAIProvider({apiKey: "PRIVATE KEY", model: PINNED_DEMO_MODEL,
+    logger: event => events.push(event), fetchImpl: async () => {
+      calls++;
+      return new Response(JSON.stringify({output_text: "PRIVATE INVALID ANSWER", usage: {input_tokens: 1000 + calls, output_tokens: 20,
+        input_tokens_details: {cached_tokens: calls === 1 ? 0 : 512}}}), {headers: {"x-request-id": `req_triage_${calls}`}});
+    }});
+  await assert.rejects(provider.generate(await fixture()));
+  assert.equal(calls, 2);
+  assert.deepEqual(events.map(e => e.attempt), ["initial", "repair"]);
+  for (const [index, event] of events.entries()) {
+    assert.deepEqual(event, {input_tokens: 1001 + index, output_tokens: 20, cached_tokens: index === 0 ? 0 : 512,
+      model: PINNED_DEMO_MODEL, workload: "ticket-triage", prompt_version: "ticket-triage.v1", schema_version: "witnessops_ticket_triage_v1",
+      attempt: index === 0 ? "initial" : "repair", request_id: `req_triage_${index + 1}`, status: 200,
+      duration_ms: event.duration_ms, error_class: "provider_invalid_output", event: "openai_error"});
+  }
+  assert.doesNotMatch(JSON.stringify(events), /PRIVATE|DEMO-004|printer/);
+});
+
+test("a failing measurement sink does not interrupt the bounded repair", async () => {
+  let calls = 0;
+  const provider = createOpenAIProvider({apiKey: "test-key", model: PINNED_DEMO_MODEL,
+    logger: () => { throw new Error("sink unavailable"); },
+    fetchImpl: async () => { calls++; return new Response(JSON.stringify({output_text: "invalid"})); }});
+  await assert.rejects(provider.generate(await fixture()), /ticket_triage_invalid_provider_output/);
+  assert.equal(calls, 2);
 });

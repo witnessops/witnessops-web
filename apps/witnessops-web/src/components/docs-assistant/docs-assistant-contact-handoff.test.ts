@@ -13,15 +13,14 @@ const likelyWorkflowFit = {
   schema: "witnessops.ask.commercial-fit.v1" as const,
   result: "likely" as const,
   intent: "workflow" as const,
-  offer_id: "agent-tools-access-review" as const,
+  offer_id: "agent-action-security-review" as const,
   source: "ask" as const,
   offer: {
-    name: "AI Agent Tools & Access Review" as const,
-    price_label: "Starting at €2,500 · excluding VAT" as const,
-    unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action" as const,
-    fit_check_label: "Non-secret fit and scoping request first" as const,
-    delivery_label:
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed" as const,
+    name: "Agent Action Security Review" as const,
+    price_label: "€2,500 fixed · excluding VAT" as const,
+    unit_label: "One consequential agent or automation action" as const,
+    fit_check_label: "Non-secret fit check first" as const,
+    delivery_label: "Delivery timing per signed SOW" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
@@ -35,7 +34,7 @@ test("Ask AI contact handoff records controlled fit fields and the explicit note
   );
 
   assert.match(scope, /Contact path: Ask AI panel handoff/);
-  assert.match(scope, /Offer: agent-tools-access-review/);
+  assert.match(scope, /Offer: agent-action-security-review/);
   assert.match(scope, /Commercial fit signal: likely/);
   assert.match(scope, /Commercial intent: workflow/);
   assert.match(scope, /Source: ask/);
@@ -71,7 +70,7 @@ test("the actual contact request body excludes the raw Ask question", () => {
 
   assert.equal(requestBody.intent, "ask-ai-contact");
   assert.equal(requestBody.locale, "en");
-  assert.match(requestBody.scope, /Offer: agent-tools-access-review/);
+  assert.match(requestBody.scope, /Offer: agent-action-security-review/);
   assert.match(requestBody.scope, /Commercial fit signal: likely/);
   assert.doesNotMatch(serialized, new RegExp(rawAskPrompt));
   assert.doesNotMatch(serialized, /ai-agent-action-proof-run/);
@@ -112,23 +111,25 @@ test("removing question-sharing permission excludes the edited question", () => 
   assert.doesNotMatch(scope, /Previously selected question|Visitor-approved question:/);
 });
 
-test("Ask follow-up records every supported service using canonical catalog names", () => {
+test("Ask follow-up records only the two new-sales reviews", () => {
   for (const service of BUYER_SERVICES) {
     const scope = buildAskAiContactScope("Discuss this review.", undefined, { serviceId: service.id });
-    assert.ok(scope.includes(`Offer: ${service.id}\n`));
-    assert.ok(scope.includes(`Offer name: ${service.name.en}\n`));
-    assert.match(scope, /Source: ask/);
+    if (service.id === "agent-action-security-review" || service.id === "external-exposure-assessment") {
+      assert.ok(scope.includes(`Offer: ${service.id}\n`));
+      assert.ok(scope.includes(`Offer name: ${service.name.en}\n`));
+    } else {
+      assert.doesNotMatch(scope, new RegExp(`Offer: ${service.id}`));
+    }
   }
 });
 
-test("an explicit catalog service does not inherit a different legacy offer's fit signal", () => {
+test("a withdrawn catalog service is not recorded as a new-sales offer", () => {
   const scope = buildAskAiContactScope("Review our server.", likelyWorkflowFit, {
     serviceId: "one-server-security-check",
   });
 
-  assert.match(scope, /Offer: one-server-security-check/);
-  assert.match(scope, /Offer name: One Server Security Check/);
-  assert.doesNotMatch(scope, /agent-tools-access-review|Commercial fit signal:/);
+  assert.doesNotMatch(scope, /Offer:|Commercial fit signal:/);
+  assert.doesNotMatch(scope, /one-server-security-check|agent-tools-access-review/);
 });
 
 test("unknown runtime service values cannot become offer identities or names", () => {

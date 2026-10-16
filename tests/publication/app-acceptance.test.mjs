@@ -9,7 +9,7 @@ const require = createRequire(new URL('../../apps/witnessops-web/package.json', 
 const { load } = require('js-yaml');
 const workflow = load(readFileSync(new URL('../../.github/workflows/app-validation.yml', import.meta.url), 'utf8'));
 const gate = workflow.jobs.acceptance;
-const keys = ['supply_chain_gate', 'app', 'image'];
+const keys = ['supply_chain_gate', 'app', 'browser', 'image'];
 const success = () => Object.fromEntries(keys.map(key => [key, { result: 'success' }]));
 function execute(value) {
   return spawnSync('bash', ['-e', '-o', 'pipefail', '-c', gate.steps[0].run], {
@@ -118,4 +118,37 @@ test('actual checksum commands remain verifiable after artifact extraction and d
     const check=workflow.jobs.image.steps.find(s=>s.name==='Confirm tested archive bytes are unchanged').run;
     assert.equal(run(check,downloaded).status,0);writeFileSync(join(downloaded,'image.tar'),'changed bytes');assert.notEqual(run(check,downloaded).status,0);
   }finally{rmSync(root,{recursive:true,force:true});}
+});
+
+test('parallel browser jobs preserve coverage and separate install time', () => {
+  const steps = workflow.jobs.browser.steps;
+  const install = steps.find(s => s.id === 'browser_install');
+  const browser = steps.find(s => s.id === 'browser');
+  assert.equal(install.run, 'pnpm exec playwright install --with-deps "${{ matrix.project }}"');
+  assert.equal(browser.run, 'pnpm test:app-browser --project=${{ matrix.project }}');
+  assert.equal(browser.env.APP_CI_TIMINGS, '1');
+  assert.ok(steps.indexOf(install) < steps.indexOf(browser));
+  const upload = steps.find(s => s.with?.name === 'app-browser-timings-${{ matrix.project }}');
+  assert.equal(upload.if, 'always()');
+  assert.equal(upload.with.path, '${{ runner.temp }}/app-browser-timings/summary.json');
+  assert.equal(upload.with['retention-days'], 3);
+});
+
+test('each browser job is independently admitted and the aggregate requires all matrix results', () => {
+  const browser = workflow.jobs.browser;
+  assert.deepEqual(browser.strategy.matrix.project, ['chromium', 'webkit']);
+  assert.equal(browser.strategy['fail-fast'], false);
+  assert.equal(browser.needs, 'supply_chain_gate');
+  assert.deepEqual(browser.services, workflow.jobs.app.services);
+  const verify = browser.steps.findIndex(s => s.name === 'Verify dependency admission before package tooling');
+  const install = browser.steps.findIndex(s => s.name === 'Frozen install');
+  assert.ok(verify >= 0 && install > verify);
+  assert.deepEqual(browser.steps[verify], workflow.jobs.app.steps.find(s => s.name === 'Verify dependency admission before package tooling'));
+  assert.ok(!workflow.jobs.app.steps.some(s => s.id === 'browser'));
+  const source = readFileSync(new URL('../app-foundation/playwright.config.ts', import.meta.url), 'utf8');
+  assert.match(source, /retries: 0, workers: 1/);
+  assert.match(source, /testIgnore: "report-pdf.spec.ts"/);
+  const upload = browser.steps.find(s => s.with?.name === 'app-browser-diagnostics-${{ matrix.project }}');
+  assert.equal(upload.with.path, '${{ runner.temp }}/app-safe-diagnostics/summary.json');
+  assert.equal(upload.with['retention-days'], 3);
 });

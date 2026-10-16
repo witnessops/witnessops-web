@@ -54,7 +54,7 @@ test("commercial routes with defensible replacements redirect directly", async (
   });
   assert.deepEqual(bySource.get("/access-change-proof-run"), {
     source: "/access-change-proof-run",
-    destination: "/catalog/workflows",
+    destination: "/catalog",
     permanent: true,
   });
   for (const source of [

@@ -1,0 +1,18 @@
+---
+description: Draft PRs off main, local CI-matching checks, and how to read a red check.
+alwaysApply: true
+---
+
+# Pull request workflow
+
+- Base every pull request on `main`. Do not open a stacked PR unless the user explicitly asks for that stack.
+- One draft PR per task, from a new branch off `main`. Do not merge, deploy, force-push, or push commits onto `main`.
+- Before pushing, run the commands that match the CI jobs the diff can trigger:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm --filter witnessops-web build` when the public site, its packages, or content inputs change
+  - `pnpm smoke:buyer-path:test` when public buyer or proof-surface copy changes
+  - `pnpm proof:test` or `pnpm optimize:quick-check` when receipt or proof code changes
+- Do not sleep-poll CI. When a check is red, open the log of the first failing job and read that failure before later jobs.
+- Authenticated app validation acceptance depends on every job in that workflow. Start at the first failing job, because a later red step can be fallout from it. Do not treat one green job as acceptance of the rest.
+- Do not weaken a test, a required check, or a workflow gate to get a green result.

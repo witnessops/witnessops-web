@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { listDocPages } from "@witnessops/content/docs";
 import { z } from "zod";
 
+import { isHistoricallyUnindexedPublicPath } from "@/lib/historical-public-routes";
 import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-normalizer";
 import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
 import { assembleAnswer } from "@/lib/server/ask-witnessops/authority-answer-assembler";
@@ -105,6 +106,7 @@ export async function searchWitnessOpsDocs(query: string) {
 
   const docs = await listDocPages("witnessops");
   const results = docs
+    .filter((doc) => !isHistoricallyUnindexedPublicPath(documentUrl(doc)))
     .map((doc) => ({ doc, score: scoreDocument(doc, terms) }))
     .filter(({ score }) => score > 0)
     .sort(

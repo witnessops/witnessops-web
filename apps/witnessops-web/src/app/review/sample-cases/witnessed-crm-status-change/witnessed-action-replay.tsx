@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -361,9 +362,9 @@ export function WitnessedActionReplay() {
           </section>
 
           <aside className={styles.paidCta}>
-            <span>{PRIMARY_OFFER.name.en}</span>
+            <span>{PUBLIC_AGENT_ACTION_OFFER.name.en}</span>
             <div><h3>Bring one consequential action.</h3><p>Review its authority, executing identity, permissions, tools, execution path, evidence chain, and control gaps.</p></div>
-            <Link href={`${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`}>Start a non-secret fit check →</Link>
+            <Link href={buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id)}>Start a non-secret fit check →</Link>
           </aside>
         </section>
       ) : null}

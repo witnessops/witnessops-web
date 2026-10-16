@@ -5,15 +5,14 @@ export const PUBLIC_NAV_GROUPS = [
     { label: "Get started", href: "/docs/getting-started", description: "Free signup, email verification and your own workspace." },
   ] },
   { label: "Expert help", description: "One agreed scope. Clear findings.", links: [
-    { label: "AI Agent Tools & Access Review", href: "/catalog/workflows", description: "Observed tools, selected connection and one action path." },
-    { label: "One Server Security Check", href: "/catalog/offsec-local-audit", description: "A focused review of one Linux server." },
+    { label: "Agent Action Security Review", href: "/catalog#agent-action-security-review", description: "Review the controls around one agent action." },
     { label: "External Attack Surface Review", href: "/catalog/offsec-external-exposure", description: "Review one public-facing system." },
     { label: "All services", href: "/catalog", description: "Find the right scope for your situation." },
   ] },
   { label: "Resources", description: "Understand the product and its limits.", links: [
     { label: "Docs", href: "/docs", description: "App guides, CLI setup and reference." },
     { label: "Understand results", href: "/docs/getting-started/results", description: "Snapshots, reports and signed packages." },
-    { label: "Sample work", href: "/library", description: "Illustrative findings and evidence." },
+    { label: "Sample work", href: "/review/sample-cases", description: "Illustrative findings and evidence." },
     { label: "Research", href: "/research", description: "Notes on evidence and security decisions." },
     { label: "Verify a receipt", href: "/verify", description: "Supported receipt JSON and named checks." },
   ] },

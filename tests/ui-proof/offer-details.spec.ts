@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
     price: "€1,900 · excluding VAT",
-    timing: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+    timing: "Delivery timing per signed SOW",
     request: "/review/request",
   },
   {
@@ -70,7 +70,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
     price: "€1 900 · bez VAT",
-    timing: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
+    timing: "Termin realizacji według podpisanego SOW",
     request: "/pl/review/request",
   },
   {
@@ -180,7 +180,8 @@ test("reachable offer details use the canonical buyer contract and visual system
           "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
         );
         await expect(main).toContainText("One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
-        await expect(main).toContainText("Start with a short description. We confirm fit and scope before work begins.");
+        await expect(main).toContainText("This review is not offered for new engagements.");
+        await expect(main).not.toContainText("Start with a short description. We confirm fit and scope before work begins.");
         await expect(main).toContainText(
           "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
         );
@@ -196,12 +197,10 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
 
       if (offer.service === "professional-public-footprint-audit") {
-        await expect(main).toContainText(
-          offer.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
-        );
-        await expect(main.locator(`a[href^="${offer.request}"]`).first()).toHaveText(
-          offer.path.startsWith("/pl") ? "Zapytaj o audyt" : "Request this audit",
-        );
+        await expect(
+          main.locator('[data-service-availability="available_by_request"]'),
+        ).toHaveCount(0);
+        await expect(main.locator(`a[href^="${offer.request}"]`)).toHaveCount(0);
         await expect(main).toContainText(
           offer.path.startsWith("/pl")
             ? "Jedna osoba, która wyraziła zgodę"
@@ -213,9 +212,6 @@ test("reachable offer details use the canonical buyer contract and visual system
         await expect(main).toContainText(
           offer.path.startsWith("/pl") ? "Porady prawne" : "Legal advice",
         );
-        await expect(
-          main.locator('[data-service-availability="available_by_request"]'),
-        ).toHaveCount(1);
         await expect(
           main.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),
         ).toHaveCount(0);
@@ -254,42 +250,30 @@ test("reachable offer details use the canonical buyer contract and visual system
       });
       expect(metrics.overflow).toBeLessThanOrEqual(1);
 
-      const requestLinks = main.locator(`a[href^="${offer.request}"]`);
-      expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
-      await expect(requestLinks.first()).toHaveCSS(
-        "background-color",
-        "rgb(245, 241, 232)",
-      );
-      await expect(requestLinks.first()).toHaveCSS("color", "rgb(21, 21, 16)");
-      for (let index = 0; index < 2; index += 1) {
-        const link = requestLinks.nth(index);
-        const href = await link.getAttribute("href");
-        expect(href).toMatch(new RegExp(`^${offer.request}`));
-        if (
-          offer.path.startsWith("/pl")
-        ) {
-          expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offer")).toBe(
-            offer.name,
-          );
-        }
-        if (offer.service === "professional-public-footprint-audit") {
-          expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offerId")).toBe(
-            "professional-public-footprint-audit",
-          );
-        }
-        if (offer.service === "external-exposure-assessment") {
+      if (offer.service === "external-exposure-assessment") {
+        const requestLinks = main.locator(`a[href^="${offer.request}"]`);
+        expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
+        await expect(requestLinks.first()).toHaveCSS(
+          "background-color",
+          "rgb(245, 241, 232)",
+        );
+        await expect(requestLinks.first()).toHaveCSS("color", "rgb(21, 21, 16)");
+        for (let index = 0; index < 2; index += 1) {
+          const link = requestLinks.nth(index);
+          const href = await link.getAttribute("href");
+          expect(href).toMatch(new RegExp(`^${offer.request}`));
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("productId")).toBe(
             "OFFSEC-EXTERNAL-EXPOSURE",
           );
+          expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
         }
-        if (offer.service === "agent-tools-access-review") {
-          const request = new URL(href ?? "", "http://witnessops.test");
-          expect(request.searchParams.get("offerId")).toBe("agent-tools-access-review");
-          expect(request.searchParams.get("offer")).toBe(
-            "AI Agent Tools & Access Review",
-          );
-        }
-        expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+      } else {
+        await expect(main.locator(`a[href^="${offer.request}"]`)).toHaveCount(0);
+        await expect(main.locator(`[data-legacy-offer-withdrawal="${offer.service}"]`).first()).toBeVisible();
+        await expect(main.locator('a[href*="agent-action-security-review"]')).toHaveCount(0);
+        await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
+        await expect(main.locator('a[href*="/catalog/offsec-external-exposure"]')).toHaveCount(0);
+        await expect(page).toHaveURL(new RegExp(`${offer.path.replaceAll("/", "\\/")}$`));
       }
 
       expect(consoleErrors).toEqual([]);
@@ -395,18 +379,18 @@ test("External Attack Surface Review synthetic sample is buyer-safe and responsi
   }
 });
 
-test("Polish offer handoff keeps the canonical contract on the request page", async ({ page }) => {
+test("Polish custody detail stays on its historical URL without starting another review", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
-  await page.locator('main a[href^="/pl/review/request?"]:visible').first().click();
-  await expect(page).toHaveURL(/\/pl\/review\/request\?/);
-  const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
-  await expect(selectedOffer).toContainText("Key, Access and Custody Review");
-  await expect(selectedOffer).toContainText(
-    "13 000–65 000 zł (ok. €3 000–€15 000) · bez VAT",
-  );
-  await expect(selectedOffer).toContainText(
-    "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
-  );
-  await expect(selectedOffer).not.toContainText("Custody / Wallet-Ops Review");
+  const response = await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(200);
+  const main = page.locator('[data-buyer-service-detail="key-access-custody-review"]');
+  await expect(main).toContainText("Key, Access and Custody Review");
+  await expect(main).toContainText("13 000–65 000 zł (ok. €3 000–€15 000) · bez VAT");
+  await expect(main).toContainText("Potwierdzany podczas wstępnej oceny bez informacji poufnych");
+  await expect(main).toContainText("Ten przegląd nie jest oferowany dla nowych zleceń.");
+  await expect(main).not.toContainText("Custody / Wallet-Ops Review");
+  await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
+  await expect(main.locator('a[href*="agent-action-security-review"]')).toHaveCount(0);
+  await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/pl\/catalog\/offsec-custody-ops$/);
 });

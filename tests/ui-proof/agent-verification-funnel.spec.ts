@@ -1,5 +1,5 @@
-import { PRIMARY_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -125,17 +125,20 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("AI agents can send, buy, write, delete and call other systems.");
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id));
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
       await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
-      await expect(sampleLink).toHaveAttribute("href", "/library");
+      await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");
       await sampleLink.click();
-      await expect(page).toHaveURL(/\/library$/);
-      await expect(page.locator('main section[aria-label="First-party skills"] a')).toHaveCount(11);
+      await expect(page).toHaveURL(/\/review\/sample-cases$/);
+      await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
+      await expect(page.locator("main")).toContainText("Published sample, not live customer evidence. No production verification or certification.");
+      await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
+      await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
       await page.goto("/", { waitUntil: "networkidle" });
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);
@@ -437,5 +440,12 @@ test("recorded replay emits no live action request and downloaded receipt matche
       2,
     )}\n`,
   );
+  const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check →", exact: true });
+  await expect(reviewLink).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
+  await expect(reviewLink.locator("..")).toContainText("Agent Action Security Review");
+  await reviewLink.click();
+  await expect(page).toHaveURL(new RegExp(`offerId=${PUBLIC_AGENT_ACTION_REVIEW_ID}`));
+  await expect(page.locator('main form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
+  await expect(page.locator("main")).toContainText("Selected offer: Agent Action Security Review");
   await context.close();
 });

@@ -12,6 +12,9 @@ test("docs home stays small: start paths, browse hubs, limits — not a long mat
   assert.match(page, /Choose your next step/);
   assert.match(page, /CLI setup and authentication/);
   assert.match(page, /workspace invitations/);
+  assert.match(page, /Free hostname check/);
+  assert.match(page, /label="Run free check"/);
+  assert.match(page, /label="Read the guide"/);
   assert.match(page, /label="Get started"/);
   assert.match(page, /Try an example/);
   assert.match(page, /The default example is indeterminate/);
@@ -19,8 +22,6 @@ test("docs home stays small: start paths, browse hubs, limits — not a long mat
   assert.match(page, /Buyer path/);
   assert.match(page, /Verify a receipt/);
   assert.match(page, /href="\/verify"/);
-  assert.match(page, /label="CLI setup"/);
-  assert.match(page, /label="Access help"/);
   assert.match(page, /Browse by area/);
   assert.match(page, /do not claim complete runtime truth/);
 

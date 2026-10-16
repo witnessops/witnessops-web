@@ -6,6 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 const service = buyerServiceById("customer-security-review-sprint");
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: "Customer Security Review Sprint",
   description:
     "WitnessOps takes one questionnaire and one product scope, identifies which proposed answers are supported by the supplied evidence, separates management assertions and open items, and returns a response package for your approval.",

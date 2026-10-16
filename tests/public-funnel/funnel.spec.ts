@@ -38,7 +38,8 @@ for(const width of [1440,390])test(`footer and research at ${width}`,async({page
 });
 test('Polish footer uses supported destinations and labels English-only surfaces',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/pl');const footer=page.locator('#site-footer');
- for(const [label,href] of [['AI Agent Tools & Access Review (EN)','/catalog/workflows'],['External Attack Surface Review','/pl/catalog/offsec-external-exposure'],['Badania i artykuły (EN)','/research'],['Bezpłatne sprawdzenie (EN)','/check'],['Dokumentacja','/pl/docs']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+ for(const [label,href] of [['External Attack Surface Review','/pl/catalog/offsec-external-exposure'],['Badania i artykuły (EN)','/research'],['Bezpłatne sprawdzenie (EN)','/check'],['Dokumentacja','/pl/docs']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+ await expect(footer.getByRole('link',{name:'AI Agent Tools & Access Review (EN)',exact:true})).toHaveCount(0);
  await expect(footer).not.toContainText('Naprawa i przekazanie');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  expect((await page.goto('/pl/catalog/offsec-external-exposure'))?.status()).toBe(200);
 });

@@ -2,14 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { classifyQuestion } from "./authority-classifier";
+import { PUBLIC_AGENT_ACTION_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
-const CURRENT_PRIMARY_OFFER = {
-  name: "AI Agent Tools & Access Review",
-  price_label: "Starting at €2,500 · excluding VAT",
-  unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-  fit_check_label: "Non-secret fit and scoping request first",
-  delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+const CURRENT_AGENT_ACTION_OFFER = {
+  name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+  price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+  unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
+  fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
+  delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
 } as const;
 
 function classify(question: string) {
@@ -36,8 +37,8 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
   );
   assert.equal(result.commercialFit.result, "likely");
   assert.equal(result.commercialFit.intent, "workflow");
-  assert.equal(result.commercialFit.offer_id, "agent-tools-access-review");
-  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+  assert.equal(result.commercialFit.offer_id, "agent-action-security-review");
+  assert.deepEqual(result.commercialFit.offer, CURRENT_AGENT_ACTION_OFFER);
   assert.equal(
     result.commercialFit.matching_specimen_id,
     "ai-agent-action-proof-run",
@@ -45,18 +46,21 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
   assert.equal(result.authorityClassification.fallback_used, true);
 });
 
-test("recognizes the current offer and pricing question without inventing a new policy", () => {
-  const result = classify(
+test("recognizes the current Agent Action offer and does not sell the inventory review", () => {
+  const current = classify(
+    "What is included in Agent Action Security Review and how much does it cost?",
+  );
+  assert.equal(current.commercialFit.result, "likely");
+  assert.equal(current.commercialFit.intent, "offer");
+  assert.equal(current.commercialFit.offer_id, "agent-action-security-review");
+  assert.deepEqual(current.commercialFit.offer, CURRENT_AGENT_ACTION_OFFER);
+
+  const inventory = classify(
     "What is included in AI Agent Tools & Access Review and how much does it cost?",
   );
-
-  assert.equal(result.commercialFit.result, "likely");
-  assert.equal(result.commercialFit.intent, "offer");
-  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
-  assert.equal(
-    result.authorityClassification.question_class_id,
-    "outside_approved_public_context",
-  );
+  assert.equal(inventory.commercialFit.result, "unknown");
+  assert.equal(inventory.commercialFit.offer_id, null);
+  assert.equal(inventory.commercialFit.offer, null);
 });
 
 test("does not map a historical offer name to the distinct current offer", () => {
@@ -116,7 +120,25 @@ test("marks whole-estate requests as needing a one-workflow boundary", () => {
   const result = classify("Audit our entire cloud environment");
 
   assert.equal(result.commercialFit.result, "needs_boundary");
-  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+  assert.deepEqual(result.commercialFit.offer, CURRENT_AGENT_ACTION_OFFER);
+});
+
+test("selects the external review and its 30-day retest without treating it as the agent review", () => {
+  const result = classify(
+    "What is included in the External Attack Surface Review and how much does it cost?",
+  );
+  assert.equal(result.commercialFit.result, "likely");
+  assert.equal(result.commercialFit.offer_id, EXTERNAL_ATTACK_SURFACE_OFFER.id);
+  assert.match(result.commercialFit.offer?.unit_label ?? "", /30 calendar days of initial report handover/);
+  assert.match(result.commercialFit.offer?.fit_check_label ?? "", /not a penetration test/i);
+});
+
+test("does not choose a review when the question names both current offers", () => {
+  const result = classify(
+    "Should we buy the Agent Action Security Review or the External Attack Surface Review?",
+  );
+  assert.equal(result.commercialFit.result, "unknown");
+  assert.equal(result.commercialFit.offer_id, null);
 });
 
 test("marks multi-workflow agent requests as needing a one-workflow boundary", () => {

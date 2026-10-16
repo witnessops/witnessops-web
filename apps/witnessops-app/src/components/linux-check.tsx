@@ -1,6 +1,7 @@
 'use client';
 import { hasWorkspaceCapability } from '../lib/workspace-role-policy';
 import { reportFollowThrough } from './report-follow-through';
+import { ReportOverview } from './report-overview';
 import { ReportShare } from './report-share';
 import Link from 'next/link';
 import { CHECK_DISCOVERY } from '../lib/check-discovery';
@@ -109,6 +110,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
       <div className="support"><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p></div>
       <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run <span className="identifier">{run.id}</span></p>
     </div></header>
+    <ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceHref={context.evidenceHref} />
     <section className="linux-export-panel" aria-labelledby="linux-export-heading">
       <div><h2 id="linux-export-heading">Report and original source</h2><p className="quiet">Save the readable report for a review. Keep the original ZIP and its signature together for verification.</p></div>
       <div className="actions"><button className="button" onClick={print}>Save report as PDF</button><button className="button secondary" onClick={() => void download('zip')}>Download original ZIP</button><button className="button secondary" onClick={() => void download('signature')}>Download detached signature</button><Link className="button secondary" href={`/reports/${run.id}`}>Open report</Link></div>

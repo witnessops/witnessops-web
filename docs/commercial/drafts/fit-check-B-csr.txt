@@ -1,3 +1,16 @@
+HISTORICAL TEMPLATE — NOT FOR NEW SALES
+
+The original draft below is retained for reference. Do not use its old offer
+choices, prices, timing, handling instructions or claims for a new engagement.
+Existing agreements keep the terms actually accepted; this label changes none.
+For new work, use the current commercial index and matching current scope:
+https://github.com/witnessops/witnessops-web/blob/main/docs/commercial/README.md
+https://github.com/witnessops/witnessops-web/blob/main/docs/commercial/06-scope-agreement-skeleton.md
+
+--- ORIGINAL HISTORICAL DRAFT ---
+
+Historical / superseded. Not for new sales. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+
 Subject: CSR Sprint — fit check next steps
 
 Hi [Name],

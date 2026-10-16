@@ -1,3 +1,4 @@
+import { extractOpenAIUsage, type OpenAIUsageMetrics } from "./openai-usage.js";
 import { TICKET_TRIAGE_DEVELOPER_INSTRUCTION } from "./prompt.js";
 import {
   providerTriageJsonSchema,
@@ -25,7 +26,21 @@ export class InvalidProviderOutputError extends Error {
   }
 }
 
+export interface TicketTriageProviderEvent extends OpenAIUsageMetrics {
+  event: "openai_response" | "openai_error";
+  model: string;
+  workload: "ticket-triage";
+  prompt_version: "ticket-triage.v1";
+  schema_version: "witnessops_ticket_triage_v1";
+  attempt: "initial" | "repair";
+  request_id: string | null;
+  status: number | null;
+  duration_ms: number;
+  error_class: string | null;
+}
+
 interface OpenAIResponsesConfig {
+  logger?: (event: TicketTriageProviderEvent) => void;
   apiKey: string;
   model: typeof PINNED_DEMO_MODEL;
   fetchImpl?: typeof fetch;
@@ -108,7 +123,7 @@ async function executeRequest(args: {
   ticket: TicketTriageInput;
   repairReasons?: string[];
   config: Required<Pick<OpenAIResponsesConfig, "apiKey" | "model">> &
-    Pick<OpenAIResponsesConfig, "fetchImpl" | "timeoutMs">;
+    Pick<OpenAIResponsesConfig, "fetchImpl" | "timeoutMs" | "logger">;
 }): Promise<TicketTriage> {
   const fetchImpl = args.config.fetchImpl ?? globalThis.fetch;
   const controller = new AbortController();
@@ -117,6 +132,11 @@ async function executeRequest(args: {
     args.config.timeoutMs ?? 30_000,
   );
 
+  const startedAt = Date.now();
+  let requestId: string | null = null;
+  let status: number | null = null;
+  let errorClass: string | null = null;
+  let usage: OpenAIUsageMetrics = {};
   try {
     let response: Response;
     try {
@@ -142,11 +162,14 @@ async function executeRequest(args: {
       throw new ProviderUnavailableError("network");
     }
 
+    requestId = response.headers.get("x-request-id");
+    status = response.status;
     if (!response.ok) {
       throw new ProviderUnavailableError(response.status);
     }
 
     const rawResponse = (await response.json()) as unknown;
+    usage = extractOpenAIUsage(rawResponse);
     const outputText = extractOpenAIOutputText(rawResponse);
     if (!outputText) {
       throw new InvalidProviderOutputError(["missing_output_text"]);
@@ -167,8 +190,37 @@ async function executeRequest(args: {
     }
 
     return validated.value;
+  } catch (error) {
+    if (error instanceof InvalidProviderOutputError) {
+      errorClass = "provider_invalid_output";
+    } else if (error instanceof ProviderUnavailableError) {
+      errorClass = error.status === "timeout" ? "provider_timeout"
+        : error.status === "network" ? "provider_unavailable" : "provider_http_error";
+    } else {
+      errorClass = "provider_invalid_response";
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
+    const logger = args.config.logger ?? ((event: TicketTriageProviderEvent) =>
+      console.info("[ticket-triage:openai]", JSON.stringify(event)));
+    try {
+      logger({
+        ...usage,
+        model: args.config.model,
+        workload: "ticket-triage",
+        prompt_version: "ticket-triage.v1",
+        schema_version: "witnessops_ticket_triage_v1",
+        attempt: args.repairReasons ? "repair" : "initial",
+        request_id: requestId,
+        status,
+        duration_ms: Date.now() - startedAt,
+        error_class: errorClass,
+        event: errorClass ? "openai_error" : "openai_response",
+      });
+    } catch {
+      // Measurement failures must not change provider behavior or trigger retries.
+    }
   }
 }
 

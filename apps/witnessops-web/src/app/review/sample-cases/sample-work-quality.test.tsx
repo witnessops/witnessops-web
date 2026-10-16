@@ -21,12 +21,21 @@ test("all five historical proofpacks disclose incompatible Bundle V1 and unavail
   }
 });
 
-test("index shows existing External Exposure sample and concise limits before sample cards", () => {
+test("index leads with current-review examples and labels historical service samples", () => {
   const html = renderToStaticMarkup(<Index />);
   assert.ok(html.includes('href="/review/sample-cases/external-exposure-assessment"'));
   assert.ok(html.includes("not live customer evidence"));
   assert.ok(!html.includes("How to use these pages"));
   const firstCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
-  assert.ok(firstCard > 0 && firstCard < html.indexOf("Next steps"));
+  const agentCard = html.indexOf('href="/review/sample-cases/ai-agent-action-proof-run"');
+  const historicalCard = html.indexOf('href="/review/sample-cases/local-server-security-review"');
+  assert.ok(firstCard > 0 && firstCard < agentCard && agentCard < historicalCard);
+  assert.ok(historicalCard < html.indexOf("Next steps"));
+  assert.ok(html.includes("Agent Action Security Review"));
+  assert.ok(html.includes("External Attack Surface Review"));
+  assert.ok(html.includes("Historical service sample"));
+  assert.ok(html.includes("not a complete sample of the current agent review"));
+  assert.ok(html.includes("not additional reviews offered for sale"));
+  assert.ok(!html.includes("External Exposure assessment"));
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
 });

@@ -10,7 +10,7 @@ trust_boundary_variant: "legal"
 
 # Privacy Policy
 
-Last updated: August 2026
+Last updated: 21 September 2026
 
 ## Site scope
 
@@ -70,7 +70,7 @@ in any artifact intended for publication, verification, or redistribution.
 
 ## Retention
 
-### Authenticated External Exposure Early Access
+### Authenticated workspaces, including Early Access
 
 The authenticated workspace stores account identity mappings, workspace membership, saved hostnames and completed observation sources. These saved observations are private workspace data, not public verification artifacts. They are unsigned. Opening a public `/check` result does not automatically import it into a workspace.
 
@@ -79,6 +79,16 @@ First-party product events record bounded action names, user/workspace/asset/run
 Optional result and comparison feedback stores the submitted answer and comment separately from completed evidence. Do not include secrets or confidential information in feedback. Authorized WitnessOps operators may review it to improve the product.
 
 No automatic retention period or deletion job is implemented for authenticated Early Access data yet. Signing out does not delete it, and rerunning does not rewrite previous completed sources. Contact WitnessOps about access or removal; a removal request is not a promise of automatic or immediate deletion.
+
+Supported Linux imports also retain the uploaded source files and their verification context. Report sharing creates a separate, fixed copy of selected report content. Revoking a share prevents subsequent access through that link; it does not recall content already seen, downloaded or delivered to a recipient.
+
+### Requesting removal
+
+Use [Support](/support#support-request) to request removal. Identify the account or workspace concerned and whether you want saved results removed, shared links revoked, or the account closed. Do not attach source evidence, passwords, credentials or identity documents to the initial request. We may need to confirm your identity and authority over a shared workspace before acting.
+
+Removal needs a stated scope. Deleting saved workspace content is different from closing an account, deleting identity-provider records, or removing copies in backups, logs, correspondence and external providers. Historical agreement records and reserved reporting names may remain. A completion response must identify what was removed, what remains, and any unresolved copies or retention requirements; a request acknowledgement or link revocation alone is not confirmation of deletion.
+
+Until the relevant removal scope and retention arrangements have been confirmed, use non-sensitive evaluation data. A stated retention period is not evidence that automatic expiry is operating.
 
 ### Public site and correspondence
 

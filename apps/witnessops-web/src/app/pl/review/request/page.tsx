@@ -1,56 +1,42 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
-import {
-  buyerServiceByProductId,
-  buyerServiceFromRequestOffer,
-} from "@/lib/buyer-services";
-import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
+import { buyerServiceByProductId, buyerServiceByPublicOfferId } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  PRIMARY_OFFER,
-  LEGACY_AGENT_ACTION_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
-import { POLISH_OFFERS } from "@/lib/public-i18n";
-import { getSku } from "@witnessops/catalog";
+import { NewSalesIntakeClosed } from "@/components/review-request/new-sales-intake-closed";
+import {
+  NEW_SALES_EXTERNAL_PRODUCT_ID,
+  resolveNewSalesPageQuery,
+} from "@/lib/new-review-request-policy";
 import { languageAlternates } from "@/lib/public-seo";
+import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto, PUBLIC_CONTACT_SUBJECTS } from "@/lib/public-contact";
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 
-function oneParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = (await searchParams) ?? {};
-  const productId = oneParam(params.productId);
-  const offerId = oneParam(params.offerId);
-  const offer = oneParam(params.offer);
-  const requestedSku = productId ? getSku(productId) : undefined;
-  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
-    ? requestedSku
-    : undefined;
-  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferOrder =
-    requestedOffer &&
-    (offerId !== undefined || !sku);
-  const publicExposureOrder =
-    !primaryOfferOrder && sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
+  const decision = resolveNewSalesPageQuery({
+    offerId: params.offerId,
+    productId: params.productId,
+    offer: params.offer,
+  });
+  const publicExposureOrder = decision.state === "selected" && decision.role === "product";
+  const agentActionOrder = decision.state === "selected" && decision.role === "offer";
 
   return {
-    title: primaryOfferOrder
-      ? `Rozpocznij ${requestedOffer.name.pl}`
+    title: agentActionOrder
+      ? `Rozpocznij ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
       : publicExposureOrder
         ? `Rozpocznij ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`
       : "Opowiedz, co wymaga sprawdzenia",
-    description: primaryOfferOrder
-      ? requestedOffer.id === PRIMARY_OFFER.id
-        ? `${PRIMARY_OFFER.unit.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.timing.pl}.`
-        : `${requestedOffer.situation.pl} ${requestedOffer.price.pl}. ${requestedOffer.timing.pl}.`
+    description: agentActionOrder
+      ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
       : publicExposureOrder
         ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
-      : "Opisz niepoufnie ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga sprawdzenia.",
+      : "Wybierz Agent Action Security Review albo External Attack Surface Review. Stary identyfikator nie wybiera przeglądu.",
     alternates: languageAlternates("/pl/review/request", {
       en: "/review/request",
       pl: "/pl/review/request",
@@ -60,31 +46,29 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function PolishReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
-  const productId = oneParam(params.productId);
-  const offerId = oneParam(params.offerId);
-  if (offerId === LEGACY_AGENT_ACTION_OFFER.id) {
+  const decision = resolveNewSalesPageQuery({
+    offerId: params.offerId,
+    productId: params.productId,
+    offer: params.offer,
+  });
+  if (decision.state === "rejected") {
+    return <NewSalesIntakeClosed locale="pl" reason={decision.reason} />;
+  }
+  if (decision.state === "chooser") {
     return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
-      <h1 className="text-4xl font-semibold">Ta oferta została zastąpiona</h1>
-      <p className="mt-5 leading-7">{LEGACY_AGENT_ACTION_OFFER.name.pl} był osobną ofertą przeglądu jednego działania za stałą cenę. Ten link nie wybiera jej dla nowych zgłoszeń. Wcześniejsze zgłoszenia i umowy zachowują swoje warunki.</p>
-      <p className="mt-5 leading-7">Obecny {PRIMARY_OFFER.name.pl} obejmuje ograniczony do uzgodnionych źródeł spis narzędzi na urządzeniu i głębszy przegląd jednego działania; stałą cenę ustalamy po określeniu zakresu.</p>
-      <Link className="mt-6 inline-block underline" href={`/pl/review/request?offerId=${PRIMARY_OFFER.id}`}>Poproś o ocenę dopasowania i zakres</Link>
+      <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Zapytaj o sprawę</p>
+      <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">Jedno pytanie. Tylko niepoufne szczegóły.</h1>
+      <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Wybierz Agent Action Security Review albo External Attack Surface Review. Nazwa wyświetlana, stary identyfikator albo swobodny opis nie wybiera innego przeglądu.</p>
+      <div className="mt-10"><ContactForm compact landing locale="pl" /></div>
+      <p className="mt-6 text-sm leading-6 text-text-muted">Ten formularz nie rozpoczyna pracy ani kontroli wobec celu.</p>
+      <p className="mt-3 text-sm leading-6 text-text-muted">Wolisz e-mail? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
     </main>;
   }
-  const offer = oneParam(params.offer);
-  const requestedSku = productId ? getSku(productId) : undefined;
-  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
-    ? requestedSku
-    : undefined;
-  const polishOffer = sku ? POLISH_OFFERS[sku.id] : undefined;
-  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferSelected =
-    requestedOffer &&
-    (offerId !== undefined || !sku);
-  const buyerService = primaryOfferSelected
-    ? requestedOffer
-    : sku
-      ? buyerServiceByProductId(sku.id)
-      : requestedOffer;
+  const agentActionOrder = decision.role === "offer";
+  const publicExposureOrder = decision.role === "product";
+  const buyerService = agentActionOrder
+    ? buyerServiceByPublicOfferId(PUBLIC_AGENT_ACTION_OFFER.id)
+    : buyerServiceByProductId(NEW_SALES_EXTERNAL_PRODUCT_ID);
   const selectedOffer = buyerService
     ? {
         name: buyerService.name.pl,
@@ -92,10 +76,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         price: buyerService.price.pl,
         timing: buyerService.timing.pl,
       }
-    : polishOffer;
-  const publicExposureOrder =
-    buyerService?.id === "external-exposure-assessment";
-  const primaryOfferOrder = buyerService?.id === PRIMARY_OFFER.id;
+    : undefined;
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -111,12 +92,8 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
           {publicExposureOrder
-            ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
-            : primaryOfferOrder
-              ? `Nazwij konfigurację agenta, wybrane połączenie, klasę urządzenia i jedno istotne działanie. Wspólnie ustalimy dopasowanie i zakres. Na razie bez sekretów i materiałów.`
-            : selectedOffer
-              ? "Podaj jedno niepoufne podsumowanie dla wybranej usługi. Przed rozpoczęciem pracy potwierdzimy dopasowanie, dokładny zakres, wymagane materiały, cenę i termin."
-              : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
+            ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji. To nie jest test penetracyjny."
+            : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. Najpierw potwierdzimy dopasowanie. Na razie bez sekretów i materiałów.`}
         </p>
         {selectedOffer ? <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary"><p className="sr-only">Wybrana oferta: {selectedOffer.name}</p><p>Cena: {selectedOffer.price}</p><p>Termin: {selectedOffer.timing}</p>{publicExposureOrder ? <p className="mt-2">Rozmowa sprzedażowa nie jest wymagana.</p> : null}</div> : null}
       </header>
@@ -125,11 +102,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
           <ContactForm
             compact={Boolean(selectedOffer)}
             locale="pl"
-            intent={
-              primaryOfferOrder
-                ? PRIMARY_OFFER.id
-                : sku?.id ?? buyerService?.id ?? "review"
-            }
+            intent={decision.intent}
           />
         </section>
         <details className="border-y border-surface-border">
@@ -139,21 +112,11 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
               Co dalej
             </h2>
-            {primaryOfferOrder ? (
+            {agentActionOrder ? (
               <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">
-                <li>
-                  1. Bez sekretów nazwiemy klasę urządzenia, konfigurację agenta,
-                  wybrane połączenie, jedno istotne działanie i potrzebną decyzję.
-                </li>
-                <li>
-                  2. Uzgodnimy datowany spis systemowy, źródła konfiguracji,
-                  dowody upoważnienia i faktycznych uprawnień, odbiorców raportu,
-                  wyłączenia i obsługę materiałów w stałej wycenie i umowie.
-                </li>
-                <li>
-                  3. Cena od €2 500 bez VAT, stała wycena po ustaleniu zakresu;
-                  domyślnie pełna płatność przed rozpoczęciem. {PRIMARY_OFFER.timing.pl}.
-                </li>
+                <li>1. {PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.pl} Bez sekretów.</li>
+                <li>2. {PUBLIC_AGENT_ACTION_OFFER.unit.pl}. {PUBLIC_AGENT_ACTION_OFFER.price.pl}.</li>
+                <li>3. {PUBLIC_AGENT_ACTION_OFFER.timing.pl}. Zgłoszenie nie rozpoczyna pracy.</li>
               </ol>
             ) : (
               <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">

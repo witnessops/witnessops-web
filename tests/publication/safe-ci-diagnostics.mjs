@@ -3,7 +3,7 @@ import { lstatSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const keys = ['health', 'db', 'db_live', 'db_cli', 'db_server', 'migration', 'browser', 'parity'];
+const keys = ['health', 'db', 'db_live', 'db_cli', 'db_server', 'migration', 'browser_install', 'browser', 'parity'];
 const allowed = new Set(['success', 'failure', 'cancelled', 'skipped']);
 let steps;
 try { steps = JSON.parse(process.env.APP_STEP_RESULTS ?? ''); } catch { /* Unknown, never success. */ }

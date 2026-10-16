@@ -220,8 +220,8 @@ const EXPECTED_BUILD_IMAGE_JOB = [
   "                  found && /^$/ { exit 1 }",
   "                '\\'' /lib/apk/db/installed",
   "              }",
-  "              test \"$(installed_apk_version libcrypto3)\" = \"3.5.8-r0\"",
-  "              test \"$(installed_apk_version libssl3)\" = \"3.5.8-r0\"",
+  "              test \"$(installed_apk_version libcrypto3)\" = \"3.5.9-r0\"",
+  "              test \"$(installed_apk_version libssl3)\" = \"3.5.9-r0\"",
   "              node --version",
   "              gws --version",
   "            '",
@@ -512,11 +512,11 @@ export function validatePhase3Sources(sources) {
     "NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com",
     "WITNESSOPS_VERIFY_BASE_URL=https://witnessops.com",
     "gcompat=1.1.0-r4",
-    "python3=3.14.7-r1",
+    "python3=3.14.8-r0",
     "make=4.4.1-r4",
     "g++=15.2.0-r5",
-    "libcrypto3=3.5.8-r0",
-    "libssl3=3.5.8-r0",
+    "libcrypto3=3.5.9-r0",
+    "libssl3=3.5.9-r0",
     "ca-certificates=20260909-r0",
     "curl=8.22.0-r0",
   ]) {
@@ -740,12 +740,12 @@ export function validatePhase3Sources(sources) {
   }
   requireSingleExecutableLine(
     validation,
-    'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
     "libcrypto3 runtime version assertion",
   );
   requireSingleExecutableLine(
     validation,
-    'test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
+    'test "$(installed_apk_version libssl3)" = "3.5.9-r0"',
     "libssl3 runtime version assertion",
   );
   assert(!validation.includes("docker push"), "validation workflow can publish an image");
