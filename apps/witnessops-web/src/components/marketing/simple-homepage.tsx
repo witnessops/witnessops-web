@@ -15,18 +15,34 @@ function TextLink({ href, children, uiProofId }: { href: string; children: React
 
 export function SimpleHomepage() {
   const services = publicPaidReviews(BUYER_SERVICES);
-  return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agents-act">
+  return <main id="main-content" tabIndex={-1} className={`${styles.page} ${styles.product}`} data-page="home" data-home-direction="agents-act">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
       <div className={styles.frame}>
-        <div className={styles.heroCopy}>
-          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
-          <div className={styles.actions}>
-            {services.map((service) => {
-              const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-              return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
-            })}
+        <div className={styles.heroGrid}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
+            <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+            <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+            <div className={styles.actions}>
+              {services.map((service) => {
+                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
+              })}
+            </div>
           </div>
+          <aside className={styles.offerIndex} aria-label={text.reviewsTitle}>
+            <p className={styles.indexKicker}>{text.reviewsTitle}</p>
+            <ul>
+              {services.map((service) => {
+                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+                return <li key={service.id}>
+                  <span>{service.name.en}</span>
+                  <strong>{ai ? text.aiPrice : text.externalPrice}</strong>
+                </li>;
+              })}
+            </ul>
+            <p>{text.reviewsBody}</p>
+          </aside>
         </div>
       </div>
     </section>
@@ -46,16 +62,19 @@ export function SimpleHomepage() {
           </article>;
         })}
       </div>
-      <p>{text.reviewsBody}</p>
       <aside className={styles.freeCheck} aria-label={text.freeLabel}><div><h3>{text.freeTitle}</h3><p>{text.freeBody}</p></div><TextLink href="/check">{text.freeCta}</TextLink></aside>
       <div className={styles.sectionLinks}><TextLink href="/catalog">{text.compareCta}</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
-        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
-        <p className={styles.eyebrow}>Historical synthetic one-action example</p>
-        <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
+        <div className={styles.specimenHead}>
+          <div>
+            <p className={styles.eyebrow}>Historical synthetic one-action example</p>
+            <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
+          </div>
+          <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
+        </div>
         <dl className={styles.specimenRows}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
           <div><dt>Executing identity</dt><dd><code>svc-agent-refunds@example.com</code> — a reserved example of the identity an agent would run as, not the one that configured it.</dd></div>
