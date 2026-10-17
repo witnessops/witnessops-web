@@ -21,7 +21,7 @@
   display: flow-root;
 }
 
-/* Light signal tokens are indicator tints; text needs them pulled toward ink to reach 4.5:1. */
+/* Light signal tokens are indicator tints; text and verdict edges need them pulled toward ink to reach 4.5:1 and 3:1. */
 :global(html[data-theme="light"]) .page {
   --skill-signal-red-text: color-mix(in srgb, var(--color-signal-red) 60%, var(--color-text-primary));
   --skill-signal-amber-text: color-mix(in srgb, var(--color-signal-amber) 45%, var(--color-text-primary));
@@ -365,7 +365,7 @@
 }
 
 .editor::placeholder {
-  color: color-mix(in srgb, var(--skill-ink-muted) 70%, transparent);
+  color: var(--skill-ink-muted);
 }
 
 .controlRow {
@@ -512,9 +512,9 @@
 .errorState {
   margin: 0 clamp(1.3rem, 3vw, 2rem) clamp(1.3rem, 3vw, 2rem);
   padding: 1rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--color-signal-red) 45%, transparent);
-  border-left: 3px solid var(--color-signal-red);
-  background: color-mix(in srgb, var(--color-signal-red) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--skill-signal-red-text) 45%, transparent);
+  border-left: 3px solid var(--skill-signal-red-text);
+  background: color-mix(in srgb, var(--skill-signal-red-text) 7%, transparent);
 }
 
 .errorState span {
@@ -551,15 +551,15 @@
 }
 
 .verdictPass {
-  border-left-color: var(--color-signal-green);
+  border-left-color: var(--skill-signal-green-text);
 }
 
 .verdictReview {
-  border-left-color: var(--color-signal-amber);
+  border-left-color: var(--skill-signal-amber-text);
 }
 
 .verdictFail {
-  border-left-color: var(--color-signal-red);
+  border-left-color: var(--skill-signal-red-text);
 }
 
 .verdictStatus,

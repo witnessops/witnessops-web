@@ -10,29 +10,29 @@ const VERDICT_TONE: Record<
   { badge: string; panel: string; title: string; plain: string }
 > = {
   valid: {
-    badge: "border-signal-green/30 bg-signal-green/10 text-[color:var(--verify-signal-green-text)]",
-    panel: "border-signal-green/20 border-l-signal-green bg-signal-green/5",
+    badge: "border-[color:var(--verify-signal-green-badge-border)] bg-[color:var(--verify-signal-green-badge-fill)] text-[color:var(--verify-signal-green-text)]",
+    panel: "border-[color:var(--verify-signal-green-border)] border-l-[color:var(--verify-signal-green-text)] bg-[color:var(--verify-signal-green-fill)]",
     title: "Receipt valid",
     plain: "Valid",
   },
   invalid: {
-    badge: "border-signal-red/30 bg-signal-red/10 text-[color:var(--verify-signal-red-text)]",
-    panel: "border-signal-red/20 border-l-signal-red bg-signal-red/5",
+    badge: "border-[color:var(--verify-signal-red-badge-border)] bg-[color:var(--verify-signal-red-badge-fill)] text-[color:var(--verify-signal-red-text)]",
+    panel: "border-[color:var(--verify-signal-red-border)] border-l-[color:var(--verify-signal-red-text)] bg-[color:var(--verify-signal-red-fill)]",
     title: "Receipt invalid",
     plain: "Invalid",
   },
   indeterminate: {
-    badge: "border-signal-amber/30 bg-signal-amber/10 text-[color:var(--verify-signal-amber-text)]",
-    panel: "border-signal-amber/20 border-l-signal-amber bg-signal-amber/5",
+    badge: "border-[color:var(--verify-signal-amber-badge-border)] bg-[color:var(--verify-signal-amber-badge-fill)] text-[color:var(--verify-signal-amber-text)]",
+    panel: "border-[color:var(--verify-signal-amber-border)] border-l-[color:var(--verify-signal-amber-text)] bg-[color:var(--verify-signal-amber-fill)]",
     title: "Indeterminate — verification incomplete",
     plain: "Indeterminate",
   },
 };
 
 const CHECK_TONE: Record<VerifyCheckStatus, string> = {
-  verified: "border-signal-green/20 bg-signal-green/5 text-[color:var(--verify-signal-green-text)]",
-  unverified: "border-signal-red/20 bg-signal-red/5 text-[color:var(--verify-signal-red-text)]",
-  not_checked: "border-signal-amber/20 bg-signal-amber/5 text-[color:var(--verify-signal-amber-text)]",
+  verified: "border-[color:var(--verify-signal-green-border)] bg-[color:var(--verify-signal-green-fill)] text-[color:var(--verify-signal-green-text)]",
+  unverified: "border-[color:var(--verify-signal-red-border)] bg-[color:var(--verify-signal-red-fill)] text-[color:var(--verify-signal-red-text)]",
+  not_checked: "border-[color:var(--verify-signal-amber-border)] bg-[color:var(--verify-signal-amber-fill)] text-[color:var(--verify-signal-amber-text)]",
   not_applicable: "border-surface-border bg-surface-bg text-text-muted",
 };
 
@@ -129,7 +129,7 @@ export function VerificationResult({
 }: VerificationResultProps) {
   if (!response.ok) {
     return (
-      <section className="rounded-[var(--radius-card)] border border-l-[3px] border-signal-red/20 border-l-signal-red bg-signal-red/5 p-5 sm:p-6">
+      <section className="rounded-[var(--radius-card)] border border-l-[3px] border-[color:var(--verify-signal-red-border)] border-l-[color:var(--verify-signal-red-text)] bg-[color:var(--verify-signal-red-fill)] p-5 sm:p-6">
         <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--verify-signal-red-text)]">
           Could not verify
         </div>
@@ -240,7 +240,7 @@ export function VerificationResult({
             {response.breaches.map((breach) => (
               <li
                 key={`${breach.code}:${breach.checkName}`}
-                className="rounded-[var(--radius-card)] border border-l-[3px] border-surface-border border-l-signal-red bg-surface-bg px-4 py-3 text-sm text-text-secondary [overflow-wrap:anywhere]"
+                className="rounded-[var(--radius-card)] border border-l-[3px] border-surface-border border-l-[color:var(--verify-signal-red-text)] bg-surface-bg px-4 py-3 text-sm text-text-secondary [overflow-wrap:anywhere]"
               >
                 {breach.detail}
               </li>

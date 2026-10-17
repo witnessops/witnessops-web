@@ -29,6 +29,14 @@ test("/verify signal text uses theme-aware text tokens, not raw indicator tints"
   }
 });
 
+test("/verify signal edges and tints derive from the theme-aware text tokens", () => {
+  for (const { path, text } of sources) {
+    assert.doesNotMatch(text, /\b(?:border|border-l|bg)-signal-(?:red|amber|green)\b/, `${path} uses a raw signal edge or tint`);
+    assert.doesNotMatch(text, /^\s*border(?:-left)?(?:-color)?:[^;]*var\(--color-signal-(?:red|amber|green)\)/m, `${path} draws an edge with a raw signal token`);
+    assert.doesNotMatch(text, /placeholder:text-[a-z-]+\/\d+/, `${path} fades placeholder text below its token`);
+  }
+});
+
 test("/verify verdict and receipt controls never use undefined colour tokens", () => {
   for (const { path, text } of sources) {
     assert.doesNotMatch(text, /text-brand-ink|--skill-accent-soft|--color-signal-yellow/, `${path} references an undefined token`);

