@@ -13,7 +13,6 @@
   "/og/home/route": "app/og/home/route.js",
   "/robots.txt/route": "app/robots.txt/route.js",
   "/sitemap.xml/route": "app/sitemap.xml/route.js",
-  "/opengraph-image/route": "app/opengraph-image/route.js",
   "/api/admin/core/[...path]/route": "app/api/admin/core/[...path]/route.js",
   "/api/admin/intake/reconcile/route": "app/api/admin/intake/reconcile/route.js",
   "/api/admin/intake/reconciliation-report/route": "app/api/admin/intake/reconciliation-report/route.js",

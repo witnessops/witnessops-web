@@ -708,12 +708,6 @@
       "namedRegex": "^/og/home(?:/)?$"
     },
     {
-      "page": "/opengraph-image",
-      "regex": "^/opengraph\\-image(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/opengraph\\-image(?:/)?$"
-    },
-    {
       "page": "/operators",
       "regex": "^/operators(?:/)?$",
       "routeKeys": {},

@@ -149,7 +149,7 @@ try {
     const og = await fetch(`http://127.0.0.1:${port}/og/home`, { headers, redirect: "manual" });
     const location = og.headers.get("location") ?? "";
     log(`GET /og/home host=${headers.host} forwarded=${headers["x-forwarded-host"] ?? ""} ${og.status} location=${location}`);
-    const allowed = location === "/opengraph-image" || location === "https://witnessops.com/opengraph-image";
+    const allowed = location === "/og/witnessops-home-editorial-a-2026-10.png" || location === "https://witnessops.com/og/witnessops-home-editorial-a-2026-10.png";
     if (og.status !== 308 || !allowed || /localhost|0\.0\.0\.0/i.test(location)) {
       throw new Error(`/og/home location ${location}`);
     }
