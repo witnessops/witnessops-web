@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import axe from "axe-core";
-import puppeteer from "puppeteer-core";
+import { chromium } from "@playwright/test";
 
 function chromeBinary(): string | null {
   for (const candidate of ["google-chrome", "google-chrome-stable", "chromium"]) {
@@ -42,7 +42,7 @@ test("axe audits Ask Sovereign in English and Polish at desktop and mobile", asy
     return;
   }
 
-  const browser = await puppeteer.launch({
+  const browser = await chromium.launch({
     executablePath: chrome,
     headless: true,
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
@@ -50,9 +50,8 @@ test("axe audits Ask Sovereign in English and Polish at desktop and mobile", asy
   const report: Array<{ name: string; violations: Array<{ id: string; impact: string | null; help: string }> }> = [];
   try {
     for (const target of pages) {
-      const page = await browser.newPage();
-      await page.setViewport({ width: target.width, height: target.height, deviceScaleFactor: 1 });
-      await page.goto(`http://127.0.0.1:3001${target.path}`, { waitUntil: "networkidle0", timeout: 30000 });
+      const page = await browser.newPage({ viewport: { width: target.width, height: target.height }, deviceScaleFactor: 1 });
+      await page.goto(`http://127.0.0.1:3001${target.path}`, { waitUntil: "networkidle", timeout: 30000 });
       await page.addScriptTag({ content: axe.source });
       const result = await page.evaluate(async () => {
         const axeRuntime = (globalThis as unknown as { axe: { run: (options?: { include?: string[] }) => Promise<{ violations: Array<{ id: string; impact: string | null; help: string; nodes: unknown[] }> }> } }).axe;
