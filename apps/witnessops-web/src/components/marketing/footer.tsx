@@ -157,6 +157,7 @@ export function Footer({
       { label: "Docs", href: DOCS_PUBLIC_HREF },
       { label: "Support", href: "/support" },
     ] },
+    { label: "Resources", links: footerResourceLinks() },
     ...(appUrl ? [{ label: "App", links: [
       { label: "Sign up", href: new URL("/signup", appUrl).href },
       { label: "Log in", href: new URL("/login", appUrl).href },
@@ -214,7 +215,7 @@ export function Footer({
             </p>
           </div>
 
-          <div className="footer-navigation grid grid-cols-2 gap-x-6">
+          <div className="footer-navigation grid grid-cols-2 gap-x-6 gap-y-8">
             {groups.map((group) => (
               <nav key={group.label} aria-label={group.label}>
                 <p className="footer-heading mb-1">
@@ -232,14 +233,12 @@ export function Footer({
             <PublicContactRoute compact premium locale={isPolishSurface ? "pl" : "en"}
               primaryHref={reviewRequestHref} />
           </div>
+
+          <div className="footer-theme">
+            <ThemeMemory />
+          </div>
         </div>
 
-        {!isPolishSurface && (
-          <nav aria-label="Resources" className="footer-resources">
-            {footerResourceLinks().map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
-          </nav>
-        )}
-        <ThemeMemory />
         <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}

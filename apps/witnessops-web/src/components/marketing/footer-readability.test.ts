@@ -211,3 +211,14 @@ test("selected-offer enquiry links are removed from footer navigation duplicates
   assert.equal(isFooterRequestHref("/review/sample-cases"), false);
   assert.equal(isFooterRequestHref("/review/request/confirmed"), false);
 });
+
+test("footer keeps resources and the theme choice inside the footer grid", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+  const globals = readFileSync(resolve(__dirname, "../../app/globals.css"), "utf-8");
+
+  assert.match(source, /\{ label: "Resources", links: footerResourceLinks\(\) \}/);
+  assert.match(source, /<div className="footer-theme">\s*<ThemeMemory \/>/);
+  assert.doesNotMatch(source, /footer-resources/);
+  assert.match(globals, /grid-template-areas: "brand nav contact" "theme nav contact"/);
+  assert.match(globals, /\[data-footer-review-cta\]:hover \{ background: var\(--color-surface-card-hover\); border-color: var\(--color-brand-accent\); color: var\(--color-text-primary\); \}/);
+});
