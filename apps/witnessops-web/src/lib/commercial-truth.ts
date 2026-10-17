@@ -1,4 +1,5 @@
 import { PUBLIC_B2B_VAT_LABEL, publicB2bPrice } from "./commercial-price";
+import { AGENT_PRICE_EN, AGENT_PRICE_PL, EXTERNAL_PRICE_EN, EXTERNAL_PRICE_PL } from "./offer-price-unit";
 
 /** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
 export const AUTOMATION_REPAIR_OFFER = {
@@ -165,8 +166,8 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   },
   price: {
     ...LEGACY_AGENT_ACTION_OFFER.price,
-    en: "€2,500 excl. VAT",
-    pl: "€2 500 · bez VAT",
+    en: AGENT_PRICE_EN,
+    pl: AGENT_PRICE_PL,
   },
   timing: {
     en: "Delivery timing agreed in the signed statement of work",
@@ -288,8 +289,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     amount: "1900",
     currency: "EUR",
     vatIncluded: false,
-    en: "€1,900 excl. VAT",
-    pl: "€1 900 · bez VAT",
+    en: EXTERNAL_PRICE_EN,
+    pl: EXTERNAL_PRICE_PL,
   },
   // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {

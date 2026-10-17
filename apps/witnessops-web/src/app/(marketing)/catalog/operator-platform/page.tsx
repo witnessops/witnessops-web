@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { getSkusByTrack, loadCatalog } from "@witnessops/catalog";
@@ -30,7 +31,7 @@ export default function CatalogOperatorPlatformPage() {
           href="/catalog"
           className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline"
         >
-          ← Back to services
+          <InlineArrow direction="left" /> Back to services
         </Link>
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">

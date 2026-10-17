@@ -57,7 +57,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.equal(service.name, EXTERNAL_ATTACK_SURFACE_OFFER.name);
   assert.equal(
     service.price.en,
-    "€1,900 excl. VAT",
+    "€1,900\u00A0excl.\u00A0VAT",
   );
   assert.equal(sku.price.anchor_eur_min, 1900);
   assert.equal(sku.price.anchor_eur_max, 1900);
@@ -68,7 +68,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.amount, "550");
 
   const landing = getServiceLanding(service.id, "en");
-  assert.match(landing.commercialNote ?? "", /€1,900 excl. VAT/i);
+  assert.match(landing.commercialNote ?? "", /€1,900\u00A0excl.\u00A0VAT/i);
   assert.match(landing.commercialNote ?? "", /one authorised public-facing system/i);
   assert.match(landing.commercialNote ?? "", /No sales call required/i);
   assert.match(landing.commercialNote ?? "", /Payment is due in full before the delivery clock starts/i);
@@ -76,7 +76,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.match(landing.commercialNote ?? "", /One focused retest within 30 calendar days of report handover is included/);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500|€550|3 working days|three working days/i);
   assert.doesNotMatch(landing.steps.flat().join(" "), /3 working days|three working days|€550/);
-  assert.match(landing.deliverables.join("\n"), /one focused retest within 30 calendar days of initial report handover/i);
+  assert.match(landing.deliverables.join("\n"), /One focused retest of reported findings within 30 calendar days of initial report handover\./);
 });
 
 test("External Attack Surface Review preserves fixed caps and allowed check classes", () => {
@@ -151,7 +151,7 @@ test("External Attack Surface Review preserves prohibited methods and claim limi
 
   const polish = POLISH_OFFERS[productId];
   assert.ok(polish);
-  assert.equal(polish.price, "€1 900 · bez VAT");
+  assert.equal(polish.price, "€1\u00A0900\u00A0bez\u00A0VAT");
   assert.match(polish.priceDetail ?? "", /Bez rozmowy sprzedażowej/);
   assert.match(polish.priceDetail ?? "", /30 dni kalendarzowych od przekazania raportu/);
   assert.doesNotMatch(polish.priceDetail ?? "", /pierwsze trzy|€2 500|€550|3 dni roboczych/);

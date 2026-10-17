@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { categoryLabel, listSkills } from "@/lib/skills/catalog";
 import { languageAlternates } from "@/lib/public-seo";
 import styles from "./skill-library.module.css";
@@ -46,7 +47,7 @@ export default function LibraryPage() {
               <p className={styles.cardTagline}>{skill.tagline}</p>
               <p className={styles.cardDescription}>{skill.description}</p>
               <code className={styles.cardHash}>sha256:{skill.sha256}</code>
-              <span className={styles.cardCta}>Inspect exact bytes →</span>
+              <span className={styles.cardCta}>Inspect exact bytes <InlineArrow /></span>
             </Link>
           ))}
         </div>

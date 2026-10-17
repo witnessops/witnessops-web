@@ -9,10 +9,12 @@ import {
   type BuyerService,
 } from "@/lib/buyer-services";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
+import { InlineArrow } from "./inline-arrow";
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { getServiceLanding } from "@/lib/service-landings";
 import { servicePreparation } from "@/lib/service-preparation";
 import { AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { PriceText } from "@/lib/price-unit";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { ReviewerProfile } from "./reviewer-profile";
 
@@ -74,7 +76,7 @@ export function BuyerServiceDetail({
       data-timing-contract={service.commercialContract.timing}>
       <div className="mx-auto max-w-6xl px-6 py-6 md:py-10 lg:py-12">
         <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline">
-          ← {text.back}
+          <InlineArrow direction="left" /> {text.back}
         </Link>
 
         <header className="mt-4 grid gap-6 border-b border-surface-border pb-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start lg:gap-12 lg:pb-12">
@@ -96,7 +98,7 @@ export function BuyerServiceDetail({
             className="border border-brand-accent/40 bg-brand-accent/5 p-5 md:p-6" aria-label={text.price}>
             <dl>
               <dt className="text-xs font-semibold uppercase tracking-wider text-text-muted">{text.price}</dt>
-              <dd className="mt-1 text-xl font-semibold leading-7 text-text-primary md:text-2xl">{service.price[locale]}</dd>
+              <dd className="mt-1 text-xl font-semibold leading-7 text-text-primary md:text-2xl"><PriceText text={service.price[locale]} /></dd>
               <dt className="mt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">{text.timing}</dt>
               <dd className="mt-1 text-sm leading-6 text-text-secondary">{service.timing[locale]}</dd>
             </dl>
@@ -110,7 +112,7 @@ export function BuyerServiceDetail({
           </section>
           {landing.sampleHref ? (
             <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary lg:-mt-4">
-              {landing.sampleLabel ?? text.sampleFallback} →
+              {landing.sampleLabel ?? text.sampleFallback} <InlineArrow />
             </Link>
           ) : null}
         </header>

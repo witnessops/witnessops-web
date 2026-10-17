@@ -3,11 +3,12 @@ import test from "node:test";
 
 import { classifyQuestion } from "./authority-classifier";
 import { PUBLIC_AGENT_ACTION_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
 const CURRENT_AGENT_ACTION_OFFER = {
   name: PUBLIC_AGENT_ACTION_OFFER.name.en,
-  price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+  price_label: plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en),
   unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
   fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
   delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,

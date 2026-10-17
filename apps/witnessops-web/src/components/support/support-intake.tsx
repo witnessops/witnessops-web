@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { useState, useEffect, useRef } from "react";
-import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_NO_SECRETS_NOTE, publicContactMailto } from "@/lib/public-contact";
 import {
   normalizedEmailSchema,
   supportResponseSchema,
@@ -24,13 +26,13 @@ const label: React.CSSProperties = {
   fontSize: 13,
   letterSpacing: "0.14em",
   textTransform: "uppercase",
-  color: "var(--color-brand-muted)",
+  color: "var(--color-text-muted)",
   display: "block",
   marginBottom: 6,
 };
 
 const inputClass =
-  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3";
+  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary placeholder:text-text-muted focus:border-brand-accent p-3";
 
 const selectClass =
   "w-full rounded-sm bg-transparent border border-surface-border text-text-primary focus:border-brand-accent p-3 pr-10 cursor-pointer";
@@ -103,6 +105,7 @@ const KB_ENTRIES = [
 ];
 
 export function SupportIntake({ supportEmail }: { supportEmail: string }) {
+  const searchPlaceholder = (usePathname() || "").startsWith("/pl") ? "konto, CLI, wyniki" : "signup, CLI, results";
   const [status, setStatus] = useState<
     | "idle"
     | "form"
@@ -293,7 +296,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
           ...mono, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
           border: "1px solid",
           borderColor: status === "verified" ? "rgba(0,212,126,0.3)" : status.endsWith("_error") ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
-          color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-brand-muted)",
+          color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-text-muted)",
         }}>
           {status === "verified" ? "VERIFIED" : status.endsWith("_error") ? "ERROR" : status === "verification_sent" || status === "verifying" ? "VERIFY EMAIL" : "EMAIL SUPPORT"}
         </span>
@@ -346,7 +349,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={inputClass}
                 style={inputFont}
-                placeholder="signup, invitations, CLI, results..."
+                placeholder={searchPlaceholder}
                 autoComplete="off"
               />
 
@@ -360,7 +363,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                       style={{ ...mono, fontSize: 14, color: "var(--color-text-secondary)" }}
                     >
                       <span>{r.title}</span>
-                      <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}>→ DOCS</span>
+                      <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}><InlineArrow /> DOCS</span>
                     </Link>
                   ))}
                 </div>
@@ -371,7 +374,8 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               type="submit"
               form="si-email-form"
               disabled={!email.trim()}
-              className="mt-5 w-full py-3 border border-surface-border text-text-muted disabled:opacity-30 transition-all hover:border-brand-accent/40 hover:text-text-primary"
+              aria-disabled={!email.trim()}
+              className="mt-5 w-full py-3 border border-surface-border text-text-secondary disabled:text-text-secondary transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
               Still need help? Email support
@@ -386,10 +390,10 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               </Link>
               . Vulnerabilities go to{" "}
               <a
-                href="mailto:security@witnessops.com?subject=Private%20vulnerability%20report"
-                className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+                href={publicContactMailto("Private vulnerability report")}
+                className="font-semibold text-brand-accent underline-offset-4 [overflow-wrap:anywhere] hover:underline"
               >
-                security@witnessops.com
+                {PUBLIC_CONTACT_EMAIL}
               </a>
               .
             </p>
@@ -409,7 +413,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                   setStatus("idle");
                   window.requestAnimationFrame(() => emailRef.current?.focus());
                 }}
-                style={{ ...mono, fontSize: 13, color: "var(--color-brand-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
+                style={{ ...mono, fontSize: 13, color: "var(--color-text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
               >
                 Change
               </button>
@@ -425,7 +429,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 required
                 maxLength={8_000}
                 rows={4}
-                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3"
+                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-text-muted focus:border-brand-accent p-3"
                 style={{ ...inputFont, resize: "vertical", lineHeight: 1.6 }}
                 placeholder="What you expected, what happened instead, and any receipt IDs or error messages..."
               />
@@ -494,7 +498,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 active:scale-[0.98]"
               style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
             >
               {status === "sending" ? "Submitting..." : "Send Request"}
@@ -578,7 +582,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <button
               type="submit"
               disabled={status === "verifying" || !verificationCode.trim()}
-              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 active:scale-[0.98]"
               style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
             >
               {status === "verifying" ? "Verifying..." : "Verify code"}

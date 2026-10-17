@@ -1,3 +1,5 @@
+// These cases exercise the non-production route (NODE_ENV=test).
+// Production responses are quarantined in ask-witnessops-production-gate.test.ts.
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
 
@@ -319,7 +321,7 @@ test("public Ask answers ordinary buyer questions with canonical service routing
     { question: "What does the External Attack Surface Review cost?", id: "external-exposure-assessment", price: "€1,900 excl. VAT", words: "The listed price below covers one authorised public-facing system.", deterministic: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
-    { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with Karol Stefanski to agree the scope and review the findings.", deterministic: false },
+    { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with the founder to agree the scope and review the findings.", deterministic: false },
   ];
   try {
     for (const [index, item] of cases.entries()) {

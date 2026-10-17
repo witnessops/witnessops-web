@@ -7,6 +7,7 @@ import {
   type BuyerLocale,
   type BuyerService,
 } from "@/lib/buyer-services";
+import { isWithdrawnOfferPath } from "@/lib/withdrawn-offer-routes";
 
 type SearchParamsReader = Pick<URLSearchParams, "get">;
 
@@ -14,6 +15,7 @@ function serviceForDetailRoute(
   locale: BuyerLocale,
   pathname: string,
 ): BuyerService | undefined {
+  if (isWithdrawnOfferPath(pathname)) return undefined;
   return BUYER_SERVICES.find(
     (service) => service.detailHref[locale] === pathname,
   );

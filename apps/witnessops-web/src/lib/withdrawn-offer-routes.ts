@@ -16,6 +16,7 @@ export const WITHDRAWN_OFFER_PATHS = [
   "/pl/catalog/automation-repair",
   "/customer-security-review",
   "/pl/customer-security-review",
+  "/catalog/workflows",
 ] as const;
 
 /** Sample pages for withdrawn offers. They stay reachable, with noindex. */
@@ -55,7 +56,7 @@ export function withdrawnOfferCopy(polish: boolean) {
         title: "Ta oferta została wycofana",
         body: "WitnessOps nie oferuje już tego przeglądu. Aktualne przeglądy i kontakt są poniżej.",
         links: [
-          ["/pl/reviews#agent-action-security-review", "Agent Action Security Review"],
+          ["/pl/reviews/agent-action-security-review", "Agent Action Security Review"],
           ["/pl/reviews/external-attack-surface-review", "External Attack Surface Review"],
           ["/pl/contact", "Kontakt"],
         ] as const,
@@ -64,8 +65,8 @@ export function withdrawnOfferCopy(polish: boolean) {
         title: "This offer has been withdrawn",
         body: "WitnessOps no longer offers this review. The current reviews and contact are below.",
         links: [
-          ["/catalog#agent-action-security-review", "Agent Action Security Review"],
-          ["/catalog/offsec-external-exposure", "External Attack Surface Review"],
+          ["/reviews/agent-action-security-review", "Agent Action Security Review"],
+          ["/reviews/external-attack-surface-review", "External Attack Surface Review"],
           ["/contact", "Contact"],
         ] as const,
       };

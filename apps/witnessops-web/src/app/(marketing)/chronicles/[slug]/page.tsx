@@ -9,8 +9,11 @@ import {
   chronicleJsonLd,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return PUBLISHED_CHAPTERS.map((chapter) => ({ slug: chapter.slug }));
@@ -30,9 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: chapter.description,
       type: "article",
       siteName: "WitnessOps",
-      images: ["/chronicles/og-placeholder.svg"],
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title,
       description: chapter.description,
@@ -46,18 +50,19 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
   if (!chapter) notFound();
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[680px] px-6 py-16">
+      <link rel="preload" href="/fonts/newsreader-400.woff2" as="font" type="font/woff2" crossOrigin="" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(chronicleJsonLd(chapter)).replaceAll("<", "\\u003c") }} />
-      <p className="text-sm text-text-muted">
+      <p className="wo-small text-text-muted">
         <Link href="/research" className="underline-offset-4 hover:underline">Research</Link>
         {" / "}
         <Link href="/chronicles" className="underline-offset-4 hover:underline">The Sovereign Chronicles</Link>
       </p>
-      <p className="mt-8 font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">{chapter.kicker}</p>
-      <h1 className="mt-3 text-4xl text-text-primary sm:text-5xl" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>{chapter.title}</h1>
-      {chapter.subtitle ? <p className="mt-4 text-lg text-text-secondary">{chapter.subtitle}</p> : null}
-      <p className="mt-4 font-mono text-xs uppercase tracking-widest text-text-secondary">{chapter.dateline}</p>
-      <p className="mt-2 text-sm text-text-muted">{chapter.meta}</p>
-      <p className="mt-6 rounded-md border border-brand-accent/40 bg-surface-inset px-4 py-3 text-sm text-text-primary">{CHRONICLE_FICTION_LABEL}</p>
+      <p className="wo-mono-caps mt-8 text-brand-accent">{chapter.kicker}</p>
+      <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">{chapter.title}</h1>
+      {chapter.subtitle ? <p className="wo-lead mt-4 text-text-secondary">{chapter.subtitle}</p> : null}
+      <p className="wo-mono-caps mt-4 text-text-secondary">{chapter.dateline}</p>
+      <p className="wo-small mt-2 text-text-muted">{chapter.meta}</p>
+      <p className="wo-small mt-6 rounded-md border border-brand-accent/40 bg-surface-inset px-4 py-3 text-text-primary">{CHRONICLE_FICTION_LABEL}</p>
       <ChronicleBody chapter={chapter} />
       <ChroniclePager chapter={chapter} />
     </main>

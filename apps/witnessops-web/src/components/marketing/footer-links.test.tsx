@@ -92,8 +92,9 @@ test("English and Polish footers list both locked offers and the footer-linked p
   assert.ok(pl.includes(`>${PUBLIC_AGENT_ACTION_OFFER.name.pl}<`));
   assert.ok(enHrefs.includes(buyerServiceRequestHref("en", agent)));
   assert.ok(plHrefs.includes(buyerServiceRequestHref("pl", agent)));
-  assert.ok(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en));
-  assert.ok(plHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.pl));
+  assert.ok(enHrefs.includes("/reviews/external-attack-surface-review"));
+  assert.ok(plHrefs.includes("/pl/reviews/external-attack-surface-review"));
+  assert.equal(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en), false);
 
   for (const href of ["/privacy", "/terms", "/security", "/company", "/media-kit"]) {
     assert.ok(enHrefs.includes(href), `missing EN footer href ${href}`);
@@ -110,7 +111,7 @@ test("English and Polish footers list both locked offers and the footer-linked p
   assert.doesNotMatch(`${en}\n${pl}`, /AI Agent Tools|Automation Repair|€250|€750|HubSpot|Notion|Google Drive/);
 
   for (const href of [...enHrefs, ...plHrefs]) {
-    if (href.startsWith("mailto:") || href.startsWith("http")) continue;
+    if (href.startsWith("mailto:") || href.startsWith("http") || href.startsWith("/brand/") || /\.(?:svg|png|ico|woff2)$/.test(href)) continue;
     assert.equal(routeFileExists(href), true, `footer href has no page: ${href}`);
   }
 });

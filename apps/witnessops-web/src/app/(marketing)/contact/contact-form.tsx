@@ -33,6 +33,7 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import {
   NEW_SALES_AGENT_ACTION_OFFER_ID,
   newSalesEnquiryOptions,
@@ -239,7 +240,7 @@ export function ContactForm({
                 ? "Co ma zostać sprawdzone?"
                 : "What should this service review?",
         workflowPlaceholder:
-          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Np. formularz → n8n → HubSpot. Proces zgłasza sukces, ale nowe kontakty nie pojawiają się w CRM." : "For example: form → n8n → HubSpot. Runs say success, but new contacts never appear in the CRM.") :
+          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Np. formularz -> n8n -> HubSpot. Proces zgłasza sukces, ale nowe kontakty nie pojawiają się w CRM." : "For example: form -> n8n -> HubSpot. Runs say success, but new contacts never appear in the CRM.") :
           selectedNonAgentService.id === "customer-security-review-sprint"
             ? polish
               ? "Opisz ogólnie jeden kwestionariusz bezpieczeństwa, prośbę o materiały i zakres produktu."
@@ -311,7 +312,7 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? "To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na Agent Action Security Review. Aktualne płatne przeglądy to Agent Action Security Review za €2,500 bez VAT oraz External Attack Surface Review za €1,900 bez VAT z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu. Termin realizacji uzgodniony w podpisanym zakresie prac."
+          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na Agent Action Security Review. Aktualne płatne przeglądy to Agent Action Security Review za ${PUBLIC_AGENT_ACTION_OFFER.price.pl} oraz External Attack Surface Review za ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu. Termin realizacji uzgodniony w podpisanym zakresie prac.`
           : "This request stays the historical AI Agent Tools & Access Review. It is not reassigned to Agent Action Security Review. The current paid reviews are Agent Action Security Review at €2,500 excluding VAT, and External Attack Surface Review at €1,900 excluding VAT with one retest within 30 calendar days of report handover. Delivery timing agreed in the signed statement of work.",
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
@@ -411,8 +412,8 @@ export function ContactForm({
           : "If the system uses several related public endpoints, list them here. We’ll confirm exactly what’s included before the review starts.",
         send: polish ? "Wyślij zgłoszenie do akceptacji zakresu" : "Start a review",
         submitBoundary: polish
-          ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
-          : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
+          ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, uzgodnionego zakresu, wymaganych danych wejściowych i okna zbierania."
+          : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, agreed scope, required inputs, and the collection window are confirmed.",
       }
     : agentActionCopy ?? agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -501,7 +502,7 @@ export function ContactForm({
         : externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : agentActionOrder
-          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${PUBLIC_AGENT_ACTION_OFFER.price.en} terms`
+          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} terms`
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
           : agentToolsAccessReview
@@ -1026,7 +1027,7 @@ export function ContactForm({
       <button
         type="submit"
         disabled={status === "sending"}
-        className={`min-h-11 w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98] ${buttonFocusClass}`}
+        className={`min-h-11 w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 active:scale-[0.98] ${buttonFocusClass}`}
         style={{
           fontFamily: "var(--font-display)",
           fontSize: 13,

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
+} from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   publicContactMailto,
@@ -9,12 +11,8 @@ import {
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { languageAlternates } from "@/lib/public-seo";
 
-const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 const SUPPORT_MAILTO = publicContactMailto("WitnessOps support request");
-const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
-  "pl",
-  PRIMARY_OFFER.id,
-);
+const VULNERABILITY_MAILTO = publicContactMailto("Private vulnerability report");
 
 export const metadata: Metadata = {
   title: "Wsparcie",
@@ -27,9 +25,14 @@ export const metadata: Metadata = {
 
 const routes = [
   [
-    PRIMARY_OFFER.name.pl,
-    PRIMARY_OFFER_HREF,
-    "Opisz sytuację bez danych poufnych i wybierz ofertę.",
+    PUBLIC_AGENT_ACTION_OFFER.name.pl,
+    "/pl/reviews/agent-action-security-review",
+    `Jedno nazwane istotne działanie. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
+  ],
+  [
+    EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
+    "/pl/reviews/external-attack-surface-review",
+    `Jeden autoryzowany system dostępny z internetu. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl}.`,
   ],
   [
     "Mam istniejące zgłoszenie",
@@ -68,7 +71,7 @@ export default function PolishSupportPage() {
         </p>
       </header>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2">
+      <section className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] [&>*]:min-w-0">
         {routes.map(([title, href, body]) => (
           <Link
             key={title}
@@ -88,10 +91,10 @@ export default function PolishSupportPage() {
         <p className="mt-2 text-sm leading-6 text-text-muted">
           Prywatne zgłoszenia podatności kieruj wyłącznie na{" "}
           <a
-            className="text-brand-accent hover:underline"
-            href={`mailto:${SECURITY_CONTACT_EMAIL}?subject=${encodeURIComponent("Private vulnerability report")}`}
+            href={VULNERABILITY_MAILTO}
+            className="[overflow-wrap:anywhere] text-brand-accent hover:underline"
           >
-            {SECURITY_CONTACT_EMAIL}
+            {PUBLIC_CONTACT_EMAIL}
           </a>
           . Ten adres nie służy do zwykłych zgłoszeń klientów.
         </p>
@@ -121,7 +124,7 @@ export default function PolishSupportPage() {
         </p>
         <a
           href={SUPPORT_MAILTO}
-          className="mt-4 inline-flex min-h-11 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse hover:brightness-110"
+          className="mt-4 inline-block max-w-full min-h-11 border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-text-inverse [overflow-wrap:anywhere] hover:brightness-110"
         >
           Napisz do wsparcia: {PUBLIC_CONTACT_EMAIL}
         </a>

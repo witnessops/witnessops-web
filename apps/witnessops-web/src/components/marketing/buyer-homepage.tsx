@@ -3,6 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { CtaButton } from "@/components/shared/cta-button";
 import { BUYER_SERVICES, buyerRequestHref, buyerServiceRequestHref, type BuyerLocale } from "@/lib/buyer-services";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { sovereignAssistantPublished } from "@/lib/sovereign-release";
+import { PriceText } from "@/lib/price-unit";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 import { OwnSystemCase } from "./own-system-case";
 import heroStyles from "./simple-homepage.module.css";
@@ -52,9 +54,9 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{text.reviewsEyebrow}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{text.reviewsTitle}</h2><p className={styles.sectionBody}>{text.reviewsBody}</p></div>
       <ul className={`${styles.reviewGrid} ${styles.serviceGrid} ${styles.twoOfferGrid}`}>{services.map((service) => {
         const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-        return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p>{service.price[locale]}</p><p>{service.result[locale]}</p><p>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
+        return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p className={styles.price}><PriceText text={service.price[locale]} /></p><p>{service.result[locale]}</p><p className={styles.timing}>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
       })}</ul>
-      <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p>
+      {sovereignAssistantPublished() ? <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p> : null}
       <Link className={styles.sectionLink} href={pl ? "/pl/reviews" : "/reviews"}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section className={`${styles.reviewSection} ${styles.decisionSection}`} aria-labelledby="home-decision-heading"><div className={styles.frame}>
@@ -70,7 +72,7 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Sposób pracy" : "Our approach"}</p><h2 id="home-review-heading" className={styles.sectionTitle}>{pl ? "Od pytania do ustaleń, które możesz sprawdzić." : "From a question to findings you can inspect."}</h2><p className={styles.sectionBody}>{pl ? "Oddzielamy obserwacje od założeń. Pokazujemy, co sprawdzono, co pozostaje nieznane i co warto zrobić dalej." : "We separate observations from assumptions. You can see what was checked, what remains unknown and what to do next."}</p></div>
       <ol className={styles.reviewGrid}>{stages.map(([heading, detail], i) => <li key={heading}><span>{String(i + 1).padStart(2, "0")}</span><h3>{heading}</h3><p>{detail}</p></li>)}</ol>
       <OwnSystemCase locale={locale} />
-      <div className={styles.evidenceNote}><p>{pl ? "Przykład paczki dowodowej" : "Proof bundle example"}</p><Link href={sampleHref}>{pl ? "Zobacz, jak działa paczka dowodowa (EN)" : "See how a proof bundle works"}<ArrowRight size={16} aria-hidden="true" /></Link><p>{pl ? "Przykład syntetyczny: sprawdza opublikowane pliki i zadeklarowaną zmianę. Nie potwierdza rzeczywistej operacji u dostawcy." : "Synthetic example, not customer evidence: checks the published artifacts and declared transition. It does not establish a real provider action."}</p></div>
+      <div className={styles.evidenceNote}><p className="wo-h4">{pl ? "Przykład paczki dowodowej" : "Proof bundle example"}</p><Link href={sampleHref}>{pl ? "Zobacz, jak działa paczka dowodowa (EN)" : "See how a proof bundle works"}<ArrowRight size={16} aria-hidden="true" /></Link><p>{pl ? "Przykład syntetyczny: sprawdza opublikowane pliki i zadeklarowaną zmianę. Nie potwierdza rzeczywistej operacji u dostawcy." : "Synthetic example, not customer evidence: checks the published artifacts and declared transition. It does not establish a real provider action."}</p></div>
       <Link className={styles.sectionLink} href={`${prefix}/why-witnessops`}>{pl ? "Zobacz, jak weryfikujemy" : "See how WitnessOps verifies"}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <div className={styles.frame}><section className={styles.closingSection} aria-labelledby="home-close-heading"><div><h2 id="home-close-heading">{pl ? "Co robi Twój system i co chcesz sprawdzić?" : "What does your system do and what needs checking?"}</h2><p>{pl ? "Opisz system i pytanie bezpieczeństwa. Zaproponujemy konkretny zakres i kolejny krok. Bez haseł, kluczy API i danych klientów." : "Describe the system and the security question. We’ll propose a clear scope and next step. Leave out credentials and customer data."}</p></div><CtaButton href={requestHref} variant="primary" label={text.fitCta} className={styles.closingPrimary} /></section></div>

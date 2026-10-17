@@ -184,8 +184,15 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     );
     assert.match(html, /agent-tools-access-review/);
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
-    assert.match(html, /€2,500/);
-    assert.match(html, /€1,900/);
+    if (locale === "en") {
+      assert.match(html, /€2,500/);
+      assert.match(html, /€1,900/);
+    }
+    if (locale === "pl") {
+      assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
+      assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
+    }
     assert.doesNotMatch(html, HELD_TERM);
     if (locale === "en") assert.match(html, /Delivery timing agreed in the signed statement of work/);
     if (locale === "pl") assert.match(html, /Termin realizacji uzgodniony w podpisanym zakresie prac/);

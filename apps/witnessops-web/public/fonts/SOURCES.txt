@@ -1,0 +1,6 @@
+These files are unmodified upstream builds.
+Inter, Newsreader and IBM Plex Mono latin and latin-ext woff2 files are the Fontsource 5.2 packages (@fontsource/inter 5.2.8, @fontsource/newsreader 5.2.8, @fontsource/ibm-plex-mono 5.2.6), which republish the Google Fonts builds.
+ibm-plex-mono-400-box.woff2 and ibm-plex-mono-500-box.woff2 are the official Google Fonts woff2 subsets for U+2500 (fonts.gstatic.com, IBM Plex Mono v20). The published latin-ext subset does not include box drawing.
+inter-600.woff2 is the Fontsource latin 600 file, loaded only by the admin shell and the app local font. Public pages do not declare it.
+inter-600-latin-ext.woff2 is the unmodified Fontsource 5.2.8 file inter-latin-ext-600-normal.woff2 (@fontsource/inter 5.2.8). It is loaded only by the admin shell. The bytes were not subset or edited.
+Filenames were assigned at copy time. The font bytes were not subset, renamed inside the font, or otherwise modified. IBM Plex Mono keeps its reserved name because these are the upstream files.

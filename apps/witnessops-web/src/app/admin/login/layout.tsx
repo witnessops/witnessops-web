@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "WitnessOps Admin Login",
+  title: { absolute: "WitnessOps Admin Login" },
   robots: { index: false, follow: false },
 };
 

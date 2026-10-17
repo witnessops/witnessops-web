@@ -2,7 +2,11 @@ import manifest from "./sprites.json";
 
 export const SPRITE_CSS_PX = { width: 94, height: 102 } as const;
 
-export type SovereignSpriteState = keyof typeof manifest.states;
+export const CONTRACT_SPRITE_STATES = ["IDLE", "GREETING", "PROCESSING", "COMPOSING", "HANDOFF", "ERROR"] as const;
+
+export type SovereignSpriteState = (typeof CONTRACT_SPRITE_STATES)[number];
+
+export type SpriteViewport = "desktop" | "mobile";
 
 export type PlaybackStep = {
   frame: number;
@@ -10,22 +14,40 @@ export type PlaybackStep = {
   finished: boolean;
 };
 
-const ANSWERING_STEPS = 4;
+type SpriteFile = { path: string; sha256: string };
 
-export function spriteState(name: SovereignSpriteState) {
-  return manifest.states[name];
+type ThemeFiles = Record<"light" | "dark", Record<"@1x" | "@2x", { webp: SpriteFile; png: SpriteFile }>>;
+
+type PlayableState = {
+  sequence: { frame: number; ms: number }[];
+  hold_frame: number;
+  loop_count: number;
+  cap_ms?: number;
+  strip: ThemeFiles;
+  still: ThemeFiles;
+};
+
+const COMPOSING_STEPS = 4;
+
+export function spriteRecord(name: SovereignSpriteState, viewport: SpriteViewport = "desktop"): PlayableState {
+  if (name === "HANDOFF") return manifest.states.HANDOFF.variants[viewport] as PlayableState;
+  return manifest.states[name] as PlayableState;
 }
 
-/** One pass of a state's sequence. Greet is 1080 ms. */
-export function stateDurationMs(name: SovereignSpriteState): number {
-  return manifest.states[name].sequence.reduce((sum, step) => sum + step.ms, 0);
+export function spriteState(name: SovereignSpriteState, viewport: SpriteViewport = "desktop") {
+  return spriteRecord(name, viewport);
 }
 
-/** One step of the sprites.json sequence. Answering is even, so CSS steps() owns it. */
-export function playbackStep(name: SovereignSpriteState, index: number): PlaybackStep {
-  const state = manifest.states[name];
-  if (name === "answering") {
-    return { frame: index < ANSWERING_STEPS ? index : state.hold_frame, waitMs: index < ANSWERING_STEPS ? 140 : null, finished: index >= ANSWERING_STEPS };
+/** One pass of a state's sequence. Greeting is 1080 ms. */
+export function stateDurationMs(name: SovereignSpriteState, viewport: SpriteViewport = "desktop"): number {
+  return spriteRecord(name, viewport).sequence.reduce((sum, step) => sum + step.ms, 0);
+}
+
+/** One step of the sprites.json sequence. Composing is even, so CSS steps() owns it. */
+export function playbackStep(name: SovereignSpriteState, index: number, viewport: SpriteViewport = "desktop"): PlaybackStep {
+  const state = spriteRecord(name, viewport);
+  if (name === "COMPOSING") {
+    return { frame: index < COMPOSING_STEPS ? index : state.hold_frame, waitMs: index < COMPOSING_STEPS ? 140 : null, finished: index >= COMPOSING_STEPS };
   }
   if (index >= state.sequence.length) {
     return { frame: state.hold_frame, waitMs: null, finished: true };
@@ -35,8 +57,8 @@ export function playbackStep(name: SovereignSpriteState, index: number): Playbac
   return { frame: step.frame, waitMs: step.ms, finished: false };
 }
 
-export function advancePlayback(name: SovereignSpriteState, index: number, loops: number): { index: number; loops: number; finished: boolean } {
-  const state = manifest.states[name];
+export function advancePlayback(name: SovereignSpriteState, index: number, loops: number, viewport: SpriteViewport = "desktop"): { index: number; loops: number; finished: boolean } {
+  const state = spriteRecord(name, viewport);
   const nextIndex = index + 1;
   if (nextIndex < state.sequence.length) return { index: nextIndex, loops, finished: false };
   const nextLoops = loops + 1;
@@ -46,16 +68,7 @@ export function advancePlayback(name: SovereignSpriteState, index: number, loops
   return { index: 0, loops: nextLoops, finished: false };
 }
 
-export function thinkingWaitMs(unitRandom: number): number {
-  const span = Math.min(1, Math.max(0, unitRandom));
-  return 600 + Math.round(span * 600);
-}
-
-export function revealWaitMs(text: string): number {
-  return Math.min(5000, Math.max(140, Math.ceil(text.length / 40) * 100));
-}
-
-export function spriteAsset(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean): string {
-  const file = still ? manifest.states[name].reduced_motion_still : manifest.states[name].file;
-  return file[theme][scale].webp;
+export function spriteAsset(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean, viewport: SpriteViewport = "desktop"): string {
+  const file = still ? spriteRecord(name, viewport).still : spriteRecord(name, viewport).strip;
+  return file[theme][scale].webp.path;
 }

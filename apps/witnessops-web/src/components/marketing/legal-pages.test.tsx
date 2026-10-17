@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { LegalEntityNotice } from "@/components/marketing/legal-document-page";
 import MediaKitPage from "@/app/media-kit/page";
+import { MediaKitContent } from "@/components/marketing/media-kit-content";
 import { COMPANY_DETAILS } from "@/lib/company-details";
 import { loadLegalPage } from "@/lib/content";
 import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
@@ -93,7 +94,7 @@ test("Polish legal pages translate the existing clauses and do not duplicate the
 
 test("media kit names the brand and the legal entity without withdrawn offers", () => {
   for (const locale of ["en", "pl"] as const) {
-    const html = render(createElement(MediaKitPage, { locale }));
+    const html = render(createElement(MediaKitContent, { locale }));
     assert.match(html, /data-media-kit-names=""/);
     assert.ok(html.includes("WitnessOps"));
     assert.ok(html.includes(COMPANY_DETAILS[locale].legalName));
@@ -101,8 +102,12 @@ test("media kit names the brand and the legal entity without withdrawn offers", 
     assert.ok(html.includes(PUBLIC_CONTACT_EMAIL));
     assert.doesNotMatch(html, /Karol|Stefańsk|stefanski|AI Agent Tools|€250|€750|Start with a question|HubSpot|Notion|Google Drive/i);
   }
-  const polish = render(createElement(MediaKitPage, { locale: "pl" }));
+  const polish = render(createElement(MediaKitContent, { locale: "pl" }));
   assert.match(polish, />Zestaw dla mediów</);
   assert.doesNotMatch(polish, />Media kit</);
   assert.doesNotMatch(polish, /About WitnessOps|One-sentence description|Download complete ZIP/);
+  assert.equal(
+    render(createElement(MediaKitPage)),
+    render(createElement(MediaKitContent, { locale: "en" })),
+  );
 });

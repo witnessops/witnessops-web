@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import PolishOfferPage from "@/app/pl/catalog/[skuId]/page";
+import { ReviewOffer } from "@/components/marketing/review-offer";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -12,9 +12,6 @@ export const metadata: Metadata = {
     pl: "/pl/reviews/external-attack-surface-review",
   }),
 };
-
 export default function PolishExternalAttackSurfaceReviewPage() {
-  return PolishOfferPage({
-    params: Promise.resolve({ skuId: "offsec-external-exposure" }),
-  });
+  return <ReviewOffer locale="pl" offer="external" />;
 }

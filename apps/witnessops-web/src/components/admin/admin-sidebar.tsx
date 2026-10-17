@@ -27,7 +27,7 @@ export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; on
       <div className={styles.sidebarHeader}>
         <a href="/admin" className={styles.sidebarBrand} aria-label="WitnessOps Admin Console">
           <Image
-            src="/brand/witnessops-mark-white.svg"
+            src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg"
             alt="WitnessOps"
             width={32}
             height={18}

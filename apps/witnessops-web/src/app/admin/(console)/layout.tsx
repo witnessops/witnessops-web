@@ -9,7 +9,7 @@ import { AdminConsoleShell } from "../../../components/admin/admin-console-shell
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 
 export const metadata: Metadata = {
-  title: "WitnessOps Admin Console",
+  title: { absolute: "WitnessOps Admin Console" },
   robots: { index: false, follow: false },
 };
 

@@ -4,8 +4,9 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
+import { PriceText } from "@/lib/price-unit";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
+import { InlineArrow } from "./inline-arrow";
 import styles from "./simple-homepage.module.css";
 
 const text = HOMEPAGE_TWO_OFFER_COPY.en;
@@ -45,19 +46,30 @@ export function SimpleHomepage() {
   const services = publicPaidReviews(BUYER_SERVICES);
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agents-act">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
-      <div className={styles.watermark} aria-hidden="true">
-        <WitnessOpsMark variant="mark" size="lg" tone="current" decorative />
-      </div>
-      <div className={styles.frame}>
+      {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
+        <div className={styles.watermark} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
+        </div>
+      ) : null}
+      <div className={`${styles.frame} ${styles.heroFrame} crop-frame`}>
         <div className={styles.heroCopy}>
+          <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>Sovereign evidence</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+          <h1 data-ui-proof-id="homepage-hero-headline"><span className={styles.heroLine}>Proof other</span> <span className={styles.heroLine}>people can{"\u00A0"}check.</span></h1>
+        </div>
+        <div className={styles.split}>
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
-          <div className={styles.actions}>
-            {services.map((service) => {
-              const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-              return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : text.externalCta}</Link>;
-            })}
+          <div>
+            <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
+            <div className={styles.actions}>
+              {services.map((service) => {
+                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : <>{text.externalCta} <InlineArrow /></>}</Link>;
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -69,10 +81,10 @@ export function SimpleHomepage() {
           <TextLink href="/pricing">See all prices</TextLink>
           <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
         </div>
-        <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
       </div>
     </nav>
-    <section className={styles.offers} aria-label="Public reviews"><div className={styles.frame}>
+    <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>WitnessOps reviews</p>
       <h2>Two focused security reviews.</h2>
       <p>Understand what one agent action can do and what your internet-facing system exposes. Compare the scope, evidence and price before requesting a review.</p>
@@ -80,10 +92,10 @@ export function SimpleHomepage() {
       <div className={styles.cards}>
         {services.map((service) => {
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-          return <article key={service.id} data-home-offer={service.id}>
+          return <article key={service.id} className="crop" data-home-offer={service.id}>
             <p className={styles.eyebrow}>{ai ? "Review one agent action" : "Review external exposure"}</p>
             <h3>{service.name.en}</h3>
-            <p className={styles.price}>{ai ? text.aiPrice : text.externalPrice}</p>
+            <p className={styles.price}><PriceText text={ai ? text.aiPrice : text.externalPrice} /></p>
             <p>{ai ? text.aiQuestion : text.externalQuestion}</p>
             <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
             <p>{ai ? text.aiDescription : text.externalDescription}</p>
@@ -97,10 +109,11 @@ export function SimpleHomepage() {
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
-        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
+        <span className={styles.rule} aria-hidden="true" />
         <p className={styles.eyebrow}>Historical synthetic one-action example</p>
+        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
         <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
-        <dl className={styles.specimenRows}>
+        <dl className={`${styles.specimenRows} crop`}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
           <div><dt>Executing identity</dt><dd><code>svc-agent-refunds@example.com</code> — a reserved example of the identity an agent would run as, not the one that configured it.</dd></div>
           <div><dt>Permission / authority boundary</dt><dd>The roles, scopes and approval steps that stand between an identity and an action, as configured.<small>Read from configuration under agreed evidence rules. Not assumed; none inspected here.</small></dd></div>
@@ -112,6 +125,7 @@ export function SimpleHomepage() {
       </div>
     </section>
     <section className={styles.section} aria-labelledby="home-process-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>How a review works</p>
       <h2 id="home-process-heading">Scope before work. Evidence beside findings.</h2>
       <ol className={styles.steps}>
@@ -120,6 +134,7 @@ export function SimpleHomepage() {
       <p className={styles.note}><Link href="/early-access">How the app works</Link></p>
     </div></section>
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>What this is · what this isn’t</p>
       <h2 id="home-limits-heading">Useful evidence. Explicit limits.</h2>
       <div className={styles.limits}>
@@ -128,12 +143,13 @@ export function SimpleHomepage() {
       </div>
     </div></section>
     <section className={styles.section} aria-label="What sovereign means here"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>What sovereign means here</p>
       <ul className={styles.principles}>{PRINCIPLES.map(([title, body]) => <li key={title}><h3>{title}</h3><p>{body}</p></li>)}</ul>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
-      <div className={styles.enquiryForm}><ContactForm compact landing /></div>
+      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div className={`${styles.enquiryForm} crop`}><ContactForm compact landing /></div>
     </div></section>
   </main>;
 }

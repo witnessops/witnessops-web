@@ -22,6 +22,7 @@ import {
   salesReviewMailto,
 } from "@/lib/public-contact";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
@@ -31,12 +32,14 @@ export const metadata: Metadata = {
     pl: "/pl/contact",
   }),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Tell Us What You Need Reviewed | WitnessOps",
     description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Tell Us What You Need Reviewed | WitnessOps",
     description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
@@ -78,7 +81,7 @@ const agentActionOutputs = [
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
+  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [

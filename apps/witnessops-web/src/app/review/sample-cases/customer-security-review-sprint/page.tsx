@@ -3,6 +3,7 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/customer-security-review-sprint";
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   alternates: getCanonicalAlternates("witnessops", path),
   robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Customer Security Review Sprint | WitnessOps",
     description:
       "Inspect a synthetic questionnaire response package shape. Not live customer evidence or certification.",
@@ -127,8 +129,9 @@ export default function CustomerSecurityReviewSamplePage() {
                 </ul>
               </div>
               <div
-                className="overflow-x-auto"
+                className="min-w-0 max-w-full overflow-x-auto"
                 tabIndex={0}
+                role="region"
                 aria-label="Synthetic example response table"
               >
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -177,7 +180,7 @@ export default function CustomerSecurityReviewSamplePage() {
               <li key={file} className="border-t border-surface-border pt-3 font-mono text-xs sm:text-sm">
                 <a
                   href={`/samples/csr-sprint-synthetic/${file}`}
-                  className="text-brand-accent underline-offset-4 hover:underline"
+                  className="[overflow-wrap:anywhere] text-brand-accent underline-offset-4 hover:underline"
                   target="_blank"
                   rel="noreferrer"
                 >

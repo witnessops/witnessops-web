@@ -9,7 +9,6 @@ import {
   COMPANY_DETAILS,
   COMPANY_DETAILS_HREF,
 } from "@/lib/company-details";
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
@@ -18,6 +17,7 @@ import {
 import { isPolishPath } from "@/lib/public-i18n";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
+import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 
 const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
@@ -33,7 +33,9 @@ function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
     },
     {
       label: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
-      href: EXTERNAL_ATTACK_SURFACE_OFFER.route[locale],
+      href: locale === "pl"
+        ? "/pl/reviews/external-attack-surface-review"
+        : "/reviews/external-attack-surface-review",
     },
   ];
 }
@@ -45,10 +47,20 @@ const FOOTER_LINK_CLASS =
 const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-xs text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
-const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
 const PREMIUM_FOOTER_SUBLINE = "Proof other people can check.";
 
 type FooterLink = { label: string; href: string };
+
+export function footerResourceLinks(): FooterLink[] {
+  return [
+    { label: "Sample work", href: "/review/sample-cases" },
+    { label: "Research", href: "/research" },
+    { label: "The Sovereign Chronicles", href: "/chronicles" },
+    ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
+    { label: "Verify a receipt", href: "/verify" },
+    { label: "Tool · not a review", href: "/check" },
+  ];
+}
 
 interface FooterProps {
   appUrl?: string | null;
@@ -65,8 +77,8 @@ const POLISH_FOOTER = {
   links: [
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
-    { label: "Przykłady (EN)", href: "/review/sample-cases" },
-    { label: "Tool · not a review", href: "/check" },
+    { label: "Przykładowe prace", href: "/review/sample-cases" },
+    { label: "Narzędzie, nie przegląd", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
@@ -111,7 +123,6 @@ export function isFooterRequestHref(href: string): boolean {
 
 export function Footer({
   appUrl = null,
-  brand_line,
   links,
   legal_links,
   build_label,
@@ -146,6 +157,7 @@ export function Footer({
       { label: "Docs", href: DOCS_PUBLIC_HREF },
       { label: "Support", href: "/support" },
     ] },
+    { label: "Resources", links: footerResourceLinks() },
     ...(appUrl ? [{ label: "App", links: [
       { label: "Sign up", href: new URL("/signup", appUrl).href },
       { label: "Log in", href: new URL("/login", appUrl).href },
@@ -156,11 +168,11 @@ export function Footer({
     const href = resolveFooterHref(link.href);
     return isExternalFooterHref(href) ? (
       <a key={href} href={href} target="_blank" rel="noreferrer"
-        className={className} style={FOOTER_NAV_STYLE}>
+        className={`${className} max-w-full min-w-0 whitespace-normal`} style={FOOTER_NAV_STYLE}>
         {link.label}
       </a>
     ) : (
-      <Link key={href} href={href} className={className} style={FOOTER_NAV_STYLE}>
+      <Link key={href} href={href} prefetch={false} className={`${className} max-w-full min-w-0 whitespace-normal`} style={FOOTER_NAV_STYLE}>
         {link.label}
       </Link>
     );
@@ -179,25 +191,34 @@ export function Footer({
             <Link
               href={isPolishSurface ? "/pl" : "/"}
               aria-label={isPolishSurface ? "WitnessOps: strona główna" : "WitnessOps home"}
-              className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-xs"
+              className="mb-2 inline-flex min-h-11 items-center gap-0 rounded-xs"
             >
-              <WitnessOpsMark variant="mark" size="md" tone="current" decorative
-                className="shrink-0 text-text-primary" />
-              <span className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
-                style={FOOTER_DISPLAY_STYLE}>
-                {brand_line}
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
+                alt="WitnessOps"
+                width={1500}
+                height={420}
+                className="wo-lockup wo-lockup--footer wo-lockup--black"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
+                alt=""
+                width={1500}
+                height={420}
+                className="wo-lockup wo-lockup--footer wo-lockup--white"
+              />
             </Link>
             <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
               {content.subline}
             </p>
           </div>
 
-          <div className="footer-navigation grid grid-cols-2 gap-x-6">
+          <div className="footer-navigation grid grid-cols-2 gap-x-6 gap-y-8">
             {groups.map((group) => (
               <nav key={group.label} aria-label={group.label}>
-                <p className="mb-1 text-sm font-semibold text-text-primary"
-                  style={FOOTER_DISPLAY_STYLE}>
+                <p className="footer-heading mb-1">
                   {group.label}
                 </p>
                 <div className="flex flex-col items-start">
@@ -212,21 +233,12 @@ export function Footer({
             <PublicContactRoute compact premium locale={isPolishSurface ? "pl" : "en"}
               primaryHref={reviewRequestHref} />
           </div>
+
+          <div className="footer-theme">
+            <ThemeMemory />
+          </div>
         </div>
 
-        {!isPolishSurface && (
-          <nav aria-label="Resources" className="footer-resources">
-            {[
-              { label: "Sample work", href: "/review/sample-cases" },
-              { label: "Research", href: "/research" },
-              { label: "The Sovereign Chronicles", href: "/chronicles" },
-              { label: "Ask Sovereign", href: "/docs/assistant" },
-              { label: "Verify a receipt", href: "/verify" },
-              { label: "Tool · not a review", href: "/check" },
-            ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
-          </nav>
-        )}
-        <ThemeMemory />
         <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}

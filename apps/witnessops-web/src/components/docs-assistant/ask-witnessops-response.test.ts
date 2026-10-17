@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 
 import {
   askWitnessOpsAnswerText,
@@ -31,7 +32,7 @@ const likelyCommercialFit = {
   source: "ask" as const,
   offer: {
     name: PUBLIC_AGENT_ACTION_OFFER.name.en,
-    price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+    price_label: plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en),
     unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
     fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
     delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
@@ -60,7 +61,7 @@ function generatedPayload(serviceId: string = "external-exposure-assessment") {
       name: service.name.en,
       price_label: service.pricingVisible === false
         ? (service.availability?.label.en ?? "Available by request")
-        : service.price.en,
+        : plainOfferPrice(service.price.en),
       delivery_label: service.timing.en,
       detail_href: service.detailHref.en ?? "/catalog",
       request_href: `${requestUrl.pathname}${requestUrl.search}`,
@@ -286,7 +287,7 @@ test("deterministic fallback names each public review without ranking either one
       id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
       offer: {
         name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-        price_label: EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+        price_label: plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en),
         unit_label:
           "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
         fit_check_label: "Non-secret fit check first. This is not a penetration test.",
@@ -342,6 +343,7 @@ test("commercial fit keeps successful public guidance coherent with the live off
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
   assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
   assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
+  assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
   assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
 });
@@ -367,7 +369,8 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     askWitnessOpsAnswerText(answer),
     /Delivery timing agreed in the signed statement of work/,
   );
-  assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl. VAT/);
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
+  assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /fixed quote after scope|10 working days|€550/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
   assert.equal(

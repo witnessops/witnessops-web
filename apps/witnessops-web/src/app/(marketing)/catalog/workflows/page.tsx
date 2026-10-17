@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { buyerServiceById } from "@/lib/buyer-services";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { primaryOfferBreadcrumbJsonLd } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const service = buyerServiceById(PRIMARY_OFFER.id);
 
@@ -14,12 +15,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
   alternates: { canonical: PRIMARY_OFFER.route },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `${service.name.en} | WitnessOps`,
     description: service.situation.en,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: `${service.name.en} | WitnessOps`,
     description: service.situation.en,

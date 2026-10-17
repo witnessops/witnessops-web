@@ -74,7 +74,8 @@ test("generated prose stays distinct while sources and recommendation fields com
     [`service.${service.id}`],
   ));
   assert.ok(answer);
-  assert.equal(answer.recommendation?.price_label, service.price.en);
+  assert.equal(answer.recommendation?.price_label, service.price.en.replaceAll("\u00A0", " "));
+  assert.doesNotMatch(answer.recommendation?.price_label ?? "", /\u00A0/);
   assert.equal(answer.recommendation?.delivery_label, service.timing.en);
   assert.equal(answer.recommendation?.detail_href, service.detailHref.en);
   assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
@@ -255,7 +256,7 @@ test("every new-sales service card retains canonical price, timing and selected 
     const answer = normalizePublicAskResponse(response("The service details are below.", service.id, [`service.${service.id}`]));
     assert.ok(answer?.recommendation, service.id);
     assert.equal(answer.recommendation.name, service.name.en);
-    assert.equal(answer.recommendation.price_label, service.pricingVisible === false ? service.availability?.label.en ?? "Available by request" : service.price.en);
+    assert.equal(answer.recommendation.price_label, service.pricingVisible === false ? service.availability?.label.en ?? "Available by request" : service.price.en.replaceAll("\u00A0", " "));
     assert.equal(answer.recommendation.delivery_label, service.timing.en);
     const expected = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
     expected.searchParams.set("source", "ask");
@@ -325,6 +326,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const agentAnswer = catalogueClarification({question:`What does ${agent} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:withdrawn}]})!;
   assert.equal(agentAnswer.recommendation?.service_id, 'agent-action-security-review');
   assert.match(agentAnswer.text, /€2,500 excl\. VAT/);
+  assert.doesNotMatch(agentAnswer.text, /\u00A0/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation?.service_id, 'external-exposure-assessment');
   assert.match(externalAnswer.text, /€1,900/);

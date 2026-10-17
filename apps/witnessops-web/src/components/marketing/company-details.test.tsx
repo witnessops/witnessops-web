@@ -149,6 +149,7 @@ test("company details render on the company and contact pages, and the footer ke
     "src/app/pl/terms/page.tsx",
     "src/app/media-kit/page.tsx",
     "src/app/pl/media-kit/page.tsx",
+    "src/components/marketing/media-kit-content.tsx",
   ]) {
     const source = readFileSync(resolve(appRoot, relative), "utf8");
     assert.doesNotMatch(
@@ -253,8 +254,8 @@ test("company details render on the company and contact pages, and the footer ke
     }),
     "/review/request",
   );
-  assert.match(priced, /€2,500 excl. VAT/);
-  assert.match(external, /€1,900 excl. VAT/);
+  assert.match(priced, /€2,500\u00A0excl.\u00A0VAT/);
+  assert.match(external, /€1,900\u00A0excl.\u00A0VAT/);
 });
 
 test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t) => {

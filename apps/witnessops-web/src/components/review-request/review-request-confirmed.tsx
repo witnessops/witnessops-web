@@ -61,7 +61,7 @@ const copy = {
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
-      "We assess whether the requested public system fits one authorized, fixed-scope review.",
+      "We assess whether the requested public system fits one authorized, agreed-scope review.",
       "We confirm payment, the SOW, written authority, required inputs, evidence handling, and the collection window by email.",
       "Target-facing work starts only after every condition above is confirmed.",
     ],
@@ -98,11 +98,11 @@ const copy = {
     ],
     primaryOfferNextSteps: [
       "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
-      "Aktualne płatne przeglądy to Agent Action Security Review za €2,500 bez VAT oraz External Attack Surface Review za €1,900 bez VAT z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu.",
+      `Aktualne płatne przeglądy to Agent Action Security Review za ${PUBLIC_AGENT_ACTION_OFFER.price.pl} oraz External Attack Surface Review za ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu.`,
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
-      "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o stałym zakresie.",
+      "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o uzgodnionym zakresie.",
       "Potwierdzimy e-mailem płatność, SOW, pisemne upoważnienie, wymagane dane wejściowe, obsługę materiałów i okno zbierania.",
       "Praca wobec celu rozpocznie się dopiero po potwierdzeniu wszystkich tych warunków.",
     ],

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import CatalogSkuDetailPage from "@/app/(marketing)/catalog/[skuId]/page";
+import { ReviewOffer } from "@/components/marketing/review-offer";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
@@ -14,7 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExternalAttackSurfaceReviewPage() {
-  return CatalogSkuDetailPage({
-    params: Promise.resolve({ skuId: "offsec-external-exposure" }),
-  });
+  return <ReviewOffer locale="en" offer="external" />;
 }

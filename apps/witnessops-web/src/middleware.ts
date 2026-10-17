@@ -38,6 +38,18 @@ function isAdminApiMutation(request: NextRequest): boolean {
 }
 
 const WITHDRAWN_SHELL_HEADER = "x-witnessops-withdrawn-shell";
+const WITHDRAWN_FALLBACK_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>This offer has been withdrawn</title><body><p>This offer has been withdrawn.</p><p>Ta oferta została wycofana.</p><p><a href="/reviews">Reviews</a></p></body></html>`;
+
+function withdrawnFallback() {
+  return new NextResponse(WITHDRAWN_FALLBACK_HTML, {
+    status: 410,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex",
+    },
+  });
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -61,23 +73,28 @@ export async function middleware(request: NextRequest) {
       ? "/pl/withdrawn-offer"
       : "/withdrawn-offer";
     shell.search = "";
-    const rendered = await fetch(shell, {
-      method: "GET",
-      redirect: "manual",
-      headers: {
-        accept: "text/html",
-        [WITHDRAWN_SHELL_HEADER]: "1",
-      },
-      signal: AbortSignal.timeout(8000),
-    });
-    return new NextResponse(await rendered.arrayBuffer(), {
-      status: 410,
-      headers: {
-        ...headers,
-        "content-type":
-          rendered.headers.get("content-type") ?? headers["content-type"],
-      },
-    });
+    try {
+      const rendered = await fetch(shell, {
+        method: "GET",
+        redirect: "manual",
+        headers: {
+          accept: "text/html",
+          [WITHDRAWN_SHELL_HEADER]: "1",
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!rendered.ok) return withdrawnFallback();
+      return new NextResponse(await rendered.arrayBuffer(), {
+        status: 410,
+        headers: {
+          ...headers,
+          "content-type":
+            rendered.headers.get("content-type") ?? headers["content-type"],
+        },
+      });
+    } catch {
+      return withdrawnFallback();
+    }
   }
 
   // Cookie-authenticated admin mutations must originate from the exact admin

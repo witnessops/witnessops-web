@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import {
   CHRONICLE_SERIES_INTRO,
   PUBLISHED_CHAPTERS,
   RESERVED_CHAPTERS,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "The Sovereign Chronicles",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Sovereign Chronicles",
     description: CHRONICLE_SERIES_INTRO,
-    images: ["/chronicles/og-placeholder.svg"],
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
 };
 
@@ -29,33 +29,38 @@ const rows = [
 export default function ChroniclesIndexPage() {
   return (
     <main id="main-content" tabIndex={-1} className="relative mx-auto max-w-3xl px-6 py-16">
-      <div className="pointer-events-none absolute right-6 top-16 opacity-[0.07]" aria-hidden="true">
-        <WitnessOpsMark variant="mark" size="lg" tone="current" decorative />
-      </div>
-      <p className="text-sm text-text-muted"><Link href="/research" className="underline-offset-4 hover:underline">Research</Link> / The Sovereign Chronicles</p>
-      <p className="mt-8 font-mono text-xs uppercase tracking-[0.18em] text-brand-accent">Series · Fiction</p>
-      <h1 className="mt-3 text-5xl text-text-primary" style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}>The Sovereign Chronicles</h1>
-      <p className="mt-4 max-w-2xl text-text-secondary">{CHRONICLE_SERIES_INTRO}</p>
+      {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
+        <div className="pointer-events-none absolute right-6 top-16" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
+        </div>
+      ) : null}
+      <p className="wo-small text-text-muted"><Link href="/research" className="underline-offset-4 hover:underline">Research</Link> / The Sovereign Chronicles</p>
+      <p className="wo-mono-caps mt-8 text-brand-accent">Series · Fiction</p>
+      <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">The Sovereign Chronicles</h1>
+      <p className="wo-small mt-4 text-text-secondary">{CHRONICLE_SERIES_INTRO}</p>
       <ol className="mt-10 divide-y divide-surface-border border-y border-surface-border">
         {rows.map((row) => (
           <li key={row.id} className="py-6">
-            <p className="font-mono text-3xl text-brand-accent">{row.id}</p>
-            <p className="mt-2 font-mono text-xs uppercase tracking-widest text-text-muted">{row.kicker}</p>
+            <p className="wo-chapter-index text-brand-accent">{row.id}</p>
+            <p className="wo-mono-caps mt-2 text-text-muted">{row.kicker}</p>
             {row.href ? (
-              <h2 className="mt-2 text-2xl text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h2>
+              <h3 className="wo-h3 mt-2 text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h3>
             ) : (
-              <p className="mt-2 text-2xl text-text-muted">Chapter 002, {row.title}, coming soon</p>
+              <p className="wo-h3 mt-2 text-text-muted">Chapter 002, {row.title}, coming soon</p>
             )}
-            {"teaser" in row && row.teaser ? <p className="mt-2 text-sm text-text-muted">{row.teaser} · Coming soon · Not yet linked</p> : null}
+            {"teaser" in row && row.teaser ? <p className="wo-small mt-2 text-text-muted">{row.teaser} · Coming soon · Not yet linked</p> : null}
           </li>
         ))}
       </ol>
       <section className="mt-8 rounded-md border border-dashed border-surface-border p-5" aria-label="Chapter 004, The Agent Who Scheduled a Meeting With Himself, coming soon">
-        <p className="font-mono text-xs uppercase tracking-widest text-text-muted">Up next · Chapter IV · Coming soon · Not linked</p>
-        <h2 className="mt-2 text-xl text-text-muted">{RESERVED_CHAPTERS[1].title}</h2>
-        <p className="mt-2 text-sm text-text-muted">{RESERVED_CHAPTERS[1].teaser}</p>
+        <p className="wo-mono-caps text-text-muted">Up next · Chapter IV · Coming soon · Not linked</p>
+        <h3 className="wo-h3 mt-2 text-text-muted">{RESERVED_CHAPTERS[1].title}</h3>
+        <p className="wo-small mt-2 text-text-muted">{RESERVED_CHAPTERS[1].teaser}</p>
       </section>
-      <p className="mt-10 text-sm text-text-secondary">
+      <p className="wo-small mt-10 text-text-secondary">
         Outside the stories, WitnessOps runs two focused security reviews.{" "}
         <Link href="/reviews" className="underline-offset-4 hover:underline">Compare the two reviews</Link>
       </p>

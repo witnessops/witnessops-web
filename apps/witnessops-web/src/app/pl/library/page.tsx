@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -13,10 +14,10 @@ const primaryPaths = [
   },
   {
     href: "/review/sample-cases",
-    title: "Przykłady (EN)",
+    title: "Przykładowe prace",
     description:
       "Zobacz przykładowe przeglądy, ustalenia i dowody. Materiały są w języku angielskim.",
-    cta: "Zobacz przykłady (EN)",
+    cta: "Zobacz przykłady",
   },
   {
     href: "/pl/verify",
@@ -66,7 +67,7 @@ const secondaryGroups = [
     ],
   },
   {
-    title: "Przykłady (EN)",
+    title: "Przykładowe prace",
     description: "Oznaczone przykłady przeglądów, nie dane klientów.",
     links: [
       [
@@ -113,7 +114,7 @@ const exampleBoundary =
   "Przykłady są oznaczone jako demonstracje lub ilustracje. Nie są materiałem klienta ani certyfikacją zgodności. Ważny wynik publicznej weryfikacji potwierdza kontrole wskazane w zapisie, nie to, że każde działanie leżące u podstaw było poprawne.";
 
 export const metadata: Metadata = {
-  title: "Biblioteka WitnessOps",
+  title: "Biblioteka",
   description:
     "Publiczne punkty wejścia do usług, przykładów, weryfikacji zapisów i dokumentacji.",
   alternates: languageAlternates("/pl/library", {
@@ -183,7 +184,7 @@ export default function PolishLibraryPage() {
                   {path.description}
                 </p>
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
-                  {path.cta} →
+                  {path.cta} <InlineArrow />
                 </p>
               </Link>
             ))}

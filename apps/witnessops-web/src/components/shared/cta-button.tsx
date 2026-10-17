@@ -16,9 +16,9 @@ interface CtaButtonProps {
 
 const variantStyles: Record<Variant, string> = {
   primary:
-    "bg-brand-accent text-text-inverse rounded-sm font-medium px-6 py-3 hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3),0_0_0_1px_rgba(255,107,53,0.4)] active:scale-[0.97] active:shadow-[0_0_12px_rgba(255,107,53,0.2)] transition-all duration-200",
+    "bg-brand-accent text-text-inverse rounded-sm font-medium px-6 py-3 hover:brightness-110 active:scale-[0.97] transition-all duration-200",
   secondary:
-    "border border-surface-border text-text-primary rounded-sm px-6 py-3 hover:bg-surface-card hover:border-brand-accent/40 hover:shadow-[0_0_16px_rgba(255,107,53,0.08),inset_0_1px_0_rgba(255,255,255,0.03)] active:scale-[0.97] transition-all duration-200",
+    "border border-surface-border text-text-primary rounded-sm px-6 py-3 hover:bg-surface-card hover:border-brand-accent/40 active:scale-[0.97] transition-all duration-200",
   ghost:
     "text-text-muted hover:text-text-primary hover:bg-surface-card/50 active:scale-[0.97] rounded-sm px-6 py-3 transition-all duration-200",
 };

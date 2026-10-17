@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { canonicalUrl } from './public-seo';
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export type EditorialType = 'Essay' | 'Research note' | 'Evidence reconstruction' | 'Field note';
 /** Repository-owned illustrative artwork, not evidence. Dimensions are intrinsic pixels. */
@@ -43,10 +44,12 @@ export function editorialMetadata(entry: EditorialEntry): Metadata {
   return {
     title: entry.title, description: entry.summary, alternates: { canonical: url },
     authors: [{ name: entry.author?.name ?? 'WitnessOps' }],
-    openGraph: { type: 'article', url, title: entry.title, description: entry.openGraphSummary ?? entry.summary,
+    openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES, type: 'article', url, title: entry.title, description: entry.openGraphSummary ?? entry.summary,
       publishedTime: `${entry.publishedAt}T00:00:00+02:00`, modifiedTime: `${entry.modifiedAt ?? entry.publishedAt}T00:00:00+02:00`,
       authors: [entry.author?.name ?? 'WitnessOps'] },
-    twitter: { card: 'summary_large_image', title: entry.title, description: entry.openGraphSummary ?? entry.summary },
+    twitter: {
+  images: DEFAULT_TWITTER_IMAGES, card: 'summary_large_image', title: entry.title, description: entry.openGraphSummary ?? entry.summary },
   };
 }
 export function editorialJsonLd(entry: EditorialEntry) {

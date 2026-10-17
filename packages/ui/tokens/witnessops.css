@@ -1,33 +1,40 @@
 :root {
   /* Canonical WitnessOps public palette. Public pages and shared chrome consume
      these semantic tokens instead of redefining route-local color systems. */
-  --color-brand-primary: #fafaf7;
-  --color-brand-primary-hover: #fafaf7;
-  --color-brand-secondary: #d0ccc4;
-  --color-brand-accent: #f27a3d;
-  --color-brand-accent-subtle: rgba(242, 122, 61, 0.14);
-  --color-brand-muted: #9e9a93;
+  --color-brand-primary: #f5f1e8;
+  --color-brand-primary-hover: #ffffff;
+  --color-brand-secondary: #c3bfb6;
+  --color-brand-accent: #b89b62;
+  --color-brand-accent-hover: #cbb27d;
+  --color-brand-accent-press: #a68b57;
+  --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
+  --color-brand-muted: #a7a399;
 
-  --color-surface-bg: #050505;
-  --color-surface-bg-alt: #0d0d0c;
-  --color-surface-inset: #141413;
-  --color-surface-card: #0d0d0c;
-  --color-surface-card-hover: #141413;
-  --color-surface-border: #2a2a28;
-  --color-surface-border-hover: #474743;
-  --color-surface-border-strong: #474743;
+  --color-surface-bg: #0b0c0b;
+  --color-surface-bg-alt: #0f100e;
+  --color-surface-inset: #0b0c0b;
+  --color-surface-card: #121310;
+  --color-surface-card-hover: #1a1b17;
+  --color-surface-border: #2f302b;
+  --color-surface-border-hover: #a7a399;
+  --color-surface-border-strong: #6f6e64;
+  --color-surface-border-accent: #4c432d;
 
-  --color-text-primary: #fafaf7;
-  --color-text-secondary: #d0ccc4;
-  --color-text-muted: #9e9a93;
-  --color-text-inverse: #160b05;
+  --color-text-primary: #f5f1e8;
+  --color-text-secondary: #c3bfb6;
+  --color-text-muted: #a7a399;
+  --color-text-inverse: #0b0c0b;
 
-  --color-signal-green: #6bc498;
-  --color-signal-amber: #e3b060;
-  --color-signal-red: #e07570;
-  --color-signal-copper: #d59565;
-  --color-accent-trust: #64a8ac;
-  --color-accent-trust-subtle: rgba(100, 168, 172, 0.18);
+  /* Primary button fill. Hover and press are declared in each theme block. */
+  --color-action-fill: #b89b62;
+  --color-action-on-fill: #0b0c0b;
+
+  --color-signal-green: #86be8e;
+  --color-signal-amber: #d6c49e;
+  --color-signal-red: #f28b93;
+  --color-signal-copper: #b89b62;
+  --color-accent-trust: #b89b62;
+  --color-accent-trust-subtle: rgba(184, 155, 98, 0.12);
 
   /* Radius scale. Theme-independent: one definition, referenced by aliases. */
   --radius-none: 0px;
@@ -51,10 +58,55 @@
   --spacing-section: 120px;
   --spacing-section-sm: 80px;
 
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Newsreader", "Inter", system-ui, sans-serif;
-  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", serif;
-  --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --font-serif: "Newsreader", "Newsreader Fallback", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Type lock. S is the default. M starts at 768px and L at 1200px. */
+  --type-display-size: 44px; --type-display-lh: 48px; --type-display-ls: -0.025em; --type-display-wt: 300;
+  --type-hero-size: 52px; --type-hero-lh: 56px; --type-hero-ls: -0.025em; --type-hero-wt: 300;
+  --measure-h2: 32ch;
+  --type-h1-size: 34px; --type-h1-lh: 40px; --type-h1-ls: -0.02em; --type-h1-wt: 300;
+  --type-h2-size: 28px; --type-h2-lh: 36px; --type-h2-ls: -0.015em; --type-h2-wt: 300; --type-h2-gap: 40px;
+  --type-h3-size: 20px; --type-h3-lh: 28px; --type-h3-ls: -0.01em; --type-h3-wt: 400;
+  --type-h4-size: 16px; --type-h4-lh: 24px; --type-h4-wt: 500;
+  --type-body-lg-size: 18px; --type-body-lg-lh: 28px;
+  --type-body-size: 16px; --type-body-lh: 24px;
+  --type-body-long-lh: 24px;
+  --type-ui-size: 14px; --type-ui-lh: 20px; --type-ui-wt: 500;
+  --type-small-size: 14px; --type-small-lh: 20px;
+  --type-caption-size: 12px; --type-caption-lh: 16px;
+  --type-eyebrow-size: 12px; --type-eyebrow-lh: 16px; --type-eyebrow-ls: 0.08em; --type-eyebrow-wt: 500;
+  --type-mono-size: 13px; --type-mono-lh: 20px;
+  --type-mono-caps-size: 12px; --type-mono-caps-lh: 16px; --type-mono-caps-ls: 0.06em; --type-mono-caps-wt: 500;
+  --type-prose-size: 18px; --type-prose-lh: 28px; --type-prose-gap: 20px;
+  --measure-body: 34em; --measure-lead: 32em; --measure-prose: 31em; --measure-heading: 20ch; --measure-small: 40em;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --type-display-size: 56px; --type-display-lh: 64px; --type-display-ls: -0.03em;
+    --type-hero-size: 76px; --type-hero-lh: 80px; --type-hero-ls: -0.03em;
+    --type-h1-size: 40px; --type-h1-lh: 48px; --type-h1-ls: -0.025em;
+    --type-h2-size: 30px; --type-h2-lh: 36px; --type-h2-ls: -0.02em;
+    --type-h3-size: 22px; --type-h3-lh: 28px;
+    --type-h4-size: 18px; --type-h4-lh: 28px;
+    --type-body-long-lh: 28px;
+    --type-prose-size: 20px; --type-prose-lh: 32px; --type-prose-gap: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --type-display-size: 72px; --type-display-lh: 80px;
+    --type-hero-size: 108px; --type-hero-lh: 112px;
+    --type-h1-size: 48px; --type-h1-lh: 56px;
+    --type-h2-size: 36px; --type-h2-lh: 44px; --type-h2-gap: 48px;
+    --type-h3-size: 24px; --type-h3-lh: 32px;
+    --type-body-lg-size: 20px; --type-body-lg-lh: 32px;
+    --type-mono-size: 14px;
+  }
 }
 
 /* The outline follows border-radius, so the ring is the element radius plus the offset.
@@ -95,33 +147,88 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
   --color-surface-border: #d3cdbf;
   --color-surface-border-hover: #7c786c;
   --color-surface-border-strong: #7c786c;
+  --color-surface-border-accent: #7c786c;
   --color-text-primary: #0b0c0b;
   --color-text-secondary: #3a3a34;
   --color-text-muted: #55544c;
   --color-text-inverse: #f5f1e8;
   --color-brand-primary: #0b0c0b;
+  --color-brand-primary-hover: #0b0c0b;
+  --color-brand-secondary: #3a3a34;
+  --color-brand-muted: #9e9a93;
   --color-brand-accent: #715a2c;
+  --color-brand-accent-hover: #5e4a23;
+  --color-brand-accent-press: #4a3b1c;
   --color-brand-accent-subtle: rgba(113, 90, 44, 0.1);
+  --color-action-fill: #0b0c0b;
+  --color-action-fill-hover: #3a3a34;
+  --color-action-fill-press: #55544c;
+  --color-action-on-fill: #f5f1e8;
+  --color-signal-green: #6bc498;
+  --color-signal-amber: #e3b060;
+  --color-signal-red: #e07570;
+  --color-signal-copper: #715a2c;
+  --color-accent-trust: #715a2c;
+  --color-accent-trust-subtle: rgba(113, 90, 44, 0.1);
+  --focus: #715a2c;
   --hero-glow: none;
   color-scheme: light;
 }
 
 html[data-theme="dark"] body:not(:has([data-admin-shell])) {
   --color-surface-bg: #0b0c0b;
-  --color-surface-bg-alt: #111210;
-  --color-surface-card: #131411;
-  --color-surface-inset: #191a16;
+  --color-surface-bg-alt: #0f100e;
+  --color-surface-card: #121310;
+  --color-surface-card-hover: #1a1b17;
+  --color-surface-inset: #0b0c0b;
   --color-surface-border: #2f302b;
-  --color-surface-border-strong: #6e6e64;
+  --color-surface-border-hover: #a7a399;
+  --color-surface-border-strong: #6f6e64;
+  --color-surface-border-accent: #4c432d;
   --color-text-primary: #f5f1e8;
-  --color-text-secondary: #c9c5bc;
+  --color-text-secondary: #c3bfb6;
   --color-text-muted: #a7a399;
   --color-text-inverse: #0b0c0b;
   --color-brand-primary: #f5f1e8;
+  --color-brand-primary-hover: #ffffff;
+  --color-brand-secondary: #c3bfb6;
+  --color-brand-muted: #a7a399;
   --color-brand-accent: #b89b62;
+  --color-brand-accent-hover: #cbb27d;
+  --color-brand-accent-press: #a68b57;
   --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
-  --hero-glow: radial-gradient(ellipse at 70% 20%, rgba(184, 155, 98, 0.08), transparent 55%);
+  --color-action-fill: #b89b62;
+  --color-action-fill-hover: #cbb27d;
+  --color-action-fill-press: #a68b57;
+  --color-action-on-fill: #0b0c0b;
+  --color-signal-green: #86be8e;
+  --color-signal-amber: #d6c49e;
+  --color-signal-red: #f28b93;
+  --color-signal-copper: #b89b62;
+  --color-accent-trust: #b89b62;
+  --color-accent-trust-subtle: rgba(184, 155, 98, 0.12);
+  --focus: #b89b62;
+  --hero-glow: none;
+  --public-control-hover: var(--color-action-fill-hover);
+  --public-control-pressed: var(--color-action-fill-press);
+  /* Dark-only page grid and crop marks. Light and print leave them unset. */
+  --grid-minor: #171815;
+  --grid-major: #22231f;
+  --grid-step: 32px;
+  --grid-major-step: 128px;
+  --crop-color: #b89b62;
+  --crop-arm: 18px;
+  --crop-stroke: 1.5px;
+  --crop-offset: 13px;
+  --crop-frame-opacity: 0.7;
   color-scheme: dark;
+}
+
+@media (max-width: 767px) {
+  html[data-theme="dark"] body:not(:has([data-admin-shell])) {
+    --crop-arm: 12px;
+    --crop-offset: 8px;
+  }
 }
 
 @media print {
@@ -132,6 +239,7 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
     --color-text-secondary: #3a3a34;
     --color-text-muted: #55544c;
     --color-brand-accent: #715a2c;
+    --focus: #715a2c;
     --hero-glow: none;
     color-scheme: light;
   }

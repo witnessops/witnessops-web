@@ -1,5 +1,6 @@
 .closedLayer,
 .openLayer {
+  font-synthesis: none;
   --proof-bg: var(--color-surface-bg);
   --proof-raised: var(--color-surface-card);
   --proof-ink: var(--color-text-primary);
@@ -91,7 +92,7 @@
   display: block;
   color: var(--proof-ink);
   font-size: 0.69rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.17em;
   line-height: 1.35;
   text-transform: uppercase;
@@ -112,7 +113,7 @@
   gap: 0.85rem;
   color: var(--proof-muted);
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -215,7 +216,7 @@
   margin: 0;
   color: var(--proof-accent);
   font-size: 0.62rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.16em;
   line-height: 1.5;
   text-transform: uppercase;
@@ -226,7 +227,7 @@
   margin: 0.65rem 0 0;
   color: var(--proof-ink);
   font-size: clamp(1.85rem, 8.5vw, 2.35rem);
-  font-weight: 760;
+  font-weight: 500;
   letter-spacing: -0.045em;
   line-height: 1.02;
   text-wrap: balance;
@@ -275,7 +276,7 @@
   padding-top: 0.1rem;
   color: var(--proof-accent);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.08em;
 }
 
@@ -292,7 +293,7 @@
 .guidedLabel {
   color: var(--proof-ink);
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 500;
   line-height: 1.35;
 }
 
@@ -319,7 +320,7 @@
   gap: 0.35rem;
   color: var(--proof-soft);
   font-size: 0.65rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   text-decoration: underline;
   text-decoration-color: var(--proof-rule-strong);
@@ -368,7 +369,7 @@
   background: var(--receipt-sheet);
   color: var(--receipt-ink);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.1em;
   line-height: 1.45;
   text-transform: uppercase;
@@ -391,7 +392,7 @@
   color: var(--proof-soft);
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-decoration: underline;
   text-decoration-color: var(--proof-rule-strong);
@@ -412,7 +413,7 @@
   margin: 0 0 0.65rem;
   color: var(--receipt-muted);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.09em;
   line-height: 1.45;
   text-transform: uppercase;
@@ -422,7 +423,7 @@
   margin: 0;
   color: var(--receipt-ink);
   font-size: 0.88rem;
-  font-weight: 580;
+  font-weight: 500;
   line-height: 1.58;
   white-space: pre-line;
 }
@@ -453,7 +454,7 @@
   color: var(--proof-muted);
   font-family: var(--font-mono);
   font-size: 0.64rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.1em;
   line-height: 1.45;
   text-transform: uppercase;
@@ -506,7 +507,7 @@
   color: var(--proof-ink);
   font-family: var(--font-sans);
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
@@ -637,7 +638,7 @@
   padding: 0.65rem 1rem;
   color: #160b05;
   font-size: 0.66rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   transition: background-color 160ms ease, transform 160ms ease;
@@ -887,7 +888,7 @@
 
   .triggerLabel {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -897,7 +898,7 @@
     padding-left: 0.75rem;
     border-left: 1px solid rgba(22, 11, 5, 0.32);
     font-size: 0.58rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.1em;
   }
 }

@@ -4,7 +4,7 @@
   --sample-rule: var(--color-surface-border, #292929);
   --sample-ink: var(--color-text-primary, #fafaf7);
   --sample-muted: var(--color-text-secondary, #a3a3a3);
-  --sample-accent: var(--color-brand-accent, #f27a3d);
+  --sample-accent: var(--color-brand-accent, #b89b62);
   --sample-pass: #b2d6a2;
   background: var(--sample-bg);
   color: var(--sample-ink);

@@ -8,7 +8,7 @@
   --accent: var(--color-brand-accent);
   --rule: var(--color-surface-border);
   min-height: 100vh;
-  background: radial-gradient(circle at 12% 0%, rgb(242 122 61 / 8%), transparent 28rem), var(--paper);
+  background: radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--color-brand-accent) 8%, transparent), transparent 28rem), var(--paper);
   color: var(--ink);
 }
 
@@ -27,7 +27,7 @@
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; padding-block: 1px; background: var(--rule); border-inline: 1px solid var(--rule); }
 .card { min-width: 0; padding: 1.7rem; background: var(--paper-raised); color: inherit; transition: background 160ms ease, transform 160ms ease; }
 .card:hover { background: var(--paper-soft); transform: translateY(-2px); }
-.featured { grid-column: span 2; background: linear-gradient(140deg, rgb(242 122 61 / 12%), var(--paper-raised) 55%); }
+.featured { grid-column: span 2; background: linear-gradient(140deg, color-mix(in srgb, var(--color-brand-accent) 12%, transparent), var(--paper-raised) 55%); }
 .cardTop { display: flex; justify-content: space-between; gap: 1rem; color: var(--ink-muted); font: 600 .66rem/1.4 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
 .card h2 { margin: 1.2rem 0 0; font-size: 1.35rem; letter-spacing: -.02em; }
 .cardTagline { margin: .7rem 0 0; color: var(--ink-soft); line-height: 1.55; }

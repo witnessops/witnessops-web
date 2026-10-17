@@ -1,92 +1,382 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { PriceText, PriceUnit } from "@/lib/price-unit";
+import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
 import styles from "./ask-sovereign-preview.module.css";
-import { revealWaitMs, stateDurationMs, thinkingWaitMs } from "./sovereign-playback";
+import { previewChip, simErrorAtLoad, simFlag, sovereignPreviewCaption } from "./preview-triggers";
+import { stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
-import type { SovereignSpriteState } from "./sovereign-playback";
+import { snapThreadClearOfFade, threadFadePx } from "./thread-fade";
 
 const PAUSE_KEY = "wo-sovereign-paused";
+export const PROCESSING_SHOW_DELAY_MS = 150;
+export const PENDING_TIMEOUT_MS = 15_000;
+export const SLOW_PENDING_MS = 6_000;
+let fading = false;
+
+/** One top fade for both languages: a full line, then a snap so no line sits in the strong part. */
+function applyThreadFade(thread: HTMLElement, snap = false) {
+  if (fading) return;
+  fading = true;
+  try {
+    const fade = threadFadePx(thread);
+    thread.style.setProperty("--thread-fade", `${fade}px`);
+    if (snap && thread.scrollTop > 1) snapThreadClearOfFade(thread, fade);
+    const overflow = thread.scrollHeight > thread.clientHeight + 1;
+    const atEnd = thread.scrollTop + thread.clientHeight >= thread.scrollHeight - 1;
+    const fadeBottom = overflow && !atEnd;
+    const fadeTop = thread.scrollTop > 1;
+    thread.classList.toggle(styles.threadFade, fadeBottom && !fadeTop);
+    thread.classList.toggle(styles.threadFadeTop, fadeTop && !fadeBottom);
+    thread.classList.toggle(styles.threadFadeBoth, fadeBottom && fadeTop);
+  } finally {
+    fading = false;
+  }
+}
+
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
+const EASR_RETEST = {
+  en: "One focused retest of reported findings within 30 calendar days of initial report handover.",
+  pl: "Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
+} as const;
+
+export type SuggestionTopic = "aasr" | "easr" | "start" | "write";
+export type Suggestion = { id: SuggestionTopic; text: string };
 
 const COPY = {
   en: {
     greeting: "Hello. I can answer from the two published reviews. Ask about scope, price or how to start.",
     suggestions: [
-      "What does the Agent Action Security Review cover?",
-      "What does the External Attack Surface Review include, and what does it cost?",
-      "How do I start?",
-      "Where do I write?",
+      { id: "aasr", text: "What does the Agent Action Security Review cover?" },
+      { id: "easr", text: "What does the External Attack Surface Review include, and what does it cost?" },
+      { id: "start", text: "How do I start?" },
+      { id: "write", text: "Where do I write?" },
     ],
     idle: "Ready",
-    thinking: "Checking the published facts…",
-    answering: "Answering…",
-    answerReady: "Answer ready",
+    checking: "Checking the published facts…",
     handoff: "Needs a person",
+    notAnswered: "Not answered",
+    errorNote: "Nothing was sent. Try again?",
+    retry: "Retry",
+    disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
+    optin: "Include this transcript when I contact a person",
+    optinHint: "Preview, sends nothing",
+    composer: "Ask about the two reviews",
+    send: "Send",
+    railAnswer: "What Sovereign can answer",
+    railStart: "How to start, and where to write",
+    railAbout: "About this AI",
+    railAboutBody: "Answers are generated from a fixed list of published offer facts for this preview. No transcript is kept.",
     pause: "Pause animation",
     play: "Play animation",
-    simulated: "Simulated response · preview",
+    simulated: "Simulated response\u00A0· preview",
+    simulatedChip: "Simulated",
     you: "You",
     close: "Close",
     docs: "/docs",
+    handoffCta: "Continue to contact",
+    handoffMail: "Or write to engage@mail.witnessops.com",
+    contact: "/contact",
+    back: "Docs",
+    kicker: "AI assistant",
+    lead: "Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.",
   },
   pl: {
     greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
     suggestions: [
-      "Co obejmuje Agent Action Security Review?",
-      "Co obejmuje External Attack Surface Review i ile kosztuje?",
-      "Jak zacząć?",
-      "Gdzie napisać?",
+      { id: "aasr", text: "Co obejmuje Agent Action Security Review?" },
+      { id: "easr", text: "Co obejmuje External Attack Surface Review i ile kosztuje?" },
+      { id: "start", text: "Jak zacząć?" },
+      { id: "write", text: "Gdzie napisać?" },
     ],
     idle: "Gotowy do pytań",
-    thinking: "Sprawdzam opublikowane informacje…",
-    answering: "Odpowiadam…",
-    answerReady: "Odpowiedź gotowa",
+    checking: "Sprawdzam opublikowane informacje…",
     handoff: "Potrzebna odpowiedź człowieka",
+    notAnswered: "Bez odpowiedzi",
+    errorNote: "Nic nie zostało wysłane. Spróbować ponownie?",
+    retry: "Spróbuj ponownie",
+    disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się\u00A0mylić.",
+    optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
+    optinHint: "Podgląd, nic nie wysyła",
+    composer: "Zapytaj o te dwa przeglądy",
+    send: "Wyślij",
+    railAnswer: "Na co Sovereign może odpowiedzieć",
+    railStart: "Jak zacząć i gdzie napisać",
+    railAbout: "O tym asystencie",
+    railAboutBody: "Odpowiedzi powstają ze stałej listy opublikowanych faktów oferty w tym podglądzie. Rozmowa nie jest przechowywana.",
     pause: "Zatrzymaj animację",
     play: "Wznów animację",
     simulated: "Podgląd: odpowiedź symulowana",
+    simulatedChip: "Symulacja",
     you: "Ty",
     close: "Zamknij",
     docs: "/pl/docs",
+    handoffCta: "Przejdź do kontaktu",
+    handoffMail: "Albo napisz na engage@mail.witnessops.com",
+    contact: "/pl/contact",
+    back: "Dokumentacja",
+    kicker: "Asystent AI",
+    lead: "Pytania o dwa przeglądy WitnessOps, z odpowiedzią na podstawie opublikowanych faktów oferty. Wszystko inne trafia do człowieka.",
   },
 } as const;
 
-type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; needsReview?: boolean };
-type Live = "idle" | "thinking" | "answering" | "answerReady" | "handoff";
+const CONTACT_ADDRESS = "engage@mail.witnessops.com";
 
-function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
-  if (phase === "greet") return "";
+/** Same topic hides every chip for that topic, including an EASR wording that is not the exact chip. */
+export function suggestionTopic(text: string): SuggestionTopic | null {
+  const q = text.toLowerCase();
+  if (/external|attack surface|ekspozycj|powierzchn|1[,.]?\s?900|1900|retest/.test(q)) return "easr";
+  if (/agent action|consequential|istotn|2[,.]?\s?500|2500/.test(q)) return "aasr";
+  if (/how do i start|jak zacząć|\bstart\b/.test(q)) return "start";
+  if (/where do i write|gdzie napisać|\bwrite\b|napisz|email/.test(q)) return "write";
+  return null;
+}
+
+export function followUpSuggestions(suggestions: readonly Suggestion[], asked: string | undefined, action: boolean): Suggestion[] {
+  if (action) return [];
+  const topic = asked ? suggestionTopic(asked) : null;
+  const rest = topic ? suggestions.filter((item) => item.id !== topic) : [...suggestions];
+  if (!asked) return rest;
+  return rest.slice(0, 2);
+}
+
+export function ContactLine({ text }: { text: string }) {
+  const at = text.indexOf(CONTACT_ADDRESS);
+  if (at < 0) return <PriceText text={text} />;
+  const after = at + CONTACT_ADDRESS.length;
+  const period = text[after] === "." ? "." : "";
+  const split = CONTACT_ADDRESS.indexOf("@");
+  const tailAt = CONTACT_ADDRESS.lastIndexOf(".");
+  const before = text.slice(0, at).replace(/\s+$/, "");
+  const rest = text.slice(after + period.length).replace(/^\s+/, "");
+  return (
+    <>
+      {before ? <>
+        <PriceText text={before} />
+        {" "}
+      </> : null}
+      <a className={styles.replyAddress} data-reply-address="" href={`mailto:${CONTACT_ADDRESS}`}>
+        {CONTACT_ADDRESS.slice(0, split)}
+        <wbr />
+        {CONTACT_ADDRESS.slice(split, tailAt)}
+        <span className={styles.addressTail}>{CONTACT_ADDRESS.slice(tailAt)}{period}</span>
+      </a>
+      {rest ? <>
+        {" "}
+        <PriceText text={rest} />
+      </> : null}
+    </>
+  );
+}
+
+function OfferFact({ name, price, tail }: { name: string; price: string; tail?: string }) {
+  const words = name.split(" ");
+  const last = words.pop() ?? name;
+  const head = words.join(" ");
+  return (
+    <li>
+      <span className={styles.offerPair}>
+        <span className={styles.offerName}>
+          {head ? <>{head}{" "}</> : null}
+          <span className={styles.offerNameTail}>{last}:</span>
+        </span>
+        <PriceUnit value={price} offer className={styles.offerPrice} />
+      </span>
+      {tail ? <> {tail}</> : null}
+    </li>
+  );
+}
+
+function withoutErrorTurn(turns: Turn[]): Turn[] {
+  return turns.filter((turn) => !(turn.role === "sovereign" && turn.simulatedError));
+}
+
+type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean };
+type Live = "idle" | "processing" | "answered" | "handoff" | "error";
+
+export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
   const copy = COPY[locale];
-  if (live === "thinking") return copy.thinking;
-  if (live === "answering") return copy.answering;
-  if (live === "answerReady") return copy.answerReady;
-  if (live === "handoff") return copy.handoff;
+  if (phase === "ERROR" || live === "error") return copy.notAnswered;
+  if (phase === "PROCESSING" || live === "processing") return copy.checking;
+  if (phase === "HANDOFF" || live === "handoff") return copy.handoff;
   return copy.idle;
+}
+
+export function announcementText(locale: SovereignLocale, kind: "answer" | "handoff" | "error", answer = ""): string {
+  if (locale === "pl") {
+    if (kind === "handoff") return `Sovereign: tu potrzebny jest człowiek. ${answer} Link do kontaktu jest w rozmowie.`;
+    if (kind === "error") return "Błąd symulowany. Pytanie nie dostało odpowiedzi. Możesz spróbować ponownie.";
+    return `Sovereign, odpowiedź symulowana: ${answer}`;
+  }
+  if (kind === "handoff") return `Sovereign: this needs a person. ${answer} The contact link is in the conversation.`;
+  if (kind === "error") return "Simulated error. Your question was not answered. Retry is available.";
+  return `Sovereign, simulated response: ${answer}`;
+}
+
+/** A saved pause skips the greeting, so the first painted sprite is the idle still. */
+export function pausedLoadPhase(storedPause: boolean): "IDLE" | "GREETING" {
+  return storedPause ? "IDLE" : "GREETING";
+}
+
+export function armPendingQuestion(
+  flag: "slow" | "timeout",
+  generation: number,
+  currentGeneration: () => number,
+  hooks: { show: () => void; resolve: () => void; fail: () => void },
+): () => void {
+  const ids: ReturnType<typeof setTimeout>[] = [];
+  const live = () => currentGeneration() === generation;
+  ids.push(setTimeout(() => {
+    if (live()) hooks.show();
+  }, PROCESSING_SHOW_DELAY_MS));
+  if (flag === "slow") {
+    ids.push(setTimeout(() => {
+      if (live()) hooks.resolve();
+    }, SLOW_PENDING_MS));
+  }
+  ids.push(setTimeout(() => {
+    if (live()) hooks.fail();
+  }, PENDING_TIMEOUT_MS));
+  return () => {
+    for (const id of ids) clearTimeout(id);
+  };
+}
+
+/** Puts the start of the turn at the top of the thread. Moves scroll only, and does not move focus. */
+export function scrollTurnToThreadStart(thread: HTMLElement, turn: HTMLElement, reduced = false) {
+  const top = turn.getBoundingClientRect().top - thread.getBoundingClientRect().top + thread.scrollTop;
+  const next = Math.max(0, top);
+  if (Math.abs(next - thread.scrollTop) < 0.5) return;
+  thread.scrollTo({ top: next, behavior: reduced ? "auto" : "smooth" });
+  if (!reduced) thread.scrollTop = next;
+}
+
+/** Scrolls the primary action fully inside the thread when it fits. Otherwise brings its top in. Reduced motion jumps. */
+export function scrollPrimaryActionIntoView(thread: HTMLElement, action: HTMLElement, reduced: boolean) {
+  const threadBox = thread.getBoundingClientRect();
+  const box = action.getBoundingClientRect();
+  const padding = 8;
+  const fits = box.height <= threadBox.height - padding * 2;
+  let delta = 0;
+  if (fits) {
+    if (box.top < threadBox.top + padding) delta = box.top - (threadBox.top + padding);
+    else if (box.bottom > threadBox.bottom - padding) delta = box.bottom - (threadBox.bottom - padding);
+  } else if (box.top < threadBox.top + padding || box.top > threadBox.bottom - padding) {
+    delta = box.top - (threadBox.top + padding);
+  }
+  if (delta === 0) return;
+  const next = Math.max(0, thread.scrollTop + delta);
+  thread.scrollTo({ top: next, behavior: reduced ? "auto" : "smooth" });
+  if (!reduced) thread.scrollTop = next;
+}
+
+function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setText: (value: string) => void) {
+  if (node && node.textContent === text) {
+    node.textContent = "";
+    setText("");
+    window.requestAnimationFrame(() => {
+      node.textContent = text;
+      setText(text);
+    });
+    return;
+  }
+  if (node) node.textContent = text;
+  setText(text);
 }
 
 export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocale }) {
   const copy = COPY[locale];
   const pageRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
-  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const composerRef = useRef<HTMLInputElement>(null);
+  const announcerRef = useRef<HTMLParagraphElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  const turnRefs = useRef<Array<HTMLLIElement | null>>([]);
   const generation = useRef(0);
+  const pendingCancel = useRef<(() => void) | null>(null);
+  const lastQuestion = useRef("");
   const [armed, setArmed] = useState(false);
-  const [phase, setPhase] = useState<SovereignSpriteState>("greet");
+  const [phase, setPhase] = useState<SovereignSpriteState>("GREETING");
   const [live, setLive] = useState<Live>("idle");
+  const [announcement, setAnnouncement] = useState<string>("");
   const [draft, setDraft] = useState("");
   const [share, setShare] = useState(false);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: copy.greeting }]);
+  const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
+  const [pending, setPending] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [followUpsReady, setFollowUpsReady] = useState(true);
+  const errorSpent = useRef(false);
+  const focusComposer = useRef(false);
+
+  function clearPendingTimers() {
+    pendingCancel.current?.();
+    pendingCancel.current = null;
+  }
+
+  function publishAnnouncement(text: string) {
+    writeAnnouncement(announcerRef.current, text, setAnnouncement);
+  }
+
+  function showAnswer(text: string, answer: { text: string; kind: string; needsReview: boolean }) {
+    clearPendingTimers();
+    setPending(false);
+    setTurns((current) => {
+      const next = withoutErrorTurn(current);
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        const turn = next[index];
+        if (turn?.role === "you" && turn.text === text) {
+          next[index] = { ...turn, simulatedError: false };
+          break;
+        }
+      }
+      next.push({ role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview });
+      return next;
+    });
+    if (answer.kind === "handoff") {
+      setPhase("HANDOFF");
+      setLive("handoff");
+      publishAnnouncement(announcementText(locale, "handoff", answer.text));
+      return;
+    }
+    setPhase("IDLE");
+    setLive("answered");
+    publishAnnouncement(announcementText(locale, "answer", answer.text));
+  }
+
+  function failQuestion(text: string) {
+    clearPendingTimers();
+    setPending(false);
+    setTurns((current) => {
+      const next = withoutErrorTurn(current);
+      let at = next.length;
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        const turn = next[index];
+        if (turn?.role === "you" && turn.text === text) {
+          next[index] = { ...turn, simulatedError: false };
+          at = index + 1;
+          break;
+        }
+      }
+      next.splice(at, 0, { role: "sovereign", text: "", simulatedError: true });
+      return next;
+    });
+    setPhase("ERROR");
+    setLive("error");
+    publishAnnouncement(announcementText(locale, "error"));
+  }
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -99,7 +389,10 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     motion.addEventListener("change", sync);
     narrow.addEventListener("change", sync);
     try {
-      setPaused(window.sessionStorage.getItem(PAUSE_KEY) === "1");
+      if (window.sessionStorage.getItem(PAUSE_KEY) === "1") {
+        setPaused(true);
+        setPhase((current) => (current === "GREETING" ? pausedLoadPhase(true) : current));
+      }
     } catch {
       setPaused(false);
     }
@@ -117,7 +410,15 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       if (started) return;
       started = true;
       setArmed(true);
-      composerRef.current?.focus();
+      const search = window.location.search;
+      if (simErrorAtLoad(search)) {
+        errorSpent.current = true;
+        setLoadError(true);
+        setPhase("ERROR");
+        setLive("error");
+        writeAnnouncement(announcerRef.current, announcementText(locale, "error"), setAnnouncement);
+      }
+      composerRef.current?.focus({ preventScroll: true });
     };
     panel.addEventListener("animationend", start);
     const fallback = window.setTimeout(start, 260);
@@ -125,13 +426,78 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
       panel.removeEventListener("animationend", start);
       window.clearTimeout(fallback);
     };
+  }, [locale]);
+
+  useEffect(() => {
+    setActiveSim(simFlag(window.location.search));
   }, []);
 
   useEffect(() => {
-    if (phase !== "greet" || !armed || paused) return;
-    const timer = window.setTimeout(() => setPhase("idle"), stateDurationMs("greet"));
+    if (phase !== "GREETING" || !armed) return;
+    if (paused) {
+      setPhase(pausedLoadPhase(true));
+      return;
+    }
+    const timer = window.setTimeout(() => setPhase("IDLE"), stateDurationMs("GREETING"));
     return () => window.clearTimeout(timer);
   }, [phase, armed, paused]);
+
+  useLayoutEffect(() => {
+    if (live !== "answered" && live !== "handoff" && live !== "error") return;
+    const thread = threadRef.current;
+    if (!thread) return;
+    let index = -1;
+    if (live === "error") {
+      for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
+        if (turns[cursor]?.simulatedError) {
+          index = cursor;
+          break;
+        }
+      }
+      if (index < 0 && loadError) index = 0;
+    } else {
+      for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
+        if (turns[cursor]?.role === "sovereign") {
+          index = cursor;
+          break;
+        }
+      }
+    }
+    const turn = index >= 0 ? turnRefs.current[index] : null;
+    if (!turn) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const action = live === "error"
+      ? turn.querySelector<HTMLElement>("[data-retry]")
+      : live === "handoff"
+        ? thread.querySelector<HTMLElement>("[data-handoff-card]")
+        : null;
+    if (action) scrollPrimaryActionIntoView(thread, action, reducedMotion);
+    else scrollTurnToThreadStart(thread, turn, reducedMotion);
+    applyThreadFade(thread, true);
+  }, [live, turns, loadError, followUpsReady]);
+
+  useEffect(() => () => {
+    pendingCancel.current?.();
+  }, []);
+
+  useEffect(() => {
+    const thread = threadRef.current;
+    if (!thread) return;
+    const syncFade = () => applyThreadFade(thread);
+    const snapFade = () => applyThreadFade(thread, true);
+    syncFade();
+    thread.addEventListener("scroll", syncFade, { passive: true });
+    thread.addEventListener("scrollend", syncFade);
+    const observer = new ResizeObserver(snapFade);
+    observer.observe(thread);
+    const transcript = thread.querySelector("ol");
+    if (transcript) observer.observe(transcript);
+    return () => {
+      thread.removeEventListener("scroll", syncFade);
+      thread.removeEventListener("scrollend", syncFade);
+      observer.disconnect();
+    };
+  }, [turns, live, followUpsReady, mobile]);
 
   useEffect(() => {
     if (!mobile) return;
@@ -198,48 +564,119 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
     });
   }
 
-  function ask(question: string) {
-    const text = question.trim();
+  function retryFromError() {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.hasAttribute("data-retry")) focusComposer.current = true;
+    const text = lastQuestion.current;
     if (!text) return;
-    const gen = ++generation.current;
-    setDraft("");
-    setPhase("thinking");
-    setLive("thinking");
-    setTurns((current) => [...current, { role: "you", text }]);
-    const answer = sovereignAnswer(text, locale);
-    const handoff = answer.kind === "handoff";
-    window.setTimeout(() => {
-      if (gen !== generation.current) return;
-      if (handoff) {
-        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
-        setPhase(window.matchMedia("(max-width: 767px)").matches ? "handoff-mobile" : "handoff-desktop");
-        setLive("handoff");
-        panelRef.current?.querySelector<HTMLAnchorElement>("[data-handoff-cta]")?.focus();
-        return;
-      }
-      setPhase("answering");
-      setLive("answering");
-      window.setTimeout(() => {
-        if (gen !== generation.current) return;
-        setTurns((current) => [...current, { role: "sovereign", text: answer.text, simulated: true, needsReview: answer.needsReview }]);
-        setLive("answerReady");
-        window.setTimeout(() => {
-          if (gen !== generation.current) return;
-          setPhase("idle");
-          setLive("idle");
-        }, 400);
-      }, revealWaitMs(answer.text));
-    }, Math.max(400, thinkingWaitMs(Math.random())));
+    ask(text, true);
   }
 
-  const status = liveText(locale, live, phase);
+  useLayoutEffect(() => {
+    if (!focusComposer.current) return;
+    focusComposer.current = false;
+    composerRef.current?.focus({ preventScroll: true });
+  });
+
+  function ask(question: string, resend = false) {
+    const text = question.trim();
+    if (!text) return;
+    if (pending) return;
+    clearPendingTimers();
+    const flag = simFlag(window.location.search);
+    const forceError = flag === "error" && !errorSpent.current;
+    if (forceError) errorSpent.current = true;
+    generation.current += 1;
+    const gen = generation.current;
+    lastQuestion.current = text;
+    setDraft("");
+    setLoadError(false);
+    setTurns((current) => {
+      const next = withoutErrorTurn(current);
+      if (resend) {
+        for (let index = next.length - 1; index >= 0; index -= 1) {
+          const turn = next[index];
+          if (turn?.role === "you") {
+            next[index] = { ...turn, text, simulatedError: false };
+            break;
+          }
+        }
+      } else {
+        next.push({ role: "you", text });
+      }
+      if (forceError) next.push({ role: "sovereign", text: "", simulatedError: true });
+      return next;
+    });
+    if (forceError) {
+      setPending(false);
+      setPhase("ERROR");
+      setLive("error");
+      publishAnnouncement(announcementText(locale, "error"));
+      return;
+    }
+    if (flag === "typing") {
+      setPending(true);
+      setPhase("COMPOSING");
+      setLive("processing");
+      publishAnnouncement(copy.checking);
+      return;
+    }
+    if (flag === "slow" || flag === "timeout") {
+      setPending(true);
+      setLive("processing");
+      publishAnnouncement(copy.checking);
+      pendingCancel.current = armPendingQuestion(flag, gen, () => generation.current, {
+        show() {
+          setPhase("PROCESSING");
+        },
+        resolve() {
+          showAnswer(text, sovereignAnswer(text, locale));
+        },
+        fail() {
+          failQuestion(text);
+        },
+      });
+      return;
+    }
+    const answer = flag === "handoff" ? sovereignAnswer("simulate handoff", locale) : sovereignAnswer(text, locale);
+    showAnswer(text, answer);
+  }
+
+  const askedText = [...turns].reverse().find((turn) => turn.role === "you")?.text;
+  const actionBeats = live === "error" || live === "handoff";
+  useLayoutEffect(() => {
+    setFollowUpsReady(live !== "error" && live !== "handoff" && live !== "processing");
+  }, [live]);
+  const suggestions = followUpSuggestions(copy.suggestions, askedText, actionBeats || !followUpsReady);
+  const showReview = sovereignNeedsReviewVisible();
+  const visibleStatus = liveText(locale, live, phase);
+  let spriteIndex = -1;
+  if (phase === "ERROR") {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "sovereign" && item.simulatedError) spriteIndex = itemIndex;
+    });
+  }
+  if (spriteIndex < 0) {
+    turns.forEach((item, itemIndex) => {
+      if (item.role === "sovereign") spriteIndex = itemIndex;
+    });
+  }
+
+  const errorSplit = copy.errorNote.lastIndexOf(" ");
+  const errorHead = errorSplit > 0 ? copy.errorNote.slice(0, errorSplit + 1) : "";
+  const errorTail = errorSplit > 0 ? copy.errorNote.slice(errorSplit + 1) : copy.errorNote;
+  const errorNote = (
+    <p className={styles.errorNote} data-locale={locale}>
+      <span className={styles.turnChip}>{copy.simulatedChip}</span>
+      <span className={styles.errorCaption}>
+        {errorHead}
+        <span className={styles.captionTail}>{errorTail}</span>
+      </span>
+    </p>
+  );
 
   return (
-    <div className={styles.page} ref={pageRef}>
-      <p className={styles.back} data-sheet-behind><Link href={copy.docs}>Docs</Link></p>
-      <p className={styles.kicker} data-sheet-behind>AI assistant</p>
-      <h1 data-sheet-behind>Ask Sovereign</h1>
-      <p className={styles.lead} data-sheet-behind>Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.</p>
+    <div className={styles.page} ref={pageRef} data-sovereign-preview="">
       <div className={styles.scrim} />
       <div className={styles.layout}>
         <section
@@ -249,9 +686,11 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           role={mobile ? "dialog" : undefined}
           aria-modal={mobile ? true : undefined}
         >
+          <p ref={announcerRef} className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{announcement}</p>
           <div className={styles.stripe} />
           <header
-            className={styles.panelHead}
+            className={styles.bar}
+            data-header-chip={activeSim === "slow" || activeSim === "timeout" || activeSim === "typing" ? "" : undefined}
             onPointerDown={(event) => {
               if (!mobile) return;
               const startY = event.clientY;
@@ -265,60 +704,128 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
               window.addEventListener("pointerup", end);
             }}
           >
-            <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} />
-            <div>
-              <p className={styles.name} id="ask-sovereign-title">Sovereign <span>AI assistant</span></p>
-              <p className={styles.muted}>Answers from published offer facts only</p>
-              <p className={styles.status} role="status" aria-live="polite">{status}</p>
-              {locale === "pl" ? <p className={styles.reviewTag}>PL copy pending native review</p> : null}
-            </div>
+            <span className={styles.mark} aria-hidden="true" />
+            <p className={styles.name} id="ask-sovereign-title">Ask Sovereign <span className={styles.titleUnit}><span className={styles.badge}>AI</span></span></p>
+            {activeSim === "slow" || activeSim === "timeout" || activeSim === "typing" ? <p className={styles.simChip}>{previewChip(activeSim)}</p> : null}
             <div className={styles.controls}>
-              <button type="button" className={styles.pause} aria-pressed={paused} onClick={togglePaused}>
-                {paused ? copy.play : copy.pause}
+              <button type="button" className={`${styles.iconButton} ${styles.pause}`} aria-pressed={paused} aria-label={paused ? copy.play : copy.pause} onClick={togglePaused}>
+                {paused ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7-4.5-7-4.5z" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9M11 3.5v9" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                )}
               </button>
-              <a className={styles.close} href={copy.docs}>{copy.close}</a>
+              <a className={`${styles.iconButton} ${styles.close}`} href={copy.docs} aria-label={copy.close}>
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+              </a>
             </div>
           </header>
-          <p className={styles.disclaimer}>You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.</p>
-          <ol className={styles.transcript}>
-            {turns.map((turn, index) => (
-              <li key={`${turn.role}-${index}`} className={turn.role === "you" ? styles.you : styles.sovereign}>
-                <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
-                {turn.simulated ? <p className={styles.sim}>{copy.simulated}</p> : null}
-                <p>{turn.text}</p>
-                {turn.needsReview ? <p className={styles.tag}>Needs review</p> : null}
-              </li>
-            ))}
+          {locale === "pl" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
+          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
+          <p className={styles.disclaimer}>{copy.disclaimer}</p>
+          <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
+          <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
+            {turns.map((turn, index) => {
+              const withSprite = spriteIndex === index;
+              const showError = turn.role === "sovereign" && (turn.simulatedError || (loadError && index === 0 && !turns.some((item) => item.simulatedError)));
+              const errorCaptionText = activeSim === "error" && showError ? previewChip("error", locale) : null;
+              const previewCaption = !showError && turn.role === "sovereign"
+                ? sovereignPreviewCaption(locale, copy.simulated, activeSim === "handoff", Boolean(turn.simulated))
+                : null;
+              const retry = turn.role === "sovereign" && turn.simulatedError ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
+              const sprite = <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />;
+              const latestAnswer = turn.role === "sovereign" && turn.simulated && !turn.simulatedError;
+              if (showError) {
+                return (
+                  <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={styles.sovereign}>
+                    <div className={styles.errorStack}>
+                      {withSprite ? sprite : null}
+                      <div className={styles.errorFaceCopy}>
+                        <span>Sovereign</span>
+                        {errorCaptionText ? <p className={styles.handoffCaption}>{errorCaptionText}</p> : null}
+                        {turn.text ? <p><ContactLine text={turn.text} /></p> : null}
+                      </div>
+                      <div className={styles.errorBody}>
+                        {errorNote}
+                        {retry}
+                      </div>
+                    </div>
+                  </li>
+                );
+              }
+              const content = (
+                <>
+                  <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
+                  {previewCaption && activeSim !== "handoff" ? <p className={styles.sim} data-preview-caption="">{previewCaption}</p> : null}
+                  {turn.text ? <p data-answer-copy={latestAnswer ? "" : undefined}><ContactLine text={turn.text} /></p> : null}
+                  {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
+                </>
+              );
+              const body = withSprite ? (
+                <div className={styles.withSprite}>
+                  {sprite}
+                  <div>{content}</div>
+                </div>
+              ) : content;
+              return (
+                <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={turn.role === "you" ? styles.you : styles.sovereign} data-latest-answer={latestAnswer ? "" : undefined}>
+                  {previewCaption && activeSim === "handoff" ? <p className={styles.handoffCaption} data-preview-caption="">{previewCaption}</p> : null}
+                  {turn.role === "you" ? <div className={styles.youBubble}>{body}</div> : body}
+                </li>
+              );
+            })}
           </ol>
-          <div className={styles.chips}>
-            {copy.suggestions.map((suggestion) => (
-              <button key={suggestion} type="button" onClick={() => ask(suggestion)}>{suggestion}</button>
+          {phase === "HANDOFF" ? (
+            <div className={styles.handoffCard} data-handoff-card>
+              <a className={styles.handoffCta} data-handoff-cta href={copy.contact}>{copy.handoffCta} <InlineArrow /></a>
+              <p className={styles.handoffWrite}>{locale === "pl" ? "Albo napisz na" : "Or write to"}</p>
+              <p className={styles.handoffAddress}>
+                <a href={`mailto:${CONTACT_ADDRESS}`}>
+                  {CONTACT_ADDRESS.slice(0, CONTACT_ADDRESS.indexOf("@"))}
+                  <wbr />
+                  {CONTACT_ADDRESS.slice(CONTACT_ADDRESS.indexOf("@"))}.
+                </a>
+              </p>
+            </div>
+          ) : null}
+          </div>
+          <div className={styles.askDock}>
+          <div className={styles.chips} data-ask-chips="">
+            {suggestions.map((suggestion) => (
+              <button key={suggestion.id} type="button" data-suggestion={suggestion.id} disabled={pending} onClick={() => ask(suggestion.text)}>{suggestion.text}</button>
             ))}
           </div>
-          <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
-            <label htmlFor="ask-sovereign-draft">Ask about the two reviews</label>
-            <textarea id="ask-sovereign-draft" ref={composerRef} value={draft} rows={3} onChange={(event) => setDraft(event.target.value)} />
-            <button type="submit">Send</button>
-          </form>
           <label className={styles.optin}>
-            <input type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
-            Include this transcript when I contact a person
+            <input type="checkbox" checked={share} aria-describedby="ask-sovereign-optin-hint" onChange={(event) => setShare(event.target.checked)} />
+            {copy.optin}
           </label>
-          <p className={styles.muted}>{share ? "Selected on this screen only." : "Not selected."} This choice is not sent and is not stored.</p>
-          <p className={styles.muted}><Link href={locale === "pl" ? "/pl/contact" : "/contact"} data-handoff-cta>Contact a person</Link>. Nothing from this chat is attached.</p>
+          <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{copy.optinHint}</p>
+          </div>
+          <form className={styles.composer} aria-busy={pending ? "true" : "false"} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
+            <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>
+            <input id="ask-sovereign-draft" ref={composerRef} value={draft} disabled={pending} onChange={(event) => setDraft(event.target.value)} />
+            <button type="submit" aria-label={copy.send} disabled={pending}>
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+            </button>
+          </form>
         </section>
         <aside className={styles.rail} data-sheet-behind>
-          <h2>What Sovereign can answer</h2>
+          <p className={styles.back}><Link href={copy.docs} prefetch={false}>{copy.back}</Link></p>
+          <p className={styles.kicker}>{copy.kicker}</p>
+          <p className={styles.lead}>{copy.lead}</p>
+          <h3>{copy.railAnswer}</h3>
           <ul>
-            <li>{PUBLIC_AGENT_ACTION_OFFER.name.en}: {PUBLIC_AGENT_ACTION_OFFER.price.en}</li>
-            <li>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: {EXTERNAL_ATTACK_SURFACE_OFFER.price.en}, with one focused retest</li>
-            <li>How to start, and where to write</li>
+            <OfferFact name={PUBLIC_AGENT_ACTION_OFFER.name[locale]} price={PUBLIC_AGENT_ACTION_OFFER.price[locale]} />
+            <OfferFact name={EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]} price={EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]} tail={EASR_RETEST[locale]} />
+            <li>{copy.railStart}</li>
           </ul>
-          <h2>About this AI</h2>
-          <p>Answers are generated from a fixed list of published offer facts for this preview. No transcript is kept.</p>
-          <ul className={styles.review}>
-            {REVIEW_TOPICS.map((topic) => <li key={topic}>{topic} <span>Needs review</span></li>)}
-          </ul>
+          <h3>{copy.railAbout}</h3>
+          <p>{copy.railAboutBody}</p>
+          {showReview ? (
+            <ul className={styles.review}>
+              {REVIEW_TOPICS.map((topic) => <li key={topic}>{topic} <span>Needs review</span></li>)}
+            </ul>
+          ) : null}
         </aside>
       </div>
     </div>

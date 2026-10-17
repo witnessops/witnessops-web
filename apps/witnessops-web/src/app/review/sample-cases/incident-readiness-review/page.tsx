@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/incident-readiness-review";
 
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   alternates: getCanonicalAlternates("witnessops", path),
   robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Incident readiness review | WitnessOps",
     description:
       "Inspect a synthetic readiness package for one named incident scenario, not live IR command.",

@@ -6,8 +6,10 @@ import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportStart } from "@/components/support/support-start";
 import { SupportIntake } from "@/components/support/support-intake";
 import { CtaButton } from "@/components/shared/cta-button";
-import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
+} from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -15,12 +17,7 @@ import {
   publicContactMailto,
 } from "@/lib/public-contact";
 import { languageAlternates } from "@/lib/public-seo";
-
-const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
-const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
-  "en",
-  PRIMARY_OFFER.id,
-);
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const supportDescription =
   "Product help, access issues, and verifier questions — or start a bounded review. Security vulnerabilities use a separate disclosure path.";
@@ -38,12 +35,14 @@ export function generateMetadata(): Metadata {
       pl: "/pl/support",
     }),
     openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
       title: `${title} | WitnessOps`,
       description,
       siteName: "WitnessOps",
       type: "website",
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title: `${title} | WitnessOps`,
       description,
@@ -53,9 +52,15 @@ export function generateMetadata(): Metadata {
 
 const situationLanes = [
   {
-    href: PRIMARY_OFFER_HREF,
-    title: PRIMARY_OFFER.name.en,
-    body: "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
+    href: "/reviews/agent-action-security-review",
+    title: PUBLIC_AGENT_ACTION_OFFER.name.en,
+    body: `One named consequential action. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. Describe the action without secrets.`,
+    emphasize: true,
+  },
+  {
+    href: "/reviews/external-attack-surface-review",
+    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+    body: `One authorised internet-facing system. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}, with one focused retest.`,
     emphasize: true,
   },
   {
@@ -71,9 +76,9 @@ const situationLanes = [
     emphasize: false,
   },
   {
-    href: `mailto:${SECURITY_CONTACT_EMAIL}?subject=${encodeURIComponent("Private vulnerability report")}`,
+    href: publicContactMailto("Private vulnerability report"),
     title: "Security vulnerability",
-    body: "Private reports only to the security mailbox. Do not use the support form for vulnerabilities.",
+    body: "Private reports go to the public contact mailbox. Do not use the support form for vulnerabilities.",
     emphasize: false,
     external: true,
   },
@@ -102,25 +107,30 @@ export default function SupportPage() {
           <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
             Support is for product help, access issues, and verifier questions.
             If you want WitnessOps to run a bounded security or operational
-            review, use {PRIMARY_OFFER.name.en}.
+            review, start from the two published reviews.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <CtaButton
-              href={PRIMARY_OFFER_HREF}
+              href="/reviews/agent-action-security-review"
               variant="primary"
-              label={PRIMARY_OFFER.name.en}
+              label={PUBLIC_AGENT_ACTION_OFFER.name.en}
+            />
+            <CtaButton
+              href="/reviews/external-attack-surface-review"
+              variant="primary"
+              label={EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
             />
             <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             <CtaButton href="#contact" variant="secondary" label="Email support" />
           </div>
         </header>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start [&>*]:min-w-0">
           <SupportStart />
           <section id="support-request" className="scroll-mt-24" aria-label="Contact support">
             <h2 className="mb-3 text-xl font-medium">Contact support</h2>
-            <p className="mb-5 text-sm leading-6 text-text-secondary">For account issues or a human follow-up, send a non-secret request. Verify your email to place it in the support queue. AI chat is optional and does not submit a ticket.</p>
-            <SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} />
+            <p className="mb-5 text-sm leading-6 text-text-secondary">For account issues or a human follow-up, send a non-secret request. Verify your email to place it in the support queue. The question box on this page does not send anything.</p>
+            <div className="crop"><SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} /></div>
           </section>
         </div>
 
@@ -133,7 +143,7 @@ export default function SupportPage() {
             Choose the right path
             <span className="h-px flex-1 bg-surface-border" />
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] [&>*]:min-w-0">
             {situationLanes.map((lane) => {
               const className = `block border p-5 transition-colors hover:border-brand-accent ${
                 lane.emphasize
@@ -172,12 +182,12 @@ export default function SupportPage() {
               </p>
               <p className="mt-3 text-sm leading-7 text-text-secondary">
                 Support is for product help, access issues, and verifier
-                questions. Need a review instead of product help? Use{" "}
+                questions. Need a review instead of product help? See{" "}
                 <Link
-                  href={PRIMARY_OFFER_HREF}
+                  href="/reviews"
                   className="font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
-                  {PRIMARY_OFFER.name.en}
+                  the two published reviews
                 </Link>
                 .
               </p>
@@ -207,7 +217,7 @@ export default function SupportPage() {
                       <span className="text-sm text-text-secondary transition-colors group-hover:text-brand-accent">
                         {doc.navLabel}
                       </span>
-                      <span className="text-[10px] uppercase tracking-[0.12em] text-brand-muted">
+                      <span className="text-[10px] uppercase tracking-[0.12em] text-text-muted">
                         {doc.section}
                       </span>
                     </Link>
@@ -230,7 +240,7 @@ export default function SupportPage() {
               </p>
               <a
                 href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
-                className="mt-4 inline-flex items-center border border-surface-border px-4 py-2 text-sm text-text-secondary transition-colors hover:border-brand-accent/40 hover:text-text-primary"
+                className="mt-4 inline-block max-w-full border border-surface-border px-4 py-2 text-sm text-text-secondary [overflow-wrap:anywhere] transition-colors hover:border-brand-accent/40 hover:text-text-primary"
               >
                 {PUBLIC_CONTACT_EMAIL}
               </a>
@@ -240,10 +250,10 @@ export default function SupportPage() {
               <p className="mt-2 text-xs leading-6 text-text-muted">
                 Vulnerabilities:{" "}
                 <a
-                  className="font-semibold text-brand-accent underline-offset-4 hover:underline"
-                  href={`mailto:${SECURITY_CONTACT_EMAIL}?subject=${encodeURIComponent("Private vulnerability report")}`}
+                  className="font-semibold text-brand-accent underline-offset-4 [overflow-wrap:anywhere] hover:underline"
+                  href={publicContactMailto("Private vulnerability report")}
                 >
-                  {SECURITY_CONTACT_EMAIL}
+                  {PUBLIC_CONTACT_EMAIL}
                 </a>
                 . See also{" "}
                 <Link

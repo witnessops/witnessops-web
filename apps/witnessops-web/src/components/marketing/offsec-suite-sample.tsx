@@ -67,9 +67,9 @@ export function OffsecSuiteSample({
             <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
               <span className="font-semibold text-text-primary">Product:</span> {productId}
             </span>
-            <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
+            <span className="max-w-full min-w-0 border border-surface-border px-3 py-1 text-xs text-text-muted [overflow-wrap:anywhere]">
               <span className="font-semibold text-text-primary">Run:</span>{" "}
-              <span className="font-mono">{runId}</span>
+              <span className="font-mono [overflow-wrap:anywhere]">{runId}</span>
             </span>
             <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
               <span className="font-semibold text-text-primary">Status:</span> Synthetic, not live

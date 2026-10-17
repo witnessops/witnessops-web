@@ -20,7 +20,7 @@ test("chronicle preview drops brand names and corrects the attendance row", () =
     assert.equal(preview.includes(name), false, name);
   }
   assert.match(preview, /Sovereign Dot \.+ PRESENT/);
-  assert.match(preview, /the researcher \/ Sovereign Dot/);
+  assert.match(preview, /The researcher \/ Sovereign Dot/);
   assert.doesNotMatch(preview, /Sovereign Bot\s+PRESENT/);
 });
 
@@ -31,4 +31,10 @@ test("rendered chapter 001 keeps the fiction body emoji and hides the title cat"
   assert.equal(html.includes("🐈"), false);
   assert.match(chronicleBodySource(chapter), /🙂|😈/);
   for (const name of BANNED) assert.equal(html.includes(name), false, name);
+  const preview = chroniclePreviewText(readChronicleSource(chapter.sourceFile));
+  assert.match(preview, /"The researcher\. Explain\."/);
+  assert.match(preview, /Agent: The researcher, social research/);
+  assert.match(preview, /Source: The social network/);
+  assert.match(preview, /He looked at the researcher\./);
+  assert.doesNotMatch(preview, /^the researcher/m);
 });

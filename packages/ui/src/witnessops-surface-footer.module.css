@@ -75,8 +75,8 @@
   width: 4px;
   height: 4px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 107, 53, 0.6);
-  box-shadow: 0 0 4px rgba(255, 107, 53, 0.2);
+  background: color-mix(in srgb, var(--color-brand-accent) 60%, transparent);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--color-brand-accent) 20%, transparent);
 }
 
 .tagline {

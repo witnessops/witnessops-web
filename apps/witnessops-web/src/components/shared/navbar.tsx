@@ -8,7 +8,6 @@ import { DesktopNavbarMenu } from "./desktop-navbar-menu";
 import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { ThemeToggle } from "./theme-toggle";
-import { WitnessOpsMark } from "./witnessops-mark";
 import {
   isPolishPath,
   POLISH_PUBLIC_NAV,
@@ -23,7 +22,7 @@ interface NavbarProps {
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ announcement, signupUrl = null, appUrl = null }: NavbarProps) {
+export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
@@ -37,9 +36,9 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
     { label: "Docs", href: "/docs" },
   ];
   const effectiveCta = polish ? {
-    label: signupUrl ? "Sign up" : "Free check",
-    href: signupUrl || "/check",
-    variant: "primary",
+    label: POLISH_PUBLIC_NAV.cta.label,
+    href: POLISH_PUBLIC_NAV.cta.href,
+    variant: POLISH_PUBLIC_NAV.cta.variant,
   } : {
     label: "Discuss a review",
     href: "/contact",
@@ -47,7 +46,6 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
   };
   const loginHref = appUrl ? new URL("/login", appUrl).href : null;
   const effectiveAnnouncement = announcement;
-  const brandLabel = "WitnessOps";
 
   useLayoutEffect(() => {
     const navElement = navRef.current;
@@ -91,7 +89,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
       return `${baseClassName} text-text-muted hover:bg-surface-bg-alt hover:text-text-primary`;
     }
 
-    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
+    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0 active:scale-[0.98]`;
   }
 
   const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta?.variant ?? "secondary")} ${
@@ -116,36 +114,38 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
         </div>
       )}
       <nav
-        data-public-signup-variant={polish ? undefined : "secondary"}
         data-public-presentation={usesPublicPresentation(currentPath) ? "quiet" : undefined}
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
         className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
       >
-        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="wo-navbar-bar mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 sm:px-6 lg:flex-nowrap">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
-            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded-xs text-text-primary transition-colors"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-0 rounded-xs text-text-primary transition-colors"
           >
-            <WitnessOpsMark
-              variant="mark"
-              size="sm"
-              tone="current"
-              decorative
-              className="text-text-primary"
+            {/* Canonical SVG master. next/image would re-encode it. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-black.svg"
+              alt="WitnessOps"
+              width={1500}
+              height={420}
+              className="wo-lockup wo-lockup--black"
             />
-            <span
-              className="text-xs font-medium uppercase leading-none tracking-[0.18em] text-text-primary"
-              style={{ fontFamily: "var(--font-display)" }}
-              aria-hidden="true"
-            >
-              {brandLabel}
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/witnessops-logo-system-v1/svg/witnessops-horizontal-white.svg"
+              alt=""
+              width={1500}
+              height={420}
+              className="wo-lockup wo-lockup--white"
+            />
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
-            <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
+            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5"}>
               {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
@@ -153,7 +153,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border border-transparent px-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none"
+                    className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm border border-transparent px-2 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none xl:px-3"
                   >
                     {link.label}
                   </a>
@@ -162,7 +162,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                     key={link.href}
                     href={link.href}
                     aria-current={currentPath === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-sm border px-3 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none ${
+                    className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-sm border px-2 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary motion-reduce:transform-none xl:px-3 ${
                       currentPath === link.href
                         ? "border-surface-border-strong bg-surface-inset text-text-primary"
                         : "border-transparent text-text-secondary"
@@ -172,8 +172,8 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                   </Link>
                 ),
               )}
-              <ThemeToggle />
-              {loginHref ? <a href={loginHref} className="hidden min-h-11 items-center px-3 text-sm text-text-secondary lg:inline-flex">Log in</a> : null}
+              <ThemeToggle locale={polish ? "pl" : "en"} />
+              {loginHref ? <a href={loginHref} className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm text-text-secondary lg:inline-flex xl:px-3">{polish ? "Zaloguj się" : "Log in"}</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
@@ -181,7 +181,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
-                  className={desktopCtaClassName}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-2 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}
@@ -191,7 +191,7 @@ export function Navbar({ announcement, signupUrl = null, appUrl = null }: Navbar
                   href={effectiveCta.href}
                   data-public-primary-cta
                   aria-current={currentPath === effectiveCta?.href ? "page" : undefined}
-                  className={desktopCtaClassName}
+                  className={`${desktopCtaClassName}${polish ? " lg:px-2 xl:px-4" : ""}`}
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {effectiveCta.label}

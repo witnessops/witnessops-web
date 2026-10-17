@@ -5,6 +5,10 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const pageSource = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const contentSource = readFileSync(
+  resolve(__dirname, "../../components/marketing/media-kit-content.tsx"),
+  "utf-8",
+);
 const publicRoot = resolve(__dirname, "../../../public");
 
 function sha256(path: string): string {
@@ -12,13 +16,13 @@ function sha256(path: string): string {
 }
 
 test("media kit uses the homepage-native public shell and approved section structure", () => {
-  assert.match(pageSource, /public-brand-page \$\{styles\.mediaPage\}/);
-  assert.doesNotMatch(pageSource, /className="buyer-page"/);
-  assert.match(pageSource, /SectionShell/);
-  assert.match(pageSource, /spacing="spacious"/);
-  assert.match(pageSource, /text-brand-accent/);
-  assert.match(pageSource, /bg-surface-card/);
-  assert.match(pageSource, /<h1[\s\S]*Media kit/);
+  assert.match(contentSource, /public-brand-page \$\{styles\.mediaPage\}/);
+  assert.doesNotMatch(contentSource, /className="buyer-page"/);
+  assert.match(contentSource, /SectionShell/);
+  assert.match(contentSource, /spacing="spacious"/);
+  assert.match(contentSource, /text-brand-accent/);
+  assert.match(contentSource, /bg-surface-card/);
+  assert.match(contentSource, /<h1[\s\S]*Media kit/);
 
   for (const heading of [
     "About WitnessOps",
@@ -27,7 +31,7 @@ test("media kit uses the homepage-native public shell and approved section struc
     "Product screenshots",
     "Usage and contact",
   ]) {
-    assert.ok(pageSource.includes(heading), `Missing Media kit section: ${heading}`);
+    assert.ok(contentSource.includes(heading), `Missing Media kit section: ${heading}`);
   }
 });
 
@@ -36,30 +40,31 @@ test("media kit metadata has the exact title and canonical route", () => {
   assert.match(pageSource, /languageAlternates\("\/media-kit"/);
   assert.match(pageSource, /canonicalUrl\("\/media-kit"\)/);
   assert.match(pageSource, /title: "Media kit \| WitnessOps"/);
+  assert.match(pageSource, /export default function MediaKitPage\(\) \{\s*return <MediaKitContent locale="en" \/>;/);
 });
 
 test("media kit preserves the approved description, palette and type wording", () => {
   assert.match(
-    pageSource,
+    contentSource,
     /WitnessOps delivers bounded security and operational reviews with[\s\S]*evidence references, clear limits and a practical handover\./,
   );
   for (const marker of ["#0B0C0B", "#B89B62", "#F5F1E8", "Inter", "IBM Plex Mono"]) {
-    assert.ok(pageSource.includes(marker), `Missing Media kit marker: ${marker}`);
+    assert.ok(contentSource.includes(marker), `Missing Media kit marker: ${marker}`);
   }
-  assert.doesNotMatch(pageSource, /Barlow Condensed/);
-  assert.doesNotMatch(pageSource, /Download font/i);
+  assert.doesNotMatch(contentSource, /Barlow Condensed/);
+  assert.doesNotMatch(contentSource, /Download font/i);
 });
 
 test("media kit downloads are same-origin, complete and descriptively labelled", () => {
-  assert.match(pageSource, /download=\{asset\.fileName\}/);
-  assert.match(pageSource, /aria-label=\{tx\(/);
-  assert.match(pageSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
-  assert.match(pageSource, /download=\{screenshot\.fileName\}/);
-  assert.match(pageSource, /Download complete ZIP/);
-  assert.match(pageSource, /WitnessOps_Logo_System_v1\.zip/);
-  assert.match(pageSource, /Package manifest/);
-  assert.match(pageSource, /File checksums/);
-  assert.doesNotMatch(pageSource, /https:\/\/drive\.google\.com|docs\.google\.com/);
+  assert.match(contentSource, /download=\{asset\.fileName\}/);
+  assert.match(contentSource, /aria-label=\{tx\(/);
+  assert.match(contentSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
+  assert.match(contentSource, /download=\{screenshot\.fileName\}/);
+  assert.match(contentSource, /Download complete ZIP/);
+  assert.match(contentSource, /WitnessOps_Logo_System_v1\.zip/);
+  assert.match(contentSource, /Package manifest/);
+  assert.match(contentSource, /File checksums/);
+  assert.doesNotMatch(contentSource, /https:\/\/drive\.google\.com|docs\.google\.com/);
 });
 
 test("canonical logo package and published masters retain their exact bytes", () => {
@@ -69,7 +74,7 @@ test("canonical logo package and published masters retain their exact bytes", ()
     sha256(zipPath),
     "189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53",
   );
-  assert.match(pageSource, /189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53/);
+  assert.match(contentSource, /189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53/);
 
   const manifest = JSON.parse(readFileSync(resolve(packageRoot, "manifest.json"), "utf8"));
   assert.equal(manifest.status, "CANONICAL_PRODUCTION_ASSET_SET");
@@ -96,15 +101,15 @@ test("canonical logo package and published masters retain their exact bytes", ()
   }
 
   const masters = new Map([
-    ["witnessops-primary-stacked-black.svg", "cdf86853339e9c6b98458e262288b8c355979dd77d1343575847640803b8b84b"],
-    ["witnessops-primary-stacked-white.svg", "ab4dd5ad5592a18b750ee8d87b15428c878baab43eed76198ca65e413f611aa2"],
-    ["witnessops-mark-black.svg", "5ba79933305de96fea822f6dc501670fdc72a81b5908f5d46fc198e7c2d355fe"],
-    ["witnessops-mark-white.svg", "fe6589c60572618c4f07368ab84d467c97a6ee438c42bf4a1987f6acb84a5e8e"],
-    ["witnessops-app-icon-dark.svg", "736ec62a21236ba09466b3678c780e731babb9f09cfa6e1fafdc6f38b650e6ef"],
-    ["witnessops-app-icon-light.svg", "dd330c2a9f94cffb0eb246a6cd8d1ed4174c388d5ecaf9490d562fc1d0a70eb3"],
+    ["witnessops-primary-stacked-black.svg", "21ab7293f9cac03e617ab4523f97fdc3d7c9d45ff80f477456a924f749e445bc"],
+    ["witnessops-primary-stacked-white.svg", "18140eff9932611bc57f9075a42c301c27f31f89ab6ad7a729b3c9100ee400e5"],
+    ["witnessops-mark-black.svg", "fa7ca892f67cbcc50b3cbab2b633886b963df34118337eeee679096b7be064a1"],
+    ["witnessops-mark-white.svg", "2df4deaf83cb80c30ca066fbb76649d0802670d463232ef59bbb520f9141d5a8"],
+    ["witnessops-app-icon-dark.svg", "3a397f211a678b7a73387659ce459d7366fe1e16cf37d0e69ea3a44f50e1464d"],
+    ["witnessops-app-icon-light.svg", "204b73fe66f27fb74ca4e15e70f65e29ff8a064dc487d2751cb51fbe70fe59b9"],
   ]);
   for (const [fileName, expected] of masters) {
-    assert.equal(sha256(resolve(publicRoot, `brand/${fileName}`)), expected, fileName);
+    assert.equal(sha256(resolve(publicRoot, `brand/witnessops-logo-system-v1/svg/${fileName}`)), expected, fileName);
   }
 });
 
@@ -136,7 +141,7 @@ test("media kit avoids unsupported authority and newsroom claims", () => {
     "press coverage",
     "newsroom",
   ]) {
-    assert.doesNotMatch(pageSource.toLowerCase(), new RegExp(phrase));
+    assert.doesNotMatch(contentSource.toLowerCase(), new RegExp(phrase));
   }
-  assert.match(pageSource, /not a dedicated press inbox/);
+  assert.match(contentSource, /not a dedicated press inbox/);
 });
