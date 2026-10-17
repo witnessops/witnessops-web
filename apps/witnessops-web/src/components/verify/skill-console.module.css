@@ -11,6 +11,8 @@
   --skill-signal-red-text: var(--color-signal-red);
   --skill-signal-amber-text: var(--color-signal-amber);
   --skill-signal-green-text: var(--color-signal-green);
+  --skill-shadow: color-mix(in srgb, var(--color-text-inverse) 30%, transparent);
+  --skill-press: color-mix(in srgb, var(--color-brand-accent) 16%, var(--skill-raised));
   min-height: 100vh;
   background:
     radial-gradient(circle at 18% 3%, color-mix(in srgb, var(--color-brand-accent) 8%, transparent), transparent 25rem),
@@ -24,6 +26,7 @@
   --skill-signal-red-text: color-mix(in srgb, var(--color-signal-red) 60%, var(--color-text-primary));
   --skill-signal-amber-text: color-mix(in srgb, var(--color-signal-amber) 45%, var(--color-text-primary));
   --skill-signal-green-text: color-mix(in srgb, var(--color-signal-green) 45%, var(--color-text-primary));
+  --skill-shadow: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
 }
 
 .frame {
@@ -93,7 +96,7 @@
   border: 1px solid var(--color-surface-border);
   border-radius: var(--radius-card);
   background: var(--color-surface-card);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 24px 64px var(--skill-shadow);
 }
 
 .panelHeader,
@@ -173,12 +176,12 @@
   border: 1px solid var(--skill-rule-strong);
   border-radius: var(--radius-card);
   background: var(--skill-paper);
-  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 28px 72px var(--skill-shadow);
 }
 
 .consoleHeader {
   padding: 1rem 1.2rem;
-  background: rgba(255, 255, 255, 0.012);
+  background: color-mix(in srgb, var(--skill-raised) 50%, var(--skill-paper));
 }
 
 .consoleHeader p,
@@ -274,7 +277,7 @@
 .reportButton {
   cursor: pointer;
   border: 1px solid var(--skill-rule-strong);
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--skill-raised);
   color: var(--skill-ink);
   padding: 0.75rem 1rem;
 }
@@ -284,11 +287,14 @@
   border-color: var(--skill-accent);
   background: color-mix(in srgb, var(--color-brand-accent) 9%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 28px var(--skill-shadow);
 }
 
 .fileButton:active,
 .reportButton:active {
+  border-color: var(--color-brand-accent-press);
+  background: var(--skill-press);
+  box-shadow: none;
   transform: translateY(0) scale(0.985);
 }
 
@@ -334,8 +340,14 @@
 }
 
 .editorBar span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--skill-ink-soft);
   font-weight: 650;
+}
+
+.editorBar span:last-child {
+  flex-shrink: 0;
 }
 
 .editor {
@@ -353,7 +365,7 @@
 }
 
 .editor::placeholder {
-  color: rgba(158, 154, 147, 0.48);
+  color: color-mix(in srgb, var(--skill-ink-muted) 70%, transparent);
 }
 
 .controlRow {
@@ -395,6 +407,7 @@
   padding: 0 2.5rem 0 0.9rem;
   color: var(--skill-ink);
   font-size: 0.84rem;
+  text-overflow: ellipsis;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -482,13 +495,13 @@
 .exactBinding code {
   min-width: 0;
   overflow-wrap: anywhere;
-  color: var(--skill-accent-soft);
+  color: var(--skill-accent);
   font-size: 0.7rem;
 }
 
 .bindingInvalidated {
   margin: 1rem 0 0;
-  color: var(--color-signal-yellow);
+  color: var(--skill-signal-amber-text);
 }
 
 .resultLimitation {
@@ -524,7 +537,7 @@
   scroll-margin-top: calc(var(--app-navbar-height, 76px) + 1rem);
   padding: clamp(1.3rem, 3vw, 2rem);
   border-top: 1px solid var(--skill-rule);
-  background: rgba(255, 255, 255, 0.01);
+  background: color-mix(in srgb, var(--skill-raised) 35%, var(--skill-paper));
 }
 
 .verdictCard {
@@ -656,7 +669,7 @@
   overflow: hidden;
   border: 1px solid var(--skill-rule);
   border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.012);
+  background: var(--skill-raised);
   transition:
     border-color 180ms ease,
     background-color 180ms ease;
@@ -665,7 +678,7 @@
 .findingsList details:hover,
 .findingsList details[open] {
   border-color: var(--skill-rule-strong);
-  background: rgba(255, 255, 255, 0.022);
+  background: var(--color-surface-card-hover);
 }
 
 .findingsList summary {
@@ -678,6 +691,10 @@
   padding: 0.75rem 1rem;
   color: var(--skill-ink);
   list-style: none;
+}
+
+.findingsList summary:active {
+  background: var(--skill-press);
 }
 
 .findingsList summary::-webkit-details-marker {

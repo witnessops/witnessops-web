@@ -7,6 +7,7 @@ import {
   type ReceiptMeta,
 } from "@/lib/verify-receipt-meta";
 import { VerificationResult } from "@/components/verify/verification-result";
+import styles from "./verify-console.module.css";
 
 interface VerifyConsoleProps {
   /** Known-good sample receipt JSON for the single “Try an example” action. */
@@ -87,9 +88,9 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${styles.surface}`}>
       <section
-        className="border border-surface-border bg-surface-bg p-5 sm:p-6"
+        className="rounded-[var(--radius-card)] border border-surface-border bg-surface-card p-5 sm:p-6"
         aria-labelledby="verify-input-heading"
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -106,7 +107,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <label className="inline-flex min-h-11 cursor-pointer items-center border border-surface-border bg-surface-card px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent">
+            <label className={`${styles.fileControl} inline-flex min-h-11 cursor-pointer items-center rounded-[var(--radius-control)] border border-surface-border-strong bg-surface-card px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent active:border-[var(--color-brand-accent-press)] active:bg-[var(--verify-press)]`}>
               Upload receipt
               <input
                 type="file"
@@ -119,7 +120,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
               <button
                 type="button"
                 onClick={handleTryExample}
-                className="inline-flex min-h-11 items-center border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted transition-colors hover:border-brand-accent/50 hover:text-text-primary"
+                className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted transition-colors hover:border-brand-accent hover:text-text-primary active:border-[var(--color-brand-accent-press)] active:bg-[var(--verify-press)] active:text-text-primary"
               >
                 Try an example
               </button>
@@ -137,13 +138,13 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
             }}
             spellCheck={false}
             placeholder='Paste receipt JSON here…'
-            className="min-h-[11rem] w-full resize-y border border-surface-border bg-surface-inset p-4 font-mono text-xs leading-6 text-text-primary transition-colors placeholder:text-text-muted/45 focus:border-brand-accent sm:min-h-[13rem]"
+            className="min-h-[11rem] w-full resize-y rounded-[var(--radius-card)] border border-surface-border-strong bg-surface-inset p-4 font-mono text-xs leading-6 text-text-primary transition-colors placeholder:text-text-muted/45 focus:border-brand-accent sm:min-h-[13rem]"
             aria-label="Paste receipt JSON"
           />
         </label>
 
         {errorHint ? (
-          <p className="mt-3 text-sm text-signal-red" role="alert">
+          <p className="mt-3 text-sm text-[color:var(--verify-signal-red-text)]" role="alert">
             {errorHint}
           </p>
         ) : null}
@@ -156,7 +157,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
             type="button"
             onClick={handleVerify}
             disabled={submitting}
-            className="order-1 inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto"
+            className="order-1 inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto"
           >
             {submitting ? "Verifying…" : "Verify receipt"}
           </button>

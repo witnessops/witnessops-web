@@ -10,29 +10,29 @@ const VERDICT_TONE: Record<
   { badge: string; panel: string; title: string; plain: string }
 > = {
   valid: {
-    badge: "border-signal-green/30 bg-signal-green/10 text-signal-green",
-    panel: "border-signal-green/20 bg-signal-green/5",
+    badge: "border-signal-green/30 bg-signal-green/10 text-[color:var(--verify-signal-green-text)]",
+    panel: "border-signal-green/20 border-l-signal-green bg-signal-green/5",
     title: "Receipt valid",
     plain: "Valid",
   },
   invalid: {
-    badge: "border-signal-red/30 bg-signal-red/10 text-signal-red",
-    panel: "border-signal-red/20 bg-signal-red/5",
+    badge: "border-signal-red/30 bg-signal-red/10 text-[color:var(--verify-signal-red-text)]",
+    panel: "border-signal-red/20 border-l-signal-red bg-signal-red/5",
     title: "Receipt invalid",
     plain: "Invalid",
   },
   indeterminate: {
-    badge: "border-signal-amber/30 bg-signal-amber/10 text-signal-amber",
-    panel: "border-signal-amber/20 bg-signal-amber/5",
+    badge: "border-signal-amber/30 bg-signal-amber/10 text-[color:var(--verify-signal-amber-text)]",
+    panel: "border-signal-amber/20 border-l-signal-amber bg-signal-amber/5",
     title: "Indeterminate — verification incomplete",
     plain: "Indeterminate",
   },
 };
 
 const CHECK_TONE: Record<VerifyCheckStatus, string> = {
-  verified: "border-signal-green/20 bg-signal-green/5 text-signal-green",
-  unverified: "border-signal-red/20 bg-signal-red/5 text-signal-red",
-  not_checked: "border-signal-amber/20 bg-signal-amber/5 text-signal-amber",
+  verified: "border-signal-green/20 bg-signal-green/5 text-[color:var(--verify-signal-green-text)]",
+  unverified: "border-signal-red/20 bg-signal-red/5 text-[color:var(--verify-signal-red-text)]",
+  not_checked: "border-signal-amber/20 bg-signal-amber/5 text-[color:var(--verify-signal-amber-text)]",
   not_applicable: "border-surface-border bg-surface-bg text-text-muted",
 };
 
@@ -112,11 +112,11 @@ function MetaRow({ label, value }: { label: string; value?: string }) {
     return null;
   }
   return (
-    <div className="border border-surface-border bg-surface-bg px-4 py-3">
+    <div className="min-w-0 rounded-[var(--radius-card)] border border-surface-border bg-surface-bg px-4 py-3">
       <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">
         {label}
       </dt>
-      <dd className="mt-1 break-all font-mono text-xs text-text-primary">
+      <dd className="mt-1 font-mono text-xs text-text-primary [overflow-wrap:anywhere]">
         {value}
       </dd>
     </div>
@@ -129,8 +129,8 @@ export function VerificationResult({
 }: VerificationResultProps) {
   if (!response.ok) {
     return (
-      <section className="border border-signal-red/20 bg-signal-red/5 p-5 sm:p-6">
-        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-signal-red">
+      <section className="rounded-[var(--radius-card)] border border-l-[3px] border-signal-red/20 border-l-signal-red bg-signal-red/5 p-5 sm:p-6">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--verify-signal-red-text)]">
           Could not verify
         </div>
         <h3 className="text-xl font-semibold text-text-primary">
@@ -138,7 +138,7 @@ export function VerificationResult({
             ? "Unsupported receipt"
             : "Invalid or unreadable input"}
         </h3>
-        <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+        <p className="mt-3 text-sm leading-relaxed text-text-secondary [overflow-wrap:anywhere]">
           {response.message}
         </p>
         <p className="mt-4 text-sm text-text-muted">
@@ -146,7 +146,7 @@ export function VerificationResult({
           detail:{" "}
           <Link
             href="/docs/how-it-works/verification"
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="text-brand-accent underline underline-offset-4 hover:decoration-2 active:text-text-primary"
           >
             how verification works
           </Link>
@@ -165,9 +165,9 @@ export function VerificationResult({
   const notChecked = visibleChecks.filter((c) => c.status === "not_checked");
 
   return (
-    <section className={`border p-5 sm:p-6 ${tone.panel}`}>
+    <section className={`rounded-[var(--radius-card)] border border-l-[3px] p-5 sm:p-6 ${tone.panel}`}>
       <div
-        className={`inline-flex items-center border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${tone.badge}`}
+        className={`inline-flex items-center rounded-[var(--radius-control)] border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${tone.badge}`}
       >
         {tone.plain}
       </div>
@@ -195,13 +195,13 @@ export function VerificationResult({
             {passed.map((check) => (
               <li
                 key={check.name}
-                className="flex items-start justify-between gap-3 border border-surface-border bg-surface-bg px-4 py-3 text-sm"
+                className="flex items-start justify-between gap-3 rounded-[var(--radius-card)] border border-surface-border bg-surface-bg px-4 py-3 text-sm"
               >
-                <span className="text-text-primary">
+                <span className="min-w-0 text-text-primary [overflow-wrap:anywhere]">
                   {humanizeCheckName(check.name)}
                 </span>
                 <span
-                  className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.verified}`}
+                  className={`shrink-0 rounded-[var(--radius-control)] border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.verified}`}
                 >
                   {verifyCheckStatusLabel("verified", response.verdict)}
                 </span>
@@ -220,27 +220,27 @@ export function VerificationResult({
             {failed.map((check) => (
               <li
                 key={check.name}
-                className="border border-surface-border bg-surface-bg px-4 py-3 text-sm"
+                className="rounded-[var(--radius-card)] border border-surface-border bg-surface-bg px-4 py-3 text-sm"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <span className="text-text-primary">
+                  <span className="min-w-0 text-text-primary [overflow-wrap:anywhere]">
                     {humanizeCheckName(check.name)}
                   </span>
                   <span
-                    className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.unverified}`}
+                    className={`shrink-0 rounded-[var(--radius-control)] border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.unverified}`}
                   >
                     {verifyCheckStatusLabel("unverified", response.verdict)}
                   </span>
                 </div>
                 {check.detail ? (
-                  <p className="mt-2 text-text-muted">{check.detail}</p>
+                  <p className="mt-2 text-text-muted [overflow-wrap:anywhere]">{check.detail}</p>
                 ) : null}
               </li>
             ))}
             {response.breaches.map((breach) => (
               <li
                 key={`${breach.code}:${breach.checkName}`}
-                className="border-l-2 border-signal-red bg-surface-bg px-4 py-3 text-sm text-text-secondary"
+                className="rounded-[var(--radius-card)] border border-l-[3px] border-surface-border border-l-signal-red bg-surface-bg px-4 py-3 text-sm text-text-secondary [overflow-wrap:anywhere]"
               >
                 {breach.detail}
               </li>
@@ -258,20 +258,20 @@ export function VerificationResult({
             {notChecked.map((check) => (
               <li
                 key={check.name}
-                className="border border-surface-border bg-surface-bg px-4 py-3 text-sm"
+                className="rounded-[var(--radius-card)] border border-surface-border bg-surface-bg px-4 py-3 text-sm"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <span className="text-text-primary">
+                  <span className="min-w-0 text-text-primary [overflow-wrap:anywhere]">
                     {humanizeCheckName(check.name)}
                   </span>
                   <span
-                    className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.not_checked}`}
+                    className={`shrink-0 rounded-[var(--radius-control)] border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.not_checked}`}
                   >
                     {verifyCheckStatusLabel("not_checked", response.verdict)}
                   </span>
                 </div>
                 {check.detail ? (
-                  <p className="mt-2 text-text-muted">{check.detail}</p>
+                  <p className="mt-2 text-text-muted [overflow-wrap:anywhere]">{check.detail}</p>
                 ) : null}
               </li>
             ))}
@@ -279,29 +279,29 @@ export function VerificationResult({
         </div>
       ) : null}
 
-      <div className="mt-6 border border-surface-border bg-surface-bg p-4 text-sm leading-relaxed text-text-muted">
+      <div className="mt-6 rounded-[var(--radius-card)] border border-surface-border bg-surface-bg p-4 text-sm leading-relaxed text-text-muted">
         <p className="font-semibold text-text-secondary">Limitations</p>
         <p className="mt-2">{verifyResultLimitationsCopy(response.verdict)}</p>
       </div>
 
-      <p className="mt-5 text-sm text-text-muted">
+      <p className="mt-5 flex flex-wrap items-center gap-x-1 text-sm text-text-muted">
         <Link
           href="/docs/how-it-works/verification"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Technical details
         </Link>
         {" · "}
         <Link
           href="/docs/evidence/receipts"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Receipts
         </Link>
         {" · "}
         <Link
           href="/library"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Skills
         </Link>

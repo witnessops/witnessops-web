@@ -1,0 +1,18 @@
+.surface {
+  --verify-signal-red-text: var(--color-signal-red);
+  --verify-signal-amber-text: var(--color-signal-amber);
+  --verify-signal-green-text: var(--color-signal-green);
+  --verify-press: color-mix(in srgb, var(--color-brand-accent) 16%, var(--color-surface-card));
+}
+
+/* Light signal tokens are indicator tints; text needs them pulled toward ink to reach 4.5:1. */
+:global(html[data-theme="light"]) .surface {
+  --verify-signal-red-text: color-mix(in srgb, var(--color-signal-red) 60%, var(--color-text-primary));
+  --verify-signal-amber-text: color-mix(in srgb, var(--color-signal-amber) 45%, var(--color-text-primary));
+  --verify-signal-green-text: color-mix(in srgb, var(--color-signal-green) 45%, var(--color-text-primary));
+}
+
+.fileControl:focus-within {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
