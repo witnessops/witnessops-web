@@ -10,7 +10,6 @@
   "/api/receipts/route": "app/api/receipts/route.js",
   "/api/support/message/route": "app/api/support/message/route.js",
   "/api/support/route": "app/api/support/route.js",
-  "/og/home/route": "app/og/home/route.js",
   "/robots.txt/route": "app/robots.txt/route.js",
   "/sitemap.xml/route": "app/sitemap.xml/route.js",
   "/api/admin/core/[...path]/route": "app/api/admin/core/[...path]/route.js",

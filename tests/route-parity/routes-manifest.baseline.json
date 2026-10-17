@@ -12,6 +12,12 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/og/home",
+      "destination": "/og/witnessops-home-editorial-a-2026-10.png",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/og/home(?:/)?$"
+    },
+    {
       "source": "/review/sample-cases/offsec-shield-local-server-audit",
       "destination": "/review/sample-cases/local-server-security-review",
       "statusCode": 308,
@@ -700,12 +706,6 @@
       "regex": "^/media\\-kit(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/media\\-kit(?:/)?$"
-    },
-    {
-      "page": "/og/home",
-      "regex": "^/og/home(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/og/home(?:/)?$"
     },
     {
       "page": "/operators",
