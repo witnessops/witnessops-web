@@ -7,14 +7,12 @@ const homeTitle = "Bezpieczeństwo i weryfikacja";
 const homeDescription = "Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy. WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu.";
 import { languageAlternates } from "@/lib/public-seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: homeTitle,
   description: homeDescription,
   alternates: languageAlternates("/pl", { en: "/", pl: "/pl" }),
   openGraph: {
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `${homeTitle} | WitnessOps`,
     description: homeDescription,
     siteName: "WitnessOps",
@@ -22,7 +20,6 @@ export const metadata: Metadata = {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
-    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: `${homeTitle} | WitnessOps`,
     description: homeDescription,
