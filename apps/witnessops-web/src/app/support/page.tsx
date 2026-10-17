@@ -208,10 +208,10 @@ export default function SupportPage() {
                   <span className="h-px flex-1 bg-surface-border" />
                 </h2>
                 <div className="space-y-0">
-                  {relatedDocs.map((doc) => (
+                  {relatedDocs.map((doc) => ({ doc, href: `/support/${encodeURIComponent(doc.slug)}` })).map(({ doc, href }) => (
                     <Link
-                      key={doc.slug}
-                      href={`/support/${encodeURIComponent(doc.slug)}`}
+                      key={href}
+                      href={href}
                       className="group flex items-center justify-between border-b border-surface-border py-3 transition-colors hover:text-brand-accent"
                     >
                       <span className="text-sm text-text-secondary transition-colors group-hover:text-brand-accent">
