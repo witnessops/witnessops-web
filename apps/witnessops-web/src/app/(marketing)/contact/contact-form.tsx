@@ -763,7 +763,6 @@ export function ContactForm({
               style={{
                 fontFamily: "var(--font-display)",
                 letterSpacing: "0.04em",
-                scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
               }}
             >
               {copy.enterCode}

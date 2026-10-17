@@ -249,9 +249,9 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   text-shadow: none;
 }
 
-/* Header bar matches the lockup: 64px through 1199, 72px from 1200. */
+/* Header matches the lockup: 64px through 1199, 72px from 1200, including the nav's 1px bottom border. */
 :root { --app-navbar-height: 64px; }
-.wo-navbar-bar { min-height: 64px; }
+.wo-navbar-bar { min-height: 63px; }
 .wo-lockup { display: block; height: 54px; width: auto; margin-inline-start: calc(-54px * 54 / 420); }
 .wo-lockup--white { display: none; }
 html[data-theme="dark"] .wo-lockup--black { display: none; }
@@ -263,7 +263,7 @@ html[data-theme="dark"] .wo-watermark--black { display: none; }
 html[data-theme="dark"] .wo-watermark--white { display: block; }
 @media (min-width: 1200px) {
   :root { --app-navbar-height: 72px; }
-  .wo-navbar-bar { min-height: 72px; }
+  .wo-navbar-bar { min-height: 71px; }
   .wo-lockup { height: 60px; margin-inline-start: calc(-60px * 54 / 420); }
   .wo-lockup--footer { height: 54px; margin-inline-start: calc(-54px * 54 / 420); }
 }
@@ -1249,7 +1249,7 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
 
 /* Figma public chrome; scoped to the shared website header and footer. */
 .simple-public-navbar { font-family: var(--font-sans); }
-.simple-public-navbar > div { max-width: 1200px; min-height: 64px; padding-block: 0; gap: 20px; }
+.simple-public-navbar > div { max-width: 1200px; min-height: 63px; padding-block: 0; gap: 20px; }
 .simple-public-navbar :is(a, button) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
 .simple-public-navbar button span { font-size: inherit; line-height: inherit; font-weight: inherit; letter-spacing: 0; }
 .simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
@@ -1291,7 +1291,6 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 @media (min-width: 768px) {
   .simple-public-footer .footer-main { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "brand brand brand" "nav nav nav" "contact theme theme"; column-gap: 32px; }
   .simple-public-footer .footer-navigation { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: 32px; }
-  .simple-public-footer .footer-navigation a { min-height: 0; padding-block: 6px; }
 }
 @media (min-width: 1200px) {
   .simple-public-footer > div { padding-top: 56px; }
