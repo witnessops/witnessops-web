@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
@@ -16,7 +17,7 @@ const docsDescription =
   "Run a free hostname check, or set up an account, CLI and workspace reports."
 
 export const metadata: Metadata = {
-  title: "Docs — WitnessOps",
+  title: "Docs",
   description: docsDescription,
   alternates: {
     canonical: getDocCanonicalUrl("witnessops", []),
@@ -162,7 +163,7 @@ export default async function DocsIndexPage() {
                   ? path.href
                   : pub(path.href)
               }
-              className={`block rounded-xl border p-5 transition-colors hover:border-brand-accent ${
+              className={`block rounded-md border p-5 transition-colors hover:border-brand-accent ${
                 index === 0
                   ? "border-brand-accent/50 bg-brand-accent/5"
                   : "border-surface-border bg-surface-bg"
@@ -178,7 +179,7 @@ export default async function DocsIndexPage() {
                 {path.description}
               </p>
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
-                {path.cta} →
+                {path.cta} <InlineArrow />
               </p>
             </Link>
           ))}

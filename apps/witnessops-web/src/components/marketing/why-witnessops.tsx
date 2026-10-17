@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
 import type { BuyerLocale } from "@/lib/buyer-services";
+import { InlineArrow } from "./inline-arrow";
 import { ReviewerProfile } from "./reviewer-profile";
 
 export function WhyWitnessOps({ locale }: { locale: BuyerLocale }) {
@@ -23,7 +24,7 @@ export function WhyWitnessOps({ locale }: { locale: BuyerLocale }) {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{pl ? "Dlaczego WitnessOps" : "Why WitnessOps"}</p>
         <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-text-primary lg:text-6xl">{pl ? "Zrozum ustalenia. Sprawdź dowody. Zdecyduj, co dalej." : "Understand the finding. Inspect the evidence. Decide what to do."}</h1>
         <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary">{pl ? "WitnessOps bada konkretne pytanie o bezpieczeństwo na podstawie systemu, dostępnych zapisów i uzgodnionych sprawdzeń. Każde ustalenie wskazuje źródła, znaczenie problemu, niepewności i zalecany kolejny krok." : "WitnessOps traces a specific security question through the relevant system, available records and agreed checks. Each finding explains what supports it, why it matters, what remains uncertain and the recommended next step."}</p>
-        <div className="mt-7 flex flex-wrap gap-3"><CtaButton href={`${prefix}/review/request`} variant="primary" label={pl ? "Omów zakres przeglądu" : "Scope a review"} /><CtaButton href={`${prefix}/catalog`} variant="secondary" label={pl ? "Zobacz usługi" : "Explore services"} /></div>
+        <div className="mt-7 flex flex-wrap gap-3"><CtaButton href={`${prefix}/review/request`} variant="primary" label={pl ? "Omów zakres przeglądu" : "Scope a review"} /><CtaButton href={pl ? "/pl/reviews" : "/reviews"} variant="secondary" label={pl ? "Zobacz usługi" : "Explore services"} /></div>
       </header>
       <section className="mt-14 border-t border-surface-border pt-8" aria-labelledby="why-method-heading">
         <h2 id="why-method-heading" className="text-2xl font-semibold tracking-tight text-text-primary">{pl ? "Co sprawdzamy i co z tego wynika" : "What we examine and what you get"}</h2>
@@ -36,12 +37,12 @@ export function WhyWitnessOps({ locale }: { locale: BuyerLocale }) {
           ["/review/sample-cases/ai-agent-action-proof-run", pl ? "Demo weryfikacji (EN)" : "Verification demo"],
           [`${prefix}/verify`, pl ? "Zweryfikuj zapis" : "Verify a receipt"],
           [`${prefix}/docs`, pl ? "Dokumentacja" : "Read the documentation"],
-        ].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{label} →</Link>)}</div>
+        ].map(([href, label]) => <Link key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-primary underline underline-offset-4">{label} <InlineArrow /></Link>)}</div>
       </section>
       <section className="py-9" aria-labelledby="why-scope-heading">
         <h2 id="why-scope-heading" className="text-2xl font-semibold text-text-primary">{pl ? "Jasne granice wniosków" : "Clear limits on every conclusion"}</h2>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">{pl ? "Wynik weryfikacji nazywa mechanizm, sprawdzony zakres i materiały, które go wspierają. Poprawny podpis nie dowodzi, że opisane działanie było bezpieczne lub prawidłowe. Przegląd nie jest certyfikacją zgodności ani zapewnieniem dla całego środowiska." : "A verification result names the mechanism, checked scope and supporting artifacts. A valid signature does not establish that the underlying action was safe or correct. A scoped review is not compliance certification or whole-environment assurance."}</p>
-        <details className="mt-4 max-w-3xl"><summary className="cursor-pointer py-3 text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{pl ? "Co uzgadniamy przed pracą" : "What we agree before work starts"}</summary><p className="pb-3 text-sm leading-7 text-text-secondary">{pl ? "Systemy i działania objęte zakresem, upoważnienie i dostęp, sposób postępowania z materiałami, wyniki pracy, wyłączenia, cena i termin. Wdrożenie zmian wymaga uzgodnionego zakresu i upoważnienia." : "The systems and actions in scope, authorization and access, evidence handling, deliverables, exclusions, price and timing. Implementing changes requires an agreed scope and authorization."}</p></details>
+        <details className="mt-4 max-w-3xl"><summary className="cursor-pointer py-3 text-sm font-semibold text-text-primary">{pl ? "Co uzgadniamy przed pracą" : "What we agree before work starts"}</summary><p className="pb-3 text-sm leading-7 text-text-secondary">{pl ? "Systemy i działania objęte zakresem, upoważnienie i dostęp, sposób postępowania z materiałami, wyniki pracy, wyłączenia, cena i termin. Wdrożenie zmian wymaga uzgodnionego zakresu i upoważnienia." : "The systems and actions in scope, authorization and access, evidence handling, deliverables, exclusions, price and timing. Implementing changes requires an agreed scope and authorization."}</p></details>
       </section>
       <ReviewerProfile locale={locale} />
       <section className="mt-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center"><div><h2 className="text-xl font-semibold text-text-primary">{pl ? "Masz konkretną wątpliwość?" : "Have a system or action in mind?"}</h2><p className="mt-2 text-sm leading-6 text-text-secondary">{pl ? "Zacznij od krótkiego opisu, bez danych poufnych." : "Start with a short description, without confidential data."}</p></div><CtaButton href={`${prefix}/review/request`} variant="primary" label={pl ? "Omów zakres przeglądu" : "Scope a review"} /></section>

@@ -102,7 +102,7 @@ test("historical offer pages are noindex and current offer pages stay indexable"
   assertIndexable(englishExternal, "/catalog/offsec-external-exposure");
   assertIndexable(polishExternal, "/pl/catalog/offsec-external-exposure");
   const robots = readFileSync(resolve(__dirname, "../app/robots.ts"), "utf8");
-  assert.match(robots, /disallow: \["\/verify\/skill"\]/);
+  assert.match(robots, /disallow: \["\/verify\/skill", "\/admin"\]/);
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.doesNotMatch(robots, new RegExp(route.replaceAll("/", "\\/")));
   }
@@ -184,8 +184,15 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     );
     assert.match(html, /agent-tools-access-review/);
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
-    assert.match(html, /€2,500/);
-    assert.match(html, /€1,900/);
+    if (locale === "en") {
+      assert.match(html, /€2,500/);
+      assert.match(html, /€1,900/);
+    }
+    if (locale === "pl") {
+      assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
+      assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
+    }
     assert.doesNotMatch(html, HELD_TERM);
     if (locale === "en") assert.match(html, /Delivery timing agreed in the signed statement of work/);
     if (locale === "pl") assert.match(html, /Termin realizacji uzgodniony w podpisanym zakresie prac/);
@@ -250,9 +257,10 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/catalog", "/catalog/offsec-external-exposure", "/review/request", "/pl/catalog"]) {
+  for (const route of ["/reviews", "/reviews/external-attack-surface-review", "/contact", "/pl/contact", "/pl/reviews"]) {
     assert.equal(paths.has(route), true, route);
   }
+  assert.equal(paths.has("/review/request"), false);
   const search = await searchWitnessOpsDocs("review workflow external attack surface");
   assert.ok(search.results.some((result) => result.url.endsWith("/docs/getting-started/review-workflow")));
   for (const result of search.results) {

@@ -59,11 +59,11 @@ export default function PolishVerifyPage() {
         <VerifyConsole exampleReceipt={exampleReceipt} />
       </section>
 
-      <details className="mt-10 border border-surface-border bg-surface-bg p-5">
-        <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+      <details className="mt-6 rounded-[var(--radius-card)] border border-surface-border bg-surface-card">
+        <summary className="min-h-11 cursor-pointer px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:text-brand-accent active:bg-surface-inset">
           Co oznacza ten wynik
         </summary>
-        <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
+        <div className="space-y-3 border-t border-surface-border px-5 py-4 text-sm leading-relaxed text-text-muted">
           <p>
             Dla zapisów w profilu zgodności public_exposure_review poprawny strukturalnie wynik pozostaje dziś
             nieokreślony: ta strona nie otrzymuje pełnego pakietu dowodowego, a
@@ -74,7 +74,7 @@ export default function PolishVerifyPage() {
             Szczegóły techniczne (EN):{" "}
             <Link
               href="/docs/how-it-works/verification"
-              className="text-brand-accent underline-offset-4 hover:underline"
+              className="text-brand-accent underline underline-offset-4 hover:decoration-2 active:text-text-primary"
             >
               how verification works
             </Link>
@@ -84,24 +84,24 @@ export default function PolishVerifyPage() {
       </details>
 
       <nav
-        className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+        className="mt-8 flex flex-wrap gap-x-5 border-t border-surface-border pt-4 text-sm"
         aria-label="Powiązane materiały"
       >
         <Link
           href="/docs/how-it-works/verification"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Dokumentacja weryfikacji (EN)
         </Link>
         <Link
           href="/docs/evidence/receipts"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Receipts (EN)
         </Link>
         <Link
           href="/pl/library"
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
         >
           Biblioteka
         </Link>

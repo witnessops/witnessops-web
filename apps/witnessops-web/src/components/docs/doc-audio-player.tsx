@@ -75,7 +75,7 @@ function AudioWave({ paused }: { paused: boolean }) {
       {delays.map((d, i) => (
         <span
           key={i}
-          className="inline-block w-[2.5px] rounded-full"
+          className="inline-block w-[2.5px] rounded-xs"
           style={{
             backgroundColor: "#ff6b35",
             animation: "audioWaveBar 0.8s ease-in-out infinite alternate",
@@ -291,7 +291,7 @@ export function DocAudioPlayer({ title, audioSrc, content }: DocAudioPlayerProps
       {!visible && (
         <button
           onClick={handlePlay}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-mono transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[11px] font-mono transition-colors"
           style={{
             fontFamily: "'IBM Plex Mono', monospace",
             color: "#f0f2f8",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Bounded Review",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
     canonical: "/review",
   },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Bounded Review | WitnessOps",
     description:
       "WitnessOps reviews one bounded technical action and, when scoped evidence is available, returns evidence references, receipt artifacts where produced, named limits, and a clear next step.",
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary",
     title: "Bounded Review | WitnessOps",
     description:
@@ -254,7 +257,7 @@ export default function ReviewPage() {
           See how a bounded review is packaged before you request work: situation,
           evidence references, limits, and what another party can re-check.
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
           <a
             href={sampleBundleHref}
             className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
@@ -265,21 +268,12 @@ export default function ReviewPage() {
             </p>
           </a>
           <a
-            href="/review/sample-cases/local-server-security-review"
+            href="/review/sample-cases/external-exposure-assessment"
             className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
           >
-            <h3 className="text-sm font-semibold text-text-primary">Local server security review</h3>
+            <h3 className="text-sm font-semibold text-text-primary">External Attack Surface Review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Read-only host package with receipt path: labelled sample only.
-            </p>
-          </a>
-          <a
-            href="/review/sample-cases/launch-readiness-review"
-            className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
-          >
-            <h3 className="text-sm font-semibold text-text-primary">Launch readiness review</h3>
-            <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Baseline vs candidate, drift, and proofpack limits, not launch approval.
+              A synthetic sample report for the current external review. Not a live assessment.
             </p>
           </a>
         </div>

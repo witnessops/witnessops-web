@@ -9,7 +9,7 @@ interface ReceiptStatusProps {
 
 export function ReceiptStatus({ receipt, verified }: ReceiptStatusProps) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-card px-4 py-3">
+    <div className="flex items-center gap-3 rounded-md border border-surface-border bg-surface-card px-4 py-3">
       <span
         className={`flex size-6 items-center justify-center rounded-full text-xs font-bold ${
           verified
@@ -27,7 +27,7 @@ export function ReceiptStatus({ receipt, verified }: ReceiptStatusProps) {
         </p>
       </div>
       <span
-        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+        className={`rounded-xs px-2.5 py-0.5 text-xs font-medium ${
           verified
             ? "bg-signal-green/10 text-signal-green"
             : "bg-signal-red/10 text-signal-red"

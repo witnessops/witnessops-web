@@ -3,6 +3,7 @@
 (() => {
   const url = new URL(window.location.href);
   const publicPage = /^\/(?:$|(?:pricing|privacy|terms|security|media-kit|why|support|review|docs|articles|research|services|catalog|library|why-witnessops)(?:\/|$))/;
+  if (url.pathname === "/docs/assistant" || url.pathname.startsWith("/docs/assistant/") || url.pathname === "/pl/docs/assistant" || url.pathname.startsWith("/pl/docs/assistant/")) return;
   if (url.protocol !== "https:" || !["witnessops.com", "www.witnessops.com"].includes(url.hostname)) return;
   // Never collect callback/query data, private delivery URLs or local tools.
   if (url.search || url.hash || !publicPage.test(url.pathname)) return;

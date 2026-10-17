@@ -1,11 +1,10 @@
 import { getWorkspaceAppUrl } from "@/lib/workspace-access";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { DocumentNavigation } from "@/components/shared/document-navigation";
 import documentNavigationStyles from "@/components/shared/document-navigation.module.css";
-import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
@@ -13,9 +12,12 @@ import {
   DOCUMENT_LANGUAGE_HEADER,
   parseDocumentLanguage,
 } from "@/lib/request-language";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
 import "./globals.css";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-export const revalidate = 300;
+// headers() in this layout forces dynamic rendering, so a revalidate export
+// would not cache pages or freeze the assistant gate. Do not add one.
 
 export const metadata: Metadata = {
   title: {
@@ -26,6 +28,7 @@ export const metadata: Metadata = {
     "Bounded security and operational reviews with evidence references, clear limits and a practical handover. Start with a non-secret fit check.",
   metadataBase: new URL("https://witnessops.com"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "WitnessOps — Security and operational reviews",
     description:
       "Bounded security and operational reviews with evidence references, clear limits and a practical handover.",
@@ -33,6 +36,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "WitnessOps — Security and operational reviews",
     description:
@@ -43,15 +47,52 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/witnessops-logo-system-v1/favicon/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/witnessops-logo-system-v1/favicon/apple-touch-icon.png", sizes: "180x180" }],
   },
+  manifest: "/site.webmanifest",
 };
 
-const appShellStyle: React.CSSProperties & {
-  "--app-navbar-height": string;
-} = {
-  "--app-navbar-height": "72px",
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F2EEE4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B0C0B" },
+  ],
+};
+
+function fontPreloads(language: string) {
+  return (
+    <>
+      <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossOrigin="" />
+      <link rel="preload" href="/fonts/inter-300.woff2" as="font" type="font/woff2" crossOrigin="" />
+      {language === "pl" ? (
+        <>
+          <link rel="preload" href="/fonts/inter-400-latin-ext.woff2" as="font" type="font/woff2" crossOrigin="" />
+          <link rel="preload" href="/fonts/inter-300-latin-ext.woff2" as="font" type="font/woff2" crossOrigin="" />
+        </>
+      ) : null}
+    </>
+  );
+}
+
+const UNPUBLISHED_FOOTER_HREFS = new Set([
+  "/catalog/workflows",
+  "/catalog/offsec-external-exposure",
+]);
+
+function publishedFooter<T extends { links: { href: string; label: string }[] }>(footer: T): T {
+  return {
+    ...footer,
+    links: footer.links.filter((link) => !UNPUBLISHED_FOOTER_HREFS.has(link.href)),
+  };
+}
+
+const appShellStyle: React.CSSProperties = {
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
 };
 
@@ -69,7 +110,12 @@ export default async function RootLayout({
   const localWorkspace = headerStore.get("x-witnessops-local-workspace");
   if (localWorkspace === "proofpack" || localWorkspace === "external-check") {
     return (
-      <html lang={documentLanguage} className="dark" style={appShellStyle}>
+      <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
+        <head>
+          <meta name="color-scheme" content="light dark" />
+          {fontPreloads(documentLanguage)}
+          <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        </head>
         <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
           <a href="#main-content" className="skip-link">
             {localWorkspace === "proofpack" ? "Skip to proofpack" : "Skip to snapshot"}
@@ -88,18 +134,20 @@ export default async function RootLayout({
           {children}
           <div className={documentNavigationStyles.chrome}>
             <DocumentNavigation>
-              <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
+              <Footer {...publishedFooter(content.footer)} appUrl={getWorkspaceAppUrl()} />
             </DocumentNavigation>
           </div>
-          {localWorkspace === "external-check" && <DocsAssistantWidget />}
         </body>
       </html>
     );
   }
 
   return (
-    <html lang={documentLanguage} className="dark" style={appShellStyle}>
+    <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="light dark" />
+        {fontPreloads(documentLanguage)}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <meta name="penguin" content="respect" />
         {/*
 
@@ -142,8 +190,7 @@ export default async function RootLayout({
         />
         <RouteScrollReset />
         {children}
-        <Footer {...content.footer} appUrl={getWorkspaceAppUrl()} />
-        <DocsAssistantWidget />
+        <Footer {...publishedFooter(content.footer)} appUrl={getWorkspaceAppUrl()} />
         <KonamiPenguin />
       </body>
     </html>

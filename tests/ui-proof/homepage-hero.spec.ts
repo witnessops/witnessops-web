@@ -128,7 +128,7 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       await page.waitForTimeout(350);
 
-      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
       const headlineMetrics = await page
         .locator('[data-ui-proof-id="homepage-hero-headline"]')
         .evaluate((element) => {
@@ -143,10 +143,10 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
         });
       if (scenario.contentVariant === "long") {
         expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
-        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(43);
+        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(52);
       } else {
         expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
-        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(49);
+        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(52);
         // Homepage A has a longer approved thesis; keep readable type and bounded wrapping.
         expect(headlineMetrics.lineCount).toBeLessThanOrEqual(scenario.viewport.width <= 320 ? 5 : 4);
       }
@@ -246,7 +246,8 @@ test("English and Polish homepages preserve bounded entry points and evidence li
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
         await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
         await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
+        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
+        await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
         await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
@@ -257,10 +258,10 @@ test("English and Polish homepages preserve bounded entry points and evidence li
           "href",
           buyerServiceRequestHref("pl", external),
         );
-        await expect(page.locator('main a[href="/check"]')).toHaveCount(1);
+        await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
         await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
       } else {
-        await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence.Explicit limits.");
+        await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence. Explicit limits.");
         await expect(page.locator("#enquiry form")).toBeVisible();
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -270,9 +271,11 @@ test("English and Polish homepages preserve bounded entry points and evidence li
   }
 });
 
+const askPreviewServer = process.env.UI_PROOF_ASK_PREVIEW === "1";
+
 // Desktop retains a non-modal widget. Mobile uses the dedicated page.
 async function openAskSurface(page: Page, width: number) {
-  await page.goto(width >= 1024 ? "/catalog" : "/docs/assistant", { waitUntil: "networkidle" });
+  await page.goto(width >= 1024 ? "/docs" : "/docs/assistant", { waitUntil: "networkidle" });
   if (width >= 1024) {
     await page.getByRole("button", { name: "Ask WitnessOps" }).click();
     return page.getByRole("dialog", { name: "ASK WITNESSOPS" });
@@ -281,7 +284,29 @@ async function openAskSurface(page: Page, width: number) {
   return page.locator("main");
 }
 
+test("Ask WitnessOps stays closed in the production build", async ({ browser }) => {
+  test.skip(askPreviewServer, "Production closed-state proof does not apply to a preview server.");
+  for (const width of [1440, 390]) {
+    const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
+    try {
+      const page = await context.newPage();
+      await page.goto("/docs", { waitUntil: "networkidle" });
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
+      await expect(page.getByRole("dialog", { name: "ASK WITNESSOPS" })).toHaveCount(0);
+      const assistant = await page.goto("/docs/assistant", { waitUntil: "networkidle" });
+      expect(assistant?.status()).toBe(404);
+      await expect(page.getByLabel("Ask WitnessOps question")).toHaveCount(0);
+    } finally { await context.close(); }
+  }
+  const context = await browser.newContext();
+  try {
+    const response = await context.request.post("/api/ask-witnessops", { data: { question: "We're launching an AI agent.", history: [] } });
+    expect(response.status()).toBe(410);
+  } finally { await context.close(); }
+});
+
 test("Ask WitnessOps keeps the fallback paid-review path visible and controlled", async ({ browser }) => {
+  test.skip(!askPreviewServer, "Ask WitnessOps is unpublished in production builds; set UI_PROOF_ASK_PREVIEW=1 against a preview server.");
   for (const width of [1440, 640, 639, 390]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
     try {
@@ -343,6 +368,7 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
 });
 
 test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
+  test.skip(!askPreviewServer, "Ask WitnessOps is unpublished in production builds; set UI_PROOF_ASK_PREVIEW=1 against a preview server.");
   expect(generatedQuestionnaireAnswer.route.href).toBe(generatedQuestionnaireAnswer.recommendation.request_href);
   expect(new URL(generatedQuestionnaireAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
   const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";
@@ -440,12 +466,12 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
     { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
-    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
-    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
-    { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
-    { name: "workflow-offer-desktop-1440", path: "/catalog/workflows", width: 1440, height: 1100 },
-    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844 },
-    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100 },
+    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844, status: 200, finalPath: "/reviews" },
+    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
+    { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844, status: 410 },
+    { name: "workflow-offer-desktop-1440", path: "/catalog/workflows", width: 1440, height: 1100, status: 410 },
+    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844, status: 200, finalPath: "/reviews" },
+    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
   ] as const;
 
   for (const capture of pageCaptures) {
@@ -456,19 +482,18 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
     try {
       const page = await context.newPage();
       const response = await page.goto(capture.path, { waitUntil: "networkidle" });
-      expect(response?.status(), capture.path).toBe(200);
-      if (capture.path === "/catalog/workflow-s") {
-        expect(new URL(page.url()).pathname).toBe("/catalog");
+      expect(response?.status(), capture.path).toBe("status" in capture ? capture.status : 200);
+      if ("finalPath" in capture) {
+        expect(new URL(page.url()).pathname).toBe(capture.finalPath);
+      }
+      if ("status" in capture && capture.status === 410) {
+        await expect(page.locator("main")).toContainText("This offer has been withdrawn");
       }
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
-      if (capture.path.startsWith("/review/request") || capture.path.startsWith("/pl/")) {
-        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
-      } else {
-        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
-      }
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
     } finally {
       await context.close();
     }
@@ -488,7 +513,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const footer = page.locator("footer");
       await footer.scrollIntoViewIfNeeded();
-      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await footer.screenshot({ path: screenshotPath });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);

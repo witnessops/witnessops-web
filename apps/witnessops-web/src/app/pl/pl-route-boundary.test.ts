@@ -16,6 +16,7 @@ const polishRoutes = [
   "pl/support/page.tsx",
   "pl/verify/page.tsx",
   "pl/why-witnessops/page.tsx",
+  "pl/company/page.tsx",
 ];
 
 test("Polish public route files remain present in source", async () => {

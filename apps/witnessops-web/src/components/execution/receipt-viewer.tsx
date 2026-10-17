@@ -23,7 +23,7 @@ export function ReceiptViewer({ receipt }: ReceiptViewerProps) {
   ];
 
   return (
-    <div className="overflow-hidden rounded-lg border border-surface-border bg-surface-card">
+    <div className="overflow-hidden rounded-md border border-surface-border bg-surface-card">
       <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
         <span className="size-3 rounded-full bg-signal-green/80" />
         <span className="font-mono text-xs text-text-muted">{receipt.receiptId}</span>

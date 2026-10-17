@@ -5,6 +5,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 
 export type AskCommercialFitResult =
   | "likely"
@@ -129,7 +130,7 @@ type PublicAskOffer = "agent-action" | "external";
 
 const AGENT_ACTION_FIT = {
   name: PUBLIC_AGENT_ACTION_OFFER.name.en,
-  price_label: PUBLIC_AGENT_ACTION_OFFER.price.en,
+  price_label: plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en),
   unit_label: PUBLIC_AGENT_ACTION_OFFER.unit.en,
   fit_check_label: PUBLIC_AGENT_ACTION_OFFER.fitCheck.en,
   delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
@@ -137,7 +138,7 @@ const AGENT_ACTION_FIT = {
 
 const EXTERNAL_FIT = {
   name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-  price_label: EXTERNAL_ATTACK_SURFACE_OFFER.price.en,
+  price_label: plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en),
   unit_label:
     "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
   fit_check_label: "Non-secret fit check first. This is not a penetration test.",

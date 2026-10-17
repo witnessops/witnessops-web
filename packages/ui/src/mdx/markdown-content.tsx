@@ -84,7 +84,7 @@ export function MarkdownContent({ source, siteBaseUrl }: MarkdownContentProps) {
         ),
         td: ({ children }) => <td className="px-4 py-3 align-top">{children}</td>,
         pre: ({ children }) => (
-          <pre className="mt-6 overflow-x-auto rounded-lg border border-surface-border bg-surface-card p-4 text-sm text-text-secondary">
+          <pre className="mt-6 overflow-x-auto rounded-md border border-surface-border bg-surface-card p-4 text-sm text-text-secondary">
             {children}
           </pre>
         ),

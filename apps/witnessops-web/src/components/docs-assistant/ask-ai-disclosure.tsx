@@ -3,7 +3,7 @@ import Link from "next/link";
 export function AskAiDisclosure({ model, className }: { model?: string; className?: string }) {
   return (
     <details className={className ?? "mt-2 text-xs leading-relaxed text-text-muted"}>
-      <summary className="inline-flex min-h-8 cursor-pointer items-center underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      <summary className="inline-flex min-h-8 cursor-pointer items-center underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
         About this AI
       </summary>
       <p className="mt-1">

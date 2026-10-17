@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample work",
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
     "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample work | WitnessOps",
     description:
       "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
@@ -17,6 +20,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample work | WitnessOps",
     description:
@@ -43,59 +47,12 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: "Local server security review",
-    href: "/review/sample-cases/local-server-security-review",
-    situation: "A read-only local server security review was packaged for inspection.",
-    youSee:
-      "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
-    tags: ["Historical service sample", "Synthetic host"],
-    emphasize: false,
-  },
-  {
-    title: "Launch readiness review",
-    href: "/review/sample-cases/launch-readiness-review",
-    situation:
-      "One launch host needs a before-and-after readiness picture against an approved baseline.",
-    youSee:
-      "Baseline/candidate relationship, drift notes, findings, historical proofpack, and named limits, not launch approval.",
-    tags: ["Historical service sample", "OFFSEC-LAUNCH-READY"],
-    emphasize: false,
-  },
-  {
-    title: "Customer Security Review Sprint",
-    href: "/review/sample-cases/customer-security-review-sprint",
-    situation: "A security questionnaire is holding up a deal.",
-    youSee:
-      "Synthetic answer matrix shape, evidence references, open items, and ownership of final submission.",
-    tags: ["Historical service sample", "Synthetic demo"],
-    emphasize: false,
-  },
-  {
     title: "Witnessed synthetic CRM action",
     href: "/review/sample-cases/witnessed-crm-status-change",
     situation: "A recorded bounded action changes only Acme from NEW to REVIEWED.",
     youSee:
       "Original run authority, replay-only consent, the fixed action sequence, independent read-back, and an unsigned exact-byte demonstration receipt.",
     tags: ["Recorded synthetic run", "Replay + unsigned receipt"],
-    emphasize: false,
-  },
-  {
-    title: "Custody / wallet-ops review",
-    href: "/review/sample-cases/custody-wallet-ops-review",
-    situation:
-      "A proof-backed review of custody or wallet-operations controls without keys or fund movement.",
-    youSee:
-      "Sanitised posture, findings, proofpack, and hard boundaries, no solvency or custody-of-funds claim.",
-    tags: ["Historical service sample", "OFFSEC-CUSTODY-OPS"],
-    emphasize: false,
-  },
-  {
-    title: "Incident readiness review",
-    href: "/review/sample-cases/incident-readiness-review",
-    situation: "A bounded readiness record for one named incident scenario and environment.",
-    youSee:
-      "Sanitised readiness observations, open decisions, and proofpack limits, not live IR command.",
-    tags: ["Historical service sample", "OFFSEC-INCIDENT-READY"],
     emphasize: false,
   },
   {
@@ -219,7 +176,7 @@ export default function SampleCasesIndexPage() {
                 <p className="mt-1 text-base leading-7 text-text-secondary">{item.situation}</p>
                 <p className="mt-4 text-sm font-semibold text-text-muted">What you can inspect</p>
                 <p className="mt-1 text-base leading-7 text-text-secondary">{item.youSee}</p>
-                <p className="mt-6 text-sm font-semibold text-brand-accent">Open example →</p>
+                <p className="mt-6 text-sm font-semibold text-brand-accent">Open example <InlineArrow /></p>
               </Link>
             ))}
           </div>
@@ -263,7 +220,7 @@ export default function SampleCasesIndexPage() {
               >
                 <h3 className="text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-text-secondary">{item.description}</p>
-                <p className="mt-5 text-sm font-semibold text-brand-accent">{item.label} →</p>
+                <p className="mt-5 text-sm font-semibold text-brand-accent">{item.label} <InlineArrow /></p>
               </Link>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
+import { ContactCompanyDetails } from "@/components/marketing/company-details";
 import {
   buyerServiceByProductId,
   buyerServiceByPublicOfferId,
@@ -21,21 +22,24 @@ import {
   salesReviewMailto,
 } from "@/lib/public-contact";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
   description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
-  alternates: languageAlternates("/review/request", {
-    en: "/review/request",
-    pl: "/pl/review/request",
+  alternates: languageAlternates("/contact", {
+    en: "/contact",
+    pl: "/pl/contact",
   }),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Tell Us What You Need Reviewed | WitnessOps",
     description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Tell Us What You Need Reviewed | WitnessOps",
     description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
@@ -77,7 +81,7 @@ const agentActionOutputs = [
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "Delivery timing per signed SOW. Work starts only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.",
+  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
 ];
 
 const publicExposureArtifacts = [
@@ -99,17 +103,25 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
   });
   const campaignAttribution = linkedinPremiumCampaignAttribution(params);
   if (decision.state === "rejected") {
-    return <NewSalesIntakeClosed locale="en" reason={decision.reason} />;
+    return (
+      <>
+        <NewSalesIntakeClosed locale="en" reason={decision.reason} />
+        <ContactCompanyDetails locale="en" />
+      </>
+    );
   }
   if (decision.state === "chooser") {
-    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
+    return <>
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
       <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Ask about your case</p>
       <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">One question. Non-secret details only.</h1>
       <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Choose Agent Action Security Review or External Attack Surface Review. A display name, old identifier, or free-text note does not select a different review.</p>
       <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
       <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
-    </main>;
+    </main>
+    <ContactCompanyDetails locale="en" />
+    </>;
   }
   const agentActionOrder = decision.role === "offer";
   const publicExposureOrder = decision.role === "product";
@@ -127,6 +139,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     : [];
 
   return (
+    <>
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-12">
       <section className="mb-5 max-w-[720px]">
@@ -185,7 +198,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         </section>
 
         <details className="border-y border-surface-border">
-          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What happens next and scope</summary>
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">What happens next and scope</summary>
           <div className="space-y-4 pb-5">
           {selectedOffer ? (
             <section className="border border-surface-border bg-surface-bg p-5">
@@ -347,7 +360,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </div>
 
       <details className="mt-5 max-w-3xl border-t border-surface-border">
-        <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What the review includes</summary>
+        <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">What the review includes</summary>
         <div
           className="mb-4"
           style={{
@@ -385,5 +398,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </details>
       </div>
     </main>
+    <ContactCompanyDetails locale="en" />
+    </>
   );
 }

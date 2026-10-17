@@ -4,6 +4,7 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample Review Report",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-report"),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample Review Report | WitnessOps",
     description:
       "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Sample Review Report | WitnessOps",
     description:
@@ -154,7 +157,7 @@ export default function SampleReportPage() {
               {statusChips.map((chip) => (
                 <div
                   key={chip.label}
-                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                  className="rounded-xs border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
                 >
                   <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
                   {chip.value}
@@ -167,7 +170,7 @@ export default function SampleReportPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Artifact manifest
             </h2>
@@ -185,7 +188,7 @@ export default function SampleReportPage() {
             </dl>
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-3 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Inspection target
             </h2>
@@ -196,7 +199,7 @@ export default function SampleReportPage() {
             </p>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Review boundary
             </h2>
@@ -223,7 +226,7 @@ export default function SampleReportPage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Authority map
             </h2>
@@ -241,7 +244,7 @@ export default function SampleReportPage() {
             </dl>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Execution path observed
             </h2>
@@ -252,7 +255,7 @@ export default function SampleReportPage() {
             </ol>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Evidence inspected
             </h2>
@@ -263,7 +266,7 @@ export default function SampleReportPage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Replayability judgment
             </h2>
@@ -290,7 +293,7 @@ export default function SampleReportPage() {
             </ul>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-4 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Integrity risks
             </h2>
@@ -325,7 +328,7 @@ export default function SampleReportPage() {
             </div>
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-3 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Operator recommendation
             </h2>
@@ -337,7 +340,7 @@ export default function SampleReportPage() {
             </p>
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section className="space-y-3 rounded-md border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Boundary note
             </h2>

@@ -9,15 +9,20 @@ const fixtures = resolve('tests/proofpack/fixtures');
 const productionFixtures = resolve('tests/proofpack/production-fixtures');
 const output = resolve(process.env.PROOFPACK_ARTIFACT_DIR ?? '/tmp/witnessops-bundle-browser');
 const localFontPaths = new Set([
-    '/fonts/inter-400.woff2', '/fonts/inter-500.woff2', '/fonts/inter-600.woff2',
-    '/fonts/ibm-plex-mono-300.woff2', '/fonts/ibm-plex-mono-400.woff2', '/fonts/ibm-plex-mono-500.woff2',
+    '/fonts/inter-300.woff2', '/fonts/inter-300-latin-ext.woff2',
+    '/fonts/inter-400.woff2', '/fonts/inter-400-latin-ext.woff2',
+    '/fonts/inter-500.woff2', '/fonts/inter-500-latin-ext.woff2',
+    '/fonts/newsreader-400.woff2', '/fonts/newsreader-400-latin-ext.woff2',
+    '/fonts/newsreader-500.woff2', '/fonts/newsreader-500-latin-ext.woff2',
+    '/fonts/ibm-plex-mono-400.woff2', '/fonts/ibm-plex-mono-400-latin-ext.woff2', '/fonts/ibm-plex-mono-400-box.woff2',
+    '/fonts/ibm-plex-mono-500.woff2', '/fonts/ibm-plex-mono-500-latin-ext.woff2', '/fonts/ibm-plex-mono-500-box.woff2',
 ]);
 async function expectReportTypography(page: Page) {
     const report = page.getByRole('article', { name: 'Derived buyer report' });
     // fonts.ready/check alone succeed when no font faces exist. Require the
     // actual local faces to load as well as the inherited application stack.
     const faces = await page.evaluate(async () => {
-        const loaded = await Promise.all([400, 500, 600].map(weight => document.fonts.load(`${weight} 15px "Inter"`, 'Report findings')));
+        const loaded = await Promise.all([300, 400, 500].map(weight => document.fonts.load(`${weight} 15px "Inter"`, 'Report findings')));
         await document.fonts.ready;
         return { status: document.fonts.status, weights: loaded.map(fonts => fonts.map(font => ({ family: font.family, status: font.status }))) };
     });
@@ -28,7 +33,7 @@ async function expectReportTypography(page: Page) {
     }
     const families = await report.locator('h1, [class*="coverTitle"], [class*="lead"], [class*="finding"] > h3').evaluateAll(elements => elements.map(element => getComputedStyle(element).fontFamily));
     expect(families.length).toBeGreaterThan(2);
-    for (const family of families) expect(family.replaceAll('"', '')).toBe('Inter, system-ui, -apple-system, sans-serif');
+    for (const family of families) expect(family.replaceAll('"', '')).toBe('Inter, Inter Fallback, system-ui, -apple-system, Segoe UI, Roboto, sans-serif');
     await expect(report.locator('[class*="chapterFooter"]').first()).toHaveCSS('font-family', 'ui-monospace, SFMono-Regular, Menlo, monospace');
 }
 function bundleFixture(name: string) {

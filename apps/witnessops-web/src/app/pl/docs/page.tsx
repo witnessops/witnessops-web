@@ -6,7 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 const EN_DOCS = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
 export const metadata: Metadata = {
-  title: "Dokumentacja WitnessOps",
+  title: "Dokumentacja",
   description:
     "Dowiedz się, co dostarcza WitnessOps, co wspiera wynik i jak go sprawdzić.",
   alternates: languageAlternates("/pl/docs", {

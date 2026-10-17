@@ -57,7 +57,7 @@ const WITHDRAWN_PURCHASE_MARKERS = [
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Proof other people can check.", "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.", "Before your agent takes an important action, understand the controls around it.", "Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.", "Understand what your public-facing system exposes—and what to fix first.", "Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities and a 45-minute handover.", "€2,500 fixed · excluding VAT", "€1,900 fixed · excluding VAT", "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.", "Evidence survives the dashboard.", "Discuss a review:", "engage@mail.witnessops.com", "Request an agent review", "Request an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Start a free check", "A public hostname snapshot. No account needed.", "Not a review.", "Record one bounded check", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
+    requiredMarkers: ["WitnessOps", "Proof other people can check.", "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.", "Before your agent takes an important action, understand the controls around it.", "Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.", "Understand what your public-facing system exposes—and what to fix first.", "Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities.", "€2,500\u00A0excl.\u00A0VAT", "€1,900\u00A0excl.\u00A0VAT", "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.", "Evidence survives the dashboard.", "Discuss a review:", "engage@mail.witnessops.com", "Request an agent review", "Request an external review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), PUBLIC_AGENT_ACTION_OFFER.price.en, EXTERNAL_ATTACK_SURFACE_OFFER.name.en, "offerId=agent-action-security-review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Tool · not a review", "Sovereign evidence", "Scope before work. Evidence beside findings.", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
   },
   {
@@ -527,9 +527,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "External Attack Surface Review",
       "Understand what your public-facing system exposes—and what to fix first.",
       "Low-impact checks of one authorised internet-facing system",
-      "€1,900 · excluding VAT",
+      "€1,900\u00A0excl.\u00A0VAT",
       "No sales call required.",
-      "Delivery timing per signed SOW",
+      "Delivery timing agreed in the signed statement of work",
       "One authorised public-facing system",
       "Inside that accepted system boundary: up to 1 registrable root domain",
       "Public cloud-hosted services can be included",
@@ -606,7 +606,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "One question. Non-secret details only.", "Your name", "Work email", "Which review?", "What needs checking?",
+      "One question. Non-secret details only.", "Work email", "Which review?", "What needs checking?",
       "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.",
       "Next, confirm your email with a code.", "Submit non-secret enquiry",
       'value="OFFSEC-EXTERNAL-EXPOSURE"',
@@ -643,7 +643,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/review/request?offerId=agent-action-security-review",
     requiredMarkers: [
       "Tell us what you want to check",
-      "€2,500 fixed · excluding VAT",
+      "€2,500\u00A0excl.\u00A0VAT",
       "What consequential action can the agent or automation take?",
       "One consequential agent or automation action",
       PUBLIC_AGENT_ACTION_OFFER.timing.en,
@@ -671,7 +671,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Domain, hostname, public IP, API, application, or public cloud endpoint",
       "Authority to request this review",
       "Start a review",
-      "€1,900 · excluding VAT",
+      "€1,900\u00A0excl.\u00A0VAT",
       "Payment is due in full before the delivery clock starts.",
       "No work or target-facing check starts from this form.",
       "External attack-surface map",
@@ -707,7 +707,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Starting at €2,500",
       "Fixed quote after scope",
       "What the External Attack Surface Review delivers",
-      "€1,900 · excluding VAT",
+      "€1,900\u00A0excl.\u00A0VAT",
     ],
   },
   {
@@ -998,11 +998,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "What this sample can show",
       "that an AI agent caused or authorized the tool calls",
       "Agent Action Security Review",
-      "€2,500 fixed · excluding VAT",
+      "€2,500\u00A0excl.\u00A0VAT",
       "This synthetic one-action example is historical",
       "not a complete sample of the current paid review",
       "do not become standard review deliverables",
-      "Delivery timing per signed SOW",
+      "Delivery timing agreed in the signed statement of work",
       "Request an agent review",
     ],
     prohibitedMarkers: [

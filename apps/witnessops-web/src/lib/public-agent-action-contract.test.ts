@@ -21,12 +21,12 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing per signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Termin realizacji według podpisanego SOW");
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.timing.en, LEGACY_AGENT_ACTION_OFFER.timing.en);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
@@ -36,7 +36,7 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   for (const locale of ["en", "pl"] as const) {
     const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
     const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
-    assert.match(rendered, locale === "en" ? /Delivery timing per signed SOW/ : /Termin realizacji według podpisanego SOW/);
+    assert.match(rendered, locale === "en" ? /Delivery timing agreed in the signed statement of work/ : /Termin realizacji według podpisanego SOW/);
     assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Jawne niewiadome/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
   }
@@ -59,5 +59,5 @@ test("public new-sales projection selects one-action and external only, never pi
   const chosen = publicPaidReviews([historic, privatePilot, external, inventory, current]);
   assert.deepEqual(chosen, [current, external]);
   assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, ["agent-action-security-review", "external-exposure-assessment"]);
-  assert.equal(external.price, "€1,900 · excluding VAT");
+  assert.equal(external.price, "€1,900\u00A0excl.\u00A0VAT");
 });

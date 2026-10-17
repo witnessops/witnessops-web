@@ -133,11 +133,11 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
 
 test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Start a free check"));
-  assert.ok(english.requiredMarkers.includes("The app cannot"));
-  assert.ok(english.requiredMarkers.includes("Record one bounded check"));
-  assert.ok(english.requiredMarkers.includes("Not a review."));
-  assert.equal(english.requiredMarkers.includes("Delivery timing per signed SOW"), false);
+  assert.ok(english.requiredMarkers.includes("Tool · not a review"));
+  assert.ok(english.requiredMarkers.includes("Sovereign evidence"));
+  assert.ok(english.requiredMarkers.includes("Scope before work. Evidence beside findings."));
+  assert.equal(english.requiredMarkers.includes("Start a free check"), false);
+  assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);
   assert.ok(english.prohibitedMarkers?.includes("10 working days"));
   assert.ok(english.prohibitedMarkers?.includes("3 working days"));
   assert.ok(english.prohibitedMarkers?.includes("€550"));
@@ -187,11 +187,11 @@ test("catalogue smoke preserves the two public review request paths", () => {
   for (const marker of [
     "Two focused security reviews.",
     "Agent Action Security Review",
-    "€2,500 fixed · excluding VAT",
-    "Delivery timing per signed SOW",
+    "€2,500\u00A0excl.\u00A0VAT",
+    "Delivery timing agreed in the signed statement of work",
     "Request an agent review",
     "External Attack Surface Review",
-    "€1,900 · excluding VAT",
+    "€1,900\u00A0excl.\u00A0VAT",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -292,7 +292,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const englishOpen = routeContract(
     "/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(englishOpen.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
+  assert.ok(englishOpen.requiredMarkers.includes("€2,500\u00A0excl.\u00A0VAT"));
   assert.ok(
     englishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
@@ -370,7 +370,7 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 
 test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
   for (const [path, marker] of [
-    ["/", "Not a review."],
+    ["/", "Tool · not a review"],
     ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
     ["/pricing", "An enquiry does not authorise collection or start a review."],
     ["/review/request", "No work or target-facing check starts from this form."],
@@ -386,9 +386,9 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
 
 test("the limits section cannot satisfy the positive capabilities check", () => {
   const route = routeContract("/");
-  const body = route.requiredMarkers.filter(marker => marker !== "Record one bounded check").join("\n");
-  assert.ok(body.includes("The app cannot"));
+  const body = route.requiredMarkers.filter(marker => marker !== "Useful evidence.").join("\n");
+  assert.ok(body.includes("Explicit limits."));
   const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
   assert.equal(result.ok, false);
-  assert.deepEqual(result.missingMarkers, ["Record one bounded check"]);
+  assert.deepEqual(result.missingMarkers, ["Useful evidence."]);
 });

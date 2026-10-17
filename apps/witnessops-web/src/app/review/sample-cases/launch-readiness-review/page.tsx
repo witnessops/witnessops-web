@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/launch-readiness-review";
 
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
   description:
     "Synthetic launch readiness sample: baseline vs candidate, drift, findings, and proofpack limits. Not live customer evidence and not launch approval.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Launch readiness review | WitnessOps",
     description:
       "Inspect a synthetic before/after launch readiness package with drift and named limits.",
@@ -25,6 +28,7 @@ export default function LaunchReadinessSamplePage() {
       productId="OFFSEC-LAUNCH-READY"
       runId="pr_lrr_20260711120000_df6bc5d205"
       situation="Situation: one launch host needs a before-and-after readiness picture against an approved baseline: drift, findings, and open decisions on the package, never automatic launch approval."
+      offerWithdrawn
       bannerNote="Synthetic public sample from the OffSec suite. Deterministic fixture evidence only. Not a live customer launch review, not production verification, and not launch approval."
       catalogHref="/catalog/offsec-launch-ready"
       sampleBase="/samples/offsec-launch-ready"

@@ -4,6 +4,7 @@ import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerOfferRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const samplePath = "/review/sample-cases/external-exposure-assessment";
 const sampleBase = "/samples/offsec-external-exposure";
@@ -28,6 +29,7 @@ export const metadata: Metadata = {
   description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence.`,
   alternates: { canonical: samplePath },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
@@ -35,6 +37,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
     description:
@@ -154,7 +157,7 @@ export default function ExternalExposureAssessmentSamplePage() {
                   href={`${sampleBase}/${file}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="break-all font-mono text-sm font-semibold text-brand-accent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                  className="break-all font-mono text-sm font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
                   {file}
                 </a>

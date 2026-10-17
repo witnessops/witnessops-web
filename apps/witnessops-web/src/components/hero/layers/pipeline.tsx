@@ -52,7 +52,7 @@ export function PipelineStrip({
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
             transition={{ delay: 0.3 + index * 0.08, duration: 0.22, ease }}
             className={cn(
-              "rounded-full border px-2.5 py-1 text-[10px] font-medium transition-all whitespace-nowrap",
+              "rounded-xs border px-2.5 py-1 text-[10px] font-medium transition-all whitespace-nowrap",
               activeNode === node.id
                 ? "border-orange-400/40 bg-orange-400/10 text-orange-200 shadow-[0_0_12px_rgba(251,146,60,0.15)]"
                 : "border-white/10 text-slate-500",

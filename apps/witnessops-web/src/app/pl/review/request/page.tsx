@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
+import { ContactCompanyDetails } from "@/components/marketing/company-details";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { buyerServiceByProductId, buyerServiceByPublicOfferId } from "@/lib/buyer-services";
 import {
@@ -37,9 +38,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       : publicExposureOrder
         ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
       : "Wybierz Agent Action Security Review albo External Attack Surface Review. Stary identyfikator nie wybiera przeglądu.",
-    alternates: languageAlternates("/pl/review/request", {
-      en: "/review/request",
-      pl: "/pl/review/request",
+    alternates: languageAlternates("/pl/contact", {
+      en: "/contact",
+      pl: "/pl/contact",
     }),
   };
 }
@@ -52,17 +53,25 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
     offer: params.offer,
   });
   if (decision.state === "rejected") {
-    return <NewSalesIntakeClosed locale="pl" reason={decision.reason} />;
+    return (
+      <>
+        <NewSalesIntakeClosed locale="pl" reason={decision.reason} />
+        <ContactCompanyDetails locale="pl" />
+      </>
+    );
   }
   if (decision.state === "chooser") {
-    return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
+    return <>
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
       <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Zapytaj o sprawę</p>
       <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">Jedno pytanie. Tylko niepoufne szczegóły.</h1>
       <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Wybierz Agent Action Security Review albo External Attack Surface Review. Nazwa wyświetlana, stary identyfikator albo swobodny opis nie wybiera innego przeglądu.</p>
       <div className="mt-10"><ContactForm compact landing locale="pl" /></div>
       <p className="mt-6 text-sm leading-6 text-text-muted">Ten formularz nie rozpoczyna pracy ani kontroli wobec celu.</p>
       <p className="mt-3 text-sm leading-6 text-text-muted">Wolisz e-mail? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
-    </main>;
+    </main>
+    <ContactCompanyDetails locale="pl" />
+    </>;
   }
   const agentActionOrder = decision.role === "offer";
   const publicExposureOrder = decision.role === "product";
@@ -79,6 +88,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
     : undefined;
 
   return (
+    <>
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-12">
       <header className="mb-5 max-w-[720px]">
@@ -106,7 +116,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
           />
         </section>
         <details className="border-y border-surface-border">
-          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">Kolejne kroki i zakres</summary>
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary">Kolejne kroki i zakres</summary>
           <div className="space-y-4 pb-5">
           <section className="border border-surface-border bg-surface-bg p-5">
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
@@ -136,5 +146,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
       <div className="mt-10"><PublicContactRoute locale="pl" /></div>
       </div>
     </main>
+    <ContactCompanyDetails locale="pl" />
+    </>
   );
 }

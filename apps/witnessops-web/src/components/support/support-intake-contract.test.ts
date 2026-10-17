@@ -26,6 +26,14 @@ test("support validates and normalizes email before advancing", () => {
   assert.ok(formStart >= 0 && formEnd > formStart);
   assert.ok(searchInput > formEnd, "docs search must stay outside the email form");
   assert.match(supportIntake, /id="si-email-error"[\s\S]*?role="alert"/);
+  assert.match(supportIntake, /"signup, CLI, results"/);
+  assert.match(supportIntake, /"konto, CLI, wyniki"/);
+  assert.doesNotMatch(supportIntake, /signup, invitations, CLI, results/);
+  assert.doesNotMatch(supportIntake, /disabled:opacity-30/);
+  assert.match(
+    supportIntake,
+    /href=\{publicContactMailto\("Private vulnerability report"\)\}\s*className="[^"]*\[overflow-wrap:anywhere\]/,
+  );
   assert.match(supportIntake, />Email address<\/label>/);
   assert.match(supportIntake, /Enter a valid email address\./);
   assert.doesNotMatch(supportIntake, /work email/i);
@@ -46,6 +54,10 @@ test("Polish support uses an explicit support mailbox lane, not the sales contac
   assert.match(polishSupport, /SUPPORT_MAILTO/);
   assert.match(polishSupport, /PUBLIC_CONTACT_EMAIL/);
   assert.doesNotMatch(polishSupport, /PublicContactRoute/);
+  assert.match(
+    polishSupport,
+    /href=\{VULNERABILITY_MAILTO\}\s*className="[^"]*\[overflow-wrap:anywhere\]/,
+  );
 });
 
 test("pricing leaves brand suffixing to the root metadata template", () => {

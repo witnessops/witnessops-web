@@ -35,7 +35,7 @@ test("English and Polish request pages sell only the two accepted identities", a
   });
   const agentHtml = render(agent);
   assert.match(agentHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(agentHtml, /€2,500 fixed · excluding VAT/);
+  assert.match(agentHtml, /€2,500\u00A0excl.\u00A0VAT/);
   assert.match(agentHtml, /One consequential agent or automation action/);
   assert.doesNotMatch(agentHtml, /Starting at €2,500/);
   assert.doesNotMatch(agentHtml, /offerId=agent-tools-access-review/);
@@ -46,7 +46,7 @@ test("English and Polish request pages sell only the two accepted identities", a
   });
   const externalHtml = render(external);
   assert.match(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);
-  assert.match(externalHtml, /€1,900 · excluding VAT/);
+  assert.match(externalHtml, /€1,900\u00A0excl.\u00A0VAT/);
   assert.match(externalHtml, /This is not a penetration test/);
   assert.doesNotMatch(externalHtml, /agent-action-security-review/);
 
@@ -55,7 +55,9 @@ test("English and Polish request pages sell only the two accepted identities", a
   });
   const polishHtml = render(polishAgent);
   assert.match(polishHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(polishHtml, /€2 500: cena stała · bez VAT/);
+  assert.match(polishHtml, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.doesNotMatch(polishHtml, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
+  assert.doesNotMatch(polishHtml, /cena stała/);
   assert.match(polishHtml, /Jedno istotne działanie agenta lub automatyzacji/);
   assert.doesNotMatch(polishHtml, /Od €2 500 · bez VAT/);
 });

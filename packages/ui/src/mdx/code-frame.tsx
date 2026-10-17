@@ -10,7 +10,7 @@ export function CodeFrame({ filename, language, children }: CodeFrameProps) {
   return (
     <div
       style={{
-        borderRadius: "16px",
+        borderRadius: "var(--radius-card)",
         overflow: "hidden",
         border: "1px solid rgba(255,255,255,0.08)",
         fontFamily: "monospace",
@@ -30,9 +30,9 @@ export function CodeFrame({ filename, language, children }: CodeFrameProps) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "var(--radius-pill)", background: "#ff5f57" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "var(--radius-pill)", background: "#febc2e" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "var(--radius-pill)", background: "#28c840" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{language}</span>

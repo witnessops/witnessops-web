@@ -7,12 +7,14 @@ import {
   canonicalUrl,
   languageAlternates,
   languagePairForPath,
+  homepageReviewsJsonLd,
   organizationJsonLd,
   publicExposureBreadcrumbJsonLd,
   publicExposureServiceJsonLd,
   websiteJsonLd,
 } from "./public-seo";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
+import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
 
 test("canonical URLs always use the HTTPS apex and drop query tracking", () => {
   assert.equal(CANONICAL_ORIGIN, "https://witnessops.com");
@@ -40,6 +42,24 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
         "x-default": canonicalUrl(pair.en),
       },
     });
+  }
+});
+
+test("homepage review data names the two locked prices with VAT excluded", () => {
+  const data = homepageReviewsJsonLd();
+  const offers = data.itemListElement.map((entry) => entry.item.offers);
+  assert.deepEqual(offers.map((offer) => offer.price), ["2500", "1900"]);
+  assert.ok(offers.every((offer) => offer.priceCurrency === "EUR" && offer.valueAddedTaxIncluded === false));
+});
+
+test("paired pages keep en, pl and x-default, and withdrawn pages have none", () => {
+  assert.deepEqual(languagePairForPath("/contact"), {
+    en: "/contact",
+    pl: "/pl/contact",
+  });
+  assert.equal(languagePairForPath("/review/request"), undefined);
+  for (const path of WITHDRAWN_OFFER_PATHS) {
+    assert.equal(languagePairForPath(path), undefined, path);
   }
 });
 
@@ -71,6 +91,8 @@ test("structured trust data is factual and syntactically serializable", () => {
     EXTERNAL_ATTACK_SURFACE_OFFER.situation.pl,
   );
   assert.match(service.description, /not a penetration test/i);
+  assert.equal(service.offers.description, "€1,900 excl. VAT. Delivery timing agreed in the signed statement of work.");
+  assert.doesNotMatch(service.offers.description, /\u00A0/);
   assert.equal(service.offers.priceCurrency, "EUR");
   assert.equal(service.offers.priceSpecification.valueAddedTaxIncluded, false);
   assert.equal("inLanguage" in service, false);

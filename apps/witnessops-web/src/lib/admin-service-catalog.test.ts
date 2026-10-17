@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { BUYER_SERVICES, buyerServiceRequestHref } from "./buyer-services";
+import { plainOfferPrice } from "./offer-price-unit";
 import { listAdminBuyerServices } from "./admin-service-catalog";
 
 test("admin services mirror the canonical public catalogue without inventing contracts", () => {
@@ -16,7 +17,8 @@ test("admin services mirror the canonical public catalogue without inventing con
   for (const [index, service] of services.entries()) {
     const authority = BUYER_SERVICES[index]!;
     assert.equal(service.name, authority.name.en);
-    assert.equal(service.price, authority.price.en);
+    assert.equal(service.price, plainOfferPrice(authority.price.en));
+    assert.doesNotMatch(service.price, /\u00A0/);
     assert.equal(service.timing, authority.timing.en);
     assert.equal(service.publicHref, authority.detailHref.en ?? "/catalog");
     assert.equal(service.requestHref, buyerServiceRequestHref("en", authority));

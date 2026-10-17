@@ -7,18 +7,20 @@ import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i1
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary navigation exposes the simplified website destinations", () => {
-  for (const href of ["/early-access", "/catalog", "/pricing", "/check", "/docs"]) {
+  for (const href of ["/early-access", "/reviews", "/pricing", "/check", "/docs"]) {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.match(navbar, /label: signupUrl \? "Sign up" : "Free check"/);
+  assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
+  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Opisz swój system");
+  assert.equal(POLISH_PUBLIC_NAV.cta.href, "/pl/review/request");
 });
 
 test("shared navigation preserves Polish destinations and selected enquiry", () => {
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
-  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
+  assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/catalog", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
+    "/pl/reviews", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);
 });
 
@@ -101,12 +103,15 @@ test("tablet uses the compact navigation instead of overflowing desktop links", 
   assert.match(mobileNavbar, /lg:hidden/);
 });
 
-test("mobile header keeps the WitnessOps mark and readable wordmark", () => {
-  assert.match(navbar, /WitnessOpsMark/);
+test("mobile header uses the canonical horizontal lockup without a live wordmark", () => {
+  assert.match(navbar, /alt="WitnessOps"/);
+  assert.match(navbar, /witnessops-horizontal-black\.svg/);
+  assert.match(navbar, /witnessops-horizontal-white\.svg/);
   assert.match(navbar, /aria-label=\{polish \? "WitnessOps: strona główna" : "WitnessOps home"\}/);
-  assert.match(navbar, /text-xs font-medium uppercase leading-none/);
   assert.match(navbar, /mobile-brand-navbar/);
+  assert.doesNotMatch(navbar, /WitnessOpsMark/);
   assert.doesNotMatch(navbar, /HOME_BRAND_LINE/);
+  assert.doesNotMatch(navbar, />\s*WitnessOps\s*</);
 });
 
 test("mobile menu is a viewport-bounded scrolling sheet with one orange action", () => {
@@ -141,13 +146,10 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("English public navigation uses the existing outlined secondary action", () => {
+test("English public navigation uses Discuss a review as the primary action", () => {
   assert.doesNotMatch(navbar, /homepageNativeChrome/);
   assert.match(navbar, /getDesktopCtaClassName/);
-  assert.match(
-    navbar,
-    /label: "Sign up",\s+href: signupUrl,\s+variant: "secondary"/,
-  );
+  assert.match(navbar, /label: "Discuss a review",\s+href: "\/contact",\s+variant: "primary"/);
   assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
 });
@@ -157,9 +159,10 @@ test("English public navigation uses the existing outlined secondary action", ()
   const groups = readFileSync(resolve(__dirname, "public-nav-groups.ts"), "utf-8");
   assert.match(mobile, /variant=\{cta.variant as/);
   assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
-  assert.match(navbar, /: signupUrl \? \{/);
-  assert.match(navbar, /variant: "secondary",\s+} : null/);
+  assert.match(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
   assert.match(groups, /label: "Sample work", href: "\/review\/sample-cases"/);
-  assert.match(groups, /label: "All services", href: "\/catalog"/);
+  assert.match(groups, /label: "All reviews", href: "\/reviews"/);
+  assert.match(groups, /label: "The Sovereign Chronicles", href: "\/chronicles"/);
+  assert.match(groups, /label: "Tool · not a review"/);
 });

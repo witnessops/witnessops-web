@@ -44,7 +44,7 @@ The signed target schedule controls the actual scope. The caps are maximums, not
 - buyer-readable executive report and technical appendix;
 - evidence manifest and artifact hashes;
 - signed receipt and offline verifier where the supported path is produced;
-- one 45-minute handover and one focused retest of reported findings within 30 days.
+- one focused retest of reported findings within 30 days.
 
 Package-integrity checks support only the files and claims they name. They do not prove the system is secure.
 
@@ -56,7 +56,7 @@ This is not a penetration test and does not guarantee security, completeness, co
 
 ### Commercial line
 
-- **Fixed fee:** €1,900 · excluding VAT for the named package boundary.
+- **Fixed fee:** €1,900 excl. VAT for the named package boundary.
 - **Ordering:** no sales call is required. The request begins asynchronous scope acceptance; it does not authorise testing.
 - **Payment:** payment of €1,900 in full is due before the delivery clock starts. Payment alone does not authorise testing.
 - **Availability:** subject to written scope acceptance and confirmed operator capacity.

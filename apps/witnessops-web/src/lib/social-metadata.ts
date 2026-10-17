@@ -10,3 +10,21 @@ export const DEFAULT_OPEN_GRAPH_IMAGES = [
 ];
 
 export const DEFAULT_TWITTER_IMAGES = [DEFAULT_SOCIAL_IMAGE_PATH];
+
+export function pageSocialMetadata(title: string, description: string) {
+  return {
+    openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
+      title: `${title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "website" as const,
+    },
+    twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
+      card: "summary_large_image" as const,
+      title: `${title} | WitnessOps`,
+      description,
+    },
+  };
+}

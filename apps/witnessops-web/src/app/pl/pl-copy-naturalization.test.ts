@@ -7,10 +7,16 @@ import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { getPolishSkus, POLISH_OFFERS } from "@/lib/public-i18n";
 
 const homePage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const polishLayout = readFileSync(resolve(__dirname, "layout.tsx"), "utf-8");
 const buyerHomepage = readFileSync(
   resolve(__dirname, "../../components/marketing/buyer-homepage.tsx"),
   "utf-8",
 );
+
+test("Polish pages carry the native-review tag without changing company details", () => {
+  assert.match(polishLayout, /PL copy pending native review/);
+  assert.doesNotMatch(polishLayout, /company-details/);
+});
 
 test("Polish homepage leads with the two public paid reviews", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);

@@ -31,7 +31,7 @@ navbar:
   links:
     - label: "Services"
       href: "/catalog"
-    - label: "Free check"
+    - label: "Tool · not a review"
       href: "/check"
     - label: "Sample work"
       href: "/review/sample-cases"
@@ -204,7 +204,7 @@ footer:
       href: "/research"
     - label: "Sample work"
       href: "/review/sample-cases"
-    - label: "Free check"
+    - label: "Tool · not a review"
       href: "/check"
     - label: "Docs"
       href: "/docs"

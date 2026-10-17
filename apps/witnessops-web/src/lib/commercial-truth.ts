@@ -1,4 +1,5 @@
 import { PUBLIC_B2B_VAT_LABEL, publicB2bPrice } from "./commercial-price";
+import { AGENT_PRICE_EN, AGENT_PRICE_PL, EXTERNAL_PRICE_EN, EXTERNAL_PRICE_PL } from "./offer-price-unit";
 
 /** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
 export const AUTOMATION_REPAIR_OFFER = {
@@ -163,8 +164,13 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
     timing: "delivery_timing_per_signed_sow",
   },
+  price: {
+    ...LEGACY_AGENT_ACTION_OFFER.price,
+    en: AGENT_PRICE_EN,
+    pl: AGENT_PRICE_PL,
+  },
   timing: {
-    en: "Delivery timing per signed SOW",
+    en: "Delivery timing agreed in the signed statement of work",
     pl: "Termin realizacji według podpisanego SOW",
   },
   result: {
@@ -268,7 +274,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   productId: "OFFSEC-EXTERNAL-EXPOSURE",
   route: {
     en: "/catalog/offsec-external-exposure",
-    pl: "/pl/catalog/offsec-external-exposure",
+    pl: "/pl/reviews/external-attack-surface-review",
   },
   requestRoute: "/review/request",
   name: {
@@ -283,7 +289,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     amount: "1900",
     currency: "EUR",
     vatIncluded: false,
-    ...publicB2bPrice("€1,900", "€1 900"),
+    en: EXTERNAL_PRICE_EN,
+    pl: EXTERNAL_PRICE_PL,
   },
   // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {
@@ -292,7 +299,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     ...publicB2bPrice("€550", "€550"),
   },
   timing: {
-    en: "Delivery timing per signed SOW",
+    en: "Delivery timing agreed in the signed statement of work",
     pl: "Termin realizacji według podpisanego SOW",
   },
   cardSituation: {
@@ -304,8 +311,8 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     pl: "Dla zespołów SaaS i technologicznych przed uruchomieniem usługi, zmianą infrastruktury lub oceną bezpieczeństwa przez klienta. Kontrole o niskim wpływie na jeden autoryzowany system dostępny z internetu, ręcznie zweryfikowane ustalenia i praktyczne priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
   },
   result: {
-    en: "An external attack-surface map, manually validated findings, remediation priorities, a 45-minute handover and one focused retest within 30 calendar days of initial report handover.",
-    pl: "Mapa zewnętrznej powierzchni ataku, ręcznie zweryfikowane ustalenia, priorytety napraw, 45-minutowe omówienie i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
+    en: "An external attack-surface map, manually validated findings, remediation priorities and one focused retest within 30 calendar days of initial report handover.",
+    pl: "Mapa zewnętrznej powierzchni ataku, ręcznie zweryfikowane ustalenia, priorytety napraw i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
   },
   boundary: {
     en: "This is not a penetration test. No exploitation, authenticated testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, exfiltration, certification, or security guarantee.",

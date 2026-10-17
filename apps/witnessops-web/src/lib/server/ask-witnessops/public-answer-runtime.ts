@@ -8,6 +8,7 @@ import {
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { isHistoricallyUnindexedPublicPath } from "@/lib/historical-public-routes";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import type { AskWitnessOpsRuntimeEnabledConfig } from "@/lib/docs-assistant/runtime-config";
 import type { NormalizedAskRequest } from "./ask-request-normalizer";
@@ -22,7 +23,7 @@ const CANONICAL_NO_BOUNDARIES = new Set(BUYER_SERVICES.flatMap((service) =>
 function publicPrice(service: (typeof BUYER_SERVICES)[number], language: "en" | "pl" = "en") {
   return service.pricingVisible === false
     ? (service.availability?.label[language] ?? "Available by request")
-    : service.price[language];
+    : plainOfferPrice(service.price[language]);
 }
 
 // Only public buyer material is supplied to the model. No authority artifacts,
@@ -44,13 +45,13 @@ const PUBLIC_SOURCES = [
     source_id: "public.overview",
     public_label: "WitnessOps services",
     canonical_href: "https://witnessops.com/catalog",
-    excerpt: "New paid reviews are exactly Agent Action Security Review (offerId agent-action-security-review, one consequential action, fixed published price) and External Attack Surface Review (productId OFFSEC-EXTERNAL-EXPOSURE, one authorised public-facing system, one focused retest within 30 calendar days of initial report handover). Do not offer a private pilot, the former footprint option, or any other catalogue service for a new request. Historical catalogue records keep their original meaning. Start with a non-secret description; scope and authorization must be agreed before work. Public chat gives guidance only and cannot inspect a visitor's systems, execute work, submit requests or save a lead. For account or product support use Contact support on /support. For expert work use the Prepare my request form. Submission and mailbox confirmation are separate actions; chat alone does not send a request.",
+    excerpt: "New paid reviews are exactly Agent Action Security Review (offerId agent-action-security-review, one consequential action, published price) and External Attack Surface Review (productId OFFSEC-EXTERNAL-EXPOSURE, one authorised public-facing system, one focused retest within 30 calendar days of initial report handover). Do not offer a private pilot, the former footprint option, or any other catalogue service for a new request. Historical catalogue records keep their original meaning. Start with a non-secret description; scope and authorization must be agreed before work. Public chat gives guidance only and cannot inspect a visitor's systems, execute work, submit requests or save a lead. For account or product support use Contact support on /support. For expert work use the Prepare my request form. Submission and mailbox confirmation are separate actions; chat alone does not send a request.",
   },
   {
     source_id: "public.historical-agent-action-offer",
     public_label: "Historical Agent Action Security Review",
     canonical_href: "https://github.com/witnessops/witnessops-web/blob/main/docs/commercial/16-agent-workflow-reconstruction-offer.md",
-    excerpt: "New paid requests accept exactly two reviews. Agent Action Security Review uses offerId agent-action-security-review: one consequential agent or automation action at the fixed published price. It is not the historical bounded-workflow-review id and not the inventory offer agent-tools-access-review. External Attack Surface Review uses productId OFFSEC-EXTERNAL-EXPOSURE: one authorised public-facing system, the existing caps, and one focused retest within 30 calendar days of initial report handover. It is not a penetration test. Do not promote a private pilot, the former footprint option, or any other paid service for a new request. Existing issued agreements keep their original terms.",
+    excerpt: "New paid requests accept exactly two reviews. Agent Action Security Review uses offerId agent-action-security-review: one consequential agent or automation action at the published price. It is not the historical bounded-workflow-review id and not the inventory offer agent-tools-access-review. External Attack Surface Review uses productId OFFSEC-EXTERNAL-EXPOSURE: one authorised public-facing system, the existing caps, and one focused retest within 30 calendar days of initial report handover. It is not a penetration test. Do not promote a private pilot, the former footprint option, or any other paid service for a new request. Existing issued agreements keep their original terms.",
   },
   ...BUYER_SERVICES.filter((service) => isPublicPaidReviewId(service.id)).map((service) => ({
     source_id: `service.${service.id}`,
@@ -90,7 +91,7 @@ const PUBLIC_SOURCES = [
     source_id: "public.reviewer",
     public_label: "Your reviewer",
     canonical_href: "https://witnessops.com/why-witnessops",
-    excerpt: "Karol Stefanski is the founder of WitnessOps and the reviewer. His public reviewer section states that he previously worked as an engineer at Waystone and Nostra. Clients work directly with Karol to agree the scope, review findings and understand next steps. No additional credentials, client history or availability are established here.",
+    excerpt: "The public reviewer section names the role Founder. Clients work directly with the founder to agree the scope, review findings and understand next steps. No personal name, employer history, additional credentials, client history or availability are established here.",
   },
 ].filter((source) => !isHistoricallyUnindexedPublicPath(source.canonical_href));
 

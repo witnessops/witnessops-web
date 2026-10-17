@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/custody-wallet-ops-review";
 
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
   description:
     "Synthetic custody and wallet-ops control review sample with sanitised observations and hard boundaries. Not live customer evidence; no keys, balances, or fund movement.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Custody / wallet-ops review | WitnessOps",
     description:
       "Inspect a synthetic custody control package. No keys, balances, fund movement, or solvency claim.",
@@ -25,6 +28,7 @@ export default function CustodyWalletOpsSamplePage() {
       productId="OFFSEC-CUSTODY-OPS"
       runId="pr_custody_demo_20260711130000"
       situation="Situation: a team needs a proof-backed review of custody or wallet-operations controls using sanitised observations only, without WitnessOps touching funds or secrets."
+      offerWithdrawn
       bannerNote="Synthetic public sample from the OffSec suite. Sanitised fixture observations only. Not live customer evidence. No keys, seed phrases, balances, fund movement, custody of funds, or solvency claim."
       catalogHref="/catalog/offsec-custody-ops"
       sampleBase="/samples/offsec-custody-ops"

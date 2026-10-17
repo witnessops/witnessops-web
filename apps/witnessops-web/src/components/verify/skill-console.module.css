@@ -8,12 +8,25 @@
   --skill-accent: var(--color-brand-accent);
   --skill-rule: var(--color-surface-border);
   --skill-rule-strong: var(--color-surface-border-strong);
+  --skill-signal-red-text: var(--color-signal-red);
+  --skill-signal-amber-text: var(--color-signal-amber);
+  --skill-signal-green-text: var(--color-signal-green);
+  --skill-shadow: color-mix(in srgb, var(--color-text-inverse) 30%, transparent);
+  --skill-press: color-mix(in srgb, var(--color-brand-accent) 16%, var(--skill-raised));
   min-height: 100vh;
   background:
-    radial-gradient(circle at 18% 3%, rgba(242, 122, 61, 0.08), transparent 25rem),
+    radial-gradient(circle at 18% 3%, color-mix(in srgb, var(--color-brand-accent) 8%, transparent), transparent 25rem),
     var(--skill-paper);
   color: var(--skill-ink);
   display: flow-root;
+}
+
+/* Light signal tokens are indicator tints; text and verdict edges need them pulled toward ink to reach 4.5:1 and 3:1. */
+:global(html[data-theme="light"]) .page {
+  --skill-signal-red-text: color-mix(in srgb, var(--color-signal-red) 60%, var(--color-text-primary));
+  --skill-signal-amber-text: color-mix(in srgb, var(--color-signal-amber) 45%, var(--color-text-primary));
+  --skill-signal-green-text: color-mix(in srgb, var(--color-signal-green) 45%, var(--color-text-primary));
+  --skill-shadow: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
 }
 
 .frame {
@@ -80,10 +93,10 @@
 .boundaryPanel {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.85rem;
-  background: rgba(13, 13, 12, 0.88);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-card);
+  box-shadow: 0 24px 64px var(--skill-shadow);
 }
 
 .panelHeader,
@@ -161,14 +174,14 @@
 .console {
   overflow: hidden;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.9rem;
+  border-radius: var(--radius-card);
   background: var(--skill-paper);
-  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 28px 72px var(--skill-shadow);
 }
 
 .consoleHeader {
   padding: 1rem 1.2rem;
-  background: rgba(255, 255, 255, 0.012);
+  background: color-mix(in srgb, var(--skill-raised) 50%, var(--skill-paper));
 }
 
 .consoleHeader p,
@@ -245,7 +258,7 @@
   min-height: 48px;
   align-items: center;
   justify-content: center;
-  border-radius: 0.55rem;
+  border-radius: var(--radius-control);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 650;
@@ -264,7 +277,7 @@
 .reportButton {
   cursor: pointer;
   border: 1px solid var(--skill-rule-strong);
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--skill-raised);
   color: var(--skill-ink);
   padding: 0.75rem 1rem;
 }
@@ -272,13 +285,16 @@
 .fileButton:hover,
 .reportButton:hover {
   border-color: var(--skill-accent);
-  background: rgba(242, 122, 61, 0.09);
+  background: color-mix(in srgb, var(--color-brand-accent) 9%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 28px var(--skill-shadow);
 }
 
 .fileButton:active,
 .reportButton:active {
+  border-color: var(--color-brand-accent-press);
+  background: var(--skill-press);
+  box-shadow: none;
   transform: translateY(0) scale(0.985);
 }
 
@@ -287,8 +303,8 @@
 .verifyButton:focus-visible,
 .policySelect:focus-visible,
 .findingsList summary:focus-visible {
-  outline: 2px solid var(--skill-accent);
-  outline-offset: 3px;
+  outline: var(--focus-width) solid var(--skill-accent);
+  outline-offset: var(--focus-offset);
 }
 
 .editorShell {
@@ -296,8 +312,8 @@
   overflow: hidden;
   margin-top: 1.35rem;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.65rem;
-  background: #080b12;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-inset);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
@@ -305,7 +321,7 @@
 
 .editorShell:focus-within {
   border-color: var(--skill-accent);
-  box-shadow: 0 0 0 3px rgba(242, 122, 61, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-accent) 10%, transparent);
 }
 
 .editorBar {
@@ -324,8 +340,14 @@
 }
 
 .editorBar span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--skill-ink-soft);
   font-weight: 650;
+}
+
+.editorBar span:last-child {
+  flex-shrink: 0;
 }
 
 .editor {
@@ -336,15 +358,14 @@
   border: 0;
   background: transparent;
   padding: 1rem;
-  color: var(--skill-ink-soft);
+  color: var(--skill-ink);
   font-family: var(--font-mono);
   font-size: 0.76rem;
   line-height: 1.8;
-  outline: none;
 }
 
 .editor::placeholder {
-  color: rgba(158, 154, 147, 0.48);
+  color: var(--skill-ink-muted);
 }
 
 .controlRow {
@@ -381,12 +402,12 @@
   width: min(100%, 32rem);
   min-height: 50px;
   border: 1px solid var(--skill-rule-strong);
-  border-radius: 0.55rem;
+  border-radius: var(--radius-control);
   background: var(--skill-soft);
   padding: 0 2.5rem 0 0.9rem;
   color: var(--skill-ink);
   font-size: 0.84rem;
-  outline: none;
+  text-overflow: ellipsis;
   transition:
     border-color 180ms ease,
     background-color 180ms ease,
@@ -395,31 +416,27 @@
 
 .policySelect:hover {
   border-color: var(--skill-accent);
-  background: rgba(242, 122, 61, 0.08);
+  background: color-mix(in srgb, var(--color-brand-accent) 8%, transparent);
 }
 
 .verifyButton {
   cursor: pointer;
   min-width: 9.5rem;
-  border: 1px solid var(--skill-accent);
-  background: var(--skill-accent);
+  border: 1px solid var(--color-action-fill);
+  background: var(--color-action-fill);
   padding: 0.8rem 1.4rem;
-  color: #160b05;
-  box-shadow:
-    0 8px 24px rgba(242, 122, 61, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: var(--color-action-on-fill);
+  box-shadow: none;
 }
 
 .verifyButton:hover:not(:disabled) {
-  background: #ff8a4c;
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 34px rgba(242, 122, 61, 0.26),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  border-color: var(--color-action-fill-hover);
+  background: var(--color-action-fill-hover);
 }
 
 .verifyButton:active:not(:disabled) {
-  transform: translateY(0) scale(0.985);
+  border-color: var(--color-action-fill-press);
+  background: var(--color-action-fill-press);
 }
 
 .verifyButton:disabled {
@@ -478,13 +495,13 @@
 .exactBinding code {
   min-width: 0;
   overflow-wrap: anywhere;
-  color: var(--skill-accent-soft);
+  color: var(--skill-accent);
   font-size: 0.7rem;
 }
 
 .bindingInvalidated {
   margin: 1rem 0 0;
-  color: var(--color-signal-yellow);
+  color: var(--skill-signal-amber-text);
 }
 
 .resultLimitation {
@@ -495,13 +512,13 @@
 .errorState {
   margin: 0 clamp(1.3rem, 3vw, 2rem) clamp(1.3rem, 3vw, 2rem);
   padding: 1rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--color-signal-red) 45%, transparent);
-  border-left: 3px solid var(--color-signal-red);
-  background: color-mix(in srgb, var(--color-signal-red) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--skill-signal-red-text) 45%, transparent);
+  border-left: 3px solid var(--skill-signal-red-text);
+  background: color-mix(in srgb, var(--skill-signal-red-text) 7%, transparent);
 }
 
 .errorState span {
-  color: var(--color-signal-red);
+  color: var(--skill-signal-red-text);
   font-family: var(--font-mono);
   font-size: 0.63rem;
   font-weight: 650;
@@ -520,7 +537,7 @@
   scroll-margin-top: calc(var(--app-navbar-height, 76px) + 1rem);
   padding: clamp(1.3rem, 3vw, 2rem);
   border-top: 1px solid var(--skill-rule);
-  background: rgba(255, 255, 255, 0.01);
+  background: color-mix(in srgb, var(--skill-raised) 35%, var(--skill-paper));
 }
 
 .verdictCard {
@@ -529,20 +546,20 @@
   overflow: hidden;
   border: 1px solid var(--skill-rule-strong);
   border-left-width: 3px;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-card);
   background: var(--skill-soft);
 }
 
 .verdictPass {
-  border-left-color: var(--color-signal-green);
+  border-left-color: var(--skill-signal-green-text);
 }
 
 .verdictReview {
-  border-left-color: var(--color-signal-amber);
+  border-left-color: var(--skill-signal-amber-text);
 }
 
 .verdictFail {
-  border-left-color: var(--color-signal-red);
+  border-left-color: var(--skill-signal-red-text);
 }
 
 .verdictStatus,
@@ -581,15 +598,15 @@
 }
 
 .verdictReview .verdictStatus strong {
-  color: var(--color-signal-amber);
+  color: var(--skill-signal-amber-text);
 }
 
 .verdictPass .verdictStatus strong {
-  color: var(--color-signal-green);
+  color: var(--skill-signal-green-text);
 }
 
 .verdictFail .verdictStatus strong {
-  color: var(--color-signal-red);
+  color: var(--skill-signal-red-text);
 }
 
 .verdictStatus span {
@@ -651,8 +668,8 @@
 .findingsList details {
   overflow: hidden;
   border: 1px solid var(--skill-rule);
-  border-radius: 0.55rem;
-  background: rgba(255, 255, 255, 0.012);
+  border-radius: var(--radius-card);
+  background: var(--skill-raised);
   transition:
     border-color 180ms ease,
     background-color 180ms ease;
@@ -661,7 +678,7 @@
 .findingsList details:hover,
 .findingsList details[open] {
   border-color: var(--skill-rule-strong);
-  background: rgba(255, 255, 255, 0.022);
+  background: var(--color-surface-card-hover);
 }
 
 .findingsList summary {
@@ -674,6 +691,10 @@
   padding: 0.75rem 1rem;
   color: var(--skill-ink);
   list-style: none;
+}
+
+.findingsList summary:active {
+  background: var(--skill-press);
 }
 
 .findingsList summary::-webkit-details-marker {
@@ -690,11 +711,11 @@
 }
 
 .severityCritical {
-  color: var(--color-signal-red);
+  color: var(--skill-signal-red-text);
 }
 
 .severityHigh {
-  color: var(--color-signal-amber);
+  color: var(--skill-signal-amber-text);
 }
 
 .severityDefault {
@@ -752,8 +773,8 @@
   overflow-x: auto;
   padding: 0.9rem;
   border: 1px solid var(--skill-rule);
-  border-radius: 0.45rem;
-  background: #080b12;
+  border-radius: var(--radius-card);
+  background: var(--color-surface-inset);
   color: var(--skill-ink-soft);
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -800,7 +821,7 @@
 
 .copyStatus {
   width: 100%;
-  color: var(--color-signal-red);
+  color: var(--skill-signal-red-text);
   font-size: 0.72rem;
 }
 

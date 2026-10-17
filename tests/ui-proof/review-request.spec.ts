@@ -12,7 +12,6 @@ const scenarios = [
 ] as const;
 
 const requiredFields = [
-  "name",
   "email",
   "workflow",
 ] as const;
@@ -71,7 +70,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       .evaluateAll((controls) =>
         controls.map((control) => control.getAttribute("name") || control.id || control.tagName.toLowerCase()),
       );
-    expect(controlOrder).toEqual(["name", "email", "enquiryPath", "workflow", "button"]);
+    expect(controlOrder).toEqual(["email", "enquiryPath", "workflow", "button"]);
 
     await expect(form.locator("#enquiryPath option")).toHaveCount(2);
     for (const fieldName of requiredFields) {
@@ -81,7 +80,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       if (scenario.locale === "pl") expect(labelText?.toLowerCase()).toContain("wymagane");
     }
 
-    const firstField = form.locator("#name");
+    const firstField = form.locator("#email");
     await firstField.focus();
     await expect(firstField).toBeFocused();
     const invalidFieldPosition = await firstField.evaluate((element) => {
@@ -122,10 +121,9 @@ test("review request routes remain responsive, accessible, and usable", async ({
     }
     const errorSummary = form.locator('[role="alert"][tabindex="-1"]');
     await expect(errorSummary).toBeFocused();
-    await errorSummary.locator('a[href="#name"]').click();
+    await errorSummary.locator('a[href="#email"]').click();
     await expect(firstField).toBeFocused();
 
-    await form.locator("#name").fill("Buyer Name");
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("One bounded technical action");
     await form.locator("#enquiryPath").selectOption("OFFSEC-EXTERNAL-EXPOSURE");
@@ -135,7 +133,6 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "email",
       "intent",
       "locale",
-      "name",
       "org",
       "scope",
     ]);
@@ -207,10 +204,10 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2,500 fixed · excluding VAT",
+        "€2,500\u00A0excl.\u00A0VAT",
         "One consequential agent or automation action",
         "Submitting this form opens fit review only",
-        "Delivery timing per signed SOW",
+        "Delivery timing agreed in the signed statement of work",
       ],
     },
     {
@@ -219,7 +216,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Rozpocznij Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2 500: cena stała · bez VAT",
+        "€2\u00A0500\u00A0bez\u00A0VAT",
         "Jedno istotne działanie agenta lub automatyzacji",
         "Na razie bez sekretów i materiałów",
         "Termin realizacji według podpisanego SOW",
@@ -274,7 +271,6 @@ test("Agent Action Security Review gathers one non-secret consequential action",
         ),
       );
     expect(controlOrder).toEqual([
-      "name",
       "email",
       "org",
       "workflow",
@@ -295,10 +291,9 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await expect(form.locator("[aria-invalid=true]")).toHaveCount(requiredFields.length);
     const errorSummary = form.locator('[role="alert"][tabindex="-1"]');
     await expect(errorSummary).toBeFocused();
-    await errorSummary.locator('a[href="#name"]').click();
-    await expect(form.locator("#name")).toBeFocused();
+    await errorSummary.locator('a[href="#email"]').click();
+    await expect(form.locator("#email")).toBeFocused();
 
-    await form.locator("#name").fill("Synthetic Buyer");
     await form.locator("#email").fill("buyer@example.com");
     await form
       .locator("#workflow")
@@ -415,7 +410,6 @@ test("External Attack Surface Review request preserves SKU, locale, and fit boun
       "OFFSEC-EXTERNAL-EXPOSURE",
     );
 
-    await form.locator("#name").fill("Synthetic Buyer");
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("A bounded external exposure fit check");
     await form.locator("#agentPath").fill("One synthetic public application boundary");

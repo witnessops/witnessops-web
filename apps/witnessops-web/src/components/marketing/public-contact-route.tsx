@@ -85,7 +85,7 @@ export function PublicContactRoute({
         <Link
           href={primaryHref}
           data-footer-review-cta
-          className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg ${actionClass}`}
+          className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-sm border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 ${actionClass}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
           {premium ? (polish ? "Zapytaj eksperta" : "Ask an expert") : routeCta}
@@ -94,7 +94,7 @@ export function PublicContactRoute({
           {polish ? "Lub napisz:" : "Discuss a review:"}{" "}
           <a
             href={salesReviewMailto(mailtoSubject)}
-            className="inline-flex min-h-11 max-w-full items-center break-all text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+            className="inline-flex min-h-11 max-w-full items-center break-all text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary "
           >
             {PUBLIC_SALES_REVIEW_EMAIL}
           </a>

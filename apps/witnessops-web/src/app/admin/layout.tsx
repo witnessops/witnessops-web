@@ -9,5 +9,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <div data-admin-shell>{children}</div>;
 }

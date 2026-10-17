@@ -7,6 +7,12 @@ const checkScriptSrc = process.env.NODE_ENV === "development"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Pin both flags into the bundle. An unset build becomes "0", so a later
+  // runtime env cannot publish the assistant or the ask route.
+  env: {
+    NEXT_PUBLIC_WO_PREVIEW: process.env.NEXT_PUBLIC_WO_PREVIEW ?? "0",
+    NEXT_PUBLIC_SOVEREIGN_RELEASE: process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE ?? "0",
+  },
   distDir: resolveDistDir(),
   poweredByHeader: false,
   output: "standalone",
@@ -141,6 +147,13 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        // Relative Location. A route handler would build the target from the
+        // listen host (localhost under next start, 0.0.0.0 under standalone).
+        source: "/og/home",
+        destination: "/og/witnessops-home-editorial-a-2026-10.png",
+        permanent: true,
+      },
+      {
         source: "/review/sample-cases/offsec-shield-local-server-audit",
         destination: "/review/sample-cases/local-server-security-review",
         permanent: true,
@@ -152,42 +165,62 @@ const nextConfig = {
       },
       {
         source: "/catalog/offsec-access-removed",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/pl/catalog/offsec-access-removed",
-        destination: "/pl/catalog",
+        destination: "/pl/reviews",
+        permanent: true,
+      },
+      {
+        source: "/pl/catalog",
+        destination: "/pl/reviews",
+        permanent: true,
+      },
+      {
+        source: "/pl/catalog/offsec-external-exposure",
+        destination: "/pl/reviews/external-attack-surface-review",
         permanent: true,
       },
       {
         source: "/catalog/offsec",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/access-change-proof-run",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-s",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-m",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-l",
-        destination: "/catalog",
+        destination: "/reviews",
         permanent: true,
       },
       {
         source: "/catalog/workflow-rerun",
-        destination: "/catalog",
+        destination: "/reviews",
+        permanent: true,
+      },
+      {
+        source: "/catalog",
+        destination: "/reviews",
+        permanent: true,
+      },
+      {
+        source: "/catalog/offsec-external-exposure",
+        destination: "/reviews/external-attack-surface-review",
         permanent: true,
       },
     ];

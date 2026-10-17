@@ -11,7 +11,7 @@ export function ProofObject({ type, fields }: ProofObjectProps) {
       style={{
         background: "#11111b",
         color: "#a6e3a1",
-        borderRadius: "8px",
+        borderRadius: "var(--radius-card)",
         padding: "16px",
         fontFamily: "monospace",
         fontSize: "13px",

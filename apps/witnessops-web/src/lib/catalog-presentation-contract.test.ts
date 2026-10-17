@@ -18,16 +18,16 @@ const expectedPrices = {
     pl: "Od €2 500 · bez VAT",
   },
   "agent-action-security-review": {
-    en: "€2,500 fixed · excluding VAT",
-    pl: "€2 500: cena stała · bez VAT",
+    en: "€2,500\u00A0excl.\u00A0VAT",
+    pl: "€2\u00A0500\u00A0bez\u00A0VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",
     pl: "Standardowo 4 100 zł (ok. €950) · bez VAT",
   },
   "external-exposure-assessment": {
-    en: "€1,900 · excluding VAT",
-    pl: "€1 900 · bez VAT",
+    en: "€1,900\u00A0excl.\u00A0VAT",
+    pl: "€1\u00A0900\u00A0bez\u00A0VAT",
   },
   "launch-readiness-check": {
     en: "€2,500–€7,500 · excluding VAT",
@@ -55,8 +55,14 @@ test("every live buyer offer uses the canonical EN and PL VAT display", () => {
       { en: service.price.en, pl: service.price.pl },
       expectedPrices[service.id],
     );
-    assert.match(service.price.en, / · excluding VAT$/);
-    assert.match(service.price.pl, / · bez VAT$/);
+    if (service.id === "agent-action-security-review" || service.id === "external-exposure-assessment") {
+      assert.match(service.price.en, /^€(?:2,500|1,900)\u00A0excl\.\u00A0VAT$/);
+      assert.match(service.price.pl, /^€\d\u00A0\d{3}\u00A0bez\u00A0VAT$/);
+      assert.doesNotMatch(service.price.pl, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
+    } else {
+      assert.match(service.price.en, / · excluding VAT$/);
+      assert.match(service.price.pl, / · bez VAT$/);
+    }
   }
 });
 

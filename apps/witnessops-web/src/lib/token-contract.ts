@@ -96,7 +96,6 @@ export const engageRequestSchema = z.object({
 });
 
 export const reviewRequestSchema = engageRequestSchema.extend({
-  name: z.string().trim().min(1).max(INTAKE_SHORT_TEXT_MAX_LENGTH),
   scope: z.string().trim().min(1).max(INTAKE_LONG_TEXT_MAX_LENGTH),
 });
 

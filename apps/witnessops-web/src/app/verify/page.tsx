@@ -4,6 +4,7 @@ import { VerifyConsole } from "@/components/verify/verify-console";
 import { SectionShell } from "@/components/shared/section-shell";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
 import { languageAlternates } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     pl: "/pl/verify",
   }),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Verify a Receipt | WitnessOps",
     description:
       "Upload or paste supported WitnessOps receipt JSON to run bounded receipt-only checks and see what remains unverified.",
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
@@ -69,8 +72,8 @@ export default function VerifyPage() {
           }
         </p>
 
-        <details className="mt-6 border border-surface-border bg-surface-bg open:bg-surface-card/20">
-          <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-text-primary">
+        <details className="mt-6 rounded-[var(--radius-card)] border border-surface-border bg-surface-card">
+          <summary className="min-h-11 cursor-pointer px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:text-brand-accent active:bg-surface-inset">
             What this result means
           </summary>
           <div className="space-y-3 border-t border-surface-border px-5 py-4 text-sm leading-relaxed text-text-muted">
@@ -101,30 +104,30 @@ export default function VerifyPage() {
         </details>
 
         <nav
-          className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-surface-border pt-6 text-sm"
+          className="mt-8 flex flex-wrap gap-x-5 border-t border-surface-border pt-4 text-sm"
           aria-label="Related technical resources"
         >
           <Link
             href="/docs/how-it-works/verification"
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
           >
             How verification works
           </Link>
           <Link
             href="/docs/evidence/receipts"
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
           >
             Receipts
           </Link>
           <Link
             href="/docs/evidence/receipt-spec"
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
           >
             Receipt specification
           </Link>
           <Link
             href="/library"
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center text-brand-accent underline-offset-4 hover:underline active:text-text-primary"
           >
             Skills &amp; sample materials
           </Link>

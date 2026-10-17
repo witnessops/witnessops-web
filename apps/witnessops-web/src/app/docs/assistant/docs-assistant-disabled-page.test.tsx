@@ -7,8 +7,15 @@ test("docs assistant page is noindex and renders the bounded assistant shell", (
   const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 
   assert.match(source, /robots:\s*{\s*index:\s*false,\s*follow:\s*false\s*}/);
-  assert.match(source, /import\s+{\s*DocsAssistantPage\s*}/);
-  assert.match(source, /<DocsAssistantPage\s*\/>/);
+  assert.match(source, /import\s+{\s*AskSovereignPreview\s*}/);
+  assert.match(source, /<AskSovereignPreview\s*\/>/);
+  assert.match(source, /Ask Sovereign/);
+
+  const page = readFileSync(
+    resolve(__dirname, "../../../components/ask-sovereign/ask-sovereign-preview.tsx"),
+    "utf-8",
+  );
+  assert.doesNotMatch(page, /fetch\s*\(|XMLHttpRequest|fetchAskWitnessOps|trackAskEvent/);
 
   assert.doesNotMatch(source, /NODE_ENV/);
   assert.doesNotMatch(source, /NEXT_PUBLIC.*DOCS_ASSISTANT/i);

@@ -32,12 +32,12 @@ test("retired access-removal URLs preserve compatibility with permanent redirect
   assert.deepEqual(legacyRedirects, [
     {
       source: "/catalog/offsec-access-removed",
-      destination: "/catalog",
+      destination: "/reviews",
       permanent: true,
     },
     {
       source: "/pl/catalog/offsec-access-removed",
-      destination: "/pl/catalog",
+      destination: "/pl/reviews",
       permanent: true,
     },
   ]);
@@ -49,12 +49,32 @@ test("commercial routes with defensible replacements redirect directly", async (
 
   assert.deepEqual(bySource.get("/catalog/offsec"), {
     source: "/catalog/offsec",
-    destination: "/catalog",
+    destination: "/reviews",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/access-change-proof-run"), {
     source: "/access-change-proof-run",
-    destination: "/catalog",
+    destination: "/reviews",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/catalog"), {
+    source: "/catalog",
+    destination: "/reviews",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/catalog/offsec-external-exposure"), {
+    source: "/catalog/offsec-external-exposure",
+    destination: "/reviews/external-attack-surface-review",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/pl/catalog"), {
+    source: "/pl/catalog",
+    destination: "/pl/reviews",
+    permanent: true,
+  });
+  assert.deepEqual(bySource.get("/pl/catalog/offsec-external-exposure"), {
+    source: "/pl/catalog/offsec-external-exposure",
+    destination: "/pl/reviews/external-attack-surface-review",
     permanent: true,
   });
   for (const source of [
@@ -65,7 +85,7 @@ test("commercial routes with defensible replacements redirect directly", async (
   ]) {
     assert.deepEqual(bySource.get(source), {
       source,
-      destination: "/catalog",
+      destination: "/reviews",
       permanent: true,
     });
   }

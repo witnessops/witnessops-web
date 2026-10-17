@@ -18,6 +18,10 @@ import {
   DOCUMENT_LANGUAGE_HEADER,
   documentLanguageForPathname,
 } from "@/lib/request-language";
+import {
+  isPolishOfferPath,
+  isWithdrawnOfferPath,
+} from "@/lib/withdrawn-offer-routes";
 
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname ?? "witnessops.com";
@@ -33,8 +37,65 @@ function isAdminApiMutation(request: NextRequest): boolean {
   );
 }
 
+const WITHDRAWN_SHELL_HEADER = "x-witnessops-withdrawn-shell";
+const WITHDRAWN_FALLBACK_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>This offer has been withdrawn</title><body><p>This offer has been withdrawn.</p><p>Ta oferta została wycofana.</p><p><a href="/reviews">Reviews</a></p></body></html>`;
+
+function withdrawnFallback() {
+  return new NextResponse(WITHDRAWN_FALLBACK_HTML, {
+    status: 410,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex",
+    },
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Withdrawn offer pages stay in the repo. The public response is 410 and
+  // reuses the rendered site shell from /withdrawn-offer.
+  if (
+    isWithdrawnOfferPath(pathname) &&
+    request.headers.get(WITHDRAWN_SHELL_HEADER) !== "1"
+  ) {
+    const headers = {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+      "x-robots-tag": "noindex",
+    };
+    if (request.method === "HEAD") {
+      return new NextResponse(null, { status: 410, headers });
+    }
+    const shell = request.nextUrl.clone();
+    shell.pathname = isPolishOfferPath(pathname)
+      ? "/pl/withdrawn-offer"
+      : "/withdrawn-offer";
+    shell.search = "";
+    try {
+      const rendered = await fetch(shell, {
+        method: "GET",
+        redirect: "manual",
+        headers: {
+          accept: "text/html",
+          [WITHDRAWN_SHELL_HEADER]: "1",
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!rendered.ok) return withdrawnFallback();
+      return new NextResponse(await rendered.arrayBuffer(), {
+        status: 410,
+        headers: {
+          ...headers,
+          "content-type":
+            rendered.headers.get("content-type") ?? headers["content-type"],
+        },
+      });
+    } catch {
+      return withdrawnFallback();
+    }
+  }
 
   // Cookie-authenticated admin mutations must originate from the exact admin
   // origin. The federated OIDC callback is independently protected by its

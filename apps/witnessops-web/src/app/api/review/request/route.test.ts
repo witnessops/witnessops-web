@@ -9,6 +9,8 @@ import {
   getIntakeById,
 } from "@/lib/server/token-store";
 
+import { _resetAllStores } from "@witnessops/config/rate-limit";
+
 import { POST } from "./route";
 import { POST as verifyMailbox } from "@/app/api/verify-token/route";
 
@@ -28,6 +30,7 @@ function applyTestEnv(baseDir: string): void {
 
 afterEach(async () => {
   await clearTokenStore();
+  _resetAllStores();
   delete process.env.WITNESSOPS_PUBLIC_ISSUANCE_DAILY_LIMIT;
 });
 
@@ -150,8 +153,9 @@ test("review request route returns structured validation errors for the shared f
     ],
     [
       {
-        name: "",
+        name: "N".repeat(241),
         email: "security@witnessops.com",
+        intent: "agent-action-security-review",
         scope: "One bounded review request.",
       },
       "name",
@@ -181,6 +185,33 @@ test("review request route returns structured validation errors for the shared f
     assert.equal(payload.ok, false);
     assert.equal(payload.field, expectedField);
     assert.doesNotMatch(payload.error, /valid business email/i);
+  }
+});
+
+test("review request route accepts a blank or omitted name", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
+  applyTestEnv(baseDir);
+
+  for (const [name, email] of [
+    [undefined, "omitted-name@witnessops.com"],
+    ["", "blank-name@witnessops.com"],
+  ] as const) {
+    const response = await POST(
+      new Request("https://witnessops.com/api/review/request", {
+        method: "POST",
+        body: JSON.stringify({
+          ...(name === undefined ? {} : { name }),
+          email,
+          intent: "agent-action-security-review",
+          scope: "One bounded review request.",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    assert.equal(response.status, 201);
+    const payload = (await response.json()) as { intakeId: string };
+    const intake = await getIntakeById(payload.intakeId);
+    assert.equal(intake?.submission.name, null);
   }
 });
 

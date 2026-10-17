@@ -27,7 +27,7 @@ test("public production documents load the existing site beacon once with SPA co
   assert.equal(load("https://witnessops.com/", true).length, 0);
 });
 test("private, tool, query-bearing, unknown and non-production documents never load a beacon", () => {
-  for (const path of ["/admin", "/admin/login", "/api/admin/workos/callback?code=secret", "/check", "/proofpack", "/verify", "/package/private-id", "/assessment/private-id", "/review/request", "/review/request/confirmed", "/new-private-route", "/?email=private", "/#token"]) {
+  for (const path of ["/admin", "/admin/login", "/api/admin/workos/callback?code=secret", "/check", "/proofpack", "/verify", "/package/private-id", "/assessment/private-id", "/review/request", "/review/request/confirmed", "/new-private-route", "/?email=private", "/#token", "/docs/assistant", "/pl/docs/assistant", "/docs/assistant/extra"]) {
     assert.equal(load(`https://witnessops.com${path}`).length, 0, path);
   }
   for (const origin of ["http://127.0.0.1:3030", "http://192.168.1.241:3001", "https://app.witnessops.com", "https://preview.witnessops.com", "http://witnessops.com"]) {

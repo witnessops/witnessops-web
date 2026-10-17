@@ -255,7 +255,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(agentActionCard, /Start with a broken workflow/);
   assert.match(agentActionCard, /Agent Action Security Review/);
-  assert.match(agentActionCard, /€2,500 fixed/);
+  assert.match(agentActionCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCard, /AI Agent Tools &amp; Access Review/);
   assert.doesNotMatch(agentActionCard, /External Attack Surface Review/);
   assert.doesNotMatch(agentActionCard, /Agent Risk &amp; Control Review|€1,500/);
@@ -277,12 +277,12 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   );
   assert.doesNotMatch(agentActionCatalogueCard, /Start with a broken workflow/);
   assert.match(agentActionCatalogueCard, /Agent Action Security Review/);
-  assert.match(agentActionCatalogueCard, /€2,500 fixed/);
+  assert.match(agentActionCatalogueCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCatalogueCard, /AI Agent Tools &amp; Access Review|Agent Risk &amp; Control Review|€1,500/);
   assert.match(catalogue, /id="system-reviews"/);
   assert.match(catalogue, /id="ai-reviews"/);
   assert.match(publicExposureCatalogueCard, /External Attack Surface Review/);
-  assert.match(publicExposureCatalogueCard, /€1,900 · excluding VAT/);
+  assert.match(publicExposureCatalogueCard, /€1,900\u00A0excl.\u00A0VAT/);
 });
 
 test("Ask WitnessOps keeps the current and historical identities distinct", () => {
@@ -312,7 +312,8 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   for (const assessment of [assessments[0], assessments[2]]) {
     assert.equal(assessment.offer_id, PUBLIC_AGENT_ACTION_OFFER.id);
     assert.equal(assessment.offer?.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
-    assert.equal(assessment.offer?.price_label, PUBLIC_AGENT_ACTION_OFFER.price.en);
+    assert.equal(assessment.offer?.price_label, "€2,500 excl. VAT");
+    assert.doesNotMatch(assessment.offer?.price_label ?? "", /\u00A0/);
     assert.equal(assessment.offer?.unit_label, PUBLIC_AGENT_ACTION_OFFER.unit.en);
     assert.equal(assessment.offer?.fit_check_label, PUBLIC_AGENT_ACTION_OFFER.fitCheck.en);
     assert.equal(assessment.offer?.delivery_label, PUBLIC_AGENT_ACTION_OFFER.timing.en);
@@ -369,7 +370,7 @@ test("External Attack Surface Review retains its legacy registry role while curr
   assert.equal(secondary.detailHref.en, "/catalog/offsec-external-exposure");
   assert.equal(
     secondary.price.en,
-    "€1,900 · excluding VAT",
+    "€1,900\u00A0excl.\u00A0VAT",
   );
   assert.equal(secondary.timing.en, EXTERNAL_ATTACK_SURFACE_OFFER.timing.en);
   assert.match(secondary.boundary.en, /This is not a penetration test/);

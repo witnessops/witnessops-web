@@ -39,7 +39,7 @@ export function Terminal({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a0e17] font-mono text-sm shadow-2xl shadow-black/40 transition-all duration-300 hover:shadow-[0_24px_80px_rgba(2,6,23,0.55)] ${className}`}
+      className={`overflow-hidden rounded-md border border-white/[0.08] bg-[#0a0e17] font-mono text-sm shadow-2xl shadow-black/40 transition-all duration-300 hover:shadow-[0_24px_80px_rgba(2,6,23,0.55)] ${className}`}
     >
       {/* Title bar */}
       <div className="flex items-center justify-between border-b border-white/[0.06] bg-white/[0.03] px-4 py-3">

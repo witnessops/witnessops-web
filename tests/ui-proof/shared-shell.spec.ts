@@ -49,26 +49,32 @@ const languagePairs = [
 ] as const;
 
 const routesWithSecondaryNavigation = new Set<string>(["/docs", "/pl/docs"]);
+const withdrawnShellRoutes = new Set<string>([
+  "/catalog/workflows",
+  "/customer-security-review",
+  "/pl/customer-security-review",
+]);
 
 const canonicalChrome = {
-  background: "rgb(11, 12, 11)",
-  primary: "rgb(245, 241, 232)",
-  accent: "rgb(184, 155, 98)",
-  inverse: "rgb(21, 21, 16)",
+  background: "rgb(242, 238, 228)",
+  primary: "rgb(11, 12, 11)",
+  accent: "rgb(113, 90, 44)",
+  inverse: "rgb(245, 241, 232)",
   tokens: {
-    background: "#0b0c0b",
-    primary: "#f5f1e8",
-    accent: "#b89b62",
-    inverse: "#151510",
+    background: "#f2eee4",
+    primary: "#0b0c0b",
+    accent: "#715a2c",
+    inverse: "#f5f1e8",
   },
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
-  ["/catalog", "/catalog"],
-  ["/pl/catalog", "/pl/catalog"],
+  ["/catalog", "/reviews"],
+  ["/pl/catalog", "/pl/reviews"],
   ["/docs", "/docs"],
   ["/pl/docs", "/pl/docs"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
+  ["/pl/review/request", "/pl/review/request"],
 ]);
 
 function parseRgb(value: string): [number, number, number] {
@@ -117,15 +123,20 @@ test("accepted public routes retain one consistent, accessible shared shell", as
     for (const route of acceptedRoutes) {
       const consoleErrors: string[] = [];
       const pageErrors: string[] = [];
-      const onConsole = (message: { type(): string; text(): string }) => {
-        if (message.type() === "error") consoleErrors.push(message.text());
+      const onConsole = (message: { type(): string; text(): string; location(): { url: string } }) => {
+        if (message.type() !== "error") return;
+        const documentGone =
+          withdrawnShellRoutes.has(route) &&
+          new URL(message.location().url || "about:blank").pathname === route &&
+          message.text() === "Failed to load resource: the server responded with a status of 410 (Gone)";
+        if (!documentGone) consoleErrors.push(message.text());
       };
       const onPageError = (error: Error) => pageErrors.push(error.message);
       page.on("console", onConsole);
       page.on("pageerror", onPageError);
 
       const response = await page.goto(route, { waitUntil: "networkidle" });
-      expect(response?.status(), `${route} ${viewport.name} status`).toBe(200);
+      expect(response?.status(), `${route} ${viewport.name} status`).toBe(withdrawnShellRoutes.has(route) ? 410 : 200);
       await expect(page.locator("main h1").first()).toBeVisible();
       await expect(page.locator("nav.public-shell")).toHaveCount(1);
       await expect(page.locator("nav.public-shell")).toBeVisible();
@@ -189,6 +200,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
           navHeight: nav.height,
           navBottom: nav.bottom,
           mainTop: main.top,
+          reviewTagHeight: document.querySelector<HTMLElement>(".pl-copy-review")?.getBoundingClientRect().height ?? 0,
           clientWidth: document.documentElement.clientWidth,
           scrollWidth: document.documentElement.scrollWidth,
           minNavTarget: Math.min(
@@ -225,9 +237,12 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       expect(shell.navHeight, `${route} ${viewport.name} header height`).toBe(
         expectedNavHeight,
       );
+      if (route.startsWith("/pl")) {
+        expect(shell.reviewTagHeight, `${route} PL copy review tag`).toBeGreaterThan(0);
+      }
       if (!routesWithSecondaryNavigation.has(route)) {
         expect(
-          Math.abs(shell.mainTop - shell.navBottom),
+          Math.abs(shell.mainTop - shell.navBottom - shell.reviewTagHeight),
           `${route} main offset`,
         ).toBeLessThanOrEqual(1);
       }
@@ -248,7 +263,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         canonicalChrome.primary,
       );
       expect(shell.footerBackground, `${route} footer background`).toBe(
-        "rgb(17, 17, 16)",
+        canonicalChrome.background,
       );
       expect(shell.footerColor, `${route} footer foreground`).toBe(
         canonicalChrome.primary,
@@ -259,7 +274,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         ["main", shell.mainTokens],
       ] as const) {
         expect(tokens, `${route} ${viewport.name} ${surface} tokens`).toEqual(
-          surface === "footer" ? { ...canonicalChrome.tokens, background: "#111110" } : canonicalChrome.tokens,
+          canonicalChrome.tokens,
         );
       }
       expect(
@@ -271,17 +286,12 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         `${route} footer contrast`,
       ).toBeGreaterThanOrEqual(4.5);
       if (viewport.width >= 1024 && !route.startsWith("/pl")) {
+        expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Discuss a review");
+        expect(shell.desktopCtaHref, `${route} desktop CTA destination`).toBe("/contact");
         if (signupUrl) {
-          expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Sign up");
-          expect(shell.desktopCtaHref, `${route} desktop CTA destination`).toBe(signupUrl);
-          expect(shell.desktopCtaBackground, `${route} outlined CTA background`).toBe("rgba(0, 0, 0, 0)");
-          expect(Number.parseFloat(shell.desktopCtaBorderWidth!), `${route} CTA outline`).toBeGreaterThanOrEqual(1);
-          // Transparent controls composite onto the navigation, not opaque black.
-          expect(contrastRatio(shell.desktopCtaColor!, shell.navBackground), `${route} CTA text contrast`).toBeGreaterThanOrEqual(4.5);
-          expect(contrastRatio(shell.desktopCtaBorder!, shell.navBackground), `${route} CTA border remains distinct`).toBeGreaterThan(1);
-        } else {
-          expect(shell.desktopCtaHref, `${route} no unconfigured signup CTA`).toBeNull();
+          expect(shell.desktopCtaHref, `${route} signup is not the header action`).not.toBe(signupUrl);
         }
+        expect(contrastRatio(shell.desktopCtaColor!, shell.desktopCtaBackground!), `${route} CTA text contrast`).toBeGreaterThanOrEqual(4.5);
       } else if (viewport.width >= 1024) {
         expect(shell.desktopCtaBackground, `${route} desktop CTA background`).toBe(
           canonicalChrome.primary,
@@ -304,7 +314,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         // English routes now live inside grouped navigation. Inspect the active
         // link in its expanded group, preserving the one-current-page contract.
         if (!route.startsWith("/pl")) {
-          const groupName = route === "/catalog" ? "Expert help" : "Resources";
+          const groupName = route === "/catalog" || route === "/reviews" ? "Reviews" : "Resources";
           const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
           await groupToggle.click();
           await expect(groupToggle).toHaveAttribute("aria-expanded", "true");
@@ -362,7 +372,9 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   await toggle.focus();
   await openMobileMenu(page);
   await expect(toggle).toHaveAttribute("aria-label", "Zamknij główną nawigację");
-  await expect(firstMenuLink).toBeFocused();
+  await expect(
+    page.locator("#witnessops-mobile-menu").locator("a[href], button:not([disabled])").first(),
+  ).toBeFocused();
   await expect(firstMenuLink).toHaveAttribute("aria-current", "page");
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
@@ -372,7 +384,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       '#witnessops-mobile-menu [aria-current="page"]',
     );
     const cta = document.querySelector<HTMLElement>(
-      '#witnessops-mobile-menu a[href="/check"]',
+      '#witnessops-mobile-menu a[href="/pl/review/request"]',
     );
     return {
       currentBackground: current ? getComputedStyle(current).backgroundColor : null,
@@ -509,7 +521,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     expect(headerGeometry.navHeight).toBeLessThanOrEqual(64);
     expect(headerGeometry.gap).toBeGreaterThanOrEqual(8);
 
-    const formState = await page.locator("#name").evaluate((input) => {
+    const formState = await page.locator("#email").evaluate((input) => {
       const style = getComputedStyle(input);
       const box = input.getBoundingClientRect();
       const center = document.elementFromPoint(
@@ -555,7 +567,11 @@ test("unconfigured production pages expose no app destinations", async ({ page }
       await expect(page.locator('footer a').filter({ hasText: /^(Sign up|Log in|Assets|Reports|Settings)$/ })).toHaveCount(0);
       if (width < 1024) {
         await openMobileMenu(page);
-        await expect(page.locator("[data-mobile-account-actions]")).toHaveCount(0);
+        const accountActions = page.locator("[data-mobile-account-actions] a");
+        await expect(accountActions.filter({ hasText: /^(Sign up|Log in|Zaloguj się)$/ })).toHaveCount(0);
+        for (const href of await accountActions.evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""))) {
+          expect(href, `${route} mobile primary action`).not.toMatch(/app\.witnessops\.com|127\.0\.0\.1:3020|\/signup|\/login/);
+        }
       }
       await page.getByRole("navigation", { name: "Primary navigation", exact: true }).getByRole("button", { name: "Product", exact: true }).click();
       await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();

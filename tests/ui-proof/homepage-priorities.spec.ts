@@ -16,35 +16,15 @@ for (const viewport of [
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
     await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(2);
-    await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
-    await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
+    await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
     await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-    await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveCount(0);
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
     const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
     await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
     await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
-    await sampleLink.focus();
-    // Keep the remaining hero action reachable beside the launcher.
-    const collision = await page.locator('[data-focus-obscured="true"]').count();
-    if (collision) await expect(trigger).toBeHidden();
-    await sampleLink.blur();
-    await expect(trigger).toBeVisible();
-
-    await hero.evaluate(element => window.scrollTo(0, element.getBoundingClientRect().bottom + window.scrollY + 8));
-    if (viewport.width >= 640) {
-      await expect(trigger).toBeVisible();
-      await trigger.click();
-      const dialog = page.getByRole("dialog", { name: "Ask WitnessOps" });
-      await expect(dialog).toBeVisible();
-      await expect(page.getByLabel("Ask WitnessOps question")).toBeFocused();
-      await dialog.press("Escape");
-      await expect(dialog).toBeHidden();
-      await expect(trigger).toBeFocused();
-    } else {
-      await expect(trigger).toBeVisible();
-    }
 
     const enquiry = page.locator("#enquiry");
     await enquiry.scrollIntoViewIfNeeded();

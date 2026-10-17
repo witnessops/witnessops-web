@@ -31,12 +31,12 @@ for (const width of [390, 1440]) {
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
     await expect(agent).toContainText("Before your agent takes an important action, understand the controls around it.");
     await expect(agent).toContainText("Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.");
-    await expect(agent).toContainText("€2,500 fixed · excluding VAT");
+    await expect(agent).toContainText("€2,500\u00A0excl.\u00A0VAT");
     await expect(agent.getByRole("link", { name: "Request an agent review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(external).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.name.en);
     await expect(external).toContainText("Understand what your public-facing system exposes—and what to fix first.");
-    await expect(external).toContainText("Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities and a 45-minute handover.");
-    await expect(external).toContainText("€1,900 fixed · excluding VAT");
+    await expect(external).toContainText("Review one authorised internet-facing system. Receive an exposure map, manually validated findings, practical remediation priorities.");
+    await expect(external).toContainText("€1,900\u00A0excl.\u00A0VAT");
     await expect(external).toContainText("Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.");
     await expect(external.getByRole("link", { name: "Request an external review" })).toHaveAttribute("href", buyerOfferRequestHref("en", EXTERNAL_ATTACK_SURFACE_OFFER.productId));
     for (const offer of [agent, external]) {
