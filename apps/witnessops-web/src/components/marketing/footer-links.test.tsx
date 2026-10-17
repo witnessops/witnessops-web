@@ -102,8 +102,8 @@ test("English and Polish footers list both locked offers and the footer-linked p
   for (const href of ["/pl/privacy", "/pl/terms", "/pl/security", "/pl/company", "/pl/media-kit"]) {
     assert.ok(plHrefs.includes(href), `missing PL footer href ${href}`);
   }
-  assert.ok(enHrefs.includes("https://github.com/witnessops"));
-  assert.ok(plHrefs.includes("https://github.com/witnessops"));
+  assert.ok(enHrefs.some((href) => href === "https://github.com/witnessops"));
+  assert.ok(plHrefs.some((href) => href === "https://github.com/witnessops"));
   assert.match(en, /engage@mail\.witnessops\.com/);
   assert.match(pl, /engage@mail\.witnessops\.com/);
   assert.doesNotMatch(en, /Karol|Stefańsk|stefanski/i);

@@ -6,6 +6,10 @@ import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
 const CANONICAL_CONTACT = "https://witnessops.com/contact";
 const CANONICAL_PL_CONTACT = "https://witnessops.com/pl/contact";
 
+function canonicalHref(html: string): string | null {
+  return html.match(/<link rel="canonical" href="([^"]+)"/)?.[1] ?? null;
+}
+
 test(
   "withdrawn offer URLs return 410 inside the site shell",
   { skip: process.env.PUBLIC_ROUTE_BASE_URL ? false : "PUBLIC_ROUTE_BASE_URL is not set" },
@@ -66,7 +70,7 @@ test(
     const contact = await read("/contact");
     if (contact.response.status !== 200) mismatches.push(`/contact status ${contact.response.status}`);
     if (contact.response.headers.get("location")) mismatches.push("/contact redirected");
-    if (!contact.html.includes(`rel="canonical" href="${CANONICAL_CONTACT}"`) && !contact.html.includes(`href="${CANONICAL_CONTACT}"`)) {
+    if (canonicalHref(contact.html) !== CANONICAL_CONTACT) {
       mismatches.push("/contact missing canonical");
     }
     if (contact.html.includes('name="name"') || contact.html.includes("Your name")) {
@@ -76,7 +80,7 @@ test(
     const request = await read("/review/request");
     if (request.response.status !== 200) mismatches.push(`/review/request status ${request.response.status}`);
     if (request.response.headers.get("location")) mismatches.push("/review/request redirected");
-    if (!request.html.includes(CANONICAL_CONTACT)) mismatches.push("/review/request does not canonicalize to /contact");
+    if (canonicalHref(request.html) !== CANONICAL_CONTACT) mismatches.push("/review/request does not canonicalize to /contact");
 
     const polishContact = await read("/pl/contact");
     const polishRequest = await read("/pl/review/request");
@@ -86,7 +90,7 @@ test(
     if (polishRequest.response.status !== 200 || polishRequest.response.headers.get("location")) {
       mismatches.push("/pl/review/request is not a direct 200");
     }
-    if (!polishContact.html.includes(CANONICAL_PL_CONTACT) || !polishRequest.html.includes(CANONICAL_PL_CONTACT)) {
+    if (canonicalHref(polishContact.html) !== CANONICAL_PL_CONTACT || canonicalHref(polishRequest.html) !== CANONICAL_PL_CONTACT) {
       mismatches.push("Polish request pages do not canonicalize to /pl/contact");
     }
 

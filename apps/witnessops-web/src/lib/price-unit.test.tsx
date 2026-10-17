@@ -28,6 +28,10 @@ import {
 } from "@/lib/commercial-truth";
 
 const MIDDOT = /·\s*bez VAT/;
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 const LOOSE = /€(?:2,500|1,900|2[\s\u00A0]500|1[\s\u00A0]900)(?!\u00A0(?:excl\.|bez)\u00A0VAT)/;
 
 function render(node: ReactNode) {
@@ -62,8 +66,8 @@ test("simulated answer sources use the unbreakable price unit and no middot", ()
     sovereignAnswer("Co obejmuje Agent Action Security Review?", "pl").text,
     sovereignAnswer("Co obejmuje External Attack Surface Review?", "pl").text,
   ];
-  assert.match(answers[0], new RegExp(EXTERNAL_PRICE_EN.replace(/[.]/g, "\\.")));
-  assert.match(answers[1], new RegExp(AGENT_PRICE_EN.replace(/[.]/g, "\\.")));
+  assert.match(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
+  assert.match(answers[1], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
   assert.match(answers[2], new RegExp(AGENT_PRICE_PL));
   assert.match(answers[3], new RegExp(EXTERNAL_PRICE_PL));
   for (const text of answers) {
@@ -109,5 +113,5 @@ test("rendered Ask and homepage prices are nowrap units", () => {
   assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   const wrapped = renderToStaticMarkup(createElement(PriceText, { text: `The price is ${EXTERNAL_PRICE_EN}.` }));
-  assert.match(wrapped, new RegExp(`<span data-price-unit="" style="white-space:nowrap">${EXTERNAL_PRICE_EN.replace(/[.]/g, "\\.")}</span>`));
+  assert.match(wrapped, new RegExp(`<span data-price-unit="" style="white-space:nowrap">${escapeRegExp(EXTERNAL_PRICE_EN)}</span>`));
 });

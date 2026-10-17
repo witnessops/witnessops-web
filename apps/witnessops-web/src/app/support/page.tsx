@@ -211,7 +211,7 @@ export default function SupportPage() {
                   {relatedDocs.map((doc) => (
                     <Link
                       key={doc.slug}
-                      href={`/support/${doc.slug}`}
+                      href={`/support/${encodeURIComponent(doc.slug)}`}
                       className="group flex items-center justify-between border-b border-surface-border py-3 transition-colors hover:text-brand-accent"
                     >
                       <span className="text-sm text-text-secondary transition-colors group-hover:text-brand-accent">
