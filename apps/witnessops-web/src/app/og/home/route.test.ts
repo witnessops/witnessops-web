@@ -9,7 +9,7 @@ test("/og/home is a permanent config redirect to a relative path", () => {
   const source = readFileSync(resolve(webRoot, "next.config.js"), "utf8");
   assert.match(
     source,
-    /source:\s*"\/og\/home",\s*destination:\s*"\/opengraph-image",\s*permanent:\s*true/,
+    /source:\s*"\/og\/home",\s*destination:\s*"\/og\/witnessops-home-editorial-a-2026-10\.png",\s*permanent:\s*true/,
   );
   assert.equal(existsSync(resolve(__dirname, "route.tsx")), false);
   assert.doesNotMatch(source, /trustHostHeader|request\.url/);

@@ -150,7 +150,7 @@ const nextConfig = {
         // Relative Location. A route handler would build the target from the
         // listen host (localhost under next start, 0.0.0.0 under standalone).
         source: "/og/home",
-        destination: "/opengraph-image",
+        destination: "/og/witnessops-home-editorial-a-2026-10.png",
         permanent: true,
       },
       {

@@ -192,7 +192,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   );
   assert.equal(
     home.seo.og_title,
-    "Find security gaps in your systems.",
+    "Proof other people can check. | WitnessOps",
   );
 
   const workflowPage = readFileSync(

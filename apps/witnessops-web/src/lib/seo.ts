@@ -28,7 +28,12 @@ export function buildMetadata(seo: {
     openGraph: {
       title: seo.og_title,
       description: seo.og_description,
-      images: [seo.og_image],
+      images: [{
+        url: seo.og_image,
+        width: 1200,
+        height: 630,
+        alt: "WitnessOps — Proof other people can check. Security reviews for AI agents and internet-facing systems.",
+      }],
       siteName: "WITNESSOPS",
     },
     twitter: {

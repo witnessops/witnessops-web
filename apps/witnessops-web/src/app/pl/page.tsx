@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { BuyerHomepage } from "@/components/marketing/buyer-homepage";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { JsonLd } from "@/components/seo/json-ld";
 const homeTitle = "Bezpieczeństwo i weryfikacja";
 const homeDescription = "Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy. WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu.";
@@ -18,12 +19,14 @@ export const metadata: Metadata = {
     description: homeDescription,
     siteName: "WitnessOps",
     type: "website",
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: `${homeTitle} | WitnessOps`,
     description: homeDescription,
+    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

@@ -1,0 +1,14 @@
+---
+description: Public website boundaries for verify, proof surfaces, and buyer copy
+globs: apps/witnessops-web/**
+alwaysApply: false
+---
+
+- Follow `apps/witnessops-web/AGENTS.md`. This rule does not replace it.
+- This app owns `/verify` and `/api/verify`. Both accept untrusted receipt input and stay receipt-only.
+- Reuse `packages/proof` contracts. Do not invent a local proof structure or present invalid input as verified.
+- Keep internal-only proof details off public and operator-facing pages.
+- Sample identity lives in `src/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract.ts`. Do not hard-code sample commits, manifest hashes, artifact digests, or sample URLs when a contract field exists.
+- Buyer-visible proof markers stay aligned with `scripts/smoke-buyer-path.ts`. Claim-boundary language stays aligned with `src/app/public-claim-boundary.test.ts`.
+- After changes here, run `pnpm health`. If buyer or proof-surface copy changes, also run `pnpm smoke:buyer-path:test`.
+- Docs URLs stay on apex `/docs` via `src/lib/docs-host-routing.ts`. Polish docs stay under `/pl/docs`.

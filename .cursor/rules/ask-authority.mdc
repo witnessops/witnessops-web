@@ -1,0 +1,12 @@
+---
+description: Ask WitnessOps authority-set invariants
+globs: packages/ask-authority/**
+alwaysApply: false
+---
+
+- Follow `packages/ask-authority/AGENTS.md`. This package is a governed data and validation surface, not application behavior.
+- Preserve canonical artifact bytes and recorded SHA-256 values. Do not edit an approved V1 artifact in place.
+- `runtime/v1/authority-set.json` is a deterministic projection, not independently editable authority.
+- Keep the single approved Node-only export. The production importer stays `apps/witnessops-web/src/lib/server/ask-witnessops/authority-loader.ts`, begins with `import "server-only";`, and exposes only its eight governed synchronous query functions.
+- Do not add a browser bundle, runtime entrypoint, private receipt, customer data, or extra importer.
+- Validate with `pnpm --filter @witnessops/ask-authority validate` on Node 22. Validation success is not a production, security, or answer-correctness claim.
