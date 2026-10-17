@@ -268,58 +268,83 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
   const registry = COMPANY_DETAILS.en.krs;
   const dir = mkdtempSync(join(tmpdir(), "company-overflow-"));
   const htmlPath = join(dir, "overflow.html");
-  writeFileSync(
-    htmlPath,
-    `<!doctype html><html><head><meta charset="utf-8"><style>
+  const frame = (scheme: string) => `<!doctype html><html><head><meta charset="utf-8"><style>
+      :root { color-scheme: ${scheme}; }
       html, body { margin: 0; }
       main { box-sizing: border-box; width: 100%; max-width: 48rem; margin: 0 auto; padding: 24px; min-width: 0; }
       p { margin: 0 0 8px; max-width: 100%; min-width: 0; overflow-wrap: break-word; }
     </style></head><body>
       <main><p data-company-registry="">${registry}</p></main>
-      <pre id="result"></pre>
       <script>
         const root = document.documentElement;
         const line = document.querySelector("[data-company-registry]");
-        const overflow = root.scrollWidth > root.clientWidth || line.scrollWidth > line.clientWidth;
-        document.getElementById("result").textContent = JSON.stringify({
-          overflow,
+        parent.postMessage({
+          overflow: root.scrollWidth > root.clientWidth || line.scrollWidth > line.clientWidth,
           scroll: root.scrollWidth,
           client: root.clientWidth,
           lineScroll: line.scrollWidth,
           lineClient: line.clientWidth,
+        }, "*");
+      </script>
+    </body></html>`;
+  const frames = [390, 768, 1440].flatMap((width) =>
+    ["light", "dark"].map((scheme) => ({ width, scheme })),
+  );
+  writeFileSync(
+    htmlPath,
+    `<!doctype html><html><head><meta charset="utf-8"><style>
+      html, body { margin: 0; }
+      iframe { display: block; border: 0; height: 200px; }
+    </style></head><body>
+      ${frames
+        .map(
+          ({ width, scheme }) =>
+            `<iframe data-frame="${width} ${scheme}" style="width:${width}px" srcdoc="${frame(scheme).replaceAll("&", "&amp;").replaceAll('"', "&quot;")}"></iframe>`,
+        )
+        .join("\n")}
+      <pre id="result"></pre>
+      <script>
+        const results = {};
+        const frames = Array.from(document.querySelectorAll("iframe"));
+        addEventListener("message", (event) => {
+          const source = frames.find((item) => item.contentWindow === event.source);
+          if (!source) return;
+          results[source.dataset.frame] = event.data;
+          document.getElementById("result").textContent = JSON.stringify(results);
         });
       </script>
     </body></html>`,
   );
 
-  for (const width of [390, 768, 1440]) {
-    for (const scheme of ["light", "dark"]) {
-      const launched: ReturnType<typeof spawnSync> = spawnSync(
-        chrome,
-        [
-          "--headless=new",
-          "--disable-gpu",
-          "--no-sandbox",
-          "--disable-dev-shm-usage",
-          "--no-first-run",
-          `--user-data-dir=${join(dir, `profile-${width}-${scheme}`)}`,
-          `--window-size=${width},900`,
-          `--force-color-scheme=${scheme}`,
-          "--virtual-time-budget=1000",
-          "--dump-dom",
-          htmlPath,
-        ],
-        { encoding: "utf8", timeout: 15_000 },
-      );
-      const dom = String(launched.stdout ?? "");
-      const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
-      assert.ok(matched, `missing overflow result at ${width} ${scheme}`);
-      const result = JSON.parse(matched[1]) as { overflow: boolean };
-      assert.equal(
-        result.overflow,
-        false,
-        `court line overflowed at ${width}px ${scheme}: ${matched[1]}`,
-      );
-    }
+  // One launch measures every frame; concurrent headless launches starve each other on CI runners.
+  const launched: ReturnType<typeof spawnSync> = spawnSync(
+    chrome,
+    [
+      "--headless=new",
+      "--disable-gpu",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--no-first-run",
+      `--user-data-dir=${join(dir, "profile")}`,
+      "--window-size=1600,1600",
+      "--virtual-time-budget=2000",
+      "--dump-dom",
+      htmlPath,
+    ],
+    { encoding: "utf8", timeout: 20_000 },
+  );
+  const dom = String(launched.stdout ?? "");
+  const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
+  assert.ok(matched, `missing overflow result status=${launched.status}`);
+  const results = JSON.parse(matched[1].replaceAll("&quot;", '"').replaceAll("&amp;", "&")) as Record<string, { overflow: boolean; client: number }>;
+  for (const { width, scheme } of frames) {
+    const result = results[`${width} ${scheme}`];
+    assert.ok(result, `missing overflow result at ${width} ${scheme}`);
+    assert.equal(result.client, width, `frame ${width} ${scheme} did not lay out at its width`);
+    assert.equal(
+      result.overflow,
+      false,
+      `court line overflowed at ${width}px ${scheme}: ${JSON.stringify(result)}`,
+    );
   }
 });
