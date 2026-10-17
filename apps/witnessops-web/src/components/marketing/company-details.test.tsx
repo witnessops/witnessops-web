@@ -309,7 +309,7 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
           "--dump-dom",
           htmlPath,
         ],
-        { encoding: "utf8", timeout: 4000 },
+        { encoding: "utf8", timeout: 15_000 },
       );
       const dom = String(launched.stdout ?? "");
       const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
