@@ -99,29 +99,6 @@
   will-change: transform;
 }
 
-.primaryCta {
-  border: 1px solid var(--accent) !important;
-  background: var(--accent) !important;
-  color: #160b05 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
-}
-
-.primaryCta:hover {
-  background: #ff8a4c !important;
-  filter: none !important;
-  transform: translateY(-2px);
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-}
-
-.primaryCta:active {
-  transform: translateY(0) scale(0.985);
-  box-shadow:
-    0 5px 16px color-mix(in srgb, var(--color-brand-accent) 18%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
-}
-
 .secondaryCta {
   border-color: var(--rule-strong) !important;
   background: rgba(255, 255, 255, 0.015) !important;
@@ -566,14 +543,15 @@
 .closingPrimary {
   border: 1px solid var(--accent) !important;
   background: var(--accent) !important;
-  color: #160b05 !important;
+  color: var(--color-text-inverse) !important;
   box-shadow:
     0 8px 24px color-mix(in srgb, var(--color-brand-accent) 14%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
 .closingPrimary:hover {
-  background: #ff8a4c !important;
+  border-color: var(--color-brand-accent-hover) !important;
+  background: var(--color-brand-accent-hover) !important;
   filter: none !important;
   transform: translateY(-2px);
   box-shadow:

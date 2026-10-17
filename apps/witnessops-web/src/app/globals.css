@@ -879,10 +879,6 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
   color: var(--color-brand-accent);
 }
 
-.doc-toolbar-btn--active:hover {
-  color: #ff8a5c;
-}
-
 .doc-toolbar-sep {
   width: 1px;
   height: 16px;
@@ -1347,8 +1343,8 @@ body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-
 
 /* Shared interaction treatment for the quiet public website. */
 body:has(nav[data-public-presentation="quiet"]) {
-  --public-control-hover: #e7e2d7;
-  --public-control-pressed: #d8d1c3;
+  --public-control-hover: var(--color-action-fill-hover, var(--color-text-secondary));
+  --public-control-pressed: var(--color-action-fill-press, var(--color-text-muted));
 }
 body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary) {
   transition-property: color, background-color, border-color, opacity;

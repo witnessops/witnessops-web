@@ -119,7 +119,7 @@ test("the grid and crop marks are dark-only and off in print and forced colours"
   assert.match(globals, /@media print, \(forced-colors: active\) \{\s*html body \{ background-image: none !important; \}/);
 });
 
-const LEGACY_PALETTE = /f27a3d|ff6b35|242,\s*122,\s*61|255,\s*107,\s*53|255,\s*140,\s*80|255,\s*160,\s*100|64a8ac|100,\s*168,\s*172/i;
+const LEGACY_PALETTE = /f27a3d|ff6b35|242[\s,]+122[\s,]+61|255[\s,]+107[\s,]+53|255[\s,]+140[\s,]+80|255[\s,]+160[\s,]+100|64a8ac|100[\s,]+168[\s,]+172/i;
 
 function cssFiles(root: string): string[] {
   return readdirSync(root, { recursive: true, encoding: "utf-8" })
@@ -149,4 +149,13 @@ test("public primary controls carry no legacy orange shadow", () => {
   ]) {
     assert.doesNotMatch(readFileSync(resolve(__dirname, file), "utf-8"), LEGACY_PALETTE, file);
   }
+});
+
+test("public peach hover and dark-on-accent text are retired from the homepage and quiet controls", () => {
+  const buyerHomepage = readFileSync(resolve(__dirname, "../components/marketing/buyer-homepage.module.css"), "utf-8");
+  for (const css of [globals, buyerHomepage]) {
+    assert.doesNotMatch(css, /ff8a4c|ff8a5c|160b05/i);
+  }
+  assert.match(globals, /--public-control-hover: var\(--color-action-fill-hover, var\(--color-text-secondary\)\);/);
+  assert.match(globals, /--public-control-pressed: var\(--color-action-fill-press, var\(--color-text-muted\)\);/);
 });

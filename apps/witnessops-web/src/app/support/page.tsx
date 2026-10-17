@@ -217,7 +217,7 @@ export default function SupportPage() {
                       <span className="text-sm text-text-secondary transition-colors group-hover:text-brand-accent">
                         {doc.navLabel}
                       </span>
-                      <span className="text-[10px] uppercase tracking-[0.12em] text-brand-muted">
+                      <span className="text-[10px] uppercase tracking-[0.12em] text-text-muted">
                         {doc.section}
                       </span>
                     </Link>

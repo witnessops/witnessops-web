@@ -26,7 +26,7 @@ const label: React.CSSProperties = {
   fontSize: 13,
   letterSpacing: "0.14em",
   textTransform: "uppercase",
-  color: "var(--color-brand-muted)",
+  color: "var(--color-text-muted)",
   display: "block",
   marginBottom: 6,
 };
@@ -296,7 +296,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
           ...mono, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
           border: "1px solid",
           borderColor: status === "verified" ? "rgba(0,212,126,0.3)" : status.endsWith("_error") ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
-          color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-brand-muted)",
+          color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-text-muted)",
         }}>
           {status === "verified" ? "VERIFIED" : status.endsWith("_error") ? "ERROR" : status === "verification_sent" || status === "verifying" ? "VERIFY EMAIL" : "EMAIL SUPPORT"}
         </span>
