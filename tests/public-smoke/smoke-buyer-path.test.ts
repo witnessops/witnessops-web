@@ -386,9 +386,9 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
 
 test("the limits section cannot satisfy the positive capabilities check", () => {
   const route = routeContract("/");
-  const body = route.requiredMarkers.filter(marker => marker !== "Record one bounded check").join("\n");
-  assert.ok(body.includes("The app cannot"));
+  const body = route.requiredMarkers.filter(marker => marker !== "Useful evidence.").join("\n");
+  assert.ok(body.includes("Explicit limits."));
   const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
   assert.equal(result.ok, false);
-  assert.deepEqual(result.missingMarkers, ["Record one bounded check"]);
+  assert.deepEqual(result.missingMarkers, ["Useful evidence."]);
 });
