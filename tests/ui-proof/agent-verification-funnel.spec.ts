@@ -441,7 +441,7 @@ test("recorded replay emits no live action request and downloaded receipt matche
       2,
     )}\n`,
   );
-  const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check →", exact: true });
+  const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check", exact: true });
   await expect(reviewLink).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
   await expect(reviewLink.locator("..")).toContainText("Agent Action Security Review");
   await reviewLink.click();

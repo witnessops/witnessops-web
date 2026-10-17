@@ -18,7 +18,7 @@ const expectedServiceOrder = [PUBLIC_AGENT_ACTION_REVIEW_ID, "external-exposure-
 
 test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
-    const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height } });
+    const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height }, colorScheme: "dark" });
     const page = await context.newPage();
     const consoleErrors: string[] = [];
     const pageErrors: string[] = [];
@@ -50,9 +50,9 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     });
     expect(firstCardVisuals.background).toBe("rgb(18, 19, 16)");
     expect(firstCardVisuals.color).toBe("rgb(245, 241, 232)");
-    expect(firstCardVisuals.tokens).toEqual({ background: "#0b0c0b", card: "#121310", primary: "#f5f1e8", accent: "#b89b62", inverse: "#151510" });
-    expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(245, 241, 232)");
-    expect(firstCardVisuals.primaryCtaColor).toBe("rgb(21, 21, 16)");
+    expect(firstCardVisuals.tokens).toEqual({ background: "#0b0c0b", card: "#121310", primary: "#f5f1e8", accent: "#b89b62", inverse: "#0b0c0b" });
+    expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(184, 155, 98)");
+    expect(firstCardVisuals.primaryCtaColor).toBe("rgb(11, 12, 11)");
     expect(await serviceCards.evaluateAll((cards) => cards.map((card) => card.getAttribute("data-buyer-service")))).toEqual([...expectedServiceOrder]);
     expect(await serviceCards.evaluateAll((cards) => cards.map((card) => ({ price: card.getAttribute("data-price-contract"), timing: card.getAttribute("data-timing-contract") })))).toEqual(expectedServiceOrder.map(id => ({ price: buyerServiceById(id).commercialContract.price, timing: buyerServiceById(id).commercialContract.timing })));
     if (scenario.width >= 768) {
@@ -135,18 +135,31 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
   await page.getByRole("link", { name: "Compare scopes and prices" }).click();
-  await page.locator('[data-buyer-service="external-exposure-assessment"] a[href="/catalog/offsec-external-exposure"]').click();
-  const card = page.locator('[data-buyer-service-detail="external-exposure-assessment"]');
-  await expect(card).toContainText("€1,900\u00A0excl.\u00A0VAT");
-  await expect(card).toContainText("One focused retest within 30 calendar days of report handover is included");
-  await expect(card).not.toContainText(/3 working days|three working days|€550|550 €/);
-  await expect(card).toContainText("Payment is due in full before the delivery clock starts");
-  await expect(card).toContainText(/payment alone does not authorise testing/i);
-  await expect(card).toContainText("This is not a penetration test");
-  await expect(card.locator('a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveText("See a sample review →");
-  const fitHref = await card.getByRole("link", { name: "Request an external review" }).first().getAttribute("href");
+  await expect(page).toHaveURL(/\/reviews$/);
+  const catalogueCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
+  await expect(catalogueCard.locator('a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
+  await catalogueCard.locator('a[href="/catalog/offsec-external-exposure"]').click();
+  await expect(page).toHaveURL(/\/reviews\/external-attack-surface-review$/);
+
+  const detail = page.locator("main");
+  await expect(detail.locator("h1")).toHaveText("External Attack Surface Review");
+  await expect(detail).toContainText("€1,900\u00A0excl.\u00A0VAT");
+  await expect(detail).toContainText("One focused retest of reported findings within 30 calendar days of initial report handover.");
+  await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
+  await expect(detail).toContainText("This is not a penetration test");
+  const fit = detail.getByRole("link", { name: "Request an external review" }).first();
+  const fitHref = await fit.getAttribute("href");
   expect(new URL(fitHref ?? "", "http://witnessops.test").searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+
+  await fit.click();
+  await expect(page).toHaveURL(/\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  const request = page.locator("main");
+  await expect(request).toContainText("Payment is due in full before the delivery clock starts");
+  await expect(request).toContainText(
+    "Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
+  );
+  await expect(request.locator('form input[name="intent"]')).toHaveValue("OFFSEC-EXTERNAL-EXPOSURE");
 });

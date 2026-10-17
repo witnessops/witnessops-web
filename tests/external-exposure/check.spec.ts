@@ -40,7 +40,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
   await expect(page.locator('#site-footer')).toBeVisible();
   await expect(page.locator('script[src*="witnessops-manual"]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toHaveCount(0);
   expect(await page.evaluate(async () => {
     const inter = await document.fonts.load('400 16px Inter');
     const mono = await document.fonts.load('500 14px "IBM Plex Mono"');
@@ -108,9 +108,13 @@ test('source download and the immutable report use the same identity and print d
   await expect(report).toContainText('CHECK_ERROR');
   const chapterHeading = report.getByRole('heading', { name: 'Recorded findings', level: 2, exact: true });
   const expectChapterTypography = async () => {
-    await expect(chapterHeading).toHaveCSS('font-size', '27px');
-    await expect(chapterHeading).toHaveCSS('line-height', '33.75px');
-    await expect(chapterHeading).toHaveCSS('margin-bottom', '16px');
+    const locked = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      return { size: root.getPropertyValue('--type-h2-size').trim(), lineHeight: root.getPropertyValue('--type-h2-lh').trim() };
+    });
+    expect(locked.size).not.toBe('');
+    await expect(chapterHeading).toHaveCSS('font-size', locked.size);
+    await expect(chapterHeading).toHaveCSS('line-height', locked.lineHeight);
   };
   await expectChapterTypography();
   const desktopWidth = await page.evaluate(() => document.documentElement.clientWidth);
@@ -125,7 +129,7 @@ test('source download and the immutable report use the same identity and print d
   await expect(page.locator('#site-footer')).not.toBeVisible();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' })).not.toBeVisible();
   await expect(report).toBeVisible();
-  // The print root uses the report's 27pt heading, not the workspace's 27px override.
+  // The print root uses the report's 27pt heading.
   await expect(chapterHeading).toHaveCSS('font-size', '36px');
   expect(await report.innerHTML()).toBe(before);
   expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
@@ -267,11 +271,11 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
       await expect(page.locator('#witnessops-mobile-menu')).toBeVisible();
     }
     const navigation = mobile ? page.locator('#witnessops-mobile-menu') : page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    const product = navigation.getByRole('button', { name: 'Product', exact: true });
-    await product.click();
-    const panelId = await product.getAttribute('aria-controls');
+    const resources = navigation.getByRole('button', { name: 'Resources', exact: true });
+    await resources.click();
+    const panelId = await resources.getAttribute('aria-controls');
     expect(panelId).toBeTruthy();
-    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Free check/ });
+    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Tool · not a review/ });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', '/check');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
