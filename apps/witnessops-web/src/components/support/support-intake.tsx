@@ -32,7 +32,7 @@ const label: React.CSSProperties = {
 };
 
 const inputClass =
-  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3";
+  "w-full rounded-sm bg-transparent border border-surface-border text-text-primary placeholder:text-text-muted focus:border-brand-accent p-3";
 
 const selectClass =
   "w-full rounded-sm bg-transparent border border-surface-border text-text-primary focus:border-brand-accent p-3 pr-10 cursor-pointer";
@@ -413,7 +413,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                   setStatus("idle");
                   window.requestAnimationFrame(() => emailRef.current?.focus());
                 }}
-                style={{ ...mono, fontSize: 13, color: "var(--color-brand-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
+                style={{ ...mono, fontSize: 13, color: "var(--color-text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
               >
                 Change
               </button>
@@ -429,7 +429,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 required
                 maxLength={8_000}
                 rows={4}
-                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent p-3"
+                className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-text-muted focus:border-brand-accent p-3"
                 style={{ ...inputFont, resize: "vertical", lineHeight: 1.6 }}
                 placeholder="What you expected, what happened instead, and any receipt IDs or error messages..."
               />

@@ -399,25 +399,21 @@
 .verifyButton {
   cursor: pointer;
   min-width: 9.5rem;
-  border: 1px solid var(--skill-accent);
-  background: var(--skill-accent);
+  border: 1px solid var(--color-action-fill);
+  background: var(--color-action-fill);
   padding: 0.8rem 1.4rem;
-  color: #160b05;
-  box-shadow:
-    0 8px 24px color-mix(in srgb, var(--color-brand-accent) 14%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: var(--color-action-on-fill);
+  box-shadow: none;
 }
 
 .verifyButton:hover:not(:disabled) {
-  background: #ff8a4c;
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 34px color-mix(in srgb, var(--color-brand-accent) 26%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  border-color: var(--color-action-fill-hover);
+  background: var(--color-action-fill-hover);
 }
 
 .verifyButton:active:not(:disabled) {
-  transform: translateY(0) scale(0.985);
+  border-color: var(--color-action-fill-press);
+  background: var(--color-action-fill-press);
 }
 
 .verifyButton:disabled {

@@ -560,6 +560,8 @@
 }
 
 .closingPrimary:active {
+  border-color: var(--color-brand-accent-press) !important;
+  background: var(--color-brand-accent-press) !important;
   transform: translateY(0) scale(0.985);
   box-shadow:
     0 5px 16px color-mix(in srgb, var(--color-brand-accent) 18%, transparent),

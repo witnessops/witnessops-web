@@ -144,21 +144,6 @@
     opacity: 0;
   }
 }
-@keyframes proofDestinationSettle {
-  0% {
-    color: rgba(255, 220, 190, 0.92);
-    text-shadow: 0 0 0 color-mix(in srgb, var(--color-brand-accent) 0%, transparent);
-  }
-  45% {
-    color: rgba(255, 200, 170, 1);
-    text-shadow: 0 0 16px color-mix(in srgb, var(--color-brand-accent) 16%, transparent);
-  }
-  100% {
-    color: rgba(255, 210, 180, 0.98);
-    text-shadow: 0 0 8px color-mix(in srgb, var(--color-brand-accent) 8%, transparent);
-  }
-}
-
 /* --- Base --- */
 html {
   color-scheme: light dark;
@@ -416,12 +401,6 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
   pointer-events: none;
 }
 
-.hero-proof-destination {
-  color: rgba(255, 210, 180, 0.98);
-  text-shadow: 0 0 8px color-mix(in srgb, var(--color-brand-accent) 8%, transparent);
-  animation: proofDestinationSettle 520ms ease-out 180ms both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-fade-in,
@@ -449,11 +428,6 @@ html[data-theme="dark"] .wo-watermark--white { display: block; }
   .hero-proof-line::after {
     animation: none;
     opacity: 0;
-  }
-
-  .hero-proof-destination {
-    animation: none;
-    text-shadow: none;
   }
 
   .vm-motion-target,
@@ -1338,7 +1312,7 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-size: var(--type-ui-size) !important; line-height: var(--type-ui-lh) !important; font-weight: var(--type-ui-wt) !important; letter-spacing: 0 !important; text-transform: none !important; }
 
 /* Shared public navigation follows the approved presentation palette. */
-body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {
+body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar a[data-public-primary-cta] {
   background: var(--color-action-fill);
   color: var(--color-action-on-fill);
   border-color: var(--color-action-fill);
@@ -1347,8 +1321,8 @@ body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-
 
 /* Shared interaction treatment for the quiet public website. */
 body:has(nav[data-public-presentation="quiet"]) {
-  --public-control-hover: var(--color-action-fill-hover, var(--color-text-secondary));
-  --public-control-pressed: var(--color-action-fill-press, var(--color-text-muted));
+  --public-control-hover: var(--color-action-fill-hover);
+  --public-control-pressed: var(--color-action-fill-press);
 }
 body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary) {
   transition-property: color, background-color, border-color, opacity;

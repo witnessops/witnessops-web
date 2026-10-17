@@ -105,12 +105,14 @@ test("the dark theme declares every palette token instead of inheriting legacy v
   }
 });
 
-test("the light theme keeps its ink primary and leaves hover and press to existing fallbacks", () => {
+test("the light theme keeps its ink primary with charcoal hover and graphite press", () => {
   const light = block('html[data-theme="light"] body:not(:has([data-admin-shell]))');
   assert.ok(light.includes("--color-action-fill: #0b0c0b"));
+  assert.ok(light.includes("--color-action-fill-hover: #3a3a34"));
+  assert.ok(light.includes("--color-action-fill-press: #55544c"));
   assert.ok(light.includes("--color-action-on-fill: #f5f1e8"));
-  assert.doesNotMatch(light, /--color-action-fill-(?:hover|press)|--grid-|--crop-/);
-  assert.doesNotMatch(block(":root"), /--color-action-fill-(?:hover|press)/);
+  assert.ok(light.includes("--color-brand-accent-press: #4a3b1c"));
+  assert.doesNotMatch(light, /--grid-|--crop-/);
 });
 
 test("the grid and crop marks are dark-only and off in print and forced colours", () => {
@@ -156,6 +158,32 @@ test("public peach hover and dark-on-accent text are retired from the homepage a
   for (const css of [globals, buyerHomepage]) {
     assert.doesNotMatch(css, /ff8a4c|ff8a5c|160b05/i);
   }
-  assert.match(globals, /--public-control-hover: var\(--color-action-fill-hover, var\(--color-text-secondary\)\);/);
-  assert.match(globals, /--public-control-pressed: var\(--color-action-fill-press, var\(--color-text-muted\)\);/);
+  assert.match(globals, /--public-control-hover: var\(--color-action-fill-hover\);/);
+  assert.match(globals, /--public-control-pressed: var\(--color-action-fill-press\);/);
+  assert.match(tokens, /--color-action-fill: #0b0c0b;\s*--color-action-fill-hover: #3a3a34;\s*--color-action-fill-press: #55544c;/);
+});
+
+test("the skill verifier button uses the standard action tokens", () => {
+  const css = readFileSync(resolve(__dirname, "../components/verify/skill-console.module.css"), "utf-8");
+  assert.doesNotMatch(css, /ff8a4c|160b05/i);
+  assert.match(css, /\.verifyButton \{[^}]*background: var\(--color-action-fill\);[^}]*color: var\(--color-action-on-fill\);/);
+  assert.match(css, /\.verifyButton:hover:not\(:disabled\) \{[^}]*background: var\(--color-action-fill-hover\);/);
+  assert.match(css, /\.verifyButton:active:not\(:disabled\) \{[^}]*background: var\(--color-action-fill-press\);/);
+});
+
+test("the witnessed CRM sample case uses brass instead of orange", () => {
+  const css = readFileSync(resolve(__dirname, "review/sample-cases/witnessed-crm-status-change/witnessed-action.module.css"), "utf-8");
+  assert.doesNotMatch(css, /ef7f45|239[\s,]+127[\s,]+69|ff945b|1d0d06/i);
+  assert.match(css, /--witness-accent: #b89b62;/);
+  assert.match(css, /background: rgba\(184, 155, 98, 0\.12\);/);
+  assert.match(css, /color: #0b0c0b;/);
+  assert.match(css, /background: #cbb27d;/);
+});
+
+test("English and Polish headers share the ink primary rule", () => {
+  const presentation = readFileSync(resolve(__dirname, "public-presentation.css"), "utf-8");
+  for (const source of [navbar, globals, presentation]) {
+    assert.doesNotMatch(source, /data-public-signup-variant/);
+  }
+  assert.match(globals, /body:has\(nav\[data-public-presentation="quiet"\]\) \.simple-public-navbar a\[data-public-primary-cta\] \{\s*background: var\(--color-action-fill\);/);
 });

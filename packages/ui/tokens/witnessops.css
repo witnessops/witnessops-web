@@ -6,6 +6,7 @@
   --color-brand-secondary: #c3bfb6;
   --color-brand-accent: #b89b62;
   --color-brand-accent-hover: #cbb27d;
+  --color-brand-accent-press: #a68b57;
   --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
   --color-brand-muted: #a7a399;
 
@@ -24,8 +25,7 @@
   --color-text-muted: #a7a399;
   --color-text-inverse: #0b0c0b;
 
-  /* Primary button fill. Hover and press are declared per theme only, so call
-     sites can fall back to their existing light treatment. */
+  /* Primary button fill. Hover and press are declared in each theme block. */
   --color-action-fill: #b89b62;
   --color-action-on-fill: #0b0c0b;
 
@@ -158,8 +158,11 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
   --color-brand-muted: #9e9a93;
   --color-brand-accent: #715a2c;
   --color-brand-accent-hover: #5e4a23;
+  --color-brand-accent-press: #4a3b1c;
   --color-brand-accent-subtle: rgba(113, 90, 44, 0.1);
   --color-action-fill: #0b0c0b;
+  --color-action-fill-hover: #3a3a34;
+  --color-action-fill-press: #55544c;
   --color-action-on-fill: #f5f1e8;
   --color-signal-green: #6bc498;
   --color-signal-amber: #e3b060;
@@ -192,6 +195,7 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
   --color-brand-muted: #a7a399;
   --color-brand-accent: #b89b62;
   --color-brand-accent-hover: #cbb27d;
+  --color-brand-accent-press: #a68b57;
   --color-brand-accent-subtle: rgba(184, 155, 98, 0.12);
   --color-action-fill: #b89b62;
   --color-action-fill-hover: #cbb27d;

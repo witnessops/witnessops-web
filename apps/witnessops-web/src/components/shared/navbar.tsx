@@ -114,7 +114,6 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
         </div>
       )}
       <nav
-        data-public-signup-variant={polish ? undefined : "secondary"}
         data-public-presentation={usesPublicPresentation(currentPath) ? "quiet" : undefined}
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
