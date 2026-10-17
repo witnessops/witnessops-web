@@ -82,7 +82,7 @@
   align-content: space-between;
   border: 1px solid var(--witness-rule);
   padding: 0.8rem 0.9rem;
-  color: #77716d;
+  color: var(--witness-muted);
 }
 
 .stageRail li[data-active="true"] {

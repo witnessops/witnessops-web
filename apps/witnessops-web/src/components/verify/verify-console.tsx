@@ -137,7 +137,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
             }}
             spellCheck={false}
             placeholder='Paste receipt JSON here…'
-            className="min-h-[11rem] w-full resize-y border border-surface-border bg-[#0a0e17] p-4 font-mono text-xs leading-6 text-text-secondary transition-colors placeholder:text-text-muted/45 focus:border-brand-accent sm:min-h-[13rem]"
+            className="min-h-[11rem] w-full resize-y border border-surface-border bg-surface-inset p-4 font-mono text-xs leading-6 text-text-primary transition-colors placeholder:text-text-muted/45 focus:border-brand-accent sm:min-h-[13rem]"
             aria-label="Paste receipt JSON"
           />
         </label>
