@@ -61,3 +61,17 @@ test("an OK withdrawn shell is still served as 410", async () => {
   assert.match(requested, /\/pl\/withdrawn-offer/);
   assert.match(await response.text(), /shell ok/);
 });
+
+test("HEAD on a withdrawn offer is a 410 and does not fetch the shell", async () => {
+  let fetched = false;
+  globalThis.fetch = async () => {
+    fetched = true;
+    return new Response("should not be used", { status: 200 });
+  };
+  const response = await middleware(withdrawnRequest("/catalog/workflows", "HEAD"));
+  assert.equal(response.status, 410);
+  assert.equal(response.headers.get("cache-control"), "public, max-age=3600");
+  assert.equal(response.headers.get("x-robots-tag"), "noindex");
+  assert.equal(await response.text(), "");
+  assert.equal(fetched, false);
+});

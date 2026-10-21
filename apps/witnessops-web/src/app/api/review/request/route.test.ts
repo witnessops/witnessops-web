@@ -215,6 +215,29 @@ test("review request route accepts a blank or omitted name", async () => {
   }
 });
 
+test("review request route drops a whitespace-only name before validation", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "   ",
+        email: "whitespace-name@witnessops.com",
+        intent: "agent-action-security-review",
+        scope: "One bounded review request.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 201);
+  const payload = (await response.json()) as { intakeId: string };
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.submission.name, null);
+});
+
 test("review request route redacts upstream issuance errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
