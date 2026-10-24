@@ -165,6 +165,7 @@ html[data-theme="light"] body:not(:has([data-admin-shell])) {
   --color-action-fill-hover: #5a4825;
   --color-action-fill-press: #4a3b1c;
   --color-action-on-fill: #f5f1e8;
+  --color-action-disabled-text: #817960;
   --color-signal-green: #365f4a;
   --color-signal-amber: #6c5631;
   --color-signal-red: #8b4b48;
@@ -212,6 +213,7 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
   --color-action-fill-hover: #cbb27d;
   --color-action-fill-press: #a68b57;
   --color-action-on-fill: #0b0c0b;
+  --color-action-disabled-text: #6f6e64;
   --color-signal-green: #86be8e;
   --color-signal-amber: #d6c49e;
   --color-signal-red: #f28b93;
