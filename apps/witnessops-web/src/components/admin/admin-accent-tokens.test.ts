@@ -34,7 +34,6 @@ const TOKEN_VALUES: Record<string, string> = {
 
 function filesUnder(dir: string, acc: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === "login") continue;
     const full = path.join(dir, name);
     const stat = statSync(full);
     if (stat.isDirectory()) filesUnder(full, acc);
@@ -110,8 +109,8 @@ function isOrange(color: { h: number; s: number }): boolean {
   return color.h >= 5 && color.h <= 55 && color.s >= 0.35;
 }
 
-// Explicit exceptions: the login page accent (#ff6b35) and the Wiz avatar chest light (#F97E00).
-const ALLOWED_ORANGE_HEX = new Set(["ff6b35", "f97e00"]);
+// Explicit exception: the Wiz avatar chest light (#F97E00).
+const ALLOWED_ORANGE_HEX = new Set(["f97e00"]);
 const ORANGE_HEX_MIN_VALUE = 0.35;
 const NAMED_ORANGE = /\b(?:orangered|darkorange|sandybrown|chocolate|orange|coral|tomato|peru)\b/i;
 
@@ -259,7 +258,8 @@ test("hex orange sweep rejects a bright orange and keeps brass and rose", () => 
   for (const hex of ["#6C5631", "#B89B62", "#CBB27D", "#594626", "#4A3A1F", "#EFE6D0", "#8B4B48", "#6C5631FF"]) {
     assert.deepEqual(brightOrangeHexes(`color: ${hex};`), [], hex);
   }
-  assert.deepEqual(brightOrangeHexes("login #ff6b35 and wiz #F97E00"), []);
+  assert.deepEqual(brightOrangeHexes("wiz #F97E00"), []);
+  assert.deepEqual(brightOrangeHexes("#ff6b35"), ["#ff6b35"]);
   for (const name of ["orange", "darkorange", "coral", "tomato", "orangered", "chocolate", "sandybrown", "peru"]) {
     assert.match(`color: ${name};`, NAMED_ORANGE);
   }
