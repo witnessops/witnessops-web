@@ -847,6 +847,60 @@ test("audit is write-ahead, hash-chained, and fail-closed", async () => {
   }
 });
 
+test("authenticated malformed JSON-RPC writes one audit line and stays 400", async () => {
+  const payload = "{\"jsonrpc\":1,\"method\":\"ping\",\"note\":\"sentinel-malformed-body\"}";
+  const fixture = await createAdminMcpFixture();
+  try {
+    const response = await post(fixture, mcpRequest(fixture, { body: payload }));
+    assert.equal(response.status, 400);
+    const text = await response.text();
+    assert.equal(JSON.parse(text).code, "bad_request");
+    assert.equal(text.includes("sentinel-malformed-body"), false);
+    const names = await readdir(fixture.auditDir);
+    assert.equal(names.length, 1);
+    const raw = await readFile(path.join(fixture.auditDir, names[0]!), "utf8");
+    const lines = raw.trim().split("\n");
+    assert.equal(lines.length, 1);
+    const line = JSON.parse(lines[0]!) as Record<string, unknown>;
+    assert.equal(line.kind, "outcome");
+    assert.equal(line.tool, "none");
+    assert.equal(line.resultCode, "bad_request");
+    assert.equal(line.clientId, fixture.clientId);
+    assert.equal(line.argsDigest, "");
+    assert.deepEqual(line.returnedIds, []);
+    assert.equal(line.bytes, 0);
+    assert.equal(raw.includes("sentinel-malformed-body"), false);
+    assert.equal(raw.includes(fixture.token), false);
+    assert.equal(raw.includes("Bearer"), false);
+    assert.equal(raw.includes("Authorization"), false);
+  } finally {
+    await fixture.cleanup();
+  }
+
+  const anonymous = await createAdminMcpFixture();
+  try {
+    const response = await post(anonymous, mcpRequest(anonymous, { token: null, body: payload }));
+    assert.equal(response.status, 401);
+    assert.equal((await readJson(response)).code, "unauthorized");
+    assert.deepEqual(await readdir(anonymous.auditDir), []);
+  } finally {
+    await anonymous.cleanup();
+  }
+
+  const auditDir = path.join("/tmp", `audit-marker-do-not-leak-${process.pid}-malformed`);
+  const closed = await createAdminMcpFixture({ createAudit: false, auditDir });
+  try {
+    const response = await post(closed, mcpRequest(closed, { body: payload }));
+    assert.equal(response.status, 503);
+    const text = await response.text();
+    assert.equal(text.includes("sentinel-malformed-body"), false);
+    assert.equal(text.includes(auditDir), false);
+    await stat(auditDir).then(() => assert.fail("audit directory was created"), () => undefined);
+  } finally {
+    await closed.cleanup();
+  }
+});
+
 test("a missing audit directory denies the tool call and is not created", async () => {
   const auditDir = path.join("/tmp", `audit-marker-do-not-leak-${process.pid}-9f3a`);
   const fixture = await createAdminMcpFixture({ createAudit: false, auditDir });

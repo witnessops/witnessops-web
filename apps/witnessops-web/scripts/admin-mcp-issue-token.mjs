@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
  * Offline token printer. Writes nothing. Prints the token once on stdout,
- * then one hash line. The token is not written to stderr.
+ * then one hash line. The hash is bare lowercase hex with no prefix, the
+ * same 64-character value the token-config loader stores. The token is not
+ * written to stderr.
  *
  * Default lifetime is 14 days. Values above 30 days are refused before any
  * token is printed. The server enforces the 30-day cap when the operator
@@ -32,12 +34,8 @@ if (!Number.isInteger(days) || days < 1) fail("invalid lifetime");
 if (days > 30) fail("lifetime exceeds 30 days");
 if (scopes.length === 0 || scopes.some((scope) => !SCOPES.has(scope))) fail("invalid scopes");
 
-const issuedAt = new Date();
-const expiresAt = new Date(issuedAt.getTime() + days * 24 * 60 * 60 * 1000);
 const secret = randomBytes(32).toString("base64url");
 const token = `wo_mcp_${client}_${secret}`;
 const hash = createHash("sha256").update(token).digest("hex");
 process.stdout.write(`${token}\n`);
-process.stdout.write(
-  `sha256:${hash} client=${client} scopes=${scopes.join(",")} issuedAt=${issuedAt.toISOString()} expiresAt=${expiresAt.toISOString()}\n`,
-);
+process.stdout.write(`${hash}\n`);

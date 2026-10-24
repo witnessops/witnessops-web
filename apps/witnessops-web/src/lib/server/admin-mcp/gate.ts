@@ -256,6 +256,30 @@ async function perform(
   throw new AdminMcpDenial(400, "bad_request");
 }
 
+async function auditMalformed(
+  principal: McpPrincipal,
+  requestId: string,
+  now: number,
+): Promise<never> {
+  await writeAuditEvent(
+    {
+      kind: "outcome",
+      requestId,
+      clientId: principal.clientId,
+      tool: "none",
+      resultCode: "bad_request",
+      argsDigest: "",
+      returnedIds: [],
+      bytes: 0,
+      redactions: 0,
+      failureCount: 0,
+      minute: "",
+    },
+    now,
+  );
+  throw new AdminMcpDenial(400, "bad_request");
+}
+
 async function dispatch(
   text: string,
   principal: McpPrincipal,
@@ -263,8 +287,18 @@ async function dispatch(
   requestId: string,
   deps: AdminMcpDeps,
 ): Promise<Response> {
-  const rpc = parseRpc(text);
-  if (!knownMethod(rpc.method)) throw new AdminMcpDenial(400, "bad_request");
+  let rpc: ParsedRpc;
+  try {
+    rpc = parseRpc(text);
+  } catch (error) {
+    if (error instanceof AdminMcpDenial && error.status === 400) {
+      await auditMalformed(principal, requestId, deps.now());
+    }
+    throw error;
+  }
+  if (!knownMethod(rpc.method)) {
+    await auditMalformed(principal, requestId, deps.now());
+  }
   await assertAuditDirectory();
   const now = deps.now();
   const tool = auditTool(rpc);
