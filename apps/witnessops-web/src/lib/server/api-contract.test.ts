@@ -221,21 +221,30 @@ test("WEB-008: every declared endpoint carries a non-empty summary", () => {
   );
 });
 
-test("admin authentication contract is Google Workspace-only", () => {
+test("admin authentication contract is Google by default with flagged Entra beside it", () => {
+  const legacyPaths = [
+    "/api/admin/auth",
+    "/api/admin/oidc/start",
+    "/api/admin/oidc/callback",
+  ];
   const adminAuthPaths = DECLARED_API_ENDPOINTS.filter((endpoint) =>
-    [
-      "/api/admin/auth",
-      "/api/admin/oidc/start",
-      "/api/admin/oidc/callback",
-      "/api/admin/google/start",
-      "/api/admin/google/callback",
-    ].includes(endpoint.path),
+    legacyPaths.includes(endpoint.path) ||
+    endpoint.path.startsWith("/api/admin/google/") ||
+    endpoint.path.startsWith("/api/admin/entra/"),
   ).map((endpoint) => [endpoint.path, endpoint.methods]);
 
   assert.deepEqual(adminAuthPaths, [
     ["/api/admin/google/start", ["GET"]],
     ["/api/admin/google/callback", ["POST"]],
+    ["/api/admin/entra/start", ["GET"]],
+    ["/api/admin/entra/callback", ["POST"]],
   ]);
+  assert.equal(
+    DECLARED_API_ENDPOINTS.some((endpoint) =>
+      legacyPaths.includes(endpoint.path),
+    ),
+    false,
+  );
 });
 
 test("WEB-008: declared categories are within the closed enum", () => {
