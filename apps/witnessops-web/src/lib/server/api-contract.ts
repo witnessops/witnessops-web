@@ -231,6 +231,18 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     summary: "Complete Google Workspace admin OIDC callback and establish session",
   },
   {
+    path: "/api/admin/entra/start",
+    methods: ["GET"],
+    category: "operator",
+    summary: "Start Microsoft Entra admin sign-in when the admin flag is enabled",
+  },
+  {
+    path: "/api/admin/entra/callback",
+    methods: ["POST"],
+    category: "operator",
+    summary: "Complete Microsoft Entra admin sign-in callback and establish session",
+  },
+  {
     path: "/api/admin/intake/respond",
     methods: ["POST"],
     category: "operator",
