@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectFreeToolEntryPoint, openResourcesPanel } from "./free-tool-entry";
 
 for (const viewport of [
   { width: 1159, height: 776 },
@@ -17,7 +18,7 @@ for (const viewport of [
     await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(2);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
+    await expectFreeToolEntryPoint(page);
     await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
     await expect(trigger).toHaveCount(0);
@@ -33,7 +34,8 @@ for (const viewport of [
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 
-    const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Docs", exact: true });
+    const { panel: resources } = await openResourcesPanel(page);
+    const docsEntry = resources.getByRole("link", { name: /^Docs(?:$|\s)/ });
     await expect(docsEntry).toBeVisible();
     await expect(docsEntry).toHaveAttribute("href", "/docs");
     await docsEntry.click();

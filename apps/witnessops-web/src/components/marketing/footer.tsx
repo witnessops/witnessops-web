@@ -55,10 +55,8 @@ export function footerResourceLinks(): FooterLink[] {
   return [
     { label: "Sample work", href: "/review/sample-cases" },
     { label: "Research", href: "/research" },
-    { label: "The Sovereign Chronicles", href: "/chronicles" },
     ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
     { label: "Verify a receipt", href: "/verify" },
-    { label: "Tool · not a review", href: "/check" },
   ];
 }
 
@@ -78,7 +76,6 @@ const POLISH_FOOTER = {
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },
     { label: "Przykładowe prace", href: "/review/sample-cases" },
-    { label: "Narzędzie, nie przegląd", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
@@ -122,7 +119,6 @@ export function isFooterRequestHref(href: string): boolean {
 }
 
 export function Footer({
-  appUrl = null,
   links,
   legal_links,
   build_label,
@@ -151,17 +147,10 @@ export function Footer({
   ] : [
     { label: "Product", links: [
       ...ENGLISH_SERVICE_LINKS,
-      { label: "Services", href: "/reviews" },
       { label: "Pricing", href: "/pricing" },
       { label: "How it works", href: "/how-it-works" },
-      { label: "Docs", href: DOCS_PUBLIC_HREF },
-      { label: "Support", href: "/support" },
     ] },
     { label: "Resources", links: footerResourceLinks() },
-    ...(appUrl ? [{ label: "App", links: [
-      { label: "Sign up", href: new URL("/signup", appUrl).href },
-      { label: "Log in", href: new URL("/login", appUrl).href },
-    ] }] : []),
   ];
 
   function renderLink(link: FooterLink, className: string) {
