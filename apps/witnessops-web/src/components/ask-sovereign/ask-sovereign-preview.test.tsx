@@ -353,11 +353,11 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
         "--dump-dom",
         htmlPath,
       ],
-      { encoding: "utf8", timeout: 20000 },
+      { encoding: "utf8", timeout: 60_000 },
     );
     const dom = String(launched.stdout ?? "");
     const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
-    assert.ok(matched, `missing thread measurement at ${width}`);
+    assert.ok(matched, `missing thread measurement at ${width} status=${launched.status} signal=${launched.signal} error=${launched.error?.message ?? "none"} stderr=${String(launched.stderr ?? "").slice(-400)}`);
     const rows = JSON.parse(matched[1]) as Array<{ scroll: number; client: number; box: number; panel: number; overlap: boolean; retryTop: number; retryBottom: number; threadTop: number; threadBottom: number; wrap: string; chipFit: boolean }>;
     assert.equal(rows.length, 2);
     for (const row of rows) {

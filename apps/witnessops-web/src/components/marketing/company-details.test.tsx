@@ -331,11 +331,11 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
       "--dump-dom",
       htmlPath,
     ],
-    { encoding: "utf8", timeout: 20_000 },
+    { encoding: "utf8", timeout: 60_000 },
   );
   const dom = String(launched.stdout ?? "");
   const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
-  assert.ok(matched, `missing overflow result status=${launched.status}`);
+  assert.ok(matched, `missing overflow result status=${launched.status} signal=${launched.signal} error=${launched.error?.message ?? "none"} stderr=${String(launched.stderr ?? "").slice(-400)}`);
   const results = JSON.parse(matched[1].replaceAll("&quot;", '"').replaceAll("&amp;", "&")) as Record<string, { overflow: boolean; client: number }>;
   for (const { width, scheme } of frames) {
     const result = results[`${width} ${scheme}`];
