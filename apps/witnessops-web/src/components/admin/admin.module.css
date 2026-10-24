@@ -1605,6 +1605,21 @@
 .coreState { padding: 4px 8px; color: var(--admin-text-secondary); background: #f6f6f2; border-color: var(--admin-border); border-radius: var(--radius-label); font-family: var(--font-sans); font-size: 10px; letter-spacing: 0; text-transform: none; }
 .coreHealthGrid { gap: 12px; padding: 18px 20px; }
 .coreHealthState { font-family: var(--font-sans); font-size: 11px; }
+.healthSummary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 52px 18px; color: #2B2D29; font-family: var(--font-sans); font-size: 12px; line-height: 1.4; }
+.healthBadge { display: inline-flex; align-items: center; gap: 8px; min-height: 24px; max-width: 100%; padding: 2px 8px; border-radius: 4px; font-family: var(--font-sans); font-size: 12px; line-height: 16px; white-space: normal; }
+.healthBadge[data-kind="connected"] { background: var(--admin-green-tint); border: 1px solid var(--admin-green); color: var(--admin-green); }
+.healthBadge[data-kind="configured"] { background: #ECECE6; border: 1px solid var(--admin-mute); color: #2B2D29; }
+.healthBadge[data-kind="not_checked"] { background: #fff; border: 1px dashed var(--admin-mute-2); color: #2B2D29; }
+.healthBadge[data-kind="not_set_up"] { background: #fff; border: 1px solid var(--admin-rose); color: var(--admin-rose); }
+.healthBadge[data-kind="failing"] { background: var(--admin-rose-tint); border: 1.5px solid var(--admin-rose); color: var(--admin-rose); }
+.coreCard[data-kind="failing"] { outline: 1.5px solid var(--admin-rose); }
+.healthEvidence { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--admin-border); color: var(--admin-mute); font-family: var(--font-mono); font-size: 12px; line-height: 1.45; }
+.healthChip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; max-width: 100%; padding: 4px 8px; border: 1px solid var(--admin-mute); border-radius: 4px; background: #fff; color: #2B2D29; font-family: var(--font-sans); font-size: 12px; line-height: 16px; text-decoration: none; }
+.healthChip[data-tone="rose"] { border-color: var(--admin-rose); background: var(--admin-rose-tint); color: var(--admin-rose); }
+.navHealthChip { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-left: auto; background: #F5F1E8; border-radius: 3px; flex: 0 0 auto; }
+@media (max-width: 767px) {
+  .healthChipLabel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+}
 
 .queueSplitView { grid-template-columns: minmax(340px, 42%) minmax(0, 1fr); background: var(--admin-bg); }
 .queueListPane { background: #fff; border-right-color: var(--admin-border); }
@@ -1658,6 +1673,7 @@
   .consoleBreadcrumb { font-size: 11px; }
   .corePageHeader { flex-direction: column; align-items: stretch; padding: 24px 16px 18px; }
   .coreGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 14px; }
+  .healthSummary { margin-left: 16px; margin-right: 16px; }
   .coreSection { margin: 0 16px 14px; }
   .overviewStatGrid, .sectionHeader { padding-left: 16px; padding-right: 16px; }
   .queueSplitView { display: flex; flex-direction: column; width: 100%; }

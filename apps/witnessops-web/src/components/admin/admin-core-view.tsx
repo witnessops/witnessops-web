@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CoreAction } from "./admin-core-ui";
-import type { AuditEventRecord, HealthState } from "@/lib/server/admin-core-spine";
+import type { AuditEventRecord } from "@/lib/server/admin-core-spine";
 import styles from "./admin.module.css";
 
 export function CorePage({ title, eyebrow, children, actions }: { title: string; eyebrow?: string; children: ReactNode; actions?: ReactNode }) {
@@ -43,10 +43,6 @@ export function CoreMeta({ label, value }: { label: string; value: ReactNode }) 
 
 export function CoreAuditTimeline({ events }: { events: AuditEventRecord[] }) {
   return <CoreCard title="Immutable audit timeline"><div className={styles.coreTimeline}>{events.length ? events.map((event) => <div className={styles.coreTimelineItem} key={event.eventId}><div className={styles.coreTimelineTop}><span>{event.action}</span><time>{event.timestamp}</time></div><div className={styles.coreTimelineDetail}>{event.actor} · {event.previousState || "—"} → {event.resultingState || "—"}{event.integrationResult ? ` · ${event.integrationResult}` : ""}</div>{event.failureDetails ? <div className={styles.queueWarning}>{event.failureDetails}</div> : null}</div>) : <div className={styles.emptyState}>No audit events yet.</div>}</div></CoreCard>;
-}
-
-export function CoreHealthGrid({ health }: { health: Record<string, { state: HealthState; lastSuccessfulCheck: string | null; lastError: string | null; detail: string }> }) {
-  return <div className={styles.coreHealthGrid}>{Object.entries(health).map(([name, item]) => <CoreCard title={name.replaceAll(/([A-Z])/g, " $1")} key={name}><div className={styles.coreHealthState}><span className={`${styles.coreHealthDot} ${item.state === "connected" ? styles.coreHealthGood : item.state === "disconnected" ? styles.coreHealthBad : styles.coreHealthUnknown}`} />{item.state}</div><p className={styles.coreDetail}>{item.detail}</p>{item.lastError ? <p className={styles.queueWarning}>{item.lastError}</p> : null}</CoreCard>)}</div>;
 }
 
 export function DetailActions({ endpoint, action, label, confirmText }: { endpoint: string; action: string; label: string; confirmText?: string }) {
