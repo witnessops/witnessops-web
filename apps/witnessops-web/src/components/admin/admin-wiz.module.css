@@ -23,7 +23,7 @@
 .detail { margin: 7px 0 0; color: #c0c6cc; font-family: var(--font-sans); font-size: 12px; line-height: 1.55; }
 .boundaryNote { margin: 9px 0 0; color: #8f979f; font-family: var(--font-sans); font-size: 11px; line-height: 1.45; }
 .action { display: inline-flex; min-width: 152px; justify-content: center; align-items: center; gap: 8px; padding: 11px 14px; color: #16191d; background: #fff; border-radius: var(--radius-control); font-family: var(--font-sans); font-size: 12px; font-weight: 700; text-decoration: none; }
-.action:hover { background: #fff3ec; }
+.action:hover { background: #EFE6D0; color: #6C5631; }
 .sidebarIdentity { display: flex; align-items: center; gap: 8px; margin: 12px 12px 8px; padding: 8px; color: #f7f7f4; background: #14181d; border: 1px solid #2b3036; border-radius: var(--radius-card); text-decoration: none; }
 .sidebarIdentityText { display: flex; min-width: 0; flex-direction: column; gap: 2px; font-family: var(--font-sans); }
 .sidebarIdentityText strong { font-size: 12px; }
