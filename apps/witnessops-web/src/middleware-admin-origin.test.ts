@@ -112,6 +112,47 @@ test("OIDC callback remains exempt from the admin mutation origin gate", async (
   assert.equal(response.headers.get("x-middleware-next"), "1");
 });
 
+test("Entra callback is matched and exempt from the admin mutation origin gate", async () => {
+  mutableEnv.NODE_ENV = "production";
+  assert.equal(
+    unstable_doesMiddlewareMatch({
+      config,
+      url: "https://witnessops.com/api/admin/entra/callback",
+    }),
+    true,
+  );
+
+  const response = await middleware(
+    adminRequest("/api/admin/entra/callback", {
+      method: "POST",
+      headers: {
+        origin: "https://login.microsoftonline.com",
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: "state=test&code=test",
+    }),
+  );
+
+  assert.equal(response.headers.get("x-middleware-next"), "1");
+  assert.notEqual(response.status, 403);
+});
+
+test("Entra start mutations stay on the admin origin gate", async () => {
+  mutableEnv.NODE_ENV = "production";
+  const response = await middleware(
+    adminRequest("/api/admin/entra/start", {
+      method: "POST",
+      headers: {
+        origin: "https://login.microsoftonline.com",
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: "ignored=1",
+    }),
+  );
+
+  assert.equal(response.status, 403);
+});
+
 test("safe admin API reads do not require mutation-origin headers", async () => {
   mutableEnv.NODE_ENV = "production";
   const response = await middleware(

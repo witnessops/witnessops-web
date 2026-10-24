@@ -26,13 +26,16 @@ import {
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname ?? "witnessops.com";
 const docsHost = surface?.docsHost ?? "docs.witnessops.com";
-const OIDC_CALLBACK_PATH = "/api/admin/google/callback";
+const OIDC_FORM_POST_CALLBACKS = new Set([
+  "/api/admin/google/callback",
+  "/api/admin/entra/callback",
+]);
 const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 function isAdminApiMutation(request: NextRequest): boolean {
   return (
     request.nextUrl.pathname.startsWith("/api/admin/") &&
-    request.nextUrl.pathname !== OIDC_CALLBACK_PATH &&
+    !OIDC_FORM_POST_CALLBACKS.has(request.nextUrl.pathname) &&
     !SAFE_REQUEST_METHODS.has(request.method.toUpperCase())
   );
 }
@@ -98,8 +101,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Cookie-authenticated admin mutations must originate from the exact admin
-  // origin. The federated OIDC callback is independently protected by its
-  // signed transaction cookie, state, nonce, and PKCE and must accept the
+  // origin. Federated OIDC callbacks are independently protected by their
+  // signed transaction cookies, state, nonce, and PKCE and must accept the
   // identity provider's cross-origin POST.
   if (
     isAdminApiMutation(request) &&

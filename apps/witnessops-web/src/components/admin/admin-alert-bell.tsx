@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import type { PostApprovalLifecycleView } from "@/lib/server/post-approval-lifecycle";
 import { deriveAlerts, type AlertItem } from "@/lib/admin/admin-alert-derive";
@@ -7,6 +8,7 @@ import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export async function AdminAlertBell() {
   let alerts: AlertItem[] = [];
+  let loadError: string | null = null;
 
   try {
     const actor = await getAdminPageActor();
@@ -14,16 +16,17 @@ export async function AdminAlertBell() {
     let lifecycleByRunId = new Map<string, PostApprovalLifecycleView>();
     try {
       lifecycleByRunId = await buildLifecycleByRunId(view.rows);
-    } catch {
-      // Lifecycle data unavailable; customer rejection alerts omitted.
+    } catch (error) {
+      unstable_rethrow(error);
+      loadError = "Could not load lifecycle alerts.";
     }
     alerts = deriveAlerts(view.rows, lifecycleByRunId);
-  } catch {
-    // If data is unavailable, show no alerts.
-    // The overview/queue pages handle their own error states.
+  } catch (error) {
+    unstable_rethrow(error);
+    loadError = "Could not load alerts.";
   }
 
-  return <AdminAlertPanel alerts={alerts} />;
+  return <AdminAlertPanel alerts={alerts} loadError={loadError} />;
 }
 
 export type { AlertItem };
