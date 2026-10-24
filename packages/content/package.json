@@ -14,7 +14,7 @@
   "dependencies": {
     "@witnessops/config": "workspace:*",
     "js-yaml": "^4.3.2",
-    "zod": "^3.24.0"
+    "zod": "^4.6.6"
   },
   "peerDependencies": {
     "next": ">=15.5.21",
