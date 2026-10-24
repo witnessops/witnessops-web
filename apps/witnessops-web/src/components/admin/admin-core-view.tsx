@@ -32,9 +32,14 @@ export function CoreTable({
   headers: string[];
   rows: ReactNode[][];
   scrollLabel?: string;
-  emptyMessage?: string;
+  emptyMessage?: ReactNode;
 }) {
-  return <div className={styles.coreTableWrap} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}><table className={styles.coreTable}><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>) : <tr><td colSpan={headers.length} className={styles.emptyState}>{emptyMessage}</td></tr>}</tbody></table></div>;
+  if (rows.length === 0) {
+    return typeof emptyMessage === "string"
+      ? <div className={styles.emptyState} role="status">{emptyMessage}</div>
+      : <>{emptyMessage}</>;
+  }
+  return <div className={styles.coreTableWrap} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}><table className={styles.coreTable}><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>)}</tbody></table></div>;
 }
 
 export function CoreMeta({ label, value }: { label: string; value: ReactNode }) {

@@ -1620,6 +1620,38 @@
 @media (max-width: 767px) {
   .healthChipLabel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 }
+.recordEmpty { margin: 0 52px 18px; padding: 26px 24px; border: 1.5px dashed var(--admin-mute-2); border-radius: 6px; background: #fff; }
+.coreSection .recordEmpty { margin: 16px 20px; }
+.recordEmptyTitle { margin: 0; color: #1a1b17; font-family: var(--font-sans); font-size: 16px; font-weight: 500; line-height: 22px; }
+.recordEmptyText { margin: 8px 0 0; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+.recordEmpty .rowAction, .recordEmpty .syncButton { margin-top: 14px; }
+.pageError { margin: 24px 52px; padding: 26px 24px; border: 2px solid var(--admin-rose); border-radius: 6px; background: var(--admin-rose-tint); }
+.pageErrorTitleRow { display: flex; align-items: flex-start; gap: 8px; }
+.pageErrorTitle { margin: 0; color: var(--admin-rose); font-family: var(--font-sans); font-size: 16px; font-weight: 500; line-height: 22px; }
+.pageErrorText { margin: 8px 0 0; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+.pageErrorMeta { margin: 8px 0 0; color: var(--admin-mute); font-family: var(--font-mono); font-size: 12px; line-height: 1.45; }
+.pageErrorActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.syncBanner { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin: 0 52px 18px; padding: 16px; border: 2px solid var(--admin-rose); border-radius: 6px; background: var(--admin-rose-tint); }
+.syncBannerBody { flex: 1 1 240px; min-width: 0; }
+.syncBannerTitle { margin: 0; color: var(--admin-rose); font-family: var(--font-sans); font-size: 16px; font-weight: 500; line-height: 22px; }
+.syncBannerText { margin: 6px 0 0; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+.syncBannerDetail, .syncBannerFailure { margin: 8px 0 0; color: var(--admin-mute); font-family: var(--font-mono); font-size: 12px; line-height: 1.45; }
+.syncBannerFailure { color: var(--admin-rose); }
+.syncBannerActions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.syncButton { width: auto; align-self: flex-start; }
+.syncStatus, .allClear { margin: 0 52px 12px; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+.syncThin { margin: 0 52px 12px; padding: 8px 12px; border: 1px solid var(--admin-rose); border-radius: 4px; background: var(--admin-rose-tint); color: var(--admin-rose); font-family: var(--font-sans); font-size: 12px; line-height: 1.45; }
+.syncThin a { color: var(--admin-accent); }
+.coreCardValueMuted { color: var(--admin-mute); }
+.syncHistory { margin: 0 52px 18px; overflow: hidden; background: #fff; border: 1px solid var(--admin-border); border-radius: var(--radius-card); }
+.syncHistorySummary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 16px 20px; cursor: pointer; color: var(--admin-text-primary); font-family: var(--font-sans); font-size: 17px; font-weight: 650; }
+.syncHistoryEmpty { margin: 0; padding: 0 20px 16px; color: var(--admin-mute); font-size: 14px; line-height: 20px; }
+.syncRunId { color: var(--admin-mute); font-family: var(--font-mono); font-size: 12px; user-select: text; }
+.slowLoading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 16px 52px; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+@media (max-width: 767px) {
+  .recordEmpty, .pageError, .syncBanner, .syncStatus, .allClear, .syncThin, .syncHistory, .slowLoading { margin-left: 16px; margin-right: 16px; }
+  .syncBannerActions { margin-left: 0; width: 100%; }
+}
 
 .queueSplitView { grid-template-columns: minmax(340px, 42%) minmax(0, 1fr); background: var(--admin-bg); }
 .queueListPane { background: #fff; border-right-color: var(--admin-border); }
