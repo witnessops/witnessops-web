@@ -54,7 +54,7 @@ export function chroniclePreviewText(source: string): string {
 }
 
 export type ChronicleChapter = {
-  id: "001" | "003";
+  id: "001" | "002" | "003";
   slug: string;
   number: string;
   kicker: string;
@@ -83,6 +83,20 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
     ],
   },
   {
+    id: "002",
+    slug: "002-sir-whiskers-opens-a-pull-request",
+    number: "002",
+    kicker: "THE SOVEREIGN CHRONICLES · CHAPTER II",
+    title: "Sir Whiskers Opens a Pull Request",
+    dateline: "WitnessOps Headquarters · 09:12 · A quiet Wednesday",
+    meta: "CH-002 · FICTION · 4 MIN READ",
+    description: "A story from the WitnessOps desk about a pull request nobody wrote.",
+    sourceFile: "chapter-002.md",
+    dropLines: [
+      "WitnessOps Headquarters · 09:12 · A quiet Wednesday",
+    ],
+  },
+  {
     id: "003",
     slug: "003-the-meeting-nobody-authorized",
     number: "003",
@@ -101,11 +115,6 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
 ] as const;
 
 export const RESERVED_CHAPTERS = [
-  {
-    id: "002",
-    title: "Sir Whiskers Opens a Pull Request",
-    teaser: "Nobody knows how. Not even the code host.",
-  },
   {
     id: "004",
     title: "The Agent Who Scheduled a Meeting With Himself",
