@@ -85,6 +85,7 @@ test("logout clears the Google admin session and uses the canonical origin", asy
   assert.deepEqual(
     cookies.map((cookie) => cookie.name).sort(),
     [
+      "witnessops-admin-entra-oidc-transaction",
       "witnessops-admin-google-oidc-transaction",
       "witnessops-admin-session",
     ],

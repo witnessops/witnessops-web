@@ -63,7 +63,7 @@ export async function isAdminSessionRevoked(
 
 /** Invalid/expired cookies create no state. Errors prevent successful logout. */
 export async function revokeAdminSessionCookie(cookie: string): Promise<void> {
-  const payload = await verifyAdminSessionCookie(cookie);
+  const payload = await verifyAdminSessionCookie(cookie, "revocation");
   if (!payload) return;
 
   const directory = await revocationDirectory();

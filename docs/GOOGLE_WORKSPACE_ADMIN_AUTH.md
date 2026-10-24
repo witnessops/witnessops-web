@@ -4,6 +4,8 @@ Status: `PUBLIC_BOUNDARY_ONLY`
 
 The WitnessOps Admin Console uses Google Workspace sign-in for authorized operators. Authentication is separate from application authorization, and Workspace membership alone does not grant operator access.
 
+Google Workspace remains the default admin sign-in method. Microsoft Entra ID can sit beside it only when `WITNESSOPS_ADMIN_ENTRA_ENABLED` is exactly `1`. See [Entra admin sign-in](./ENTRA_ADMIN_AUTH.md). Unset that variable and restart to return the console to Google-only sign-in. Entra does not add a password, and it does not turn Google off.
+
 Public security boundary:
 
 - Admin authentication is identity-provider based; legacy authentication paths are not part of the active production sign-in surface.

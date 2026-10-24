@@ -3,6 +3,10 @@ import {
   buildAdminPublicUrl,
   isTrustedAdminMutationOrigin,
 } from "@/lib/admin-auth-origin";
+import {
+  ENTRA_OIDC_TRANSACTION_COOKIE_NAME,
+  ENTRA_OIDC_TRANSACTION_COOKIE_PATH,
+} from "@/lib/server/admin-entra-oidc";
 import { GOOGLE_OIDC_TRANSACTION_COOKIE_NAME } from "@/lib/server/admin-google-oidc";
 import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/server/admin-session";
 import { revokeAdminSessionCookie } from "@/lib/server/admin-session-revocation";
@@ -44,6 +48,13 @@ export async function POST(request: NextRequest) {
     secure: true,
     sameSite: "none",
     path: "/api/admin/google",
+    maxAge: 0,
+  });
+  response.cookies.set(ENTRA_OIDC_TRANSACTION_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: ENTRA_OIDC_TRANSACTION_COOKIE_PATH,
     maxAge: 0,
   });
   return response;
