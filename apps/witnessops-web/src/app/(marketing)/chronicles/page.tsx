@@ -20,10 +20,22 @@ export const metadata: Metadata = {
   },
 };
 
+function publishedChapter(id: "001" | "002" | "003") {
+  const chapter = PUBLISHED_CHAPTERS.find((item) => item.id === id);
+  if (!chapter) {
+    throw new Error(`Missing published chronicle ${id}`);
+  }
+  return chapter;
+}
+
+const chapterOne = publishedChapter("001");
+const chapterTwo = publishedChapter("002");
+const chapterThree = publishedChapter("003");
+
 const rows = [
-  { ...PUBLISHED_CHAPTERS[0], kicker: "CHAPTER I · TUESDAY · 17:23", href: `/chronicles/${PUBLISHED_CHAPTERS[0].slug}` },
-  { id: "002", title: RESERVED_CHAPTERS[0].title, teaser: RESERVED_CHAPTERS[0].teaser, href: null, kicker: "CHAPTER II" },
-  { ...PUBLISHED_CHAPTERS[1], kicker: "CHAPTER III · 15 OCTOBER 2026 · 02:40 WARSAW", href: `/chronicles/${PUBLISHED_CHAPTERS[1].slug}` },
+  { ...chapterOne, kicker: "CHAPTER I · TUESDAY · 17:23", href: `/chronicles/${chapterOne.slug}` },
+  { ...chapterTwo, kicker: "CHAPTER II · WEDNESDAY · 09:12", href: `/chronicles/${chapterTwo.slug}` },
+  { ...chapterThree, kicker: "CHAPTER III · 15 OCTOBER 2026 · 02:40 WARSAW", href: `/chronicles/${chapterThree.slug}` },
 ] as const;
 
 export default function ChroniclesIndexPage() {
@@ -46,19 +58,14 @@ export default function ChroniclesIndexPage() {
           <li key={row.id} className="py-6">
             <p className="wo-chapter-index text-brand-accent">{row.id}</p>
             <p className="wo-mono-caps mt-2 text-text-muted">{row.kicker}</p>
-            {row.href ? (
-              <h3 className="wo-h3 mt-2 text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h3>
-            ) : (
-              <p className="wo-h3 mt-2 text-text-muted">Chapter 002, {row.title}, coming soon</p>
-            )}
-            {"teaser" in row && row.teaser ? <p className="wo-small mt-2 text-text-muted">{row.teaser} · Coming soon · Not yet linked</p> : null}
+            <h3 className="wo-h3 mt-2 text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h3>
           </li>
         ))}
       </ol>
       <section className="mt-8 rounded-md border border-dashed border-surface-border p-5" aria-label="Chapter 004, The Agent Who Scheduled a Meeting With Himself, coming soon">
         <p className="wo-mono-caps text-text-muted">Up next · Chapter IV · Coming soon · Not linked</p>
-        <h3 className="wo-h3 mt-2 text-text-muted">{RESERVED_CHAPTERS[1].title}</h3>
-        <p className="wo-small mt-2 text-text-muted">{RESERVED_CHAPTERS[1].teaser}</p>
+        <h3 className="wo-h3 mt-2 text-text-muted">{RESERVED_CHAPTERS[0].title}</h3>
+        <p className="wo-small mt-2 text-text-muted">{RESERVED_CHAPTERS[0].teaser}</p>
       </section>
       <p className="wo-small mt-10 text-text-secondary">
         Outside the stories, WitnessOps runs two focused security reviews.{" "}
