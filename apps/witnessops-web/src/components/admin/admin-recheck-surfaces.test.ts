@@ -27,6 +27,14 @@ test("the sidebar health chip exposes its text", () => {
   assert.match(sidebar, /className=\{styles\.visuallyHidden\}>\{health\.text\}/);
 });
 
+test("receipts empty copy says a receipt appears when it is linked", () => {
+  const page = readFileSync(path.resolve(__dirname, "../../app/admin/(console)/receipts/page.tsx"), "utf8");
+  assert.match(page, /title="No receipts yet\."/);
+  assert.match(page, /text="A receipt appears here when you link one to a delivery\."/);
+  assert.match(page, /actionLabel="Open Deliveries"/);
+  assert.doesNotMatch(page, /Archived receipts will appear here\./);
+});
+
 test("the Started sparkline uses the admin accent", () => {
   const grid = source("admin-overview-grid.tsx");
   assert.match(grid, /<span className=\{styles\.sparklineLabel\}>Started<\/span>[\s\S]*?color="var\(--admin-accent\)"/);

@@ -74,8 +74,8 @@ export function InboxSyncProvider({ children, initiallyFailing }: { children: Re
 }
 
 export function InboxSyncButton({ label, emphasis }: { label: string; emphasis: "primary" | "secondary" }) {
-  const { ui, run } = useInboxSync();
-  const resolved = ui.failing && label !== "Retry sync" ? "secondary" : emphasis;
+  const { ui, run, bannerPresent } = useInboxSync();
+  const resolved = ui.failing && bannerPresent && label !== "Retry sync" ? "secondary" : emphasis;
   const className = resolved === "secondary" ? styles.rowActionSecondary : styles.rowAction;
   return (
     <button type="button" className={`${className} ${styles.syncButton}`} onClick={() => void run(label === "Retry sync" ? "retry" : "sync")} disabled={ui.busy} aria-busy={ui.busy || undefined}>

@@ -5,7 +5,7 @@ import test from "node:test";
 import { formatWarsawClock, formatWarsawDateTime } from "./admin-warsaw-time";
 import {
   ADMIN_HEALTH_SETTINGS_HREF,
-  DRIVE_COUNTS_TOWARD_HEALTH_CHIP,
+  CHIP_COUNTED_INTEGRATION_IDS,
   buildHealthCards,
   deriveGmailHealth,
   displayKindForPayload,
@@ -148,36 +148,56 @@ test("health cards sort problems first and keep the body text", () => {
   assert.ok(cards.every((card) => card.detail === "synthetic detail kept as body text"));
 });
 
-test("chip and sidebar tooltip follow worst state, and Drive counts", () => {
-  assert.equal(DRIVE_COUNTS_TOWARD_HEALTH_CHIP, true);
-  const cards = buildHealthCards({
+test("the health chip counts only Gmail and the receipt records", () => {
+  assert.deepEqual([...CHIP_COUNTED_INTEGRATION_IDS], ["gmail", "receiptVerifier", "receiptArchive"]);
+  const payload = {
     gmail: item("unknown"),
     drive: item("disconnected"),
-    mailDelivery: item("unknown"),
-    receiptVerifier: item("connected", NOW.toISOString()),
-  }, [receipt("failed", "", "synthetic-sync-failure-reason")], NOW);
-  const chip = healthChip(cards);
-  assert.equal(chip.text, "Health: 1 failing, 1 not set up");
-  assert.equal(chip.kind, "failing");
-  assert.equal(chip.tone, "rose");
-
-  const withoutDrive = healthChip(cards, false);
-  assert.equal(withoutDrive.text, "Health: 1 failing");
-
-  const configuredOnly = buildHealthCards({
-    mailDelivery: item("unknown"),
-    receiptVerifier: item("connected", NOW.toISOString()),
-  }, [], NOW);
-  assert.equal(healthChip(configuredOnly).text, "Health: not fully checked");
-
-  const notSetUpOnly = buildHealthCards({
-    drive: item("disconnected"),
     mailDelivery: item("disconnected"),
-  }, [], NOW);
-  assert.equal(healthChip(notSetUpOnly).text, "Health: 2 not set up");
+    receiptVerifier: item("connected", NOW.toISOString()),
+    receiptArchive: item("connected", NOW.toISOString()),
+    publicContactRoute: item("connected", NOW.toISOString()),
+    publicFallbackMailbox: item("connected", NOW.toISOString()),
+    securityDisclosureMailbox: item("connected", NOW.toISOString()),
+  };
+  const baselineCards = buildHealthCards(payload, [], NOW);
+  const baseline = healthChip(baselineCards);
+  assert.equal(baseline.text, "Health: not fully checked");
+  assert.equal(baseline.kind, "not_checked");
+  assert.equal(baseline.tone, "neutral");
+  assert.equal(baselineCards.find((card) => card.key === "drive")?.kind, "not_set_up");
 
-  const checked = buildHealthCards({
-    fixture: item("connected", "2026-10-24T18:12:00.000Z"),
-  }, [], NOW);
-  assert.equal(healthChip(checked).text, "Health: all checked 20:12");
+  const driveStates: Array<{ state: HealthPayloadState; kind: "failing" | "not_set_up" | "connected" }> = [
+    { state: "degraded", kind: "failing" },
+    { state: "disconnected", kind: "not_set_up" },
+    { state: "connected", kind: "connected" },
+  ];
+  for (const drive of driveStates) {
+    const cards = buildHealthCards({
+      ...payload,
+      drive: item(drive.state, drive.state === "connected" ? NOW.toISOString() : null),
+    }, [], NOW);
+    const chip = healthChip(cards);
+    assert.equal(chip.text, baseline.text);
+    assert.equal(chip.kind, baseline.kind);
+    assert.equal(chip.tone, baseline.tone);
+    assert.equal(cards.find((card) => card.key === "drive")?.kind, drive.kind);
+  }
+
+  const gmailFailing = [receipt("failed", WINTER, "synthetic-sync-failure-reason")];
+  const withFailingDrive = healthChip(buildHealthCards({ ...payload, drive: item("degraded") }, gmailFailing, NOW));
+  const withConnectedDrive = healthChip(buildHealthCards({ ...payload, drive: item("connected", NOW.toISOString()) }, gmailFailing, NOW));
+  assert.equal(withFailingDrive.text, "Health: 1 failing");
+  assert.equal(withFailingDrive.kind, "failing");
+  assert.deepEqual(withFailingDrive, withConnectedDrive);
+
+  const checked = healthChip([
+    { key: "gmail", kind: "connected", checkAt: "2026-10-24T18:12:00.000Z" },
+    { key: "receiptVerifier", kind: "connected", checkAt: "2026-10-24T18:12:00.000Z" },
+    { key: "receiptArchive", kind: "connected", checkAt: "2026-10-24T17:00:00.000Z" },
+    { key: "drive", kind: "failing", checkAt: null },
+  ]);
+  assert.equal(checked.text, "Health: all checked 20:12");
+  assert.equal(checked.kind, "connected");
+  assert.equal(checked.tone, "neutral");
 });

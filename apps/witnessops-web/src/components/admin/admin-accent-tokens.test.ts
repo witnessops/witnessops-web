@@ -5,6 +5,7 @@ import test from "node:test";
 
 const adminRoot = path.resolve(__dirname);
 const appAdminRoot = path.resolve(__dirname, "../../app/admin");
+const libAdminRoot = path.resolve(__dirname, "../../lib/admin");
 const legacyBanned = /ea5b2a|b94721|ff6b35|aa6613|b9433a|147a73|234,\s*91,\s*42/i;
 const classBanned = /orange-|yellow-|amber-/i;
 const TOKEN_VALUES: Record<string, string> = {
@@ -112,11 +113,12 @@ function isOrange(color: { h: number; s: number }): boolean {
 // Explicit exceptions: the login page accent (#ff6b35) and the Wiz avatar chest light (#F97E00).
 const ALLOWED_ORANGE_HEX = new Set(["ff6b35", "f97e00"]);
 const ORANGE_HEX_MIN_VALUE = 0.35;
+const NAMED_ORANGE = /\b(?:orangered|darkorange|sandybrown|chocolate|orange|coral|tomato|peru)\b/i;
 
 function normalizeHex(hex: string): string | null {
   const body = hex.slice(1);
+  if (body.length === 8 || body.length === 6) return body.slice(0, 6).toLowerCase();
   if (body.length === 3) return body.split("").map((channel) => channel + channel).join("").toLowerCase();
-  if (body.length === 6) return body.toLowerCase();
   return null;
 }
 
@@ -149,11 +151,57 @@ function isBrightOrangeHex(hex: string): boolean {
 
 function brightOrangeHexes(text: string): string[] {
   const hits: string[] = [];
-  for (const match of text.matchAll(/#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)) {
+  for (const match of text.matchAll(/#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)) {
     const hex = match[0] ?? "";
     const normalized = normalizeHex(hex);
     if (!normalized || ALLOWED_ORANGE_HEX.has(normalized)) continue;
     if (isBrightOrangeHex(hex)) hits.push(hex);
+  }
+  return hits;
+}
+
+function orangeHue(degrees: number): boolean {
+  const hue = ((degrees % 360) + 360) % 360;
+  return hue >= 5 && hue <= 50;
+}
+
+function orangePerceptualColors(text: string): string[] {
+  const hits: string[] = [];
+  for (const match of text.matchAll(/\b(?:oklch|lch|lab)\([^)]*\)/gi)) {
+    const fn = match[0] ?? "";
+    const parsed = fn.match(/^(oklch|lch|lab)\((.*)\)$/i);
+    if (!parsed) {
+      hits.push(fn);
+      continue;
+    }
+    const kind = parsed[1]?.toLowerCase();
+    const body = (parsed[2] ?? "").split("/")[0] ?? "";
+    const parts = body.trim().split(/[\s,]+/).filter(Boolean);
+    if (parts.length < 3) {
+      hits.push(fn);
+      continue;
+    }
+    if (kind === "lab") {
+      const a = Number(parts[1]);
+      const b = Number(parts[2]);
+      if (Number.isNaN(a) || Number.isNaN(b)) {
+        hits.push(fn);
+        continue;
+      }
+      const chroma = Math.hypot(a, b);
+      let hue = (Math.atan2(b, a) * 180) / Math.PI;
+      if (hue < 0) hue += 360;
+      if (chroma >= 10 && orangeHue(hue)) hits.push(fn);
+      continue;
+    }
+    const chroma = Number(parts[1]);
+    const hue = Number(parts[2]?.replace(/deg$/i, ""));
+    if (Number.isNaN(chroma) || Number.isNaN(hue)) {
+      hits.push(fn);
+      continue;
+    }
+    const minChroma = kind === "oklch" ? 0.05 : 10;
+    if (chroma >= minChroma && orangeHue(hue)) hits.push(fn);
   }
   return hits;
 }
@@ -189,27 +237,37 @@ test("admin surfaces keep the brass tokens and drop orange, amber, and teal acce
     }
   }
 
-  const sources = filesUnder(adminRoot).concat(filesUnder(appAdminRoot));
+  const sources = filesUnder(adminRoot).concat(filesUnder(appAdminRoot), filesUnder(libAdminRoot));
   const offenders: string[] = [];
   for (const file of sources) {
     const text = readFileSync(file, "utf8");
-    if (legacyBanned.test(text) || classBanned.test(text)) offenders.push(file);
+    if (legacyBanned.test(text) || classBanned.test(text) || NAMED_ORANGE.test(text)) offenders.push(file);
     for (const match of text.matchAll(/(?:hsl|rgb)a?\([^)]*\)/gi)) {
       const fn = match[0] ?? "";
       const parsed = parseColorFunction(fn);
       if (!parsed || isOrange(parsed)) offenders.push(`${file} ${fn}`);
     }
     for (const hex of brightOrangeHexes(text)) offenders.push(`${file} ${hex}`);
+    for (const fn of orangePerceptualColors(text)) offenders.push(`${file} ${fn}`);
   }
   assert.deepEqual(offenders, []);
 });
 
 test("hex orange sweep rejects a bright orange and keeps brass and rose", () => {
   assert.deepEqual(brightOrangeHexes("color: #E8761A;"), ["#E8761A"]);
-  for (const hex of ["#6C5631", "#B89B62", "#CBB27D", "#594626", "#4A3A1F", "#EFE6D0", "#8B4B48"]) {
+  assert.deepEqual(brightOrangeHexes("color: #E8761AFF;"), ["#E8761AFF"]);
+  for (const hex of ["#6C5631", "#B89B62", "#CBB27D", "#594626", "#4A3A1F", "#EFE6D0", "#8B4B48", "#6C5631FF"]) {
     assert.deepEqual(brightOrangeHexes(`color: ${hex};`), [], hex);
   }
   assert.deepEqual(brightOrangeHexes("login #ff6b35 and wiz #F97E00"), []);
+  for (const name of ["orange", "darkorange", "coral", "tomato", "orangered", "chocolate", "sandybrown", "peru"]) {
+    assert.match(`color: ${name};`, NAMED_ORANGE);
+  }
+  assert.doesNotMatch("color: #6C5631;", NAMED_ORANGE);
+  assert.deepEqual(orangePerceptualColors("oklch(0.7 0.16 35)"), ["oklch(0.7 0.16 35)"]);
+  assert.deepEqual(orangePerceptualColors("lch(62 40 30)"), ["lch(62 40 30)"]);
+  assert.deepEqual(orangePerceptualColors("lab(55 30 18)"), ["lab(55 30 18)"]);
+  assert.deepEqual(orangePerceptualColors("oklch(0.7 0 35)"), []);
 });
 
 test("brass, rose, mute, and focus pairs meet the WCAG ratios", () => {

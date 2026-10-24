@@ -129,19 +129,33 @@ export interface SyncHistoryBadgeModel {
 
 export function syncHistoryBadge(receipts: readonly SyncReceiptView[]): SyncHistoryBadgeModel | null {
   const windowReceipts = receipts.slice(0, 5);
-  if (windowReceipts.length === 0) return null;
+  const newest = windowReceipts[0];
+  if (!newest) return null;
   const failed = windowReceipts.filter((receipt) => receipt.status === "failed").length;
-  if (failed === windowReceipts.length) {
-    return { kind: "failing", label: `${consecutiveFailures(receipts)} failed in a row` };
+  switch (newest.status) {
+    case "failed":
+      if (failed === windowReceipts.length) {
+        return { kind: "failing", label: `${consecutiveFailures(receipts)} failed in a row` };
+      }
+      return { kind: "failing", label: `${failed} of last ${windowReceipts.length} failed` };
+    case "completed":
+      if (failed > 0) {
+        return { kind: "neutral", label: `${failed} of last ${windowReceipts.length} failed earlier` };
+      }
+      {
+        const clock = formatWarsawDateTime(receiptInstant(newest) ?? "");
+        return { kind: "connected", label: clock ? `Last sync succeeded · ${clock}` : "Last sync succeeded" };
+      }
+    case "partial":
+      if (failed > 0) {
+        return { kind: "neutral", label: `${failed} of last ${windowReceipts.length} failed earlier` };
+      }
+      return { kind: "neutral", label: "Last sync partial" };
+    default: {
+      const unreachable: never = newest.status;
+      return unreachable;
+    }
   }
-  if (failed === 0 && windowReceipts[0]?.status === "completed") {
-    const clock = formatWarsawDateTime(receiptInstant(windowReceipts[0]) ?? "");
-    return { kind: "connected", label: clock ? `Last sync succeeded · ${clock}` : "Last sync succeeded" };
-  }
-  if (failed === 0) {
-    return { kind: "neutral", label: "Last sync partial" };
-  }
-  return { kind: "failing", label: `${failed} of last ${windowReceipts.length} failed` };
 }
 
 export interface SyncHistoryRowModel {

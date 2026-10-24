@@ -103,6 +103,11 @@ test("sync history badge and failed rows avoid zero counts", () => {
   assert.equal(syncHistoryRows([receipt("completed", "")])[0]?.tone, "neutral");
   const partialOnly = syncHistoryBadge([receipt("partial", SUMMER)]);
   assert.deepEqual(partialOnly, { kind: "neutral", label: "Last sync partial" });
+  const olderFailure = [receipt("completed", SUMMER, "", 1), receipt("failed", WINTER, "synthetic-sync-failure-reason")];
+  assert.deepEqual(syncHistoryBadge(olderFailure), { kind: "neutral", label: "1 of last 2 failed earlier" });
+  const olderHtml = renderToStaticMarkup(createElement(AdminSyncHistory, { receipts: olderFailure }));
+  assert.match(olderHtml, /<span class="healthBadge" data-kind="configured">[\s\S]*1 of last 2 failed earlier/);
+  assert.doesNotMatch(olderHtml, /<span class="healthBadge" data-kind="failing">[\s\S]*failed earlier/);
   const history = readFileSync(new URL("../../components/admin/admin-sync-history.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(history, /includes\("failed"\)/);
   assert.match(history, /syncHistoryBadgeTone\(badge\.kind\)/);
@@ -137,6 +142,14 @@ test("a failed first sync from initiallyFailing=false shows the message", () => 
   assert.match(provider, /const \[bannerPresent, setBannerPresent\] = useState\(initiallyFailing\)/);
   assert.match(provider, /<InboxSyncStatusLine ui=\{ui\} bannerPresent=\{bannerPresent\} \/>/);
   assert.match(provider, /run\(label === "Retry sync" \? "retry" : "sync"\)/);
+  assert.match(provider, /const \{ ui, run, bannerPresent \} = useInboxSync\(\)/);
+  assert.match(provider, /const resolved = ui\.failing && bannerPresent && label !== "Retry sync" \? "secondary" : emphasis/);
+  const emphasis = (failing: boolean, bannerPresent: boolean, label: string, requested: "primary" | "secondary") => (
+    failing && bannerPresent && label !== "Retry sync" ? "secondary" : requested
+  );
+  assert.equal(emphasis(true, false, "Sync inbox", "primary"), "primary");
+  assert.equal(emphasis(true, true, "Sync inbox", "primary"), "secondary");
+  assert.equal(emphasis(true, true, "Retry sync", "primary"), "primary");
   const healthy = { busy: false, failing: false, status: "" };
   assert.equal(healthy.failing, false);
   assert.equal(syncStatusMessage(healthy, false), null);

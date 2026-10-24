@@ -6,7 +6,12 @@ import {
   recordedInstant,
 } from "./admin-warsaw-time";
 
-export const DRIVE_COUNTS_TOWARD_HEALTH_CHIP = true;
+/**
+ * Header and sidebar chips count the core console path only:
+ * Gmail inbox sync, plus the receipt verifier and receipt archive records.
+ * Drive, mail delivery, and the public mailbox cards keep their own Settings cards.
+ */
+export const CHIP_COUNTED_INTEGRATION_IDS = ["gmail", "receiptVerifier", "receiptArchive"] as const;
 
 /** Health cards live on Settings. Open Health and the header chip use this route. */
 export const ADMIN_HEALTH_SETTINGS_HREF = "/admin/settings";
@@ -280,9 +285,9 @@ export function healthSummary(cards: readonly HealthCardView[]): HealthSummaryMo
 
 export function healthChip(
   cards: readonly Pick<HealthCardView, "key" | "kind" | "checkAt">[],
-  driveCounts = DRIVE_COUNTS_TOWARD_HEALTH_CHIP,
 ): HealthChipModel {
-  const included = cards.filter((card) => driveCounts || card.key !== "drive");
+  const counted = new Set<string>(CHIP_COUNTED_INTEGRATION_IDS);
+  const included = cards.filter((card) => counted.has(card.key));
   const count = (kind: HealthDisplayKind) => included.filter((card) => card.kind === kind).length;
   const failing = count("failing");
   const notSetUp = count("not_set_up");
