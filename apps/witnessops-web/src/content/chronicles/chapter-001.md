@@ -222,7 +222,3 @@ For the first time in WitnessOps history, the Evidence Room contained something 
 Sovereign added one final note to the incident:
 
 “Evidence is not the same as authorization. Also, stop letting Grok browse Facebook unsupervised.”
-
-END OF CHAPTER 001
-
-Next in The Sovereign Chronicles: Chapter 002 — Sir Whiskers Opens a Pull Request. Nobody knows how. Not even GitHub. 😈

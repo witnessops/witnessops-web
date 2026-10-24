@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import {
   PUBLISHED_CHAPTERS,
-  RESERVED_CHAPTERS,
   chronicleBodySource,
   type ChronicleChapter,
 } from "@/lib/chronicles";
@@ -71,15 +70,19 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
 
 export function ChroniclePager({ chapter }: { chapter: ChronicleChapter }) {
   const index = PUBLISHED_CHAPTERS.findIndex((item) => item.id === chapter.id);
-  const previous = index === 0 ? RESERVED_CHAPTERS[0] : null;
-  const next = chapter.id === "001" ? RESERVED_CHAPTERS[0] : RESERVED_CHAPTERS[1];
+  const previous = index > 0 ? PUBLISHED_CHAPTERS[index - 1] : null;
+  const next = index >= 0 && index < PUBLISHED_CHAPTERS.length - 1 ? PUBLISHED_CHAPTERS[index + 1] : null;
+  const allChronicles = () => <Link href="/chronicles" className="underline-offset-4 hover:underline">All chronicles</Link>;
+  const chapterLink = (item: ChronicleChapter) => (
+    <Link href={`/chronicles/${item.slug}`} className="underline-offset-4 hover:underline">{`Chapter ${item.id}`}</Link>
+  );
   return (
     <div className="mt-12 grid gap-4 border-t border-surface-border pt-8 sm:grid-cols-2">
       <p className="wo-small text-text-muted">
-        {previous ? `Chapter ${previous.id}, ${previous.title}, coming soon` : <Link href="/chronicles" className="underline-offset-4 hover:underline">All chronicles</Link>}
+        {previous ? chapterLink(previous) : allChronicles()}
       </p>
       <p className="wo-small text-text-muted sm:text-right">
-        {`Chapter ${next.id}, ${next.title}, coming soon. Not yet linked.`}
+        {next ? chapterLink(next) : allChronicles()}
       </p>
     </div>
   );

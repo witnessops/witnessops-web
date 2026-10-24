@@ -738,7 +738,3 @@ It was that they had all successfully done almost nothing—
 without causing an incident.
 
 Which, according to Sovereign, was an exceptionally good result.
-
-END OF CHAPTER III
-
-The Sovereign Chronicles · Next chapter teaser: Chapter IV — The Agent Who Scheduled a Meeting With Himself. Nobody attends. Somehow, four action items are created. 😈
