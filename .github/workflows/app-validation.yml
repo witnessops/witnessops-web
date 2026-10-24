@@ -141,7 +141,7 @@ jobs:
   browser:
     name: App browser (${{ matrix.project }})
     needs: supply_chain_gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false

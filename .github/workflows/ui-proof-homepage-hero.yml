@@ -89,7 +89,7 @@ jobs:
   homepage-hero-ui-proof:
     needs: supply_chain_gate
     name: Homepage hero UI proof
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Reject missing or unbound checkout identity
