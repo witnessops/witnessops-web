@@ -42,15 +42,13 @@ test("development uses loopback and invalid configured origins fail closed", () 
   }
 });
 
-test("footer emits only the configured app destinations, or none", () => {
+test("footer renders two nav groups and no app column with appUrl set or unset", () => {
   for (const appUrl of [null, "https://staging.example/", "http://127.0.0.1:3020/"]) {
     const html = renderToStaticMarkup(createElement(Footer, { appUrl, brand_line: "WitnessOps", build_label: "", copyright: "WitnessOps", subline: "", links: [], legal_links: [] }));
+    assert.equal((html.match(/<nav\b/g) ?? []).length, 2, `nav count for appUrl=${appUrl}`);
+    assert.doesNotMatch(html, /aria-label="App"/);
     assert.doesNotMatch(html, /https:\/\/app\.witnessops\.com/);
-    for (const path of ["signup", "login"]) {
-      if (appUrl) assert.ok(html.includes(`href="${appUrl}${path}"`));
-      else assert.ok(!html.includes(`href="/${path}"`));
-    }
-    for (const path of ["assets", "reports", "settings"]) {
+    for (const path of ["signup", "login", "assets", "reports", "settings"]) {
       assert.ok(!html.includes(`/${path}"`), `app-only footer path remains: ${path}`);
     }
   }
