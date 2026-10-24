@@ -51,7 +51,7 @@ jobs:
   pdf-pagination:
     needs: supply_chain_gate
     name: PDF Pagination Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Reject missing or unbound checkout identity
