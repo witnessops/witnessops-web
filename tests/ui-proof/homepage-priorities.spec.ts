@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { expectFreeToolEntryPoint } from "./free-tool-entry";
+import { expectFreeToolEntryPoint, openResourcesPanel } from "./free-tool-entry";
 
 for (const viewport of [
   { width: 1159, height: 776 },
@@ -34,7 +34,8 @@ for (const viewport of [
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 
-    const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Docs", exact: true });
+    const { panel: resources } = await openResourcesPanel(page);
+    const docsEntry = resources.getByRole("link", { name: /^Docs(?:$|\s)/ });
     await expect(docsEntry).toBeVisible();
     await expect(docsEntry).toHaveAttribute("href", "/docs");
     await docsEntry.click();
