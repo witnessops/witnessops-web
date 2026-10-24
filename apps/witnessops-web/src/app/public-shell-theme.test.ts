@@ -105,19 +105,47 @@ test("the dark theme declares every palette token instead of inheriting legacy v
   }
 });
 
-test("the light theme keeps its ink primary with charcoal hover and graphite press", () => {
+test("the light theme uses brass-washed daylight, including grid and crop tokens", () => {
   const light = block('html[data-theme="light"] body:not(:has([data-admin-shell]))');
-  assert.ok(light.includes("--color-action-fill: #0b0c0b"));
-  assert.ok(light.includes("--color-action-fill-hover: #3a3a34"));
-  assert.ok(light.includes("--color-action-fill-press: #55544c"));
-  assert.ok(light.includes("--color-action-on-fill: #f5f1e8"));
-  assert.ok(light.includes("--color-brand-accent-press: #4a3b1c"));
-  assert.doesNotMatch(light, /--grid-|--crop-/);
+  for (const marker of [
+    "--color-surface-bg: #f5f1e8",
+    "--color-surface-bg-alt: #ede7d7",
+    "--color-surface-inset: #efe9da",
+    "--color-surface-card: #fcfaf4",
+    "--color-surface-card-hover: #f7f3e9",
+    "--color-surface-border: #ddd3bb",
+    "--color-surface-border-accent: #c9b687",
+    "--color-surface-border-strong: #7a7258",
+    "--color-surface-border-hover: #4f4a38",
+    "--color-text-secondary: #38362f",
+    "--color-text-muted: #55524a",
+    "--color-brand-accent: #6c5631",
+    "--color-brand-accent-hover: #5a4825",
+    "--color-brand-accent-press: #4a3b1c",
+    "--color-action-fill: #6c5631",
+    "--color-action-fill-hover: #5a4825",
+    "--color-action-fill-press: #4a3b1c",
+    "--color-action-on-fill: #f5f1e8",
+    "--color-signal-red: #8b4b48",
+    "--color-signal-green: #365f4a",
+    "--color-signal-amber: #6c5631",
+    "--focus: #6c5631",
+    "--grid-minor: #eee8d8",
+    "--grid-major: #e3d9bf",
+    "--crop-color: #8a7240",
+    "--crop-arm: 20px",
+    "--crop-stroke: 2px",
+    "--crop-frame-opacity: 0.9",
+    "--card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+  ]) {
+    assert.ok(light.includes(marker), `Missing light token: ${marker}`);
+  }
+  assert.match(light, /--hero-glow: radial-gradient\(ellipse 65% 85% at 28% 0%, rgba\(184, 155, 98, 0\.34\)/);
 });
 
-test("the grid and crop marks are dark-only and off in print and forced colours", () => {
-  assert.match(globals, /html\[data-theme="dark"\] body:not\(:has\(\[data-admin-shell\]\)\) \{\s*background-image:\s*linear-gradient\(to right, var\(--grid-major\)/);
-  assert.match(globals, /html\[data-theme="dark"\] body:not\(:has\(\[data-admin-shell\]\)\) :is\(\.crop, \.crop-frame\)::before/);
+test("the grid and crop marks render in light and dark and stay off in print and forced colours", () => {
+  assert.match(globals, /html\[data-theme="dark"\] body:not\(:has\(\[data-admin-shell\]\)\),\s*html\[data-theme="light"\] body:not\(:has\(\[data-admin-shell\]\)\) \{\s*background-image:\s*linear-gradient\(to right, var\(--grid-major\)/);
+  assert.match(globals, /html\[data-theme="light"\] body:not\(:has\(\[data-admin-shell\]\)\) :is\(\.crop, \.crop-frame\)::before/);
   assert.match(globals, /@media print, \(forced-colors: active\) \{\s*html body \{ background-image: none !important; \}/);
 });
 
@@ -160,7 +188,7 @@ test("public peach hover and dark-on-accent text are retired from the homepage a
   }
   assert.match(globals, /--public-control-hover: var\(--color-action-fill-hover\);/);
   assert.match(globals, /--public-control-pressed: var\(--color-action-fill-press\);/);
-  assert.match(tokens, /--color-action-fill: #0b0c0b;\s*--color-action-fill-hover: #3a3a34;\s*--color-action-fill-press: #55544c;/);
+  assert.match(tokens, /--color-action-fill: #6c5631;\s*--color-action-fill-hover: #5a4825;\s*--color-action-fill-press: #4a3b1c;/);
 });
 
 test("the skill verifier button uses the standard action tokens", () => {
