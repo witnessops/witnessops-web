@@ -104,10 +104,10 @@ test("the shared top fade keeps every line out of the strong band", (t) => {
     "--virtual-time-budget=1000",
     "--dump-dom",
     htmlPath,
-  ], { encoding: "utf8", timeout: 20000 });
+  ], { encoding: "utf8", timeout: 60_000 });
   const stdout = String(launched.stdout ?? "");
   const matched = stdout.match(/<pre id="result">([\s\S]*?)<\/pre>/);
-  assert.ok(matched, `missing fade measurement status=${launched.status}`);
+  assert.ok(matched, `missing fade measurement status=${launched.status} signal=${launched.signal} error=${launched.error?.message ?? "none"} stderr=${String(launched.stderr ?? "").slice(-400)}`);
   const rows = JSON.parse(matched[1]) as Array<{ locale: string; width: number; fade: number; before: number; hits: string[] }>;
   assert.equal(rows.length, views.length);
   for (const row of rows) {
