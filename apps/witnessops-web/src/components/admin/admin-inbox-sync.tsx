@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { ADMIN_HEALTH_SETTINGS_HREF } from "@/lib/admin/admin-health-display";
 import {
   beginSync,
   finishSyncFailure,
   finishSyncSuccess,
+  syncStatusMessage,
   type SyncBannerModel,
   type SyncUiState,
 } from "@/lib/admin/admin-sync-status";
@@ -16,6 +18,8 @@ import styles from "./admin.module.css";
 interface InboxSyncContextValue {
   ui: SyncUiState;
   run: () => void;
+  bannerPresent: boolean;
+  setBannerPresent: (present: boolean) => void;
 }
 
 const InboxSyncContext = createContext<InboxSyncContextValue | null>(null);
@@ -30,6 +34,7 @@ export function InboxSyncProvider({ children, initiallyFailing }: { children: Re
   const router = useRouter();
   const busyRef = useRef(false);
   const [ui, setUi] = useState<SyncUiState>({ busy: false, failing: initiallyFailing, status: "" });
+  const [bannerPresent, setBannerPresent] = useState(initiallyFailing);
 
   async function run() {
     if (busyRef.current) return;
@@ -63,7 +68,7 @@ export function InboxSyncProvider({ children, initiallyFailing }: { children: Re
     }
   }
 
-  return <InboxSyncContext.Provider value={{ ui, run }}>{children}</InboxSyncContext.Provider>;
+  return <InboxSyncContext.Provider value={{ ui, run, bannerPresent, setBannerPresent }}>{children}</InboxSyncContext.Provider>;
 }
 
 export function InboxSyncButton({ label, emphasis }: { label: string; emphasis: "primary" | "secondary" }) {
@@ -78,7 +83,11 @@ export function InboxSyncButton({ label, emphasis }: { label: string; emphasis: 
 }
 
 export function InboxSyncBanner({ banner }: { banner: SyncBannerModel }) {
-  const { ui } = useInboxSync();
+  const { ui, setBannerPresent } = useInboxSync();
+  useLayoutEffect(() => {
+    setBannerPresent(true);
+    return () => setBannerPresent(false);
+  }, [setBannerPresent]);
   if (!ui.failing) return null;
   const retryFailed = ui.status.startsWith("Retry failed:");
   return (
@@ -92,16 +101,21 @@ export function InboxSyncBanner({ banner }: { banner: SyncBannerModel }) {
       </div>
       <div className={styles.syncBannerActions}>
         <InboxSyncButton label="Retry sync" emphasis="primary" />
-        <Link href="/admin/system" className={`${styles.rowActionSecondary} ${styles.syncButton}`}>Open Health</Link>
+        <Link href={ADMIN_HEALTH_SETTINGS_HREF} className={`${styles.rowActionSecondary} ${styles.syncButton}`}>Open Health</Link>
       </div>
     </div>
   );
 }
 
+export function InboxSyncStatusLine({ ui, bannerPresent }: { ui: SyncUiState; bannerPresent: boolean }) {
+  const status = syncStatusMessage(ui, bannerPresent);
+  if (!status) return null;
+  return <p className={styles.syncStatus} role="status" aria-live="polite">{status}</p>;
+}
+
 export function InboxSyncStatus() {
-  const { ui } = useInboxSync();
-  if (!ui.status || (ui.failing && ui.status.startsWith("Retry failed:"))) return null;
-  return <p className={styles.syncStatus} role="status" aria-live="polite">{ui.status}</p>;
+  const { ui, bannerPresent } = useInboxSync();
+  return <InboxSyncStatusLine ui={ui} bannerPresent={bannerPresent} />;
 }
 
 export function InboxEmptyState({ title, text, actionLabel }: { title: string; text: string; actionLabel: "Sync inbox" | null }) {

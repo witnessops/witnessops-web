@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAdminCoreDashboard, listGmailSyncReceipts } from "@/lib/server/admin-core-spine";
+import { ADMIN_HEALTH_SETTINGS_HREF } from "@/lib/admin/admin-health-display";
 import { dashboardAllClear, dashboardSyncLine } from "@/lib/admin/admin-sync-status";
-import { AdminRecordEmpty } from "./admin-record-empty";
 import { CoreCard, CorePage, CoreState, CoreTable } from "./admin-core-view";
 import styles from "./admin.module.css";
 import { getAdminPageActor } from "@/lib/server/admin-page-session";
@@ -22,7 +22,7 @@ export async function AdminCoreDashboard() {
         <p>Live visitors, button clicks and time on page are not measured by this dashboard.</p>
       </div>
     </section>
-    {syncLine ? <p className={styles.syncThin} role="alert">{syncLine} <Link href="/admin/inbox">Open Inbox</Link> · <Link href="/admin/system">Open Health</Link></p> : null}
+    {syncLine ? <p className={styles.syncThin} role="alert">{syncLine} <Link href="/admin/inbox">Open Inbox</Link> · <Link href={ADMIN_HEALTH_SETTINGS_HREF}>Open Health</Link></p> : null}
     {allClear ? <p className={styles.allClear} role="status">{allClear}</p> : null}
     <div className={styles.coreGrid}>
       {[
@@ -35,7 +35,7 @@ export async function AdminCoreDashboard() {
     <div className={styles.coreSection}>
       <div className={styles.coreSectionHeader}><span className={styles.coreSectionTitle}>Enquiries to move forward</span><Link href="/admin/review-requests" className={styles.coreSectionLink}>All requests</Link></div>
       <p className={styles.adminServiceSectionNote}>Open requests with the oldest updates first. <Link href="/admin/review-requests?stage=needs_customer_information">Waiting for customer: {dashboard.counts.waitingForCustomer}</Link></p>
-      <CoreTable scrollLabel="Enquiry next actions" emptyMessage={<AdminRecordEmpty title="No open enquiries need qualification." text="Check Inbox for new requests." actionHref="/admin/inbox" actionLabel="Open Inbox" />} headers={["Customer", "Next action", "Timing", "Stage"]} rows={dashboard.nextReviewRequests.map((request) => [<Link href={`/admin/review-requests/${request.id}`} key={request.id}>{request.customerName}</Link>, request.nextAction, request.timing || "Not recorded", <CoreState value={request.state} key="state" />])} />
+      <CoreTable scrollLabel="Enquiry next actions" emptyMessage={<p className={styles.enquiryEmpty} role="status">No open enquiries need qualification. Check Inbox for new requests. <Link href="/admin/inbox">Open Inbox</Link></p>} headers={["Customer", "Next action", "Timing", "Stage"]} rows={dashboard.nextReviewRequests.map((request) => [<Link href={`/admin/review-requests/${request.id}`} key={request.id}>{request.customerName}</Link>, request.nextAction, request.timing || "Not recorded", <CoreState value={request.state} key="state" />])} />
     </div>
     {dashboard.recentProofRuns.length > 0 ? <div className={styles.coreSection}><div className={styles.coreSectionHeader}><span className={styles.coreSectionTitle}>Recent proof runs</span><Link href="/admin/proof-runs" className={styles.coreSectionLink}>Open all</Link></div><CoreTable headers={["Run", "Product", "State", "Evidence", "Next action"]} rows={dashboard.recentProofRuns.map((run) => [<Link href={`/admin/proof-runs/${run.id}`} key={run.id}>{run.id}</Link>, run.productContractSnapshot.productName, <CoreState value={run.state} key="state" />, run.evidenceState, run.nextAction])} /></div> : null}
     <section className={styles.coreSection} aria-labelledby="automation-title">

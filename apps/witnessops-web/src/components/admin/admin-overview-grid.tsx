@@ -329,7 +329,7 @@ export function AdminOverviewGrid({
               <span className={styles.sparklineLabel}>Started</span>
               <Sparkline
                 values={report.timeline.map((t) => t.ambiguityStarted)}
-                color="var(--color-brand-accent)"
+                color="var(--admin-accent)"
               />
             </div>
             <div className={styles.sparklineItem}>

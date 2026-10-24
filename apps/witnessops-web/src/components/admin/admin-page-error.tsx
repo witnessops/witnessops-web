@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ADMIN_HEALTH_SETTINGS_HREF } from "@/lib/admin/admin-health-display";
 import { formatWarsawDateTime } from "@/lib/admin/admin-warsaw-time";
 import { HealthGlyph } from "./admin-health-glyph";
 import styles from "./admin.module.css";
@@ -31,7 +32,7 @@ export function AdminPageError({
       <p className={styles.pageErrorMeta}>{meta}</p>
       <div className={styles.pageErrorActions}>
         <button type="button" className={styles.rowAction} onClick={onRetry}>Retry</button>
-        <Link href="/admin/system" className={styles.rowActionSecondary}>Open Health</Link>
+        <Link href={ADMIN_HEALTH_SETTINGS_HREF} className={styles.rowActionSecondary}>Open Health</Link>
       </div>
     </div>
   );

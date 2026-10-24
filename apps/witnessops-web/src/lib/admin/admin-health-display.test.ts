@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import { formatWarsawClock, formatWarsawDateTime } from "./admin-warsaw-time";
 import {
+  ADMIN_HEALTH_SETTINGS_HREF,
   DRIVE_COUNTS_TOWARD_HEALTH_CHIP,
   buildHealthCards,
   deriveGmailHealth,
@@ -63,6 +66,7 @@ test("a fixture check time connects, and removing the time configures", () => {
   }, [], NOW);
   assert.equal(withoutTime[0]?.kind, "configured");
   assert.equal(withoutTime[0]?.label, "Configured · not checked");
+  assert.equal(withoutTime[0]?.evidence, "Decided by: payload reports connected but records no check time, so it is treated as configured.");
 });
 
 test("hard-coded connected cards stay configured even when the payload stamps a time", () => {
@@ -75,6 +79,7 @@ test("hard-coded connected cards stay configured even when the payload stamps a 
   }, [], NOW);
   assert.deepEqual(cards.map((card) => card.kind), ["configured", "configured", "configured", "configured", "configured"]);
   assert.ok(cards.every((card) => card.label === "Configured · not checked"));
+  assert.ok(cards.every((card) => card.evidence === "Decided by: payload reports connected but records no check time, so it is treated as configured."));
 });
 
 test("Gmail derivation uses sync receipts and never invents a time", () => {
@@ -96,6 +101,39 @@ test("Gmail derivation uses sync receipts and never invents a time", () => {
   const noTime = deriveGmailHealth([receipt("completed", "")], NOW);
   assert.equal(noTime.kind, "configured");
   assert.equal(noTime.checkAt, null);
+});
+
+test("a newest partial receipt is configured, not failing", () => {
+  const partial = deriveGmailHealth([receipt("partial", SUMMER), receipt("failed", WINTER)], NOW);
+  assert.equal(partial.kind, "configured");
+  assert.equal(partial.label, "Configured · not checked");
+  assert.equal(partial.evidence, "Decided by: sync receipts (newest sync partial).");
+  assert.equal(partial.checkAt, null);
+  const cards = buildHealthCards({
+    gmail: item("unknown"),
+    mailDelivery: item("unknown"),
+  }, [receipt("partial", SUMMER)], NOW);
+  const gmail = cards.find((card) => card.title === "Gmail");
+  assert.equal(gmail?.kind, "configured");
+  assert.equal(gmail?.evidence, "Decided by: sync receipts (newest sync partial).");
+  const chip = healthChip(cards);
+  assert.notEqual(chip.kind, "failing");
+  assert.doesNotMatch(chip.text, /failing/);
+});
+
+test("every Open Health href equals the settings route", () => {
+  assert.equal(ADMIN_HEALTH_SETTINGS_HREF, "/admin/settings");
+  const surfaces = [
+    "../../components/admin/admin-console-shell.tsx",
+    "../../components/admin/admin-inbox-sync.tsx",
+    "../../components/admin/admin-page-error.tsx",
+    "../../components/admin/admin-core-dashboard.tsx",
+  ];
+  for (const relative of surfaces) {
+    const source = readFileSync(path.resolve(__dirname, relative), "utf8");
+    assert.match(source, /href=\{ADMIN_HEALTH_SETTINGS_HREF\}/);
+    assert.doesNotMatch(source, /["']\/admin\/system["']/);
+  }
 });
 
 test("health cards sort problems first and keep the body text", () => {

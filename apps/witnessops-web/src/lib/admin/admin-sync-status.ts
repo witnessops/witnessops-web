@@ -173,6 +173,17 @@ export function syncHistoryRows(receipts: readonly SyncReceiptView[]): SyncHisto
   });
 }
 
+/**
+ * Status line outside the failure banner.
+ * A retry failure is hidden only when the banner is actually rendered and already shows it.
+ * A first failure from a healthy inbox has no banner, so the message stays visible.
+ */
+export function syncStatusMessage(ui: SyncUiState, bannerPresent: boolean): string | null {
+  if (!ui.status) return null;
+  if (ui.failing && bannerPresent && ui.status.startsWith("Retry failed:")) return null;
+  return ui.status;
+}
+
 export function beginSync(state: SyncUiState): SyncUiState {
   return { ...state, busy: true, status: "" };
 }

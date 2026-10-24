@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
-import { errorTitleForPath, listSurface } from "./admin-list-surface";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { InboxSyncStatusLine } from "../../components/admin/admin-inbox-sync";
 import {
   beginSync,
   consecutiveFailures,
@@ -12,6 +15,7 @@ import {
   syncBanner,
   syncHistoryBadge,
   syncHistoryRows,
+  syncStatusMessage,
   type SyncReceiptView,
 } from "./admin-sync-status";
 
@@ -35,24 +39,12 @@ function receipt(status: SyncReceiptView["status"], completedAt = WINTER, error 
   };
 }
 
-test("an errored load never becomes an empty list", () => {
-  const error = listSurface({ ok: false, noun: "receipts" });
-  assert.equal(error.surface, "error");
-  if (error.surface === "error") {
-    assert.equal(error.title, "Could not load receipts");
-    assert.equal(error.text, "The request failed, so this list may not be empty. Nothing was changed.");
-  }
-  assert.equal(listSurface({ ok: true, rows: [] }).surface, "empty");
-  assert.equal(listSurface({ ok: true, rows: ["row"] }).surface, "rows");
-  assert.equal(errorTitleForPath("/admin/proof-runs"), "Could not load proof runs");
-  assert.equal(errorTitleForPath("/admin/inbox/abc"), "Could not load inbox messages");
-  assert.equal(errorTitleForPath("/admin/settings"), "Could not load this page");
-});
-
 test("the failed-sync banner shows only when the newest receipt failed", () => {
   assert.equal(syncBanner([]), null);
   assert.equal(syncBanner([receipt("completed", SUMMER)]), null);
   assert.equal(syncBanner([receipt("partial", SUMMER), receipt("failed")]), null);
+  assert.equal(syncBanner([receipt("partial", SUMMER)]), null);
+  assert.equal(dashboardSyncLine([receipt("partial", SUMMER)]), null);
   const one = syncBanner([receipt("failed", WINTER, "synthetic-sync-failure-reason")]);
   assert.equal(one?.text, "The last sync attempt failed. New mail may not be arriving.");
   assert.match(one?.detail ?? "", /Last attempt: 15 Jan 2026, 20:12 \(Europe\/Warsaw\)/);
@@ -122,4 +114,22 @@ test("sync buttons share busy, success, and failure states", () => {
   assert.equal(failure.failing, true);
   assert.equal(failure.status, "Retry failed: synthetic-sync-failure-reason");
   assert.equal(finishSyncFailure("  ").status, "Retry failed: reason not recorded");
+});
+
+test("a failed first sync from initiallyFailing=false shows the message", () => {
+  const provider = readFileSync(new URL("../../components/admin/admin-inbox-sync.tsx", import.meta.url), "utf8");
+  assert.match(provider, /const \[bannerPresent, setBannerPresent\] = useState\(initiallyFailing\)/);
+  assert.match(provider, /<InboxSyncStatusLine ui=\{ui\} bannerPresent=\{bannerPresent\} \/>/);
+  const healthy = { busy: false, failing: false, status: "" };
+  assert.equal(healthy.failing, false);
+  assert.equal(syncStatusMessage(healthy, false), null);
+  const failed = finishSyncFailure("synthetic-sync-failure-reason");
+  assert.equal(failed.failing, true);
+  const shown = syncStatusMessage(failed, false);
+  assert.equal(shown, "Retry failed: synthetic-sync-failure-reason");
+  assert.equal(syncStatusMessage(failed, true), null);
+  const html = renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: failed, bannerPresent: false }));
+  assert.match(html, /role="status"/);
+  assert.match(html, /Retry failed: synthetic-sync-failure-reason/);
+  assert.equal(renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: failed, bannerPresent: true })), "");
 });

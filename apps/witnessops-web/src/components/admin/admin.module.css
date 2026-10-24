@@ -1616,10 +1616,13 @@
 .healthEvidence { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--admin-border); color: var(--admin-mute); font-family: var(--font-mono); font-size: 12px; line-height: 1.45; }
 .healthChip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; max-width: 100%; padding: 4px 8px; border: 1px solid var(--admin-mute); border-radius: 4px; background: #fff; color: #2B2D29; font-family: var(--font-sans); font-size: 12px; line-height: 16px; text-decoration: none; }
 .healthChip[data-tone="rose"] { border-color: var(--admin-rose); background: var(--admin-rose-tint); color: var(--admin-rose); }
-.navHealthChip { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-left: auto; background: #F5F1E8; border-radius: 3px; flex: 0 0 auto; }
+.navHealthChip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-left: auto; background: #F5F1E8; border-radius: 3px; flex: 0 0 auto; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 767px) {
   .healthChipLabel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 }
+.enquiryEmpty { margin: 0; padding: 16px 20px 18px; color: #2B2D29; font-family: var(--font-sans); font-size: 14px; line-height: 20px; }
+.enquiryEmpty a { color: var(--admin-accent); text-decoration: underline; text-underline-offset: 3px; }
 .recordEmpty { margin: 0 52px 18px; padding: 26px 24px; border: 1.5px dashed var(--admin-mute-2); border-radius: 6px; background: #fff; }
 .coreSection .recordEmpty { margin: 16px 20px; }
 .recordEmptyTitle { margin: 0; color: #1a1b17; font-family: var(--font-sans); font-size: 16px; font-weight: 500; line-height: 22px; }
@@ -1672,7 +1675,7 @@
 .queueActionPrimaryButton, .rowAction { color: var(--admin-accent-on); background: var(--admin-accent); border-color: var(--admin-accent); border-radius: var(--radius-control); font-family: var(--font-sans); font-size: 12px; font-weight: 700; }
 .rowAction:hover:not(:disabled), .queueActionPrimaryButton:hover:not(:disabled) { color: var(--admin-accent-on); background: var(--admin-accent-hover); border-color: var(--admin-accent-hover); }
 .rowAction:active:not(:disabled), .queueActionPrimaryButton:active:not(:disabled) { color: var(--admin-accent-on); background: var(--admin-accent-active); border-color: var(--admin-accent-active); }
-.rowActionSecondary { color: var(--admin-accent); background: var(--admin-accent-on); border: 1px solid var(--admin-accent); border-radius: var(--radius-control); font-family: var(--font-sans); font-size: 12px; font-weight: 700; text-decoration: none; }
+.rowActionSecondary { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 4px 10px; color: var(--admin-accent); background: var(--admin-accent-on); border: 1px solid var(--admin-accent); border-radius: var(--radius-control); font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
 .rowActionSecondary:hover { color: var(--admin-accent-on); background: var(--admin-accent-hover); border-color: var(--admin-accent-hover); }
 .rowAction:disabled, .rowActionSecondary:disabled { color: var(--admin-mute); background: var(--admin-disabled-bg); border-color: var(--admin-disabled-bg); opacity: 1; cursor: wait; }
 .consoleShell :is(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 2px; }
@@ -1771,3 +1774,10 @@
 .dashboardLinks { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 0 52px 24px; font-family: var(--font-sans); font-size: 12px; }
 .dashboardLinks a { color: var(--admin-text-secondary); text-underline-offset: 4px; }
 @media (max-width: 700px) { .dashboardLinks { padding: 0 16px 20px; } }
+
+@media (max-width: 359px) {
+  .consoleHeaderStatus { display: none; }
+  .consoleHeader { height: auto; min-height: 68px; }
+  .consoleHeaderActions { flex-wrap: wrap; justify-content: flex-end; }
+  .alertBellContainer { flex: 0 0 auto; }
+}

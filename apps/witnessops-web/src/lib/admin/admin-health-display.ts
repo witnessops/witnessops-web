@@ -8,6 +8,9 @@ import {
 
 export const DRIVE_COUNTS_TOWARD_HEALTH_CHIP = true;
 
+/** Health cards live on Settings. Open Health and the header chip use this route. */
+export const ADMIN_HEALTH_SETTINGS_HREF = "/admin/settings";
+
 export type HealthDisplayKind =
   | "connected"
   | "configured"
@@ -132,7 +135,8 @@ export function deriveGmailHealth(receiptsNewestFirst: readonly SyncReceiptSnaps
 } {
   const windowReceipts = receiptsNewestFirst.slice(0, 5);
   const total = windowReceipts.length;
-  if (total === 0) {
+  const newest = windowReceipts[0];
+  if (total === 0 || !newest) {
     return {
       kind: "configured",
       label: "Configured · not checked",
@@ -140,40 +144,45 @@ export function deriveGmailHealth(receiptsNewestFirst: readonly SyncReceiptSnaps
       checkAt: null,
     };
   }
-  const newest = windowReceipts[0];
   const failed = windowReceipts.filter((receipt) => receipt.status === "failed").length;
   const time = receiptTime(newest);
-  if (newest.status === "failed") {
-    const shown = time ? formatWarsawDateTime(time) : "not recorded";
-    return {
-      kind: "failing",
-      label: `Failing · ${failed} of last ${total} syncs failed`,
-      evidence: `Decided by: sync receipts (${failed} of ${total} failed). Last check time: ${shown}.`,
-      checkAt: time,
-    };
+  switch (newest.status) {
+    case "failed": {
+      const shown = time ? formatWarsawDateTime(time) : "not recorded";
+      return {
+        kind: "failing",
+        label: `Failing · ${failed} of last ${total} syncs failed`,
+        evidence: `Decided by: sync receipts (${failed} of ${total} failed). Last check time: ${shown}.`,
+        checkAt: time,
+      };
+    }
+    case "completed":
+      if (time) {
+        return {
+          kind: "connected",
+          label: connectedLabel(time, now),
+          evidence: `Decided by: sync receipts (newest succeeded). Last check time: ${formatWarsawDateTime(time)}.`,
+          checkAt: time,
+        };
+      }
+      return {
+        kind: "configured",
+        label: "Configured · not checked",
+        evidence: "Decided by: sync receipts (newest succeeded, time not recorded).",
+        checkAt: null,
+      };
+    case "partial":
+      return {
+        kind: "configured",
+        label: "Configured · not checked",
+        evidence: "Decided by: sync receipts (newest sync partial).",
+        checkAt: null,
+      };
+    default: {
+      const unreachable: never = newest.status;
+      return unreachable;
+    }
   }
-  if (newest.status === "completed" && time) {
-    return {
-      kind: "connected",
-      label: connectedLabel(time, now),
-      evidence: `Decided by: sync receipts (newest succeeded). Last check time: ${formatWarsawDateTime(time)}.`,
-      checkAt: time,
-    };
-  }
-  if (newest.status === "completed") {
-    return {
-      kind: "configured",
-      label: "Configured · not checked",
-      evidence: "Decided by: sync receipts (newest succeeded, time not recorded).",
-      checkAt: null,
-    };
-  }
-  return {
-    kind: "failing",
-    label: "Failing",
-    evidence: "Decided by: sync receipts (newest status partial).",
-    checkAt: time,
-  };
 }
 
 function payloadEvidence(kind: HealthDisplayKind, state: HealthPayloadState, realCheckAt: string | null): string {
@@ -186,7 +195,7 @@ function payloadEvidence(kind: HealthDisplayKind, state: HealthPayloadState, rea
       return `Decided by: payload check time ${formatWarsawDateTime(realCheckAt ?? "") ?? "not recorded"}.`;
     case "configured":
       return state === "connected"
-        ? "Decided by: payload status connected, no recorded check time."
+        ? "Decided by: payload reports connected but records no check time, so it is treated as configured."
         : "Decided by: payload status unknown; configured in the console.";
     case "not_checked":
       return "Decided by: payload status unknown.";

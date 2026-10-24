@@ -60,6 +60,7 @@ export function AdminSidebar({ mobileOpen, onClose, health }: { mobileOpen?: boo
               trailing={item.href === "/admin/settings" && health ? (
                 <span className={styles.navHealthChip} title={health.text}>
                   <HealthGlyph kind={health.kind} size={14} />
+                  <span className={styles.visuallyHidden}>{health.text}</span>
                 </span>
               ) : null}
             />

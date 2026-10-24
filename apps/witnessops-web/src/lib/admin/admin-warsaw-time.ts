@@ -1,9 +1,11 @@
 const WARSAW = "Europe/Warsaw";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
 const dateTimeFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: WARSAW,
   day: "numeric",
-  month: "short",
+  month: "numeric",
   year: "numeric",
   hour: "2-digit",
   minute: "2-digit",
@@ -23,7 +25,8 @@ export function warsawParts(iso: string): WarsawParts | null {
   if (!iso.trim() || Number.isNaN(date.getTime())) return null;
   const parts = new Map(dateTimeFormat.formatToParts(date).map((part) => [part.type, part.value]));
   const day = parts.get("day");
-  const month = parts.get("month");
+  const monthNumber = Number(parts.get("month"));
+  const month = MONTHS[monthNumber - 1];
   const year = parts.get("year");
   const hour = parts.get("hour");
   const minute = parts.get("minute");

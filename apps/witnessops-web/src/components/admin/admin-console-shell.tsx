@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import type { HealthChipModel } from "@/lib/admin/admin-health-display";
+import { ADMIN_HEALTH_SETTINGS_HREF, type HealthChipModel } from "@/lib/admin/admin-health-display";
 import { HealthGlyph } from "./admin-health-glyph";
 import { AdminSidebar } from "./admin-sidebar";
 import styles from "./admin.module.css";
@@ -25,7 +25,7 @@ export function AdminConsoleShell({ children, alert, health }: { children: React
             <div className={styles.consoleBoundary}>Operator review required · no automatic execution</div>
             <div className={styles.consoleHeaderStatus}><span className={styles.dot} /> Authenticated</div>
             {health ? (
-              <Link href="/admin/system" className={styles.healthChip} data-tone={health.tone} aria-label={health.text}>
+              <Link href={ADMIN_HEALTH_SETTINGS_HREF} className={styles.healthChip} data-tone={health.tone} aria-label={health.text}>
                 <HealthGlyph kind={health.kind} />
                 <span className={styles.healthChipLabel}>{health.text}</span>
               </Link>

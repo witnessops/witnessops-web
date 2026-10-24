@@ -20,7 +20,7 @@ export function AdminSyncHistory({ receipts }: { receipts: readonly SyncReceiptV
         ) : null}
       </summary>
       {rows.length ? (
-        <div className={styles.coreTableWrap}>
+        <div className={styles.coreTableWrap} role="region" aria-label="Sync history" tabIndex={0}>
           <table className={styles.coreTable}>
             <thead><tr>{HEADERS.map((header) => <th key={header}>{header}</th>)}</tr></thead>
             <tbody>
