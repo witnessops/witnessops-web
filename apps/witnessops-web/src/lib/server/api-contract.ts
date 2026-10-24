@@ -308,6 +308,13 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     category: "operator",
     summary: "Core operating spine records, deterministic transitions, integration boundaries, and audit history",
   },
+  {
+    path: "/api/agent/mcp",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+    category: "operator",
+    summary: "Flag-off read-only admin metadata endpoint. Disabled unless its enable flag is exactly 1.",
+    note: "Does not accept the admin session cookie. Non-POST methods are 405 only when the flag is on. Tool calls return no records unless a pre-created audit directory accepts the write.",
+  },
 
   // -------------------------------------------------------------------------
   // provider-webhook — external sender, not user-triggered
