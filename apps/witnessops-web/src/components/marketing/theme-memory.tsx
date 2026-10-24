@@ -45,6 +45,7 @@ export function ThemeMemory() {
       <div className="mt-2 flex gap-2">
         <button
           type="button"
+          data-theme-choice="dark"
           className="min-h-11 rounded-sm border border-surface-border px-3 text-text-primary"
           onClick={() => choose("dark")}
         >
@@ -52,6 +53,7 @@ export function ThemeMemory() {
         </button>
         <button
           type="button"
+          data-theme-choice="light"
           className="min-h-11 rounded-sm border border-surface-border px-3 text-text-primary"
           onClick={() => choose("light")}
         >

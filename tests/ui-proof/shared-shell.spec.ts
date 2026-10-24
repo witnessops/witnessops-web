@@ -56,14 +56,17 @@ const withdrawnShellRoutes = new Set<string>([
 ]);
 
 const canonicalChrome = {
-  background: "rgb(242, 238, 228)",
+  background: "rgb(245, 241, 232)",
+  header: "color(srgb 0.960784 0.945098 0.909804 / 0.92)",
+  footer: "rgb(237, 231, 215)",
   primary: "rgb(11, 12, 11)",
-  accent: "rgb(113, 90, 44)",
+  accent: "rgb(108, 86, 49)",
+  actionFill: "rgb(108, 86, 49)",
   inverse: "rgb(245, 241, 232)",
   tokens: {
-    background: "#f2eee4",
+    background: "#f5f1e8",
     primary: "#0b0c0b",
-    accent: "#715a2c",
+    accent: "#6c5631",
     inverse: "#f5f1e8",
   },
 } as const;
@@ -78,6 +81,10 @@ const activeNavigationHref = new Map<string, string>([
 ]);
 
 function parseRgb(value: string): [number, number, number] {
+  const srgb = value.match(/color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+  if (srgb) {
+    return srgb.slice(1, 4).map((channel) => Math.round(Number(channel) * 255)) as [number, number, number];
+  }
   const channels = value.match(/[\d.]+/g)?.slice(0, 3).map(Number);
   if (!channels || channels.length !== 3) {
     throw new Error(`Expected a computed RGB color, received ${value}`);
@@ -257,13 +264,13 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         canonicalChrome.background,
       );
       expect(shell.navBackground, `${route} navigation background`).toBe(
-        canonicalChrome.background,
+        canonicalChrome.header,
       );
       expect(shell.navColor, `${route} navigation foreground`).toBe(
         canonicalChrome.primary,
       );
       expect(shell.footerBackground, `${route} footer background`).toBe(
-        canonicalChrome.background,
+        canonicalChrome.footer,
       );
       expect(shell.footerColor, `${route} footer foreground`).toBe(
         canonicalChrome.primary,
@@ -294,7 +301,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         expect(contrastRatio(shell.desktopCtaColor!, shell.desktopCtaBackground!), `${route} CTA text contrast`).toBeGreaterThanOrEqual(4.5);
       } else if (viewport.width >= 1024) {
         expect(shell.desktopCtaBackground, `${route} desktop CTA background`).toBe(
-          canonicalChrome.primary,
+          canonicalChrome.actionFill,
         );
         expect(shell.desktopCtaColor, `${route} desktop CTA foreground`).toBe(
           canonicalChrome.inverse,

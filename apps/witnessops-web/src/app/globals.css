@@ -169,6 +169,10 @@ body {
     var(--color-surface-bg);
   color: var(--color-text-primary);
 }
+/* Light uses the single --hero-glow halo. Dark keeps this 8% page radial. */
+html[data-theme="light"] .public-brand-page {
+  background: var(--color-surface-bg);
+}
 
 /* Buyer routes use the same dark public contract. Proof records, verification
    paper and admin surfaces retain their own intentionally scoped palettes. */
@@ -178,9 +182,10 @@ body {
   color: var(--color-text-primary);
 }
 
-/* Dark public ground: a hairline grid anchored to the page centre. Page wrappers
+/* Public ground: a hairline grid anchored to the page centre. Page wrappers
    turn transparent so it shows; bands, cards, header and footer stay opaque. */
-html[data-theme="dark"] body:not(:has([data-admin-shell])) {
+html[data-theme="dark"] body:not(:has([data-admin-shell])),
+html[data-theme="light"] body:not(:has([data-admin-shell])) {
   background-image:
     linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
@@ -193,18 +198,21 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) {
     var(--grid-step) var(--grid-step);
   background-position: calc(50% - 0.5px) 0;
 }
-html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page) {
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page),
+html[data-theme="light"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page) {
   background: transparent;
 }
-html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar {
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar,
+html[data-theme="light"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar {
   background-color: color-mix(in srgb, var(--color-surface-bg) 92%, transparent);
   backdrop-filter: blur(6px);
 }
 
-/* Crop marks: four brass L-marks just outside the host's corners, dark only.
+/* Crop marks: four brass L-marks just outside the host's corners.
    The host must be positioned and must not use its own ::before. */
 :where(.crop, .crop-frame) { position: relative; }
-html[data-theme="dark"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before {
+html[data-theme="dark"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before,
+html[data-theme="light"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before {
   --crop-c: var(--crop-color);
   --crop-a: var(--crop-arm);
   --crop-s: var(--crop-stroke);
@@ -222,13 +230,15 @@ html[data-theme="dark"] body:not(:has([data-admin-shell])) :is(.crop, .crop-fram
     linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-a) var(--crop-s) no-repeat,
     linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-s) var(--crop-a) no-repeat;
 }
-html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before {
+html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before,
+html[data-theme="light"] body:not(:has([data-admin-shell])) .crop-frame::before {
   --crop-a: 24px;
   inset: var(--crop-frame-inset, 0);
   opacity: var(--crop-frame-opacity);
 }
 @media (max-width: 767px) {
-  html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before { display: none; }
+  html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before,
+  html[data-theme="light"] body:not(:has([data-admin-shell])) .crop-frame::before { display: none; }
 }
 @media print, (forced-colors: active) {
   html body { background-image: none !important; }
@@ -1259,6 +1269,13 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
   background: var(--color-surface-bg);
   font-family: var(--font-sans);
 }
+html[data-theme="light"] footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
+  background: var(--color-surface-bg-alt);
+  border-top-color: var(--color-surface-border-accent);
+}
+html[data-theme="light"] .simple-public-footer [data-footer-review-cta] {
+  border-color: var(--color-surface-border-strong);
+}
 .simple-public-footer > div { padding-block: 40px max(32px, env(safe-area-inset-bottom)); }
 .simple-public-footer .footer-main { display: grid; gap: 32px; grid-template-areas: "brand" "nav" "contact" "theme"; }
 .simple-public-footer [data-footer-brand-lockup] { grid-area: brand; }
@@ -1284,6 +1301,16 @@ footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
 .simple-public-footer [data-theme-memory],
 .simple-public-footer [data-theme-memory] p { font-size: var(--type-small-size); line-height: var(--type-small-lh); font-weight: 400; letter-spacing: 0; }
 .simple-public-footer [data-theme-memory] button { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
+html[data-theme="light"] .simple-public-footer [data-theme-memory] button {
+  border-color: var(--color-surface-border-strong);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+html[data-theme="light"] .simple-public-footer [data-theme-memory] button[data-theme-choice="light"] {
+  border-color: var(--color-brand-accent);
+  background: var(--color-brand-accent-subtle);
+  color: var(--color-text-primary);
+}
 .simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: 500; letter-spacing: 0; text-transform: none; }
 .simple-public-footer [data-footer-review-cta]:hover { background: var(--color-surface-card-hover); border-color: var(--color-brand-accent); color: var(--color-text-primary); }
 .simple-public-footer [data-public-contact-route] a[href^="mailto:"] { overflow-wrap: anywhere; display: inline-flex; align-items: center; }

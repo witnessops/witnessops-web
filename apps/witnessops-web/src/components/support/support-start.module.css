@@ -9,7 +9,7 @@
 .panel .note { margin: .75rem 0 1rem; font-size: .8rem; }
 .panel button { display: inline-flex; align-items: center; gap: 1.5rem; min-height: 48px; padding: .75rem 1rem; border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-action-fill); color: var(--color-action-on-fill); font-weight: 500; }
 .panel button:disabled,
-.panel button[aria-disabled="true"] { cursor: not-allowed; background: var(--color-surface-card); border-color: var(--color-surface-border-strong); color: var(--color-surface-border-strong); }
-.panel button:is(:disabled, [aria-disabled="true"]):is(:hover, :focus, :focus-visible, :active) { cursor: not-allowed; background: var(--color-surface-card); border-color: var(--color-surface-border-strong); color: var(--color-surface-border-strong); }
+.panel button[aria-disabled="true"] { cursor: not-allowed; background: var(--color-surface-card); border-color: var(--color-surface-border-strong); color: var(--color-action-disabled-text); }
+.panel button:is(:disabled, [aria-disabled="true"]):is(:hover, :focus, :focus-visible, :active) { cursor: not-allowed; background: var(--color-surface-card); border-color: var(--color-surface-border-strong); color: var(--color-action-disabled-text); }
 .panel > a { display: inline-block; margin-top: 1.5rem; padding-block: .5rem; text-decoration: underline; text-underline-offset: .3em; font-size: .875rem; }
 .panel :is(textarea,button,a):focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
