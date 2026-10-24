@@ -13,6 +13,7 @@ import {
   type CheckResult,
   type ScenarioResult,
 } from "./report";
+import { expectFreeToolEntryPoint } from "./free-tool-entry";
 import { writeScreenshotGrid } from "./screenshot-grid";
 
 test.describe.configure({ mode: "serial" });
@@ -247,7 +248,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
         await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
         await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
         await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
-        await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
+        await expectFreeToolEntryPoint(page);
         await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);

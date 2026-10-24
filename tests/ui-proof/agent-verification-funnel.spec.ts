@@ -1,6 +1,7 @@
 import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
+import { expectFreeToolEntryPoint } from "./free-tool-entry";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -130,7 +131,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
       await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
-      await expect(page.getByRole("link", { name: "Tool · not a review", exact: true }).first()).toHaveAttribute("href", "/check");
+      await expectFreeToolEntryPoint(page);
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
       await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");

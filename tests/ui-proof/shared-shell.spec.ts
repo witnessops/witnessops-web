@@ -573,8 +573,10 @@ test("unconfigured production pages expose no app destinations", async ({ page }
           expect(href, `${route} mobile primary action`).not.toMatch(/app\.witnessops\.com|127\.0\.0\.1:3020|\/signup|\/login/);
         }
       }
-      await page.getByRole("navigation", { name: "Primary navigation", exact: true }).getByRole("button", { name: "Product", exact: true }).click();
-      await expect(page.locator('nav a[href="/check"]:visible').first()).toBeVisible();
+      // /check stays in the header Resources group. The footer no longer renders it.
+      const primaryNav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
+      await primaryNav.getByRole("button", { name: "Resources", exact: true }).click();
+      await expect(primaryNav.locator('a[href="/check"]:visible').first()).toBeVisible();
     }
   }
 });
