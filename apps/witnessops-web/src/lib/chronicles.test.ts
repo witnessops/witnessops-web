@@ -33,8 +33,7 @@ test("published chapters stay in reading order", () => {
       "003-the-meeting-nobody-authorized",
     ],
   );
-  assert.equal(RESERVED_CHAPTERS.some((chapter) => chapter.id === "002"), false);
-  assert.equal(RESERVED_CHAPTERS[0]?.id, "004");
+  assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), ["004"]);
   const chapter = chapterById("002");
   assert.equal(chapter.title, "Sir Whiskers Opens a Pull Request");
   assert.equal(chapter.kicker, "THE SOVEREIGN CHRONICLES · CHAPTER II");
