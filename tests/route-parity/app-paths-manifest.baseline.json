@@ -23,6 +23,7 @@
   "/api/admin/lifecycle/[runId]/retry-request/route": "app/api/admin/lifecycle/[runId]/retry-request/route.js",
   "/api/admin/queue/command/route": "app/api/admin/queue/command/route.js",
   "/api/admin/queue/verify-projection/route": "app/api/admin/queue/verify-projection/route.js",
+  "/api/agent/mcp/route": "app/api/agent/mcp/route.js",
   "/api/ask-witnessops/route": "app/api/ask-witnessops/route.js",
   "/api/assessment/[issuanceId]/amend/route": "app/api/assessment/[issuanceId]/amend/route.js",
   "/api/assessment/[issuanceId]/approve/route": "app/api/assessment/[issuanceId]/approve/route.js",
