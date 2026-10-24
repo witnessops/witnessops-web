@@ -799,7 +799,7 @@ function renderDetailPanel(
 
       {lifecycle && (lifecycle.stage === "failed" || lifecycle.stage === "retry_pending") ? (
         <details data-testid="post-approval-retry-panel" className="mt-2">
-          <summary className="cursor-pointer text-xs font-mono text-amber-300">
+          <summary className="cursor-pointer text-xs font-mono text-[#8B4B48]">
             Delivery {lifecycle.stage === "retry_pending" ? "retry pending" : "failed"} — open retry surface
           </summary>
           <div className="mt-2">
