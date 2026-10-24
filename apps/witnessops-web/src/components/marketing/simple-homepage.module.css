@@ -46,6 +46,7 @@
 .offers { padding-bottom: 96px; }
 .cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin: 0 0 48px; }
 .cards article { display: flex; flex-direction: column; min-width: 0; padding: 24px; border: 1px solid var(--color-surface-border-accent); border-radius: var(--radius-card); background: var(--color-surface-card); }
+:global(html[data-theme="light"]) .cards article { box-shadow: var(--card-shadow); }
 .cards h2, .cards h3 { margin: 0; font-family: var(--font-sans); font-size: var(--type-h3-size); font-weight: var(--type-h3-wt); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); }
 .cards p { margin-top: 12px; font-size: var(--type-body-size); line-height: var(--type-body-lh); }
 .cards .price { color: var(--color-text-primary); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); font-weight: 400; letter-spacing: var(--type-h3-ls); font-variant-numeric: tabular-nums lining-nums; }
@@ -87,10 +88,13 @@
 .enquiryForm form > p { font-size: var(--type-small-size); line-height: var(--type-small-lh); }
 .page a:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
 
-/* Dark ground and crop-mark hosts. The card margin and 40px gap keep marks clear of text and of each other. */
-:global(html[data-theme="dark"]) .page { background: transparent; }
-:global(html[data-theme="dark"]) .specimenRows { overflow: visible; }
-:global(html[data-theme="dark"]) .cards { margin-top: 32px; }
+/* Grid ground and crop-mark hosts. The card margin and 40px gap keep marks clear of text and of each other. */
+:global(html[data-theme="dark"]) .page,
+:global(html[data-theme="light"]) .page { background: transparent; }
+:global(html[data-theme="dark"]) .specimenRows,
+:global(html[data-theme="light"]) .specimenRows { overflow: visible; }
+:global(html[data-theme="dark"]) .cards,
+:global(html[data-theme="light"]) .cards { margin-top: 32px; }
 .heroFrame { --crop-frame-inset: -48px -32px; }
 
 @media (min-width: 768px) {
@@ -101,7 +105,8 @@
   .split .primary { min-height: 48px; }
   .split .secondary { min-height: 0; padding: 0; border: 0; background: transparent; border-radius: 0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
   .split .secondary:hover { background: transparent; }
-  :global(html[data-theme="dark"]) .cards { gap: 40px; }
+  :global(html[data-theme="dark"]) .cards,
+  :global(html[data-theme="light"]) .cards { gap: 40px; }
 }
 @media (min-width: 1200px) {
   .hero { padding: 112px 0; }
