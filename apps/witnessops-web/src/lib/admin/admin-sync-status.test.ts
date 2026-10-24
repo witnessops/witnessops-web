@@ -18,6 +18,7 @@ import {
   syncStatusMessage,
   type SyncReceiptView,
 } from "./admin-sync-status";
+import { AdminSyncHistory } from "../../components/admin/admin-sync-history";
 
 const WINTER = "2026-01-15T19:12:00.000Z";
 const SUMMER = "2026-07-15T18:12:00.000Z";
@@ -88,18 +89,30 @@ test("inbox empty copy follows sync health", () => {
 
 test("sync history badge and failed rows avoid zero counts", () => {
   const failed = [receipt("failed", "", ""), receipt("failed", WINTER, "synthetic-sync-failure-reason")];
-  assert.equal(syncHistoryBadge(failed), "2 failed in a row");
+  assert.deepEqual(syncHistoryBadge(failed), { kind: "failing", label: "2 failed in a row" });
   const rows = syncHistoryRows(failed);
   assert.equal(rows[0]?.result, "Failed");
   assert.deepEqual(rows[0]?.counts, ["—", "—", "—", "—", "—"]);
   assert.equal(rows[0]?.reason, "Reason not recorded");
   assert.equal(rows[0]?.time, "not recorded");
   const mixed = [receipt("failed", WINTER, "synthetic-sync-failure-reason"), receipt("completed", SUMMER, "", 1)];
-  assert.equal(syncHistoryBadge(mixed), "1 of last 2 failed");
+  assert.deepEqual(syncHistoryBadge(mixed), { kind: "failing", label: "1 of last 2 failed" });
   const fine = syncHistoryRows([receipt("completed", SUMMER, "", 1)]);
   assert.equal(fine[0]?.tone, "connected");
-  assert.equal(syncHistoryBadge([receipt("completed", SUMMER)]), "Last sync succeeded · 15 Jul 2026, 20:12");
+  assert.deepEqual(syncHistoryBadge([receipt("completed", SUMMER)]), { kind: "connected", label: "Last sync succeeded · 15 Jul 2026, 20:12" });
   assert.equal(syncHistoryRows([receipt("completed", "")])[0]?.tone, "neutral");
+  const partialOnly = syncHistoryBadge([receipt("partial", SUMMER)]);
+  assert.deepEqual(partialOnly, { kind: "neutral", label: "Last sync partial" });
+  const history = readFileSync(new URL("../../components/admin/admin-sync-history.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(history, /includes\("failed"\)/);
+  assert.match(history, /syncHistoryBadgeTone\(badge\.kind\)/);
+  const partialHtml = renderToStaticMarkup(createElement(AdminSyncHistory, { receipts: [receipt("partial", SUMMER)] }));
+  assert.match(partialHtml, /Last sync partial/);
+  assert.match(partialHtml, /data-kind="configured"/);
+  assert.doesNotMatch(partialHtml, /data-kind="failing"/);
+  const failedHtml = renderToStaticMarkup(createElement(AdminSyncHistory, { receipts: mixed }));
+  assert.match(failedHtml, /1 of last 2 failed/);
+  assert.match(failedHtml, /data-kind="failing"/);
 });
 
 test("sync buttons share busy, success, and failure states", () => {
@@ -109,27 +122,36 @@ test("sync buttons share busy, success, and failure states", () => {
   assert.equal(busy.status, "");
   const success = finishSyncSuccess(4);
   assert.deepEqual(success, { busy: false, failing: false, status: "Gmail sync succeeded. 4 new." });
-  const failure = finishSyncFailure("synthetic-sync-failure-reason");
-  assert.equal(failure.busy, false);
-  assert.equal(failure.failing, true);
-  assert.equal(failure.status, "Retry failed: synthetic-sync-failure-reason");
-  assert.equal(finishSyncFailure("  ").status, "Retry failed: reason not recorded");
+  const retry = finishSyncFailure("synthetic-sync-failure-reason", "retry");
+  assert.equal(retry.busy, false);
+  assert.equal(retry.failing, true);
+  assert.equal(retry.status, "Retry failed: synthetic-sync-failure-reason");
+  assert.equal(finishSyncFailure("  ", "retry").status, "Retry failed: reason not recorded");
+  const sync = finishSyncFailure("synthetic-sync-failure-reason", "sync");
+  assert.equal(sync.status, "Sync failed: synthetic-sync-failure-reason");
+  assert.equal(finishSyncFailure("  ", "sync").status, "Sync failed: reason not recorded");
 });
 
 test("a failed first sync from initiallyFailing=false shows the message", () => {
   const provider = readFileSync(new URL("../../components/admin/admin-inbox-sync.tsx", import.meta.url), "utf8");
   assert.match(provider, /const \[bannerPresent, setBannerPresent\] = useState\(initiallyFailing\)/);
   assert.match(provider, /<InboxSyncStatusLine ui=\{ui\} bannerPresent=\{bannerPresent\} \/>/);
+  assert.match(provider, /run\(label === "Retry sync" \? "retry" : "sync"\)/);
   const healthy = { busy: false, failing: false, status: "" };
   assert.equal(healthy.failing, false);
   assert.equal(syncStatusMessage(healthy, false), null);
-  const failed = finishSyncFailure("synthetic-sync-failure-reason");
-  assert.equal(failed.failing, true);
-  const shown = syncStatusMessage(failed, false);
-  assert.equal(shown, "Retry failed: synthetic-sync-failure-reason");
-  assert.equal(syncStatusMessage(failed, true), null);
-  const html = renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: failed, bannerPresent: false }));
-  assert.match(html, /role="status"/);
-  assert.match(html, /Retry failed: synthetic-sync-failure-reason/);
-  assert.equal(renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: failed, bannerPresent: true })), "");
+  const synced = finishSyncFailure("synthetic-sync-failure-reason", "sync");
+  assert.equal(synced.failing, true);
+  assert.equal(syncStatusMessage(synced, false), "Sync failed: synthetic-sync-failure-reason");
+  assert.equal(syncStatusMessage(synced, true), null);
+  const retried = finishSyncFailure("synthetic-sync-failure-reason", "retry");
+  assert.equal(syncStatusMessage(retried, false), "Retry failed: synthetic-sync-failure-reason");
+  assert.equal(syncStatusMessage(retried, true), null);
+  const syncHtml = renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: synced, bannerPresent: false }));
+  assert.match(syncHtml, /role="status"/);
+  assert.match(syncHtml, /Sync failed: synthetic-sync-failure-reason/);
+  const retryHtml = renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: retried, bannerPresent: false }));
+  assert.match(retryHtml, /role="status"/);
+  assert.match(retryHtml, /Retry failed: synthetic-sync-failure-reason/);
+  assert.equal(renderToStaticMarkup(createElement(InboxSyncStatusLine, { ui: synced, bannerPresent: true })), "");
 });

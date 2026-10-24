@@ -1,21 +1,36 @@
-import { syncHistoryBadge, syncHistoryRows, type SyncReceiptView } from "@/lib/admin/admin-sync-status";
+import { syncHistoryBadge, syncHistoryRows, type SyncHistoryBadgeKind, type SyncReceiptView } from "@/lib/admin/admin-sync-status";
 import { HealthGlyph } from "./admin-health-glyph";
 import styles from "./admin.module.css";
 
 const HEADERS = ["Time", "Result", "Reason", "Threads", "Created", "Updated", "Excluded", "Label failures", "Run"];
 
+function syncHistoryBadgeTone(kind: SyncHistoryBadgeKind): "connected" | "failing" | "configured" {
+  switch (kind) {
+    case "connected":
+      return "connected";
+    case "failing":
+      return "failing";
+    case "neutral":
+      return "configured";
+    default: {
+      const unreachable: never = kind;
+      return unreachable;
+    }
+  }
+}
+
 export function AdminSyncHistory({ receipts }: { receipts: readonly SyncReceiptView[] }) {
   const badge = syncHistoryBadge(receipts);
   const rows = syncHistoryRows(receipts);
-  const badgeKind = badge?.startsWith("Last sync succeeded ·") ? "connected" : badge?.includes("failed") ? "failing" : "configured";
+  const badgeTone = badge ? syncHistoryBadgeTone(badge.kind) : null;
   return (
     <details className={styles.syncHistory}>
       <summary className={styles.syncHistorySummary}>
         <span>Sync history</span>
-        {badge ? (
-          <span className={styles.healthBadge} data-kind={badgeKind}>
-            {badgeKind === "connected" ? <HealthGlyph kind="connected" /> : badgeKind === "failing" ? <HealthGlyph kind="failing" /> : <HealthGlyph kind="configured" />}
-            <span>{badge}</span>
+        {badge && badgeTone ? (
+          <span className={styles.healthBadge} data-kind={badgeTone}>
+            <HealthGlyph kind={badgeTone} />
+            <span>{badge.label}</span>
           </span>
         ) : null}
       </summary>

@@ -8,8 +8,10 @@ import {
   beginSync,
   finishSyncFailure,
   finishSyncSuccess,
+  isClickFailureStatus,
   syncStatusMessage,
   type SyncBannerModel,
+  type SyncFailureAction,
   type SyncUiState,
 } from "@/lib/admin/admin-sync-status";
 import { HealthGlyph } from "./admin-health-glyph";
@@ -17,7 +19,7 @@ import styles from "./admin.module.css";
 
 interface InboxSyncContextValue {
   ui: SyncUiState;
-  run: () => void;
+  run: (action: SyncFailureAction) => void;
   bannerPresent: boolean;
   setBannerPresent: (present: boolean) => void;
 }
@@ -36,7 +38,7 @@ export function InboxSyncProvider({ children, initiallyFailing }: { children: Re
   const [ui, setUi] = useState<SyncUiState>({ busy: false, failing: initiallyFailing, status: "" });
   const [bannerPresent, setBannerPresent] = useState(initiallyFailing);
 
-  async function run() {
+  async function run(action: SyncFailureAction) {
     if (busyRef.current) return;
     busyRef.current = true;
     setUi((current) => beginSync(current));
@@ -52,17 +54,17 @@ export function InboxSyncProvider({ children, initiallyFailing }: { children: Re
         receipt?: { status?: string; counts?: { inboxItemsCreated?: number }; failures?: Array<{ error?: string }> };
       };
       if (!response.ok || !payload.ok || !payload.receipt) {
-        setUi(finishSyncFailure(payload.error));
+        setUi(finishSyncFailure(payload.error, action));
         return;
       }
       if (payload.receipt.status === "completed") {
         setUi(finishSyncSuccess(payload.receipt.counts?.inboxItemsCreated ?? 0));
       } else {
-        setUi(finishSyncFailure(payload.receipt.failures?.find((failure) => failure.error?.trim())?.error));
+        setUi(finishSyncFailure(payload.receipt.failures?.find((failure) => failure.error?.trim())?.error, action));
       }
       router.refresh();
     } catch (error) {
-      setUi(finishSyncFailure(error instanceof Error ? error.message : null));
+      setUi(finishSyncFailure(error instanceof Error ? error.message : null, action));
     } finally {
       busyRef.current = false;
     }
@@ -76,7 +78,7 @@ export function InboxSyncButton({ label, emphasis }: { label: string; emphasis: 
   const resolved = ui.failing && label !== "Retry sync" ? "secondary" : emphasis;
   const className = resolved === "secondary" ? styles.rowActionSecondary : styles.rowAction;
   return (
-    <button type="button" className={`${className} ${styles.syncButton}`} onClick={() => void run()} disabled={ui.busy} aria-busy={ui.busy || undefined}>
+    <button type="button" className={`${className} ${styles.syncButton}`} onClick={() => void run(label === "Retry sync" ? "retry" : "sync")} disabled={ui.busy} aria-busy={ui.busy || undefined}>
       {ui.busy ? "Syncing…" : label}
     </button>
   );
@@ -89,7 +91,7 @@ export function InboxSyncBanner({ banner }: { banner: SyncBannerModel }) {
     return () => setBannerPresent(false);
   }, [setBannerPresent]);
   if (!ui.failing) return null;
-  const retryFailed = ui.status.startsWith("Retry failed:");
+  const clickFailed = isClickFailureStatus(ui.status);
   return (
     <div className={styles.syncBanner} role="alert">
       <HealthGlyph kind="failing" size={22} />
@@ -97,7 +99,7 @@ export function InboxSyncBanner({ banner }: { banner: SyncBannerModel }) {
         <h2 className={styles.syncBannerTitle}>{banner.title}</h2>
         <p className={styles.syncBannerText}>{banner.text}</p>
         <p className={styles.syncBannerDetail}>{banner.detail}</p>
-        {retryFailed ? <p className={styles.syncBannerFailure} aria-live="polite">{ui.status}</p> : null}
+        {clickFailed ? <p className={styles.syncBannerFailure} aria-live="polite">{ui.status}</p> : null}
       </div>
       <div className={styles.syncBannerActions}>
         <InboxSyncButton label="Retry sync" emphasis="primary" />

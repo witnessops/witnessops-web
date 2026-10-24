@@ -109,6 +109,55 @@ function isOrange(color: { h: number; s: number }): boolean {
   return color.h >= 5 && color.h <= 55 && color.s >= 0.35;
 }
 
+// Explicit exceptions: the login page accent (#ff6b35) and the Wiz avatar chest light (#F97E00).
+const ALLOWED_ORANGE_HEX = new Set(["ff6b35", "f97e00"]);
+const ORANGE_HEX_MIN_VALUE = 0.35;
+
+function normalizeHex(hex: string): string | null {
+  const body = hex.slice(1);
+  if (body.length === 3) return body.split("").map((channel) => channel + channel).join("").toLowerCase();
+  if (body.length === 6) return body.toLowerCase();
+  return null;
+}
+
+function hsvFromHex(hex: string): { h: number; s: number; v: number } | null {
+  const normalized = normalizeHex(hex);
+  if (!normalized) return null;
+  const value = Number.parseInt(normalized, 16);
+  const red = ((value >> 16) & 255) / 255;
+  const green = ((value >> 8) & 255) / 255;
+  const blue = (value & 255) / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  let hue = 0;
+  if (delta !== 0) {
+    if (max === red) hue = ((green - blue) / delta) % 6;
+    else if (max === green) hue = (blue - red) / delta + 2;
+    else hue = (red - green) / delta + 4;
+    hue *= 60;
+    if (hue < 0) hue += 360;
+  }
+  return { h: hue, s: max === 0 ? 0 : delta / max, v: max };
+}
+
+function isBrightOrangeHex(hex: string): boolean {
+  const color = hsvFromHex(hex);
+  if (!color) return false;
+  return color.h >= 5 && color.h <= 50 && color.s >= 0.70 && color.v >= ORANGE_HEX_MIN_VALUE;
+}
+
+function brightOrangeHexes(text: string): string[] {
+  const hits: string[] = [];
+  for (const match of text.matchAll(/#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g)) {
+    const hex = match[0] ?? "";
+    const normalized = normalizeHex(hex);
+    if (!normalized || ALLOWED_ORANGE_HEX.has(normalized)) continue;
+    if (isBrightOrangeHex(hex)) hits.push(hex);
+  }
+  return hits;
+}
+
 function srgbChannel(channel: number): number {
   const scaled = channel / 255;
   return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
@@ -150,8 +199,17 @@ test("admin surfaces keep the brass tokens and drop orange, amber, and teal acce
       const parsed = parseColorFunction(fn);
       if (!parsed || isOrange(parsed)) offenders.push(`${file} ${fn}`);
     }
+    for (const hex of brightOrangeHexes(text)) offenders.push(`${file} ${hex}`);
   }
   assert.deepEqual(offenders, []);
+});
+
+test("hex orange sweep rejects a bright orange and keeps brass and rose", () => {
+  assert.deepEqual(brightOrangeHexes("color: #E8761A;"), ["#E8761A"]);
+  for (const hex of ["#6C5631", "#B89B62", "#CBB27D", "#594626", "#4A3A1F", "#EFE6D0", "#8B4B48"]) {
+    assert.deepEqual(brightOrangeHexes(`color: ${hex};`), [], hex);
+  }
+  assert.deepEqual(brightOrangeHexes("login #ff6b35 and wiz #F97E00"), []);
 });
 
 test("brass, rose, mute, and focus pairs meet the WCAG ratios", () => {
@@ -179,6 +237,17 @@ test("brass, rose, mute, and focus pairs meet the WCAG ratios", () => {
 
 test("secondary actions use the primary box and the narrow header keeps the bell", () => {
   const css = readFileSync(path.join(adminRoot, "admin.module.css"), "utf8");
+  const primary = css.match(/\.rowAction\s*\{[^}]*box-sizing:\s*border-box[^}]*\}/)?.[0]?.replace(/\s+/g, "") ?? "";
+  for (const declaration of [
+    "box-sizing:border-box",
+    "display:inline-flex",
+    "align-items:center",
+    "justify-content:center",
+    "padding:4px10px",
+    "min-height:28px",
+  ]) {
+    assert.match(primary, new RegExp(declaration.replace(".", "\\.")));
+  }
   const secondary = css.match(/\.rowActionSecondary\s*\{[^}]*\}/)?.[0]?.replace(/\s+/g, "") ?? "";
   for (const declaration of [
     "box-sizing:border-box",

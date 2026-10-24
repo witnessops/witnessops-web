@@ -120,16 +120,28 @@ export function inboxEmpty(messageCount: number, receipts: readonly SyncReceiptV
   return { title: "No messages yet.", text, actionLabel: "Sync inbox" };
 }
 
-export function syncHistoryBadge(receipts: readonly SyncReceiptView[]): string | null {
+export type SyncHistoryBadgeKind = "connected" | "failing" | "neutral";
+
+export interface SyncHistoryBadgeModel {
+  kind: SyncHistoryBadgeKind;
+  label: string;
+}
+
+export function syncHistoryBadge(receipts: readonly SyncReceiptView[]): SyncHistoryBadgeModel | null {
   const windowReceipts = receipts.slice(0, 5);
   if (windowReceipts.length === 0) return null;
   const failed = windowReceipts.filter((receipt) => receipt.status === "failed").length;
-  if (failed === windowReceipts.length) return `${consecutiveFailures(receipts)} failed in a row`;
+  if (failed === windowReceipts.length) {
+    return { kind: "failing", label: `${consecutiveFailures(receipts)} failed in a row` };
+  }
   if (failed === 0 && windowReceipts[0]?.status === "completed") {
     const clock = formatWarsawDateTime(receiptInstant(windowReceipts[0]) ?? "");
-    return clock ? `Last sync succeeded · ${clock}` : "Last sync succeeded";
+    return { kind: "connected", label: clock ? `Last sync succeeded · ${clock}` : "Last sync succeeded" };
   }
-  return `${failed} of last ${windowReceipts.length} failed`;
+  if (failed === 0) {
+    return { kind: "neutral", label: "Last sync partial" };
+  }
+  return { kind: "failing", label: `${failed} of last ${windowReceipts.length} failed` };
 }
 
 export interface SyncHistoryRowModel {
@@ -175,12 +187,31 @@ export function syncHistoryRows(receipts: readonly SyncReceiptView[]): SyncHisto
 
 /**
  * Status line outside the failure banner.
- * A retry failure is hidden only when the banner is actually rendered and already shows it.
+ * A click failure is hidden only when the banner is rendered and already shows it.
  * A first failure from a healthy inbox has no banner, so the message stays visible.
  */
+export type SyncFailureAction = "sync" | "retry";
+
+function failurePrefix(action: SyncFailureAction): "Sync failed" | "Retry failed" {
+  switch (action) {
+    case "sync":
+      return "Sync failed";
+    case "retry":
+      return "Retry failed";
+    default: {
+      const unreachable: never = action;
+      return unreachable;
+    }
+  }
+}
+
+export function isClickFailureStatus(status: string): boolean {
+  return status.startsWith("Sync failed:") || status.startsWith("Retry failed:");
+}
+
 export function syncStatusMessage(ui: SyncUiState, bannerPresent: boolean): string | null {
   if (!ui.status) return null;
-  if (ui.failing && bannerPresent && ui.status.startsWith("Retry failed:")) return null;
+  if (ui.failing && bannerPresent && isClickFailureStatus(ui.status)) return null;
   return ui.status;
 }
 
@@ -192,7 +223,7 @@ export function finishSyncSuccess(created: number): SyncUiState {
   return { busy: false, failing: false, status: `Gmail sync succeeded. ${created} new.` };
 }
 
-export function finishSyncFailure(reason: string | null | undefined, failing = true): SyncUiState {
+export function finishSyncFailure(reason: string | null | undefined, action: SyncFailureAction): SyncUiState {
   const shown = reason?.trim() ? reason.trim() : "reason not recorded";
-  return { busy: false, failing, status: `Retry failed: ${shown}` };
+  return { busy: false, failing: true, status: `${failurePrefix(action)}: ${shown}` };
 }
