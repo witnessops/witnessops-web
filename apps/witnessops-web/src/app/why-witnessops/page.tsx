@@ -3,13 +3,29 @@ import { WhyWitnessOps } from "@/components/marketing/why-witnessops";
 import { languageAlternates } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-const description = "Security and verification for AI agents and automation. Explore the approach, evidence supporting findings and limits of a scoped review.";
+const title = "Evidence-Backed Security Reviews | Why WitnessOps";
+const description =
+  "See how WitnessOps scopes security reviews, traces findings to inspectable evidence, records uncertainty, and gives you a clear next step.";
+
 export const metadata: Metadata = {
-  title: "Why WitnessOps", description,
+  title,
+  description,
   alternates: languageAlternates("/why-witnessops", { en: "/why-witnessops", pl: "/pl/why-witnessops" }),
   openGraph: {
-  images: DEFAULT_OPEN_GRAPH_IMAGES, title: "Why WitnessOps | WitnessOps", description, siteName: "WitnessOps", type: "website" },
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
+    title,
+    description,
+    siteName: "WitnessOps",
+    type: "website",
+  },
   twitter: {
-  images: DEFAULT_TWITTER_IMAGES, card: "summary_large_image", title: "Why WitnessOps | WitnessOps", description },
+    images: DEFAULT_TWITTER_IMAGES,
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
-export default function Page() { return <WhyWitnessOps locale="en" />; }
+
+export default function Page() {
+  return <WhyWitnessOps locale="en" />;
+}
