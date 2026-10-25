@@ -56,7 +56,7 @@ export class MembersStore {
         const old = (await client.query<Invitation>('SELECT * FROM workspace_invitations WHERE id=$1 AND workspace_id=$2 FOR UPDATE', [replaces,workspace])).rows[0];
         if (!old || !['pending','expired'].includes(old.state) || old.recipient !== recipient || old.role !== selectedRole) throw new ApiError(409, 'Refresh the invitation before resending.');
         revision = old.revision + 1;
-        await client.query("UPDATE workspace_invitations SET state='superseded',closed_at=now() WHERE id=$1", [replaces]);
+        await client.query("UPDATE workspace_invitations SET state='superseded',closed_at=now() WHERE id=$1 AND workspace_id=$2", [replaces, workspace]);
       }
       if ((await client.query("SELECT 1 FROM workspace_invitations WHERE workspace_id=$1 AND recipient=$2 AND state='pending'", [workspace,recipient])).rowCount) throw new ApiError(409, 'A pending invitation already exists. Use Resend or Cancel.');
       await capacity(client, workspace, 1);
@@ -74,8 +74,8 @@ export class MembersStore {
     if (!row) return; // Retry never sends twice. Unknown outcomes require explicit resend.
     try {
       const result = await send({ from: 'WitnessOps <invitations@send.witnessops.com>', replyTo: 'engage@mail.witnessops.com', to: row.recipient, subject: 'WitnessOps workspace invitation', text: `You have been invited to a WitnessOps workspace as ${row.role}. Sign in with this email address to preview and explicitly accept. Joining does not authorize a check or create a payment obligation.\n\n${origin}/invitations/${row.id}\n\nThis invitation expires after seven days. If unexpected, ignore it.`, signatureProfile: 'none', deliveryAttemptId: row.id });
-      await this.pool.query("UPDATE workspace_invitations SET delivery_state='accepted',provider=$2,provider_message_id=$3,provider_accepted_at=$4 WHERE id=$1", [id,result.provider,result.providerMessageId,result.providerAcceptedAt]);
-    } catch { await this.pool.query("UPDATE workspace_invitations SET delivery_state='unknown' WHERE id=$1", [id]); }
+      await this.pool.query("UPDATE workspace_invitations SET delivery_state='accepted',provider=$2,provider_message_id=$3,provider_accepted_at=$4 WHERE id=$1 AND workspace_id=$5", [id,result.provider,result.providerMessageId,result.providerAcceptedAt,workspace]);
+    } catch { await this.pool.query("UPDATE workspace_invitations SET delivery_state='unknown' WHERE id=$1 AND workspace_id=$2", [id, workspace]); }
   }
   async cancel(user: AppUser, workspace: string, id: unknown) {
     return transaction(this.pool, async client => {
@@ -100,7 +100,7 @@ export class MembersStore {
       if (!locator) throw notFound();
       await membershipLock(client,locator.workspace_id,Boolean(choice));
       await requireActiveAccount(client,user,true);
-      const row=(await client.query<Invitation>('SELECT * FROM workspace_invitations WHERE id=$1 AND recipient=$2',[inviteId,recipient])).rows[0];
+      const row=(await client.query<Invitation>('SELECT * FROM workspace_invitations WHERE id=$1 AND recipient=$2 AND workspace_id=$3',[inviteId,recipient,locator.workspace_id])).rows[0];
       if (!row || !['pending','accepted'].includes(row.state)) throw notFound();
       const workspace=(await client.query<{name:string}>("SELECT name FROM workspaces WHERE id=$1 AND status='active' FOR SHARE",[row.workspace_id])).rows[0];
       if (!workspace) throw notFound();
@@ -117,7 +117,7 @@ export class MembersStore {
         if(membership) throw new ApiError(409,'Already a member. An Owner must change your role.');
         await capacity(client,row.workspace_id,0); // Pending reservation becomes one membership.
         const joined=(await client.query<{generation:number}>("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,$3) ON CONFLICT(user_id,workspace_id) DO UPDATE SET role=EXCLUDED.role,status='active',revoked_at=NULL,joined_at=now(),generation=memberships.generation+1 RETURNING generation",[user.id,row.workspace_id,row.role])).rows[0];
-        await client.query("UPDATE workspace_invitations SET state='accepted',accepted_user=$2,accepted_generation=$3,accepted_at=now() WHERE id=$1",[row.id,user.id,joined.generation]);
+        await client.query("UPDATE workspace_invitations SET state='accepted',accepted_user=$2,accepted_generation=$3,accepted_at=now() WHERE id=$1 AND workspace_id=$4",[row.id,user.id,joined.generation,row.workspace_id]);
       }
       return {id:row.id,workspaceId:row.workspace_id,workspaceName:workspace.name,inviter:inviter.display_name||'Workspace Owner',role:row.role,revision:row.revision,state:choice?'accepted':'pending',expiresAt:row.expires_at.toISOString()};
     });
