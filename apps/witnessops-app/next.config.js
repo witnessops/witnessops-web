@@ -1,5 +1,5 @@
 const path = require("node:path");
-const { securityHeaders } = require("../../packages/config/next/security-headers");
+const { appSecurityHeaders } = require("./src/lib/app-security-headers");
 
 /** @type {import('next').NextConfig} */
 module.exports = {
@@ -11,12 +11,7 @@ module.exports = {
   outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: ["@witnessops/ui", "@witnessops/config"],
   async headers() {
-    return [{ source: "/:path*", headers: [...securityHeaders.map(header => header.key === "Content-Security-Policy"
-      ? { ...header, value: header.value.replace("form-action 'self'", "form-action 'self' https://api.workos.com") }
-      : header),
-      { key: "Cache-Control", value: "no-store" },
-      { key: "X-Robots-Tag", value: "noindex, nofollow" },
-      { key: "Referrer-Policy", value: "no-referrer" },
-    ] }];
+    // appSecurityHeaders throws if the shared form-action directive or Referrer-Policy entry is missing.
+    return [{ source: "/:path*", headers: appSecurityHeaders() }];
   },
 };
