@@ -25,7 +25,7 @@ export default [
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    files: ["**/next.config.js"],
+    files: ["**/next.config.js", "**/app-security-headers.js", "**/middleware-authkit-stub.cjs"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
     },

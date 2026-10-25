@@ -2,6 +2,9 @@ import { authkitMiddleware } from "@workos-inc/authkit-nextjs";
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 import {reportHost} from './lib/report-host';
 import { authConfiguration } from "./lib/auth-config";
+import { appReportOnlyContentSecurityPolicy, createCspNonce } from "./lib/app-security-headers";
+
+const reportOnlyHeader = "Content-Security-Policy-Report-Only";
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
   try {
@@ -17,7 +20,16 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   }catch{return new NextResponse('Reporting host unavailable',{status:404,headers:{'Cache-Control':'no-store'}});}
   if (request.nextUrl.pathname === "/.well-known/security.txt" && ["GET", "HEAD"].includes(request.method)) return NextResponse.next();
   if (['/s', '/s/', '/api/shared-report', '/api/shared-report/', '/api/billing/webhook', '/api/billing/webhook/'].includes(request.nextUrl.pathname)) return;
-  try { authConfiguration(); } catch { return new Response("App authentication is not configured.", { status: 503 }); }
-  return authkitMiddleware({ middlewareAuth: { enabled: false, unauthenticatedPaths: [] } })(request, event);
+  const policy = appReportOnlyContentSecurityPolicy(createCspNonce());
+  try { authConfiguration(); } catch {
+    return new Response("App authentication is not configured.", { status: 503, headers: { [reportOnlyHeader]: policy } });
+  }
+  // Next nonces framework scripts from this request header. The enforced CSP remains the next.config response header.
+  request.headers.set(reportOnlyHeader, policy);
+  return Promise.resolve(authkitMiddleware({ middlewareAuth: { enabled: false, unauthenticatedPaths: [] } })(request, event)).then((response) => {
+    if (!response) throw new Error("AuthKit middleware returned no response.");
+    response.headers.set(reportOnlyHeader, policy);
+    return response;
+  });
 }
 export const config = { runtime: "nodejs", matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
