@@ -96,6 +96,18 @@ test("the issuer prints a schema-valid config entry and omits the token", async 
   }
 });
 
+test("the issuer rejects duplicate scopes before printing any token", () => {
+  for (const scopes of ["health:read,health:read", "health:read,counts:read,health:read"]) {
+    const result = spawnSync(process.execPath, [script, "reader", scopes], {
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr.includes("wo_mcp_"), false);
+    assert.match(result.stderr, /duplicate scopes/);
+  }
+});
+
 test("the issuer refuses a lifetime above 30 days before printing a token", () => {
   const result = spawnSync(process.execPath, [script, "reader", "health:read", "31"], {
     encoding: "utf8",
