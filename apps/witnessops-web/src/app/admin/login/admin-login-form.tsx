@@ -231,8 +231,12 @@ body > footer { display: none !important; }
   #admin-shell[aria-busy="true"] .auth-header::after { animation: none; width: 100%; }
 }
 
-.admin-skip-link:focus-visible,
-.auth-button:focus-visible { outline: 2px solid var(--lg-focus); outline-offset: 3px; }
+/* global quiet-presentation rule uses !important on outline; beat it explicitly */
+#admin-shell .auth-button:focus-visible { outline: 2px solid var(--lg-focus) !important; outline-offset: 3px !important; }
+html body a.admin-skip-link.admin-skip-link:focus-visible { outline: 2px solid #6C5631 !important; outline-offset: 3px !important; }
+@media (prefers-color-scheme: dark) {
+  html body a.admin-skip-link.admin-skip-link:focus-visible { outline-color: #B89B62 !important; }
+}
 
 @media (max-width: 520px) {
   #admin-shell { padding: 16px 12px 12px; }
