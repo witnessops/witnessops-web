@@ -44,6 +44,13 @@ local image config ID with `--pull=never`; the accepted image is unchanged.
 Runtime configuration and a runtime-credential database query must pass before
 cleanup/start. Credentials travel through environment fields, never command
 arguments. Migration and backup credentials are not injected.
+(Update at `1d0eb338`, source facts only: the lifecycle helper also bind-mounts the
+finalizer custody directory and the finalizer key into the container, and
+the app starts the finalizer as a child process
+(`deploy/app/host/witnessops-app-lifecycle:92-96`; `apps/witnessops-app/src/lib/server-check/runtime.ts:60`;
+`deploy/app/FINALIZER_RUNTIME.md`).
+The statement above covers the runtime database role, not these mounts. Whether this
+was the configuration on 2026-09-11 is not recorded in this section.)
 
 Restart-on-failure waits 15 seconds and is bounded to ten starts per five minutes.
 This count includes manual starts: an exhausted limit requires operator diagnosis
@@ -58,7 +65,7 @@ a competing helper while already running, an unexpected second stopped container
 missing runtime environment and unavailable database all denied startup. The
 synthetic second container never ran an app. A host reboot preserved disabled
 boot startup and zero containers; explicit post-reboot start is checked separately.
-Boot enablement is still **not authorized or performed**. Explicit post-reboot
+Boot enablement was still **not authorized or performed** at this point (superseded: it was approved and passed a real reboot on 2026-09-11, lines 3-27). Explicit post-reboot
 start passed with the same three stored runs and source digests. The Podman event
 sequence across eleven starts showed a maximum of one running app container.
 The final instance has one app process, correct immutable image and runtime
@@ -68,7 +75,7 @@ operator-only Mac tunnel also needs its existing privileged enable command.
 No proxy/DNS configuration changed. Certificate-valid HTTPS through the host
 loopback proxy returned 200. Public ports remained unreachable. Lifecycle logs
 contained no runtime-secret matches or sensitive header lines. Ten local helper
-tests and five live failure cases passed. The final security diff scan covers these exact helper/unit/test changes
+tests (11 `test_` functions in `deploy/app/host/test_lifecycle.py` at `1d0eb338`) and five live failure cases passed. The final security diff scan covers these exact helper/unit/test changes
 and this documentation; its identifier and finalization are recorded in the
 completion report.
 
@@ -244,6 +251,11 @@ production product/two-run/persistence/comparison/report acceptance under a
 separate explicit instruction.
 
 Status: **local product accepted; production launch blocked on the prerequisites below**.
+> Update at `1d0eb338`: this status and the blocker list in this section are the
+> audit-time baseline (audit source below). Boot enablement and public routing for
+> `app.witnessops.com` were later accepted on 2026-09-11 (lines 3-27); external user
+> admission remains separately authorized. Where a later dated section conflicts
+> with an earlier one, the later section governs; earlier text is retained as history.
 Audit source: `af6ae2fc957cc15b6b496fedab45d9244476c2f2`, branch
 `feat/witnessops-app-foundation`. Target: `https://app.witnessops.com`, initially
 3–5 named users, at most 20 before an operational review.
@@ -265,14 +277,14 @@ application specification.
 
 | Confirmed from source/local acceptance | Not established by this audit |
 | --- | --- |
-| Next 15.5.21 / Node 22, pnpm 9.15.4, standalone output | A published, scanned **app** image and its runtime contents |
+| Next 15.5.21 at audit time (15.5.28 at `1d0eb338`: `apps/witnessops-app/package.json:23`) / Node 22, pnpm 9.15.4, standalone output | A published, scanned **app** image and its runtime contents |
 | WorkOS AuthKit 4.3.1, internal provider identity mapping | Production WorkOS client, Google credentials, Magic Auth delivery and production session acceptance |
-| PostgreSQL `pg` pool and five transactional SQL migrations | A production app database, runtime grants, TLS and off-host backup/restore |
-| Current EA access plus current workspace membership, Owner/Viewer | Host-side isolation, production runtime-role rehearsal and end-to-end denial tests through the actual proxy |
+| PostgreSQL `pg` pool and transactional SQL migrations (five at audit time; 22 files, 0001-0012 and 0014-0023, at `1d0eb338`; 0013 is intentionally unused) | A production app database, runtime grants, TLS and off-host backup/restore |
+| Current EA access plus current workspace membership, Owner/Contributor/Viewer (Owner/Viewer at audit time; `src/lib/workspace-role-policy.ts:29-35,50`) | Host-side isolation, production runtime-role rehearsal and end-to-end denial tests through the actual proxy |
 | Internal bounded hostname runner, immutable source/digest, shared reports/PDF | Production egress/runtime compatibility and restart/drain acceptance |
 | Cohort events and feedback | A launch owner, recovery objective approval, retention/deletion operating procedure |
 
-Accepted local evidence for the product commit: 30 app unit/API tests, 25
+Accepted local evidence for the product commit (audit-time counts; not the current suites): 30 app unit/API tests, 25
 PostgreSQL integration tests, 37 app browser cases, 50 public browser cases,
 four public PDF pagination cases, and `pnpm health` passed. Security diff scan
 `679e7dd7-83ae-4086-b15d-5b476b4e361c` sealed the matching candidate with zero
@@ -284,9 +296,16 @@ Inspected runtime authority: `.github/workflows/aws-release*.yml`,
 `deploy/Dockerfile.aws`, and `deploy/aws/host/witnessops-deploy-v1` implement the
 existing web release pattern: protected publication, immutable ECR identity,
 image scan, SSM-controlled host adapter and k3s/containerd rollout. The build
-and repository checks are explicitly **witnessops-web**. No app-specific image,
+and repository checks are explicitly **witnessops-web**. At audit time no app-specific image,
 deployment target, or `app.witnessops.com` routing was found under `deploy/` or
-`.github/`. Historical Compose/Caddy files are not evidence of current hosting
+`.github/`. Update at `1d0eb338`: that is superseded for build and lifecycle
+source. `deploy/app/` (Dockerfile, `host/witnessops-app-lifecycle`, `host/witnessops-app.service`,
+`FINALIZER_RUNTIME.md`) and `.github/workflows/app-validation.yml` now exist. The
+workflow builds one app candidate, scans it with Trivy, tests it and retains it as
+`app-image-candidate`; it states it is not production publication
+(`.github/workflows/app-validation.yml:310,323,325,342`; `docs/DEPLOYMENT_AUTHORITY.md:26-27`).
+No protected app publication workflow was found in `.github/workflows/`, and the repo
+does not show which image is deployed. Historical Compose/Caddy files are not evidence of current hosting
 and must not be reactivated as a shortcut. No live DNS/cloud/host inventory or
 production DB was queried; current spare capacity and actual edge topology are
 unknown.
@@ -322,6 +341,9 @@ do not repoint the protected web workflow to this app.
 
 ## 2.1. Non-public foundation status — 2026-09-11
 
+> Historical status (2026-09-11, before the public-routing acceptance at lines 3-27).
+> Its "remains non-public" statements describe that earlier gate, not current routing.
+
 The separately authorized foundation was provisioned and remains non-public.
 Its infrastructure identities, administrative-access details, role/credential
 custody, firewall evidence, backup configuration and recovery commands remain
@@ -356,10 +378,13 @@ input inventory, lockfile hash, scan and later commit correspondence belong in
 restricted operator custody.
 
 [The app Dockerfile](../deploy/app/Dockerfile) keeps the pinned Node 22.23.2
-Alpine base, updates only libcrypto3/libssl3 to 3.5.8-r0, and removes global
+Alpine base, updates only libcrypto3/libssl3 to 3.5.8-r0 (3.5.9-r0, plus python3
+3.14.8-r0, at `1d0eb338`: `deploy/app/Dockerfile:22`), and removes global
 npm/Corepack/Yarn tooling from the runtime filesystem. Next.js changes only in
-the authenticated app: 15.5.21 → 15.5.24. A scoped override selects Sharp 0.35.4
-for that Next version. Public web dependencies and application behavior code
+the authenticated app: 15.5.21 → 15.5.24 in this slice (15.5.28 at `1d0eb338`:
+`apps/witnessops-app/package.json:23`). A scoped override selected Sharp 0.35.4
+for that Next version in this slice (at `1d0eb338` the root `package.json:91`
+pins `sharp` 0.35.5 in `pnpm.overrides`). Public web dependencies and application behavior code
 are unchanged. Alpine's ordinary runtime utilities remain; this is not a
 custom distroless image or a promise that every utility has been removed.
 
@@ -388,6 +413,9 @@ maintained Ubuntu `runc` runtime after isolating a `crun`/AppArmor socket denial
 with `no-new-privileges`; AppArmor enforcement, dropped capabilities, non-root
 execution and `no-new-privileges` all remain enabled. Temporary probes were
 removed; the production app remains disabled and inactive.
+
+(Historical paragraph: public routing was later accepted on 2026-09-11, lines 3-27;
+the existing DNS-only A record was retained unchanged.)
 
 The operator reports Cloudflare configuration, and read-only DNS now resolves
 the app hostname. **No DNS change was made in this remediation.** DNS existence
@@ -478,7 +506,9 @@ Private TLS remains available with the controlled stopped-app response.
 
 ### Fixed standalone origin contract (2026-09-11)
 
-A controlled, non-secret request capture established that Next 15.5.24 constructs
+A controlled, non-secret request capture established that Next 15.5.24 (the version
+at that slice; the app is on 15.5.28 at `1d0eb338`, and this behavior was not
+re-captured there by this edit) constructs
 `request.url` as `https://0.0.0.0:3020/api/workspace` from its standalone bind
 configuration, despite correct `Host: app.witnessops.com`,
 `X-Forwarded-Host: app.witnessops.com` and `X-Forwarded-Proto: https`.
@@ -555,6 +585,10 @@ Operator actions, **not executed**:
 4. Verify Google, OTP, refresh, logout and repeated-login identity in the real
    HTTPS app before admitting external users. OTP production delivery has not
    been established by the prior Google-only acceptance.
+   (Update: the private production browser acceptance at lines 208-232, dated
+   2026-09-11, records real-session, logout/replay, Google and email OTP identity
+   results. The operator-action list above is the original plan; the production
+   WorkOS client configuration itself is not verifiable from this repository.)
 
 Configuration authority: [WorkOS Next.js setup](https://workos.com/docs/authkit/nextjs)
 and the **installed** SDK version. Current upstream docs also discuss newer
@@ -618,6 +652,32 @@ No OpenAI key, public scanner key, cloud collector key or public contact-mail
 credential is needed by the app execution path. Do not copy the public web
 environment wholesale. Logging/debug options remain off.
 
+Update at `1d0eb338`: the table above is the audit-time minimum, not the full set of
+variables the app source reads. Additional names read by app source (names only; read
+the cited source for behavior, and treat each as unclassified until an operator
+classifies it):
+
+- `WITNESSOPS_APP_PROXY_MODE`: only `caddy-loopback-v1` is accepted. It is needed behind the
+  loopback proxy, because Next's standalone `request.url` origin is `https://0.0.0.0:3020`
+  (`apps/witnessops-app/src/lib/server.ts:27-35`; see the origin contract section above).
+- Mail: workspace invitations always attempt to send mail
+  (`src/lib/db/members.ts:76`). Report email is optional and needs both
+  `WITNESSOPS_REPORT_EMAIL_ENABLED=1` and `WITNESSOPS_REPORT_EMAIL_TRACKING_DISABLED=1`
+  (`src/lib/share-server.ts:97`). Both use the web app's mail sender, which requires
+  `WITNESSOPS_MAIL_PROVIDER` (`file`, `resend` or `m365`) and provider settings such as
+  `WITNESSOPS_MAIL_OUTPUT_DIR`, `WITNESSOPS_RESEND_API_KEY` and `WITNESSOPS_M365_*`
+  (`apps/witnessops-web/src/lib/server/send-verification-email.ts:48-56,141,193,274-280`).
+  The statement above that no mail credential is needed applies only to the audit-time
+  execution path.
+- `WITNESSOPS_APP_HELP_ENABLED=1` enables the help route (`src/lib/help-server.ts:30`),
+  which reads the web docs-assistant runtime config
+  (`apps/witnessops-web/src/lib/docs-assistant/runtime-config.ts`, which reads `OPENAI_API_KEY`).
+- `WITNESSOPS_FREE_WORKSPACE_LIMIT`, `WITNESSOPS_BILLING_SANDBOX`, `WITNESSOPS_BILLING_PLANS`,
+  `WITNESSOPS_REPORT_HOST_SUFFIX`, `WITNESSOPS_REPORT_PROXY_MODE`, and
+  `WITNESSOPS_FINALIZER_PYTHON`, `WITNESSOPS_FINALIZER_DIRECTORY`, `WITNESSOPS_FINALIZER_KEY`
+  are also read under `apps/witnessops-app/src/`. UNVERIFIED here: which of these the
+  production runtime sets.
+
 Blocker: rehearse a clean app artifact build with only the production **public**
 callback value and no local configuration files. Confirm server secrets are
 runtime-only. Existing local builds loaded development configuration and do not
@@ -658,6 +718,10 @@ Migrations, in order:
 4. `0004_runs.sql`: complete source constraints and completed-run UPDATE/DELETE trigger.
 5. `0005_early_access.sql`: explicit cohort state, events and feedback.
 
+This list is the audit-time set. At `1d0eb338` `apps/witnessops-app/db/migrations/` holds
+22 files, `0001`-`0012` and `0014`-`0023` (`0013` is reserved and unused); the runner applies
+all pending files, not only these five.
+
 The runner takes an advisory lock and applies all pending files in **one
 transaction**, with an SHA-256 checksum ledger. No automatic DOWN migration
 exists. No migration on app startup. For a new empty production DB, do not pass
@@ -689,7 +753,7 @@ upgrade pass `{ preserveMember: '<approved-internal-uuid>' }` to `migrate`.
 Test the job on a restored disposable database first. Never put secret values
 on command lines or enable shell tracing.
 
-After migration inspect `app_migrations` (five names and source-file hashes),
+After migration inspect `app_migrations` (one row per applied file, with source-file hashes; five at audit time, 22 files at `1d0eb338`),
 constraints, `runs_immutable` trigger, owner/default grants and actual runtime
 role attributes. Test existing identities/rows retained. Check completed runs
 have snapshot/digest/finished_at and recompute digests through
@@ -732,8 +796,9 @@ pg_restore --dbname='service=ea_restore' --exit-on-error --single-transaction \
 plaintext temporary files need restricted permissions and approved cleanup.
 Apply reviewed ownership/grants to the restored DB. Do not restore over the
 live database or use `--clean` as routine rollback. Disable collectors and
-external contact actions in the recovery rehearsal. Check counts for all eight
-product tables plus `app_migrations`, every completed source digest, first/last
+external contact actions in the recovery rehearsal. Check counts for all product
+tables (eight at audit time; later migrations add more, so enumerate them from
+`db/migrations/`) plus `app_migrations`, every completed source digest, first/last
 run IDs and ordering, EA/membership state, report/PDF rendering and A/B read/write
 denials using the runtime-role path. Confirm restored service restart and
 off-host recovery work without the original host. Preserve the original backup.
@@ -749,6 +814,10 @@ not establish Node connection validation.
 `src/lib/server.ts` directly imports the web engine's `runSnapshot()`; it does
 not call public `/api/external-exposure`. Admission requires current active EA,
 workspace membership, Owner role, scoped asset and explicit `authorized:true`.
+(Audit-time wording. At `1d0eb338` the role check is the `hostname:run` capability, which
+Owner and Contributor hold and Viewer does not: `src/lib/workspace-role-policy.ts:29-35,50`.
+Access is also admitted for workspace members, `free_workspace_access` or an
+active EA state: `src/lib/db/access.ts:22-32`.)
 Keep those tests and deployed code unchanged.
 
 Engine ceilings: DNS/TCP 3s, TLS/HTTP 5s, total run 30s; 20 DNS queries, one
@@ -778,6 +847,10 @@ running→failed operator correction; never fabricate a completed snapshot.
 Workspace limits are 20 assets, 32 completed/running runs and an 8 MiB stored
 source pre-admission threshold. Failed rows/events can still accumulate; watch
 DB size and capacity, do not delete immutable runs to bypass limits.
+
+(Historical plan. For `app.witnessops.com` the existing DNS-only A record was retained and
+public 443 routing was accepted on 2026-09-11, lines 3-27; keep this as the checklist
+for any new hostname or ingress.)
 
 DNS work remains unperformed: create `app` A to the selected ingress public IPv4,
 or CNAME to the approved service hostname; add AAAA only after IPv6 acceptance.
@@ -825,6 +898,11 @@ The existing `scripts/early-access.mjs` is **loopback-development-only**. Do not
 remove that guard or claim it already manages production. For the first cohort,
 use a restricted SQL operator session with parameterized UUIDs after explicit
 approval. There is no customer admin endpoint or invitation sender.
+(Audit-time wording. At `1d0eb338` workspace invitations and a member roster are declared
+endpoints, `/api/members` and `/api/invitations`
+(`apps/witnessops-app/src/lib/api-contract.ts:10-11`); invitation mail is sent from
+`src/lib/db/members.ts:76`. The statement still holds for EA cohort admission:
+`scripts/early-access.mjs` is a loopback-development-only helper and no endpoint admits EA users.)
 
 1. User #1 signs into the production client, receiving no EA access initially.
    Confirm the resulting internal UUID against the production provider/issuer/
@@ -959,7 +1037,8 @@ audit**. Keep external users unenrolled until the final acceptance sign-off.
    injection; rehearse migrations/restoration before any customer data exists.
    Take and verify the pre-release backup. Run the exact migration job, read back
    schema/checksums/grants. No successful app boot implies migration success.
-5. Create approved DNS/TLS/proxy route to the app-only target. Verify external
+5. (Done for `app.witnessops.com` on 2026-09-11, lines 3-27; repeat for any new target.)
+   Create approved DNS/TLS/proxy route to the app-only target. Verify external
    Host/scheme handling, no shared cache, trusted forwarding and graceful drain.
    Start one app process at the pinned digest. Record runtime source/image binding.
 6. Health: GET `/` over HTTPS must render the intended login shell, not merely
@@ -1005,7 +1084,7 @@ audit**. Keep external users unenrolled until the final acceptance sign-off.
 
 | Failure | Smallest safe containment/recovery |
 | --- | --- |
-| Bad app release | Stop new execution/admission, drain bounded work, preserve DB/backups. Revert app-only image to recorded compatible digest. On first launch there is no older production app: keep maintenance/closed admission rather than deploy an unreviewed local ancestor. |
+| Bad app release | Stop new execution/admission, drain bounded work, preserve DB/backups. Revert app-only image to recorded compatible digest. (Audit-time wording; lines 3-27 and 39-46 record an app image running under `witnessops-app.service` since 2026-09-11, so check the recorded compatible digest.) On first launch there is no older production app: keep maintenance/closed admission rather than deploy an unreviewed local ancestor. |
 | WorkOS mistake | Close admission; restore known exact production redirects/client config from private approved record. Do not swap staging identity/client as a fallback. Cookie-secret rotation forces login; confirm same provider mapping afterward. |
 | Migration failure | Do not launch. Transaction rollback should leave prior schema/ledger intact; verify that and backup. Diagnose on disposable restore, never delete ledger/checksum entries to force success. |
 | Migration succeeded, app bad | Keep additive schema/data; roll back only to a demonstrated schema-compatible app. A pre-EA app lacks the EA gate and is **not** a safe fallback. Otherwise remain closed and fix in a separately approved lane. No destructive DOWN. |
@@ -1043,6 +1122,16 @@ named owner and approved recovery/data-request handling. RLS, distributed
 quotas, abandoned-run automation, automatic retention/deletion and physical
 keyboard acceptance remain unimplemented/unverified. Do not claim that green
 local tests settle these operational gaps.
+
+Update at `1d0eb338`: items in this audit-time list are partly superseded. The
+routing and boot items are covered by lines 3-27. A reviewed app candidate build, scan
+and test workflow now exists (`.github/workflows/app-validation.yml:310-342`), but it
+retains a candidate only. This repository does not show a protected app publication
+workflow, an automated migration job (the app declares a manual `db:migrate` script,
+`apps/witnessops-app/package.json:12`; the runtime stage copies only standalone output,
+static, public and finalizer files, `deploy/app/Dockerfile:35-40`), the
+hosting A/B decision, or any scheduled backup/retention regime. Treat each of those
+as open until restricted operator records show otherwise.
 
 **Next smallest action:** authorize a read-only capacity and recovery-custody
 check of the existing production environment to decide A versus B. It must
