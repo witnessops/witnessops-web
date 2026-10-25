@@ -29,6 +29,20 @@ This table is intentionally limited to authority classification. It does not pub
 | `.github/workflows/release.yml` and `.github/workflows/build-image.yml` | **Artifact/build/repository-release surfaces, not routine production runtime deployment authority.** A successful artifact workflow does not prove `witnessops.com` changed. |
 | legacy Compose/GHCR direct-deploy helpers and retired Azure deployment material | **Historical/retired for routine production.** Do not reactivate as a shortcut without a separately authorized reopening decision. |
 
+## App candidate binding and host proxy source
+
+The app lifecycle helper compares the human approval file with the CI candidate an operator copies. The comparison is local and unsigned. A missing file or a digest that does not match fails closed, before a container is removed or started, with exit status 78. The tracked unit lists that status in `RestartPreventExitStatus`, so systemd does not retry the mismatch. Other failures still restart after 15 seconds, at most 10 times in 5 minutes.
+
+Operator copy, only after a separate decision to deploy:
+
+1. From the successful app-validation run's `app-image-candidate` artifact, copy `identity.json` and `image.sha256` unchanged into `/etc/witnessops-app/ci-candidate/`.
+2. Set `image-security-approved` so `imageConfig` is the on-host image ID and equals `image_digest` or `config_digest` from that `identity.json`, `archiveSha256` is the 64-character hex digest in `image.sha256` (the `image.tar` checksum, two spaces, then `image.tar`), and `vulnerabilities` and `secrets` are both 0.
+3. Pass that same image ID to the lifecycle start and stop commands.
+
+`identity.json` records the OCI manifest digest and the image config digest. `image.sha256` records the archive checksum. Those are different values. The helper does not re-hash `image.tar` and does not download the artifact. A new image ID needs a new CI candidate and a new approval record before the next start. Copying these files is not itself a deployment, and this repository change does not copy them onto a host.
+
+`deploy/app/host/Caddyfile.app-witnessops` is source only. It overwrites `X-Forwarded-For` and `X-Real-IP` from the accepted connection and sets `X-Forwarded-Host` and `X-Forwarded-Proto` to fixed literals. It does not apply or reload Caddy.
+
 ## Distinguish validation, retained helpers and activation
 
 Root `deploy:k3s:build`, `deploy:k3s:prod` and `deploy:k3s:both` point to

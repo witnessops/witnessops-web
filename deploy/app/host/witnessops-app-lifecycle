@@ -1,10 +1,25 @@
 #!/usr/bin/python3
-"""Root-owned systemd helper. No force removal, pulls, or volume deletion."""
+"""Root-owned systemd helper. No force removal, pulls, or volume deletion.
+
+Operator copy, before the next start and only as a separate deploy action:
+copy the CI artifact files identity.json and image.sha256 unchanged from
+app-image-candidate into /etc/witnessops-app/ci-candidate/. The approval file
+image-security-approved must name the same on-host image ID (identity.json
+image_digest or config_digest) and the archive hex from image.sha256. This
+helper does not sign that manifest and does not re-hash image.tar.
+
+A missing or mismatched candidate raises CandidateMismatch and main exits 78
+before any container is removed or started. The unit lists 78 in
+RestartPreventExitStatus, so systemd does not retry that permanent failure.
+Other failures still use Restart=on-failure, RestartSec=15, and
+StartLimitBurst=10 inside StartLimitIntervalSec=300.
+"""
 import fcntl
 import json
 import os
 import pathlib
 import re
+import stat
 import subprocess
 import sys
 from urllib.parse import urlsplit, parse_qs, unquote
@@ -14,6 +29,74 @@ LABEL = 'io.witnessops.service'
 CONFIG = pathlib.Path('/etc/witnessops-app')
 PODMAN = '/usr/bin/podman'
 LOCK = '/run/witnessops-app-lifecycle/lock'
+MANIFEST_LIMIT = 8192
+DIGEST = re.compile(r'sha256:[0-9a-f]{64}\Z')
+CANDIDATE_REASONS = ('missing_manifest', 'invalid_manifest', 'approval_mismatch', 'digest_mismatch')
+
+
+class CandidateMismatch(RuntimeError):
+    """Permanent candidate/approval failure. Exit 78; do not restart."""
+
+    def __init__(self, reason):
+        self.reason = reason if reason in CANDIDATE_REASONS else 'invalid_manifest'
+        super().__init__(self.reason)
+
+
+def read_manifest(path, missing):
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        raise CandidateMismatch(missing) from None
+    except OSError:
+        raise CandidateMismatch('invalid_manifest') from None
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= MANIFEST_LIMIT:
+        raise CandidateMismatch('invalid_manifest' if missing == 'missing_manifest' else missing)
+    try:
+        return path.read_text(encoding='utf-8')
+    except (OSError, UnicodeError):
+        raise CandidateMismatch('invalid_manifest' if missing == 'missing_manifest' else missing) from None
+
+
+def recorded_candidate():
+    """Digests from the operator-copied CI files, not from a signature."""
+    root = CONFIG / 'ci-candidate'
+    try:
+        identity = json.loads(read_manifest(root / 'identity.json', 'missing_manifest'))
+    except CandidateMismatch:
+        raise
+    except json.JSONDecodeError:
+        raise CandidateMismatch('invalid_manifest') from None
+    archive_text = read_manifest(root / 'image.sha256', 'missing_manifest')
+    if not isinstance(identity, dict):
+        raise CandidateMismatch('invalid_manifest')
+    image_digest = identity.get('image_digest')
+    config_digest = identity.get('config_digest')
+    if not isinstance(image_digest, str) or not DIGEST.fullmatch(image_digest):
+        raise CandidateMismatch('invalid_manifest')
+    if not isinstance(config_digest, str) or not DIGEST.fullmatch(config_digest):
+        raise CandidateMismatch('invalid_manifest')
+    line = archive_text[:-1] if archive_text.endswith('\n') else archive_text
+    match = re.fullmatch(r'([0-9a-f]{64})  image\.tar', line)
+    if not match:
+        raise CandidateMismatch('invalid_manifest')
+    return image_digest, config_digest, match.group(1)
+
+
+def bind_candidate(image):
+    image_digest, config_digest, archive = recorded_candidate()
+    try:
+        approval = json.loads(read_manifest(CONFIG / 'image-security-approved', 'approval_mismatch'))
+    except CandidateMismatch:
+        raise
+    except json.JSONDecodeError:
+        raise CandidateMismatch('approval_mismatch') from None
+    if (not isinstance(approval, dict) or approval.get('imageConfig') != image
+            or approval.get('vulnerabilities') != 0 or approval.get('secrets') != 0):
+        raise CandidateMismatch('approval_mismatch')
+    # The engine image ID is one of the two CI identity digests. The archive
+    # checksum is a different value and must be copied through unchanged.
+    if image not in (image_digest, config_digest) or approval.get('archiveSha256') != archive:
+        raise CandidateMismatch('digest_mismatch')
 
 
 def log(event, **fields):
@@ -54,9 +137,7 @@ def inspect_expected(image):
 def preflight(image):
     if not re.fullmatch(r'sha256:[0-9a-f]{64}', image):
         raise RuntimeError('immutable image ID required')
-    approval = json.loads((CONFIG / 'image-security-approved').read_text())
-    if approval.get('imageConfig') != image or approval.get('vulnerabilities') != 0 or approval.get('secrets') != 0:
-        raise RuntimeError('image approval mismatch')
+    bind_candidate(image)
     actual = podman_json('image', 'inspect', image)[0]['Id']
     if actual.removeprefix('sha256:') != image.removeprefix('sha256:'):
         raise RuntimeError('local image identity mismatch')
@@ -164,6 +245,10 @@ def main():
         if os.geteuid() != 0 or len(sys.argv) != 3 or sys.argv[1] not in ('start', 'stop'):
             raise RuntimeError('root and start/stop with immutable image ID required')
         return (start if sys.argv[1] == 'start' else stop)(sys.argv[2])
+    except CandidateMismatch as error:
+        # Reason is a fixed code. Do not echo manifest or approval bytes.
+        log('candidate_mismatch', reason=error.reason, exit_code=78)
+        return 78
     except Exception as error:
         # Exceptions can contain argv or environment details. Emit class only.
         log('lifecycle_failed', failure_class=type(error).__name__)

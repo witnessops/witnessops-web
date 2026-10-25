@@ -71,6 +71,7 @@ async function login(subject:string){
  return session.split(';')[0];
 }
 try {
+ execFileSync(docker,['run','--rm','--network=none','--read-only','--user','1001:1001','--entrypoint=/bin/sh',image!,'-c','test -f /app/scripts/server-check-finalize.py && test ! -L /app/scripts/server-check-finalize.py && test -r /app/scripts/server-check-finalize.py'],{stdio:'pipe'});
  const custodyVolume='finalizer-custody-'+randomUUID(),keyVolume='finalizer-key-'+randomUUID();
  try {
   for(const volume of [custodyVolume,keyVolume])execFileSync(docker,['volume','create',volume],{stdio:'pipe'});
@@ -89,6 +90,7 @@ try {
  const asset=await store.addAsset(users[0],workspace,source.target,'hostname');const run=await store.beginRun(users[0],workspace,asset.id);await store.completeRun(users[0],workspace,run,source);
  parsed.hostname=process.env.TEST_DATABASE_HOST??providerHost;if(process.env.TEST_DATABASE_HOST)parsed.port='5432';parsed.searchParams.set('options',`-c search_path=${schema},public`);
  const env=join(directory,'test.env');writeFileSync(env,`DATABASE_URL=${parsed}\nWORKOS_API_KEY=test-only\nWORKOS_CLIENT_ID=client_image\nWORKOS_COOKIE_PASSWORD=${randomUUID()+randomUUID()}\nWORKOS_API_HOSTNAME=${providerHost}\nWORKOS_API_PORT=${providerPort}\nWORKOS_API_HTTPS=false\nWITNESSOPS_APP_PROXY_MODE=caddy-loopback-v1\n`,{mode:0o600});
+ assert.doesNotMatch(readFileSync(env,'utf8'),/WITNESSOPS_FINALIZER_ENABLED=1/);
  await new Promise<void>(resolve=>provider.listen(providerPort,'0.0.0.0',resolve));
  execFileSync(docker,['run','-d','--name',name,'--platform','linux/amd64','--read-only','--cap-drop=ALL','--security-opt=no-new-privileges','--user','1001:1001','--tmpfs','/tmp:rw,noexec,nosuid,size=64m','--add-host',providerHost+':host-gateway','-p',`127.0.0.1:${imagePort}:3020`,'--env-file',env,image!],{stdio:'pipe'});started=true;
  for(let i=0;i<60;i++){try{if((await request('/')).status===200)break;}catch{}await new Promise(r=>setTimeout(r,500));}

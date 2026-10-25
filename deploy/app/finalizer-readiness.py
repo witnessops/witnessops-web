@@ -17,6 +17,10 @@ def check():
     assert version('cryptography') == '50.0.1'
     assert source_fingerprint() == FINGERPRINT
     assert hashlib.sha256(Path('/opt/witnessops/registry.json').read_bytes()).hexdigest() == REGISTRY
+    script = Path('/app/scripts/server-check-finalize.py')
+    script_info = script.lstat()
+    assert script.resolve() == script and not stat.S_ISLNK(script_info.st_mode) and stat.S_ISREG(script_info.st_mode)
+    assert script_info.st_size > 0
     assert os.environ['WITNESSOPS_FINALIZER_PYTHON'] == '/opt/witnessops/finalizer/venv/bin/python'
     assert os.environ['WITNESSOPS_FINALIZER_DIRECTORY'] == '/var/lib/witnessops-finalizer'
     assert os.environ['WITNESSOPS_FINALIZER_KEY'] == '/run/witnessops-finalizer/key'

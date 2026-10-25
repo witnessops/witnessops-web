@@ -1,9 +1,12 @@
 import importlib.machinery
 import importlib.util
+import io
+import json
 import pathlib
 import tempfile
 import types
 import unittest
+from test_caddy_snippet import CaddySnippetTests
 from unittest.mock import patch
 
 loader = importlib.machinery.SourceFileLoader('lifecycle', str(pathlib.Path(__file__).with_name('witnessops-app-lifecycle')))
@@ -11,6 +14,23 @@ spec = importlib.util.spec_from_loader(loader.name, loader)
 m = importlib.util.module_from_spec(spec)
 loader.exec_module(m)
 IMAGE = 'sha256:' + 'a' * 64
+CONFIG_DIGEST = 'sha256:' + 'c' * 64
+ARCHIVE = 'b' * 64
+
+
+def install_candidate(path, image=IMAGE, archive=ARCHIVE, image_digest=None, config_digest=CONFIG_DIGEST,
+                      vulnerabilities=0, secrets=0, archive_sha=None, identity=None, checksum=None):
+    root = path / 'ci-candidate'
+    root.mkdir(exist_ok=True)
+    (root / 'identity.json').write_text(identity if identity is not None else json.dumps({
+        'image_digest': IMAGE if image_digest is None else image_digest,
+        'config_digest': config_digest,
+    }))
+    (root / 'image.sha256').write_text(checksum if checksum is not None else f'{archive}  image.tar\n')
+    (path / 'image-security-approved').write_text(json.dumps({
+        'imageConfig': image, 'vulnerabilities': vulnerabilities, 'secrets': secrets,
+        'archiveSha256': archive if archive_sha is None else archive_sha,
+    }))
 
 
 def container(running=False, name='witnessops-app', image=IMAGE, status='exited'):
@@ -76,7 +96,7 @@ class Lifecycle(unittest.TestCase):
 
     def test_database_failure_fails_closed(self):
         with tempfile.TemporaryDirectory() as d:
-            p=pathlib.Path(d);(p/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","vulnerabilities":0,"secrets":0}')
+            p=pathlib.Path(d);install_candidate(p)
             (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n')
             with patch.object(m,'CONFIG',p),patch.object(m,'podman_json',return_value=[{'Id':IMAGE}]), \
                  patch.object(m,'call',side_effect=[None,RuntimeError('database down')]):
@@ -95,7 +115,7 @@ class Lifecycle(unittest.TestCase):
     def runtime(self, extra):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         p=pathlib.Path(temp.name)
-        (p/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","vulnerabilities":0,"secrets":0}')
+        install_candidate(p)
         (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n'+extra)
         return p
 
@@ -136,5 +156,103 @@ class Lifecycle(unittest.TestCase):
             self.assertEqual(key in args,enabled)
             self.assertEqual(args[-1],IMAGE)
             self.assertIn('--cap-drop=all',args)
+
+    def candidate_dir(self):
+        temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+        return pathlib.Path(temp.name)
+
+    def assert_candidate_reason(self, path, reason, image=IMAGE):
+        with patch.object(m,'CONFIG',path), \
+             patch.object(m,'call') as call,patch.object(m,'podman_json') as podman:
+            with self.assertRaises(m.CandidateMismatch) as caught:
+                m.preflight(image)
+        self.assertEqual(caught.exception.reason,reason)
+        call.assert_not_called();podman.assert_not_called()
+
+    def test_missing_candidate_manifest_fails_closed(self):
+        path=self.candidate_dir();install_candidate(path);(path/'ci-candidate').rename(path/'hidden-candidate')
+        self.assert_candidate_reason(path,'missing_manifest')
+        path=self.candidate_dir();install_candidate(path);(path/'ci-candidate'/'image.sha256').unlink()
+        self.assert_candidate_reason(path,'missing_manifest')
+
+    def test_invalid_or_linked_manifest_fails_closed(self):
+        secret='SUPERSECRETTOKENVALUE'
+        path=self.candidate_dir();install_candidate(path,identity=secret,checksum=secret+'  image.tar\n')
+        self.assert_candidate_reason(path,'invalid_manifest')
+        path=self.candidate_dir();install_candidate(path,checksum='d'*64+'  other.tar\n')
+        self.assert_candidate_reason(path,'invalid_manifest')
+        path=self.candidate_dir();install_candidate(path)
+        identity=path/'ci-candidate'/'identity.json'
+        target=path/'ci-candidate'/'identity-target.json'
+        target.write_text(identity.read_text());identity.unlink();identity.symlink_to(target.name)
+        self.assert_candidate_reason(path,'invalid_manifest')
+
+    def test_approval_and_digest_mismatch_fail_before_container_work(self):
+        path=self.candidate_dir();install_candidate(path,vulnerabilities=1)
+        self.assert_candidate_reason(path,'approval_mismatch')
+        path=self.candidate_dir();install_candidate(path,image_digest='sha256:'+'d'*64,config_digest='sha256:'+'e'*64)
+        self.assert_candidate_reason(path,'digest_mismatch')
+        path=self.candidate_dir();install_candidate(path,archive_sha='f'*64)
+        self.assert_candidate_reason(path,'digest_mismatch')
+        path=self.candidate_dir();install_candidate(path,image_digest='sha256:'+'d'*64,config_digest='sha256:'+'e'*64)
+        with patch.object(m,'LOCK',str(path/'lock')),patch.object(m,'CONFIG',path), \
+             patch.object(m,'inspect_expected') as inv:
+            with self.assertRaises(m.CandidateMismatch):
+                m.start(IMAGE)
+            inv.assert_not_called()
+
+    def test_matching_manifest_digest_or_config_digest_passes(self):
+        for image,image_digest,config_digest in (
+            (IMAGE,IMAGE,CONFIG_DIGEST),(CONFIG_DIGEST,IMAGE,CONFIG_DIGEST),
+        ):
+            path=self.candidate_dir();install_candidate(path,image=image,image_digest=image_digest,config_digest=config_digest)
+            (path/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n')
+            output=io.StringIO()
+            with patch.object(m,'CONFIG',path), \
+                 patch.object(m,'podman_json',return_value=[{'Id':image}]), \
+                 patch.object(m,'call',side_effect=lambda args,**kw:None),patch('sys.stdout',output):
+                self.assertIs(m.preflight(image),False)
+            text=output.getvalue()
+            self.assertIn('finalizer_disabled',text);self.assertNotIn('password',text);self.assertNotIn('fixture:',text)
+
+    def test_main_mismatch_exits_78_without_echoing_manifest_bytes(self):
+        secret='SUPERSECRETTOKENVALUE'
+        path=self.candidate_dir()
+        (path/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","note":"'+secret+'"}')
+        output=io.StringIO()
+        with patch.object(m,'LOCK',str(path/'lock')),patch.object(m,'CONFIG',path), \
+             patch.object(m.os,'geteuid',return_value=0), \
+             patch.object(m.sys,'argv',['lifecycle','start',IMAGE]),patch('sys.stdout',output), \
+             patch.object(m,'inspect_expected') as inv:
+            self.assertEqual(m.main(),78)
+        text=output.getvalue();self.assertNotIn(secret,text);inv.assert_not_called()
+        record=json.loads(text)
+        self.assertEqual(record,{'event':'candidate_mismatch','reason':'missing_manifest','exit_code':78})
+        install_candidate(path,identity=secret,checksum=secret)
+        output=io.StringIO()
+        with patch.object(m,'LOCK',str(path/'lock')),patch.object(m,'CONFIG',path), \
+             patch.object(m.os,'geteuid',return_value=0), \
+             patch.object(m.sys,'argv',['lifecycle','start',IMAGE]),patch('sys.stdout',output):
+            self.assertEqual(m.main(),78)
+        self.assertNotIn(secret,output.getvalue())
+        self.assertEqual(json.loads(output.getvalue())['reason'],'invalid_manifest')
+
+    def test_unit_prevents_a_mismatch_restart_loop(self):
+        text=pathlib.Path(__file__).with_name('witnessops-app.service').read_text()
+        self.assertIn('Restart=on-failure\nRestartSec=15\n',text)
+        self.assertIn('RestartPreventExitStatus=78\n',text)
+        self.assertIn('StartLimitIntervalSec=300\n',text)
+        self.assertIn('StartLimitBurst=10\n',text)
+        self.assertIn('ConditionPathExists=/etc/witnessops-app/launch-enabled\n',text)
+        self.assertIn('ConditionPathExists=/etc/witnessops-app/image-security-approved\n',text)
+
+    def test_image_copies_finalizer_adapter_where_the_runtime_resolves_it(self):
+        root=pathlib.Path(__file__).resolve().parents[3]
+        dockerfile=(root/'deploy'/'app'/'Dockerfile').read_text()
+        readiness=(root/'deploy'/'app'/'finalizer-readiness.py').read_text()
+        runtime=(root/'apps'/'witnessops-app'/'src'/'lib'/'server-check'/'runtime.ts').read_text()
+        self.assertIn("path.resolve('scripts/server-check-finalize.py')",runtime)
+        self.assertIn('COPY apps/witnessops-app/scripts/server-check-finalize.py /app/scripts/server-check-finalize.py',dockerfile)
+        self.assertIn("Path('/app/scripts/server-check-finalize.py')",readiness)
 
 if __name__=='__main__':unittest.main()
