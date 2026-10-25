@@ -1264,7 +1264,7 @@ test('Invited creation during free admission retains explicit historical consent
 });
 
 test('Membership: recipient binding, admission separation, role work, revocation and rejoin', async () => {
- const prior=process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT='3';
+ const prior=process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT,priorFinalizer=process.env.WITNESSOPS_FINALIZER_ENABLED;process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT='3';
  try {
   const owner=await resolveUnenrolledIdentity(pool,identity('team_owner'));
   const team=await store.create(owner,'Team A',randomUUID()), other=await store.create(owner,'Team B',randomUUID());
@@ -1299,7 +1299,7 @@ test('Membership: recipient binding, admission separation, role work, revocation
   const cliIdentity={...recipientIdentity,subject:'user_teamcli'};
   await pool.query('INSERT INTO identity_mappings(user_id,provider,issuer,subject,verified_email_snapshot) VALUES($1,$2,$3,$4,$5)',[recipient.id,cliIdentity.provider,cliIdentity.issuer,cliIdentity.subject,cliIdentity.email]);
   const bound={identity:cliIdentity,session:sessionKey(cliIdentity.issuer,'session_team',cliIdentity.subject)};
-  const device=await cli.create();await cli.bind(bound,{code:device.userCode,workspaceId:team,displayedUserId:recipient.id,action:'authorize',scope:'cli:session server_check:create'});
+  process.env.WITNESSOPS_FINALIZER_ENABLED='1';const device=await cli.create();await cli.bind(bound,{code:device.userCode,workspaceId:team,displayedUserId:recipient.id,action:'authorize',scope:'cli:session server_check:create'});
   const token=await cli.poll(device.device);assert.equal(token.state,'active');if(token.state!=='active')throw new Error('Expected credential');
   await cli.withServerWork(token.credential,async()=>undefined);
   const waiting=await cli.create();await cli.bind(bound,{code:waiting.userCode,workspaceId:team,displayedUserId:recipient.id,action:'authorize'});
@@ -1312,7 +1312,7 @@ test('Membership: recipient binding, admission separation, role work, revocation
   await store.failRun(team,run,recipient);
   await assert.rejects(members.accept(recipient,recipientIdentity.email,id,1,'viewer'));
   assert.equal((await store.read(owner,other)).role,'owner');
- } finally {if(prior===undefined)delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT=prior;}
+ } finally {if(prior===undefined)delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT=prior;if(priorFinalizer===undefined)delete process.env.WITNESSOPS_FINALIZER_ENABLED;else process.env.WITNESSOPS_FINALIZER_ENABLED=priorFinalizer;}
 });
 
 test('Membership: concurrent Owner changes, invitation lifecycle and historical seat fence', async () => {

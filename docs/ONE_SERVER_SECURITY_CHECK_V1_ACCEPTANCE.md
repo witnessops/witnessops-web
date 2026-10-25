@@ -2,9 +2,13 @@
 
 Freeze: 2026-09-12. **FROZEN; READY for merge review of the accumulated CLI/server-check changes.** Technically accepted against the local/test app on one real Ubuntu host. Not merged, deployed, publicly distributed or externally customer-validated by this milestone. No merge/deployment authority follows from this document.
 
+## Current finalizer posture (2026-10-25)
+
+The finalizer runs inside the app container as uid 1001, the same user as the app. The signing key is bind-mounted into that container. It is not off-host and it is not separate custody. `WITNESSOPS_FINALIZER_ENABLED` defaults off. See `deploy/app/FINALIZER_RUNTIME.md`. The 2026-09-12 record below is historical acceptance evidence. Where that record says "off-host", read it as "not on the checked target", not as a separate signer.
+
 ## Accepted product flow and commits
 
-`sudo wops server check`: authenticated Owner → explicit local collection authority → unsigned read-only Local Audit capture → authenticated upload → off-host reconstruction/signing → independent verification → exactly one immutable Linux run → report, fresh reopen and deterministic comparison. The controlled acceptance supplied explicit UTC window flags.
+`sudo wops server check`: authenticated Owner → explicit local collection authority → unsigned read-only Local Audit capture → authenticated upload → in-container reconstruction/signing by the app uid → independent verification → exactly one immutable Linux run → report, fresh reopen and deterministic comparison. The controlled acceptance supplied explicit UTC window flags. That in-container signature is not separate custody. CLI output for this path calls the package unsigned. The gate `WITNESSOPS_FINALIZER_ENABLED` defaults off.
 
 | Component | Commit |
 | --- | --- |
@@ -63,7 +67,7 @@ CLOSED means mitigated in the reviewed application boundary, not impossible unde
 | Capture replay | CLOSED | Authority identity and one byte sequence per execution. Fabricated unsigned observations are not attested. |
 | Upload tampering | CLOSED | Digest, canonical capture and authority correspondence checks. HTTPS required outside loopback development. |
 | Duplicate issuance | CLOSED | Exclusive durable marker plus row locks; one finalizer/shared custody assumption. |
-| Signing-key exposure | KNOWN LIMITATION | Off-target, no API access; trusted finalizer process can access configured key and needs production containment. |
+| Signing-key exposure | KNOWN LIMITATION | The key is bind-mounted into the app container and readable by uid 1001, the app user. No API returns the key. Finalization and `server_check:create` stay off unless `WITNESSOPS_FINALIZER_ENABLED=1`. That flag does not create a separate signer. |
 | Signer selection | CLOSED | Server-only selection, no request override. |
 | Registry substitution | CLOSED | Pinned app registry, preserved bytes, independent trust checks. |
 | Invalid verification accepted | CLOSED | Both finalizer verifier and existing Linux admission reject before commit. |

@@ -8,7 +8,7 @@ for (const width of [1440,390]) for (const role of ['owner','viewer']) test(`CLI
  await page.goto('/cli/authorize');await expect(page.getByRole('heading',{name:'Authorize WitnessOps CLI'})).toBeVisible();
  await expect(page.locator('main')).toContainText('Never enter a code sent by someone else');await expect(page.locator('main')).toContainText('does not grant server checks, uploads or signing authority');
  const authorize=page.getByRole('button',{name:'Authorize CLI',exact:true});await expect(authorize).toBeDisabled();
- await page.getByLabel('Workspace',{exact:true}).selectOption('workspace-b');await expect(page.locator('main')).toContainText(`Role: ${role==='owner'?'Owner':'Viewer'}`);
+ await page.getByLabel('Workspace',{exact:true}).selectOption('workspace-b');await expect(page.locator('main')).toContainText(`Role: ${role==='owner'?'Owner':'Viewer'}`);await expect(page.getByRole('checkbox',{name:/Also allow local/})).toHaveCount(0);
  await page.getByLabel('Code from your terminal').fill('ABCD-EF12-3456');await expect(authorize).toBeDisabled();
  await page.getByRole('checkbox', { name: /I started this CLI/ }).check();await expect(authorize).toBeEnabled();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('cli-authorize.png'),fullPage:true});
@@ -24,7 +24,7 @@ test('CLI single workspace selects automatically; changed browser identity fails
 });
 test('Owner explicitly adds server-check scope; switching workspace resets consent',async({page})=>{
  let posts=0;await page.route('**/api/cli/authorize',route=>{
-  if(route.request().method()==='GET')return route.fulfill({json:{user:{id:'u',displayName:'Test'},workspaces:[{id:'a',name:'Owner workspace',role:'owner'},{id:'b',name:'Viewer workspace',role:'viewer'}]}});
+  if(route.request().method()==='GET')return route.fulfill({json:{user:{id:'u',displayName:'Test'},workspaces:[{id:'a',name:'Owner workspace',role:'owner'},{id:'b',name:'Viewer workspace',role:'viewer'}],serverCheckScopeOffered:true}});
   expect(route.request().postDataJSON().scope).toBe('cli:session server_check:create');posts++;return route.fulfill({json:{state:'authenticated'}});
  });
  await page.goto('/cli/authorize');await page.getByLabel('Workspace',{exact:true}).selectOption('a');const scope=page.getByRole('checkbox',{name:/Also allow local/});await expect(scope).not.toBeChecked();await scope.check();await page.getByLabel('Workspace',{exact:true}).selectOption('b');await expect(scope).toHaveCount(0);await page.getByLabel('Workspace',{exact:true}).selectOption('a');await expect(scope).not.toBeChecked();await scope.check();await page.getByLabel('Code from your terminal').fill('ABCD-EF12-3456');await page.getByRole('checkbox',{name:/I started this CLI/}).check();await page.getByRole('button',{name:'Authorize CLI',exact:true}).click();await expect(page.getByRole('status')).toContainText('Return to your terminal');expect(posts).toBe(1);

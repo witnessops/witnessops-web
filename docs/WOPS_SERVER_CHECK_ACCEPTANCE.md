@@ -2,6 +2,10 @@
 
 Current status: **REAL-HOST FLOW ACCEPTED against the local/test app**, as recorded below. Earlier dated preparation/failure sections are retained history, not the current verdict. No installer, publication, push, merge or deployment. Base app commit: `5547af4017b9cfaa28644a34bc8807c8be630631`.
 
+## Current finalizer posture (2026-10-25)
+
+The finalizer runs inside the app container as uid 1001, the same user as the app, with the key bind-mounted into that container. It is not off-host and it is not independent custody. `WITNESSOPS_FINALIZER_ENABLED` defaults off; see `deploy/app/FINALIZER_RUNTIME.md`. Dated sections below are the historical record. Where they say "off-host", that meant "not on the checked target".
+
 ## Target UX
 
 1. As a normal account, `wops auth login`; an Owner explicitly selects server-check request/upload permission in the existing browser confirmation.
@@ -15,7 +19,7 @@ No remote, collector-path, signing-key, registry, profile or arbitrary-command f
 
 - **Operator:** existing internal user, active cohort/account/workspace membership, Owner role and explicit `server_check:create` capability. Existing `cli:session` credentials retain status/logout rights only. Scope covers this product's execution request and capture upload, not generic uploads or signing access.
 - **Collection:** immutable existing Local Audit authority object records asset, hostname, pseudonymous operator reference, workspace declaration, reason, exact listener policy, profile, read-only action, prohibited artifact classes and window. The authorization and case identifiers are this execution's identifier. Authority timestamps use the producer's whole-second precision.
-- **Issuance:** operator-configured off-host Local Audit runtime, private key and signer identity. No caller selects a key, signer, registry or executable. The registry comes from the app's existing pinned registry input.
+- **Issuance:** in-container Local Audit runtime, private key and signer identity, running as the app uid. No caller selects a key, signer, registry or executable. The registry comes from the app's existing pinned registry input. The key is not separate custody. Finalization runs only when `WITNESSOPS_FINALIZER_ENABLED=1`.
 - **Verification:** existing producer verifier followed by existing app `verifyProofpack`, live classification validation, buyer adapter and immutable Linux import.
 
 CLI identity and operator declarations do not establish physical host identity, independent collection authority, honest observations, or source-system truth. The capture is unsigned correspondence input. Signing does not upgrade those claims.
@@ -42,13 +46,13 @@ No caller-supplied workspace is trusted. Execution queries bind current user and
 
 The existing producer validates canonical encoding, structure, product/profile/mode, timestamps, admission and reconstructed observations. The app compares the frozen authority, hostname and collector fingerprint to the execution before accepting upload. Live classification must remain `synthetic=false` / `live_approved`. Observed OS, machine identity and architecture continue through the existing collector, snapshot and comparison; no hardware attestation is invented.
 
-## Off-host finalization and source custody
+## Finalization and source custody
 
 `server-check-finalize.py` is a narrow adapter to the installed accepted producer. It calls existing `validate_capture`, `finalize_product`, signer-purpose checks and independent `verify_proofpack`. It neither imports nor invokes a collector operation. Posture, findings, completeness, manifest and receipt are reconstructed by the producer.
 
 The server preserves capture and pinned-registry bytes in a private durable execution directory. A flushed, directory-synced exclusive `started` marker is written **before** signing. Completed output is independently reverified and matched back to the capture's exact observations, authority and collector identity. Incomplete issuance after that marker fails closed and requires operator reconciliation; it cannot automatically sign again.
 
-The normal `LinuxCheckStore` admission implementation runs inside the execution's database transaction. Final ZIP, detached signature, selected registry, digests, snapshot and completed run are committed atomically with the execution/run link. The signed ZIP remains canonical accepted evidence; the capture linkage does not replace `runs.source_digest`.
+The normal `LinuxCheckStore` admission implementation runs inside the execution's database transaction. Final ZIP, detached signature, selected registry, digests, snapshot and completed run are committed atomically with the execution/run link. The signed ZIP remains the stored source bytes; the capture linkage does not replace `runs.source_digest`. That signature is produced in the app container by the app uid. It is not an independent attestation. CLI output for this path calls the package unsigned.
 
 The same report, comparison, history, source downloads and fresh reopen verification apply. No second product/run/report type was added.
 
@@ -62,7 +66,7 @@ A durable finalizer directory must be retained with the database. Losing it afte
 
 ## Operator-side configuration / distribution boundary
 
-Local app startup configuration requires `WITNESSOPS_FINALIZER_PYTHON`, `WITNESSOPS_FINALIZER_KEY`, `WITNESSOPS_FINALIZER_SIGNER` and `WITNESSOPS_FINALIZER_DIRECTORY`. These are server configuration only; no values or secret locations are committed. Missing configuration stops context/authorization before collection. The finalizer validates the selected key against the app-pinned registry. The app process must run from its normal package working directory and have its Python adapter available.
+Local app startup configuration requires `WITNESSOPS_FINALIZER_ENABLED=1` plus `WITNESSOPS_FINALIZER_PYTHON`, `WITNESSOPS_FINALIZER_KEY`, `WITNESSOPS_FINALIZER_SIGNER` and `WITNESSOPS_FINALIZER_DIRECTORY`. These are server configuration only; no values or secret locations are committed. The enablement flag defaults off. Missing configuration, or the flag left off, stops context/authorization before collection with `finalizer_unavailable`. The finalizer validates the selected key against the app-pinned registry. The app process must run from its normal package working directory and have its Python adapter available. The finalizer process is the app uid, not a separate signer.
 
 Use the existing accepted producer implementation `fce41c194522e9d08d0683aa786bd4361c5ae0c2`, proof format 1.2.2. The tested producer fingerprint was `2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8`; it is recorded here as test provenance, not hardcoded as a permanent product trust rule. The producer worktree remained unchanged.
 
@@ -101,7 +105,7 @@ Engineering diff scan `c5daa8a1-0da9-478b-a617-192483d8153e`: zero reportable fi
 | Workspace/asset substitution | CLOSED by scoped execution lookup and exact frozen authority/hostname binding |
 | Capture/upload tampering, replay, duplicate issuance | CLOSED for byte correspondence and request binding; one capture per execution, transactional run link, durable issuance marker |
 | Synthetic/live confusion | CLOSED by producer mode/classification validation and unchanged app admission |
-| Production signer exposure / user-selected signing | CLOSED at client/API boundary; key stays in independently configured off-host custody, no CLI key argument or signing dependency |
+| Production signer exposure / user-selected signing | KNOWN LIMITATION for custody; CLOSED at the client/API boundary for a caller-selected key. The key is mounted into the app container for uid 1001. There is no CLI key argument. This is not independent off-host custody. The finalizer stays off unless `WITNESSOPS_FINALIZER_ENABLED=1`. |
 | Failed verifier accepted / source replacement | CLOSED by existing independent verifier plus normal app admission and capture/output correspondence |
 | Interrupted request ambiguity | CLOSED for automatic duplicate capture/run/signing; incomplete issuance needs manual recovery |
 | Host substitution by dishonest root / fabricated observations | KNOWN LIMITATION: unsigned capture, hostname and machine metadata do not attest a physical host or truthful source |

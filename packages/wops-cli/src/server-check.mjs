@@ -93,7 +93,7 @@ export async function serverCheck(args,options={}){
   if(state){const retired=await io.findRetirementReceipt(base,state.request?.requestId);if(retired){await io.archiveRetiredExecution(base,retired.executionId,{id:retired.executionId,state:'retired',requestId:retired.requestId,retiredAt:retired.retiredAt,retiredBy:retired.retiredBy});saved=null;state=null;output('Previously retired request evidence was archived. A new check request will require fresh confirmation.');}}
   if(!state){
    const candidates=context.assets.filter(x=>x.hostname===host);if(candidates.length>1)throw new Error('Multiple matching assets. Resolve the asset selection in WitnessOps before running this check.');
-   output(`WitnessOps One Server Security Check\nServer: ${safe(host)}\nWorkspace: ${safe(context.workspace)}\nCollects read-only local state and uploads it for off-host signing. No permanent agent, patches or configuration changes.`);
+   output(`WitnessOps One Server Security Check\nServer: ${safe(host)}\nWorkspace: ${safe(context.workspace)}\nCollects read-only local state and uploads it. The package from this path is unsigned. No permanent agent, patches or configuration changes.`);
    if(window)output(`Approved collection window: ${window.starts_at_utc} to ${window.ends_at_utc} (UTC)`);
    const rl=options.ask?null:createInterface({input:process.stdin,output:process.stdout});const ask=options.ask??(question=>rl.question(question));
    try{const purpose=await ask('Reason for this authorized check: '),sshExposure=await ask('Intended SSH exposure (public/private/none): '),expectedListeners=listeners(await ask('Intended listener endpoints (tcp://IP:port, udp://[IPv6]:port), or none: '));
@@ -119,8 +119,8 @@ export async function serverCheck(args,options={}){
   for(let attempt=0;status.state==='uploaded'&&attempt<4;attempt++){try{status=await request('server-checks',{id:execution.id});}catch(e){if(!e.busy)throw e;await(options.sleep??(ms=>new Promise(r=>setTimeout(r,ms))))(5000);}}
   if(status.state!=='run_created'||!/^[a-f0-9-]{36}$/.test(status.runId))throw new Error('Check is not yet accepted. Retry this command to reconcile the retained capture.');
   if(status.outcome==='partial')output('Result: Partial. Some evidence could not be determined.');
-  else if(status.outcome)output('Collection outcome: '+safe(status.outcome)+'. Package verification does not establish server security.');
-  output(`✓ Proofpack finalized\n✓ Verification valid\n✓ Run saved\nView: ${auth.server}/runs/${status.runId}`);
+  else if(status.outcome)output('Collection outcome: '+safe(status.outcome)+'. An unsigned package does not establish server security.');
+  output(`✓ Package recorded\n✓ Unsigned server-check package\n✓ Run saved\nView: ${auth.server}/runs/${status.runId}`);
   await(options.remove??unlink)(journal);return 0;
  });
 }
