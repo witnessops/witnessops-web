@@ -102,6 +102,9 @@ Digest contract: recursively sort JSON object keys by UTF-16 code units; preserv
 ```sh
 pnpm app:test
 pnpm --filter @witnessops/app test:db
+pnpm --filter @witnessops/app test:db:live
+pnpm --filter @witnessops/app test:db:cli
+pnpm --filter @witnessops/app test:db:server
 pnpm test:app-browser
 pnpm app:build
 pnpm --filter @witnessops/app lint
@@ -111,13 +114,15 @@ pnpm health
 
 `test:db` requires only **TEST_DATABASE_URL** in `.env.test.local`. It refuses a non-loopback target or a database name not ending `_test`, creates a unique disposable schema, applies real migrations, and drops only that schema afterward. It never falls back to DATABASE_URL. It covers identity, atomic workspace creation, persisted sources, known A/B resource IDs, Viewer denial and revocation through the runtime authorization path. A new pool lifecycle confirms durable reads. These are deterministic replay tests; no public network collection occurs.
 
+`test:db:live`, `test:db:cli` and `test:db:server` are additional explicit database/server-check acceptance scripts declared in `apps/witnessops-app/package.json:14-16`; they have their own prerequisites, so read each script before running it (this edit did not run them).
+
 `pnpm health` remains the repository's build/lint/type/unit gate and includes the ordinary app tests. Database integration and Chromium/WebKit browser tests are **separate explicit acceptance commands** because they require local PostgreSQL/browser prerequisites. Browser UI tests use deterministic route fixtures; real HTTP negative tests reject absent/forged sessions and malformed callbacks. They do not substitute for a real hosted AuthKit login/logout test. No formatter is configured; use ESLint and `git diff --check`.
 
 ## Deferred and production prerequisites
 
-No live billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or named-recipient sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Edit checks explains the fixed ten-check method.
+No live billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC or notifications. Workspace invitations send mail, and named-recipient report email exists as an optional path that is off unless explicitly enabled (see Mail below). Saved-run PDFs reuse the shared buyer-report pipeline. Edit checks explains the fixed ten-check method.
 
-Before `app.witnessops.com`: separately authorize DNS/TLS/app routing, runtime/image publication and deployment; configure the production WorkOS client and exact HTTPS callbacks/sign-out URLs; custody runtime secrets separately; provision PostgreSQL backups/recovery/retention and migration grants; establish production session/operational limits and multi-worker execution admission. RLS is a later hardening layer. Public release commands still target witnessops-web; this slice does not deploy either application.
+Status of `app.witnessops.com`: `docs/EARLY_ACCESS_LAUNCH.md:3-27` records DNS/TLS/public routing and boot enablement as accepted on 2026-09-11, without external user admission, and lines 208-232 record private production browser acceptance (these are repository records, not live verification). Still requiring separate authorization or evidence that this repository does not record: external user/cohort admission; runtime/image publication and deployment (`.github/workflows/app-validation.yml` retains a candidate only); runtime-secret custody; PostgreSQL scheduled backups/recovery/retention and migration grants; production session/operational limits and multi-worker execution admission. RLS is a later hardening layer. Public release commands still target witnessops-web; this slice does not deploy either application.
 
 ## Fixed-revision report sharing
 
@@ -127,7 +132,7 @@ The recipient projection omits raw attachments, detailed source observations, me
 
 Links use `/s#<secret>`: the fragment stays in the link so refresh and browser copying work, but is sent to the server only in the body of a same-origin POST to `/api/shared-report`. Tokens are random 256-bit values stored only as hashes. The public endpoint checks current publication, expiry and workspace state on every request. It exposes neither private workspace APIs nor membership. Pages and responses are no-store/noindex/no-referrer; the recipient page does not mount AuthKit or analytics. Revocation denies subsequent requests immediately; the open page rechecks periodically and when returning to it. Previously seen or downloaded content cannot be recalled. Losing a copied link requires publishing a new revision; tokens cannot be recovered from the database.
 
-Before customer activation: apply migration 0016 with appropriate runtime table privileges, confirm recovery procedures and deployed proxy/cache/body-log exclusions, and complete the authenticated Owner → separate-browser recipient → revoke journey in staging. Route-fixture browser tests and isolated database tests do not establish hosted acceptance. No mail configuration is needed.
+Before customer activation: apply migration 0016 with appropriate runtime table privileges, confirm recovery procedures and deployed proxy/cache/body-log exclusions, and complete the authenticated Owner → separate-browser recipient → revoke journey in staging. Route-fixture browser tests and isolated database tests do not establish hosted acceptance. Creating and copying a share link needs no mail configuration. Optional emailed report delivery requires `WITNESSOPS_REPORT_EMAIL_ENABLED=1` and `WITNESSOPS_REPORT_EMAIL_TRACKING_DISABLED=1` (`src/lib/share-server.ts:97`) plus mail-provider configuration (`WITNESSOPS_MAIL_PROVIDER` in `apps/witnessops-web/src/lib/server/send-verification-email.ts:48-56`). Workspace invitations always attempt to send mail (`src/lib/db/members.ts:76`).
 
 Share retention is bounded per workspace to 128 records and 16 MiB, in addition to the creation-rate limit. New previews opportunistically remove unpublished previews older than one hour and links expired/revoked for more than 30 days. Active links are not removed by cleanup; all retained published links remain in the revoke list.
 
@@ -168,5 +173,7 @@ Direct requests must retain their exact HTTPS origin. A separately enabled `WITN
 ### Durable capture admission
 
 Migration 0022 adds capture reservations to existing server executions. Stop all older app writers before applying it; mixed versions and rollback to pre-0022 upload code are unsupported. Every existing execution is conservatively charged the historical maximum capture size (25 MiB), even if database capture bytes are absent: rejected or interrupted filesystem writes may already exist. This backfill does not delete, inspect or rewrite evidence. Existing over-limit workspaces can reopen accepted results and retry already reserved captures, but cannot allocate additional capacity. Reconcile unattributed/operator-created custody separately before activation; the migration covers execution-owned captures, not arbitrary external files.
+
+Rollback warning for migrations 0020 and 0023 (the 0022 warning above does not cover them). Migration 0020 adds share-password columns (`scrypt-v1` hash, attempt counter, window) to `report_share_access` and a `report_share_unlocks` table (`db/migrations/0020_share_passwords.sql`; the unlock session cap is 32 per share, `src/lib/db/share-passwords.ts:50`). App source before that migration contains no reference to `password_hash`, so an image older than 0020 has no password-check code; do not run one against a database that holds password-protected shares. Migration 0023 adds a `retired` execution state with `retired_at`/`retired_by_user_id`, replaces two constraints on `server_check_executions` and replaces the `preserve_server_execution` trigger function (`db/migrations/0023_retired_server_check_executions.sql`); app source before 0023 does not reference `retired`, so an older image does not know that state. Treat rollback below 0020 or 0023 as unsupported without a separately reviewed compatibility check, as with 0022.
 
 Every plan uses the same operational maximum of 32 retained executions and 200 MiB of reserved capture input per workspace. Source/seat allowances remain separate. An upload's digest and byte reservation commit before custody persistence, and current CLI authority is rechecked before validation. Rejected/partial writes and reservations with no file remain charged. No automatic expiry, deletion or refund exists; releasing capacity requires a separately reviewed reconciliation that proves bytes absent and old writers stopped. Registry, signatures and generated Proofpacks are additional retained files, bounded by execution admission rather than the capture-input byte total. Host filesystem containment remains a deployment requirement. Successful retry does not overwrite capture bytes or repeat signing.
