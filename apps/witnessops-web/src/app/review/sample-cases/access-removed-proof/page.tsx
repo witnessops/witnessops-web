@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/access-removed-proof";
 
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
     "Synthetic access-removal package sample: sanitised before/after observations for one named event. Method sample only, not a public product card, not universal access-elimination.",
   alternates: getCanonicalAlternates("witnessops", path),
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Access removed proof | WitnessOps",
     description:
       "Method sample for one named access-removal event. Not a product card and not proof that every shadow path is gone.",

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { JsonLd } from "@/components/seo/json-ld";
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
@@ -17,6 +18,7 @@ import {
   publicExposureServiceJsonLd,
 } from "@/lib/public-seo";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 type PageProps = { params: Promise<{ skuId: string }> };
 
@@ -101,7 +103,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
         "compliance certification or a security guarantee",
       ],
       nextStep:
-        "Request the fixed-scope review by naming one public target and your authority. No sales call is required, and no target-facing work begins until the scope is accepted.",
+        "Request the agreed-scope review by naming one public target and your authority. No sales call is required, and no target-facing work begins until the scope is accepted.",
     },
     "OFFSEC-LAUNCH-READY": {
       claim:
@@ -273,12 +275,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates,
     openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
       title: `${title} | WitnessOps`,
       description,
       siteName: "WitnessOps",
       type: "website",
     },
     twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
       card: "summary_large_image",
       title: `${title} | WitnessOps`,
       description,
@@ -337,9 +341,9 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <Link
           href="/catalog"
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline"
         >
-          ← Back to services
+          <InlineArrow direction="left" /> Back to services
         </Link>
 
         <header className="mt-8 grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">

@@ -77,7 +77,7 @@ const reportPublicPath = "/ui-proofs/homepage-hero/latest.json";
 const gridPublicPath = "/ui-proofs/homepage-hero/grid.png";
 
 export const metadata: Metadata = {
-  title: "Homepage Hero UI Proof | WitnessOps",
+  title: "Homepage Hero UI Proof",
   description:
     "A noindex presentation page for the committed homepage hero mobile UI proof report.",
   robots: {

@@ -9,6 +9,7 @@ import {
   sitemapLanguageAlternates,
 } from "@/lib/public-seo";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
+import { SITEMAP_OMITTED_ROUTES } from "@/lib/withdrawn-offer-routes";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { listSkills } from "@/lib/skills/catalog";
 
@@ -20,6 +21,10 @@ type StaticRoute = {
 
 const staticRoutes: StaticRoute[] = [
   { route: "/research", sourcePath: "src/app/research/page.tsx" },
+  { route: "/chronicles", sourcePath: "src/app/(marketing)/chronicles/page.tsx" },
+  { route: "/chronicles/001-the-unauthorized-feline", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
+  { route: "/chronicles/002-sir-whiskers-opens-a-pull-request", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
+  { route: "/chronicles/003-the-meeting-nobody-authorized", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   ...editorialArticles.map(entry => ({ route: entry.href, sourcePath: entry.contentReference })),
   { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },
   { route: "/pl/catalog/automation-repair", sourcePath: "src/app/pl/catalog/automation-repair/page.tsx" },
@@ -30,20 +35,17 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/(library)/library/[slug]/page.tsx",
   })),
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
-  { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
+  { route: "/reviews", sourcePath: "src/app/(marketing)/reviews/page.tsx" },
   {
-    route: "/catalog/workflows",
-    sourcePath: "src/app/(marketing)/catalog/workflows/page.tsx",
+    route: "/reviews/agent-action-security-review",
+    sourcePath: "src/app/(marketing)/reviews/agent-action-security-review/page.tsx",
   },
   {
-    route: "/catalog/professional-public-footprint-audit",
-    sourcePath:
-      "src/app/(marketing)/catalog/professional-public-footprint-audit/page.tsx",
+    route: "/reviews/external-attack-surface-review",
+    sourcePath: "src/app/(marketing)/reviews/external-attack-surface-review/page.tsx",
   },
-  {
-    route: "/catalog/offsec-external-exposure",
-    sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
-  },
+  { route: "/how-it-works", sourcePath: "src/app/(marketing)/how-it-works/page.tsx" },
+  { route: "/about", sourcePath: "src/app/(marketing)/about/page.tsx" },
   ...BUYER_SERVICES.filter(
     (service) =>
       service.productId &&
@@ -60,11 +62,7 @@ const staticRoutes: StaticRoute[] = [
       : [],
   ),
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
-  {
-    route: "/customer-security-review",
-    sourcePath: "src/app/customer-security-review/page.tsx",
-  },
-  { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
+  { route: "/contact", sourcePath: "src/app/(marketing)/contact/page.tsx" },
   {
     route: "/review/sample-cases",
     sourcePath: "src/app/review/sample-cases/page.tsx",
@@ -140,27 +138,36 @@ const staticRoutes: StaticRoute[] = [
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
 ];
 
+const REDIRECTED_POLISH_CATALOG = new Set([
+  "/pl/catalog",
+  "/pl/catalog/offsec-external-exposure",
+]);
+
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
-  { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
+  { route: "/pl/reviews", sourcePath: "src/app/pl/reviews/page.tsx" },
   {
-    route: "/pl/catalog/professional-public-footprint-audit",
-    sourcePath: "src/app/pl/catalog/professional-public-footprint-audit/page.tsx",
+    route: "/pl/reviews/agent-action-security-review",
+    sourcePath: "src/app/pl/reviews/agent-action-security-review/page.tsx",
+  },
+  {
+    route: "/pl/reviews/external-attack-surface-review",
+    sourcePath: "src/app/pl/reviews/external-attack-surface-review/page.tsx",
   },
   { route: "/pl/library", sourcePath: "src/app/pl/library/page.tsx" },
-  {
-    route: "/pl/customer-security-review",
-    sourcePath: "src/app/pl/customer-security-review/page.tsx",
-  },
   ...getPolishSkus().map(({ id }) => ({
     route: `/pl/catalog/${id.toLowerCase()}`,
     sourcePath: "src/app/pl/catalog/[skuId]/page.tsx",
   })),
-  { route: "/pl/review/request", sourcePath: "src/app/pl/review/request/page.tsx" },
+  { route: "/pl/contact", sourcePath: "src/app/pl/contact/page.tsx" },
   { route: "/pl/docs", sourcePath: "src/app/pl/docs/page.tsx" },
   { route: "/pl/support", sourcePath: "src/app/pl/support/page.tsx" },
   { route: "/pl/verify", sourcePath: "src/app/pl/verify/page.tsx" },
   { route: "/pl/why-witnessops", sourcePath: "src/app/pl/why-witnessops/page.tsx" },
+  { route: "/pl/privacy", sourcePath: "src/app/pl/privacy/page.tsx" },
+  { route: "/pl/terms", sourcePath: "src/app/pl/terms/page.tsx" },
+  { route: "/pl/security", sourcePath: "src/app/pl/security/page.tsx" },
+  { route: "/pl/media-kit", sourcePath: "src/app/pl/media-kit/page.tsx" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -169,7 +176,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const docs = await getDocsSitemapEntries("witnessops");
 
   return [
-    ...[...staticRoutes, ...polishRoutes].map(({ route }) => ({
+    ...[...staticRoutes, ...polishRoutes]
+      .filter(({ route }) => !SITEMAP_OMITTED_ROUTES.has(route) && !REDIRECTED_POLISH_CATALOG.has(route))
+      .map(({ route }) => ({
       url: canonicalUrl(route || "/"),
       alternates: sitemapLanguageAlternates(route || "/"),
     })),

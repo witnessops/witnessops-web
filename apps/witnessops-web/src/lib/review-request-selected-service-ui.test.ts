@@ -19,24 +19,19 @@ const confirmationPage = readFileSync(
   "utf8",
 );
 
-test("selected non-agent services do not inherit the agent proof bundle", () => {
-  assert.match(requestPage, /const primaryOfferOrder/);
-  assert.match(requestPage, /const selectedServiceOrder/);
+test("new intake renders only the two accepted reviews and does not sell a historical service form", () => {
+  assert.match(requestPage, /resolveNewSalesPageQuery\(/);
+  assert.match(requestPage, /NewSalesIntakeClosed/);
+  assert.match(requestPage, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.match(
     requestPage,
     /const activeArtifacts = publicExposureOrder\s*\? publicExposureArtifacts\s*:\s*\[\]/,
   );
-  assert.match(requestPage, /title: "Expected outcome"/);
-  assert.match(requestPage, /title: "Offer boundary"/);
-  assert.match(requestPage, /summary: selectedServiceOrder\.result\.en/);
-  assert.match(requestPage, /summary: selectedServiceOrder\.boundary\.en/);
   assert.match(requestPage, /\{activeArtifacts\.length > 0 \? \(/);
   assert.doesNotMatch(requestPage, /sampleArtifacts\.slice/);
-  assert.match(requestPage, /const selectedServiceNextSteps/);
-  assert.match(
-    requestPage,
-    /selectedServiceOrder\s*\? selectedServiceNextSteps\s*:\s*nextSteps/,
-  );
+  assert.doesNotMatch(requestPage, /primaryOfferOrder/);
+  assert.doesNotMatch(requestPage, /selectedServiceOrder/);
+  assert.doesNotMatch(requestPage, /offerId=\$\{PRIMARY_OFFER\.id\}/);
 });
 
 test("selected non-agent services collect and store service-specific context", () => {

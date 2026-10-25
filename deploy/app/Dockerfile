@@ -34,6 +34,7 @@ ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3020 NEXT_PUBLIC_WORKOS_REDIRECT_U
 WORKDIR /app
 COPY --from=builder /app/apps/witnessops-app/.next/standalone ./
 COPY --from=builder /app/apps/witnessops-app/.next/static ./apps/witnessops-app/.next/static
+COPY --from=builder /app/apps/witnessops-app/public ./apps/witnessops-app/public
 COPY --from=producer /opt/witnessops/finalizer /opt/witnessops/finalizer
 COPY deploy/app/finalizer-readiness.py /opt/witnessops/finalizer-readiness.py
 COPY apps/witnessops-web/src/lib/proofpack/trust/local-audit-registry-v1.json /opt/witnessops/registry.json

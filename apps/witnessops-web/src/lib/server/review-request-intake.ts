@@ -10,6 +10,7 @@ import {
   enforcePublicIntakeRateLimit,
   enforcePublicIssuanceRateLimits,
 } from "@/lib/server/public-intake-rate-limit";
+import { evaluateNewSalesIntakeBody } from "@/lib/new-review-request-policy";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import {
@@ -23,6 +24,18 @@ type ReviewRequestIntakeOptions = {
   source: string;
   validation?: "engage" | "review";
 };
+
+function withoutBlankName(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const body = { ...(raw as Record<string, unknown>) };
+  if (
+    body.name == null ||
+    (typeof body.name === "string" && body.name.trim() === "")
+  ) {
+    delete body.name;
+  }
+  return body;
+}
 
 function invalidRequestResponse(error: {
   issues: Array<{ path: PropertyKey[]; message: string }>;
@@ -62,9 +75,11 @@ export async function handleReviewRequestIntake(
       return rateLimitResponse;
     }
 
-    const raw = await readBoundedRequestJson(
-      request,
-      PUBLIC_JSON_BODY_LIMIT_BYTES,
+    const raw = withoutBlankName(
+      await readBoundedRequestJson(
+        request,
+        PUBLIC_JSON_BODY_LIMIT_BYTES,
+      ),
     );
     const parsed = (
       options.validation === "review"
@@ -75,7 +90,21 @@ export async function handleReviewRequestIntake(
       return invalidRequestResponse(parsed.error);
     }
 
-    const { email, name, org, intent, locale, scope } = parsed.data;
+    const intakeDecision = evaluateNewSalesIntakeBody(raw);
+    if (!intakeDecision.accepted) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Selected request is not available for a new review.",
+          field: "intent",
+          reason: intakeDecision.reason,
+        },
+        { status: 400 },
+      );
+    }
+
+    const { email, name, org, locale, scope } = parsed.data;
+    const intent = intakeDecision.intent;
     if (!isBusinessEmail(email)) {
       return NextResponse.json(
         {
@@ -100,7 +129,7 @@ export async function handleReviewRequestIntake(
       submission: {
         name,
         org,
-        intent: intent ?? "review",
+        intent,
         locale: locale ?? "en",
         scope,
       },

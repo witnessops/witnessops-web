@@ -13,7 +13,7 @@ import {
 } from "@/lib/server/token-store";
 import { claimantSessionCookieName } from "@/lib/server/claimant-session";
 
-import { POST as engage } from "../../../engage/route";
+import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import { POST as verifyToken } from "../../../verify-token/route";
 import { POST } from "./route";
 
@@ -36,21 +36,15 @@ async function issueVerifiedToken(
   intent = "Third-party assessment",
 ) {
   applyTestEnv(baseDir);
-  const response = await engage(
-    new Request("https://witnessops.com/api/engage", {
-      method: "POST",
-      body: JSON.stringify({
-        email: "security@witnessops.com",
-        intent,
-        scope: "Passive-only recon of witnessops.com",
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-  };
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-issued-historical-record",
+    submission: {
+      intent,
+      scope: "Passive-only recon of witnessops.com",
+    },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),

@@ -62,10 +62,11 @@ type CuratedDocsLayer = {
 const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
     id: "start", title: "Start here",
-    description: "Free signup, invitations and your first app result.",
+    description: "Free hostname check, signup and your first app result.",
     layerChildPrefixes: ["/docs/getting-started", "/docs/faq"],
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
+      { kind: "doc", href: "/docs/getting-started/free-check", title: "Free check" },
       { kind: "doc", href: "/docs/getting-started", title: "Get started" },
       { kind: "doc", href: "/docs/how-it-works", title: "How it works" },
       { kind: "doc", href: "/docs/faq", title: "FAQ" },

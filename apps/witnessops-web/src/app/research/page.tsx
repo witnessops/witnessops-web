@@ -7,7 +7,12 @@ export default function ResearchPage() {
   const featured = editorialArticles.find(entry => entry.featured);
   const latest = editorialArticles.filter(entry => entry !== featured).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   return <main id="main-content" className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
-    <h1 className="text-4xl font-semibold text-text-primary">Research &amp; articles</h1>
+    <section className="mt-8 border-b border-surface-border pb-8">
+      <p className="font-mono text-xs uppercase tracking-widest text-brand-accent">Series · Fiction</p>
+      <h2 className="mt-3 text-2xl font-semibold"><Link href="/chronicles">The Sovereign Chronicles</Link></h2>
+      <p className="mt-3 max-w-3xl leading-7 text-text-secondary">Short fiction from the WitnessOps desk about agents, authority and the records they leave behind.</p>
+    </section>
+    <h1 className="mt-10 text-4xl font-semibold text-text-primary">Research &amp; articles</h1>
     <p className="mt-4 max-w-2xl text-text-secondary">Essays, research notes and evidence reconstructions about security, automation and verifiable operations.</p>
     {featured && <section aria-label="Featured" className="mt-10 border-b border-surface-border pb-10">
       {featured.hero && <div className="mb-6"><EditorialHero hero={featured.hero} priority /></div>}

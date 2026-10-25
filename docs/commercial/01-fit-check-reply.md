@@ -1,5 +1,7 @@
 # Fit-check reply templates
 
+> **Historical / superseded.** The Customer Security Review Sprint replies below are not for new sales. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+
 Paste into email or ticket. Personalise bracketed fields. **Do not** request secrets, credentials, keys, logs dumps, or customer evidence in this reply.
 
 ---

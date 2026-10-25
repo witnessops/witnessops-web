@@ -1,0 +1,62 @@
+---
+title: "Bezpieczeństwo"
+description: "Praktyki i zasady bezpieczeństwa WitnessOps."
+section: "legal"
+order: 1
+nav_label: "Bezpieczeństwo"
+draft: false
+trust_boundary_variant: "security"
+---
+
+# Bezpieczeństwo
+
+Ostatnia aktualizacja: sierpień 2026
+
+## Postawa bezpieczeństwa
+
+WitnessOps jest zaprojektowany wokół:
+
+- jawnych granic zaufania
+- podpisanych zapisów
+- wiązań dowodowych odpornych na manipulację
+- nadzorowanych ścieżek wykonania
+
+Te mechanizmy poprawiają możliwość audytu i integralność, ale nie usuwają zewnętrznych założeń zaufania.
+
+## Zgłaszanie podatności
+
+Podatności zgłaszaj na [security@witnessops.com](mailto:security@witnessops.com) w ramach odpowiedzialnego ujawniania.
+
+Nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesji ani innych sekretów.
+
+Ta skrzynka jest kanonicznym kontaktem bezpieczeństwa.
+Jeśli adresowanie z plusem jest włączone, [security+witnessops@witnessops.com](mailto:security+witnessops@witnessops.com) może służyć jako alias tylko do odbioru, ale nie zastępuje skrzynki kanonicznej.
+
+Dążymy do tego, aby:
+
+- potwierdzić zgłoszenie w ciągu 72 godzin
+- uzgodnić naprawę przed ujawnieniem
+
+## Zasady testów
+
+Nie wykonuj:
+
+- testów destrukcyjnych
+- działań typu denial-of-service
+- eksfiltracji danych
+- dostępu poza upoważnionym zakresem
+
+Jeśli zakres jest niejasny, zatrzymaj się i zgłoś to.
+
+## Ciągłość weryfikacji
+
+Wcześniej wydane artefakty dowodowe pozostają weryfikowalne niezależnie od dostępności usługi, o ile wymagany publiczny materiał weryfikacyjny jest dostępny.
+
+WitnessOps web jest interfejsem informacyjnym, zapytania i weryfikacji. Wyświetlenie treści, skierowanie zapytania albo ograniczona pomoc Ask WitnessOps nie tworzy władzy weryfikacyjnej i nie ustala, że prywatny system, działanie albo twierdzenie zostały zweryfikowane.
+
+Władza weryfikacyjna znajduje się w:
+
+- podpisanych zapisach
+- znacznikach czasu
+- dowodach włączenia
+- zewnętrznych narzędziach weryfikacji

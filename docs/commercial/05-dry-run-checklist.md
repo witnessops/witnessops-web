@@ -1,4 +1,42 @@
-# Dry-run checklist — CSR + One Server
+# Dry-run checklist — current two-offer portfolio
+
+Use this checklist for the current [Agent Action Security Review and External
+Attack Surface Review](./18-two-offer-portfolio.md). Rehearse with labelled
+synthetic material. A dry run does not authorise customer access or testing.
+
+## Current readiness checks
+
+- [ ] New-sales discovery and request selection identify exactly the two current
+  paid reviews. The free hostname check is separate; retired offers and the
+  private pilot are not new-sales choices.
+- [ ] Agent request identity is `agent-action-security-review`; external product
+  identity is `OFFSEC-EXTERNAL-EXPOSURE`. Historical IDs retain their old meaning.
+- [ ] Price is €2,500 excl. VAT for the agent review, or €1,900 fixed
+  excluding VAT for the external review. Delivery timing is per signed SOW.
+- [ ] The [current scope block](./06-scope-agreement-skeleton.md) matches the
+  selected review. Scope, authority, handling, required inputs, payment terms
+  and capacity are resolved before work; a request alone grants no authority.
+- [ ] Agent rehearsal covers one consequential action through read, inspect,
+  reconstruct and report: action map, sourced findings, prioritised
+  recommendations, documented unknowns and readout. No action execution,
+  remediation, retesting or full-device inventory is promised.
+- [ ] External rehearsal follows one signed system/target schedule within
+  1 root domain / 10 first-party hostnames / 3 public IPs / 20 endpoints,
+  using approved low-impact unauthenticated checks and manual validation.
+  No exploitation, authenticated testing or pentest claim.
+- [ ] External package and limitations match the [offer record](./10-public-exposure-review-offer.md),
+  including the 45-minute handover and one focused retest of reported findings
+  within 30 calendar days of initial report handover. Additional or late retests
+  remain held and are not offered.
+- [ ] Samples remain labelled synthetic. Available evidence, missing coverage
+  and verification limits are clear; no security or certification guarantee.
+- [ ] Record review/date, scope gaps and the next owner before accepting work.
+
+## Historical CSR and One Server rehearsal — not current sales instructions
+
+The checklist below is retained as an earlier operational record. Its catalogue
+count, product choices, templates and deployment checks are superseded for new
+sales. It does not change existing agreements or authorise any action.
 
 Run this **before** the first real paid package for each product. Use synthetic samples as shape reference, not as customer evidence.
 

@@ -108,7 +108,7 @@ export function TerminalWindow({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-[24px] border border-white/10",
+        "group relative overflow-hidden rounded-md border border-white/10",
         "bg-[linear-gradient(180deg,rgba(15,23,42,0.96)_0%,rgba(2,6,23,0.98)_100%)]",
         "shadow-[0_24px_80px_rgba(2,6,23,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]",
         className,
@@ -139,7 +139,7 @@ export function TerminalWindow({
 
           <div className="flex items-center gap-2">
             {badge ? (
-              <span className="hidden rounded-full border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[11px] font-medium text-orange-300 sm:inline-flex">
+              <span className="hidden rounded-xs border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[11px] font-medium text-orange-300 sm:inline-flex">
                 {badge}
               </span>
             ) : null}
@@ -147,7 +147,7 @@ export function TerminalWindow({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-300 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white"
+                className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-300 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white"
                 aria-label="Copy terminal content"
               >
                 {copied ? (
@@ -170,7 +170,7 @@ export function TerminalWindow({
                 <div
                   key={tab.id}
                   className={cn(
-                    "rounded-full border px-3 py-1 text-[11px] font-medium transition",
+                    "rounded-xs border px-3 py-1 text-[11px] font-medium transition",
                     active
                       ? "border-white/10 bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
                       : "border-transparent bg-transparent text-slate-500",

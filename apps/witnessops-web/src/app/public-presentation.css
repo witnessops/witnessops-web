@@ -10,22 +10,9 @@ body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-dir
   font-family: var(--font-sans);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) :is(h1, h2, h3) {
-  font-family: var(--font-sans) !important;
-  font-weight: 500;
+  font-family: var(--font-sans);
   text-transform: none;
-  text-wrap: pretty;
-  letter-spacing: -.025em;
-}
-body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
-  font-size: clamp(36px, 4.2vw, 60px);
-  line-height: 1.1;
-  letter-spacing: -.045em;
-}
-body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h2 {
-  line-height: 1.25;
-}
-body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h3 {
-  line-height: 1.4;
+  text-wrap: balance;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, li, dd) {
   text-wrap: pretty;
@@ -35,46 +22,70 @@ body:has(nav[data-public-presentation="quiet"]) #main-content :is(.max-w-6xl, .m
   max-width: var(--public-reading-width);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(article.border, section.border, [data-app-plan]) {
-  border-radius: 6px;
+  border-radius: var(--radius-card);
   background-color: var(--color-surface-card);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button, summary):focus-visible {
-  outline: 2px solid var(--color-brand-accent);
-  outline-offset: 4px;
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"], .public-cta-button) {
   min-height: 48px;
-  border-radius: 4px;
-  font-family: var(--font-sans) !important;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0 !important;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
   text-transform: none !important;
   box-shadow: none;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]) {
-  background: var(--color-text-primary);
-  border-color: var(--color-text-primary);
-  color: var(--color-text-inverse);
+  background: var(--color-action-fill);
+  border-color: var(--color-action-fill);
+  color: var(--color-action-on-fill);
 }
-body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover {
-  background: var(--color-text-secondary);
-  border-color: var(--color-text-secondary);
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-action-fill-hover, var(--color-text-secondary));
+  border-color: var(--color-action-fill-hover, var(--color-text-secondary));
   box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-action-fill-press, var(--color-text-secondary));
+  border-color: var(--color-action-fill-press, var(--color-text-secondary));
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content button[type="submit"]:is(:disabled, [aria-disabled="true"]) {
+  background: var(--color-surface-card);
+  border-color: var(--color-surface-border-strong);
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+  color: var(--color-action-disabled-text);
+  cursor: not-allowed;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content button[type="submit"]:is(:disabled, [aria-disabled="true"]):is(:hover, :focus, :focus-visible, :active) {
+  background: var(--color-surface-card);
+  border-color: var(--color-surface-border-strong);
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+  color: var(--color-action-disabled-text);
+  cursor: not-allowed;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content .public-cta-button:hover {
   box-shadow: none;
   transform: none;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   border-color: var(--color-surface-border-strong);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content form label {
-  font-family: var(--font-sans) !important;
-  font-size: 13px;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
+  font-family: var(--font-sans);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  letter-spacing: 0;
+  text-transform: none;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content details {
   border-color: var(--color-surface-border);
@@ -88,19 +99,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose :is(h2
   display: block;
   color: var(--color-text-primary);
 }
-body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2 {
-  margin: 40px 0 16px;
-  font-size: 26px;
-}
 body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2::after { display: none; }
-body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h3 {
-  margin: 28px 0 12px;
-  font-size: 19px;
-}
-body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose :is(p, li) {
-  font-size: 15px;
-  line-height: 1.8;
-}
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(pre, code) {
   font-family: var(--font-mono);
   text-wrap: initial;
@@ -112,19 +111,15 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [data-app-plan="Co
   border-color: var(--color-brand-accent);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] {
-  border-radius: 6px;
-  padding: 4px;
+  border-radius: var(--radius-control);
+  padding: 2px;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] button[aria-pressed="true"] {
   background: var(--color-text-primary);
   color: var(--color-text-inverse);
-  border-radius: 3px;
+  border-radius: var(--radius-label);
 }
-@media (max-width: 640px) {
-  body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
-    font-size: clamp(32px, 8.5vw, 42px);
-    overflow-wrap: anywhere;
-  }
+@media (max-width: 767px) {
   body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button).public-cta-button {
     white-space: normal;
     text-align: center;
@@ -134,7 +129,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billi
 /* The docs utility bar and sidebar are part of the same public reading surface. */
 body:has(nav[data-public-presentation="quiet"]) [data-docs-nav-surface="utility-nav"] :is(a, button) {
   min-height: 40px;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-family: var(--font-sans);
   letter-spacing: 0;
   text-transform: none;
@@ -144,9 +139,11 @@ body:has(nav[data-public-presentation="quiet"]) :is(.sidebar-kb-item, .sidebar-k
   letter-spacing: 0;
 }
 body:has(nav[data-public-presentation="quiet"]) .sidebar-kb-section-header {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: .08em;
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  font-weight: var(--type-eyebrow-wt);
+  letter-spacing: var(--type-eyebrow-ls);
+  text-transform: uppercase;
 }
 body:has(nav[data-public-presentation="quiet"]) .reviewFinding_finding {
   --finding-paper: var(--color-surface-card);
@@ -156,19 +153,15 @@ body:has(nav[data-public-presentation="quiet"]) .reviewFinding_finding {
   --finding-rule: var(--color-surface-border);
 }
 body:has(nav[data-public-presentation="quiet"]) nav.public-shell .public-cta-button.bg-brand-accent {
-  background: var(--color-text-primary);
-  color: var(--color-text-inverse);
-  border-radius: 4px;
+  background: var(--color-action-fill);
+  color: var(--color-action-on-fill);
+  border-radius: var(--radius-control);
   font-family: var(--font-sans) !important;
   font-weight: 500;
   box-shadow: none;
 }
-body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, [data-docs-nav-surface="docs-index"]) h2 {
-  font-size: clamp(24px, 2.4vw, 32px);
-  line-height: 1.25;
-}
 body:has(nav[data-public-presentation="quiet"]) #main-content a.block.border {
-  border-radius: 6px;
+  border-radius: var(--radius-card);
   background-color: var(--color-surface-card);
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content .card-hover:hover {
@@ -183,7 +176,7 @@ body:has(nav[data-public-presentation="quiet"]) :is(.kb-page-answer, .sidebar-kb
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose code:not(pre code) {
   background: var(--color-surface-inset);
-  font-size: .85em;
+  font-size: 0.875em;
 }
 body:has(nav[data-public-presentation="quiet"]) #main-content :is(.hero-gradient, .section-gradient-subtle, .cta-gradient) {
   background: var(--color-surface-bg);
@@ -196,11 +189,11 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider::aft
 
 /* Important utilities take precedence over unlayered important rules. */
 @layer utilities {
-  body:has(nav[data-public-presentation="quiet"]) nav:not([data-public-signup-variant="secondary"]) #witnessops-mobile-menu a[href$="/signup"] {
-    background: var(--color-text-primary) !important;
-    border-color: var(--color-text-primary) !important;
-    color: var(--color-text-inverse) !important;
-    border-radius: 4px !important;
+  body:has(nav[data-public-presentation="quiet"]) nav #witnessops-mobile-menu a[href$="/signup"] {
+    background: var(--color-action-fill) !important;
+    border-color: var(--color-action-fill) !important;
+    color: var(--color-action-on-fill) !important;
+    border-radius: var(--radius-control) !important;
     box-shadow: none !important;
   }
 }

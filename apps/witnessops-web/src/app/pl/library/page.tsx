@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -12,11 +13,11 @@ const primaryPaths = [
     cta: "Przeglądaj usługi",
   },
   {
-    href: "/pl/customer-security-review",
-    title: "Przykłady",
+    href: "/review/sample-cases",
+    title: "Przykładowe prace",
     description:
-      "Zobacz oznaczony przykład oferty przed wysłaniem zgłoszenia.",
-    cta: "Zobacz przykład CSR",
+      "Zobacz przykładowe przeglądy, ustalenia i dowody. Materiały są w języku angielskim.",
+    cta: "Zobacz przykłady",
   },
   {
     href: "/pl/verify",
@@ -43,9 +44,9 @@ const secondaryGroups = [
         "Objaśnienia w zatwierdzonej polskiej wersji.",
       ],
       [
-        "Sprint kwestionariusza bezpieczeństwa",
-        "/pl/customer-security-review",
-        "Jedna odpowiedź na kwestionariusz z jasnymi ograniczeniami.",
+        "Katalog usług",
+        "/pl/catalog",
+        "Aktualne przeglądy i ich granice.",
       ],
       [
         "Rozpocznij przegląd",
@@ -66,7 +67,7 @@ const secondaryGroups = [
     ],
   },
   {
-    title: "Przykłady (EN)",
+    title: "Przykładowe prace",
     description: "Oznaczone przykłady przeglądów, nie dane klientów.",
     links: [
       [
@@ -113,7 +114,7 @@ const exampleBoundary =
   "Przykłady są oznaczone jako demonstracje lub ilustracje. Nie są materiałem klienta ani certyfikacją zgodności. Ważny wynik publicznej weryfikacji potwierdza kontrole wskazane w zapisie, nie to, że każde działanie leżące u podstaw było poprawne.";
 
 export const metadata: Metadata = {
-  title: "Biblioteka WitnessOps",
+  title: "Biblioteka",
   description:
     "Publiczne punkty wejścia do usług, przykładów, weryfikacji zapisów i dokumentacji.",
   alternates: languageAlternates("/pl/library", {
@@ -183,7 +184,7 @@ export default function PolishLibraryPage() {
                   {path.description}
                 </p>
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
-                  {path.cta} →
+                  {path.cta} <InlineArrow />
                 </p>
               </Link>
             ))}
@@ -214,7 +215,7 @@ export default function PolishLibraryPage() {
                     <li key={href + label} className="border-t border-surface-border pt-4">
                       <Link
                         href={href}
-                        className="inline-flex min-h-11 items-center font-semibold text-text-primary underline decoration-1 underline-offset-4 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                        className="inline-flex min-h-11 items-center font-semibold text-text-primary underline decoration-1 underline-offset-4 hover:no-underline"
                       >
                         {label}
                       </Link>

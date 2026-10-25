@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="64" height="64" viewBox="0 0 64 64"
+     role="img" aria-label="WitnessOps favicon">
+  <title>WitnessOps favicon</title>
+  
+  <rect width="64" height="64" rx="14" fill="#0B0D10"/>
+    <g transform="translate(9.0 18.835120643431637) scale(0.06166219839142091)" fill="#FFFFFF" shape-rendering="geometricPrecision">
+      <polygon points="0,0 269,427 372,266 474,427 746,1 663,2 474,298 373,137 270,299 83,1"/>
+      <polygon points="216,0 320,170 358,110 330,65 330,61 418,62 389,111 427,170 531,1"/>
+    </g>
+    
+</svg>

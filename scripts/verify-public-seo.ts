@@ -146,7 +146,7 @@ async function verifySitemapEntry(
 async function verifyRouteOutcomes(baseUrl: string) {
   const redirects = [
     ["/catalog/offsec", "/catalog"],
-    ["/access-change-proof-run", "/catalog/workflows"],
+    ["/access-change-proof-run", "/catalog"],
     ["/catalog/workflow-s", "/catalog"],
     ["/catalog/workflow-m", "/catalog"],
     ["/catalog/workflow-l", "/catalog"],

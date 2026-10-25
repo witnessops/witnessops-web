@@ -5,44 +5,67 @@ import sitemap from "./sitemap";
 import { canonicalUrl } from "@/lib/public-seo";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
-  "/catalog/automation-repair",
-  "/pl/catalog/automation-repair",
-  "/catalog",
-  "/catalog/workflows",
-  "/catalog/offsec-external-exposure",
-  "/catalog/offsec-local-audit",
-  "/catalog/offsec-launch-ready",
-  "/catalog/offsec-custody-ops",
-  "/catalog/offsec-incident-ready",
-  "/catalog/professional-public-footprint-audit",
+  "/reviews",
+  "/pl/reviews",
+  "/pl/reviews/agent-action-security-review",
+  "/pl/reviews/external-attack-surface-review",
+  "/reviews/agent-action-security-review",
+  "/reviews/external-attack-surface-review",
+  "/how-it-works",
+  "/about",
+  "/chronicles",
+  "/chronicles/001-the-unauthorized-feline",
+  "/chronicles/002-sir-whiskers-opens-a-pull-request",
+  "/chronicles/003-the-meeting-nobody-authorized",
+  "/contact",
+  "/pl/contact",
   "/library",
   "/media-kit",
   "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
-  "/review/sample-cases/local-server-security-review",
   "/review/sample-cases/external-exposure-assessment",
-  "/review/sample-cases/launch-readiness-review",
-  "/review/sample-cases/custody-wallet-ops-review",
-  "/review/sample-cases/incident-readiness-review",
-  "/review/sample-cases/customer-security-review-sprint",
   "/review/sample-cases/access-removed-proof",
   "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-  "/customer-security-review",
-  "/pl/customer-security-review",
   "/pl/library",
-  "/pl/catalog/professional-public-footprint-audit",
   "/review/sample-cases/approval-gated-containment",
   "/review/sample-cases/privileged-access-grant",
 ] as const;
 
 const EXCLUDED_SITEMAP_ROUTES = [
+  "/catalog",
+  "/pl/catalog",
+  "/pl/catalog/offsec-external-exposure",
+  "/catalog/offsec-external-exposure",
   "/catalog/offsec",
   "/catalog/operator-platform",
   "/access-change-proof-run",
   "/pl/catalog/offsec-pilot",
   "/catalog/sbom-min-elements",
   "/verify/skill",
+  "/catalog/workflows",
+  "/catalog/professional-public-footprint-audit",
+  "/pl/catalog/professional-public-footprint-audit",
+  "/customer-security-review",
+  "/pl/customer-security-review",
+  "/catalog/automation-repair",
+  "/pl/catalog/automation-repair",
+  "/catalog/offsec-local-audit",
+  "/catalog/offsec-launch-ready",
+  "/catalog/offsec-custody-ops",
+  "/catalog/offsec-incident-ready",
+  "/pl/catalog/offsec-local-audit",
+  "/pl/catalog/offsec-launch-ready",
+  "/pl/catalog/offsec-custody-ops",
+  "/pl/catalog/offsec-incident-ready",
+  "/review/sample-cases/local-server-security-review",
+  "/review/sample-cases/launch-readiness-review",
+  "/review/sample-cases/custody-wallet-ops-review",
+  "/review/sample-cases/incident-readiness-review",
+  "/review/sample-cases/customer-security-review-sprint",
+  "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+  "/review/request",
+  "/pl/review/request",
 ] as const;
 
 test("sitemap includes canonical public buyer routes", async () => {
@@ -91,6 +114,14 @@ test("sitemap URLs and reciprocal language targets stay on the canonical apex", 
     }
     assert.equal(languages["x-default"], languages.en);
   }
+});
+
+test("sitemap carries no essay author data", async () => {
+  const entries = await sitemap();
+  const serialized = JSON.stringify(entries);
+  assert.equal(serialized.includes("Karol"), false);
+  assert.equal(serialized.includes("Stefański"), false);
+  assert.ok(entries.some((entry) => entry.url.endsWith("/articles/when-civilization-can-no-longer-understand-itself")));
 });
 
 test("sitemap omits freshness dates without an explicit modification contract", async () => {

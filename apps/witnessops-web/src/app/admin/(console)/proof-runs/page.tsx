@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listProofRuns } from "@/lib/server/admin-core-spine";
+import { AdminRecordEmpty } from "../../../../components/admin/admin-record-empty";
 import { CorePage, CoreState, CoreTable } from "../../../../components/admin/admin-core-view";
 import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
@@ -9,5 +10,5 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminProofRunsPage() {
   const runs = await listProofRuns(await getAdminPageActor());
-  return <CorePage title="Proof Runs" eyebrow="Execution and evidence state"><CoreTable headers={["Run", "Product contract", "State", "Evidence", "Next action"]} rows={runs.map((run) => [<Link href={`/admin/proof-runs/${run.id}`} key={run.id}>{run.id}</Link>, `${run.productContractSnapshot.productName} v${run.productContractSnapshot.contractVersion}`, <CoreState value={run.state} key="state" />, run.evidenceState, run.nextAction])} /></CorePage>;
+  return <CorePage title="Proof Runs" eyebrow="Execution and evidence state"><CoreTable headers={["Run", "Product contract", "State", "Evidence", "Next action"]} emptyMessage={<AdminRecordEmpty title="No proof runs yet." text="A proof run starts from an approved review request." actionHref="/admin/review-requests" actionLabel="Open Review Requests" />} rows={runs.map((run) => [<Link href={`/admin/proof-runs/${run.id}`} key={run.id}>{run.id}</Link>, `${run.productContractSnapshot.productName} v${run.productContractSnapshot.contractVersion}`, <CoreState value={run.state} key="state" />, run.evidenceState, run.nextAction])} /></CorePage>;
 }

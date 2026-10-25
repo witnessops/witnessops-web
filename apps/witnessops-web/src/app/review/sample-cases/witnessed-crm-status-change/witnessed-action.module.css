@@ -5,7 +5,7 @@
   --witness-rule: #302d31;
   --witness-ink: #f4f0e8;
   --witness-muted: #aaa39d;
-  --witness-accent: #ef7f45;
+  --witness-accent: #b89b62;
   min-height: 100vh;
   overflow-x: clip;
   background: var(--witness-bg);
@@ -82,12 +82,12 @@
   align-content: space-between;
   border: 1px solid var(--witness-rule);
   padding: 0.8rem 0.9rem;
-  color: #77716d;
+  color: var(--witness-muted);
 }
 
 .stageRail li[data-active="true"] {
   border-color: var(--witness-accent);
-  background: rgba(239, 127, 69, 0.12);
+  background: rgba(184, 155, 98, 0.12);
   color: var(--witness-ink);
 }
 
@@ -263,7 +263,7 @@
   border: 1px solid var(--witness-accent);
   background: var(--witness-accent);
   padding: 0.78rem 1.1rem;
-  color: #1d0d06;
+  color: #0b0c0b;
   font-size: 0.82rem;
   font-weight: 750;
   text-decoration: none;
@@ -274,7 +274,8 @@
 .actions a:hover,
 .paidCta a:hover {
   transform: translateY(-2px);
-  background: #ff945b;
+  border-color: #cbb27d;
+  background: #cbb27d;
 }
 
 .actions button:disabled {
@@ -290,8 +291,8 @@
 }
 
 .boundaryNotice {
-  border-color: rgba(239, 127, 69, 0.55);
-  background: rgba(239, 127, 69, 0.11);
+  border-color: rgba(184, 155, 98, 0.55);
+  background: rgba(184, 155, 98, 0.11);
 }
 
 .boundaryNotice strong {

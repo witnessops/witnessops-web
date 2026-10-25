@@ -26,13 +26,13 @@ for attempt in $(seq 1 60); do
   if curl -fsS "${base}/" >/dev/null; then break; fi
   sleep 1
 done
-for route in / /pl /catalog /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/external-exposure-assessment; do
+for route in / /pl /reviews /contact /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/external-exposure-assessment; do
   test "$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${base}${route}")" = 200
 done
 # Existing redirect contracts; never follow the external status destination.
 headers="$(mktemp)"
 trap 'rm -f "${headers}"; docker rm -f "${container}" >/dev/null' EXIT
-for pair in '/status https://status.vaultmesh.org/' '/contact /review/request'; do
+for pair in '/status https://status.vaultmesh.org/' '/catalog /reviews'; do
   read -r route destination <<< "${pair}"
   test "$(curl --silent --show-error --dump-header "${headers}" --output /dev/null --write-out '%{http_code}' "${base}${route}")" = 308
   tr -d '\r' < "${headers}" | grep -Fxi "location: ${destination}" >/dev/null

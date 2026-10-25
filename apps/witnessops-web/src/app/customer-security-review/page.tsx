@@ -6,6 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 const service = buyerServiceById("customer-security-review-sprint");
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: "Customer Security Review Sprint",
   description:
     "WitnessOps takes one questionnaire and one product scope, identifies which proposed answers are supported by the supplied evidence, separates management assertions and open items, and returns a response package for your approval.",
@@ -43,7 +44,7 @@ export default function CustomerSecurityReviewPage() {
                 </ul>
               </div>
               <div
-                className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                className="overflow-x-auto"
                 tabIndex={0}
                 aria-label="Synthetic example response table"
               >

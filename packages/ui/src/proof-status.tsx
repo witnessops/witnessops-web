@@ -35,7 +35,7 @@ export function ProofStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full font-medium",
+        "inline-flex items-center rounded-xs font-medium",
         size === "sm" ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-sm",
         verified
           ? "bg-signal-green/20 text-signal-green"

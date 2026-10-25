@@ -9,10 +9,13 @@ import {
   type BuyerService,
 } from "@/lib/buyer-services";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
+import { InlineArrow } from "./inline-arrow";
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
 import { getServiceLanding } from "@/lib/service-landings";
 import { servicePreparation } from "@/lib/service-preparation";
 import { AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
+import { PriceText } from "@/lib/price-unit";
+import { isPublicPaidReviewId } from "@/lib/public-paid-reviews";
 import { ReviewerProfile } from "./reviewer-profile";
 
 const ui = {
@@ -24,6 +27,7 @@ const ui = {
     start: "Scope this review", reference: "Service reference", sampleFallback: "See an example",
     firstStep: "Start with a short description. We confirm fit and scope before work begins.",
     example: "Example and technical details",
+    withdrawn: "This review is not offered for new engagements. This page remains as the historical record of this service.",
   },
   pl: {
     back: "Wszystkie usługi", price: "Cena", timing: "Termin", whoFor: "Dla kogo",
@@ -33,10 +37,11 @@ const ui = {
     start: "Omów zakres przeglądu", reference: "Identyfikator usługi", sampleFallback: "Zobacz przykład",
     firstStep: "Zacznij od krótkiego opisu. Dopasowanie i zakres potwierdzimy przed pracą.",
     example: "Przykład i szczegóły techniczne",
+    withdrawn: "Ten przegląd nie jest oferowany dla nowych zleceń. Ta strona pozostaje historycznym zapisem tej usługi.",
   },
 } as const;
 
-const summaryClass = "cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+const summaryClass = "cursor-pointer py-4 text-base font-semibold text-text-primary";
 
 export function BuyerServiceDetail({
   locale, service, technicalId, requestHref: requestHrefOverride, claim, notIncluded,
@@ -55,6 +60,7 @@ export function BuyerServiceDetail({
   const text = ui[locale];
   const landing = getServiceLanding(service.id, locale);
   const requestHref = requestHrefOverride ?? buyerServiceRequestHref(locale, service);
+  const selling = isPublicPaidReviewId(service.id);
   const primaryCta = landing.primaryCta ?? text.start;
   const firstStep = service.id === "external-exposure-assessment"
     ? locale === "pl"
@@ -69,13 +75,13 @@ export function BuyerServiceDetail({
       data-price-contract={service.commercialContract.price}
       data-timing-contract={service.commercialContract.timing}>
       <div className="mx-auto max-w-6xl px-6 py-6 md:py-10 lg:py-12">
-        <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
-          ← {text.back}
+        <Link href={buyerCatalogHref(locale)} className="inline-flex min-h-11 items-center text-sm text-text-secondary underline-offset-4 hover:underline">
+          <InlineArrow direction="left" /> {text.back}
         </Link>
 
         <header className="mt-4 grid gap-6 border-b border-surface-border pb-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-start lg:gap-12 lg:pb-12">
           <div className="min-w-0">
-            {service.availability ? (
+            {selling && service.availability ? (
               <p data-service-availability={service.availability.status} className="mb-3 inline-flex border border-surface-border px-2.5 py-1 text-xs font-semibold text-text-muted">
                 {service.availability.label[locale]}
               </p>
@@ -92,17 +98,21 @@ export function BuyerServiceDetail({
             className="border border-brand-accent/40 bg-brand-accent/5 p-5 md:p-6" aria-label={text.price}>
             <dl>
               <dt className="text-xs font-semibold uppercase tracking-wider text-text-muted">{text.price}</dt>
-              <dd className="mt-1 text-xl font-semibold leading-7 text-text-primary md:text-2xl">{service.price[locale]}</dd>
+              <dd className="mt-1 text-xl font-semibold leading-7 text-text-primary md:text-2xl"><PriceText text={service.price[locale]} /></dd>
               <dt className="mt-3 text-xs font-semibold uppercase tracking-wider text-text-muted">{text.timing}</dt>
               <dd className="mt-1 text-sm leading-6 text-text-secondary">{service.timing[locale]}</dd>
             </dl>
             {service.id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-4 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice[locale]}. {locale === "pl" ? "Diagnoza nie zobowiązuje do naprawy." : "Diagnosis does not commit you to a repair."}</p> : null}
-            <CtaButton href={requestHref} variant="primary" label={primaryCta} className="mt-5 w-full !min-h-11 !px-3 !text-sm !tracking-normal" />
-            <p className="mt-3 text-xs leading-5 text-text-muted">{firstStep}</p>
+            {selling ? (
+              <CtaButton href={requestHref} variant="primary" label={primaryCta} className="mt-5 w-full !min-h-11 !px-3 !text-sm !tracking-normal" />
+            ) : (
+              <p data-legacy-offer-withdrawal={service.id} className="mt-5 text-sm leading-6 text-text-secondary">{text.withdrawn}</p>
+            )}
+            {selling ? <p className="mt-3 text-xs leading-5 text-text-muted">{firstStep}</p> : null}
           </section>
           {landing.sampleHref ? (
-            <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent lg:-mt-4">
-              {landing.sampleLabel ?? text.sampleFallback} →
+            <Link href={landing.sampleHref} className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-4 hover:text-text-primary lg:-mt-4">
+              {landing.sampleLabel ?? text.sampleFallback} <InlineArrow />
             </Link>
           ) : null}
         </header>
@@ -180,8 +190,14 @@ export function BuyerServiceDetail({
           ) : null}
         </div>
         <div className="flex flex-col items-start gap-3 pt-7 sm:flex-row sm:items-center sm:gap-6">
-          <CtaButton href={requestHref} variant="primary" label={primaryCta} />
-          <p className="max-w-md text-sm leading-6 text-text-muted">{firstStep}</p>
+          {selling ? (
+            <>
+              <CtaButton href={requestHref} variant="primary" label={primaryCta} />
+              <p className="max-w-md text-sm leading-6 text-text-muted">{firstStep}</p>
+            </>
+          ) : (
+            <p data-legacy-offer-withdrawal={service.id} className="max-w-xl text-sm leading-6 text-text-secondary">{text.withdrawn}</p>
+          )}
         </div>
       </div>
     </main>

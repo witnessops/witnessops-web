@@ -1,0 +1,22 @@
+{
+  "name": "WitnessOps",
+  "short_name": "WitnessOps",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0B0D10",
+  "theme_color": "#0B0D10",
+  "icons": [
+    {
+      "src": "/brand/witnessops-logo-system-v1/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/witnessops-logo-system-v1/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

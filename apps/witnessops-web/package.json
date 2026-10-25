@@ -17,7 +17,7 @@
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@witnessops/ask-authority": "workspace:*",
     "@witnessops/catalog": "workspace:*",
     "@witnessops/config": "workspace:*",
@@ -29,7 +29,7 @@
     "jose": "^6.2.2",
     "js-yaml": "^4.3.2",
     "lucide-react": "^1.7.0",
-    "next": "15.5.24",
+    "next": "15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "0.0.1",
@@ -38,11 +38,13 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.59.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "axe-core": "4.11.1",
     "postcss": "^8.5.18",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.22.4",

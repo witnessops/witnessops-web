@@ -1,5 +1,14 @@
 # Scope agreement skeleton (pre-collection / pre-evidence)
 
+> **Historical material — not for new sales.** The original draft content below
+> is retained for reference. Its old offer choices, prices, timing, handling
+> instructions and claims are not current guidance. Existing agreements keep
+> the terms actually accepted; this label changes none.
+>
+> For new work, use the [current commercial index](../README.md) and the matching
+> current block in the [scope agreement](../06-scope-agreement-skeleton.md).
+> Read the preserved instructions below as part of the historical kit only.
+
 Write in email or PDF. Keep short. **Nothing starts until both sides accept.**
 
 ---

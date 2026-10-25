@@ -215,7 +215,7 @@ export function ExecutionConsole({
       animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.32, ease, delay: 0.18 }}
       className={cn(
-        "group relative overflow-hidden rounded-[24px] border border-white/10",
+        "group relative overflow-hidden rounded-md border border-white/10",
         "bg-[linear-gradient(180deg,rgba(15,23,42,0.96)_0%,rgba(2,6,23,0.98)_100%)]",
         "shadow-[0_24px_80px_rgba(2,6,23,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]",
         className,
@@ -253,7 +253,7 @@ export function ExecutionConsole({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.14 }}
-                className="hidden rounded-full border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[11px] font-medium text-orange-300 sm:inline-flex"
+                className="hidden rounded-xs border border-orange-400/20 bg-orange-400/10 px-2.5 py-1 text-[11px] font-medium text-orange-300 sm:inline-flex"
               >
                 {activeTab === "runbooks" ? "Governed runbook" : activeTab === "receipt" ? "Signed receipt" : "Verification result"}
               </motion.span>
@@ -262,7 +262,7 @@ export function ExecutionConsole({
               type="button"
               onClick={handleCopy}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-300 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white"
+              className="inline-flex items-center gap-2 rounded-sm border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-slate-300 transition hover:border-white/15 hover:bg-white/[0.07] hover:text-white"
               aria-label="Copy content"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -313,7 +313,7 @@ export function ExecutionConsole({
                 aria-controls={panelId}
                 tabIndex={active ? 0 : -1}
                 className={cn(
-                  "relative rounded-full px-3 py-1 text-[11px] font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
+                  "relative rounded-xs px-3 py-1 text-[11px] font-medium transition-colors cursor-pointer ",
                   active
                     ? "text-white"
                     : "text-slate-500 hover:text-slate-300",
@@ -322,7 +322,7 @@ export function ExecutionConsole({
                 {active && (
                   <motion.span
                     layoutId="exec-tab-pill"
-                    className="absolute inset-0 rounded-full border border-white/10 bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                    className="absolute inset-0 rounded-xs border border-white/10 bg-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
                   />
                 )}
@@ -359,7 +359,7 @@ export function ExecutionConsole({
                   animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06, duration: 0.22, ease }}
                   className={cn(
-                    "group/rb rounded-xl border px-4 py-3 transition",
+                    "group/rb rounded-sm border px-4 py-3 transition",
                     i === 0
                       ? "border-orange-400/20 bg-orange-400/[0.06]"
                       : "border-white/[0.06] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]",
@@ -374,7 +374,7 @@ export function ExecutionConsole({
                       {rb.name}
                     </span>
                     {i === 0 && (
-                      <span className="ml-auto rounded-full bg-orange-400/10 px-2 py-0.5 text-[10px] font-medium text-orange-300">
+                      <span className="ml-auto rounded-xs bg-orange-400/10 px-2 py-0.5 text-[10px] font-medium text-orange-300">
                         selected
                       </span>
                     )}

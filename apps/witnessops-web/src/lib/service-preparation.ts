@@ -19,6 +19,18 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
       after: "Otrzymasz macierz źródeł, mapę narzędzi, ścieżkę działania, ustalenia i omówienie. Twój zespół decyduje i wdraża poprawki; dalszy zakres wymaga nowej wyceny.",
     },
   },
+  "agent-action-security-review": {
+    en: {
+      inputs: "Name the consequential agent or automation action, the systems it can affect and the decision deadline. Do not send credentials, secrets or production data in this form.",
+      access: "A later accepted agreement sets evidence rules, recipients and handling. Work is read, inspect, reconstruct and report only; never paste credentials into the enquiry.",
+      after: "You receive an authority map, execution path, evidence chain, prioritized fixes, explicit unknowns and a readout. Your team owns remediation; additional actions need a separate quote.",
+    },
+    pl: {
+      inputs: "Nazwij istotne działanie agenta lub automatyzacji, systemy, na które może wpłynąć, oraz termin decyzji. Nie przesyłaj w formularzu poświadczeń, sekretów ani danych produkcyjnych.",
+      access: "Późniejsza zaakceptowana umowa ustala zasady dowodowe, odbiorców i obsługę materiałów. Praca to tylko odczyt, inspekcja, rekonstrukcja i raport; nigdy nie wklejaj danych logowania do zgłoszenia.",
+      after: "Otrzymasz mapę upoważnień, ścieżkę wykonania, łańcuch dowodowy, priorytety poprawek, jawne niewiadome i omówienie. Twój zespół odpowiada za naprawy; kolejne działania wymagają osobnej wyceny.",
+    },
+  },
   "customer-security-review-sprint": {
     en: {
       inputs: "Name the questionnaire, product and deadline first. After scope and handling are agreed, provide the questionnaire, existing evidence and an owner who can resolve open questions.",
@@ -47,12 +59,12 @@ const copy: Record<BuyerService["id"], Record<BuyerLocale, Preparation>> = {
     en: {
       inputs: "Name one public-facing system and your authority to request the review. We confirm the target list, scope, collection window and start conditions asynchronously; no sales call is required.",
       access: "No login to your systems: agreed low-impact checks use the public, unauthenticated surface only. Written authority is required before testing; payment alone does not authorize it.",
-      after: "A 45-minute handover explains the findings. Your team implements fixes; one focused retest of the agreed findings within 30 days is included.",
+      after: "Your team implements fixes; one focused retest of the agreed findings within 30 days is included.",
     },
     pl: {
       inputs: "Wskaż jeden system publiczny i swoje upoważnienie do zamówienia przeglądu. Listę celów, zakres, okno zbierania i warunki rozpoczęcia potwierdzimy asynchronicznie; rozmowa sprzedażowa nie jest wymagana.",
       access: "Bez logowania do Twoich systemów: uzgodnione kontrole o niskim wpływie obejmują tylko publiczną, nieuwierzytelnioną powierzchnię. Testy wymagają pisemnego upoważnienia; sama płatność go nie zastępuje.",
-      after: "Ustalenia omówimy podczas 45-minutowego przekazania. Twój zespół wdraża poprawki; cena obejmuje jedno sprawdzenie uzgodnionych ustaleń w ciągu 30 dni.",
+      after: "Twój zespół wdraża poprawki; cena obejmuje jedno sprawdzenie uzgodnionych ustaleń w ciągu 30 dni.",
     },
   },
   "launch-readiness-check": {

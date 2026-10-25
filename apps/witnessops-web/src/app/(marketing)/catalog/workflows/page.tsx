@@ -4,24 +4,25 @@ import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail"
 import { JsonLd } from "@/components/seo/json-ld";
 import { buyerServiceById } from "@/lib/buyer-services";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
-import {
-  primaryOfferBreadcrumbJsonLd,
-  primaryOfferServiceJsonLd,
-} from "@/lib/public-seo";
+import { primaryOfferBreadcrumbJsonLd } from "@/lib/public-seo";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const service = buyerServiceById(PRIMARY_OFFER.id);
 
 export const metadata: Metadata = {
   title: service.name.en,
   description: service.situation.en,
+  robots: { index: false, follow: true },
   alternates: { canonical: PRIMARY_OFFER.route },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `${service.name.en} | WitnessOps`,
     description: service.situation.en,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
+    images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: `${service.name.en} | WitnessOps`,
     description: service.situation.en,
@@ -31,7 +32,6 @@ export const metadata: Metadata = {
 export default function CatalogWorkflowsPage() {
   return (
     <>
-      <JsonLd id="primary-offer-service" value={primaryOfferServiceJsonLd()} />
       <JsonLd
         id="primary-offer-breadcrumbs"
         value={primaryOfferBreadcrumbJsonLd()}

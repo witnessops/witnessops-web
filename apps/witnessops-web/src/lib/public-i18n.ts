@@ -13,8 +13,8 @@ export const POLISH_NO_SECRETS_NOTE =
 
 export const POLISH_PUBLIC_NAV = {
   links: [
-    { label: "Usługi", href: "/pl/catalog" },
-    { label: "Przykłady (EN)", href: "/review/sample-cases" },
+    { label: "Usługi", href: "/pl/reviews" },
+    { label: "Przykładowe prace", href: "/review/sample-cases" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Dokumentacja", href: "/pl/docs" },
   ],
@@ -72,11 +72,11 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
       "Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami.",
       "Przekazujemy raporty i pakiet do sprawdzenia oraz wykonujemy jeden ukierunkowany retest w ciągu 30 dni.",
     ],
-    deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
+    deliverables: ["zapis upoważnienia i uzgodnionego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "jeden retest w ciągu 30 dni"],
     inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik, bez sekretów i materiałów produkcyjnych."],
     timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
     price: publicPolishPrice("OFFSEC-EXTERNAL-EXPOSURE"),
-    priceDetail: `Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
+    priceDetail: "Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Jeden retest w ciągu 30 dni kalendarzowych od przekazania raportu jest wliczony.",
     exclusions: ["To nie jest test penetracyjny.", "Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
     verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz (gdy wspierana ścieżka zostanie wytworzona) podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",
   },
@@ -134,6 +134,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
   /^\/catalog(?:\/(?:automation-repair|offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|professional-public-footprint-audit))?$/,
+  /^\/reviews(?:\/(?:agent-action-security-review|external-attack-surface-review))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/customer-security-review$/,
@@ -142,6 +143,7 @@ const POLISH_TRANSLATED_PATHS = [
   /^\/verify$/,
   /^\/support$/,
   /^\/contact$/,
+  /^\/company$/,
 ] as const;
 
 const PAIRED_DOC_PATHS = new Set(["/docs/faq", "/docs/glossary"]);

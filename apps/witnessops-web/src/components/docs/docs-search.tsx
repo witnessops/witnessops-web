@@ -188,7 +188,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
     >
       <div
         ref={dialogRef}
-        className="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-xl border border-surface-border bg-surface-card shadow-2xl"
+        className="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-lg border border-surface-border bg-surface-card shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -216,7 +216,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
           </svg>
           <input
             ref={inputRef}
-            className="min-w-0 flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted outline-none lg:text-sm"
+            className="min-w-0 flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted lg:text-sm"
             type="text"
             placeholder="Search docs..."
             value={query}
@@ -255,7 +255,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
                   <Link
                     key={entry.href}
                     href={entry.href}
-                    className={`block rounded-lg px-3 py-2 transition-colors ${
+                    className={`block rounded-sm px-3 py-2 transition-colors ${
                       isActive
                         ? "bg-brand-accent/10 text-text-primary"
                         : "text-text-secondary hover:bg-surface-bg hover:text-text-primary"

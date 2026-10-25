@@ -9,6 +9,7 @@ import {
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
   LEGACY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import styles from "./review-request-record.module.css";
@@ -24,6 +25,7 @@ const copyByLocale = {
     requestLabel: "Requested path",
     requestNames: {
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
+      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.en,
       "agent-tools-access-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
@@ -60,6 +62,7 @@ const copyByLocale = {
     requestLabel: "Wybrana ścieżka",
     requestNames: {
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
+      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.pl,
       "agent-tools-access-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",

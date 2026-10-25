@@ -13,6 +13,7 @@ import {
   type BuyerLocale,
 } from "@/lib/buyer-services";
 import { reviewRequestHrefForLocation } from "./review-request-context";
+import { isWithdrawnOfferPath } from "./withdrawn-offer-routes";
 
 const emptySearch = new URLSearchParams();
 
@@ -26,7 +27,8 @@ function selectedServiceFromHref(href: string) {
   return offerId ? buyerServiceByPublicOfferId(offerId) : undefined;
 }
 
-test("shared review CTAs keep the workflow offer selected from its detail route", () => {
+test("the withdrawn workflows route does not preselect that offer", () => {
+  assert.equal(isWithdrawnOfferPath("/catalog/workflows"), true);
   const headerHref = reviewRequestHrefForLocation(
     "en",
     "/catalog/workflows",
@@ -38,21 +40,13 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
     emptySearch,
   );
 
-  assert.equal(
-    headerHref,
-    "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review",
-  );
+  assert.equal(headerHref, "/review/request");
   assert.equal(footerHref, headerHref);
+  assert.equal(selectedServiceFromHref(headerHref), undefined);
 
-  for (const href of [headerHref, footerHref]) {
-    const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "AI Agent Tools & Access Review");
-    assert.equal(selected?.price.en, "Starting at €2,500 · excluding VAT");
-    assert.equal(
-      selected?.timing.en,
-      "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    );
-  }
+  const record = buyerServiceByPublicOfferId("agent-tools-access-review");
+  assert.equal(record?.name.en, "AI Agent Tools & Access Review");
+  assert.equal(record?.price.en, "Starting at €2,500 · excluding VAT");
 });
 
 test("primary offer selection trusts its stable id before public query text", () => {
@@ -86,7 +80,7 @@ test("primary offer selection trusts its stable id before public query text", ()
 test("shared review CTAs keep canonical product context on detail and selected request routes", () => {
   const detailHref = reviewRequestHrefForLocation(
     "pl",
-    "/pl/catalog/offsec-external-exposure",
+    "/pl/reviews/external-attack-surface-review",
     emptySearch,
   );
   const selectedRequestHref = reviewRequestHrefForLocation(
@@ -101,7 +95,7 @@ test("shared review CTAs keep canonical product context on detail and selected r
   assert.equal(selected?.name.pl, "External Attack Surface Review");
   assert.equal(
     selected?.price.pl,
-    "€1 900 · bez VAT",
+    "€1\u00A0900\u00A0bez\u00A0VAT",
   );
 });
 
@@ -123,7 +117,11 @@ test("every selectable service detail keeps its catalogue-authoritative request"
         detailHref,
         emptySearch,
       );
-      assert.equal(fromDetail, expected, `${locale} ${service.id} detail`);
+      assert.equal(
+        fromDetail,
+        isWithdrawnOfferPath(detailHref) ? buyerRequestHref(locale) : expected,
+        `${locale} ${service.id} detail`,
+      );
 
       const fromSelectedRequest = reviewRequestHrefForLocation(
         locale,
@@ -194,17 +192,25 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
     ),
     /^\/review\/request\?offerId=professional-public-footprint-audit&/,
   );
-  assert.match(
+  assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/customer-security-review",
       emptySearch,
     ),
-    /^\/review\/request\?offerId=customer-security-review-sprint&/,
+    "/review/request",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("en", "/withdrawn-offer", emptySearch),
+    reviewRequestHrefForLocation("en", "/catalog/offsec-local-audit", emptySearch),
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("pl", "/pl/withdrawn-offer", emptySearch),
+    reviewRequestHrefForLocation("pl", "/pl/catalog/offsec-local-audit", emptySearch),
   );
 });
 
-test("header uses the configured signup destination while footer and service enquiries preserve their selected context", () => {
+test("Polish header uses the review request while footer and service enquiries preserve their selected context", () => {
   const navbar = readFileSync(
     resolve(__dirname, "../components/shared/navbar.tsx"),
     "utf-8",
@@ -218,7 +224,8 @@ test("header uses the configured signup destination while footer and service enq
     "utf-8",
   );
 
-  assert.match(navbar, /href: signupUrl \|\| "\/check"/);
+  assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
+  assert.doesNotMatch(navbar, /href: signupUrl \|\| "\/check"/);
   assert.match(footer, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /primaryHref=\{reviewRequestHref\}/);
   assert.match(serviceDetail, /href=\{requestHref\}/);

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
+import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
+import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const path = "/review/sample-cases/customer-security-review-sprint";
 
@@ -10,7 +12,9 @@ export const metadata: Metadata = {
   description:
     "Synthetic demonstration of a customer security questionnaire response package: proposed answers, evidence references, qualifications, and open items. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", path),
+  robots: { index: false, follow: true },
   openGraph: {
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample: Customer Security Review Sprint | WitnessOps",
     description:
       "Inspect a synthetic questionnaire response package shape. Not live customer evidence or certification.",
@@ -59,6 +63,7 @@ export default function CustomerSecurityReviewSamplePage() {
           title="Customer Security Review Sprint"
           note="Synthetic demonstration only. It shows how WitnessOps packages proposed answers, evidence references, qualifications, and open items for one questionnaire and one product scope. Not live customer evidence and not certification."
         />
+        <HistoricalOfferSampleLabel />
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
@@ -79,9 +84,9 @@ export default function CustomerSecurityReviewSamplePage() {
               label="Ask about this review"
             />
             <CtaButton
-              href="/customer-security-review"
+              href="/catalog"
               variant="secondary"
-              label="View service"
+              label="View services"
             />
             <CtaButton
               href="/review/sample-cases"
@@ -124,8 +129,9 @@ export default function CustomerSecurityReviewSamplePage() {
                 </ul>
               </div>
               <div
-                className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                className="min-w-0 max-w-full overflow-x-auto"
                 tabIndex={0}
+                role="region"
                 aria-label="Synthetic example response table"
               >
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -174,7 +180,7 @@ export default function CustomerSecurityReviewSamplePage() {
               <li key={file} className="border-t border-surface-border pt-3 font-mono text-xs sm:text-sm">
                 <a
                   href={`/samples/csr-sprint-synthetic/${file}`}
-                  className="text-brand-accent underline-offset-4 hover:underline"
+                  className="[overflow-wrap:anywhere] text-brand-accent underline-offset-4 hover:underline"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -204,9 +210,9 @@ export default function CustomerSecurityReviewSamplePage() {
               label="Ask about this review"
             />
             <CtaButton
-              href="/customer-security-review"
+              href="/catalog"
               variant="secondary"
-              label="Back to service"
+              label="View services"
             />
           </div>
         </div>

@@ -7,6 +7,42 @@ import { canonicalSource } from "../../apps/witnessops-app/src/lib/source-digest
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 const source = JSON.parse(readFileSync(resolve("tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json"), "utf8")) as ExternalSnapshotV1;
 
+for (const authenticated of [true, false]) {
+  test(`workspace loading stays neutral until authentication resolves: ${authenticated}`, async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    const ws: Workspace = { id: "loading-workspace", name: "Existing workspace", slug: "existing", role: "viewer", assets: [], runs: [], members: [] };
+    await page.route("**/api/**", async route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path === "/api/workspace") {
+        await pending;
+        return authenticated
+          ? route.fulfill({ json: { user: { id: "existing-user", displayName: "Existing user" }, workspaces: [ws], workspace: ws } })
+          : route.fulfill({ status: 401, json: { error: "Authentication required" } });
+      }
+      if (path === "/api/feedback") return route.fulfill({ json: [] });
+      if (path === "/api/events") return route.fulfill({ json: { recorded: true } });
+      throw new Error("Unexpected loading fixture call " + path);
+    });
+    await page.goto("/assets");
+    try {
+      await expect(page.getByRole("heading", { name: "Opening your workspace", exact: true })).toBeVisible();
+      await expect(page.getByRole("status")).toContainText("Loading workspace");
+      await expect(page.getByText("Create an account or sign in to open your workspaces. No check starts until you authorize it.", { exact: true })).toHaveCount(0);
+      await expect(page.locator('main a[href="/signup"], main a[href="/login"]')).toHaveCount(0);
+    } finally { release(); }
+    await expect(page.getByRole("heading", { name: "Opening your workspace", exact: true })).toHaveCount(0);
+    if (authenticated) {
+      await expect(page.locator(".workspace-name")).toHaveText(ws.name);
+      await expect(page.getByRole("heading", { name: "Open WitnessOps", exact: true })).toHaveCount(0);
+    } else {
+      await expect(page.getByRole("heading", { name: "Open WitnessOps", exact: true })).toBeVisible();
+      await expect(page.getByText("Create an account or sign in to open your workspaces. No check starts until you authorize it.", { exact: true })).toBeVisible();
+      await expect(page.locator('main a[href="/signup"]')).toBeVisible();
+    }
+  });
+}
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
   test(`authenticated workspace UI projection and retained source at ${viewport.width}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);

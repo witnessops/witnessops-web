@@ -1,5 +1,6 @@
 import type { BuyerLocale } from "@/lib/buyer-services";
 import Link from "next/link";
+import { InlineArrow } from "./inline-arrow";
 import { ChevronRight } from "lucide-react";
 
 // An authored illustration, separate from the pinned key-rotation specimen.
@@ -37,7 +38,7 @@ export function AgentReviewSample() {
       </div>
       <ReviewFinding />
       <p className="mt-4 max-w-2xl text-sm leading-6 text-text-secondary">Your review applies this structure to the agreed action: evidence, impact, recommended fixes and explicit unknowns.</p>
-      <Link href="/review/sample-cases/ai-agent-action-proof-run" className="mt-2 inline-flex min-h-11 items-center text-sm text-text-secondary underline underline-offset-4 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">Explore the separate key-rotation verification demo →</Link>
+      <Link href="/review/sample-cases/ai-agent-action-proof-run" className="mt-2 inline-flex min-h-11 items-center text-sm text-text-secondary underline underline-offset-4 hover:text-text-primary">Explore the separate key-rotation verification demo <InlineArrow /></Link>
     </section>
   );
 }

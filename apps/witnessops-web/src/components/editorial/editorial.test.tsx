@@ -34,7 +34,11 @@ test('Both articles use the original readable shell with correct identity and JS
     const json = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1]);
     assert.deepEqual(json, editorialJsonLd(entry));
   }
-  assert.match(renderToStaticMarkup(<CivilizationPage />), /Karol Stefański.*Founder of WitnessOps/);
+  const essay = renderToStaticMarkup(<CivilizationPage />);
+  assert.match(essay, />WitnessOps</);
+  assert.doesNotMatch(essay, /Karol|Stefański|Stef/);
+  assert.deepEqual(editorialJsonLd(civilizationArticle).author, { '@type': 'Organization', name: 'WitnessOps' });
+  assert.deepEqual(editorialMetadata(civilizationArticle).authors, [{ name: 'WitnessOps' }]);
   assert.match(renderToStaticMarkup(<SnapshotNote />), /No new target was checked/);
 });
 

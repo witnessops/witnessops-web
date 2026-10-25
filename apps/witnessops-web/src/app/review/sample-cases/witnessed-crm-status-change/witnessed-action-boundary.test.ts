@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 const page = readFileSync(resolve(import.meta.dirname, "page.tsx"), "utf8");
 const replay = readFileSync(resolve(import.meta.dirname, "witnessed-action-replay.tsx"), "utf8");
@@ -38,18 +38,18 @@ test("evidence categories and receipt limitations remain visible", () => {
   assert.match(replay, /sha256sum \{filename\}/);
 });
 
-test("paid AI Agent Tools & Access Review CTA appears only inside the receipt stage", () => {
+test("paid Agent Action Security Review CTA appears only inside the receipt stage", () => {
   const receiptStart = replay.indexOf('stage === "receipt"');
-  const paidCta = replay.indexOf("{PRIMARY_OFFER.name.en}");
+  const paidCta = replay.indexOf("{PUBLIC_AGENT_ACTION_OFFER.name.en}");
   assert.ok(receiptStart >= 0);
   assert.ok(paidCta > receiptStart);
-  assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
-  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, "agent-action-security-review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
   assert.match(
     replay,
-    /`\$\{PRIMARY_OFFER\.requestRoute\}\?offerId=\$\{PRIMARY_OFFER\.id\}`/,
+    /buyerPublicOfferRequestHref\("en", PUBLIC_AGENT_ACTION_OFFER\.id\)/,
   );
-  assert.doesNotMatch(replay, /productId=WORKFLOW-S/);
+  assert.doesNotMatch(replay, /productId=WORKFLOW-S|agent-tools-access-review|\bPRIMARY_OFFER\b/);
 });
 
 test("stage changes expose and announce the newly active heading", () => {

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectFreeToolEntryPoint, openResourcesPanel } from "./free-tool-entry";
 
 for (const viewport of [
   { width: 1159, height: 776 },
@@ -14,37 +15,17 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Agents act. WitnessOps reviews what yours are permitted to do.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(2);
-    await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toContainText("No account needed. Not a review.");
-    await expect(page.getByRole("link", { name: "Start a free check", exact: true })).toHaveAttribute("href", "/check");
+    await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
+    await expectFreeToolEntryPoint(page);
     await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-    await expect(trigger).toBeVisible();
+    await expect(trigger).toHaveCount(0);
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const sampleLink = hero.getByRole("link", { name: "Scope an agent review", exact: true });
-    await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?/);
-    await expect(hero.getByRole("link", { name: "Start with the €500 footprint review", exact: true })).toHaveAttribute("href", "/review/request");
-    await sampleLink.focus();
-    // Keep the remaining hero action reachable beside the launcher.
-    const collision = await page.locator('[data-focus-obscured="true"]').count();
-    if (collision) await expect(trigger).toBeHidden();
-    await sampleLink.blur();
-    await expect(trigger).toBeVisible();
-
-    await hero.evaluate(element => window.scrollTo(0, element.getBoundingClientRect().bottom + window.scrollY + 8));
-    if (viewport.width >= 640) {
-      await expect(trigger).toBeVisible();
-      await trigger.click();
-      const dialog = page.getByRole("dialog", { name: "Ask WitnessOps" });
-      await expect(dialog).toBeVisible();
-      await expect(page.getByLabel("Ask WitnessOps question")).toBeFocused();
-      await dialog.press("Escape");
-      await expect(dialog).toBeHidden();
-      await expect(trigger).toBeFocused();
-    } else {
-      await expect(trigger).toBeVisible();
-    }
+    const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
+    await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
+    await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
 
     const enquiry = page.locator("#enquiry");
     await enquiry.scrollIntoViewIfNeeded();
@@ -53,7 +34,8 @@ for (const viewport of [
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 
-    const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Docs", exact: true });
+    const { panel: resources } = await openResourcesPanel(page);
+    const docsEntry = resources.getByRole("link", { name: /^Docs(?:$|\s)/ });
     await expect(docsEntry).toBeVisible();
     await expect(docsEntry).toHaveAttribute("href", "/docs");
     await docsEntry.click();
@@ -66,9 +48,15 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Znajdź luki w bezpieczeństwie swoich systemów/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody.");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu.");
+  const offers = page.locator("[data-home-offer]");
+  await expect(offers).toHaveCount(2);
+  for (const offer of await offers.all()) {
+    await expect(offer).toContainText("Termin realizacji według podpisanego SOW");
+    await expect(offer).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€550|550 €/);
+  }
   const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true });
   await expect(docsEntry).toBeVisible();
   await expect(docsEntry).toHaveAttribute("href", "/pl/docs");

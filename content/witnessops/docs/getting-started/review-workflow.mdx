@@ -1,6 +1,6 @@
 ---
 title: "Review workflow"
-description: "Start with AI Agent Tools & Access Review, then inspect the evidence and receipt verification boundaries."
+description: "The current reviews are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work."
 section: "docs"
 order: 2
 nav_label: "Review workflow"
@@ -9,43 +9,45 @@ draft: false
 
 # Review workflow
 
-The primary paid entry point is [AI Agent Tools & Access Review](/catalog/workflows): one agreed device with a dated system-level inventory, one named agent setup, one selected connection and one deeper consequential action path. It starts at €2,500 excluding VAT, with a fixed quote after scope and payment before start by default. Target handover is 10 working days after accepted scope, authority, handling, payment and required inputs. The review is manual and read-only; coverage is limited to named sources and does not claim complete discovery.
+The current paid reviews are [Agent Action Security Review](/review/request?offerId=agent-action-security-review) at €2,500 excluding VAT, and [External Attack Surface Review](/catalog/offsec-external-exposure) at €1,900 excluding VAT with one retest within 30 calendar days of report handover. Delivery timing agreed in the signed statement of work. Agent Action Security Review examines one consequential agent or automation action. The review is manual and read-only; coverage is limited to named sources and does not claim complete discovery.
 
-The detailed sequence below documents the separate [External Attack Surface Review](/catalog/offsec-external-exposure) production workflow. That €1,900 · excluding VAT, three-working-day offer remains available as secondary catalogue work with its existing start conditions; it is not the primary paid entry point and it is not a penetration test.
+The steps below describe delivery of the [External Attack Surface Review](/catalog/offsec-external-exposure). The later technical section describes the receipt-profile path, where supported. It is not a penetration test.
 
 If you are evaluating the request path, read the [Buyer path](/docs/getting-started/proof-run-buyer-path) before submitting work.
 
 ## 1. External Attack Surface Review sequence
 
-The current workflow contract is:
+The review follows these steps:
 
 1. **Request** — submit a non-secret fit check.
 2. **Scoped review** — agree authority, target, approved checks, exclusions, timing, stop conditions, price, and evidence handling before work starts.
-3. **Evidence collection** — perform only the bounded outside-in review and preserve source records, hashes, unknowns, and limitations.
-4. **Verification result** — produce the pre-signing bounded review/comparison result, preserving skipped, failed, partial, or inconclusive states. This is producer output, not an independent verifier verdict.
-5. **Signed receipt** — issue the profiled `witnessops.receipt.v0` record with real manifest artifact IDs.
-6. **Verification page** — submit receipt JSON to `/verify` and read the bounded result.
+3. **Evidence collection and review** — perform only the approved low-impact, unauthenticated checks within the signed target schedule. Preserve source records, hashes, unknowns, and limitations; manually validate, deduplicate and prioritise findings.
+4. **Report and handover** — deliver the external attack-surface map, evidence-backed findings, remediation priorities, executive report, technical appendix and explicit unknowns, together with the scope and stop-condition record, evidence manifest and artifact hashes. Include one focused retest of reported findings within 30 calendar days of initial report handover.
+5. **Focused retest** — retest the agreed reported findings once within 30 calendar days of initial report handover.
 
-No stage should silently stand in for another. Mailbox confirmation is not review start, producer comparison output is not independent verification, and receipt shape is not evidence truth.
+Delivery timing is agreed in the signed statement of work. Mailbox confirmation is not review start, and payment alone does not authorise testing. A signed receipt and offline verifier are included only where the supported path is produced; they are not unconditional deliverables of every review.
 
 ## 2. Start conditions
 
 Before target-facing work begins, the engagement needs:
 
-- a named approving authority
-- one authorized public-facing system and frozen target schedule
+- written authority from the named approving authority
+- accepted scope for one authorized public-facing system and a frozen target schedule
 - an approved low-impact check schedule
 - explicit exclusions and stop conditions
-- an observation window
-- agreed evidence handling
+- an approved observation window
+- agreed evidence handling and required inputs
+- full payment and confirmed operator capacity
 
-The request form does not accept credentials, logs, private keys, screenshots, customer evidence, or other secrets. Those handling terms are agreed separately if the request fits.
+Do not send credentials, private keys, API keys, session tokens, recovery codes or other secrets at any stage. The initial request must also exclude logs, screenshots and customer evidence. Only approved, non-secret source material may be shared after scope, authority and secure handling are agreed; customer-data collection remains outside this review.
 
-## 3. Expected proof package
+## 3. Conditional receipt-profile package
 
-The package contract includes a receipt, evidence manifest, producer verification result, report, staged evidence, normalized records, and comparison result. A public key is present when signed.
+Where the supported receipt-profile path is produced, its technical package includes a receipt, evidence manifest, producer verification result, report, staged evidence, normalized records, and comparison result. A public key is present when signed. This describes that package format; it does not promise a signed package for every engagement or establish production signing authority.
 
-Claim evidence references use IDs precomputed by the OffSec adapter for staged source artifacts and then carried into the proof-engine manifest. They are not invented labels. See [Evidence Bundles](/docs/how-it-works/evidence-bundles).
+For that path, the producer preserves skipped, failed, partial, or inconclusive states in the pre-signing review/comparison result. This is producer output, not an independent verifier verdict. Claim evidence references use IDs precomputed by the OffSec adapter for staged source artifacts and then carried into the proof-engine manifest. They are not invented labels. See [Evidence Bundles](/docs/how-it-works/evidence-bundles).
+
+This conditional external-review package is not a standard deliverable of Agent Action Security Review.
 
 ## 4. Public verification boundary
 

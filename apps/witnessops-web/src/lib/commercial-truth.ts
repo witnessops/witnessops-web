@@ -1,4 +1,5 @@
 import { PUBLIC_B2B_VAT_LABEL, publicB2bPrice } from "./commercial-price";
+import { AGENT_PRICE_EN, AGENT_PRICE_PL, EXTERNAL_PRICE_EN, EXTERNAL_PRICE_PL } from "./offer-price-unit";
 
 /** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
 export const AUTOMATION_REPAIR_OFFER = {
@@ -139,6 +140,65 @@ export const LEGACY_AGENT_ACTION_OFFER = {
   },
 } as const;
 
+/**
+ * Founder-selected new public one-action offer (2026-10-08).
+ *
+ * Preserve the immutable meaning of the earlier bounded-workflow-review
+ * request identity. This new identity inherits the *same bounded commercial
+ * promise* (one consequential agent/automation action; EUR 2,500 fixed) but is
+ * never a historical ID alias. The inventory-plus-action PRIMARY_OFFER remains
+ * a separate source contract; no billing or live issuance is activated here.
+ */
+export const PUBLIC_AGENT_ACTION_OFFER = {
+  ...LEGACY_AGENT_ACTION_OFFER,
+  id: "agent-action-security-review",
+  cardSituation: {
+    en: "Before your agent takes an important action, understand the controls around it.",
+    pl: "Zanim agent wykona ważne działanie, poznaj mechanizmy jego kontroli.",
+  },
+  situation: {
+    en: "For engineering teams and AI implementation partners preparing to launch or hand over an agent that can issue refunds, change records or grant access. We review one consequential action: its trigger, executing identity, permissions, approvals and available execution evidence.",
+    pl: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta, który może zwracać płatności, zmieniać rekordy lub nadawać dostęp. Sprawdzamy jedno istotne działanie: wyzwalacz, tożsamość wykonawczą, uprawnienia, zatwierdzanie i dostępne dowody wykonania.",
+  },
+  commercialContract: {
+    price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
+    timing: "delivery_timing_per_signed_sow",
+  },
+  price: {
+    ...LEGACY_AGENT_ACTION_OFFER.price,
+    en: AGENT_PRICE_EN,
+    pl: AGENT_PRICE_PL,
+  },
+  timing: {
+    en: "Delivery timing agreed in the signed statement of work",
+    pl: "Termin realizacji według podpisanego SOW",
+  },
+  result: {
+    en: "An action map, findings linked to sources, prioritised recommendations, documented unknowns and a readout to help your team decide what needs attention.",
+    pl: "Mapa działania, ustalenia ze źródłami, zalecenia według priorytetu, jawne niewiadome i omówienie, które pomogą zespołowi ustalić, co wymaga uwagi.",
+  },
+  included: {
+    en: [
+      "Authority map",
+      "Execution path",
+      "Permission boundary",
+      "Evidence chain",
+      "Control gaps and practical fixes",
+      "Explicit unknowns",
+      "Readout",
+    ],
+    pl: [
+      "Mapa upoważnień",
+      "Ścieżka wykonania",
+      "Granica uprawnień",
+      "Łańcuch dowodowy",
+      "Luki kontrolne i praktyczne poprawki",
+      "Jawne niewiadome",
+      "Omówienie wyniku",
+    ],
+  },
+} as const;
+
 /** Current distinct commercial offer; route continuity does not imply ID continuity. */
 export const PRIMARY_OFFER = {
   id: "agent-tools-access-review",
@@ -214,7 +274,7 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   productId: "OFFSEC-EXTERNAL-EXPOSURE",
   route: {
     en: "/catalog/offsec-external-exposure",
-    pl: "/pl/catalog/offsec-external-exposure",
+    pl: "/pl/reviews/external-attack-surface-review",
   },
   requestRoute: "/review/request",
   name: {
@@ -223,35 +283,36 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   },
   commercialContract: {
     price: "eur_1900_ex_vat_one_authorised_public_facing_system",
-    timing:
-      "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
+    timing: "delivery_timing_per_signed_sow",
   },
   price: {
     amount: "1900",
     currency: "EUR",
     vatIncluded: false,
-    ...publicB2bPrice("€1,900", "€1 900"),
+    en: EXTERNAL_PRICE_EN,
+    pl: EXTERNAL_PRICE_PL,
   },
+  // HELD — not offered, pending founder decision. Do not render this amount.
   additionalOrLateRetestPrice: {
     amount: "550",
     currency: "EUR",
     ...publicB2bPrice("€550", "€550"),
   },
   timing: {
-    en: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
-    pl: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
+    en: "Delivery timing agreed in the signed statement of work",
+    pl: "Termin realizacji według podpisanego SOW",
   },
   cardSituation: {
-    en: "See what your public-facing system exposes.",
-    pl: "Sprawdź, co ujawnia Twój system dostępny z internetu.",
+    en: "Understand what your public-facing system exposes—and what to fix first.",
+    pl: "Poznaj ekspozycję swojego systemu w internecie i priorytety napraw.",
   },
   situation: {
-    en: "Review one authorised internet-facing system. Find unexpected exposure and misconfiguration, with evidence and remediation priorities. No exploitation. This is not a penetration test.",
-    pl: "Sprawdź jeden autoryzowany system dostępny z internetu. Poznaj niezamierzoną ekspozycję, błędy konfiguracji i priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
+    en: "For SaaS and technology teams preparing for a launch, infrastructure change or customer security review. Low-impact checks of one authorised internet-facing system, with manually validated findings and practical remediation priorities. No exploitation. This is not a penetration test.",
+    pl: "Dla zespołów SaaS i technologicznych przed uruchomieniem usługi, zmianą infrastruktury lub oceną bezpieczeństwa przez klienta. Kontrole o niskim wpływie na jeden autoryzowany system dostępny z internetu, ręcznie zweryfikowane ustalenia i praktyczne priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
   },
   result: {
-    en: "An external attack-surface map, evidence-backed findings, remediation priorities and one focused retest within 30 days.",
-    pl: "Mapa zewnętrznej powierzchni ataku, ustalenia ze źródłami, priorytety napraw i jedno sprawdzenie poprawek w ciągu 30 dni.",
+    en: "An external attack-surface map, manually validated findings, remediation priorities and one focused retest within 30 calendar days of initial report handover.",
+    pl: "Mapa zewnętrznej powierzchni ataku, ręcznie zweryfikowane ustalenia, priorytety napraw i jedno ukierunkowane sprawdzenie poprawek w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
   },
   boundary: {
     en: "This is not a penetration test. No exploitation, authenticated testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, exfiltration, certification, or security guarantee.",

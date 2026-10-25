@@ -19,9 +19,10 @@ const FILTER_TABS: { key: FilterCategory; label: string }[] = [
 
 interface AdminAlertPanelProps {
   alerts: AlertItem[];
+  loadError?: string | null;
 }
 
-export function AdminAlertPanel({ alerts }: AdminAlertPanelProps) {
+export function AdminAlertPanel({ alerts, loadError = null }: AdminAlertPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
@@ -121,7 +122,8 @@ export function AdminAlertPanel({ alerts }: AdminAlertPanelProps) {
             </div>
 
             <div className={styles.alertPanelBody}>
-              {filtered.length === 0 ? (
+              {loadError ? <div className={styles.alertItem} role="alert">{loadError}</div> : null}
+              {filtered.length === 0 && !loadError ? (
                 <div className={styles.alertPanelEmpty}>No pending alerts.</div>
               ) : (
                 filtered.map((alert) => {

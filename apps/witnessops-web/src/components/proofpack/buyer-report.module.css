@@ -29,6 +29,7 @@
 .document .accentRule { width: 120px; height: 4px; background: var(--report-accent); margin: 30px 0; }
 .document .target { display: flex; gap: 24px; justify-content: space-between; align-items: start; margin-bottom: 18px; }
 .document .target h2 { font-size: 28px; flex: 1; }
+:global(#main-content) .document .target h2 { overflow-wrap: anywhere; }
 .document .target p { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--report-muted); max-width: 50%; }
 .document .synthetic { font-size: 12px; color: var(--report-accent); }
 .document .resultGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; margin: 30px 0; }
@@ -51,7 +52,7 @@
 .document .findingMeta [data-severity=high], .document .findingMeta [data-severity=critical] { color: #9a311a; font-weight: 700; }
 .document .finding h3 { margin-top: 12px; font-size: 24px; }
 .document .findingBody { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 22px; }
-.document pre { background: transparent; color: var(--report-ink); border: 1px solid var(--report-line); border-radius: 0; padding: 12px; max-height: none; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font: 11px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0 0 18px; }
+.document pre { background: transparent; color: var(--report-ink); border: 1px solid var(--report-line); border-radius: var(--radius-none); padding: 12px; max-height: none; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font: 11px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0 0 18px; }
 .document .findingLimit { border-left: 2px solid var(--report-line); padding-left: 14px; font-size: 13px; }
 .document .evidenceRef { font: 10px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--report-muted); }
 .document .boundaryGrid h3 { margin-top: 0; }

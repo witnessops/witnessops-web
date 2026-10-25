@@ -149,6 +149,6 @@ test("light confirmation shell uses contrast-safe controls and scoped paper colo
   assert.match(verificationShell, /focus:border-\[#b94716\]/);
   assert.match(verificationShell, /bg-\[#b94716\][^"]+text-\[#fafaf7\]/);
   assert.match(verificationShell, /accent:\s*"text-\[#b94716\]"/);
-  assert.match(contactForm, /const lightButtonFocusClass/);
-  assert.match(contactForm, /ring-offset-\[#f7f5f1\]/);
+  assert.match(contactForm, /const lightButtonFocusClass = "";/);
+  assert.doesNotMatch(contactForm, /ring-offset-\[#f7f5f1\]/);
 });

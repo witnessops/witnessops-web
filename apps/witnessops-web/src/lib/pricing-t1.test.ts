@@ -15,7 +15,7 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
   assert.equal(PRIMARY_OFFER.timing.en, "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
   assert.match(buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id), /offerId=agent-tools-access-review/);
   assert.equal(buyerServiceById("professional-public-footprint-audit").price.en, "€4,900 · excluding VAT");
-  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900 · excluding VAT");
+  assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900\u00A0excl.\u00A0VAT");
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");
   assert.equal(buyerServiceById("external-exposure-assessment").detailHref.en, "/catalog/offsec-external-exposure");
 });
@@ -24,4 +24,14 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   const faq = readFileSync(resolve(__dirname, "../../../../content/witnessops/docs/faq.mdx"), "utf8");
   assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan."));
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
+  assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
+  assert.match(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.match(faq, /€2,500\u00A0excl.\u00A0VAT/);
+  assert.match(faq, /Delivery timing agreed in the signed statement of work/);
+  assert.match(faq, /explicit unknowns/);
+  assert.match(faq, /30 calendar days of initial report handover/);
+  assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope/);
+  assert.match(faq, /agent-tools-access-review/);
+  assert.doesNotMatch(faq, /primary paid entry point is \[AI Agent Tools/);
+  assert.doesNotMatch(faq, /Private Pilot|Internet Footprint Review|€500/);
 });

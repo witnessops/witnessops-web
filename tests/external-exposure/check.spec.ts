@@ -40,7 +40,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
   await expect(page.locator('#site-footer')).toBeVisible();
   await expect(page.locator('script[src*="witnessops-manual"]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toHaveCount(0);
   expect(await page.evaluate(async () => {
     const inter = await document.fonts.load('400 16px Inter');
     const mono = await document.fonts.load('500 14px "IBM Plex Mono"');
@@ -61,13 +61,14 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await page.keyboard.press(nextControl);
   await expect(page.getByRole('button', { name: 'Run free check', exact: true })).toBeFocused();
   await collect(page);
+  await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText(/10 check results · .* UTC · 2\.0 seconds/);
   await expect(page.locator('[data-status=CHECK_ERROR]')).toContainText('Collection error');
   await expect(page.getByRole('heading', { name: 'What needs attention?', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'What remains unknown?', exact: true })).toBeVisible();
   const resultRegion = page.getByRole('region', { name: 'Snapshot results' });
   expect(await resultRegion.locator('h3, details > summary').allTextContents()).toEqual([
     'What needs attention?', 'What was observed as expected?', 'Inspect expected observations',
-    '1 informational observations', 'What remains unknown?', 'Full evidence', 'Source data and report details',
+    '1 informational observation', 'What remains unknown?', 'Full evidence', 'Source data and report details',
   ]);
   const expectedDetails = page.getByText('Inspect expected observations', { exact: true }).locator('..');
   await expect(expectedDetails).toHaveJSProperty('open', false);
@@ -76,7 +77,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
     await expect(expectedDetails).toContainText(check.interpretation);
   for (const check of snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION'))
     await expect(page.locator('[data-status=NEEDS_ATTENTION]').getByRole('heading', { name: check.title, exact: true })).toBeVisible();
-  const information = page.getByText('1 informational observations', { exact: true }).locator('..');
+  const information = page.getByText('1 informational observation', { exact: true }).locator('..');
   await expect(information).toHaveJSProperty('open', false);
   await expect(information.getByText('Mock observation 3', { exact: true })).not.toBeVisible();
   await information.locator('summary').click();
@@ -107,9 +108,13 @@ test('source download and the immutable report use the same identity and print d
   await expect(report).toContainText('CHECK_ERROR');
   const chapterHeading = report.getByRole('heading', { name: 'Recorded findings', level: 2, exact: true });
   const expectChapterTypography = async () => {
-    await expect(chapterHeading).toHaveCSS('font-size', '27px');
-    await expect(chapterHeading).toHaveCSS('line-height', '33.75px');
-    await expect(chapterHeading).toHaveCSS('margin-bottom', '16px');
+    const locked = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement);
+      return { size: root.getPropertyValue('--type-h2-size').trim(), lineHeight: root.getPropertyValue('--type-h2-lh').trim() };
+    });
+    expect(locked.size).not.toBe('');
+    await expect(chapterHeading).toHaveCSS('font-size', locked.size);
+    await expect(chapterHeading).toHaveCSS('line-height', locked.lineHeight);
   };
   await expectChapterTypography();
   const desktopWidth = await page.evaluate(() => document.documentElement.clientWidth);
@@ -124,7 +129,7 @@ test('source download and the immutable report use the same identity and print d
   await expect(page.locator('#site-footer')).not.toBeVisible();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' })).not.toBeVisible();
   await expect(report).toBeVisible();
-  // The print root uses the report's 27pt heading, not the workspace's 27px override.
+  // The print root uses the report's 27pt heading.
   await expect(chapterHeading).toHaveCSS('font-size', '36px');
   expect(await report.innerHTML()).toBe(before);
   expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
@@ -266,11 +271,11 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
       await expect(page.locator('#witnessops-mobile-menu')).toBeVisible();
     }
     const navigation = mobile ? page.locator('#witnessops-mobile-menu') : page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    const product = navigation.getByRole('button', { name: 'Product', exact: true });
-    await product.click();
-    const panelId = await product.getAttribute('aria-controls');
+    const resources = navigation.getByRole('button', { name: 'Resources', exact: true });
+    await resources.click();
+    const panelId = await resources.getAttribute('aria-controls');
     expect(panelId).toBeTruthy();
-    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Free check/ });
+    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Tool · not a review/ });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', '/check');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -1,9 +1,8 @@
 import { getWorkspaceAppUrl } from "../../apps/witnessops-web/src/lib/workspace-access";
-import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const SCREENSHOT_DIR = path.join(
   process.cwd(),
@@ -11,8 +10,6 @@ const SCREENSHOT_DIR = path.join(
 );
 
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
-const PRIMARY_REQUEST_PATH =
-  "/review/request?offerId=agent-tools-access-review&offer=AI+Agent+Tools+%26+Access+Review";
 const FOCUSABLE_SELECTOR = [
   "a[href]:visible",
   "button:not([disabled]):visible",
@@ -22,85 +19,6 @@ const FOCUSABLE_SELECTOR = [
   "summary:visible",
   '[tabindex]:not([tabindex="-1"]):visible',
 ].join(", ");
-
-const askWorkflowAuthority = {
-  schema: "witnessops.ask.assembled-answer.v1",
-  status: "success",
-  answer_mode: "deterministic_fallback",
-  template: {
-    template_id: "route.ai_agent_action.v1",
-    body: "One bounded workflow can proceed to a non-secret fit check.",
-    source_display: null,
-  },
-  route: {
-    route_id: "route.fit-check",
-    href: "/review/request",
-  },
-  commercial_fit: {
-    schema: "witnessops.ask.commercial-fit.v1",
-    result: "likely",
-    intent: "workflow",
-    offer_id: "agent-tools-access-review",
-    source: "ask",
-    offer: {
-      name: "AI Agent Tools & Access Review",
-      price_label: "Starting at €2,500 · excluding VAT",
-      unit_label: "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
-      fit_check_label: "Non-secret fit and scoping request first",
-      delivery_label: "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-    },
-    matching_specimen_id: "ai-agent-action-proof-run",
-  },
-  presented_sources: [{
-    source_id: "service.agent-tools-access-review",
-    public_label: "AI Agent Tools & Access Review",
-    canonical_href: "https://witnessops.com/catalog/workflows",
-    href_class: "same_site",
-  }],
-} as const;
-
-const agentService = BUYER_SERVICES.find(service => service.id === "agent-tools-access-review")!;
-const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
-agentRequest.searchParams.set("source", "ask");
-const askWorkflowFitResponse = {
-  ...askWorkflowAuthority,
-  schema: "witnessops.ask.generated-answer.v1",
-  answer_mode: "ai_assisted",
-  model: "gpt-5.4-mini",
-  route: { route_id: "route.fit-check", href: `${agentRequest.pathname}${agentRequest.search}` },
-  template: { template_id: "answer.public_ai.v1", body: "A review can examine the controls for the agent you are launching. No evidence was reviewed in this chat.", source_display: null },
-  authority_answer: {
-    ...askWorkflowAuthority,
-    assembler_contract_id: "ASK_DETERMINISTIC_ANSWER_ASSEMBLER_V1",
-    assembler_contract_version: 1,
-    deterministic_replay_hash: "ui-proof-local-fixture",
-    policy_decision: { template_id: askWorkflowAuthority.template.template_id },
-  },
-  recommendation: {
-    service_id: agentService.id,
-    name: agentService.name.en,
-    price_label: agentService.price.en,
-    delivery_label: agentService.timing.en,
-    detail_href: agentService.detailHref.en,
-    request_href: `${agentRequest.pathname}${agentRequest.search}`,
-  },
-} as const;
-
-async function fulfillAskTelemetry(route: Route): Promise<boolean> {
-  expect(askWorkflowFitResponse.route.href).toBe(askWorkflowFitResponse.recommendation.request_href);
-  expect(agentRequest.searchParams.get("source")).toBe("ask");
-  if (route.request().headers()["x-witnessops-event"] !== "1") return false;
-  const payload = route.request().postDataJSON();
-  expect(route.request().method()).toBe("POST");
-  expect(Object.keys(payload)).toEqual(["telemetry"]);
-  expect(Object.keys(payload.telemetry).every((key) =>
-    ["event", "surface", "service_id", "outcome", "feedback"].includes(key),
-  )).toBe(true);
-  expect(["opened", "answered", "offer_selected", "contact_started", "mailbox_confirmed", "feedback"])
-    .toContain(payload.telemetry.event);
-  await route.fulfill({ status: 204 });
-  return true;
-}
 
 async function saveEvidence(page: Page, filename: string) {
   await mkdir(SCREENSHOT_DIR, { recursive: true });
@@ -158,9 +76,9 @@ test("the homepage sample-work link opens the sample library", async ({
   await expect(fragmentLink).toHaveCount(1);
   await fragmentLink.click();
 
-  await expect(page).toHaveURL(/\/library$/);
-  await expect(page.getByRole("heading", { name: "All Skills Library", exact: true })).toBeVisible();
-  await saveEvidence(page, "01-desktop-sample-library.png");
+  await expect(page).toHaveURL(/\/review\/sample-cases$/);
+  await expect(page.getByRole("heading", { name: "Sample work", exact: true })).toBeVisible();
+  await saveEvidence(page, "01-desktop-sample-cases.png");
 
   await context.close();
 });
@@ -251,7 +169,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await context.close();
 });
 
-test("a selected offer survives the click handoff into the request form", async ({
+test("the withdrawn agent tools detail stays on its URL as a 410 and does not start a new review", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -260,41 +178,29 @@ test("a selected offer survives the click handoff into the request form", async 
   });
   const page = await context.newPage();
 
-  await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
-  const selectedOfferCta = page
-    .locator('[data-buyer-service-detail="agent-tools-access-review"]')
-    .getByRole("link", { name: "Request a scope and fixed quote", exact: true })
-    .first();
-  await selectedOfferCta.click();
-
-  await expectPath(page, "/review/request");
-  const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
-  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
-  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(page.locator("main")).toContainText(
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
-  await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
-  await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.locator('main form input[name="intent"]')).toHaveValue(
-    "agent-tools-access-review",
-  );
+  const response = await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(410);
+  await expectPath(page, "/catalog/workflows");
+  const main = page.locator("main");
+  await expect(main.locator("h1")).toHaveText("This offer has been withdrawn");
+  await expect(page.locator('[data-buyer-service-detail="agent-tools-access-review"]')).toHaveCount(0);
+  await expect(page.locator('[data-buyer-service-detail="agent-action-security-review"]')).toHaveCount(0);
+  await expect(main.getByRole("link", { name: "Request a scope and fixed quote", exact: true })).toHaveCount(0);
+  await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
+  await expect(main.locator("form")).toHaveCount(0);
+  await expect(main).not.toContainText("Agent Risk & Control Review");
+  await expect(main).not.toContainText("From €1,500");
   await saveEvidence(page, "03-desktop-selected-offer-handoff.png");
 
   await context.close();
 });
 
-test("support sends paid-work buyers to the current agent tools review", async ({
+test("support sends paid-work buyers to the two current public reviews", async ({
   browser,
 }) => {
   for (const scenario of [
-    { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
-    {
-      path: "/pl/support",
-      requestPath: buyerServiceRequestHref("pl", agentService),
-    },
+    { path: "/support", prefix: "" },
+    { path: "/pl/support", prefix: "/pl" },
   ]) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -305,18 +211,22 @@ test("support sends paid-work buyers to the current agent tools review", async (
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), scenario.path).toBe(200);
     const main = page.locator("main");
-    await expect(main).toContainText(scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review");
+    await expect(main).not.toContainText("AI Agent Tools & Access Review");
+    await expect(main).not.toContainText("Przegląd narzędzi i dostępu agenta AI");
     await expect(main).not.toContainText(
       "Request an AI Agent Action Proof Run",
     );
     await expect(main).not.toContainText("Agent Risk & Control Review");
     await expect(main).not.toContainText("From €1,500");
 
-    const offerLinks = main.locator(`a[href="${scenario.requestPath}"]`);
-    expect(await offerLinks.count(), scenario.path).toBeGreaterThanOrEqual(1);
-    await expect(offerLinks.first()).toContainText(
-      scenario.path.startsWith("/pl") ? "Przegląd narzędzi i dostępu agenta AI" : "AI Agent Tools & Access Review",
-    );
+    for (const [slug, name] of [
+      ["agent-action-security-review", "Agent Action Security Review"],
+      ["external-attack-surface-review", "External Attack Surface Review"],
+    ] as const) {
+      const offerLinks = main.locator(`a[href="${scenario.prefix}/reviews/${slug}"]`);
+      expect(await offerLinks.count(), `${scenario.path} ${slug}`).toBeGreaterThanOrEqual(1);
+      await expect(offerLinks.first()).toContainText(name);
+    }
 
     await context.close();
   }
@@ -361,106 +271,32 @@ test("Polish docs keep the logo local and link to a live English docs route", as
   await context.close();
 });
 
-test("mobile Ask offers a human reply and source navigation without a stale overlay", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    reducedMotion: "reduce",
-  });
-  const page = await context.newPage();
-  let askRequests = 0;
-
-  await page.route("**/api/ask-witnessops", async (route) => {
-    if (await fulfillAskTelemetry(route)) return;
-    askRequests += 1;
-    expect(route.request().method()).toBe("POST");
-    expect(route.request().postDataJSON()).toEqual({
-      question: "We're launching an AI agent.",
-      history: [],
+for (const width of [390, 1440]) {
+  test(`production keeps the unpublished Ask launcher and route closed at ${width}px`, async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width, height: 844 },
+      reducedMotion: "reduce",
     });
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: {
-        "X-Ask-Receipt-Id": "ui-proof-navigation-integrity",
-        "X-Ask-Receipt-Status": "ephemeral",
-      },
-      body: JSON.stringify(askWorkflowFitResponse),
+    const page = await context.newPage();
+
+    await page.goto("/docs", { waitUntil: "networkidle" });
+    await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
+    await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
+    if (width < 1024) {
+      await page.getByRole("button", { name: "Open primary navigation" }).click();
+      await expect(page.locator("[data-mobile-assistant-link]")).toHaveCount(0);
+      await page.getByRole("button", { name: "Close primary navigation" }).click();
+    }
+    await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+
+    const ask = await page.request.post("/api/ask-witnessops", {
+      data: { question: "We're launching an AI agent.", history: [] },
     });
+    expect(ask.status()).toBe(410);
+
+    await context.close();
   });
-
-  await page.goto("/catalog", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "Open primary navigation" }).click();
-  await expect(page.locator("[data-mobile-assistant-link]")).toHaveCount(0);
-  await page.getByRole("button", { name: "Close primary navigation" }).click();
-  await page.getByRole("button", { name: "Ask WitnessOps" }).click();
-
-  await page.getByRole("textbox", { name: "Ask WitnessOps question" }).fill("We're launching an AI agent.");
-  await page.getByRole("button", { name: "Ask AI", exact: true }).click();
-  const fit = page.getByRole("region", { name: "Suggested service", exact: true });
-  await expect(fit).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(fit).toContainText("Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed");
-  await expect(page.locator("#ask-witnessops-dialog")).toContainText("NO EVIDENCE REVIEWED");
-  await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
-  await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
-  await expect(page.getByLabel("Ask WitnessOps question")).toHaveAttribute("placeholder", "Ask a follow-up…");
-  await page.getByRole("button", { name: "Prepare my request", exact: true }).click();
-
-  await expectPath(page, "/catalog");
-  const contact = page.locator("[data-ask-contact-region]");
-  await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
-  await expect(contact).toContainText("AI Agent Tools & Access Review");
-  await expect(contact.getByLabel("Work email")).toBeFocused();
-  await expect(contact.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toBeChecked();
-  await expect(contact.getByLabel(/^Draft request/)).toHaveValue("We're launching an AI agent.");
-  await expect(contact.getByRole("button", { name: "Send confirmation code" })).toBeDisabled();
-  await expect(contact).toContainText("No mailing list or review booking");
-  await contact.getByRole("button", { name: "Back", exact: true }).click();
-
-  // Sources are directly visible beside the answer, not hidden in a disclosure.
-  const source = page.locator("#ask-witnessops-dialog").getByRole("link", { name: "AI Agent Tools & Access Review", exact: true });
-  await expect(source).toBeVisible();
-  await expect(source).toHaveAttribute("href", "/catalog/workflows");
-  await source.click();
-  await expectPath(page, "/catalog/workflows");
-  await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
-  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-  await page.locator('[data-buyer-service-detail="agent-tools-access-review"]')
-    .getByRole("link", { name: "Request a scope and fixed quote", exact: true }).first().click();
-
-  await expectPath(page, "/review/request");
-  const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("agent-tools-access-review");
-  expect(destination.searchParams.get("offer")).toBe("AI Agent Tools & Access Review");
-  await expect(page.locator("main").getByText("AI Agent Tools & Access Review", { exact: true }).first()).toBeVisible();
-  await expect(page.locator("main")).toContainText("Starting at €2,500 · excluding VAT");
-  await expect(page.locator("main")).toContainText(
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
-  );
-  await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
-  await expect(page.locator("#witnessops-mobile-menu")).toHaveAttribute(
-    "aria-hidden",
-    "true",
-  );
-
-  const scrollState = await page.evaluate(() => ({
-    bodyInlineOverflow: document.body.style.overflow,
-    bodyOverflowY: getComputedStyle(document.body).overflowY,
-    scrollHeight: document.documentElement.scrollHeight,
-    viewportHeight: window.innerHeight,
-  }));
-  expect(scrollState.bodyInlineOverflow).not.toBe("hidden");
-  expect(scrollState.bodyOverflowY).not.toBe("hidden");
-  expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.viewportHeight);
-  await saveEvidence(page, "04-mobile-ask-fit-check-destination.png");
-
-  await page.evaluate(() => window.scrollTo(0, 600));
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-  expect(askRequests).toBe(1);
-
-  await context.close();
-});
+}
 
 test("the final CTA remains reachable in a short landscape mobile menu", async ({
   browser,
@@ -504,30 +340,6 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   else await expect(lastCta).not.toHaveAttribute("target", "_blank");
   await saveEvidence(page, "05-mobile-menu-signup.png");
 
-  await context.close();
-});
-
-test("desktop Ask is non-modal and Escape restores its trigger", async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: "reduce" });
-  const page = await context.newPage();
-  await page.route("**/api/ask-witnessops", async route => { expect(await fulfillAskTelemetry(route)).toBe(true); });
-  await page.goto("/catalog", { waitUntil: "networkidle" });
-  const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-  await trigger.click();
-  const dialog = page.locator("#ask-witnessops-dialog");
-  await expect(dialog).toBeVisible();
-  await expect(dialog).toHaveAttribute("aria-modal", "false");
-  await expect(dialog.getByLabel("Ask WitnessOps question")).toBeFocused();
-  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-  await page.keyboard.press("Escape");
-  await expect(dialog).toHaveCount(0);
-  await expect(trigger).toBeFocused();
-  await trigger.click();
-  await dialog.locator("summary").filter({ hasText: "About this AI" }).click();
-  await dialog.getByRole("link", { name: "Privacy", exact: true }).click();
-  await expectPath(page, "/privacy");
-  await expect(dialog).toHaveCount(0);
-  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   await context.close();
 });
 
@@ -594,7 +406,7 @@ test("the docs drawer and search preserve stacked focus and scroll locks", async
 });
 
 for (const width of [1440, 390]) {
-  test(`support starts AI chat without submitting a ticket at ${width}px`, async ({ page }) => {
+  test(`support question box sends nothing while the assistant is unpublished at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     let questions = 0;
     let tickets = 0;
@@ -603,26 +415,22 @@ for (const width of [1440, 390]) {
       await route.abort();
     });
     await page.route("**/api/ask-witnessops", async route => {
-      if (await fulfillAskTelemetry(route)) return;
       questions += 1;
-      expect(route.request().postDataJSON()).toEqual({ question: "How do I authenticate the CLI?", history: [] });
-      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Unavailable" }) });
+      await route.abort();
     });
     await page.goto("/support", { waitUntil: "networkidle" });
-    expect(questions).toBe(0);
+    const panel = page.locator("section[aria-labelledby='support-ai-title']");
+    await expect(panel).toContainText("The assistant on this page is not available. A question typed here is not sent.");
     await page.getByLabel("Your question", { exact: true }).fill("How do I authenticate the CLI?");
-    await page.getByRole("button", { name: "Start AI chat" }).click();
-    const dialog = page.getByRole("dialog", { name: "Ask WitnessOps" });
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("alert")).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Retry question" })).toBeEnabled();
-    await dialog.getByRole("link", { name: "Support help", exact: true }).click();
-    await expect(dialog).toHaveCount(0);
+    await panel.getByRole("button", { name: "Check" }).click();
+    await expect(panel.getByRole("alert")).toContainText("Chat is unavailable or busy.");
+    await expect(page.getByRole("dialog", { name: "Ask WitnessOps" })).toHaveCount(0);
+    await panel.getByRole("link", { name: "Prefer a person? Contact support" }).click();
     await expect(page).toHaveURL(/\/support#support-request$/);
     await page.locator("#si-email").fill("pilot@example.com");
     await page.getByRole("button", { name: "Still need help? Email support" }).click();
     await expect(page.locator("#si-desc")).toBeVisible();
-    expect(questions).toBe(1);
+    expect(questions).toBe(0);
     expect(tickets).toBe(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
@@ -649,21 +457,42 @@ test("grouped desktop navigation supports keyboard, dismissal and document navig
   await expect(panel).toBeHidden();
 });
 
+test("grouped desktop navigation keeps final links reachable in short windows", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 400 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Resources", exact: true }).click();
+  const panel = page.locator("#public-nav-group-2");
+  await expect(panel).toBeVisible();
+  const panelBox = await panel.boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(400);
+
+  await panel.hover();
+  await page.mouse.wheel(0, 600);
+  await expect.poll(() => panel.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  const finalLink = panel.locator("a").last();
+  await expect(finalLink).toHaveAttribute("href", "/check");
+  await expect(finalLink).toBeInViewport({ ratio: 1 });
+  await finalLink.click();
+  await expect(page).toHaveURL(/\/check$/);
+  await expect(panel).toBeHidden();
+});
+
 test("grouped mobile navigation keeps product and resource links reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  for (const name of ["Product", "Expert help", "Resources"]) {
+  for (const name of ["Product", "Reviews", "Resources"]) {
     await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
   }
   if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();
   else await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
   await menu.getByRole("button", { name: "Product", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeVisible();
+  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
   await menu.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Free check", exact: true })).toBeHidden();
+  await expect(menu.locator("#witnessops-mobile-menu-group-2").getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
   await menu.getByRole("link", { name: "Docs", exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { askLanguage } from "@/lib/docs-assistant/conversation-guidance";
+import { PriceText } from "@/lib/price-unit";
 import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
   askWitnessOpsAnswerText,
@@ -53,7 +54,6 @@ export function DocsAssistantPage() {
   const { reveal, resume, newReply } = useConversationFollow(conversationRef, messages);
 
   useEffect(() => {
-    trackAskEvent("opened", { surface: "page" });
     return () => { requestGenerationRef.current += 1; };
   }, []);
 
@@ -169,7 +169,7 @@ export function DocsAssistantPage() {
                         msg.error ? "text-red-400" : "text-text-primary"
                       }`}
                     >
-                      {msg.content}
+                      <PriceText text={msg.content} />
                     </p>
                     {msg.answer && (
                       <>
@@ -251,7 +251,7 @@ export function DocsAssistantPage() {
               if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void ask(question); }
             }}
             placeholder={isEmpty ? "Example: How do I create an account?" : "Ask a follow-up…"}
-            className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+            className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent "
           />
           <button
             type="submit"

@@ -1,3 +1,4 @@
+import { HistoricalOfferSampleLabel } from "@/components/marketing/historical-offer-sample-label";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
 
@@ -9,6 +10,8 @@ export type OffsecSuiteSampleProps = {
   bannerNote: string;
   /** Method samples are not buyer product cards. */
   methodOnly?: boolean;
+  /** The sample stays public. The offer it illustrated does not. */
+  offerWithdrawn?: boolean;
   catalogHref?: string;
   sampleBase: string;
   packageDir: string;
@@ -26,6 +29,7 @@ export function OffsecSuiteSample({
   situation,
   bannerNote,
   methodOnly = false,
+  offerWithdrawn = false,
   catalogHref,
   sampleBase,
   packageDir,
@@ -49,6 +53,7 @@ export function OffsecSuiteSample({
     >
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner title={title} note={bannerNote} showActions={false} />
+        {offerWithdrawn ? <HistoricalOfferSampleLabel /> : null}
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
@@ -62,9 +67,9 @@ export function OffsecSuiteSample({
             <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
               <span className="font-semibold text-text-primary">Product:</span> {productId}
             </span>
-            <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
+            <span className="max-w-full min-w-0 border border-surface-border px-3 py-1 text-xs text-text-muted [overflow-wrap:anywhere]">
               <span className="font-semibold text-text-primary">Run:</span>{" "}
-              <span className="font-mono">{runId}</span>
+              <span className="font-mono [overflow-wrap:anywhere]">{runId}</span>
             </span>
             <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
               <span className="font-semibold text-text-primary">Status:</span> Synthetic, not live
@@ -77,7 +82,7 @@ export function OffsecSuiteSample({
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton href="/review/request" variant="primary" label="Start a review" />
-            {catalogHref ? (
+            {catalogHref && !offerWithdrawn ? (
               <CtaButton href={catalogHref} variant="secondary" label="View service" />
             ) : null}
             <CtaButton
@@ -193,7 +198,7 @@ export function OffsecSuiteSample({
           <div className="flex flex-wrap gap-3">
             <CtaButton href="/review/request" variant="primary" label="Ask about a review" />
             <CtaButton href="/review/sample-cases" variant="secondary" label="More examples" />
-            {catalogHref ? (
+            {catalogHref && !offerWithdrawn ? (
               <CtaButton href={catalogHref} variant="secondary" label="Back to service" />
             ) : null}
           </div>

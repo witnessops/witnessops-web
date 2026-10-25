@@ -33,9 +33,13 @@ module.exports = {
         },
       },
       borderRadius: {
-        DEFAULT: "var(--radius)",
+        none: "var(--radius-none)",
+        xs: "var(--radius-xs)",
         sm: "var(--radius-sm)",
-        lg: "var(--radius-lg)",
+        DEFAULT: "var(--radius-control)",
+        md: "var(--radius-card)",
+        lg: "var(--radius-overlay)",
+        full: "var(--radius-pill)",
       },
       spacing: {
         section: "var(--spacing-section)",

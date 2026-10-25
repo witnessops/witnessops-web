@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@witnessops/ui/tokens/witnessops.css";
 @import "./public-presentation.css";
+@import "./public-type.css";
 
 @theme {
   --color-brand-primary: var(--color-brand-primary);
@@ -26,55 +27,62 @@
   --color-signal-red: var(--color-signal-red);
   --color-signal-copper: var(--color-signal-copper);
   --color-accent-trust: var(--color-accent-trust);
+
+  /* Same scale as witnessops.css :root, so Tailwind does not keep the rem defaults. */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+  --radius: 4px;
+  --radius-xl: initial;
+  --radius-2xl: initial;
+  --radius-3xl: initial;
+  --radius-4xl: initial;
 }
 
+/* Official Fontsource latin and latin-ext subsets. Ranges match the files.
+   IBM Plex box drawing is the Google Fonts U+2500 subset. Inter 600 stays in admin CSS. */
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-400.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
+  font-family: "Inter Fallback";
+  src: local("Arial"), local("Liberation Sans");
+  size-adjust: 106.67%;
+  ascent-override: 90.82%;
+  descent-override: 22.61%;
+  line-gap-override: 0%;
 }
-
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-500.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
+  font-family: "Newsreader Fallback";
+  src: local("Times New Roman"), local("Liberation Serif");
+  size-adjust: 104.71%;
+  ascent-override: 70.19%;
+  descent-override: 25.31%;
+  line-gap-override: 0%;
 }
-
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-600.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
+  font-family: "IBM Plex Mono Fallback";
+  src: local("Courier New"), local("Liberation Mono");
+  size-adjust: 99.98%;
+  ascent-override: 102.52%;
+  descent-override: 27.5%;
+  line-gap-override: 0%;
 }
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("/fonts/ibm-plex-mono-300.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("/fonts/ibm-plex-mono-400.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "IBM Plex Mono";
-  src: url("/fonts/ibm-plex-mono-500.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-}
+@font-face { font-family: "Inter"; src: url("/fonts/inter-300-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 300; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-300.woff2") format("woff2"); font-style: normal; font-weight: 300; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-400-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-400.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-500-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-500.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Newsreader"; src: url("/fonts/newsreader-400-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Newsreader"; src: url("/fonts/newsreader-400.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Newsreader"; src: url("/fonts/newsreader-500-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Newsreader"; src: url("/fonts/newsreader-500.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-400-box.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+2500; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-400-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-400.woff2") format("woff2"); font-style: normal; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-500-box.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+2500; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-500-latin-ext.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "IBM Plex Mono"; src: url("/fonts/ibm-plex-mono-500.woff2") format("woff2"); font-style: normal; font-weight: 500; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 /* --- Keyframe Animations --- */
 @keyframes fade-in-up {
@@ -94,12 +102,12 @@
   to { opacity: 1; transform: translateX(0); }
 }
 @keyframes vm-flow-pulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(255, 140, 80, 0); opacity: 0.72; }
-  50% { box-shadow: 0 0 18px rgba(255, 140, 80, 0.18); opacity: 1; }
+  0%, 100% { box-shadow: 0 0 0 color-mix(in srgb, var(--color-brand-accent) 0%, transparent); opacity: 0.72; }
+  50% { box-shadow: 0 0 18px color-mix(in srgb, var(--color-brand-accent) 18%, transparent); opacity: 1; }
 }
 @keyframes vm-line-glow {
-  0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 0 rgba(255, 140, 80, 0)); }
-  50% { opacity: 0.95; filter: drop-shadow(0 0 8px rgba(255, 140, 80, 0.22)); }
+  0%, 100% { opacity: 0.45; filter: drop-shadow(0 0 0 color-mix(in srgb, var(--color-brand-accent) 0%, transparent)); }
+  50% { opacity: 0.95; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-brand-accent) 22%, transparent)); }
 }
 @keyframes drift {
   0% { transform: translateX(-5%) translateY(-3%); }
@@ -136,25 +144,12 @@
     opacity: 0;
   }
 }
-@keyframes proofDestinationSettle {
-  0% {
-    color: rgba(255, 220, 190, 0.92);
-    text-shadow: 0 0 0 rgba(255, 160, 100, 0);
-  }
-  45% {
-    color: rgba(255, 200, 170, 1);
-    text-shadow: 0 0 16px rgba(255, 160, 100, 0.16);
-  }
-  100% {
-    color: rgba(255, 210, 180, 0.98);
-    text-shadow: 0 0 8px rgba(255, 160, 100, 0.08);
-  }
-}
-
 /* --- Base --- */
 html {
-  color-scheme: dark;
+  color-scheme: light dark;
   scroll-behavior: auto;
+  font-synthesis-weight: none;
+  font-synthesis-style: none;
 }
 
 body {
@@ -170,9 +165,13 @@ body {
 .public-brand-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 18% 3%, rgba(242, 122, 61, 0.08), transparent 25rem),
+    radial-gradient(circle at 18% 3%, color-mix(in srgb, var(--color-brand-accent) 8%, transparent), transparent 25rem),
     var(--color-surface-bg);
   color: var(--color-text-primary);
+}
+/* Light uses the single --hero-glow halo. Dark keeps this 8% page radial. */
+html[data-theme="light"] .public-brand-page {
+  background: var(--color-surface-bg);
 }
 
 /* Buyer routes use the same dark public contract. Proof records, verification
@@ -181,6 +180,69 @@ body {
   min-height: 100vh;
   background: var(--color-surface-bg);
   color: var(--color-text-primary);
+}
+
+/* Public ground: a hairline grid anchored to the page centre. Page wrappers
+   turn transparent so it shows; bands, cards, header and footer stay opaque. */
+html[data-theme="dark"] body:not(:has([data-admin-shell])),
+html[data-theme="light"] body:not(:has([data-admin-shell])) {
+  background-image:
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
+  background-size:
+    var(--grid-major-step) var(--grid-major-step),
+    var(--grid-major-step) var(--grid-major-step),
+    var(--grid-step) var(--grid-step),
+    var(--grid-step) var(--grid-step);
+  background-position: calc(50% - 0.5px) 0;
+}
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page),
+html[data-theme="light"] body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page) {
+  background: transparent;
+}
+html[data-theme="dark"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar,
+html[data-theme="light"] body:has(nav[data-public-presentation="quiet"]) nav.simple-public-navbar {
+  background-color: color-mix(in srgb, var(--color-surface-bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+/* Crop marks: four brass L-marks just outside the host's corners.
+   The host must be positioned and must not use its own ::before. */
+:where(.crop, .crop-frame) { position: relative; }
+html[data-theme="dark"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before,
+html[data-theme="light"] body:not(:has([data-admin-shell])) :is(.crop, .crop-frame)::before {
+  --crop-c: var(--crop-color);
+  --crop-a: var(--crop-arm);
+  --crop-s: var(--crop-stroke);
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--crop-offset));
+  pointer-events: none;
+  background:
+    linear-gradient(var(--crop-c), var(--crop-c)) left top / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left top / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right top / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right top / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left bottom / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) left bottom / var(--crop-s) var(--crop-a) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-a) var(--crop-s) no-repeat,
+    linear-gradient(var(--crop-c), var(--crop-c)) right bottom / var(--crop-s) var(--crop-a) no-repeat;
+}
+html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before,
+html[data-theme="light"] body:not(:has([data-admin-shell])) .crop-frame::before {
+  --crop-a: 24px;
+  inset: var(--crop-frame-inset, 0);
+  opacity: var(--crop-frame-opacity);
+}
+@media (max-width: 767px) {
+  html[data-theme="dark"] body:not(:has([data-admin-shell])) .crop-frame::before,
+  html[data-theme="light"] body:not(:has([data-admin-shell])) .crop-frame::before { display: none; }
+}
+@media print, (forced-colors: active) {
+  html body { background-image: none !important; }
+  html body :is(.crop, .crop-frame)::before { display: none !important; }
 }
 
 /* Shared public chrome consumes the canonical token contract on every route. */
@@ -197,12 +259,23 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   text-shadow: none;
 }
 
-/* Keep the compact geometric mark at its established mobile size. */
-@media (max-width: 63.999rem) {
-  nav.mobile-brand-navbar .mobile-brand-lockup .witnessops-mark svg {
-    width: auto;
-    height: 22px;
-  }
+/* Header matches the lockup: 64px through 1199, 72px from 1200, including the nav's 1px bottom border. */
+:root { --app-navbar-height: 64px; }
+.wo-navbar-bar { min-height: 63px; }
+.wo-lockup { display: block; height: 54px; width: auto; margin-inline-start: calc(-54px * 54 / 420); }
+.wo-lockup--white { display: none; }
+html[data-theme="dark"] .wo-lockup--black { display: none; }
+html[data-theme="dark"] .wo-lockup--white { display: block; }
+.mobile-brand-lockup { gap: 0; }
+.wo-watermark { display: block; height: 320px; width: auto; opacity: 0.06; }
+.wo-watermark--white { display: none; }
+html[data-theme="dark"] .wo-watermark--black { display: none; }
+html[data-theme="dark"] .wo-watermark--white { display: block; }
+@media (min-width: 1200px) {
+  :root { --app-navbar-height: 72px; }
+  .wo-navbar-bar { min-height: 71px; }
+  .wo-lockup { height: 60px; margin-inline-start: calc(-60px * 54 / 420); }
+  .wo-lockup--footer { height: 54px; margin-inline-start: calc(-54px * 54 / 420); }
 }
 
 /* ═══ OFFSEC MARK ═══ */
@@ -211,13 +284,13 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 }
 
 .witnessops-mark:hover {
-  color: rgba(255, 160, 100, 1);
-  text-shadow: 0 0 8px rgba(255, 107, 53, 0.2);
-  border-color: rgba(255, 107, 53, 0.2);
+  color: color-mix(in srgb, var(--color-brand-accent) 100%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--color-brand-accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-brand-accent) 20%, transparent);
   box-shadow:
-    0 0 0 1px rgba(255, 107, 53, 0.06),
+    0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 6%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 0 12px rgba(255, 107, 53, 0.1);
+    0 0 12px color-mix(in srgb, var(--color-brand-accent) 10%, transparent);
 }
 
 .witnessops-mark--pulse {
@@ -226,18 +299,18 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 @keyframes witnessops-mark-breathe {
   0%, 100% {
-    text-shadow: 0 0 5px rgba(255, 107, 53, 0.1);
+    text-shadow: 0 0 5px color-mix(in srgb, var(--color-brand-accent) 10%, transparent);
     box-shadow:
-      0 0 0 1px rgba(255, 107, 53, 0.03),
+      0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 3%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.03),
-      0 0 8px rgba(255, 107, 53, 0.06);
+      0 0 8px color-mix(in srgb, var(--color-brand-accent) 6%, transparent);
   }
   50% {
-    text-shadow: 0 0 10px rgba(255, 107, 53, 0.2);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--color-brand-accent) 20%, transparent);
     box-shadow:
-      0 0 0 1px rgba(255, 107, 53, 0.08),
+      0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 8%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 0 16px rgba(255, 107, 53, 0.12);
+      0 0 16px color-mix(in srgb, var(--color-brand-accent) 12%, transparent);
   }
 }
 
@@ -269,7 +342,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   color: var(--color-text-inverse);
   font-weight: 600;
   font-size: 0.875rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-label);
   text-decoration: none;
   transition: top 0.2s ease;
 }
@@ -327,21 +400,15 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
     90deg,
     transparent 0%,
     transparent 32%,
-    rgba(255, 160, 100, 0.02) 42%,
-    rgba(255, 160, 100, 0.16) 50%,
-    rgba(255, 160, 100, 0.03) 58%,
+    color-mix(in srgb, var(--color-brand-accent) 2%, transparent) 42%,
+    color-mix(in srgb, var(--color-brand-accent) 16%, transparent) 50%,
+    color-mix(in srgb, var(--color-brand-accent) 3%, transparent) 58%,
     transparent 68%,
     transparent 100%
   );
   transform: translateX(-120%);
   animation: verifySweep 7.2s ease-in-out infinite;
   pointer-events: none;
-}
-
-.hero-proof-destination {
-  color: rgba(255, 210, 180, 0.98);
-  text-shadow: 0 0 8px rgba(255, 160, 100, 0.08);
-  animation: proofDestinationSettle 520ms ease-out 180ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -373,11 +440,6 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
     opacity: 0;
   }
 
-  .hero-proof-destination {
-    animation: none;
-    text-shadow: none;
-  }
-
   .vm-motion-target,
   .vm-motion-line {
     will-change: auto;
@@ -390,7 +452,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
   .card-hover:hover {
     transform: none;
-    box-shadow: 0 8px 32px rgba(255, 107, 53, 0.06);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--color-brand-accent) 6%, transparent);
   }
 }
 
@@ -401,10 +463,10 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 8px 32px rgba(255, 107, 53, 0.06),
-    0 0 0 1px rgba(255, 107, 53, 0.12),
+    0 8px 32px color-mix(in srgb, var(--color-brand-accent) 6%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 12%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 107, 53, 0.32);
+  border-color: color-mix(in srgb, var(--color-brand-accent) 32%, transparent);
 }
 
 /* ═══ KB-GRADE DOCS TYPOGRAPHY ═══ */
@@ -532,8 +594,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .kb-page-answer {
   margin: 22px 0 0;
   padding: 18px 20px;
-  background: linear-gradient(180deg, rgba(255, 107, 53, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 107, 53, 0.06);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-accent) 6%, transparent) 0%, rgba(255, 255, 255, 0.015) 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 6%, transparent);
 }
 
 .kb-page-answer-label {
@@ -567,11 +629,13 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 .callout-title {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.18em;
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
   text-transform: uppercase;
   color: var(--color-brand-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .callout-warning .callout-title { color: var(--color-signal-amber); }
@@ -580,8 +644,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .callout-trust   .callout-title { color: var(--color-brand-accent); }
 
 .callout p {
-  font-size: 12px;
-  line-height: 1.7;
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -590,7 +654,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .docs-prose pre {
   background: var(--color-surface-bg-alt);
   border: 1px solid var(--color-surface-border);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   padding: 16px 20px;
   overflow-x: auto;
   font-family: var(--font-mono);
@@ -603,7 +667,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--color-brand-accent);
-  background: rgba(255, 107, 53, 0.08);
+  background: color-mix(in srgb, var(--color-brand-accent) 8%, transparent);
   padding: 1px 6px;
   letter-spacing: 0.04em;
 }
@@ -648,8 +712,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 .kb-related-link:hover {
   color: var(--color-brand-accent);
-  border-color: rgba(255, 107, 53, 0.3);
-  background: rgba(255, 107, 53, 0.04);
+  border-color: color-mix(in srgb, var(--color-brand-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-brand-accent) 4%, transparent);
 }
 
 /* ═══ KB-GRADE SECTION TAG ═══ */
@@ -757,7 +821,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   bottom: 4px;
   width: 2px;
   background: var(--color-brand-accent);
-  border-radius: 1px;
+  border-radius: var(--radius-none);
 }
 
 /* ═══ Doc Toolbar (Listen / Copy) ═══ */
@@ -766,8 +830,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 3px;
-  border-radius: 8px;
+  padding: 2px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--color-surface-border);
   background: var(--color-surface-card);
 }
@@ -777,7 +841,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: var(--radius-label);
   border: none;
   background: transparent;
   color: var(--color-text-muted);
@@ -797,10 +861,6 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 .doc-toolbar-btn--active {
   color: var(--color-brand-accent);
-}
-
-.doc-toolbar-btn--active:hover {
-  color: #ff8a5c;
 }
 
 .doc-toolbar-sep {
@@ -856,18 +916,18 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .doc-toolbar-wave-bar {
   display: block;
   width: 2.5px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, rgba(255, 140, 80, 0.9) 0%, rgba(255, 107, 53, 0.6) 100%);
-  box-shadow: 0 0 6px rgba(255, 107, 53, 0.25);
+  border-radius: var(--radius-label);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-accent) 90%, transparent) 0%, color-mix(in srgb, var(--color-brand-accent) 60%, transparent) 100%);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-brand-accent) 25%, transparent);
   animation: doc-wave-flow 0.8s ease-in-out infinite alternate;
 }
 
 .doc-toolbar-wave-bar:nth-child(2) {
-  background: linear-gradient(180deg, rgba(255, 107, 53, 0.85) 0%, rgba(255, 160, 100, 0.6) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-accent) 85%, transparent) 0%, color-mix(in srgb, var(--color-brand-accent) 60%, transparent) 100%);
 }
 
 .doc-toolbar-wave-bar:nth-child(4) {
-  background: linear-gradient(180deg, rgba(255, 160, 100, 0.85) 0%, rgba(255, 107, 53, 0.5) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-accent) 85%, transparent) 0%, color-mix(in srgb, var(--color-brand-accent) 50%, transparent) 100%);
 }
 
 .doc-toolbar-wave--paused .doc-toolbar-wave-bar {
@@ -922,7 +982,6 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   font-family: var(--font-mono);
   font-size: 11px;
   padding: 4px 0;
-  outline: none;
   letter-spacing: 0.06em;
 }
 
@@ -1008,18 +1067,23 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .sidebar-kb-item.active {
   color: var(--color-brand-accent);
   border-left-color: var(--color-brand-accent);
-  background: rgba(255, 107, 53, 0.04);
+  background: color-mix(in srgb, var(--color-brand-accent) 4%, transparent);
 }
 
 .sidebar-kb-item-prefix {
-  font-size: 9px;
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  font-weight: var(--type-mono-caps-wt);
+  letter-spacing: var(--type-mono-caps-ls);
+  text-transform: uppercase;
   color: var(--color-brand-muted);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .sidebar-kb-item.active .sidebar-kb-item-prefix {
-  color: rgba(255, 107, 53, 0.4);
+  color: color-mix(in srgb, var(--color-brand-accent) 40%, transparent);
 }
 
 /* ═══ PAGE TRANSITION ═══ */
@@ -1073,14 +1137,14 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 /* --- Gradient backgrounds --- */
 .hero-gradient {
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 107, 53, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(255, 107, 53, 0.04), transparent);
+    radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--color-brand-accent) 8%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 60%, color-mix(in srgb, var(--color-brand-accent) 4%, transparent), transparent);
 }
 .section-gradient-subtle {
-  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 107, 53, 0.03), transparent);
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--color-brand-accent) 3%, transparent), transparent);
 }
 .cta-gradient {
-  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255, 107, 53, 0.06), transparent);
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, color-mix(in srgb, var(--color-brand-accent) 6%, transparent), transparent);
 }
 
 /* --- Grid dot pattern --- */
@@ -1102,22 +1166,22 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   position: absolute;
   inset: -8px 20% 0 20%;
   height: 16px;
-  background: radial-gradient(ellipse at center, rgba(255, 107, 53, 0.06), transparent);
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-brand-accent) 6%, transparent), transparent);
   pointer-events: none;
 }
 
 /* --- Scrollbar --- */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: var(--radius-label); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
 /* Shared buyer reading scale; evidence viewers keep their own density. */
 .buyer-page .text-xs { font-size: .875rem; line-height: 1.5; }
 .buyer-page :is(p, dd, li).text-sm,
 .buyer-page :is(dl, ul, ol, details > div).text-sm { font-size: 1rem; line-height: 1.65; }
-.buyer-page :is(a, button, summary):focus-visible { outline: 3px solid var(--color-brand-accent); outline-offset: 3px; }
-.sidebar-kb-item { min-height: 44px; font-size: .875rem; line-height: 1.5; }
+.buyer-page :is(a, button, summary):focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
+.sidebar-kb-item { min-height: 44px; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; }
 .sidebar-kb-section-header { min-height: 44px; font-size: .875rem; line-height: 1.5; }
 .sidebar-kb-search-input { min-height: 44px; font-size: 1rem; }
 
@@ -1126,13 +1190,13 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   --finding-paper: #131312;
   --finding-ink: #e4e1da;
   --finding-muted: #b7b3aa;
-  --finding-accent: #f27a3d;
+  --finding-accent: var(--color-brand-accent);
   --finding-rule: #30302c;
   min-width: 0;
   padding: clamp(1.25rem, 2.5vw, 2.25rem);
   border: 1px solid var(--finding-rule);
   border-left: 2px solid var(--finding-accent);
-  border-radius: 4px;
+  border-radius: var(--radius-card);
   background: var(--finding-paper);
   color: var(--finding-ink);
   color-scheme: dark;
@@ -1182,7 +1246,7 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .reviewFinding_findingEvidence dl { padding-top: 1.5rem; font-size: .9375rem; line-height: 1.7; }
 .reviewFinding_findingEvidence :is(dt, dd) { color: var(--finding-muted); }
 .reviewFinding_findingEvidence dt { color: var(--finding-ink); }
-.reviewFinding_findingEvidence summary:focus-visible { outline: 2px solid var(--finding-accent); outline-offset: 6px; border-radius: 2px; }
+.reviewFinding_findingEvidence summary:focus-visible { outline: var(--focus-width) solid var(--finding-accent); outline-offset: var(--focus-offset); border-radius: var(--radius-label); }
 @media (max-width: 700px) {
   .reviewFinding_specimenLabel, .reviewFinding_findingMeta, .reviewFinding_findingFacts dt { font-size: .75rem; }
   .reviewFinding_specimenLabel { margin-bottom: 1.25rem; }
@@ -1195,65 +1259,96 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 
 /* Figma public chrome; scoped to the shared website header and footer. */
 .simple-public-navbar { font-family: var(--font-sans); }
-.simple-public-navbar > div { max-width: 1200px; min-height: 64px; padding-block: 0; gap: 20px; }
-.simple-public-navbar a { font-weight: 400; }
-.simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: 8px; font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
+.simple-public-navbar > div { max-width: 1200px; min-height: 63px; padding-block: 0; gap: 20px; }
+.simple-public-navbar :is(a, button) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
+.simple-public-navbar button span { font-size: inherit; line-height: inherit; font-weight: inherit; letter-spacing: 0; }
+.simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
 .simple-public-navbar a:not([data-public-primary-cta]):hover { transform: none; }
 /* Footer palette is scoped here so shared shell styles cannot override it. */
 footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
   background: var(--color-surface-bg);
   font-family: var(--font-sans);
 }
+html[data-theme="light"] footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
+  background: var(--color-surface-bg-alt);
+  border-top-color: var(--color-surface-border-accent);
+}
+html[data-theme="light"] .simple-public-footer [data-footer-review-cta] {
+  border-color: var(--color-surface-border-strong);
+}
 .simple-public-footer > div { padding-block: 40px max(32px, env(safe-area-inset-bottom)); }
-.simple-public-footer .footer-main { display: grid; gap: 32px; }
+.simple-public-footer .footer-main { display: grid; gap: 32px; grid-template-areas: "brand" "nav" "contact" "theme"; }
+.simple-public-footer [data-footer-brand-lockup] { grid-area: brand; }
+.simple-public-footer .footer-navigation { grid-area: nav; min-width: 0; }
+.simple-public-footer .footer-contact { grid-area: contact; }
+.simple-public-footer .footer-theme { grid-area: theme; min-width: 0; }
+.simple-public-footer .footer-theme [data-theme-memory] { margin-top: 0; max-width: 320px; }
+.simple-public-footer .footer-theme [data-theme-memory] > p:first-child { font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-text-muted); }
+.simple-public-footer .footer-navigation > nav { min-width: 0; }
+.simple-public-footer .footer-navigation .flex { min-width: 0; width: 100%; }
+@media (max-width: 419px) {
+  .simple-public-footer .footer-navigation { grid-template-columns: 1fr; }
+}
 .simple-public-footer .footer-heading,
-.simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted); }
-.simple-public-footer nav a { font-weight: 400; color: var(--color-text-secondary); }
+.simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); font-weight: var(--type-eyebrow-wt); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; color: var(--color-text-muted); }
+.simple-public-footer :is(nav a, .footer-legal a) { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; color: var(--color-text-secondary); }
 .simple-public-footer nav a:hover { color: var(--color-text-primary); }
-.simple-public-footer [data-footer-brand-lockup] > a > span { font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .18em; }
-.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: #b89b62; }
+.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; color: var(--color-brand-accent); }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
-.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: 4px; background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
-.simple-public-footer [data-footer-review-cta]:hover { background: #24221d; border-color: #b89b62; }
-.simple-public-footer [data-public-contact-route] p { max-width: 34ch; }
+.simple-public-footer [data-public-contact-route] p { max-width: 34ch; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-public-contact-route] a { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; }
+.simple-public-footer .footer-legal span { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-theme-memory],
+.simple-public-footer [data-theme-memory] p { font-size: var(--type-small-size); line-height: var(--type-small-lh); font-weight: 400; letter-spacing: 0; }
+.simple-public-footer [data-theme-memory] button { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: var(--type-ui-wt); letter-spacing: 0; text-transform: none; }
+html[data-theme="light"] .simple-public-footer [data-theme-memory] button {
+  border-color: var(--color-surface-border-strong);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+html[data-theme="light"] .simple-public-footer [data-theme-memory] button[data-theme-choice="light"] {
+  border-color: var(--color-brand-accent);
+  background: var(--color-brand-accent-subtle);
+  color: var(--color-text-primary);
+}
+.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: var(--radius-control); background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-size: var(--type-ui-size); line-height: var(--type-ui-lh); font-weight: 500; letter-spacing: 0; text-transform: none; }
+.simple-public-footer [data-footer-review-cta]:hover { background: var(--color-surface-card-hover); border-color: var(--color-brand-accent); color: var(--color-text-primary); }
 .simple-public-footer [data-public-contact-route] a[href^="mailto:"] { overflow-wrap: anywhere; display: inline-flex; align-items: center; }
-.simple-public-footer .footer-resources { display: flex; flex-wrap: wrap; column-gap: 24px; margin-top: 28px; }
-.simple-public-footer .footer-legal { margin-top: 12px; }
+.simple-public-footer .footer-legal { margin-top: 40px; }
 @media (min-width: 768px) {
-  .simple-public-footer .footer-main { grid-template-columns: 1fr 1fr; }
-  .simple-public-footer [data-footer-brand-lockup] { grid-column: 1 / -1; }
+  .simple-public-footer .footer-main { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "brand brand brand" "nav nav nav" "contact theme theme"; column-gap: 32px; }
+  .simple-public-footer .footer-navigation { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: 32px; }
 }
 @media (min-width: 1200px) {
-  .simple-public-footer > div { padding-top: 48px; }
-  .simple-public-footer .footer-main { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; }
-  .simple-public-footer [data-footer-brand-lockup] { grid-column: auto; }
+  .simple-public-footer > div { padding-top: 56px; }
+  .simple-public-footer .footer-main { grid-template-columns: minmax(0, .9fr) minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "brand nav contact" "theme nav contact"; gap: 24px 48px; }
 }
 @media (max-width: 767px) {
   .simple-public-footer > div { padding-block: 32px calc(96px + env(safe-area-inset-bottom)); }
   .simple-public-footer .footer-contact { border-top: 1px solid var(--color-surface-border); padding-top: 24px; }
 }
 
-@media (max-width: 700px) { .simple-public-navbar > div { min-height: 60px; gap: 12px; } }
+@media (min-width: 1200px) { .simple-public-navbar > div { min-height: 72px; } }
+@media (max-width: 700px) { .simple-public-navbar > div { gap: 12px; } }
 
 /* Compact public enquiry, shared by the landing and price pages. */
-.simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 400 !important; }
-.simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: 8px; background: var(--color-surface-bg); border-color: var(--color-text-muted); }
+.simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: var(--type-small-size) !important; line-height: var(--type-small-lh) !important; font-weight: 400 !important; }
+.simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: var(--radius-control); background: var(--color-surface-bg); border-color: var(--color-text-muted); }
 .simple-enquiry-form select option { background: var(--color-surface-bg); color: var(--color-text-primary); }
-.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: 8px; font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
+.simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: var(--radius-control); font-family: var(--font-sans) !important; font-size: var(--type-ui-size) !important; line-height: var(--type-ui-lh) !important; font-weight: var(--type-ui-wt) !important; letter-spacing: 0 !important; text-transform: none !important; }
 
 /* Shared public navigation follows the approved presentation palette. */
-body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar:not([data-public-signup-variant="secondary"]) a[data-public-primary-cta] {
-  background: var(--color-text-primary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-text-primary);
-  border-radius: 4px;
+body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar a[data-public-primary-cta] {
+  background: var(--color-action-fill);
+  color: var(--color-action-on-fill);
+  border-color: var(--color-action-fill);
+  border-radius: var(--radius-control);
 }
 
 /* Shared interaction treatment for the quiet public website. */
 body:has(nav[data-public-presentation="quiet"]) {
-  --public-control-radius: 6px;
-  --public-control-hover: #e7e2d7;
-  --public-control-pressed: #d8d1c3;
+  --public-control-hover: var(--color-action-fill-hover);
+  --public-control-pressed: var(--color-action-fill-press);
 }
 body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary) {
   transition-property: color, background-color, border-color, opacity;
@@ -1261,8 +1356,8 @@ body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, te
   transition-timing-function: ease;
 }
 body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--color-brand-accent) !important;
-  outline-offset: 3px !important;
+  outline: var(--focus-width) solid var(--focus) !important;
+  outline-offset: var(--focus-offset) !important;
   box-shadow: none !important;
 }
 body:has(nav[data-public-presentation="quiet"]) :is(.public-cta-button, [data-public-primary-cta], [data-footer-review-cta], button[type="submit"], input:not([type="checkbox"]):not([type="radio"]), select, textarea) {

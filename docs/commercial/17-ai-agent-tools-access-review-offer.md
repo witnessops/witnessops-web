@@ -1,5 +1,7 @@
 # AI Agent Tools & Access Review — current commercial contract
 
+> **Historical / superseded for new sales.** This status line is stale. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work. See the 8 October 2026 amendment in [18-two-offer-portfolio.md](./18-two-offer-portfolio.md).
+
 - Status: **CURRENT SOURCE CONTRACT / CUSTOMER-SPECIFIC ACCEPTANCE REQUIRED**
 - Effective in source: 2026-09-28
 - Commercial offer ID: `agent-tools-access-review`

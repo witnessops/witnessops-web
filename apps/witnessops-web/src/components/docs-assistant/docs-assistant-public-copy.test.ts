@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 function source(filename: string): string {
   return readFileSync(resolve(__dirname, filename), "utf-8");
@@ -60,10 +60,10 @@ test("Ask WitnessOps retains the answer text when a suggested review is shown", 
   const page = source("docs-assistant-page.tsx");
   const inline = source("docs-assistant-inline.tsx");
 
-  assert.match(widget, /<p className=\{styles\.answerCopy\}>\{answer\.content\}<\/p>\s*\{answer\.answer && [^\n]+\(\s*<AskWitnessOpsCommercialFitCard/);
+  assert.match(widget, /<p className=\{styles\.answerCopy\}><PriceText text=\{answer\.content\} \/><\/p>\s*\{answer\.answer && [^\n]+\(\s*<AskWitnessOpsCommercialFitCard/);
   assert.doesNotMatch(widget, /!hasPaidScopeCta\s*&&\s*\(\s*<p className=\{styles\.answerCopy\}/);
-  assert.match(page, /\{msg\.content\}\s*<\/p>\s*\{msg\.answer && \(/);
-  assert.match(inline, /\{askWitnessOpsAnswerText\(response\)\}\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
+  assert.match(page, /<PriceText text=\{msg\.content\} \/>\s*<\/p>\s*\{msg\.answer && \(/);
+  assert.match(inline, /<PriceText text=\{askWitnessOpsAnswerText\(response\)\} \/>\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
   assert.match(widget, /Try a product question/);
   assert.match(widget, /Ask a follow-up/);
   assert.match(widget, /Start over/);
@@ -96,20 +96,21 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(card, /offer\.delivery_label/);
   assert.match(card, /Fit signal only/);
   assert.match(card, /Public Workflow labels are request-shape references/);
-  assert.match(response, /import \{ PRIMARY_OFFER \}/);
-  assert.match(response, /offerId=\$\{PRIMARY_OFFER\.id\}&source=ask/);
+  assert.match(response, /PUBLIC_AGENT_ACTION_OFFER\.requestRoute/);
+  assert.match(response, /source=ask/);
+  assert.doesNotMatch(response, /offerId=\$\{PRIMARY_OFFER\.id\}/);
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
-  assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
-  assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
   assert.equal(
-    PRIMARY_OFFER.unit.en,
-    "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action",
+    PUBLIC_AGENT_ACTION_OFFER.unit.en,
+    "One consequential agent or automation action",
   );
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit and scoping request first");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
-    PRIMARY_OFFER.timing.en,
-    "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
+    PUBLIC_AGENT_ACTION_OFFER.timing.en,
+    "Delivery timing agreed in the signed statement of work",
   );
 });
 
@@ -150,6 +151,12 @@ test("Ask WitnessOps does not cover the dedicated review request form", () => {
   assert.match(content, /HIDDEN_WIDGET_PATHS/);
   assert.match(content, /"\/review\/request"/);
   assert.match(content, /"\/review\/sample-cases\/ai-agent-action-proof-run"/);
+  assert.equal(
+    content.includes("shouldShowDocsAssistantWidget") &&
+      content.includes('"/docs"') &&
+      content.includes('"/check"'),
+    true,
+  );
 });
 
 test("Ask WitnessOps yields the floating layer while the mobile navigation is open", () => {
@@ -216,6 +223,16 @@ test("Ask WitnessOps keeps a human handoff available alongside the composer and 
   assert.match(contact, /No mailing list or review booking/);
   assert.match(contact, /No review begins here/);
   assert.match(contact, /Do not include secrets/);
+});
+
+test("Ask WitnessOps widget uses only the locked type weights", () => {
+  const styles = source("docs-assistant-widget.module.css");
+  assert.match(styles, /font-synthesis:\s*none/);
+  const weights = [...styles.matchAll(/font-weight:\s*([^;]+)/g)].map((match) => match[1].trim());
+  assert.ok(weights.length > 0);
+  for (const weight of weights) {
+    assert.ok(["300", "400", "500", "inherit", "normal"].includes(weight), weight);
+  }
 });
 
 test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoint", () => {

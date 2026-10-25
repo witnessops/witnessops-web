@@ -2,7 +2,24 @@
 
 Status: superseded implementation contract retained for migration provenance
 
-> **Commercial-positioning supersession — 2026-09-02.** This v1 funnel record preserves the route, checker, and implementation decisions made for the 2026-08-27 handoff. Its former offer name, price reference, and statement about the paid offer are not current commercial authority. The stable `/catalog/workflows` route and `bounded-workflow-review` identifier now present [Agent Action Security Review](../commercial/16-agent-workflow-reconstruction-offer.md): one consequential agent or automation action, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method.
+> **Historical commercial chronology — clarified 12 October 2026.** This v1
+> record preserves the route, checker and implementation decisions from the
+> 27 August 2026 handoff. On 2 September 2026, the then-current one-action offer
+> used `/catalog/workflows` and `bounded-workflow-review`, with the 10-working-day
+> delivery term recorded in its [historical contract](../commercial/16-agent-workflow-reconstruction-offer.md).
+> The distinct inventory-plus-action review later reused `/catalog/workflows`
+> under `agent-tools-access-review`. Both identities are historical for new sales;
+> their original agreements and this document's technical evidence remain intact.
+>
+> **Current new-sales guidance:** Agent Action Security Review uses
+> `agent-action-security-review` and
+> `/review/request?offerId=agent-action-security-review`; it has no dedicated
+> detail route. `/catalog/workflows` remains the historical inventory-review route.
+> Current delivery timing is agreed in the signed statement of work, not the
+> historical fixed-day term. Use the [current commercial index](../commercial/README.md)
+> and matching current [scope agreement](../commercial/06-scope-agreement-skeleton.md).
+> The preserved funnel and paid-offer wording below describes the earlier design,
+> not current sales or publication authority.
 
 This document preserves the compact product and evidence contract for the WitnessOps agent-verification customer journey. The Grok artifact is a reconstructable design reference, not production code or production authority.
 

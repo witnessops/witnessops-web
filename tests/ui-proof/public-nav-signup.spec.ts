@@ -34,7 +34,7 @@ for (const width of [390, 1440]) {
       if (route === '/') {
         await page.screenshot({ path: testInfo.outputPath(`nav-${width}.png`) });
         if (width === 390) await page.keyboard.press('Escape');
-        const hero = page.getByRole('link', { name: 'Scope an agent review', exact: true }).first();
+        const hero = page.locator('[data-ui-proof-id="homepage-hero"]').getByRole('link', { name: 'Request an agent review', exact: true });
         await expect(hero).toBeVisible();
         expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
         await expect(page.locator('main').getByRole('link', { name: 'Start a free check', exact: true })).toHaveAttribute('href', '/check');
@@ -54,8 +54,11 @@ for (const width of [390, 1440]) {
     const nav = page.getByRole('navigation', { name: 'Primary navigation', exact: true });
     if (width === 390) await nav.getByRole('button', { name: 'Open primary navigation' }).click();
     await nav.getByRole('button', { name: 'Resources', exact: true }).click();
-    await expect(nav.locator('a[href="/library"]:visible')).toHaveAttribute('href', '/library');
-    await nav.getByRole('button', { name: 'Expert help', exact: true }).click();
+    const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
+    await expect(sampleLink).toHaveCount(1);
+    await expect(sampleLink).toContainText('Sample work');
+    await expect(sampleLink).toHaveAttribute('href', '/review/sample-cases');
+    await nav.getByRole('button', { name: 'Reviews', exact: true }).click();
     await nav.locator('a[href="/catalog"]:visible').click();
     await expect(page).toHaveURL(/\/catalog$/);
   });

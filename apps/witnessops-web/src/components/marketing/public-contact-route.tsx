@@ -2,13 +2,13 @@ import { PublicNavigationLink as Link } from "@/components/shared/document-navig
 
 import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import {
-  PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_GENERAL_HREF,
   PUBLIC_CONTACT_PRIMARY_HREF,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
+  PUBLIC_SALES_REVIEW_EMAIL,
   productContactSubject,
-  publicContactMailto,
+  salesReviewMailto,
 } from "@/lib/public-contact";
 import {
   POLISH_NO_SECRETS_NOTE,
@@ -85,18 +85,18 @@ export function PublicContactRoute({
         <Link
           href={primaryHref}
           data-footer-review-cta
-          className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg ${actionClass}`}
+          className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-sm border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 ${actionClass}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
           {premium ? (polish ? "Zapytaj eksperta" : "Ask an expert") : routeCta}
         </Link>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
-          {polish ? "Lub napisz:" : "Or email:"}{" "}
+          {polish ? "Lub napisz:" : "Discuss a review:"}{" "}
           <a
-            href={publicContactMailto(mailtoSubject)}
-            className="inline-flex min-h-11 items-center text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+            href={salesReviewMailto(mailtoSubject)}
+            className="inline-flex min-h-11 max-w-full items-center break-all text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary "
           >
-            {PUBLIC_CONTACT_EMAIL}
+            {PUBLIC_SALES_REVIEW_EMAIL}
           </a>
         </p>
         <p className="mt-1 text-xs leading-5 text-text-muted">
@@ -127,12 +127,12 @@ export function PublicContactRoute({
         </Link>
       </p>
       <p className="mt-1 text-sm leading-6 text-text-secondary">
-        {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
+        {polish ? "Kontakt zapasowy:" : "Discuss a review:"}{" "}
         <a
-          href={publicContactMailto(mailtoSubject)}
-          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
+          href={salesReviewMailto(mailtoSubject)}
+          className="break-all text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
         >
-          {PUBLIC_CONTACT_EMAIL}
+          {PUBLIC_SALES_REVIEW_EMAIL}
         </a>
       </p>
       <p className="mt-2 text-xs leading-5 text-text-muted">

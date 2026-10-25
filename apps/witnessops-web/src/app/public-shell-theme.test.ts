@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import test from "node:test";
 
 const globals = readFileSync(resolve(__dirname, "globals.css"), "utf-8");
@@ -19,17 +19,20 @@ const footer = readFileSync(
 
 test("the package token file owns the canonical public palette", () => {
   for (const marker of [
-    "--color-surface-bg: #050505",
-    "--color-surface-bg-alt: #0d0d0c",
-    "--color-surface-inset: #141413",
-    "--color-surface-card: #0d0d0c",
-    "--color-surface-border: #2a2a28",
-    "--color-surface-border-strong: #474743",
-    "--color-text-primary: #fafaf7",
-    "--color-text-secondary: #d0ccc4",
-    "--color-text-muted: #9e9a93",
-    "--color-brand-accent: #f27a3d",
-    "--color-text-inverse: #160b05",
+    "--color-surface-bg: #0b0c0b",
+    "--color-surface-bg-alt: #0f100e",
+    "--color-surface-inset: #0b0c0b",
+    "--color-surface-card: #121310",
+    "--color-surface-card-hover: #1a1b17",
+    "--color-surface-border: #2f302b",
+    "--color-surface-border-strong: #6f6e64",
+    "--color-text-primary: #f5f1e8",
+    "--color-text-secondary: #c3bfb6",
+    "--color-text-muted: #a7a399",
+    "--color-brand-accent: #b89b62",
+    "--color-text-inverse: #0b0c0b",
+    "--color-action-fill: #b89b62",
+    "--color-action-on-fill: #0b0c0b",
   ]) {
     assert.ok(tokens.includes(marker), `Missing canonical token: ${marker}`);
   }
@@ -58,9 +61,157 @@ test("the public footer consumes the shared palette without a local override", (
   );
 });
 
-test("navbar and footer marks inherit the active shell contrast", () => {
+test("navbar and footer lockups use the canonical black and white files", () => {
   for (const source of [navbar, footer]) {
-    assert.match(source, /tone="current"/);
-    assert.match(source, /text-text-primary/);
+    assert.match(source, /witnessops-horizontal-black\.svg/);
+    assert.match(source, /witnessops-horizontal-white\.svg/);
+    assert.match(source, /alt="WitnessOps"/);
+    assert.doesNotMatch(source, /tone="current"/);
+    assert.doesNotMatch(source, /WitnessOpsMark/);
   }
+});
+
+function block(selector: string) {
+  const start = tokens.indexOf(`${selector} {`);
+  assert.ok(start >= 0, `Missing token block: ${selector}`);
+  return tokens.slice(start, tokens.indexOf("}", start));
+}
+
+test("the dark theme declares every palette token instead of inheriting legacy values", () => {
+  const dark = block('html[data-theme="dark"] body:not(:has([data-admin-shell]))');
+  for (const marker of [
+    "--color-surface-card-hover: #1a1b17",
+    "--color-surface-border-hover: #a7a399",
+    "--color-surface-border-accent: #4c432d",
+    "--color-brand-primary-hover: #ffffff",
+    "--color-brand-secondary: #c3bfb6",
+    "--color-brand-muted: #a7a399",
+    "--color-action-fill: #b89b62",
+    "--color-action-fill-hover: #cbb27d",
+    "--color-action-fill-press: #a68b57",
+    "--color-action-on-fill: #0b0c0b",
+    "--color-signal-red: #f28b93",
+    "--color-signal-green: #86be8e",
+    "--color-signal-amber: #d6c49e",
+    "--color-signal-copper: #b89b62",
+    "--color-accent-trust: #b89b62",
+    "--hero-glow: none",
+    "--grid-minor: #171815",
+    "--grid-major: #22231f",
+    "--crop-color: #b89b62",
+    "--crop-offset: 13px",
+  ]) {
+    assert.ok(dark.includes(marker), `Missing dark token: ${marker}`);
+  }
+});
+
+test("the light theme uses brass-washed daylight, including grid and crop tokens", () => {
+  const light = block('html[data-theme="light"] body:not(:has([data-admin-shell]))');
+  for (const marker of [
+    "--color-surface-bg: #f5f1e8",
+    "--color-surface-bg-alt: #ede7d7",
+    "--color-surface-inset: #efe9da",
+    "--color-surface-card: #fcfaf4",
+    "--color-surface-card-hover: #f7f3e9",
+    "--color-surface-border: #ddd3bb",
+    "--color-surface-border-accent: #c9b687",
+    "--color-surface-border-strong: #7a7258",
+    "--color-surface-border-hover: #4f4a38",
+    "--color-text-secondary: #38362f",
+    "--color-text-muted: #55524a",
+    "--color-brand-accent: #6c5631",
+    "--color-brand-accent-hover: #5a4825",
+    "--color-brand-accent-press: #4a3b1c",
+    "--color-action-fill: #6c5631",
+    "--color-action-fill-hover: #5a4825",
+    "--color-action-fill-press: #4a3b1c",
+    "--color-action-on-fill: #f5f1e8",
+    "--color-signal-red: #8b4b48",
+    "--color-signal-green: #365f4a",
+    "--color-signal-amber: #6c5631",
+    "--focus: #6c5631",
+    "--grid-minor: #eee8d8",
+    "--grid-major: #e3d9bf",
+    "--crop-color: #8a7240",
+    "--crop-arm: 20px",
+    "--crop-stroke: 2px",
+    "--crop-frame-opacity: 0.9",
+    "--card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+  ]) {
+    assert.ok(light.includes(marker), `Missing light token: ${marker}`);
+  }
+  assert.match(light, /--hero-glow: radial-gradient\(ellipse 65% 85% at 28% 0%, rgba\(184, 155, 98, 0\.34\)/);
+});
+
+test("the grid and crop marks render in light and dark and stay off in print and forced colours", () => {
+  assert.match(globals, /html\[data-theme="dark"\] body:not\(:has\(\[data-admin-shell\]\)\),\s*html\[data-theme="light"\] body:not\(:has\(\[data-admin-shell\]\)\) \{\s*background-image:\s*linear-gradient\(to right, var\(--grid-major\)/);
+  assert.match(globals, /html\[data-theme="light"\] body:not\(:has\(\[data-admin-shell\]\)\) :is\(\.crop, \.crop-frame\)::before/);
+  assert.match(globals, /@media print, \(forced-colors: active\) \{\s*html body \{ background-image: none !important; \}/);
+});
+
+const LEGACY_PALETTE = /f27a3d|ff6b35|242[\s,]+122[\s,]+61|255[\s,]+107[\s,]+53|255[\s,]+140[\s,]+80|255[\s,]+160[\s,]+100|64a8ac|100[\s,]+168[\s,]+172/i;
+
+function cssFiles(root: string): string[] {
+  return readdirSync(root, { recursive: true, encoding: "utf-8" })
+    .filter((file) => file.endsWith(".css"))
+    .map((file) => join(root, file));
+}
+
+test("shipped public CSS carries no legacy orange or teal", () => {
+  const files = [
+    ...cssFiles(resolve(__dirname, "..")),
+    ...cssFiles(resolve(__dirname, "../../../../packages/ui/tokens")),
+    ...cssFiles(resolve(__dirname, "../../../../packages/ui/src")),
+  ];
+  assert.ok(files.length > 20, "CSS scan found too few files");
+  for (const file of files) {
+    assert.doesNotMatch(readFileSync(file, "utf-8"), LEGACY_PALETTE, `Legacy palette value in ${file}`);
+  }
+});
+
+test("public primary controls carry no legacy orange shadow", () => {
+  for (const file of [
+    "../components/shared/navbar.tsx",
+    "../components/shared/mobile-navbar-menu.tsx",
+    "../components/shared/cta-button.tsx",
+    "../components/support/support-intake.tsx",
+    "(marketing)/contact/contact-form.tsx",
+  ]) {
+    assert.doesNotMatch(readFileSync(resolve(__dirname, file), "utf-8"), LEGACY_PALETTE, file);
+  }
+});
+
+test("public peach hover and dark-on-accent text are retired from the homepage and quiet controls", () => {
+  const buyerHomepage = readFileSync(resolve(__dirname, "../components/marketing/buyer-homepage.module.css"), "utf-8");
+  for (const css of [globals, buyerHomepage]) {
+    assert.doesNotMatch(css, /ff8a4c|ff8a5c|160b05/i);
+  }
+  assert.match(globals, /--public-control-hover: var\(--color-action-fill-hover\);/);
+  assert.match(globals, /--public-control-pressed: var\(--color-action-fill-press\);/);
+  assert.match(tokens, /--color-action-fill: #6c5631;\s*--color-action-fill-hover: #5a4825;\s*--color-action-fill-press: #4a3b1c;/);
+});
+
+test("the skill verifier button uses the standard action tokens", () => {
+  const css = readFileSync(resolve(__dirname, "../components/verify/skill-console.module.css"), "utf-8");
+  assert.doesNotMatch(css, /ff8a4c|160b05/i);
+  assert.match(css, /\.verifyButton \{[^}]*background: var\(--color-action-fill\);[^}]*color: var\(--color-action-on-fill\);/);
+  assert.match(css, /\.verifyButton:hover:not\(:disabled\) \{[^}]*background: var\(--color-action-fill-hover\);/);
+  assert.match(css, /\.verifyButton:active:not\(:disabled\) \{[^}]*background: var\(--color-action-fill-press\);/);
+});
+
+test("the witnessed CRM sample case uses brass instead of orange", () => {
+  const css = readFileSync(resolve(__dirname, "review/sample-cases/witnessed-crm-status-change/witnessed-action.module.css"), "utf-8");
+  assert.doesNotMatch(css, /ef7f45|239[\s,]+127[\s,]+69|ff945b|1d0d06/i);
+  assert.match(css, /--witness-accent: #b89b62;/);
+  assert.match(css, /background: rgba\(184, 155, 98, 0\.12\);/);
+  assert.match(css, /color: #0b0c0b;/);
+  assert.match(css, /background: #cbb27d;/);
+});
+
+test("English and Polish headers share the ink primary rule", () => {
+  const presentation = readFileSync(resolve(__dirname, "public-presentation.css"), "utf-8");
+  for (const source of [navbar, globals, presentation]) {
+    assert.doesNotMatch(source, /data-public-signup-variant/);
+  }
+  assert.match(globals, /body:has\(nav\[data-public-presentation="quiet"\]\) \.simple-public-navbar a\[data-public-primary-cta\] \{\s*background: var\(--color-action-fill\);/);
 });

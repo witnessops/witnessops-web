@@ -1,0 +1,285 @@
+/* Public type roles. Every size, line-height and weight reads a --type-* token.
+   Bands live on :root in @witnessops/ui/tokens/witnessops.css. */
+
+body:has(nav[data-public-presentation="quiet"]) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(h1, h2, h3) {
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h1 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h1-size);
+  line-height: var(--type-h1-lh);
+  letter-spacing: var(--type-h1-ls);
+  font-weight: var(--type-h1-wt);
+  max-width: var(--measure-heading);
+  text-wrap: balance;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h1[data-display-title] {
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-lh);
+  letter-spacing: var(--type-display-ls);
+  font-weight: var(--type-display-wt);
+  max-width: 14ch;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h1[data-chronicle-title] {
+  font-size: var(--type-h1-size);
+  line-height: var(--type-h1-lh);
+  letter-spacing: var(--type-h1-ls);
+  font-weight: var(--type-h1-wt);
+  max-width: var(--measure-heading);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] h2 {
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: var(--type-h3-wt);
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] :is(p, li) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-long-lh);
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-legal-body] > p:first-child {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  max-width: var(--measure-small);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, h2)[class*="eyebrow"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h2 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h2-size);
+  line-height: var(--type-h2-lh);
+  letter-spacing: var(--type-h2-ls);
+  font-weight: var(--type-h2-wt);
+  max-width: var(--measure-h2);
+  text-wrap: balance;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h3 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: var(--type-h3-wt);
+  text-wrap: balance;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content h4 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-lh);
+  letter-spacing: 0;
+  font-weight: var(--type-h4-wt);
+}
+
+:where(body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, li, dd)) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  letter-spacing: 0;
+  text-wrap: pretty;
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2,
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 {
+  margin: var(--type-h2-gap) 0 8px;
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: var(--type-h3-wt);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h3 {
+  margin: 24px 0 8px;
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-lh);
+  letter-spacing: 0;
+  font-weight: var(--type-h4-wt);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose :is(p, li) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-long-lh);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(code, pre, kbd, samp) {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-size);
+  line-height: var(--type-mono-lh);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.pl-copy-review {
+  padding-inline: 16px;
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-lh);
+  letter-spacing: 0;
+}
+
+.wo-display, .wo-h1, .wo-h2, .wo-h3, .wo-h4, .wo-lead, .wo-body, .wo-body-long, .wo-small, .wo-caption, .wo-eyebrow, .wo-ui, .wo-price, .wo-mono, .wo-mono-caps, .wo-prose {
+  font-synthesis: none;
+}
+.wo-display { font-family: var(--font-sans); font-size: var(--type-display-size); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); text-wrap: balance; max-width: 14ch; }
+.wo-h1 { font-family: var(--font-sans); font-size: var(--type-h1-size); line-height: var(--type-h1-lh); letter-spacing: var(--type-h1-ls); font-weight: var(--type-h1-wt); text-wrap: balance; max-width: var(--measure-heading); }
+.wo-h2 { font-family: var(--font-sans); font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); text-wrap: balance; max-width: var(--measure-h2); }
+.wo-h3 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-wrap: balance; }
+.wo-h4 { font-family: var(--font-sans); font-size: var(--type-h4-size); line-height: var(--type-h4-lh); letter-spacing: 0; font-weight: var(--type-h4-wt); }
+.wo-lead { font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); letter-spacing: 0; max-width: var(--measure-lead); text-wrap: pretty; }
+.wo-body { font-size: var(--type-body-size); line-height: var(--type-body-lh); letter-spacing: 0; max-width: var(--measure-body); text-wrap: pretty; }
+.wo-body-long { font-size: var(--type-body-size); line-height: var(--type-body-long-lh); letter-spacing: 0; max-width: var(--measure-body); text-wrap: pretty; }
+.wo-small { font-size: var(--type-small-size); line-height: var(--type-small-lh); letter-spacing: 0; max-width: var(--measure-small); }
+.wo-caption { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); letter-spacing: 0; }
+.wo-eyebrow { font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
+.wo-ui { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); letter-spacing: 0; font-weight: var(--type-ui-wt); text-transform: none; }
+.wo-price { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
+.wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
+.wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; font-variant-numeric: tabular-nums lining-nums; }
+.wo-prose { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; }
+.wo-chapter-index { font-family: var(--font-mono); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: 0; font-weight: 400; }
+
+/* Role classes outrank the element rules inside the public main. */
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-display { font-family: var(--font-sans); font-size: var(--type-display-size); line-height: var(--type-display-lh); letter-spacing: var(--type-display-ls); font-weight: var(--type-display-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h1 { font-family: var(--font-sans); font-size: var(--type-h1-size); line-height: var(--type-h1-lh); letter-spacing: var(--type-h1-ls); font-weight: var(--type-h1-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h2 { font-family: var(--font-sans); font-size: var(--type-h2-size); line-height: var(--type-h2-lh); letter-spacing: var(--type-h2-ls); font-weight: var(--type-h2-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h3,
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-chapter-index { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-chapter-index { font-family: var(--font-mono); letter-spacing: 0; font-weight: 400; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-h4 { font-size: var(--type-h4-size); line-height: var(--type-h4-lh); letter-spacing: 0; font-weight: var(--type-h4-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-lead { font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); letter-spacing: 0; max-width: var(--measure-lead); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-body { font-size: var(--type-body-size); line-height: var(--type-body-lh); letter-spacing: 0; max-width: var(--measure-body); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-body-long { font-size: var(--type-body-size); line-height: var(--type-body-long-lh); letter-spacing: 0; max-width: var(--measure-body); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-small { font-size: var(--type-small-size); line-height: var(--type-small-lh); letter-spacing: 0; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-caption { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); letter-spacing: 0; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-eyebrow { font-family: var(--font-sans); font-size: var(--type-eyebrow-size); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); font-weight: var(--type-eyebrow-wt); text-transform: uppercase; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-ui { font-family: var(--font-sans); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); letter-spacing: 0; font-weight: var(--type-ui-wt); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-price { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose :is(p, li, blockquote):not(.wo-mono-caps):not(.wo-small) { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; max-width: var(--measure-prose); }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .wo-prose-stack > * + * { margin-top: var(--type-prose-gap); }
+
+/* CSS-module roles lose to the element rules above. These selectors outrank them. */
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="kicker"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content #ask-sovereign-title {
+  font-family: var(--font-sans);
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-lh);
+  letter-spacing: 0;
+  font-weight: var(--type-h4-wt);
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="preview_status"]:not([class*="statusText"]) {
+  font-family: var(--font-mono);
+  font-size: var(--type-mono-caps-size);
+  line-height: var(--type-mono-caps-lh);
+  letter-spacing: var(--type-mono-caps-ls);
+  font-weight: var(--type-mono-caps-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content p[class*="lead"] {
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-lh);
+  letter-spacing: 0;
+  font-weight: 400;
+  max-width: var(--measure-lead);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="review-offer_content"] :is(p, li):not([class*="lead"]):not([class*="price"]):not([class*="eyebrow"]) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-long-lh);
+  letter-spacing: 0;
+  max-width: var(--measure-body);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="review-offer_rail"] :is(p, li):not([class*="price"]) {
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  letter-spacing: 0;
+  font-weight: 400;
+  max-width: var(--measure-small);
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content p[class*="_price"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-lh);
+  letter-spacing: var(--type-h3-ls);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums lining-nums;
+  text-transform: none;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content a[class*="min-h-11"]:not([class*="wo-"]) {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, summary)[class*="textLink"],
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, summary)[class*="sectionLink"] {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) #main-content [class*="deliverableStrip"] li {
+  font-family: var(--font-sans);
+  font-size: var(--type-eyebrow-size);
+  line-height: var(--type-eyebrow-lh);
+  letter-spacing: var(--type-eyebrow-ls);
+  font-weight: var(--type-eyebrow-wt);
+  text-transform: uppercase;
+  max-width: none;
+}
+
+body:has(nav[data-public-presentation="quiet"]) summary {
+  font-family: var(--font-sans);
+  font-size: var(--type-ui-size);
+  line-height: var(--type-ui-lh);
+  font-weight: var(--type-ui-wt);
+  letter-spacing: 0;
+  text-transform: none;
+}

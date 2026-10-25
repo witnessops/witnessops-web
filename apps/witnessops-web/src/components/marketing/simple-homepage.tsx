@@ -1,54 +1,119 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
-import { buyerRequestHref, buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { INTERNET_FOOTPRINT_REVIEW_OFFER, PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
+import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
+import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { PriceText } from "@/lib/price-unit";
+import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
+import { InlineArrow } from "./inline-arrow";
 import styles from "./simple-homepage.module.css";
 
-const footprintAmount = new Intl.NumberFormat("en-IE", { style: "currency", currency: INTERNET_FOOTPRINT_REVIEW_OFFER.price.currency, maximumFractionDigits: 0 }).format(Number(INTERNET_FOOTPRINT_REVIEW_OFFER.price.amount));
-const agentRequest = buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id);
+const text = HOMEPAGE_TWO_OFFER_COPY.en;
+
 function TextLink({ href, children, uiProofId }: { href: string; children: React.ReactNode; uiProofId?: string }) {
   return <Link className={styles.textLink} href={href} data-ui-proof-id={uiProofId}>{children}<ArrowUpRight size={15} strokeWidth={1.5} aria-hidden="true" /></Link>;
 }
 
+const IS = [
+  ["Two bounded reviews", "One named consequential action, or one authorised internet-facing system."],
+  ["Written findings tied to evidence", "Each claim sits beside the evidence that supports it."],
+  ["Explicit unknowns", "What the evidence did not establish is named in writing."],
+  ["Proof you keep", "Findings and evidence are handed over at readout."],
+] as const;
+
+const ISNT = [
+  ["Not a SOC or ongoing monitoring", "A review covers agreed scope at a point in time."],
+  ["Not a full penetration test", "External checks are low-impact and unauthenticated."],
+  ["Not certification", "No badge, seal or attestation is issued."],
+  ["Not remediation", "Recommendations are prioritised; the fixing stays with your team."],
+] as const;
+
+const STEPS = [
+  ["01", "Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts."],
+  ["02", "Start without secrets", "The initial enquiry uses a short, non-secret description. Do not send credentials or production evidence."],
+  ["03", "Understand the limits", "The report distinguishes supported findings, unavailable evidence and questions the review could not answer."],
+] as const;
+
+const PRINCIPLES = [
+  ["You keep the record", "Findings and evidence are handed over, not held behind a login."],
+  ["Others can check it", "Each claim cites its evidence, so a third party can follow it."],
+  ["Limits are written down", "Out of scope and unknown are stated, not implied."],
+  ["Scope is authorised", "Work starts from a signed statement of work and written authority."],
+] as const;
+
 export function SimpleHomepage() {
+  const services = publicPaidReviews(BUYER_SERVICES);
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agents-act">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
-      <div className={styles.frame}>
+      {process.env.NEXT_PUBLIC_BRAND_WATERMARK === "1" ? (
+        <div className={styles.watermark} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-black.svg" alt="" className="wo-watermark wo-watermark--black" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
+        </div>
+      ) : null}
+      <div className={`${styles.frame} ${styles.heroFrame} crop-frame`}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>REPEATABLE EVIDENCE. INDEPENDENT FINDINGS.</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">Agents act. WitnessOps reviews what yours are permitted to do.</h1>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">AI agents can send, buy, write, delete and call other systems. WitnessOps reviews what yours are permitted to do and what happens when they do it — and reviews the ground they stand on, starting with what the internet can already see. Bounded scope, findings in writing, evidence attached.</p>
-          <div className={styles.actions}>
-            <Link className={styles.primary} href={agentRequest} data-ui-proof-id="homepage-hero-primary-cta">Scope an agent review</Link>
-            <Link className={styles.secondary} href={buyerRequestHref("en")} data-ui-proof-id="homepage-footprint-cta">Start with the {footprintAmount} footprint review</Link>
+          <span className={styles.rule} aria-hidden="true" />
+          <p className={styles.eyebrow}>Sovereign evidence</p>
+          <h1 data-ui-proof-id="homepage-hero-headline"><span className={styles.heroLine}>Proof other</span> <span className={styles.heroLine}>people can{"\u00A0"}check.</span></h1>
+        </div>
+        <div className={styles.split}>
+          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+          <div>
+            <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
+            <div className={styles.actions}>
+              {services.map((service) => {
+                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : <>{text.externalCta} <InlineArrow /></>}</Link>;
+              })}
+            </div>
           </div>
         </div>
       </div>
     </section>
-    <section className={styles.offers} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
-      <h2 id="home-reviews-heading" className={styles.eyebrow}>Two reviews. Scope before work.</h2>
-      <div className={styles.cards}>
-        <article data-home-offer="agent-tools-access"><h3>{PRIMARY_OFFER.name.en}</h3><p>Tooling observed in agreed sources, one selected connection and one consequential action path.</p><p className={styles.price}>{PRIMARY_OFFER.price.en}</p><p className={styles.timing}>{PRIMARY_OFFER.timing.en}</p><TextLink href={agentRequest}>Request a scope and fixed quote</TextLink></article>
-        <article data-home-offer="footprint"><h3>{INTERNET_FOOTPRINT_REVIEW_OFFER.name.en}</h3><p>What your organisation exposes to the open internet, found, evidenced and written up.</p><p className={styles.price}>{INTERNET_FOOTPRINT_REVIEW_OFFER.price.en}</p><TextLink href={buyerRequestHref("en")}>Request the review</TextLink></article>
+    <nav className={styles.linkRow} aria-label="Review paths">
+      <div className={styles.frame}>
+        <div className={styles.sectionLinks}>
+          <TextLink href="/reviews">Compare the two reviews</TextLink>
+          <TextLink href="/pricing">See all prices</TextLink>
+          <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
+        </div>
       </div>
-      <aside className={styles.freeCheck} aria-label="Free check — not a review"><div><h3>Free check</h3><p>A public hostname snapshot. No account needed. <strong>Not a review.</strong></p></div><TextLink href="/check">Start a free check</TextLink></aside>
-      <div className={styles.sectionLinks}><TextLink href="/catalog">Explore the full catalogue</TextLink><TextLink href="/pricing">See all prices</TextLink><TextLink href="/early-access">How the app works</TextLink><TextLink href="/library" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink></div>
+    </nav>
+    <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
+      <p className={styles.eyebrow}>WitnessOps reviews</p>
+      <h2>Two focused security reviews.</h2>
+      <p>Understand what one agent action can do and what your internet-facing system exposes. Compare the scope, evidence and price before requesting a review.</p>
+      <p>{text.reviewsBody}</p>
+      <div className={styles.cards}>
+        {services.map((service) => {
+          const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
+          return <article key={service.id} className="crop" data-home-offer={service.id}>
+            <p className={styles.eyebrow}>{ai ? "Review one agent action" : "Review external exposure"}</p>
+            <h3>{service.name.en}</h3>
+            <p className={styles.price}><PriceText text={ai ? text.aiPrice : text.externalPrice} /></p>
+            <p>{ai ? text.aiQuestion : text.externalQuestion}</p>
+            <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
+            <p>{ai ? text.aiDescription : text.externalDescription}</p>
+            <p className={styles.scope}>{ai ? text.aiScopeNote : text.externalScopeNote}</p>
+            <p className={styles.timing}>{service.timing.en}</p>
+            <TextLink href={buyerServiceRequestHref("en", service)}>{ai ? text.aiCta : text.externalCta}</TextLink>
+          </article>;
+        })}
+      </div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
-    </div></section>
-    <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
-      <div className={styles.sectionIntro}><p className={styles.eyebrow}>Clear boundaries</p><h2 id="home-limits-heading">Useful evidence.<br />Explicit limits.</h2><p>What the app can and cannot do.</p></div>
-      <div className={styles.limits}>{[
-        ["The app can", "Record one bounded check", "Keep the snapshot", "Compare saved checks", "Read and export reports", "Keep findings tied to their evidence"],
-        ["The app cannot", "Monitor continuously", "Certify a system", "Replace a penetration test", "Treat missing data as a finding", "Make a universal verification claim"],
-      ].map(([title, ...items]) => <div key={title}><h3>{title}</h3><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
+        <span className={styles.rule} aria-hidden="true" />
         <p className={styles.eyebrow}>Historical synthetic one-action example</p>
-        <h2 id="home-specimen-heading">One consequential action, taken apart.</h2>
+        <h2 id="home-specimen-heading">{text.evidenceHeadline}</h2>
         <div className={styles.labels}><span>Illustrative · shape only</span><span>Designed, not executed</span></div>
-        <dl className={styles.specimenRows}>
+        <dl className={`${styles.specimenRows} crop`}>
           <div><dt>Consequential action</dt><dd><code>refund.issue</code> above a set amount, through a payments API — an illustrative action, not an executed one.<small>One action per review. Chosen with you before evidence rules are agreed.</small></dd></div>
           <div><dt>Executing identity</dt><dd><code>svc-agent-refunds@example.com</code> — a reserved example of the identity an agent would run as, not the one that configured it.</dd></div>
           <div><dt>Permission / authority boundary</dt><dd>The roles, scopes and approval steps that stand between an identity and an action, as configured.<small>Read from configuration under agreed evidence rules. Not assumed; none inspected here.</small></dd></div>
@@ -59,9 +124,32 @@ export function SimpleHomepage() {
         <p className={styles.note}>Illustrative. Reserved documentation names. No customer, execution, verification, authorisation failure or result is shown. This is the shape of a record, not a record.</p>
       </div>
     </section>
+    <section className={styles.section} aria-labelledby="home-process-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
+      <p className={styles.eyebrow}>How a review works</p>
+      <h2 id="home-process-heading">Scope before work. Evidence beside findings.</h2>
+      <ol className={styles.steps}>
+        {STEPS.map(([index, title, body]) => <li key={index}><span>{index}</span><h3>{title}</h3><p>{body}</p></li>)}
+      </ol>
+      <p className={styles.note}><Link href="/early-access">How the app works</Link></p>
+    </div></section>
+    <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
+      <p className={styles.eyebrow}>What this is · what this isn’t</p>
+      <h2 id="home-limits-heading">Useful evidence. Explicit limits.</h2>
+      <div className={styles.limits}>
+        <div><h3>What this is</h3><ul>{IS.map(([title, body]) => <li key={title}><strong>{title}</strong> {body}</li>)}</ul></div>
+        <div><h3>What this isn’t</h3><ul>{ISNT.map(([title, body]) => <li key={title}><strong>{title}</strong> {body}</li>)}</ul></div>
+      </div>
+    </div></section>
+    <section className={styles.section} aria-label="What sovereign means here"><div className={styles.frame}>
+      <span className={styles.rule} aria-hidden="true" />
+      <p className={styles.eyebrow}>What sovereign means here</p>
+      <ul className={styles.principles}>{PRINCIPLES.map(([title, body]) => <li key={title}><h3>{title}</h3><p>{body}</p></li>)}</ul>
+    </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><p className={styles.eyebrow}>Ask an expert</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
-      <div className={styles.enquiryForm}><ContactForm compact landing /></div>
+      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div className={`${styles.enquiryForm} crop`}><ContactForm compact landing /></div>
     </div></section>
   </main>;
 }

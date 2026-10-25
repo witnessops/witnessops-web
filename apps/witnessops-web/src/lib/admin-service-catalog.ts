@@ -3,6 +3,8 @@ import {
   buyerServiceRequestHref,
   type BuyerService,
 } from "@/lib/buyer-services";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
+import { publicPaidReviews } from "@/lib/public-paid-reviews";
 
 export type AdminServiceRequestContext =
   | {
@@ -59,19 +61,21 @@ function requestContext(requestHref: string): AdminServiceRequestContext {
 }
 
 /**
- * Admin projection of the canonical buyer-facing catalogue.
+ * Admin projection of the two public paid reviews.
  *
- * The public catalogue remains authoritative for offer names and commercial
- * terms. This projection makes request-handoff gaps visible without turning a
- * buyer offer into an immutable execution contract.
+ * The buyer registry stays authoritative for offer names and commercial
+ * terms. `publicPaidReviews` selects Agent Action Security Review and
+ * External Attack Surface Review. This projection makes request-handoff
+ * gaps visible without turning a buyer offer into an immutable execution
+ * contract.
  */
 export function listAdminBuyerServices(): AdminBuyerServiceRecord[] {
-  return BUYER_SERVICES.map((service) => {
+  return publicPaidReviews(BUYER_SERVICES).map((service) => {
     const requestHref = buyerServiceRequestHref("en", service);
     return {
       id: service.id,
       name: service.name.en,
-      price: service.price.en,
+      price: plainOfferPrice(service.price.en),
       timing: service.timing.en,
       publicHref: service.detailHref.en ?? "/catalog",
       requestHref,

@@ -11,7 +11,7 @@ export function CodeBlock({
 }: CodeBlockProps) {
   return (
     <pre
-      className={`overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0a0e17] p-5 font-mono text-sm leading-6 shadow-lg ${className}`}
+      className={`overflow-x-auto rounded-md border border-white/[0.08] bg-[#0a0e17] p-5 font-mono text-sm leading-6 shadow-lg ${className}`}
     >
       <code>
         {lines.map((line, i) => (

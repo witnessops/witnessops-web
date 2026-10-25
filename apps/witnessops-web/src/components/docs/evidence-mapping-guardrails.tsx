@@ -1,6 +1,6 @@
 export function EvidenceMappingGuardrails() {
   return (
-    <section className="mb-10 rounded-2xl border border-amber-500/30 bg-amber-500/8 p-6">
+    <section className="mb-10 rounded-md border border-amber-500/30 bg-amber-500/8 p-6">
       <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
         Evidence-Mapping Template Only
       </div>

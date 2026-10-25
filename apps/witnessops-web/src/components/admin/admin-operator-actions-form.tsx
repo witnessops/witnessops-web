@@ -166,7 +166,7 @@ export function AdminOperatorActionsForm(props: Props) {
         Intake has been rejected by an operator. Approval is blocked.
         {props.claimantActionBlocking ? (
           <div
-            className="mt-1 text-[10px] text-amber-300"
+            className="mt-1 text-[10px] text-[#8B4B48]"
             data-testid="coexisting-claimant-action-note"
           >
             A claimant action is also blocking approval. Rescinding the
@@ -234,7 +234,7 @@ export function AdminOperatorActionsForm(props: Props) {
     <div className={styles.queueActionPanel} data-testid="operator-actions-form">
       {props.claimantActionBlocking ? (
         <div
-          className="mb-2 rounded border border-amber-900/60 bg-amber-950/20 p-2 text-[11px] text-amber-200"
+          className="mb-2 rounded border border-[#8B4B48] bg-[#F7ECEA] p-2 text-[11px] text-[#8B4B48]"
           data-testid="coexisting-claimant-action-note"
         >
           A claimant terminal action (retract or disagree) is currently

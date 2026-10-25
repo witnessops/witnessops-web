@@ -30,7 +30,7 @@ test("settings and system authorize at the leaf because partial RSC requests can
   }
 });
 
-test("admin system exposes Google logout without legacy key material", () => {
+test("admin system keeps local Google logout without a password or Entra end-session", () => {
   const systemPage = readFileSync(resolve(__dirname, "system/page.tsx"), "utf-8");
   const authInfo = readFileSync(
     resolve(__dirname, "../../../components/admin/admin-auth-info.tsx"),
@@ -41,6 +41,10 @@ test("admin system exposes Google logout without legacy key material", () => {
   assert.match(combinedSource, /End Google Workspace Session/);
   assert.match(combinedSource, /action="\/api\/admin\/logout" method="post"/);
   assert.doesNotMatch(combinedSource, /keyHash|Key hash|payload\.hash/);
+  assert.doesNotMatch(
+    combinedSource,
+    /type="password"|password sign-in|login\.microsoftonline\.com|end_session/i,
+  );
 });
 
 test("admin separates buyer services from immutable product contracts", () => {

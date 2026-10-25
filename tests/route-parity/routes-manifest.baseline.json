@@ -12,6 +12,12 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/og/home",
+      "destination": "/og/witnessops-home-editorial-a-2026-10.png",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/og/home(?:/)?$"
+    },
+    {
       "source": "/review/sample-cases/offsec-shield-local-server-audit",
       "destination": "/review/sample-cases/local-server-security-review",
       "statusCode": 308,
@@ -25,51 +31,75 @@
     },
     {
       "source": "/catalog/offsec-access-removed",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/offsec-access-removed(?:/)?$"
     },
     {
       "source": "/pl/catalog/offsec-access-removed",
-      "destination": "/pl/catalog",
+      "destination": "/pl/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/pl/catalog/offsec-access-removed(?:/)?$"
     },
     {
+      "source": "/pl/catalog",
+      "destination": "/pl/reviews",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/pl/catalog(?:/)?$"
+    },
+    {
+      "source": "/pl/catalog/offsec-external-exposure",
+      "destination": "/pl/reviews/external-attack-surface-review",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/pl/catalog/offsec-external-exposure(?:/)?$"
+    },
+    {
       "source": "/catalog/offsec",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/offsec(?:/)?$"
     },
     {
       "source": "/access-change-proof-run",
-      "destination": "/catalog/workflows",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/access-change-proof-run(?:/)?$"
     },
     {
       "source": "/catalog/workflow-s",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-s(?:/)?$"
     },
     {
       "source": "/catalog/workflow-m",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-m(?:/)?$"
     },
     {
       "source": "/catalog/workflow-l",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-l(?:/)?$"
     },
     {
       "source": "/catalog/workflow-rerun",
-      "destination": "/catalog",
+      "destination": "/reviews",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-rerun(?:/)?$"
+    },
+    {
+      "source": "/catalog",
+      "destination": "/reviews",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog(?:/)?$"
+    },
+    {
+      "source": "/catalog/offsec-external-exposure",
+      "destination": "/reviews/external-attack-surface-review",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/offsec-external-exposure(?:/)?$"
     }
   ],
   "headers": [
@@ -367,6 +397,14 @@
       "namedRegex": "^/catalog/(?<nxtPskuId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/chronicles/[slug]",
+      "regex": "^/chronicles/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/chronicles/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/docs/[...slug]",
       "regex": "^/docs/(.+?)(?:/)?$",
       "routeKeys": {
@@ -452,6 +490,12 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
     },
     {
       "page": "/access-change-proof-run",
@@ -544,12 +588,6 @@
       "namedRegex": "^/admin/system(?:/)?$"
     },
     {
-      "page": "/apple-icon.png",
-      "regex": "^/apple\\-icon\\.png(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/apple\\-icon\\.png(?:/)?$"
-    },
-    {
       "page": "/articles/when-civilization-can-no-longer-understand-itself",
       "regex": "^/articles/when\\-civilization\\-can\\-no\\-longer\\-understand\\-itself(?:/)?$",
       "routeKeys": {},
@@ -584,6 +622,18 @@
       "regex": "^/catalog/workflows(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/catalog/workflows(?:/)?$"
+    },
+    {
+      "page": "/chronicles",
+      "regex": "^/chronicles(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/chronicles(?:/)?$"
+    },
+    {
+      "page": "/company",
+      "regex": "^/company(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/company(?:/)?$"
     },
     {
       "page": "/contact",
@@ -628,10 +678,10 @@
       "namedRegex": "^/governed\\-execution(?:/)?$"
     },
     {
-      "page": "/icon.png",
-      "regex": "^/icon\\.png(?:/)?$",
+      "page": "/how-it-works",
+      "regex": "^/how\\-it\\-works(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/icon\\.png(?:/)?$"
+      "namedRegex": "^/how\\-it\\-works(?:/)?$"
     },
     {
       "page": "/library",
@@ -656,12 +706,6 @@
       "regex": "^/media\\-kit(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/media\\-kit(?:/)?$"
-    },
-    {
-      "page": "/og/home",
-      "regex": "^/og/home(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/og/home(?:/)?$"
     },
     {
       "page": "/operators",
@@ -694,6 +738,12 @@
       "namedRegex": "^/pl/catalog/professional\\-public\\-footprint\\-audit(?:/)?$"
     },
     {
+      "page": "/pl/company",
+      "regex": "^/pl/company(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/company(?:/)?$"
+    },
+    {
       "page": "/pl/contact",
       "regex": "^/pl/contact(?:/)?$",
       "routeKeys": {},
@@ -712,10 +762,28 @@
       "namedRegex": "^/pl/docs(?:/)?$"
     },
     {
+      "page": "/pl/docs/assistant",
+      "regex": "^/pl/docs/assistant(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/docs/assistant(?:/)?$"
+    },
+    {
       "page": "/pl/library",
       "regex": "^/pl/library(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/pl/library(?:/)?$"
+    },
+    {
+      "page": "/pl/media-kit",
+      "regex": "^/pl/media\\-kit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/media\\-kit(?:/)?$"
+    },
+    {
+      "page": "/pl/privacy",
+      "regex": "^/pl/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/privacy(?:/)?$"
     },
     {
       "page": "/pl/review/request",
@@ -730,10 +798,40 @@
       "namedRegex": "^/pl/review/request/confirmed(?:/)?$"
     },
     {
+      "page": "/pl/reviews",
+      "regex": "^/pl/reviews(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/reviews(?:/)?$"
+    },
+    {
+      "page": "/pl/reviews/agent-action-security-review",
+      "regex": "^/pl/reviews/agent\\-action\\-security\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/reviews/agent\\-action\\-security\\-review(?:/)?$"
+    },
+    {
+      "page": "/pl/reviews/external-attack-surface-review",
+      "regex": "^/pl/reviews/external\\-attack\\-surface\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/reviews/external\\-attack\\-surface\\-review(?:/)?$"
+    },
+    {
+      "page": "/pl/security",
+      "regex": "^/pl/security(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/security(?:/)?$"
+    },
+    {
       "page": "/pl/support",
       "regex": "^/pl/support(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/pl/support(?:/)?$"
+    },
+    {
+      "page": "/pl/terms",
+      "regex": "^/pl/terms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/terms(?:/)?$"
     },
     {
       "page": "/pl/verify",
@@ -746,6 +844,12 @@
       "regex": "^/pl/why\\-witnessops(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/pl/why\\-witnessops(?:/)?$"
+    },
+    {
+      "page": "/pl/withdrawn-offer",
+      "regex": "^/pl/withdrawn\\-offer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/withdrawn\\-offer(?:/)?$"
     },
     {
       "page": "/pricing",
@@ -874,6 +978,24 @@
       "namedRegex": "^/review/sample\\-report(?:/)?$"
     },
     {
+      "page": "/reviews",
+      "regex": "^/reviews(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reviews(?:/)?$"
+    },
+    {
+      "page": "/reviews/agent-action-security-review",
+      "regex": "^/reviews/agent\\-action\\-security\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reviews/agent\\-action\\-security\\-review(?:/)?$"
+    },
+    {
+      "page": "/reviews/external-attack-surface-review",
+      "regex": "^/reviews/external\\-attack\\-surface\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reviews/external\\-attack\\-surface\\-review(?:/)?$"
+    },
+    {
       "page": "/robots.txt",
       "regex": "^/robots\\.txt(?:/)?$",
       "routeKeys": {},
@@ -962,6 +1084,12 @@
       "regex": "^/why\\-witnessops(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/why\\-witnessops(?:/)?$"
+    },
+    {
+      "page": "/withdrawn-offer",
+      "regex": "^/withdrawn\\-offer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/withdrawn\\-offer(?:/)?$"
     }
   ],
   "dataRoutes": [],

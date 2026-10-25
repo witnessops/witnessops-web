@@ -36,7 +36,7 @@ export function AdminAuthorizeRunAction({ runId }: Props) {
         type="button"
         onClick={() => void submit()}
         disabled={isPending}
-        className="rounded border border-amber-700 bg-amber-900/40 px-3 py-1 text-xs font-mono text-amber-100"
+        className="rounded border border-[#8B4B48] bg-[#F7ECEA] px-3 py-1 text-xs font-mono text-[#8B4B48]"
       >
         {isPending ? "Authorizing..." : "Authorize / start"}
       </button>

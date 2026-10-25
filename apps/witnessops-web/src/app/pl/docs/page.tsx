@@ -6,7 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 const EN_DOCS = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
 export const metadata: Metadata = {
-  title: "Dokumentacja WitnessOps",
+  title: "Dokumentacja",
   description:
     "Dowiedz się, co dostarcza WitnessOps, co wspiera wynik i jak go sprawdzić.",
   alternates: languageAlternates("/pl/docs", {
@@ -27,7 +27,7 @@ export default function PolishDocsPage() {
           sprawdzić.
         </h1>
         <p className="mt-5 max-w-3xl text-sm leading-7 text-text-muted">
-          Utworzenie konta jest bezpłatne i nie wymaga karty. Dostęp do obszaru roboczego wymaga osobnego zaproszenia zarządzanego przez WitnessOps. Aplikacja działa w przeglądarce; CLI jest opcjonalne. Przeglądy eksperckie wymagają osobnego uzgodnienia zakresu i ceny.
+          Utworzenie konta jest bezpłatne i nie wymaga karty. Po potwierdzeniu adresu e-mail możesz utworzyć własny obszar roboczy bez zaproszenia. Dołączenie do obszaru roboczego innej osoby wymaga zaproszenia od jego właściciela. Aplikacja działa w przeglądarce; CLI jest opcjonalne. Przeglądy eksperckie wymagają osobnego uzgodnienia zakresu i ceny.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton href={getDocsUrl("witnessops", "/getting-started", { mode: "canonical" })} variant="primary" label="Pierwsze kroki (EN)" />

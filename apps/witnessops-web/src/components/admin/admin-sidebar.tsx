@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { LayoutDashboard, Inbox, Settings, BookOpen, Users, Package, PlayCircle, Send, ReceiptText, Search, ClipboardList } from "lucide-react";
+import type { HealthChipModel } from "@/lib/admin/admin-health-display";
+import { HealthGlyph } from "./admin-health-glyph";
 import { AdminNavLink } from "./admin-nav-link";
 import { AdminWizSidebarIdentity } from "./admin-wiz-brief";
 import styles from "./admin.module.css";
@@ -19,7 +21,7 @@ const navItems = [
   { href: "/admin/settings", label: "Settings / Health", icon: Settings },
 ] as const;
 
-export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
+export function AdminSidebar({ mobileOpen, onClose, health }: { mobileOpen?: boolean; onClose?: () => void; health?: HealthChipModel | null }) {
   const pathname = usePathname();
 
   return (
@@ -27,7 +29,7 @@ export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; on
       <div className={styles.sidebarHeader}>
         <a href="/admin" className={styles.sidebarBrand} aria-label="WitnessOps Admin Console">
           <Image
-            src="/brand/witnessops-mark-white.svg"
+            src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg"
             alt="WitnessOps"
             width={32}
             height={18}
@@ -55,6 +57,12 @@ export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; on
               icon={item.icon}
               active={active}
               onClick={onClose}
+              trailing={item.href === "/admin/settings" && health ? (
+                <span className={styles.navHealthChip} title={health.text}>
+                  <HealthGlyph kind={health.kind} size={14} />
+                  <span className={styles.visuallyHidden}>{health.text}</span>
+                </span>
+              ) : null}
             />
           );
         })}

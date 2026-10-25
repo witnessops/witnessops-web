@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { plainOfferPrice } from "@/lib/offer-price-unit";
 
 export const CANONICAL_ORIGIN = "https://witnessops.com";
 
@@ -14,36 +16,25 @@ export type PublicLanguagePair = {
 
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
-  { en: "/catalog", pl: "/pl/catalog" },
-  { en: "/library", pl: "/pl/library" },
+  { en: "/reviews", pl: "/pl/reviews" },
   {
-    en: "/customer-security-review",
-    pl: "/pl/customer-security-review",
+    en: "/reviews/agent-action-security-review",
+    pl: "/pl/reviews/agent-action-security-review",
   },
-  { en: "/review/request", pl: "/pl/review/request" },
+  { en: "/library", pl: "/pl/library" },
+  { en: "/contact", pl: "/pl/contact" },
   { en: "/docs", pl: "/pl/docs" },
   { en: "/support", pl: "/pl/support" },
   { en: "/verify", pl: "/pl/verify" },
   { en: "/why-witnessops", pl: "/pl/why-witnessops" },
+  { en: "/company", pl: "/pl/company" },
+  { en: "/privacy", pl: "/pl/privacy" },
+  { en: "/terms", pl: "/pl/terms" },
+  { en: "/security", pl: "/pl/security" },
+  { en: "/media-kit", pl: "/pl/media-kit" },
   {
-    en: "/catalog/offsec-local-audit",
-    pl: "/pl/catalog/offsec-local-audit",
-  },
-  {
-    en: "/catalog/offsec-external-exposure",
-    pl: "/pl/catalog/offsec-external-exposure",
-  },
-  {
-    en: "/catalog/offsec-launch-ready",
-    pl: "/pl/catalog/offsec-launch-ready",
-  },
-  {
-    en: "/catalog/offsec-custody-ops",
-    pl: "/pl/catalog/offsec-custody-ops",
-  },
-  {
-    en: "/catalog/offsec-incident-ready",
-    pl: "/pl/catalog/offsec-incident-ready",
+    en: "/reviews/external-attack-surface-review",
+    pl: "/pl/reviews/external-attack-surface-review",
   },
   {
     en: "/catalog/professional-public-footprint-audit",
@@ -133,7 +124,7 @@ export function primaryOfferServiceJsonLd() {
       url,
       lowPrice: PRIMARY_OFFER.price.amount,
       priceCurrency: PRIMARY_OFFER.price.currency,
-      description: `${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.timing.en}.`,
+      description: `${plainOfferPrice(PRIMARY_OFFER.price.en)}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}.`,
     },
   } as const;
 }
@@ -174,7 +165,7 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
       url,
       price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
       priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
-      description: `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
+      description: `${plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
@@ -182,6 +173,43 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
         valueAddedTaxIncluded: EXTERNAL_ATTACK_SURFACE_OFFER.price.vatIncluded,
       },
     },
+  } as const;
+}
+
+export function homepageReviewsJsonLd() {
+  const reviews = [
+    {
+      name: PUBLIC_AGENT_ACTION_OFFER.name.en,
+      price: PUBLIC_AGENT_ACTION_OFFER.price.amount,
+      url: canonicalUrl("/reviews#agent-action-security-review"),
+    },
+    {
+      name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+      price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
+      url: canonicalUrl("/reviews/external-attack-surface-review"),
+    },
+  ] as const;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "WitnessOps reviews",
+    itemListElement: reviews.map((review, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Service",
+        name: review.name,
+        url: review.url,
+        provider: { "@id": organizationJsonLd["@id"] },
+        offers: {
+          "@type": "Offer",
+          price: review.price,
+          priceCurrency: "EUR",
+          valueAddedTaxIncluded: false,
+        },
+      },
+    })),
   } as const;
 }
 
@@ -194,7 +222,7 @@ export function publicExposureBreadcrumbJsonLd(locale: "en" | "pl") {
     },
     {
       name: isPolish ? "Usługi" : "Services",
-      path: isPolish ? "/pl/catalog" : "/catalog",
+      path: isPolish ? "/pl/reviews" : "/reviews",
     },
     {
       name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],

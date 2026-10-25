@@ -1,4 +1,44 @@
-# Operator playbook — complete P0 path
+# Operator playbook — current two-offer delivery path
+
+Start with the [current portfolio](./18-two-offer-portfolio.md), the matching
+[scope agreement block](./06-scope-agreement-skeleton.md), and the
+[external offer record](./10-public-exposure-review-offer.md) when applicable.
+The historical playbooks below are not current new-sales instructions.
+
+## Current lifecycle
+
+| Stage | Required outcome |
+| --- | --- |
+| Enquiry | Non-secret description of one consequential agent action or one internet-facing system, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
+| Fit | Select `agent-action-security-review` or external product `OFFSEC-EXTERNAL-EXPOSURE`; confirm that the bounded review fits the need. Do not reinterpret a historical request or offer the private pilot. |
+| Agreement | Confirm selected scope, exclusions, authority, handling, inputs, payment terms and capacity. Agent: €2,500 excl. VAT. External: €1,900 excl. VAT. Delivery timing agreed in the signed statement of work. |
+| Work | Agent: read, inspect, reconstruct and report one action. External: approved low-impact unauthenticated checks and manual validation within the signed target schedule and caps. Stop and re-scope when the authorised boundary no longer holds. |
+| Package | Match the selected offer's deliverables, link findings to evidence, prioritise recommendations and state unknowns. Do not promise execution, remediation, certification or complete security. |
+| Handover | Agent: action map, sourced findings, prioritised recommendations, documented unknowns and readout. External: package from the offer record and one focused retest of reported findings. |
+| Follow-up | External only: one focused retest of reported findings within 30 calendar days of initial report handover; record that date and the agreed retest window. No agent retest or additional/late external retest is offered. |
+
+For external work, the maximum scope is one system, 1 registrable root domain,
+10 confirmed first-party hostnames, 3 customer-attributed public IP addresses
+and 20 public service endpoints. An endpoint is a confirmed hostname or IP plus
+protocol and port. Caps are not testing authority; the signed schedule controls.
+No exploitation or authenticated testing is included. This is not a penetration test.
+
+## Current operator checks
+
+- [ ] The selected review, identifiers and accepted terms agree; the public
+  new-sales choice contains exactly two reviews, with the free check separate.
+- [ ] Initial enquiry, scope acceptance, payment and permission to work remain
+  separate; collection or testing starts only after the applicable gates.
+- [ ] The package matches the agreed scope, preserves evidence limits and
+  labels samples as synthetic. Historical templates are not sent as current terms.
+- [ ] Handover and any included external retest are recorded against the
+  accepted agreement. Existing historical agreements keep their original terms.
+
+## Historical complete P0 path — CSR and One Server only
+
+The following earlier playbooks, sales routes, six-card check and deployment
+references are retained for historical context. They are superseded for current
+new sales and do not authorise work, publication or a change to issued terms.
 
 End-to-end steps for **CSR** and **One Server**. Use with the learning guide (`00`) and templates (`01`–`06`).
 

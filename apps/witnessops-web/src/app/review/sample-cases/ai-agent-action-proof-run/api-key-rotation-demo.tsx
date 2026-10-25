@@ -6,6 +6,7 @@ import {
   sha256HexToIntegrity,
   sha256Utf8,
 } from "@/lib/api-key-rotation-browser-integrity";
+import { InlineArrow } from "@/components/marketing/inline-arrow";
 import styles from "./api-key-rotation-demo.module.css";
 
 const specimenRoot = "/samples/api-key-rotation/v1";
@@ -496,7 +497,7 @@ export function ApiKeyRotationDemo({
             </dl>
             <p>Browser execution is gated by Subresource Integrity using this displayed pin.</p>
             <a className={styles.textLink} href={sourceHref} target="_blank" rel="noopener noreferrer">
-              Inspect the fixed source specimen at commit {sourceCommitShort} ↗
+              Inspect the fixed source specimen at commit {sourceCommitShort} <InlineArrow direction="up-right" />
             </a>
             <p>The specimen source commit pins the evidence package. The same-origin browser verifier is
               separately owned by this website and gated by the SHA-256 pin shown above.</p>

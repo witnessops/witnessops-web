@@ -1,5 +1,1 @@
-import { permanentRedirect } from "next/navigation";
-
-export default function PolishContactPage() {
-  permanentRedirect("/pl/review/request");
-}
+export { default, generateMetadata } from "../review/request/page";

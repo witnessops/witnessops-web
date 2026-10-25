@@ -20,6 +20,8 @@ test("primary docs sidebar is hub-only and stays small", async () => {
     "buyer path hub missing",
   );
 
+  assert.ok(hrefs.includes("/docs/getting-started/free-check"), "free check guide missing");
+
   // Session 3 tier-1 hubs
   for (const hub of [
     "/docs/faq",
