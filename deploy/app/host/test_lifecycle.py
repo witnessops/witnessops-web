@@ -19,7 +19,7 @@ ARCHIVE = 'b' * 64
 
 
 def install_candidate(path, image=IMAGE, archive=ARCHIVE, image_digest=None, config_digest=CONFIG_DIGEST,
-                      vulnerabilities=0, secrets=0, archive_sha=None, identity=None, checksum=None):
+                      vulnerabilities=0, findings=0, archive_sha=None, identity=None, checksum=None):
     root = path / 'ci-candidate'
     root.mkdir(exist_ok=True)
     (root / 'identity.json').write_text(identity if identity is not None else json.dumps({
@@ -28,7 +28,7 @@ def install_candidate(path, image=IMAGE, archive=ARCHIVE, image_digest=None, con
     }))
     (root / 'image.sha256').write_text(checksum if checksum is not None else f'{archive}  image.tar\n')
     (path / 'image-security-approved').write_text(json.dumps({
-        'imageConfig': image, 'vulnerabilities': vulnerabilities, 'secrets': secrets,
+        'imageConfig': image, 'vulnerabilities': vulnerabilities, 'secrets': findings,
         'archiveSha256': archive if archive_sha is None else archive_sha,
     }))
 
@@ -97,7 +97,7 @@ class Lifecycle(unittest.TestCase):
     def test_database_failure_fails_closed(self):
         with tempfile.TemporaryDirectory() as d:
             p=pathlib.Path(d);install_candidate(p)
-            (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n')
+            (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:placeholder@localhost/fixture?host=/var/run/postgresql\n')
             with patch.object(m,'CONFIG',p),patch.object(m,'podman_json',return_value=[{'Id':IMAGE}]), \
                  patch.object(m,'call',side_effect=[None,RuntimeError('database down')]):
                 with self.assertRaises(RuntimeError):m.preflight(IMAGE)
@@ -116,7 +116,7 @@ class Lifecycle(unittest.TestCase):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
         p=pathlib.Path(temp.name)
         install_candidate(p)
-        (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n'+extra)
+        (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:placeholder@localhost/fixture?host=/var/run/postgresql\n'+extra)
         return p
 
     def test_finalizer_off_skips_key_mount_and_readiness(self):
@@ -176,8 +176,8 @@ class Lifecycle(unittest.TestCase):
         self.assert_candidate_reason(path,'missing_manifest')
 
     def test_invalid_or_linked_manifest_fails_closed(self):
-        secret='SUPERSECRETTOKENVALUE'
-        path=self.candidate_dir();install_candidate(path,identity=secret,checksum=secret+'  image.tar\n')
+        marker='not-echoed-marker-value'
+        path=self.candidate_dir();install_candidate(path,identity=marker,checksum=marker+'  image.tar\n')
         self.assert_candidate_reason(path,'invalid_manifest')
         path=self.candidate_dir();install_candidate(path,checksum='d'*64+'  other.tar\n')
         self.assert_candidate_reason(path,'invalid_manifest')
@@ -206,35 +206,35 @@ class Lifecycle(unittest.TestCase):
             (IMAGE,IMAGE,CONFIG_DIGEST),(CONFIG_DIGEST,IMAGE,CONFIG_DIGEST),
         ):
             path=self.candidate_dir();install_candidate(path,image=image,image_digest=image_digest,config_digest=config_digest)
-            (path/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n')
+            (path/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:placeholder@localhost/fixture?host=/var/run/postgresql\n')
             output=io.StringIO()
             with patch.object(m,'CONFIG',path), \
                  patch.object(m,'podman_json',return_value=[{'Id':image}]), \
                  patch.object(m,'call',side_effect=lambda args,**kw:None),patch('sys.stdout',output):
                 self.assertIs(m.preflight(image),False)
             text=output.getvalue()
-            self.assertIn('finalizer_disabled',text);self.assertNotIn('password',text);self.assertNotIn('fixture:',text)
+            self.assertIn('finalizer_disabled',text);self.assertNotIn('placeholder',text);self.assertNotIn('fixture:',text)
 
     def test_main_mismatch_exits_78_without_echoing_manifest_bytes(self):
-        secret='SUPERSECRETTOKENVALUE'
+        marker='not-echoed-marker-value'
         path=self.candidate_dir()
-        (path/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","note":"'+secret+'"}')
+        (path/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","note":"'+marker+'"}')
         output=io.StringIO()
         with patch.object(m,'LOCK',str(path/'lock')),patch.object(m,'CONFIG',path), \
              patch.object(m.os,'geteuid',return_value=0), \
              patch.object(m.sys,'argv',['lifecycle','start',IMAGE]),patch('sys.stdout',output), \
              patch.object(m,'inspect_expected') as inv:
             self.assertEqual(m.main(),78)
-        text=output.getvalue();self.assertNotIn(secret,text);inv.assert_not_called()
+        text=output.getvalue();self.assertNotIn(marker,text);inv.assert_not_called()
         record=json.loads(text)
         self.assertEqual(record,{'event':'candidate_mismatch','reason':'missing_manifest','exit_code':78})
-        install_candidate(path,identity=secret,checksum=secret)
+        install_candidate(path,identity=marker,checksum=marker)
         output=io.StringIO()
         with patch.object(m,'LOCK',str(path/'lock')),patch.object(m,'CONFIG',path), \
              patch.object(m.os,'geteuid',return_value=0), \
              patch.object(m.sys,'argv',['lifecycle','start',IMAGE]),patch('sys.stdout',output):
             self.assertEqual(m.main(),78)
-        self.assertNotIn(secret,output.getvalue())
+        self.assertNotIn(marker,output.getvalue())
         self.assertEqual(json.loads(output.getvalue())['reason'],'invalid_manifest')
 
     def test_unit_prevents_a_mismatch_restart_loop(self):
