@@ -6,6 +6,7 @@ import { requireWorkspaceMembership, WorkspaceStore } from './workspaces';
 import { resolveIdentity, type Identity } from './identity';
 import { sessionKey, type SessionKey } from './sessions';
 import { ApiError } from '../errors';
+import { finalizerEnabled } from '../finalizer-config';
 
 export const LOGIN_TTL = 600_000, SESSION_TTL = 3_600_000, POLL_MS = 5_000;
 export class CliError extends ApiError {
@@ -32,6 +33,13 @@ async function current(client: PoolClient, binding: Binding) {
   const user = (await client.query('SELECT display_name FROM users WHERE id=$1', [binding.user_id])).rows[0];
   return { displayName: user.display_name || 'WitnessOps account', workspace: member.name, role: member.role, scope: binding.scope };
 }
+/** `server_check:create` is issued only when the operator finalizer flag is exactly on. */
+export function requireCliScope(scope: unknown, enabled = finalizerEnabled()): 'cli:session' | 'cli:session server_check:create' {
+  const value = scope ?? 'cli:session';
+  if (value !== 'cli:session' && value !== 'cli:session server_check:create') throw new CliError('invalid_scope');
+  if (value === 'cli:session server_check:create' && !enabled) throw new CliError('finalizer_unavailable', 503);
+  return value;
+}
 export class CliAuthStore {
   constructor(readonly pool: Pool, readonly now = Date.now) {}
   async create() {
@@ -54,7 +62,7 @@ export class CliAuthStore {
     sessionKey(web.session.issuer, web.session.sessionId, web.session.subject);
     if (web.identity.issuer !== web.session.issuer || web.identity.subject !== web.session.subject) throw new CliError('unauthorized', 401);
     const user = await resolveIdentity(this.pool, web.identity);
-    return { user, workspaces: await new WorkspaceStore(this.pool).list(user) };
+    return { user, workspaces: await new WorkspaceStore(this.pool).list(user), serverCheckScopeOffered: finalizerEnabled() };
   }
   async bind(web: WebCliIdentity, input: { code: unknown; workspaceId: unknown; displayedUserId: unknown; action: unknown; scope?: unknown }) {
     const userCode = code(input.code), { user } = await this.context(web);
@@ -69,8 +77,7 @@ export class CliAuthStore {
         return { state: 'denied' };
       }
       if (typeof input.workspaceId !== 'string') throw new CliError('select_workspace');
-      const scope = input.scope ?? 'cli:session';
-      if (scope !== 'cli:session' && scope !== 'cli:session server_check:create') throw new CliError('invalid_scope');
+      const scope = requireCliScope(input.scope);
       const member = await requireWorkspaceMembership(client, user, input.workspaceId, scope === 'cli:session' ? false : 'cli:authorize-server-check');
       await client.query(`UPDATE cli_login_transactions SET state='authenticated',user_id=$2,workspace_id=$3,web_issuer=$4,web_session_id=$5,scope=$6,membership_generation=$7 WHERE device_hash=$1`, [row.device_hash, user.id, input.workspaceId, web.session.issuer, web.session.sessionId, scope, member.generation]);
       return { state: 'authenticated' };

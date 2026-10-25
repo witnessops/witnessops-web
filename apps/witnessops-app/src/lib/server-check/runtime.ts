@@ -6,6 +6,7 @@ import { lstat, mkdir, open, readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { pinnedRegistryInput } from '../../../../witnessops-web/src/lib/proofpack/pinned-registry';
 import { CliError } from '../db/cli-auth';
+import { finalizerEnabled } from '../finalizer-config';
 const exec = promisify(execFile);
 export const MAX_CAPTURE = 25 * 1024 * 1024;
 export type CaptureMetadata = {authority: unknown; hostname: string; collectorHash: string};
@@ -22,7 +23,8 @@ export class LocalAuditFinalizer implements Finalizer {
     key: process.env.WITNESSOPS_FINALIZER_KEY ?? '',
     signer: process.env.WITNESSOPS_FINALIZER_SIGNER ?? '',
     root: process.env.WITNESSOPS_FINALIZER_DIRECTORY ?? '',
-  }) {}
+  }, private enabled = finalizerEnabled()) {}
+  private gate() { if (!this.enabled) throw new CliError('finalizer_unavailable', 503); }
   private async directory(id: string) {
     if (!/^(preflight|[a-f0-9-]{36})$/.test(id) || !Object.values(this.config).every(Boolean)) throw new CliError('finalizer_unavailable',503);
     for (const value of [this.config.python,this.config.key,this.config.root]) if (!path.isAbsolute(value)) throw new CliError('finalizer_unavailable',503);
@@ -37,6 +39,7 @@ export class LocalAuditFinalizer implements Finalizer {
   }
   /** Read-only legacy identity check; never establishes or releases a charge. */
   async reconcileCapture(id:string,bytes:Buffer) {
+    this.gate();
     if(!/^[a-f0-9-]{36}$/.test(id)||!path.isAbsolute(this.config.root))throw new CliError('finalizer_unavailable',503);
     const root=await lstat(this.config.root);
     if(!root.isDirectory()||root.isSymbolicLink()||root.uid!==process.getuid!()||(root.mode&0o077)||await realpath(this.config.root)!==this.config.root)throw new CliError('finalizer_unavailable',503);
@@ -61,7 +64,7 @@ export class LocalAuditFinalizer implements Finalizer {
       return JSON.parse(result.stdout);
     } catch {throw new CliError(mode==='validate'?'invalid_capture':'finalization_failed',422);}
   }
-  async preflight(){const value=await this.call('preflight',await this.directory('preflight'));if(!/^[a-f0-9]{64}$/.test(value.collectorHash))throw new CliError('finalizer_unavailable',503);return value.collectorHash as string;}
-  async validate(id:string,bytes:Buffer){if(!bytes.length||bytes.length>MAX_CAPTURE)throw new CliError('invalid_capture',413);const dir=await this.directory(id);await this.preserve(path.join(dir,'capture.json'),bytes);return await this.call('validate',dir) as CaptureMetadata;}
-  async finalize(id:string,bytes:Buffer){await this.validate(id,bytes);const dir=await this.directory(id),value=await this.call('finalize',dir);if(!/^proofpack-[a-zA-Z0-9_-]+\.zip$/.test(value.zipName))throw new CliError('finalization_failed',422);return {zipName:value.zipName,zip:await readFile(path.join(dir,value.zipName)),signature:await readFile(path.join(dir,value.zipName+'.sig.json'))};}
+  async preflight(){this.gate();const value=await this.call('preflight',await this.directory('preflight'));if(!/^[a-f0-9]{64}$/.test(value.collectorHash))throw new CliError('finalizer_unavailable',503);return value.collectorHash as string;}
+  async validate(id:string,bytes:Buffer){this.gate();if(!bytes.length||bytes.length>MAX_CAPTURE)throw new CliError('invalid_capture',413);const dir=await this.directory(id);await this.preserve(path.join(dir,'capture.json'),bytes);return await this.call('validate',dir) as CaptureMetadata;}
+  async finalize(id:string,bytes:Buffer){this.gate();await this.validate(id,bytes);const dir=await this.directory(id),value=await this.call('finalize',dir);if(!/^proofpack-[a-zA-Z0-9_-]+\.zip$/.test(value.zipName))throw new CliError('finalization_failed',422);return {zipName:value.zipName,zip:await readFile(path.join(dir,value.zipName)),signature:await readFile(path.join(dir,value.zipName+'.sig.json'))};}
 }

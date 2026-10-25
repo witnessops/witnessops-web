@@ -83,13 +83,58 @@ class Lifecycle(unittest.TestCase):
                 with self.assertRaises(RuntimeError):m.preflight(IMAGE)
 
     def test_finalizer_mounts_are_durable_and_key_read_only(self):
-        args=m.run_args(IMAGE)
+        args=m.run_args(IMAGE,finalizer=True)
         self.assertIn('--mount=type=bind,source=/var/lib/witnessops-finalizer,destination=/var/lib/witnessops-finalizer',args)
         self.assertIn('--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',args)
-        check=m.run_args(IMAGE,readiness=True)
+        check=m.run_args(IMAGE,readiness=True,finalizer=True)
         self.assertIn('--network=none',check)
         self.assertIn('--entrypoint=/opt/witnessops/finalizer/venv/bin/python',check)
         self.assertEqual(check[-2:],['-I','/opt/witnessops/finalizer-readiness.py'])
         self.assertNotIn('--rm',args)
+
+    def runtime(self, extra):
+        temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+        p=pathlib.Path(temp.name)
+        (p/'image-security-approved').write_text('{"imageConfig":"'+IMAGE+'","vulnerabilities":0,"secrets":0}')
+        (p/'runtime.env').write_text('DATABASE_URL=postgresql://fixture:password@localhost/fixture?host=/var/run/postgresql\n'+extra)
+        return p
+
+    def test_finalizer_off_skips_key_mount_and_readiness(self):
+        for extra in ['','WITNESSOPS_FINALIZER_ENABLED=true\n','WITNESSOPS_FINALIZER_ENABLED=1 \n','WITNESSOPS_FINALIZER_ENABLED=\n']:
+            calls=[]
+            with patch.object(m,'CONFIG',self.runtime(extra)),patch.object(m,'podman_json',return_value=[{'Id':IMAGE}]), \
+                 patch.object(m,'call',side_effect=lambda args,**kw:calls.append(args)):
+                self.assertIs(m.preflight(IMAGE),False)
+            self.assertEqual(len(calls),2)
+            self.assertNotIn('finalizer-readiness.py',' '.join(' '.join(item) for item in calls))
+        args=m.run_args(IMAGE)
+        self.assertNotIn('--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',args)
+        self.assertNotIn('--mount=type=bind,source=/var/lib/witnessops-finalizer,destination=/var/lib/witnessops-finalizer',args)
+        self.assertNotIn('--env=WITNESSOPS_FINALIZER_KEY=/run/witnessops-finalizer/key',args)
+        with self.assertRaises(RuntimeError):m.run_args(IMAGE,readiness=True)
+
+    def test_finalizer_on_runs_readiness_against_the_read_only_key(self):
+        calls=[]
+        with patch.object(m,'CONFIG',self.runtime('WITNESSOPS_FINALIZER_ENABLED=1\n')), \
+             patch.object(m,'podman_json',return_value=[{'Id':IMAGE}]), \
+             patch.object(m,'call',side_effect=lambda args,**kw:calls.append(args)):
+            self.assertIs(m.preflight(IMAGE),True)
+        self.assertEqual(len(calls),3)
+        self.assertIn('--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',calls[2])
+        self.assertIn('--network=none',calls[2])
+        self.assertEqual(calls[2][-2:],['-I','/opt/witnessops/finalizer-readiness.py'])
+
+    def test_start_follows_the_preflight_finalizer_gate(self):
+        for enabled in (False,True):
+            temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+            with patch.object(m,'LOCK',temp.name+'/lock'),patch.object(m,'preflight',return_value=enabled), \
+                 patch.object(m,'inspect_expected',side_effect=[None,None]), \
+                 patch.object(m.subprocess,'run',return_value=types.SimpleNamespace(returncode=0)) as run:
+                self.assertEqual(m.start(IMAGE),0)
+            args=run.call_args.args[0]
+            key='--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true'
+            self.assertEqual(key in args,enabled)
+            self.assertEqual(args[-1],IMAGE)
+            self.assertIn('--cap-drop=all',args)
 
 if __name__=='__main__':unittest.main()

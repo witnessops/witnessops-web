@@ -76,25 +76,34 @@ def preflight(image):
         env['PGSSLMODE'] = query['sslmode'][0]
     call(['/usr/bin/psql', '-X', '--no-password', '-tA', '-c', 'SELECT 1'], env=env,
          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=8)
-    # The same mounts and image identity are checked before any existing container is removed.
-    call([*run_args(image, readiness=True)], stdout=subprocess.DEVNULL, timeout=30)
+    # Exact "1" matches the app gate. Any other value leaves the key unmounted.
+    enabled = values.get('WITNESSOPS_FINALIZER_ENABLED') == '1'
+    if enabled:
+        # The same mounts and image identity are checked before any existing container is removed.
+        call([*run_args(image, readiness=True, finalizer=True)], stdout=subprocess.DEVNULL, timeout=30)
+    else:
+        log('finalizer_disabled')
     log('preflight_pass', image=image)
+    return enabled
 
 
-def run_args(image, readiness=False):
+def run_args(image, readiness=False, finalizer=False):
+    if readiness and not finalizer:
+        raise RuntimeError('finalizer readiness requires WITNESSOPS_FINALIZER_ENABLED=1')
     args = [PODMAN, '--runtime=/usr/sbin/runc', 'run', '--pull=never', '--name', NAME + ('-readiness' if readiness else ''),
             '--label', LABEL + '=app', '--network=witnessops-app',
             '--publish=127.0.0.1:3020:3020', '--env=HOSTNAME=0.0.0.0',
             '--read-only', '--cap-drop=all', '--security-opt=no-new-privileges',
             '--user=1001:1001', '--memory=1g', '--cpus=1.5', '--pids-limit=128',
             '--env-file=/etc/witnessops-app/runtime.env',
-            '--volume=/var/run/postgresql:/var/run/postgresql:ro',
-            '--mount=type=bind,source=/var/lib/witnessops-finalizer,destination=/var/lib/witnessops-finalizer',
-            '--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',
-            '--env=WITNESSOPS_FINALIZER_PYTHON=/opt/witnessops/finalizer/venv/bin/python',
-            '--env=WITNESSOPS_FINALIZER_DIRECTORY=/var/lib/witnessops-finalizer',
-            '--env=WITNESSOPS_FINALIZER_KEY=/run/witnessops-finalizer/key',
-            '--tmpfs=/tmp:rw,noexec,nosuid,size=64m',
+            '--volume=/var/run/postgresql:/var/run/postgresql:ro']
+    if finalizer:
+        args += ['--mount=type=bind,source=/var/lib/witnessops-finalizer,destination=/var/lib/witnessops-finalizer',
+                 '--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',
+                 '--env=WITNESSOPS_FINALIZER_PYTHON=/opt/witnessops/finalizer/venv/bin/python',
+                 '--env=WITNESSOPS_FINALIZER_DIRECTORY=/var/lib/witnessops-finalizer',
+                 '--env=WITNESSOPS_FINALIZER_KEY=/run/witnessops-finalizer/key']
+    args += ['--tmpfs=/tmp:rw,noexec,nosuid,size=64m',
             '--health-cmd=node -e \'fetch("http://127.0.0.1:3020/",{redirect:"manual"}).then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))\'',
             '--health-interval=30s', '--health-start-period=30s']
     if readiness:
@@ -111,7 +120,7 @@ def start(image):
     # Held for the foreground runtime lifetime. Another helper cannot race cleanup/start.
     with open(LOCK, 'a', encoding='utf-8') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        preflight(image)
+        finalizer = preflight(image) is True
         previous = inspect_expected(image)
         if previous:
             state = previous['State']
@@ -128,7 +137,7 @@ def start(image):
         if inspect_expected(image) is not None:
             raise RuntimeError('container appeared before start')
         log('start', image=image, expected_running=1)
-        result = subprocess.run(run_args(image), check=False)
+        result = subprocess.run(run_args(image, finalizer=finalizer), check=False)
         log('runtime_exit', exit_code=result.returncode)
         return result.returncode
 

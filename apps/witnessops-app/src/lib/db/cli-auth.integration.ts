@@ -5,7 +5,7 @@ import { parseEnv } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import { migrate } from '../../../scripts/migrate.mjs';
-import { CliAuthStore, CliError, LOGIN_TTL, SESSION_TTL, type WebCliIdentity } from './cli-auth';
+import { CliAuthStore, CliError, LOGIN_TTL, SESSION_TTL, requireCliScope, type WebCliIdentity } from './cli-auth';
 import { resolveIdentity, type AppUser } from './identity';
 import { WorkspaceStore } from './workspaces';
 import { revokeSession } from './sessions';
@@ -35,6 +35,23 @@ after(async()=>{await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${sch
 async function authorize(w=web,id=user.id,ws=workspace){const login=await store.create();await store.bind(w,{code:login.userCode,workspaceId:ws,displayedUserId:id,action:'authorize'});return login;}
 async function issued(){const data=await store.poll((await authorize()).device);assert.equal(data.state,'active');return data.credential;}
 const rejectsCode=async(action:Promise<unknown>,code:string)=>assert.rejects(action,(error:unknown)=>error instanceof CliError && error.code === code);
+test('server_check scope is refused while the finalizer flag is off and issued when it is exactly 1',async()=>{
+ const prior=process.env.WITNESSOPS_FINALIZER_ENABLED;
+ try {
+  delete process.env.WITNESSOPS_FINALIZER_ENABLED;
+  const denied=await store.create();
+  await rejectsCode(store.bind(web,{code:denied.userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize',scope:'cli:session server_check:create'}),'finalizer_unavailable');
+  assert.equal((await store.bind(web,{code:(await store.create()).userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize'})).state,'authenticated');
+  process.env.WITNESSOPS_FINALIZER_ENABLED='0';
+  await rejectsCode(store.bind(web,{code:(await store.create()).userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize',scope:'cli:session server_check:create'}),'finalizer_unavailable');
+  process.env.WITNESSOPS_FINALIZER_ENABLED='1';
+  const allowed=await store.create();
+  assert.equal((await store.bind(web,{code:allowed.userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize',scope:'cli:session server_check:create'})).state,'authenticated');
+  const issued=await store.poll(allowed.device);assert.equal(issued.state,'active');if(issued.state!=='active')throw new Error('Expected credential');
+  assert.equal(issued.scope,'cli:session server_check:create');
+  assert.equal(requireCliScope('cli:session server_check:create'),'cli:session server_check:create');
+ } finally {if(prior===undefined)delete process.env.WITNESSOPS_FINALIZER_ENABLED;else process.env.WITNESSOPS_FINALIZER_ENABLED=prior;}
+});
 test('creation: unique 256-bit device secrets, 48-bit codes, hashes only, bounded issuance',async()=>{
  const all=await Promise.all(Array.from({length:30},()=>store.create()));assert.equal(new Set(all.map(x=>x.device)).size,30);assert.equal(new Set(all.map(x=>x.userCode)).size,30);
  const rows=JSON.stringify((await pool.query('SELECT * FROM cli_login_transactions')).rows);for(const x of all){assert.equal(x.device.length,43);assert.ok(!rows.includes(x.device));assert.ok(!rows.includes(x.userCode));}
