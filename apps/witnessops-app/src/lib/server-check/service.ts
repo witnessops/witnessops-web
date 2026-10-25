@@ -4,15 +4,21 @@ import { admitRequest } from '../server';
 import { authConfiguration } from '../auth-config';
 import { ApiError } from '../errors';
 import { CliError } from '../db/cli-auth';
+import { logSecurityEvent } from '../security-log';
 import { LocalAuditFinalizer, MAX_CAPTURE } from './runtime';
 import { ServerCheckStore } from './store';
 import { findDuplicateJsonObjectKey } from '../../../../witnessops-web/src/lib/json-ambiguity';
 const headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer'};
+function rejectCredential(): never {
+ const error=new CliError('invalid_credential',401);
+ logSecurityEvent('auth_rejected',401,'invalid_credential',error);
+ throw error;
+}
 export function createServerCheckService(store:ServerCheckStore,origin:string){let active=0;return async(request:Request,upload=false)=>{
- if(active>=2)return Response.json({code:'busy'},{status:429,headers});active++;
+ if(active>=2){logSecurityEvent('lock_contention',429,'busy');return Response.json({code:'busy'},{status:429,headers});}active++;
  try{
   admitRequest(request,origin,process.env.WITNESSOPS_APP_PROXY_MODE);
-  const credential=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')??'')?.[1];if(!credential)throw new CliError('invalid_credential',401);
+  const credential=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')??'')?.[1];if(!credential)rejectCredential();
   // Authenticate before accepting a potentially large upload body.
   if(request.method==='GET'&&!upload){const id=request.headers.get('X-WitnessOps-Execution');return Response.json(await(id?store.status(credential,id):store.context(credential)),{headers});}
   if(request.method!=='POST')throw new CliError('method_not_supported',405);
@@ -25,15 +31,15 @@ export function createServerCheckService(store:ServerCheckStore,origin:string){l
   const bytes=Buffer.concat(chunks);
   if(upload)return Response.json(await store.upload(credential,request.headers.get('X-WitnessOps-Execution')??'',bytes,request.headers.get('X-WitnessOps-Capture-SHA256')??''),{headers});
   const raw=bytes.toString('utf8');if(findDuplicateJsonObjectKey(raw)!==null)throw new CliError('invalid_request');return Response.json(await store.authorize(credential,JSON.parse(raw)),{headers,status:201});
- }catch(error){return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
+ }catch(error){if(error instanceof ApiError&&(error.status===401||error.status===403))logSecurityEvent(error.status===401?'auth_rejected':'admission_rejected',error.status,error.status===401?'unauthenticated':'forbidden',error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
 };}
 let handler:ReturnType<typeof createServerCheckService>|undefined;
 export function serverCheck(request:Request,upload=false){handler??=createServerCheckService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return handler(request,upload);}
 export function createServerCheckRetirementService(store:ServerCheckStore,origin:string){let active=0;return async(request:Request)=>{
- if(active>=2)return Response.json({code:'busy'},{status:429,headers});active++;
+ if(active>=2){logSecurityEvent('lock_contention',429,'busy');return Response.json({code:'busy'},{status:429,headers});}active++;
  try{
   admitRequest(request,origin,process.env.WITNESSOPS_APP_PROXY_MODE);
-  const credential=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')??'')?.[1];if(!credential)throw new CliError('invalid_credential',401);
+  const credential=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('authorization')??'')?.[1];if(!credential)rejectCredential();
   if(request.method==='GET'){
    const url=new URL(request.url),ids=url.searchParams.getAll('executionId');
    if([...url.searchParams.keys()].some(key=>key!=='executionId')||ids.length>1)throw new CliError('invalid_request');
@@ -50,7 +56,7 @@ export function createServerCheckRetirementService(store:ServerCheckStore,origin
   let body:unknown;try{body=JSON.parse(raw);}catch{throw new CliError('invalid_request');}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).sort().join(',')!=='executionId'||typeof (body as {executionId?:unknown}).executionId!=='string')throw new CliError('invalid_request');
   return Response.json(await store.retire(credential,(body as {executionId:string}).executionId),{headers});
- }catch(error){return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
+ }catch(error){if(error instanceof ApiError&&(error.status===401||error.status===403))logSecurityEvent(error.status===401?'auth_rejected':'admission_rejected',error.status,error.status===401?'unauthenticated':'forbidden',error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
 };}
 let retirementHandler:ReturnType<typeof createServerCheckRetirementService>|undefined;
 export function serverCheckRetirement(request:Request){retirementHandler??=createServerCheckRetirementService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return retirementHandler(request);}
