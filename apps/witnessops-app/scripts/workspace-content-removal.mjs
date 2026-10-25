@@ -25,7 +25,9 @@ const exclusions = [
 async function checkMigrations(client) {
   const dir = new URL('../db/migrations/', import.meta.url);
   const names = (await readdir(dir)).filter(n => /^\d{4}_[a-z_]+\.sql$/.test(n)).sort();
-  if (names.length !== 22 || names.at(-1) !== '0023_retired_server_check_executions.sql') {
+  // 0024 adds composite unique and foreign keys only. It creates no table and does not
+  // change which rows this tool deletes. ON DELETE matches the previous foreign keys.
+  if (names.length !== 23 || names.at(-1) !== '0024_composite_tenant_keys.sql') {
     throw new Error('Removal scope needs review for this schema version');
   }
   const expected = [];

@@ -25,8 +25,8 @@ export class SharePasswordStore {
   const encoded=await hashSharePassword(password); // outside DB locks
   return transaction(this.pool,async client=>{
    const current=await authorize(client);if(current.generation!==before.generation)throw new ApiError(403,'Workspace access changed.');
-   await client.query('UPDATE report_share_access SET password_hash=$2,version=version+1,password_attempts=0,password_window=now() WHERE share_id=$1',[share,encoded]);
-   await client.query('DELETE FROM report_share_unlocks WHERE share_id=$1',[share]);
+   await client.query('UPDATE report_share_access SET password_hash=$2,version=version+1,password_attempts=0,password_window=now() WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_access.share_id AND s.workspace_id=$3)',[share,encoded,workspace]);
+   await client.query('DELETE FROM report_share_unlocks WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_unlocks.share_id AND s.workspace_id=$2)',[share,workspace]);
    return {passwordProtected:true,version:Number(expected)+1,expiresAt:current.expiresAt};
   });
  }
@@ -35,21 +35,22 @@ export class SharePasswordStore {
   if(typeof password!=='string'||Buffer.byteLength(password,'utf8')>256||!password.length)throw new PasswordChallenge(401,'Password did not unlock this report.');
   const hashed=hash(token);
   const reserve=await transaction(this.pool,async client=>{
-   const row=(await client.query(`SELECT a.*,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND ($2::text IS NULL OR EXISTS(SELECT 1 FROM report_share_names n WHERE n.share_id=s.id AND n.name=$2)) FOR UPDATE OF a`,[hashed,name??null])).rows[0];
+   const row=(await client.query(`SELECT a.*,s.workspace_id,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND ($2::text IS NULL OR EXISTS(SELECT 1 FROM report_share_names n WHERE n.share_id=s.id AND n.name=$2)) FOR UPDATE OF a`,[hashed,name??null])).rows[0];
    if(!row||row.state!=='published'||row.status!=='active'||row.expires_at.getTime()<=Date.now()||!row.password_hash)throw new ApiError(404,'Shared report unavailable.');
    const count=Date.now()-row.password_window.getTime()>=15*60000?0:row.password_attempts;
    if(count>=5)throw new PasswordChallenge(429,'Too many password attempts for this link. Try again after 15 minutes.');
-   await client.query('UPDATE report_share_access SET password_attempts=$2,password_window=CASE WHEN $2=1 THEN now() ELSE password_window END WHERE share_id=$1',[row.share_id,count+1]);
+   await client.query('UPDATE report_share_access SET password_attempts=$2,password_window=CASE WHEN $2=1 THEN now() ELSE password_window END WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_access.share_id AND s.workspace_id=$3)',[row.share_id,count+1,row.workspace_id]);
    return row;
   });
   if(!await checkSharePassword(password,reserve.password_hash))throw new PasswordChallenge(401,'Password did not unlock this report.');
   return transaction(this.pool,async client=>{
-   const current=(await client.query(`SELECT a.*,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.share_id=$1 FOR UPDATE OF a`,[reserve.share_id])).rows[0];
+   const current=(await client.query(`SELECT a.*,s.workspace_id,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.share_id=$1 AND s.workspace_id=$2 FOR UPDATE OF a`,[reserve.share_id,reserve.workspace_id])).rows[0];
    if(!current||current.version!==reserve.version||current.token_hash!==hashed||current.state!=='published'||current.status!=='active'||current.expires_at.getTime()<=Date.now())throw new ApiError(404,'Shared report unavailable.');
-   await client.query('DELETE FROM report_share_unlocks WHERE share_id=$1 AND (expires_at<=now() OR access_version<>$2)',[current.share_id,current.version]);
-   if(Number((await client.query('SELECT count(*) FROM report_share_unlocks WHERE share_id=$1',[current.share_id])).rows[0].count)>=32)throw new PasswordChallenge(429,'Too many open sessions. Try later.');
+   await client.query('DELETE FROM report_share_unlocks WHERE share_id=$1 AND (expires_at<=now() OR access_version<>$2) AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_unlocks.share_id AND s.workspace_id=$3)',[current.share_id,current.version,current.workspace_id]);
+   if(Number((await client.query('SELECT count(*) FROM report_share_unlocks WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_unlocks.share_id AND s.workspace_id=$2)',[current.share_id,current.workspace_id])).rows[0].count)>=32)throw new PasswordChallenge(429,'Too many open sessions. Try later.');
    const unlock=randomBytes(32).toString('base64url'),expires=new Date(Math.min(Date.now()+30*60000,current.expires_at.getTime()));
-   await client.query('INSERT INTO report_share_unlocks(token_hash,share_id,access_version,expires_at) VALUES($1,$2,$3,$4)',[hash(unlock),current.share_id,current.version,expires]);
+   const inserted=await client.query('INSERT INTO report_share_unlocks(token_hash,share_id,access_version,expires_at) SELECT $1,s.id,$3,$4 FROM report_shares s WHERE s.id=$2 AND s.workspace_id=$5',[hash(unlock),current.share_id,current.version,expires,current.workspace_id]);
+   if(!inserted.rowCount)throw new ApiError(404,'Shared report unavailable.');
    return {unlock,expiresAt:expires.toISOString()};
   });
  }

@@ -69,7 +69,7 @@ export class ShareStore {
             const token = randomBytes(32).toString('base64url'), shareId = randomUUID(), digest = hash(bytes);
             const row = (await client.query<Row>('INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *', [shareId, workspace, id, user.id, m.generation, hash(token), snapshot, digest])).rows[0];
             const name=selectedName??'r-'+randomUUID().replaceAll('-','');
-            const reserved=await client.query('INSERT INTO report_share_names(name,share_id) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING name',[name,shareId]);
+            const reserved=await client.query('INSERT INTO report_share_names(name,share_id) SELECT $1,s.id FROM report_shares s WHERE s.id=$2 AND s.workspace_id=$3 ON CONFLICT DO NOTHING RETURNING name',[name,shareId,workspace]);
             if(!reserved.rowCount)throw new ApiError(409,'Reporting name unavailable. Choose another name or leave it blank for a generated name.');
             return { name, id: shareId, token, digest, snapshot, expiresAt: row.expires_at.toISOString(), version: 1, passwordProtected: false, canPublish: m.role === 'owner' };
         });
@@ -95,7 +95,7 @@ export class ShareStore {
             if (row.state === 'preview') {
                 if (Date.now() - row.created_at.getTime() > 3600000)
                     throw new ApiError(409, 'Preview expired. Preview the report again.');
-                await client.query("UPDATE report_shares SET state='published',published_at=now() WHERE id=$1", [row.id]);
+                await client.query("UPDATE report_shares SET state='published',published_at=now() WHERE id=$1 AND workspace_id=$2", [row.id, workspace]);
             }
             return { name:row.name,id: row.id, token: input.token, expiresAt: row.expires_at.toISOString(), digest: row.digest };
         });
@@ -113,7 +113,7 @@ export class ShareStore {
             if (!row || row.state === 'preview')
                 throw new ApiError(404, 'Published link not found.');
             if (row.state !== 'revoked')
-                await client.query("UPDATE report_shares SET state='revoked',revoked_at=now() WHERE id=$1", [row.id]);
+                await client.query("UPDATE report_shares SET state='revoked',revoked_at=now() WHERE id=$1 AND workspace_id=$2", [row.id, workspace]);
             return { revoked: true };
         });
     }

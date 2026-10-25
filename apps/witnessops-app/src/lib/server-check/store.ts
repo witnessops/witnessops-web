@@ -86,7 +86,7 @@ export class ServerCheckStore {
   if(row.state==='retired')return {...this.view(row),requestId:row.request_id};
   if(row.state!=='authorized'||row.capture_bytes!==null||row.capture_digest!==null||row.run_id!==null||Number(row.capture_reserved_bytes)!==0||row.capture_reserved_digest!==null)throw new CliError('retirement_refused',409);
   const retiredAt=new Date(this.now());
-  const saved=(await client.query("UPDATE server_check_executions SET state='retired',retired_at=$2,retired_by_user_id=$3 WHERE id=$1 RETURNING *",[id,retiredAt,user.id])).rows[0];
+  const saved=(await client.query("UPDATE server_check_executions SET state='retired',retired_at=$2,retired_by_user_id=$3 WHERE id=$1 AND workspace_id=$4 RETURNING *",[id,retiredAt,user.id,workspace])).rows[0];
   return {...this.view(saved),requestId:saved.request_id};
  });}
  async upload(credential:unknown,id:string,bytes:Buffer,digest:string){
@@ -112,7 +112,7 @@ export class ServerCheckStore {
     const size=(await client.query('SELECT coalesce(sum(capture_reserved_bytes),0) AS size FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].size;
     if(Number(size)+increase>MAX_RETAINED_CAPTURE_BYTES)throw new CliError('execution_capacity',409);
    }
-   await client.query('UPDATE server_check_executions SET capture_reserved_bytes=$2,capture_reserved_digest=$3 WHERE id=$1',[id,Math.max(reserved,bytes.length),digest]);
+   await client.query('UPDATE server_check_executions SET capture_reserved_bytes=$2,capture_reserved_digest=$3 WHERE id=$1 AND workspace_id=$4',[id,Math.max(reserved,bytes.length),digest,workspace]);
   });
   // The reservation transaction released its locks: recheck current authority
   // and serialize the actual filesystem/producer operation independently.
@@ -126,7 +126,7 @@ export class ServerCheckStore {
    if(row.capture_reserved_digest!==digest||Number(row.capture_reserved_bytes)<bytes.length)throw new CliError('capture_conflict',409);
    const metadata=await this.finalizer.validate(id,bytes);
    if(!equal(metadata.authority,row.authority)||metadata.hostname!==row.authority.target.allowed_hostnames[0]||metadata.collectorHash!==row.collector_hash)throw new CliError('capture_binding_failed',422);
-   const saved=(await client.query("UPDATE server_check_executions SET state='uploaded',capture_bytes=$2,capture_digest=$3 WHERE id=$1 RETURNING *",[id,bytes,digest])).rows[0];return this.view(saved);
+   const saved=(await client.query("UPDATE server_check_executions SET state='uploaded',capture_bytes=$2,capture_digest=$3 WHERE id=$1 AND workspace_id=$4 RETURNING *",[id,bytes,digest,workspace])).rows[0];return this.view(saved);
   });
  }
  async status(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
@@ -137,6 +137,6 @@ export class ServerCheckStore {
   // Same transaction as normal Linux admission: a crash cannot commit a run without its execution link.
   const pack=await this.finalizer.finalize(id,row.capture_bytes);
   const run=await new LinuxCheckStore(this.pool).importWithin(client,user,workspace,row.asset_id,pack.zip,pack.signature,pack.zipName);
-  const saved=(await client.query("UPDATE server_check_executions SET state='run_created',run_id=$2 WHERE id=$1 RETURNING *",[id,run.id])).rows[0];return {...this.view(saved),outcome:run.outcome};
+  const saved=(await client.query("UPDATE server_check_executions SET state='run_created',run_id=$2 WHERE id=$1 AND workspace_id=$3 RETURNING *",[id,run.id,workspace])).rows[0];return {...this.view(saved),outcome:run.outcome};
  });}
 }

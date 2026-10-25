@@ -8,6 +8,7 @@ import {randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {Pool} from 'pg';
 import {migrate} from '../../../scripts/migrate.mjs';
+import {ensureRuntimeRole,runtimePool,RUNTIME_ROLE} from './runtime-role';
 import {resolveIdentity,type AppUser} from './identity';
 import {WorkspaceStore} from './workspaces';
 import {EarlyAccessPlanStore} from './early-access-plans';
@@ -28,7 +29,7 @@ const schema='server_test_'+randomUUID().replaceAll('-',''),admin=new Pool({conn
 let pool:Pool,auth:CliAuthStore,user:AppUser,workspace:string,foreign:string,store:ServerCheckStore,finalizer:LocalAuditFinalizer,retirementToken:string|undefined;
 const previousFinalizer=process.env.WITNESSOPS_FINALIZER_ENABLED;
 const web:WebCliIdentity={identity:{provider:'workos',issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',email:'owner@example.test',displayName:'Test Owner'},session:{issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',sessionId:'session_serverOwner'}};
-before(async()=>{process.env.WITNESSOPS_FINALIZER_ENABLED='1';await mkdir(custody,{mode:0o700});await admin.query(`CREATE SCHEMA ${schema}`);pool=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:5});await migrate(pool);auth=new CliAuthStore(pool);user=await resolveIdentity(pool,web.identity);await pool.query("UPDATE users SET early_access_state='active'");const ws=new WorkspaceStore(pool);workspace=await ws.create(user,'Test Workspace',randomUUID());foreign=await ws.create(user,'Other Workspace',randomUUID());finalizer=new LocalAuditFinalizer({python:python,key:base+'/key.hex',signer:'disposable_cli_test',root:custody});store=new ServerCheckStore(pool,finalizer);});
+before(async()=>{process.env.WITNESSOPS_FINALIZER_ENABLED='1';await mkdir(custody,{mode:0o700});await admin.query(`CREATE SCHEMA ${schema}`);pool=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:5});await migrate(pool);await ensureRuntimeRole(admin,schema);auth=new CliAuthStore(pool);user=await resolveIdentity(pool,web.identity);await pool.query("UPDATE users SET early_access_state='active'");const ws=new WorkspaceStore(pool);workspace=await ws.create(user,'Test Workspace',randomUUID());foreign=await ws.create(user,'Other Workspace',randomUUID());finalizer=new LocalAuditFinalizer({python:python,key:base+'/key.hex',signer:'disposable_cli_test',root:custody});store=new ServerCheckStore(pool,finalizer);});
 after(async()=>{if(previousFinalizer===undefined)delete process.env.WITNESSOPS_FINALIZER_ENABLED;else process.env.WITNESSOPS_FINALIZER_ENABLED=previousFinalizer;await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();});
 async function credential(scope='cli:session server_check:create',ws=workspace){const login=await auth.create();await auth.bind(web,{code:login.userCode,workspaceId:ws,displayedUserId:user.id,action:'authorize',scope});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');return issued.credential;}
 async function reusableRetirementCredential(){retirementToken??=await credential();return retirementToken;}
@@ -324,4 +325,20 @@ test('legacy conflicting retry cannot poison the retained capture digest',async(
  assert.equal((await pool.query('SELECT capture_reserved_digest FROM server_check_executions WHERE id=$1',[execution.id])).rows[0].capture_reserved_digest,null);
  assert.equal((await store.upload(token,execution.id,bytes,sha256(bytes))).state,'uploaded');
  assert.equal((await store.status(token,execution.id)).state,'run_created');
+});
+
+test('non-owner runtime role retires its own execution and not another workspace',async()=>{
+ const tenant=runtimePool(env.TEST_DATABASE_URL!,schema);
+ try {
+  const who=(await tenant.query("SELECT current_user AS role,(SELECT tableowner FROM pg_tables WHERE schemaname=current_schema() AND tablename='server_check_executions') AS owner")).rows[0];
+  assert.equal(who.role,RUNTIME_ROLE);
+  assert.notEqual(who.owner,RUNTIME_ROLE);
+  const attrs=(await tenant.query('SELECT rolsuper,rolcreaterole,rolcreatedb,rolbypassrls FROM pg_roles WHERE rolname=current_user')).rows[0];
+  assert.equal(attrs.rolsuper,false);assert.equal(attrs.rolcreaterole,false);assert.equal(attrs.rolcreatedb,false);assert.equal(attrs.rolbypassrls,false);
+  const token=await credential(),execution=await store.authorize(token,request());
+  const asRuntime=new ServerCheckStore(tenant,finalizer);
+  await assert.rejects(asRuntime.retire(await credential('cli:session server_check:create',foreign),execution.id),/execution_not_found/);
+  assert.equal((await tenant.query('SELECT state FROM server_check_executions WHERE id=$1',[execution.id])).rows[0].state,'authorized');
+  assert.equal((await asRuntime.retire(token,execution.id)).state,'retired');
+ } finally { await tenant.end(); }
 });

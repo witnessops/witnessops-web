@@ -31,7 +31,7 @@ export class ShareAccessStore {
    const row=await access(client,workspace,id);
    if(row.version!==v) throw new ApiError(409,'Link settings changed. Refresh before trying again.');
    const token=rotate ? randomBytes(32).toString('base64url') : undefined;
-   await client.query('UPDATE report_share_access SET token_hash=$2,expires_at=$3,version=version+1 WHERE share_id=$1',[row.id,token?hash(token):row.token_hash,until]);
+   await client.query('UPDATE report_share_access SET token_hash=$2,expires_at=$3,version=version+1 WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_access.share_id AND s.workspace_id=$4)',[row.id,token?hash(token):row.token_hash,until,workspace]);
    return {name:row.name,id:row.id,token,expiresAt:until.toISOString(),version:v+1,digest:row.digest};
   });
  }
@@ -42,9 +42,12 @@ export class ShareAccessStore {
    await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,true);
    const row=await access(client,workspace,input.id);requireToken(row,input.token);
    const message=reportEmail(origin,input.token,recipient,row.snapshot,row.expires_at,key,Boolean(row.password_hash),row.name), digest=messageDigest(message);
-   const prior=(await client.query('SELECT * FROM report_share_deliveries WHERE id=$1',[key])).rows[0];
+   const prior=(await client.query('SELECT * FROM report_share_deliveries WHERE id=$1 AND workspace_id=$2',[key,workspace])).rows[0];
    if(prior) {
-    if(prior.actor_id!==user.id || prior.workspace_id!==workspace || prior.share_id!==row.id || prior.membership_generation!==member.generation || prior.access_version!==row.version || prior.message_digest!==digest) throw new ApiError(409,'This email request was already used.');
+    if(prior.actor_id!==user.id || prior.share_id!==row.id || prior.membership_generation!==member.generation || prior.access_version!==row.version || prior.message_digest!==digest) throw new ApiError(409,'This email request was already used.');
+   } else if((await client.query('SELECT 1 FROM report_share_deliveries WHERE id=$1 AND workspace_id<>$2',[key,workspace])).rowCount) {
+    // The delivery id is global. Do not load another workspace's row; this request was already used.
+    throw new ApiError(409,'This email request was already used.');
    } else {
     await client.query("DELETE FROM report_share_deliveries WHERE workspace_id=$1 AND created_at<now()-interval '30 days'",[workspace]);
     const count=(await client.query("SELECT count(*) FILTER(WHERE actor_id=$1 AND created_at>now()-interval '1 hour') AS actor,count(*) FILTER(WHERE workspace_id=$2 AND created_at>now()-interval '1 hour') AS recent,count(*) FILTER(WHERE workspace_id=$2) AS retained FROM report_share_deliveries WHERE actor_id=$1 OR workspace_id=$2",[user.id,workspace])).rows[0];
@@ -67,13 +70,13 @@ export class ShareAccessStore {
    if(input.digest!==draft.message_digest || messageDigest(payload)!==draft.message_digest) throw new ApiError(409,'Email changed. Review a new draft.');
    if(draft.state!=='draft') return null; // Never retry an uncertain provider call automatically.
    if(Date.now()-draft.created_at.getTime()>3600000) throw new ApiError(409,'Email preview expired. Prepare a new draft.');
-   await client.query("UPDATE report_share_deliveries SET state='sending' WHERE id=$1",[id]);return payload;
+   await client.query("UPDATE report_share_deliveries SET state='sending' WHERE id=$1 AND workspace_id=$2",[id,workspace]);return payload;
   });
   if(message) {
    try {
     const result=await sender(message);
-    await this.pool.query('UPDATE report_share_deliveries SET state=$2,provider=$3,provider_message_id=$4,provider_accepted_at=$5 WHERE id=$1',[id,result.provider==='file'?'file_saved':'accepted',result.provider,result.providerMessageId,result.providerAcceptedAt]);
-   } catch {await this.pool.query("UPDATE report_share_deliveries SET state='unknown' WHERE id=$1",[id]);}
+    await this.pool.query('UPDATE report_share_deliveries SET state=$2,provider=$3,provider_message_id=$4,provider_accepted_at=$5 WHERE id=$1 AND workspace_id=$6',[id,result.provider==='file'?'file_saved':'accepted',result.provider,result.providerMessageId,result.providerAcceptedAt,workspace]);
+   } catch {await this.pool.query("UPDATE report_share_deliveries SET state='unknown' WHERE id=$1 AND workspace_id=$2",[id,workspace]);}
   }
   return {recorded:true};
  }
