@@ -37,6 +37,10 @@ test("admin login keeps Google as the default and shows Entra only when enabled"
   assert.match(flagOff, /Use an explicitly authorized Google Workspace identity\./);
   assert.doesNotMatch(flagOff, /Microsoft|Entra/i);
   assert.doesNotMatch(flagOff, /type="password"/);
+  assert.doesNotMatch(flagOff, /<input/);
+  assert.match(flagOff, /class="auth-method"/);
+  assert.match(form, /alt=""/);
+  assert.doesNotMatch(form, /&#x2B21;/);
 
   const flagOn = renderToStaticMarkup(
     createElement(AdminLoginForm, { entraEnabled: true }),
@@ -71,6 +75,9 @@ test("admin login exposes landmarks, labels, focus, loading, and bounded feedbac
   );
   assert.match(page, /<footer className="auth-footer">/);
   assert.doesNotMatch(page, /body > \.auth-footer/);
+  assert.match(page, /pageshow/);
+  assert.match(page, /event\.persisted/);
+  assert.doesNotMatch(page, /#ff6b35|rgba?\(|hsla?\(/i);
 });
 
 test("admin login return paths remain inside the normalized admin subtree", () => {
@@ -111,6 +118,9 @@ test("admin login maps callback errors to generic copy without echoing query inp
   assert.match(page, /errorCode === "entra_not_configured"/);
   assert.match(page, /That admin sign-in method is not configured\./);
   assert.doesNotMatch(page, /text:\s*params\.get\("error"\)/);
+  assert.doesNotMatch(page, /text:\s*params\.get\("returnTo"\)/);
+  assert.match(page, /Sign in to continue\./);
+  assert.match(page, /params\.has\("returnTo"\)/);
   assert.doesNotMatch(page, /error_description/);
   assert.doesNotMatch(page, /Request one proof run|Package one security workflow|ContactForm|SupportIntake|\/review\/request/);
   assert.doesNotMatch(page, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
