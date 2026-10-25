@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { chmod, mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -38,6 +39,14 @@ test('server_check:create is refused while the flag is off and issued when it is
   delete process.env.WITNESSOPS_FINALIZER_ENABLED;
   try { assert.throws(() => requireCliScope('cli:session server_check:create'), refused); }
   finally { if (prior === undefined) delete process.env.WITNESSOPS_FINALIZER_ENABLED; else process.env.WITNESSOPS_FINALIZER_ENABLED = prior; }
+});
+
+test('bind checks the workspace role before the finalizer flag', () => {
+  const source = readFileSync(new URL('../db/cli-auth.ts', import.meta.url), 'utf8');
+  const bind = source.slice(source.indexOf('async bind('), source.indexOf('async poll('));
+  const membership = bind.indexOf('requireWorkspaceMembership');
+  const flag = bind.indexOf('requireCliScope');
+  assert.ok(membership !== -1 && flag !== -1 && membership < flag);
 });
 
 test('flag off returns 503 finalizer_unavailable before custody or the producer', async () => {

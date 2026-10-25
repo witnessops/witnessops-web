@@ -77,8 +77,11 @@ export class CliAuthStore {
         return { state: 'denied' };
       }
       if (typeof input.workspaceId !== 'string') throw new CliError('select_workspace');
-      const scope = requireCliScope(input.scope);
-      const member = await requireWorkspaceMembership(client, user, input.workspaceId, scope === 'cli:session' ? false : 'cli:authorize-server-check');
+      // Role first: a Viewer stays 403. The finalizer flag is 503 only after that capability check.
+      const requested = input.scope ?? 'cli:session';
+      if (requested !== 'cli:session' && requested !== 'cli:session server_check:create') throw new CliError('invalid_scope');
+      const member = await requireWorkspaceMembership(client, user, input.workspaceId, requested === 'cli:session' ? false : 'cli:authorize-server-check');
+      const scope = requireCliScope(requested);
       await client.query(`UPDATE cli_login_transactions SET state='authenticated',user_id=$2,workspace_id=$3,web_issuer=$4,web_session_id=$5,scope=$6,membership_generation=$7 WHERE device_hash=$1`, [row.device_hash, user.id, input.workspaceId, web.session.issuer, web.session.sessionId, scope, member.generation]);
       return { state: 'authenticated' };
     });

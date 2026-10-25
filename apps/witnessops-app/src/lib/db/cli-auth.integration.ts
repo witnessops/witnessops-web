@@ -5,6 +5,7 @@ import { parseEnv } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { Pool } from 'pg';
 import { migrate } from '../../../scripts/migrate.mjs';
+import { ApiError } from '../errors';
 import { CliAuthStore, CliError, LOGIN_TTL, SESSION_TTL, requireCliScope, type WebCliIdentity } from './cli-auth';
 import { resolveIdentity, type AppUser } from './identity';
 import { WorkspaceStore } from './workspaces';
@@ -41,6 +42,7 @@ test('server_check scope is refused while the finalizer flag is off and issued w
   delete process.env.WITNESSOPS_FINALIZER_ENABLED;
   const denied=await store.create();
   await rejectsCode(store.bind(web,{code:denied.userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize',scope:'cli:session server_check:create'}),'finalizer_unavailable');
+  await assert.rejects(store.bind(view,{code:(await store.create()).userCode,workspaceId:workspace,displayedUserId:viewer.id,action:'authorize',scope:'cli:session server_check:create'}),(error:unknown)=>error instanceof ApiError && error.status===403 && !(error instanceof CliError));
   assert.equal((await store.bind(web,{code:(await store.create()).userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize'})).state,'authenticated');
   process.env.WITNESSOPS_FINALIZER_ENABLED='0';
   await rejectsCode(store.bind(web,{code:(await store.create()).userCode,workspaceId:workspace,displayedUserId:user.id,action:'authorize',scope:'cli:session server_check:create'}),'finalizer_unavailable');
