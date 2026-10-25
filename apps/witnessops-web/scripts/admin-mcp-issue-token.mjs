@@ -33,6 +33,7 @@ if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(client)) fail("invalid client id");
 if (!Number.isInteger(days) || days < 1) fail("invalid lifetime");
 if (days > 30) fail("lifetime exceeds 30 days");
 if (scopes.length === 0 || scopes.some((scope) => !SCOPES.has(scope))) fail("invalid scopes");
+if (new Set(scopes).size !== scopes.length) fail("duplicate scopes");
 
 const secret = randomBytes(32).toString("base64url");
 const token = `wo_mcp_${client}_${secret}`;
