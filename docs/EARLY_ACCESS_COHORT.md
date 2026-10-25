@@ -5,7 +5,7 @@ free check, saved history and a separately scoped paid review. Early Access is a
 release status; the manual admission and learning procedures below remain useful.
 Recurring product pricing and any new paid-check offer remain undecided.
 
-Early Access infrastructure is ready. Product discovery and next-phase development continue.
+Early Access application and cohort tooling are implemented. Production launch prerequisites and what has been accepted are recorded in [Early Access launch](EARLY_ACCESS_LAUNCH.md) (see lines 3-27 for public routing, which was accepted on 2026-09-11 without external user admission); this sentence does not assert that every prerequisite is met. Product discovery and next-phase development continue.
 
 ## Purpose and boundaries
 
