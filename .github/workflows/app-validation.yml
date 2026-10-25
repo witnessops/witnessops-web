@@ -95,6 +95,33 @@ jobs:
         run: |
           umask 077
           printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+      - name: Create non-owner runtime-style database role
+        working-directory: apps/witnessops-app
+        run: |
+          node --input-type=module <<'EOF'
+          import pg from 'pg';
+          const pool = new pg.Pool({
+            connectionString: 'postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test',
+            max: 1,
+          });
+          const name = 'witnessops_app_runtime';
+          try {
+            const found = await pool.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [name]);
+            if (!found.rowCount) {
+              await pool.query('CREATE ROLE witnessops_app_runtime NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS');
+            }
+            const role = await pool.query(
+              'SELECT rolsuper, rolcreatedb, rolcreaterole, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname=$1',
+              [name],
+            );
+            const row = role.rows[0];
+            if (!row || row.rolsuper || row.rolcreatedb || row.rolcreaterole || row.rolbypassrls || row.rolcanlogin) {
+              throw new Error('witnessops_app_runtime must be a non-superuser, non-owner, NOLOGIN role');
+            }
+          } finally {
+            await pool.end();
+          }
+          EOF
       - name: Acceptance gate and safe diagnostics regression
         run: node --test tests/publication/app-acceptance.test.mjs
       - name: Full repository health (app, CLI, verifier, report, lint, types)

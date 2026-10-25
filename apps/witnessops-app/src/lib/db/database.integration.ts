@@ -7,6 +7,7 @@ import { parseEnv } from "node:util";
 import { randomUUID, createHash } from "node:crypto";
 import { Pool } from "pg";
 import { migrate } from "../../../scripts/migrate.mjs";
+import { ensureRuntimeRole } from "./runtime-role";
 import { removeWorkspaceContent } from "../../../scripts/workspace-content-removal.mjs";
 import { resolveIdentity as resolveUnenrolledIdentity, type Identity, type AppUser } from "./identity";
 import { WorkspaceStore } from "./workspaces";
@@ -256,7 +257,7 @@ function request(endpoint: string, workspace: string, body?: unknown) {
 before(async () => {
   assert.equal((await admin.query("SELECT current_database() AS db")).rows[0].db, target.pathname.slice(1));
   await admin.query(`CREATE SCHEMA ${schema}`);
-  pool = connect(); await migrate(pool); store = new WorkspaceStore(pool);
+  pool = connect(); await migrate(pool); await ensureRuntimeRole(admin, schema); store = new WorkspaceStore(pool);
   a = await resolveIdentity(pool, identity("user_a")); b = await resolveIdentity(pool, identity("user_b")); viewer = await resolveIdentity(pool, identity("viewer"));
   wa = await store.create(a, "Workspace A", randomUUID()); wb = await store.create(b, "Workspace B", randomUUID());
   await pool.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, wa]);
