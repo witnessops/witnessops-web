@@ -17,8 +17,8 @@ test('password work is per slot and rejects a third concurrent derivation',async
  const held=new Promise<void>(resolve=>{release=resolve;});
  const first=runPasswordWork('share:a',()=>held);
  const second=hashSharePassword('synthetic passphrase only','share:b');
- await assert.rejects(runPasswordWork('share:c',async()=>1),(error:unknown)=>error instanceof PasswordChallenge&&error.status===503);
- await assert.rejects(hashSharePassword('synthetic passphrase only','share:a'),(error:unknown)=>error instanceof PasswordChallenge&&error.status===503);
+ await assert.rejects(runPasswordWork('share:c',async()=>1),(error:unknown)=>(error instanceof PasswordChallenge)&&(error.status===503));
+ await assert.rejects(hashSharePassword('synthetic passphrase only','share:a'),(error:unknown)=>(error instanceof PasswordChallenge)&&(error.status===503));
  release();
  await first;
  assert.match(await second,/^scrypt-v1\$/);
