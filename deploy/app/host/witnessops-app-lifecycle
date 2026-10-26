@@ -1,18 +1,10 @@
 #!/usr/bin/python3
 """Root-owned systemd helper. No force removal, pulls, or volume deletion.
 
-Operator copy, before the next start and only as a separate deploy action:
-copy the CI artifact files identity.json and image.sha256 unchanged from
-app-image-candidate into /etc/witnessops-app/ci-candidate/. The approval file
-image-security-approved must name the same on-host image ID (identity.json
-image_digest or config_digest) and the archive hex from image.sha256. This
-helper does not sign that manifest and does not re-hash image.tar.
-
-A missing or mismatched candidate raises CandidateMismatch and main exits 78
-before any container is removed or started. The unit lists 78 in
-RestartPreventExitStatus, so systemd does not retry that permanent failure.
-Other failures still use Restart=on-failure, RestartSec=15, and
-StartLimitBurst=10 inside StartLimitIntervalSec=300.
+Compares the recorded approval with the recorded CI candidate and fails closed
+before container replacement when that comparison does not hold. Status 78 is
+reserved for that mismatch. A container process that exits 78 is returned as
+a different status.
 """
 import fcntl
 import json
@@ -32,10 +24,12 @@ LOCK = '/run/witnessops-app-lifecycle/lock'
 MANIFEST_LIMIT = 8192
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}\Z')
 CANDIDATE_REASONS = ('missing_manifest', 'invalid_manifest', 'approval_mismatch', 'digest_mismatch')
+# Reserved for candidate mismatch. A container can also exit 78, so that code is remapped.
+MISMATCH_STATUS = 78
 
 
 class CandidateMismatch(RuntimeError):
-    """Permanent candidate/approval failure. Exit 78; do not restart."""
+    """Permanent candidate/approval failure. Uses MISMATCH_STATUS."""
 
     def __init__(self, reason):
         self.reason = reason if reason in CANDIDATE_REASONS else 'invalid_manifest'
@@ -101,6 +95,11 @@ def bind_candidate(image):
 
 def log(event, **fields):
     print(json.dumps({'event': event, **fields}), flush=True)
+
+
+def helper_status(code):
+    """Keep MISMATCH_STATUS for the helper only. Container exit 78 still restarts."""
+    return 1 if code == MISMATCH_STATUS else code
 
 
 def call(args, **kwargs):
@@ -219,8 +218,9 @@ def start(image):
             raise RuntimeError('container appeared before start')
         log('start', image=image, expected_running=1)
         result = subprocess.run(run_args(image, finalizer=finalizer), check=False)
-        log('runtime_exit', exit_code=result.returncode)
-        return result.returncode
+        status = helper_status(result.returncode)
+        log('runtime_exit', exit_code=result.returncode, helper_exit=status)
+        return status
 
 
 def stop(image):
@@ -247,8 +247,8 @@ def main():
         return (start if sys.argv[1] == 'start' else stop)(sys.argv[2])
     except CandidateMismatch as error:
         # Reason is a fixed code. Do not echo manifest or approval bytes.
-        log('candidate_mismatch', reason=error.reason, exit_code=78)
-        return 78
+        log('candidate_mismatch', reason=error.reason, exit_code=MISMATCH_STATUS)
+        return MISMATCH_STATUS
     except Exception as error:
         # Exceptions can contain argv or environment details. Emit class only.
         log('lifecycle_failed', failure_class=type(error).__name__)

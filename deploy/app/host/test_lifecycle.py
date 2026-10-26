@@ -238,6 +238,27 @@ class Lifecycle(unittest.TestCase):
         self.assertNotIn(marker,output.getvalue())
         self.assertEqual(json.loads(output.getvalue())['reason'],'invalid_manifest')
 
+    def test_container_exit_78_is_not_the_mismatch_status(self):
+        def run_start(code):
+            temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+            with patch.object(m,'LOCK',temp.name+'/lock'),patch.object(m,'preflight',return_value=False), \
+                 patch.object(m,'inspect_expected',side_effect=[None,None]), \
+                 patch.object(m.subprocess,'run',return_value=types.SimpleNamespace(returncode=code)):
+                return m.start(IMAGE)
+        self.assertEqual(run_start(78),1)
+        self.assertEqual(run_start(2),2)
+        self.assertNotEqual(1,m.MISMATCH_STATUS)
+        temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup)
+        output=io.StringIO()
+        with patch.object(m,'LOCK',temp.name+'/lock'),patch.object(m,'preflight',return_value=False), \
+             patch.object(m,'inspect_expected',side_effect=[None,None]), \
+             patch.object(m.subprocess,'run',return_value=types.SimpleNamespace(returncode=78)), \
+             patch.object(m.os,'geteuid',return_value=0),patch.object(m.sys,'argv',['lifecycle','start',IMAGE]), \
+             patch('sys.stdout',output):
+            self.assertEqual(m.main(),1)
+        record=json.loads(output.getvalue().strip().splitlines()[-1])
+        self.assertEqual(record,{'event':'runtime_exit','exit_code':78,'helper_exit':1})
+
     def test_unit_prevents_a_mismatch_restart_loop(self):
         text=pathlib.Path(__file__).with_name('witnessops-app.service').read_text()
         self.assertIn('Restart=on-failure\nRestartSec=15\n',text)
