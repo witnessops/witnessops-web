@@ -9,7 +9,7 @@ import { workspaceEntitlement } from './billing-entitlements';
 import { acceptedWorkspacePlan } from './plan-admission';
 import type { AppUser } from './identity';
 import { ApiError, requireId } from '../errors';
-import { isWorkspaceRole, type WorkspaceRole } from '../workspace-role-policy';
+import { hasWorkspaceCapability, isWorkspaceRole, WORKSPACE_OWNER_ROLE, type WorkspaceRole } from '../workspace-role-policy';
 import { invitationEmail } from '../invitation-email';
 import type { TextEmailPayload, TextEmailDeliveryResult } from '../../../../witnessops-web/src/lib/server/send-verification-email';
 
@@ -32,7 +32,7 @@ export class MembersStore {
     return transaction(this.pool, async client => {
       const actor = await requireWorkspaceMembership(client, user, workspace);
       const members = (await client.query('SELECT m.user_id AS id,u.display_name AS "displayName",m.role,m.generation FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=$1 AND m.status=\'active\' AND m.revoked_at IS NULL ORDER BY m.joined_at,m.user_id', [workspace])).rows;
-      const invitations = actor.role === 'owner' ? (await client.query(`SELECT id,recipient,role,revision,provider,expires_at AS "expiresAt",CASE WHEN state='pending' AND expires_at<=now() THEN 'expired' ELSE state END AS state,CASE WHEN delivery_state='sending' THEN 'unknown' ELSE delivery_state END AS "deliveryState" FROM workspace_invitations WHERE workspace_id=$1 ORDER BY created_at DESC LIMIT 100`, [workspace])).rows : [];
+      const invitations = hasWorkspaceCapability(actor.role, 'invitations:manage') ? (await client.query(`SELECT id,recipient,role,revision,provider,expires_at AS "expiresAt",CASE WHEN state='pending' AND expires_at<=now() THEN 'expired' ELSE state END AS state,CASE WHEN delivery_state='sending' THEN 'unknown' ELSE delivery_state END AS "deliveryState" FROM workspace_invitations WHERE workspace_id=$1 ORDER BY created_at DESC LIMIT 100`, [workspace])).rows : [];
       return { members, invitations, role: actor.role };
     });
   }
@@ -129,8 +129,8 @@ export class MembersStore {
       await requireWorkspaceMembership(client,user,workspace,'members:manage');
       const member=(await client.query<{role:WorkspaceRole;generation:number}>("SELECT role,generation FROM memberships WHERE workspace_id=$1 AND user_id=$2 AND status='active' AND revoked_at IS NULL FOR UPDATE",[workspace,userId])).rows[0];
       if(!member || member.generation!==generation) throw new ApiError(409,'Membership changed. Refresh the member list.');
-      if(member.role==='owner' && nextRole!=='owner') {
-        const others=await client.query("SELECT 1 FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=$1 AND m.user_id<>$2 AND m.role='owner' AND m.status='active' AND m.revoked_at IS NULL AND u.status='active' AND u.early_access_state IS DISTINCT FROM 'paused' AND NOT(u.early_access_state IS NULL AND u.early_access_activated_at IS NOT NULL) FOR SHARE OF u",[workspace,userId]);
+      if((member.role===WORKSPACE_OWNER_ROLE) && (nextRole!==WORKSPACE_OWNER_ROLE)) {
+        const others=await client.query("SELECT 1 FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.workspace_id=$1 AND m.user_id<>$2 AND m.role=$3 AND m.status='active' AND m.revoked_at IS NULL AND u.status='active' AND u.early_access_state IS DISTINCT FROM 'paused' AND NOT(u.early_access_state IS NULL AND u.early_access_activated_at IS NOT NULL) FOR SHARE OF u",[workspace,userId,WORKSPACE_OWNER_ROLE]);
         if(!others.rowCount) throw new ApiError(409,'Keep at least one active Owner.');
       }
       if(nextRole===member.role) return;

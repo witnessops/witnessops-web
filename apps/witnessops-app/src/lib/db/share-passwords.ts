@@ -14,7 +14,7 @@ export class SharePasswordStore {
   const share=requireId(id);passwordInput(password);
   if(!Number.isSafeInteger(expected)||Number(expected)<1)throw new ApiError(400,'Refresh share settings.');
   const authorize=async(client:import('pg').PoolClient)=>{
-   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,true);
+   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    const row=(await client.query('SELECT s.state,s.created_by,s.membership_generation,a.version,a.expires_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a',[share,workspace])).rows[0];
    if(!row||row.state==='revoked'||row.expires_at.getTime()<=Date.now())throw new ApiError(404,'Share unavailable.');
    if(row.version!==expected)throw new ApiError(409,'Share settings changed. Refresh before trying again.');

@@ -33,7 +33,7 @@ export class EarlyAccessPlanStore {
 
   async read(user: AppUser, workspaceId: string): Promise<EarlyAccessPlanRecord | null> {
     return transaction(this.pool, async client => {
-      const member = await requireWorkspaceMembership(client, user, workspaceId, true);
+      const member = await requireWorkspaceMembership(client, user, workspaceId, 'workspace:manage');
       return current(client, member.id);
     });
   }
@@ -41,7 +41,7 @@ export class EarlyAccessPlanStore {
   async recordConsent(user: AppUser, workspaceId: string, input: unknown): Promise<EarlyAccessPlanRecord> {
     const consent = validatePlanConsent(input);
     return transaction(this.pool, async client => {
-      const member = await requireWorkspaceMembership(client, user, workspaceId, true);
+      const member = await requireWorkspaceMembership(client, user, workspaceId, 'workspace:manage');
       // Same workspace serialization convention as asset/run admission. Current
       // role and access locks remain held through the entire write transaction.
       await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [member.id]);

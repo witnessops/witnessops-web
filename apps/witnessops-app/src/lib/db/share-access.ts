@@ -27,7 +27,7 @@ export class ShareAccessStore {
   const v=version(expected), until=typeof expires==='string' ? new Date(expires) : new Date(NaN);
   if (!Number.isFinite(until.getTime()) || until.getTime()<=Date.now() || until.getTime()>Date.now()+30*86400000) throw new ApiError(400,'Choose an expiry in the next 30 days.');
   return transaction(this.pool,async client=>{
-   await membershipLock(client,workspace,true);await requireWorkspaceMembership(client,user,workspace,true);
+   await membershipLock(client,workspace,true);await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    const row=await access(client,workspace,id);
    if(row.version!==v) throw new ApiError(409,'Link settings changed. Refresh before trying again.');
    const token=rotate ? randomBytes(32).toString('base64url') : undefined;
@@ -39,7 +39,7 @@ export class ShareAccessStore {
   const recipient=invitationEmail(input.email), key=requireId(input.requestId);
   return transaction(this.pool,async client=>{
    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 39819))',[user.id]);
-   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,true);
+   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    const row=await access(client,workspace,input.id);requireToken(row,input.token);
    const message=reportEmail(origin,input.token,recipient,row.snapshot,row.expires_at,key,Boolean(row.password_hash),row.name), digest=messageDigest(message);
    const prior=(await client.query('SELECT * FROM report_share_deliveries WHERE id=$1 AND workspace_id=$2',[key,workspace])).rows[0];
@@ -61,7 +61,7 @@ export class ShareAccessStore {
   if(input.confirmed!==true) throw new ApiError(400,'Review and confirm the recipient and email.');
   const id=requireId(input.id);
   const message=await transaction(this.pool,async client=>{
-   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,true);
+   await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    const draft=(await client.query('SELECT * FROM report_share_deliveries WHERE id=$1 AND workspace_id=$2 FOR UPDATE',[id,workspace])).rows[0];
    if(!draft || draft.actor_id!==user.id || draft.membership_generation!==member.generation) throw new ApiError(404,'Email draft unavailable.');
    const row=await access(client,workspace,draft.share_id);requireToken(row,input.token);
@@ -81,7 +81,7 @@ export class ShareAccessStore {
   return {recorded:true};
  }
  async deliveries(user:AppUser,workspace:string,id:unknown) {
-  return transaction(this.pool,async client=>{await requireWorkspaceMembership(client,user,workspace,true);
+  return transaction(this.pool,async client=>{await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    return (await client.query(`SELECT id,recipient,CASE WHEN state='sending' THEN 'unknown' ELSE state END AS state,created_at AS "createdAt",provider,provider_accepted_at AS "providerAcceptedAt" FROM report_share_deliveries WHERE share_id=$1 AND workspace_id=$2 ORDER BY created_at DESC LIMIT 120`,[requireId(id),workspace])).rows;
   });
  }
