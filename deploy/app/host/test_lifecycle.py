@@ -6,8 +6,9 @@ import pathlib
 import tempfile
 import types
 import unittest
-from test_caddy_snippet import CaddySnippetTests
 from unittest.mock import patch
+
+import test_caddy_snippet
 
 loader = importlib.machinery.SourceFileLoader('lifecycle', str(pathlib.Path(__file__).with_name('witnessops-app-lifecycle')))
 spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -254,5 +255,9 @@ class Lifecycle(unittest.TestCase):
         self.assertIn("path.resolve('scripts/server-check-finalize.py')",runtime)
         self.assertIn('COPY apps/witnessops-app/scripts/server-check-finalize.py /app/scripts/server-check-finalize.py',dockerfile)
         self.assertIn("Path('/app/scripts/server-check-finalize.py')",readiness)
+
+def load_tests(loader, tests, pattern):
+    tests.addTests(loader.loadTestsFromModule(test_caddy_snippet, pattern=pattern))
+    return tests
 
 if __name__=='__main__':unittest.main()
