@@ -4,7 +4,7 @@ import { admitRequest } from '../server';
 import { authConfiguration } from '../auth-config';
 import { ApiError } from '../errors';
 import { CliError } from '../db/cli-auth';
-import { logSecurityEvent } from '../security-log';
+import { logAccessFailure, logSecurityEvent } from '../security-log';
 import { LocalAuditFinalizer, MAX_CAPTURE } from './runtime';
 import { ServerCheckStore } from './store';
 import { findDuplicateJsonObjectKey } from '../../../../witnessops-web/src/lib/json-ambiguity';
@@ -31,7 +31,7 @@ export function createServerCheckService(store:ServerCheckStore,origin:string){l
   const bytes=Buffer.concat(chunks);
   if(upload)return Response.json(await store.upload(credential,request.headers.get('X-WitnessOps-Execution')??'',bytes,request.headers.get('X-WitnessOps-Capture-SHA256')??''),{headers});
   const raw=bytes.toString('utf8');if(findDuplicateJsonObjectKey(raw)!==null)throw new CliError('invalid_request');return Response.json(await store.authorize(credential,JSON.parse(raw)),{headers,status:201});
- }catch(error){if(error instanceof ApiError&&(error.status===401||error.status===403))logSecurityEvent(error.status===401?'auth_rejected':'admission_rejected',error.status,error.status===401?'unauthenticated':'forbidden',error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
+ }catch(error){logAccessFailure(error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
 };}
 let handler:ReturnType<typeof createServerCheckService>|undefined;
 export function serverCheck(request:Request,upload=false){handler??=createServerCheckService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return handler(request,upload);}
@@ -56,7 +56,7 @@ export function createServerCheckRetirementService(store:ServerCheckStore,origin
   let body:unknown;try{body=JSON.parse(raw);}catch{throw new CliError('invalid_request');}
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).sort().join(',')!=='executionId'||typeof (body as {executionId?:unknown}).executionId!=='string')throw new CliError('invalid_request');
   return Response.json(await store.retire(credential,(body as {executionId:string}).executionId),{headers});
- }catch(error){if(error instanceof ApiError&&(error.status===401||error.status===403))logSecurityEvent(error.status===401?'auth_rejected':'admission_rejected',error.status,error.status===401?'unauthenticated':'forbidden',error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
+ }catch(error){logAccessFailure(error);return Response.json({code:error instanceof CliError?error.code:error instanceof ApiError?'access_denied':'unavailable'},{status:error instanceof ApiError?error.status:503,headers});}finally{active--;}
 };}
 let retirementHandler:ReturnType<typeof createServerCheckRetirementService>|undefined;
 export function serverCheckRetirement(request:Request){retirementHandler??=createServerCheckRetirementService(new ServerCheckStore(database(),new LocalAuditFinalizer()),authConfiguration().origin);return retirementHandler(request);}

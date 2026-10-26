@@ -5,6 +5,7 @@ import type { authenticatedWebSession } from './auth';
 import { authConfiguration } from './auth-config';
 import { admitRequest } from './server';
 import { ApiError } from './errors';
+import { logAccessFailure } from './security-log';
 import { HELP_PAGES, helpPayload, type HelpAnswer } from './help-context';
 import { readBoundedRequestText } from '../../../witnessops-web/src/lib/server/bounded-request-body';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
@@ -39,6 +40,6 @@ export function createHelpService(options: { origin?:string; identity?:typeof au
    const config=readDocsAssistantRuntimeConfig();if(!config.enabled)throw new ApiError(503,'AI documentation guidance is unavailable. Open Documentation or ask a person.');
    const result=await runDocsAssistantServerRuntime({payload:{question},config,logger:()=>{}});
    return Response.json(presentHelpAnswer(result),{headers});
-  }catch(error){return Response.json({error:error instanceof ApiError?error.message:'Documentation guidance is unavailable. Try again or open Documentation.'},{status:error instanceof ApiError?error.status:503,headers});}
+  }catch(error){logAccessFailure(error);return Response.json({error:error instanceof ApiError?error.message:'Documentation guidance is unavailable. Try again or open Documentation.'},{status:error instanceof ApiError?error.status:503,headers});}
  };
 }

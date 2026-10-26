@@ -8,6 +8,7 @@ import { database } from './db/pool';
 import { resolveIdentity } from './db/identity';
 import { MembersStore } from './db/members';
 import { ApiError, requireId } from './errors';
+import { logAccessFailure } from './security-log';
 import { sendMail } from '../../../witnessops-web/src/lib/server/send-verification-email';
 import { readExternalRequestBody } from '../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
@@ -64,6 +65,7 @@ return async function memberRequest(request: Request, invitation = false) {
     } else if(request.method!=='GET') throw new ApiError(405,'Method not supported.');
     return Response.json(await store.list(user,workspace),{headers});
   } catch(error) {
+    logAccessFailure(error);
     return Response.json({error:error instanceof ApiError?error.message:'Membership request could not complete.'},{status:error instanceof ApiError?error.status:500,headers});
   }
 }

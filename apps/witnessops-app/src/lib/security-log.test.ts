@@ -4,8 +4,10 @@ import type { Pool } from "pg";
 import { createFoundationService, admitRequest } from "./server";
 import { createServerCheckService } from "./server-check/service";
 import type { ServerCheckStore } from "./server-check/store";
+import { createCliAuthService } from "./cli-auth-service";
 import { requireUnrevokedSession, sessionKey } from "./db/sessions";
-import { formatSecurityEvent, setSecurityLogSink } from "./security-log";
+import { ApiError } from "./errors";
+import { formatSecurityEvent, logAccessFailure, setSecurityLogSink } from "./security-log";
 
 const token = "querytokenSUPERSECRET0123456789abcdef";
 const cookie = "wos-session=sealedcookieSECRETVALUE012345";
@@ -119,6 +121,21 @@ describe("security event log", { concurrency: false }, () => {
     });
     assert.deepEqual(lines.map((line) => JSON.parse(line).reason), ["invalid_credential", "busy"]);
     assertSecretFree(lines, [lockToken]);
+  });
+
+  test("handler 401 and 403 logs omit credential, cookie, email and error text", async () => {
+    const error = new ApiError(403, `${token} ${cookie} ${email} ${password} ${share}`);
+    const direct = capture(() => logAccessFailure(error));
+    assert.deepEqual(JSON.parse(direct.lines[0]), { event: "admission_rejected", status: 403, reason: "forbidden" });
+    assertSecretFree(direct.lines);
+    const origin = "http://127.0.0.1:3020";
+    const cli = createCliAuthService({ pool: {} as Pool, origin });
+    const session = await captureAsync(() => cli.handle(new Request(`${origin}/api/cli/session`, {
+      headers: { host: "127.0.0.1:3020", cookie, authorization: `Bearer ${bearer}` },
+    }), "session"));
+    assert.equal(session.result.status, 401);
+    assert.deepEqual(session.lines.map((line) => JSON.parse(line).reason), ["unauthenticated"]);
+    assertSecretFree(session.lines);
   });
 
   test("session rejection does not log issuer, session id or subject", async () => {

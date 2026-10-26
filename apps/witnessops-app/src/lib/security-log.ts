@@ -1,4 +1,5 @@
 import "server-only";
+import { ApiError } from "./errors";
 
 /** Closed event vocabulary. Callers cannot attach request bytes, headers, or URLs. */
 const EVENTS = ["admission_rejected", "auth_rejected", "lock_contention"] as const;
@@ -37,6 +38,12 @@ export function formatSecurityEvent(event: string, status: number, reason: strin
   const line = JSON.stringify({ event, status, reason });
   if (line.length > 160 || /[@?]/.test(line)) return REDACTED;
   return line;
+}
+
+/** 401/403 from a handler catch. A more specific log of the same error is kept. */
+export function logAccessFailure(error: unknown): void {
+  if (!(error instanceof ApiError) || (error.status !== 401 && error.status !== 403)) return;
+  logSecurityEvent(error.status === 401 ? "auth_rejected" : "admission_rejected", error.status, error.status === 401 ? "unauthenticated" : "forbidden", error);
 }
 
 export function logSecurityEvent(event: SecurityEventName, status: number, reason: SecurityReason, error?: object): void {

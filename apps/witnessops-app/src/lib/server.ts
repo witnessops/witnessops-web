@@ -8,7 +8,7 @@ import { readExternalRequestBody } from "../../../witnessops-web/src/lib/externa
 import { findDuplicateJsonObjectKey } from "../../../witnessops-web/src/lib/json-ambiguity";
 import type { ExternalSnapshotV1, WorkspaceState } from "./model";
 import { ApiError, requireId } from "./errors";
-import { logSecurityEvent } from "./security-log";
+import { logAccessFailure, logSecurityEvent } from "./security-log";
 import { authConfiguration } from "./auth-config";
 import { database } from "./db/pool";
 import { resolveIdentity, type Identity } from "./db/identity";
@@ -191,9 +191,7 @@ export function createFoundationService(options: {
       }
       throw new ApiError(405, "Method not supported.");
     } catch (error) {
-      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
-        logSecurityEvent(error.status === 401 ? "auth_rejected" : "admission_rejected", error.status, error.status === 401 ? "unauthenticated" : "forbidden", error);
-      }
+      logAccessFailure(error);
       return json({ error: error instanceof ApiError ? error.message : "Request could not complete.", ...(error instanceof ApiError && error.accessState !== undefined ? { code: 'EARLY_ACCESS_REQUIRED', accessState: error.accessState } : {}) }, error instanceof ApiError ? error.status : 500);
     }
   }
