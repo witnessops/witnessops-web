@@ -5,6 +5,7 @@ import { database } from './db/pool';
 import { authConfiguration } from './auth-config';
 import { admitRequest } from './server';
 import { ApiError } from './errors';
+import { logAccessFailure } from './security-log';
 import { readExternalRequestBody } from '../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
 const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow' };
@@ -47,6 +48,7 @@ export function createCliAuthService(options: { pool?: Pool; origin?: string; id
       }
       throw new CliError('method_not_supported', 405);
     } catch (error) {
+      logAccessFailure(error);
       const status = error instanceof ApiError ? error.status : 503;
       const code = error instanceof CliError ? error.code : error instanceof ApiError ? 'access_denied' : 'unavailable';
       return Response.json({ code }, { status, headers: { ...headers, ...(status === 429 ? { 'Retry-After': '5' } : {}) } });

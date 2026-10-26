@@ -29,6 +29,13 @@ This table is intentionally limited to authority classification. It does not pub
 | `.github/workflows/release.yml` and `.github/workflows/build-image.yml` | **Artifact/build/repository-release surfaces, not routine production runtime deployment authority.** A successful artifact workflow does not prove `witnessops.com` changed. |
 | legacy Compose/GHCR direct-deploy helpers and retired Azure deployment material | **Historical/retired for routine production.** Do not reactivate as a shortcut without a separately authorized reopening decision. |
 
+## App candidate binding and host proxy source
+
+| Tracked surface | Public authority classification |
+| --- | --- |
+| `deploy/app/host/witnessops-app-lifecycle` and `deploy/app/host/witnessops-app.service` | **Authenticated-app lifecycle source.** The helper compares a recorded approval with a recorded CI candidate and fails closed before container replacement when that comparison does not hold. A new image identity needs a new CI candidate and a new approval record. Source presence is not a host procedure or evidence of a live image. |
+| `deploy/app/host/Caddyfile.app-witnessops` | **Source-only app proxy snippet.** It is not applied or reloaded by this repository. Edge changes stay a separate authority lane. |
+
 ## Distinguish validation, retained helpers and activation
 
 Root `deploy:k3s:build`, `deploy:k3s:prod` and `deploy:k3s:both` point to

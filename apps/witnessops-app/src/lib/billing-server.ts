@@ -11,6 +11,7 @@ import { billingConfiguration, billingEnabled, type BillingConfig } from './bill
 import { StripeHttp, verifyStripeEvent, type StripeGateway } from './stripe-gateway';
 import { ApiError, requireId } from './errors';
 import { admitRequest } from './server';
+import { logAccessFailure } from './security-log';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
 const headers={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, nofollow'};
 async function body(request:Request,limit:number){
@@ -47,7 +48,7 @@ export function createBillingService(options:{pool?:Pool;origin?:string;identity
    if(Object.keys(input).sort().join()!==expected.sort().join())throw new ApiError(400,'Submit only the required fields.');
    const result=input.action==='checkout'?await store.checkout(user,workspace,input.plan):input.action==='portal'?await store.portal(user,workspace):input.action==='refresh'?await store.refresh(user,workspace):null;
    if(!result)throw new ApiError(400,'Choose a billing action.');return Response.json(result,{headers});
-  }catch(error){return Response.json({error:error instanceof ApiError?error.message:'Billing is unavailable. No entitlement was granted by this request.'},{status:error instanceof ApiError?error.status:503,headers});}
+  }catch(error){logAccessFailure(error);return Response.json({error:error instanceof ApiError?error.message:'Billing is unavailable. No entitlement was granted by this request.'},{status:error instanceof ApiError?error.status:503,headers});}
  };
 }
 export const billingRequest=createBillingService();

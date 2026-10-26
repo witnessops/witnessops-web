@@ -38,6 +38,8 @@ COPY --from=builder /app/apps/witnessops-app/public ./apps/witnessops-app/public
 COPY --from=producer /opt/witnessops/finalizer /opt/witnessops/finalizer
 COPY deploy/app/finalizer-readiness.py /opt/witnessops/finalizer-readiness.py
 COPY apps/witnessops-web/src/lib/proofpack/trust/local-audit-registry-v1.json /opt/witnessops/registry.json
+# runtime.ts resolves this from the image working directory (/app), including when the finalizer flag is off.
+COPY apps/witnessops-app/scripts/server-check-finalize.py /app/scripts/server-check-finalize.py
 USER nextjs
 ENTRYPOINT ["node"]
 CMD ["apps/witnessops-app/server.js"]

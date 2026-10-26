@@ -13,6 +13,7 @@ import type { InvitationSender } from './db/members';
 import { ShareStore } from './db/shares';
 import { ApiError, requireId } from './errors';
 import { admitRequest } from './server';
+import { logAccessFailure } from './security-log';
 import { readExternalRequestBody } from '../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
 export const SHARE_HEADERS = { 'Cache-Control': 'private, no-store, max-age=0', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow, noarchive', 'X-Content-Type-Options': 'nosniff' };
@@ -113,6 +114,7 @@ export function createShareService(options: {
             return Response.json(result, { headers: SHARE_HEADERS });
         }
         catch (error) {
+            logAccessFailure(error);
             return Response.json({ error: error instanceof ApiError ? error.message : 'Sharing request could not complete.', ...(error instanceof PasswordChallenge ? {passwordRequired:true} : {}) }, { status: error instanceof ApiError ? error.status : 500, headers: SHARE_HEADERS });
         }
     };

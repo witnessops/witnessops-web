@@ -1,0 +1,17 @@
+# Source-only snippet for the app host. Not applied. Not reloaded.
+# A separate operator action is required before any host Caddy change.
+# Client-IP and forwarding headers are set from the connection Caddy accepted
+# or from fixed literals. Nothing in this block is copied from client input.
+# Inbound forwarding headers are not treated as the client address.
+
+app.witnessops.com {
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:3020 {
+		header_up -Forwarded
+		header_up X-Forwarded-For {http.request.remote.host}
+		header_up X-Real-IP {http.request.remote.host}
+		header_up X-Forwarded-Host app.witnessops.com
+		header_up X-Forwarded-Proto https
+	}
+}

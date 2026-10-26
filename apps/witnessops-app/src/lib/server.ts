@@ -8,6 +8,7 @@ import { readExternalRequestBody } from "../../../witnessops-web/src/lib/externa
 import { findDuplicateJsonObjectKey } from "../../../witnessops-web/src/lib/json-ambiguity";
 import type { ExternalSnapshotV1, WorkspaceState } from "./model";
 import { ApiError, requireId } from "./errors";
+import { logAccessFailure, logSecurityEvent } from "./security-log";
 import { authConfiguration } from "./auth-config";
 import { database } from "./db/pool";
 import { resolveIdentity, type Identity } from "./db/identity";
@@ -17,6 +18,12 @@ import { ActivityStore } from './db/activity';
 import { CLIENT_EVENTS, type ClientEvent, type ProductEvent } from './early-access';
 import type { AppUser } from './db/identity';
 
+function rejectAdmission(status: number, message: string, reason: "unknown_proxy_mode" | "forwarding_metadata" | "origin" | "query"): never {
+  const error = new ApiError(status, message);
+  logSecurityEvent("admission_rejected", status, reason, error);
+  throw error;
+}
+
 export function admitRequest(request: Request, origin: string, proxyMode?: string) {
   const url = new URL(request.url), configured = new URL(origin);
   const internalAlias = configured.hostname === "127.0.0.1" && url.hostname === "localhost" && url.protocol === configured.protocol && url.port === configured.port;
@@ -25,18 +32,18 @@ export function admitRequest(request: Request, origin: string, proxyMode?: strin
   // request.url from that listener rather than the HTTP Host header. Never use
   // forwarded values to choose an origin; compare all of them to fixed config.
   const proxyEnabled = proxyMode === "caddy-loopback-v1";
-  if (proxyMode && !proxyEnabled) throw new ApiError(403, "Unknown app proxy mode.");
+  if (proxyMode && !proxyEnabled) rejectAdmission(403, "Unknown app proxy mode.", "unknown_proxy_mode");
   const proxyAlias = proxyEnabled && origin === "https://app.witnessops.com" && url.origin === "https://0.0.0.0:3020";
-  if (request.headers.has("forwarded")) throw new ApiError(403, "Unexpected forwarding metadata.");
+  if (request.headers.has("forwarded")) rejectAdmission(403, "Unexpected forwarding metadata.", "forwarding_metadata");
   for (const [name, expected] of [["x-forwarded-host", configured.host], ["x-forwarded-proto", configured.protocol.slice(0, -1)]]) {
     const value = request.headers.get(name);
-    if ((value !== null && value !== expected) || (proxyAlias && value !== expected)) throw new ApiError(403, "Unexpected forwarding metadata.");
+    if ((value !== null && value !== expected) || (proxyAlias && value !== expected)) rejectAdmission(403, "Unexpected forwarding metadata.", "forwarding_metadata");
   }
-  if (request.headers.get("host") !== configured.host || (url.origin !== origin && !internalAlias && !proxyAlias)) throw new ApiError(403, "Use the configured app origin.");
-  if (request.headers.has("origin") && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
-  if (![null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) throw new ApiError(403, "Use the app origin.");
-  if (request.method !== "GET" && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
-  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks", "/api/cli/server-check-retirement"].includes(url.pathname) || [...url.searchParams.keys()].join() !== (url.pathname === "/api/cli/server-check-retirement" ? "executionId" : "id"))) throw new ApiError(400, "Unexpected query parameters.");
+  if (request.headers.get("host") !== configured.host || (url.origin !== origin && !internalAlias && !proxyAlias)) rejectAdmission(403, "Use the configured app origin.", "origin");
+  if (request.headers.has("origin") && request.headers.get("origin") !== origin) rejectAdmission(403, "Use the app origin.", "origin");
+  if (![null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) rejectAdmission(403, "Use the app origin.", "origin");
+  if (request.method !== "GET" && request.headers.get("origin") !== origin) rejectAdmission(403, "Use the app origin.", "origin");
+  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks", "/api/cli/server-check-retirement"].includes(url.pathname) || [...url.searchParams.keys()].join() !== (url.pathname === "/api/cli/server-check-retirement" ? "executionId" : "id"))) rejectAdmission(400, "Unexpected query parameters.", "query");
 }
 const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex, nofollow" };
 function json(value: unknown, status = 200) { return Response.json(value, { status, headers }); }
@@ -93,7 +100,10 @@ export function createFoundationService(options: {
       if (endpoint === 'linux-checks') {
         const linux = new LinuxCheckStore(pool);
         if (request.method === 'GET') {
-          if (importing) return Response.json({ error: 'Another package is being checked. Try again shortly.', code: 'verification_busy', retryable: true }, { status: 429, headers: { ...headers, 'Retry-After': '1' } });
+          if (importing) {
+            logSecurityEvent("lock_contention", 429, "busy");
+            return Response.json({ error: 'Another package is being checked. Try again shortly.', code: 'verification_busy', retryable: true }, { status: 429, headers: { ...headers, 'Retry-After': '1' } });
+          }
           importing = true;
           try {
             const reopened = await linux.comparison(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));
@@ -109,7 +119,10 @@ export function createFoundationService(options: {
           // Authorize before buffering an upload. One verification/import at a time.
           const member = await store.read(user, workspaceId);
           if (!hasWorkspaceCapability(member.role, 'linux:import')) throw new ApiError(403, 'An Owner or Contributor is required to import results.');
-          if (importing) throw new ApiError(429, 'Another import is being checked. Try again shortly.');
+          if (importing) {
+            logSecurityEvent("lock_contention", 429, "busy");
+            throw new ApiError(429, 'Another import is being checked. Try again shortly.');
+          }
           importing = true;
           try {
             const input = await linuxUpload(request);
@@ -177,7 +190,10 @@ export function createFoundationService(options: {
         } finally { active -= 1; }
       }
       throw new ApiError(405, "Method not supported.");
-    } catch (error) { return json({ error: error instanceof ApiError ? error.message : "Request could not complete.", ...(error instanceof ApiError && error.accessState !== undefined ? { code: 'EARLY_ACCESS_REQUIRED', accessState: error.accessState } : {}) }, error instanceof ApiError ? error.status : 500); }
+    } catch (error) {
+      logAccessFailure(error);
+      return json({ error: error instanceof ApiError ? error.message : "Request could not complete.", ...(error instanceof ApiError && error.accessState !== undefined ? { code: 'EARLY_ACCESS_REQUIRED', accessState: error.accessState } : {}) }, error instanceof ApiError ? error.status : 500);
+    }
   }
   return { handle };
 }
