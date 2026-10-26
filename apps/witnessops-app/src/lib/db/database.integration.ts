@@ -759,6 +759,22 @@ test("session replay: 200 before logout, 401 after replay and fresh connection; 
   await requireUnrevokedSession(pool, { ...keyA, issuer: keyA.issuer + "_other" });
 });
 
+test("identity: unchanged provider profile does not rewrite rows; a changed name does", async () => {
+  const who = identity("user_unchanged");
+  const user = await resolveUnenrolledIdentity(pool, who);
+  const before = await pool.query("SELECT u.updated_at AS user_updated, i.updated_at AS mapping_updated FROM users u JOIN identity_mappings i ON i.user_id=u.id WHERE u.id=$1", [user.id]);
+  await new Promise(resolve => setTimeout(resolve, 20));
+  const again = await resolveUnenrolledIdentity(pool, who);
+  assert.equal(again.id, user.id);
+  const after = await pool.query("SELECT u.updated_at AS user_updated, i.updated_at AS mapping_updated FROM users u JOIN identity_mappings i ON i.user_id=u.id WHERE u.id=$1", [user.id]);
+  assert.equal(after.rows[0].user_updated.getTime(), before.rows[0].user_updated.getTime());
+  assert.equal(after.rows[0].mapping_updated.getTime(), before.rows[0].mapping_updated.getTime());
+  const renamed = await resolveUnenrolledIdentity(pool, { ...who, displayName: "Renamed" });
+  assert.equal(renamed.id, user.id);
+  const written = await pool.query("SELECT display_name, updated_at FROM users WHERE id=$1", [user.id]);
+  assert.equal(written.rows[0].display_name, "Renamed");
+  assert.ok(written.rows[0].updated_at.getTime() > before.rows[0].user_updated.getTime());
+});
 test("identity: same provider subject and changed email retain the internal user", async () => {
   const again = await resolveIdentity(pool, { ...identity("user_a"), email: "changed@example.test" });
   assert.equal(again.id, a.id); assert.notEqual(a.id, b.id);
@@ -1154,7 +1170,7 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
   const started = new Promise<void>(resolve => { entered = resolve; });
   const held = new Promise<void>(resolve => { release = resolve; });
   LinuxCheckStore.prototype.comparison = async function(...args) {
-    verifications++; entered(); await held;
+    if (args[1] === workspace && args[2] === run.id) { verifications++; entered(); await held; }
     return originalComparison.apply(this,args);
   };
   try {
@@ -1165,6 +1181,9 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
     assert.deepEqual(await busy.json(),{error:'Another package is being checked. Try again shortly.',code:'verification_busy',retryable:true});
     assert.equal(busy.headers.get('Retry-After'),'1');
     assert.equal((await service.handle(request(`linux-checks?id=${randomUUID()}`,workspace),'linux-checks')).status,429);
+    const otherWorkspace = await store.create(owner, 'Import isolation', randomUUID());
+    const isolated = await service.handle(request(`linux-checks?id=${randomUUID()}`, otherWorkspace), 'linux-checks');
+    assert.equal(isolated.status, 404);
     release(); assert.equal((await first).status,200);
     assert.equal(verifications,1);
     assert.equal((await service.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks')).status,200);

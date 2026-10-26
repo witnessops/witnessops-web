@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createFoundationService, admitRequest } from "./server";
+import { createFoundationService, admitRequest, createWorkspaceImportGate } from "./server";
 import { authConfiguration } from "./auth-config";
 import { canonicalSource } from "./source-digest";
 
@@ -71,6 +71,16 @@ test("fixed proxy contract rejects unapproved hosts, schemes, origins and forwar
   }
   assert.throws(() => admitRequest(proxyRequest(), "http://127.0.0.1:3020", "caddy-loopback-v1"));
   assert.throws(() => admitRequest(proxyRequest(), "https://staging.example", "caddy-loopback-v1"));
+});
+test("linux import gate blocks only the workspace that already holds it", () => {
+  const gate = createWorkspaceImportGate();
+  assert.equal(gate.enter("workspace-a"), true);
+  assert.equal(gate.enter("workspace-b"), true);
+  assert.equal(gate.enter("workspace-a"), false);
+  gate.leave("workspace-a");
+  assert.equal(gate.enter("workspace-a"), true);
+  gate.leave("workspace-a");
+  gate.leave("workspace-b");
 });
 test("correct production proxy request reaches authentication without database or execution", async () => {
   const service = createFoundationService({ origin: productionOrigin, proxyMode: "caddy-loopback-v1", identity: async () => null, run: async () => { throw new Error("Must not execute"); } });

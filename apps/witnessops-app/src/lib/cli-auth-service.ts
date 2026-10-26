@@ -6,6 +6,7 @@ import { authConfiguration } from './auth-config';
 import { admitRequest } from './server';
 import { ApiError } from './errors';
 import { logAccessFailure } from './security-log';
+import { CLI_LOGIN_IP_LIMIT, CLI_LOGIN_IP_WINDOW_MS, ClientIpLimiter, clientIpFromProxy } from './client-ip-limit';
 import { readExternalRequestBody } from '../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
 const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow' };
@@ -19,8 +20,9 @@ async function input(request: Request, keys: string[], optional: string[] = []) 
     return value;
   } catch { throw new CliError('invalid_request'); }
 }
-export function createCliAuthService(options: { pool?: Pool; origin?: string; identity?: () => Promise<WebCliIdentity | null>; now?: () => number } = {}) {
+export function createCliAuthService(options: { pool?: Pool; origin?: string; identity?: () => Promise<WebCliIdentity | null>; now?: () => number; ipLimiter?: ClientIpLimiter } = {}) {
   let active = 0;
+  const ipLimiter = options.ipLimiter ?? new ClientIpLimiter(CLI_LOGIN_IP_LIMIT, CLI_LOGIN_IP_WINDOW_MS, options.now ?? Date.now);
   return { async handle(request: Request, endpoint: 'login' | 'poll' | 'authorize' | 'session'): Promise<Response> {
     const response = (value: unknown, status = 200) => Response.json(value, { status, headers });
     if (active >= 8) return Response.json({ code: 'busy' }, { status: 429, headers: { ...headers, 'Retry-After': '5' } });
@@ -31,6 +33,8 @@ export function createCliAuthService(options: { pool?: Pool; origin?: string; id
       const store = new CliAuthStore(options.pool ?? database(), options.now);
       if (endpoint === 'login' && request.method === 'POST') {
         await input(request, []);
+        // Unknown or unparseable proxy addresses are not one shared bucket. The store keeps the global 30/minute and 1000 caps for that case.
+        if (!ipLimiter.allow(clientIpFromProxy(request)).allowed) throw new CliError('busy', 429);
         return response({ ...await store.create(), authorizationUrl: `${origin}/cli/authorize` }, 201);
       }
       if (endpoint === 'poll' && request.method === 'POST') return response(await store.poll((await input(request, ['device'])).device));

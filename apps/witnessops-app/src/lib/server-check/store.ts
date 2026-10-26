@@ -1,7 +1,7 @@
 import 'server-only';
 import { randomUUID, createHash } from 'node:crypto';
 import { validateListenerEndpoints } from '../../../../../packages/wops-cli/src/listener-endpoints.mjs';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import { CliAuthStore, CliError } from '../db/cli-auth';
 import { LinuxCheckStore, sha256 } from '../db/linux-checks';
 import { linuxHostname } from '../linux-hostname';
@@ -33,6 +33,11 @@ export function checkRequest(value: unknown) {
 export class ServerCheckStore {
  constructor(private pool:Pool,private finalizer:Finalizer,private now=Date.now){}
  async authenticate(credential:unknown){return this.auth().withServerWork(credential,async()=>undefined);}
+ private async custodyLock(client: PoolClient, workspace: string) {
+  // Seed 10 is this custody try-lock only. It does not overlap capacity (seed 0) or membership (39115).
+  // Another workspace hashes to another key, so one tenant's upload or finalizer does not busy-out another.
+  if (!(await client.query('SELECT pg_try_advisory_xact_lock(hashtextextended($1::uuid::text, 10)) AS acquired', [workspace])).rows[0].acquired) throw new CliError('busy', 429);
+ }
  private auth(){return new CliAuthStore(this.pool,this.now);}
  async context(credential:unknown){return this.auth().withServerWork(credential,async(client,_user,workspace)=>{
   const fingerprint=await this.finalizer.preflight();
@@ -79,7 +84,7 @@ export class ServerCheckStore {
   return {...this.view(row),requestId:row.request_id,createdAt:row.created_at.toISOString()};
  });}
  async retire(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
-  if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+  await this.custodyLock(client, workspace);
   const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
   if(!row)throw new CliError('execution_not_found',404);
   if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
@@ -96,7 +101,7 @@ export class ServerCheckStore {
   // Commit the charge before any custody write. A later rollback/crash must not
   // undo accounting for rejected or partially persisted immutable material.
   await this.auth().withServerWork(credential,async(client,user,workspace)=>{
-   if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+   await this.custodyLock(client, workspace);
    const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
    if(!row)throw new CliError('execution_not_found',404);
    if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
@@ -117,7 +122,7 @@ export class ServerCheckStore {
   // The reservation transaction released its locks: recheck current authority
   // and serialize the actual filesystem/producer operation independently.
   return this.auth().withServerWork(credential,async(client,user,workspace)=>{
-   if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
+   await this.custodyLock(client, workspace);
    const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];
    if(!row)throw new CliError('execution_not_found',404);
    if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
@@ -129,14 +134,38 @@ export class ServerCheckStore {
    const saved=(await client.query("UPDATE server_check_executions SET state='uploaded',capture_bytes=$2,capture_digest=$3 WHERE id=$1 AND workspace_id=$4 RETURNING *",[id,bytes,digest,workspace])).rows[0];return this.view(saved);
   });
  }
- async status(credential:unknown,id:string){requireId(id);return this.auth().withServerWork(credential,async(client,user,workspace)=>{
-  if(!(await client.query('SELECT pg_try_advisory_xact_lock(941071,10) AS acquired')).rows[0].acquired)throw new CliError('busy',429);
-  const row=(await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE',[id,workspace,user.id])).rows[0];if(!row)throw new CliError('execution_not_found',404);if(row.membership_generation!==user.membershipGeneration)throw new CliError('revoked',401);
-  if(row.state==='run_created'){const source=(await client.query('SELECT metadata FROM linux_check_sources WHERE run_id=$1 AND workspace_id=$2',[row.run_id,workspace])).rows[0];return {...this.view(row),outcome:source?.metadata.outcome};}
-  if(row.state!=='uploaded')return this.view(row);
-  // Same transaction as normal Linux admission: a crash cannot commit a run without its execution link.
-  const pack=await this.finalizer.finalize(id,row.capture_bytes);
-  const run=await new LinuxCheckStore(this.pool).importWithin(client,user,workspace,row.asset_id,pack.zip,pack.signature,pack.zipName);
-  const saved=(await client.query("UPDATE server_check_executions SET state='run_created',run_id=$2 WHERE id=$1 AND workspace_id=$3 RETURNING *",[id,run.id,workspace])).rows[0];return {...this.view(saved),outcome:run.outcome};
- });}
+ private async linkedOutcome(client: PoolClient, row: { state: string; run_id: string | null }, workspace: string) {
+  if (row.state !== 'run_created') return undefined;
+  const source = (await client.query('SELECT metadata FROM linux_check_sources WHERE run_id=$1 AND workspace_id=$2', [row.run_id, workspace])).rows[0];
+  return source?.metadata.outcome as unknown;
+ }
+ async status(credential: unknown, id: string) {
+  requireId(id);
+  const pending = await this.auth().withServerWork(credential, async (client, user, workspace) => {
+   await this.custodyLock(client, workspace);
+   const row = (await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE', [id, workspace, user.id])).rows[0];
+   if (!row) throw new CliError('execution_not_found', 404);
+   if (row.membership_generation !== user.membershipGeneration) throw new CliError('revoked', 401);
+   if (row.state === 'run_created') return { kind: 'ready' as const, body: { ...this.view(row), outcome: await this.linkedOutcome(client, row, workspace) } };
+   if (row.state !== 'uploaded') return { kind: 'ready' as const, body: this.view(row) };
+   return { kind: 'finalize' as const, capture: row.capture_bytes as Buffer };
+  });
+  if (pending.kind === 'ready') return pending.body;
+  // The producer `started` marker makes a completed pack reusable. Signing stays
+  // outside the database transaction, so a crash after the marker does not hold
+  // a pool connection. Import and the execution link stay one transaction: a
+  // crash cannot commit a run without that link, and a retry still sees `uploaded`.
+  const pack = await this.finalizer.finalize(id, pending.capture);
+  return this.auth().withServerWork(credential, async (client, user, workspace) => {
+   await this.custodyLock(client, workspace);
+   const row = (await client.query('SELECT * FROM server_check_executions WHERE id=$1 AND workspace_id=$2 AND user_id=$3 FOR UPDATE', [id, workspace, user.id])).rows[0];
+   if (!row) throw new CliError('execution_not_found', 404);
+   if (row.membership_generation !== user.membershipGeneration) throw new CliError('revoked', 401);
+   if (row.state === 'run_created') return { ...this.view(row), outcome: await this.linkedOutcome(client, row, workspace) };
+   if (row.state !== 'uploaded' || !Buffer.isBuffer(row.capture_bytes) || !row.capture_bytes.equals(pending.capture)) throw new CliError('capture_conflict', 409);
+   const run = await new LinuxCheckStore(this.pool).importWithin(client, user, workspace, row.asset_id, pack.zip, pack.signature, pack.zipName);
+   const saved = (await client.query("UPDATE server_check_executions SET state='run_created',run_id=$2 WHERE id=$1 AND workspace_id=$3 RETURNING *", [id, run.id, workspace])).rows[0];
+   return { ...this.view(saved), outcome: run.outcome };
+  });
+ }
 }

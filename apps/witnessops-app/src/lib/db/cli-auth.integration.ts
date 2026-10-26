@@ -133,6 +133,30 @@ test('complete CLI commands against real service/store with disposable web ident
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 
+test('anonymous CLI login flood does not block an authenticated session',async()=>{
+ const credential=await issued();
+ await pool.query('DELETE FROM cli_login_transactions');
+ const holder=await pool.connect();
+ let flood: Promise<string[]> = Promise.resolve([]);
+ try {
+  await holder.query('BEGIN');
+  await holder.query('SELECT pg_advisory_xact_lock(941071, 9)');
+  flood=Promise.all(Array.from({length:40},()=>store.create().then(()=>'ok',(error:unknown)=>error instanceof CliError?error.code:'err')));
+  const statusPromise=store.status(credential);
+  const result=await Promise.race([
+   statusPromise.then(value=>({timedOut:false as const,value})),
+   new Promise<{timedOut:true;value?:undefined}>(resolve=>setTimeout(()=>resolve({timedOut:true}),2000)),
+  ]);
+  assert.equal(result.timedOut,false);
+  if(!result.timedOut)assert.equal(result.value.state,'active');
+ } finally {
+  await holder.query('ROLLBACK');
+  holder.release();
+  const results=await flood;
+  assert.equal(results.filter(item=>item==='ok').length,30);
+  assert.ok(results.includes('busy'));
+ }
+});
 test('expired login rows do not hold anonymous issuance capacity for a day',async()=>{
  await pool.query(`INSERT INTO cli_login_transactions(device_hash,code_hash,created_at,expires_at)
  SELECT lpad(to_hex(n),64,'0'), lpad(to_hex(n+1000),64,'0'), $1::timestamptz-interval '20 minutes', $1::timestamptz-interval '10 minutes' FROM generate_series(1,1000) n`,[new Date(time)]);
