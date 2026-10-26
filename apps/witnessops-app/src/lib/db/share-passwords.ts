@@ -22,7 +22,7 @@ export class SharePasswordStore {
    return {generation:member.generation,expiresAt:row.expires_at.toISOString()};
   };
   const before=await transaction(this.pool,authorize);
-  const encoded=await hashSharePassword(password); // outside DB locks
+  const encoded=await hashSharePassword(password, `user:${user.id}`); // outside DB locks
   return transaction(this.pool,async client=>{
    const current=await authorize(client);if(current.generation!==before.generation)throw new ApiError(403,'Workspace access changed.');
    await client.query('UPDATE report_share_access SET password_hash=$2,version=version+1,password_attempts=0,password_window=now() WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_access.share_id AND s.workspace_id=$3)',[share,encoded,workspace]);
@@ -42,7 +42,7 @@ export class SharePasswordStore {
    await client.query('UPDATE report_share_access SET password_attempts=$2,password_window=CASE WHEN $2=1 THEN now() ELSE password_window END WHERE share_id=$1 AND EXISTS (SELECT 1 FROM report_shares s WHERE s.id=report_share_access.share_id AND s.workspace_id=$3)',[row.share_id,count+1,row.workspace_id]);
    return row;
   });
-  if(!await checkSharePassword(password,reserve.password_hash))throw new PasswordChallenge(401,'Password did not unlock this report.');
+  if(!await checkSharePassword(password,reserve.password_hash,`share:${reserve.share_id}`))throw new PasswordChallenge(401,'Password did not unlock this report.');
   return transaction(this.pool,async client=>{
    const current=(await client.query(`SELECT a.*,s.workspace_id,s.state,w.status FROM report_share_access a JOIN report_shares s ON s.id=a.share_id JOIN workspaces w ON w.id=s.workspace_id WHERE a.share_id=$1 AND s.workspace_id=$2 FOR UPDATE OF a`,[reserve.share_id,reserve.workspace_id])).rows[0];
    if(!current||current.version!==reserve.version||current.token_hash!==hashed||current.state!=='published'||current.status!=='active'||current.expires_at.getTime()<=Date.now())throw new ApiError(404,'Shared report unavailable.');

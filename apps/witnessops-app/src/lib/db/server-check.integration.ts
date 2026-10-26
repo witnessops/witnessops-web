@@ -31,7 +31,9 @@ const previousFinalizer=process.env.WITNESSOPS_FINALIZER_ENABLED;
 const web:WebCliIdentity={identity:{provider:'workos',issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',email:'owner@example.test',displayName:'Test Owner'},session:{issuer:'https://workos.test/client_fixture',subject:'user_serverOwner',sessionId:'session_serverOwner'}};
 before(async()=>{process.env.WITNESSOPS_FINALIZER_ENABLED='1';await mkdir(custody,{mode:0o700});await admin.query(`CREATE SCHEMA ${schema}`);pool=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:5});await migrate(pool);await ensureRuntimeRole(admin,schema);auth=new CliAuthStore(pool);user=await resolveIdentity(pool,web.identity);await pool.query("UPDATE users SET early_access_state='active'");const ws=new WorkspaceStore(pool);workspace=await ws.create(user,'Test Workspace',randomUUID());foreign=await ws.create(user,'Other Workspace',randomUUID());finalizer=new LocalAuditFinalizer({python:python,key:base+'/key.hex',signer:'disposable_cli_test',root:custody});store=new ServerCheckStore(pool,finalizer);});
 after(async()=>{if(previousFinalizer===undefined)delete process.env.WITNESSOPS_FINALIZER_ENABLED;else process.env.WITNESSOPS_FINALIZER_ENABLED=previousFinalizer;await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();});
-async function credential(scope='cli:session server_check:create',ws=workspace){const login=await auth.create();await auth.bind(web,{code:login.userCode,workspaceId:ws,displayedUserId:user.id,action:'authorize',scope});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');return issued.credential;}
+// Redeemed device-login rows are not sessions. Drop them so this file can issue
+// more than the anonymous 30/minute cap while each session stays intact.
+async function credential(scope='cli:session server_check:create',ws=workspace){await pool.query("DELETE FROM cli_login_transactions WHERE state='redeemed'");const login=await auth.create();await auth.bind(web,{code:login.userCode,workspaceId:ws,displayedUserId:user.id,action:'authorize',scope});const issued=await auth.poll(login.device);assert.equal(issued.state,'active');return issued.credential;}
 async function reusableRetirementCredential(){retirementToken??=await credential();return retirementToken;}
 const request=()=>({requestId:randomUUID(),assetId:null,hostname:'demo-host',purpose:'Disposable test baseline',sshExposure:'private',expectedListeners:[{transport:'tcp',address:'127.0.0.1',port:22}]});
 async function frozen(authority:unknown,partial=false){const dir=base+'/'+randomUUID();await mkdir(dir,{mode:0o700});await writeFile(dir+'/authority.json',JSON.stringify(authority),{mode:0o600});await exec(python,['-I',path.resolve('../../tests/server-check/capture-fixture.py'),dir+'/authority.json',dir+'/capture.json',...(partial?['partial']:[])],{timeout:10000});return readFile(dir+'/capture.json');}
@@ -78,8 +80,51 @@ test('second admitted run uses same asset and exact nearest baseline',async()=>{
 test('malformed, synthetic, altered authority, digest mismatch and oversized capture rejected without run',async()=>{
  const token=await credential();for(const variant of ['malformed','synthetic','authority','digest','oversized']){const e=await store.authorize(token,request());let bytes=await frozen(e.authority);if(variant==='malformed')bytes=Buffer.from('{}');if(variant==='synthetic'||variant==='authority'){const v=JSON.parse(bytes.toString());if(variant==='synthetic')v.observations.synthetic=true;else v.authority.target.asset_id=randomUUID();bytes=Buffer.from(JSON.stringify(v));}if(variant==='oversized')bytes=Buffer.alloc(26214401);await assert.rejects(store.upload(token,e.id,bytes,variant==='digest'?'0'.repeat(64):sha256(bytes)));assert.equal((await store.status(token,e.id)).runId,null);}
 });
-test('cross-workspace upload and different capture replay denied; true concurrency remains bounded',async()=>{const token=await credential(),other=await credential('cli:session server_check:create',foreign),e=await store.authorize(token,request()),bytes=await frozen(e.authority);await assert.rejects(store.upload(other,e.id,bytes,sha256(bytes)));await store.upload(token,e.id,bytes,sha256(bytes));const different=Buffer.from('{}');await assert.rejects(store.upload(token,e.id,different,sha256(different)),/capture_conflict/);const client=await pool.connect();try{await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(941071,10)');await assert.rejects(store.status(token,e.id),/busy/);}finally{await client.query('ROLLBACK');client.release();}});
+test('cross-workspace upload and different capture replay denied; custody lock is per workspace',async()=>{
+ const token=await credential(),other=await credential('cli:session server_check:create',foreign),e=await store.authorize(token,request()),bytes=await frozen(e.authority);
+ await assert.rejects(store.upload(other,e.id,bytes,sha256(bytes)));
+ await store.upload(token,e.id,bytes,sha256(bytes));
+ const different=Buffer.from('{}');
+ await assert.rejects(store.upload(token,e.id,different,sha256(different)),/capture_conflict/);
+ const client=await pool.connect();
+ try {
+  await client.query('BEGIN');
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 10))',[workspace]);
+  await assert.rejects(store.status(token,e.id),/busy/);
+  const elsewhere=await store.authorize(other,request());
+  assert.equal((await store.status(other,elsewhere.id)).state,'authorized');
+ } finally { await client.query('ROLLBACK'); client.release(); }
+});
 test('unfinished issuance marker cannot sign again; no accepted run',async()=>{const token=await credential(),e=await store.authorize(token,request()),bytes=await frozen(e.authority);await store.upload(token,e.id,bytes,sha256(bytes));await writeFile(custody+'/'+e.id+'/started',sha256(bytes),{mode:0o600});await assert.rejects(store.status(token,e.id),/finalization_failed/);assert.equal((await pool.query('SELECT run_id FROM server_check_executions WHERE id=$1',[e.id])).rows[0].run_id,null);});
+test('crash after the started marker releases the row lock and a retry links one run',async()=>{
+ const token=await credential(),execution=await store.authorize(token,request()),bytes=await frozen(execution.authority);
+ await store.upload(token,execution.id,bytes,sha256(bytes));
+ let crash=true;
+ const crashing: Finalizer={
+  preflight:()=>finalizer.preflight(),
+  reconcileCapture:(id,body)=>finalizer.reconcileCapture(id,body),
+  validate:(id,body)=>finalizer.validate(id,body),
+  finalize:async(id,body)=>{
+   const probe=await pool.connect();
+   try{await probe.query('BEGIN');await probe.query('SELECT id FROM server_check_executions WHERE id=$1 FOR UPDATE NOWAIT',[id]);}
+   finally{await probe.query('ROLLBACK');probe.release();}
+   const pack=await finalizer.finalize(id,body);
+   if(crash)throw new Error('injected crash after issuance');
+   return pack;
+  },
+ };
+ const crashingStore=new ServerCheckStore(pool,crashing);
+ await assert.rejects(crashingStore.status(token,execution.id),/injected crash after issuance/);
+ const marker=await stat(custody+'/'+execution.id+'/started');
+ const row=(await pool.query('SELECT state,run_id FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
+ assert.equal(row.state,'uploaded');assert.equal(row.run_id,null);
+ crash=false;
+ const saved=await crashingStore.status(token,execution.id);
+ assert.equal(saved.state,'run_created');
+ assert.equal((await stat(custody+'/'+execution.id+'/started')).mtimeMs,marker.mtimeMs);
+ assert.equal((await store.status(token,execution.id)).runId,saved.runId);
+ assert.equal((await pool.query('SELECT count(*) FROM runs WHERE id=$1',[saved.runId])).rows[0].count,'1');
+});
 test('normal API rejects missing credentials and wrong Origin before upload',async()=>{const service=createServerCheckService(store,'http://127.0.0.1:3020');assert.equal((await service(new Request('http://127.0.0.1:3020/api/cli/server-checks',{headers:{Host:'127.0.0.1:3020',Origin:'http://127.0.0.1:3020'}}))).status,401);assert.equal((await service(new Request('http://127.0.0.1:3020/api/cli/server-checks',{headers:{Host:'127.0.0.1:3020',Origin:'https://attacker.test'}}))).status,403);});
 
 test('Linux source limit is shared by concurrent browser and CLI registration; existing-source finalization and retries remain usable',async()=>{

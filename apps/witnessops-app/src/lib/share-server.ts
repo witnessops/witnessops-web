@@ -7,6 +7,7 @@ import { database } from './db/pool';
 import { resolveIdentity } from './db/identity';
 import { SharePasswordStore } from './db/share-passwords';
 import { PasswordChallenge } from './share-password';
+import { SHARE_UNLOCK_IP_LIMIT, SHARE_UNLOCK_IP_WINDOW_MS, ClientIpLimiter, clientIpFromProxy } from './client-ip-limit';
 import { ShareAccessStore } from './db/share-access';
 import { sendMail } from '../../../witnessops-web/src/lib/server/send-verification-email';
 import type { InvitationSender } from './db/members';
@@ -23,7 +24,10 @@ export function createShareService(options: {
     mailEnabled?: boolean;
     origin?: string;
     identity?: typeof authenticatedWebSession;
+    now?: () => number;
+    unlockLimiter?: ClientIpLimiter;
 } = {}) {
+    const unlockLimiter = options.unlockLimiter ?? new ClientIpLimiter(SHARE_UNLOCK_IP_LIMIT, SHARE_UNLOCK_IP_WINDOW_MS, options.now ?? Date.now);
     return async (request: Request, recipient = false) => {
         try {
             const appOrigin=options.origin??authConfiguration().origin;
@@ -58,6 +62,9 @@ export function createShareService(options: {
             if (recipient) {
                 if(input.action==='unlock') {
                     fields(['action','token','password']);
+                    // A missing or unparseable proxy address does not join a shared bucket. Per-link attempt limits still apply.
+                    const limit = unlockLimiter.allow(clientIpFromProxy(request));
+                    if (!limit.allowed) return Response.json({ error: 'Too many unlock attempts from this network. Try again shortly.' }, { status: 429, headers: { ...SHARE_HEADERS, 'Retry-After': String(limit.retryAfterSeconds) } });
                     return Response.json(await new SharePasswordStore(pool).unlock(input.token,input.password,named?.name),{headers:SHARE_HEADERS});
                 }
                 fields(Object.hasOwn(input,'unlock')?['token','unlock']:['token']);

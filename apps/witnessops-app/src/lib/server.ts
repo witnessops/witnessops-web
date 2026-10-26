@@ -45,6 +45,20 @@ export function admitRequest(request: Request, origin: string, proxyMode?: strin
   if (request.method !== "GET" && request.headers.get("origin") !== origin) rejectAdmission(403, "Use the app origin.", "origin");
   if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks", "/api/cli/server-check-retirement"].includes(url.pathname) || [...url.searchParams.keys()].join() !== (url.pathname === "/api/cli/server-check-retirement" ? "executionId" : "id"))) rejectAdmission(400, "Unexpected query parameters.", "query");
 }
+/** One Linux package check or import at a time for a workspace. Another workspace is not blocked. */
+export function createWorkspaceImportGate() {
+  const importing = new Set<string>();
+  return {
+    enter(workspaceId: string) {
+      if (importing.has(workspaceId)) return false;
+      importing.add(workspaceId);
+      return true;
+    },
+    leave(workspaceId: string) {
+      importing.delete(workspaceId);
+    },
+  };
+}
 const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex, nofollow" };
 function json(value: unknown, status = 200) { return Response.json(value, { status, headers }); }
 async function body(request: Request, keys: string[]) {
@@ -65,8 +79,8 @@ export function createFoundationService(options: {
 } = {}) {
   const recentHosts = new Map<string, { at: number }>(), recentRuns: { at: number }[] = [];
   const now = options.now ?? Date.now, execute = options.run ?? runSnapshot;
+  const importGate = createWorkspaceImportGate();
   let active = 0;
-  let importing = false;
   async function handle(request: Request, endpoint: "workspace" | "assets" | "runs" | "early-access" | "events" | "feedback" | "linux-checks"): Promise<Response> {
     try {
       admitRequest(request, options.origin ?? authConfiguration().origin, options.proxyMode ?? process.env.WITNESSOPS_APP_PROXY_MODE);
@@ -100,11 +114,10 @@ export function createFoundationService(options: {
       if (endpoint === 'linux-checks') {
         const linux = new LinuxCheckStore(pool);
         if (request.method === 'GET') {
-          if (importing) {
+          if (!importGate.enter(workspaceId)) {
             logSecurityEvent("lock_contention", 429, "busy");
             return Response.json({ error: 'Another package is being checked. Try again shortly.', code: 'verification_busy', retryable: true }, { status: 429, headers: { ...headers, 'Retry-After': '1' } });
           }
-          importing = true;
           try {
             const reopened = await linux.comparison(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));
             const artifact = request.headers.get('x-witnessops-artifact');
@@ -113,21 +126,20 @@ export function createFoundationService(options: {
               return new Response(new Uint8Array(reopened.source[artifact]), { headers: { ...headers, 'Content-Type': 'application/octet-stream', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `attachment; filename="${reopened.source.zipName}${artifact === 'zip' ? '' : '.sig.json'}"` } });
             }
             return json({ run: reopened.run, model: reopened.model, snapshot: reopened.snapshot, comparison: reopened.comparison, projectionMatches: reopened.projectionMatches });
-          } finally { importing = false; }
+          } finally { importGate.leave(workspaceId); }
         }
         if (request.method === 'POST') {
-          // Authorize before buffering an upload. One verification/import at a time.
+          // Authorize before buffering an upload. One verification/import at a time for this workspace.
           const member = await store.read(user, workspaceId);
           if (!hasWorkspaceCapability(member.role, 'linux:import')) throw new ApiError(403, 'An Owner or Contributor is required to import results.');
-          if (importing) {
+          if (!importGate.enter(workspaceId)) {
             logSecurityEvent("lock_contention", 429, "busy");
             throw new ApiError(429, 'Another import is being checked. Try again shortly.');
           }
-          importing = true;
           try {
             const input = await linuxUpload(request);
             return json(await linux.import(user, workspaceId, input.assetId, input.zip, input.signature, input.zipName), 201);
-          } finally { importing = false; }
+          } finally { importGate.leave(workspaceId); }
         }
         throw new ApiError(405, 'Method not supported.');
       }

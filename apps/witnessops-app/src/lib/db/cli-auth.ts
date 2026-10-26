@@ -42,9 +42,29 @@ export function requireCliScope(scope: unknown, enabled = finalizerEnabled()): '
 }
 export class CliAuthStore {
   constructor(readonly pool: Pool, readonly now = Date.now) {}
+  /** Waiters stay in this process and do not pin a pool connection. One issuance holds the cross-process cap lock. */
+  private issuance: Promise<void> = Promise.resolve();
+  private issuanceWaiting = 0;
   async create() {
+    // Above the 30/minute cap so a normal burst still serializes, and past it anonymous callers get 429 without a connection.
+    if (this.issuanceWaiting >= 32) throw new CliError('busy', 429);
+    this.issuanceWaiting += 1;
+    const previous = this.issuance;
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    this.issuance = gate;
+    try {
+      await previous;
+      return await this.issue();
+    } finally {
+      this.issuanceWaiting -= 1;
+      release();
+    }
+  }
+  private async issue() {
     return transaction(this.pool, async client => {
-      // Shared DB cap across processes; expired transactions are unusable even before cleanup.
+      // Shared DB cap across processes. There is no user on this route, so the 30/minute and 1000 total caps stay global.
+      // Expired rows are removed here so they cannot hold that capacity. Callers waiting on the in-process queue do not hold a connection.
       await client.query('SELECT pg_advisory_xact_lock(941071, 9)');
       const time = this.now();
       await client.query('DELETE FROM cli_login_transactions WHERE expires_at < $1', [new Date(time)]);
