@@ -8,6 +8,7 @@ import { acceptedWorkspacePlan } from './plan-admission';
 import { workspaceEntitlement } from './billing-entitlements';
 import type { AppUser } from './identity';
 import { ApiError } from '../errors';
+import { hasWorkspaceCapability } from '../workspace-role-policy';
 import type { BillingConfig } from '../billing-config';
 import { assertPrice, stripeId, type StripeGateway, type StripeObject } from '../stripe-gateway';
 function hostedUrl(value: unknown, host: string) {
@@ -22,7 +23,7 @@ export class BillingStore {
  private async operation<T>(workspace:string,user:AppUser|null,action:(step:<R>(work:(client:PoolClient)=>Promise<R>)=>Promise<R>)=>Promise<T>):Promise<T>{
   const token=randomUUID();
   await transaction(this.pool,async client=>{
-   await this.lock(client,workspace);if(user)await requireWorkspaceMembership(client,user,workspace,true);
+   await this.lock(client,workspace);if(user)await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    await client.query('INSERT INTO workspace_billing(workspace_id) VALUES($1) ON CONFLICT DO NOTHING',[workspace]);
    const claimed=await client.query("UPDATE workspace_billing SET operation_token=$2,operation_until=now()+interval '2 minutes' WHERE workspace_id=$1 AND (operation_token IS NULL OR operation_until<now())",[workspace,token]);
    if(!claimed.rowCount)throw new ApiError(409,'A billing operation is in progress. Retry shortly.');
@@ -31,7 +32,7 @@ export class BillingStore {
    await this.lock(client,workspace);
    const lease=await client.query('SELECT 1 FROM workspace_billing WHERE workspace_id=$1 AND operation_token=$2 AND operation_until>now() FOR UPDATE',[workspace,token]);
    if(!lease.rowCount)throw new ApiError(409,'Billing operation expired. Retry to reconcile.');
-   if(user)await requireWorkspaceMembership(client,user,workspace,true);
+   if(user)await requireWorkspaceMembership(client,user,workspace,'workspace:manage');
    return work(client);
   });
   try{const result=await action(step);await step(async()=>{});return result;}
@@ -41,7 +42,7 @@ export class BillingStore {
   const member=await requireWorkspaceMembership(client,user,workspace);
   const entitlement=await workspaceEntitlement(client,workspace);
   const row=(await client.query('SELECT subscription_status,plan_key,cancel_at_period_end,paid_until,customer_id IS NOT NULL AS customer FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0];
-  return {sandbox:true,canManage:member.role==='owner',entitlement,status:row?.subscription_status||'free',cancelAtPeriodEnd:row?.cancel_at_period_end||false,hasCustomer:row?.customer||false,plans:this.config.plans.map(({key,name,currency,amount,interval,seats})=>({key,name,currency,amount,interval,seats}))};
+  return {sandbox:true,canManage:hasWorkspaceCapability(member.role,'workspace:manage'),entitlement,status:row?.subscription_status||'free',cancelAtPeriodEnd:row?.cancel_at_period_end||false,hasCustomer:row?.customer||false,plans:this.config.plans.map(({key,name,currency,amount,interval,seats})=>({key,name,currency,amount,interval,seats}))};
  });}
  async checkout(user:AppUser,workspace:string,planKey:unknown){
   const plan=this.config.plans.find(p=>p.key===planKey);if(!plan)throw new ApiError(400,'Choose a configured sandbox plan.');

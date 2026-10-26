@@ -9,6 +9,7 @@ import type { AppUser } from './identity';
 import { reportName } from '../report-host';
 import { PasswordChallenge } from '../share-password';
 import { ApiError, requireId } from '../errors';
+import { hasWorkspaceCapability } from '../workspace-role-policy';
 import { recipientReport, validateReportName, type RecipientReport } from '../share-projection';
 import { savedRunReport } from '../report-model';
 import { canonicalSource } from '../source-digest';
@@ -39,7 +40,7 @@ export class ShareStore {
         const id = requireId(runId);
         const start = await transaction(this.pool, async (client) => {
             const m = await requireWorkspaceMembership(client, user, workspace);
-            if (m.role === 'viewer')
+            if (!hasWorkspaceCapability(m.role, 'shares:preview'))
                 throw new ApiError(403, 'An Owner or Contributor can preview sharing.');
             const row = (await client.query("SELECT source_type FROM runs WHERE id=$1 AND workspace_id=$2 AND status='completed'", [id, workspace])).rows[0];
             if (!row)
@@ -56,7 +57,7 @@ export class ShareStore {
         return transaction(this.pool, async (client) => {
             await membershipLock(client, workspace, true);
             const m = await requireWorkspaceMembership(client, user, workspace);
-            if (m.role === 'viewer' || m.generation !== start.generation)
+            if ((!hasWorkspaceCapability(m.role, 'shares:preview')) || m.generation !== start.generation)
                 throw new ApiError(403, 'Workspace access changed.');
             // Bound storage under the same workspace lock as insertion. Expired
             // previews cannot publish; expired/revoked links retain 30 days of history.
@@ -71,7 +72,7 @@ export class ShareStore {
             const name=selectedName??'r-'+randomUUID().replaceAll('-','');
             const reserved=await client.query('INSERT INTO report_share_names(name,share_id) SELECT $1,s.id FROM report_shares s WHERE s.id=$2 AND s.workspace_id=$3 ON CONFLICT DO NOTHING RETURNING name',[name,shareId,workspace]);
             if(!reserved.rowCount)throw new ApiError(409,'Reporting name unavailable. Choose another name or leave it blank for a generated name.');
-            return { name, id: shareId, token, digest, snapshot, expiresAt: row.expires_at.toISOString(), version: 1, passwordProtected: false, canPublish: m.role === 'owner' };
+            return { name, id: shareId, token, digest, snapshot, expiresAt: row.expires_at.toISOString(), version: 1, passwordProtected: false, canPublish: hasWorkspaceCapability(m.role, 'workspace:manage') };
         });
     }
     async publish(user: AppUser, workspace: string, input: {
@@ -84,9 +85,9 @@ export class ShareStore {
             throw new ApiError(400, 'Confirm that anyone with the link can read.');
         const hashed = tokenHash(input.token);
         return transaction(this.pool, async (client) => {
-            await requireWorkspaceMembership(client, user, workspace, true);
+            await requireWorkspaceMembership(client, user, workspace, 'workspace:manage');
             const row = (await client.query<Row>('SELECT s.*,(SELECT name FROM report_share_names n WHERE n.share_id=s.id) AS name,a.token_hash,a.expires_at,a.password_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(input.id), workspace])).rows[0];
-            const m = await requireWorkspaceMembership(client, user, workspace, true);
+            const m = await requireWorkspaceMembership(client, user, workspace, 'workspace:manage');
             if (!row || row.created_by !== user.id || row.membership_generation !== m.generation || row.token_hash !== hashed || row.digest !== input.digest)
                 throw new ApiError(404, 'Preview unavailable.');
             if (input.audience !== (row.password_hash ? 'link_and_password' : 'anyone_with_link')) throw new ApiError(409,'Access requirements changed. Review the audience again.');
@@ -108,7 +109,7 @@ export class ShareStore {
     }
     async revoke(user: AppUser, workspace: string, id: unknown) {
         return transaction(this.pool, async (client) => {
-            await requireWorkspaceMembership(client, user, workspace, true);
+            await requireWorkspaceMembership(client, user, workspace, 'workspace:manage');
             const row = (await client.query<Row>('SELECT s.*,(SELECT name FROM report_share_names n WHERE n.share_id=s.id) AS name,a.token_hash,a.expires_at,a.password_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(id), workspace])).rows[0];
             if (!row || row.state === 'preview')
                 throw new ApiError(404, 'Published link not found.');

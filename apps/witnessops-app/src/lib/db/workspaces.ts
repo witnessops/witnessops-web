@@ -1,5 +1,5 @@
 import { membershipLock } from './membership-lock';
-import { hasWorkspaceCapability, type WorkspaceCapability, type WorkspaceRole } from '../workspace-role-policy';
+import { hasWorkspaceCapability, WORKSPACE_OWNER_ROLE, type WorkspaceCapability, type WorkspaceRole } from '../workspace-role-policy';
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
@@ -65,7 +65,7 @@ export class WorkspaceStore {
       await requireWorkspaceAccess(client, user);
       const retry = await client.query<{ id: string; name: string }>("SELECT id,name FROM workspaces WHERE created_by=$1 AND creation_key=$2", [user.id, key]);
       if (retry.rows[0]) {
-        await requireWorkspaceMembership(client, user, retry.rows[0].id, true);
+        await requireWorkspaceMembership(client, user, retry.rows[0].id, 'workspace:manage');
         if (retry.rows[0].name !== displayName) throw new ApiError(409, "This creation request was already used.");
         return retry.rows[0].id;
       }
@@ -85,7 +85,7 @@ export class WorkspaceStore {
       const id = randomUUID();
       // Stable unique route identifier; the name/slug is not company verification.
       await client.query("INSERT INTO workspaces (id,name,slug,created_by,creation_key) VALUES ($1,$2,$3,$4,$5)", [id, displayName, `workspace-${id}`, user.id, key]);
-      await client.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'owner')", [user.id, id]);
+      await client.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,$3)", [user.id, id, WORKSPACE_OWNER_ROLE]);
       if (ceiling !== null) {
         await client.query('INSERT INTO free_workspace_plans(workspace_id,policy_version) VALUES ($1,$2)', [id, FREE_WORKSPACE_POLICY.version]);
         await client.query('UPDATE users SET free_workspace_access=true WHERE id=$1', [user.id]);
