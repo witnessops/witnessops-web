@@ -9,16 +9,16 @@ const form = readFileSync(
   "utf-8",
 );
 
-test("Polish PER request chrome mirrors the English offer-specific header", () => {
-  assert.match(page, /decision\.role === "product"/);
+test("Polish request chrome uses the agent review and closes a parked external query", () => {
+  assert.match(page, /resolveNewSalesPageQuery\(/);
   assert.match(page, /generateMetadata/);
-  assert.match(page, /EXTERNAL_ATTACK_SURFACE_OFFER\.name\.pl/);
-  assert.match(page, /To nie jest test penetracyjny/);
-  assert.match(
-    page,
-    /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji/,
-  );
-  assert.match(page, /Opowiedz, co wymaga sprawdzenia/);
+  assert.match(page, /NewSalesIntakeClosed/);
+  assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.name\.pl/);
+  assert.match(page, /agentActionOrder/);
+  assert.match(page, /Opisz, co chcesz sprawdzić/);
+  assert.match(page, /External Attack Surface Review nie jest już dostępny/);
+  assert.doesNotMatch(page, /decision\.role === "product"/);
+  assert.doesNotMatch(page, /EXTERNAL_ATTACK_SURFACE_OFFER/);
 });
 
 test("Polish review request selects the native Polish form copy", () => {

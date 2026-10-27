@@ -171,9 +171,9 @@ const appRouter = {
 };
 
 const HOMEPAGE_COPY_EVIDENCE_BOUNDARIES = [
-  "this is not a penetration test. one focused retest of reported findings is included within 30 calendar days of initial report handover.",
-  "the free hostname check stays a separate tool, not a third review.",
-  "with written findings, supporting evidence and clear limits.",
+  "this is not a penetration test.",
+  "the free hostname check stays a separate tool, not a second review.",
+  "we do not execute the action, change production, remediate, monitor continuously or certify that an agent is safe.",
 ] as const;
 
 const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
@@ -280,7 +280,7 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
     }
   }
 
-  assert.match(pricingHtml, /do not grant compliance certification/);
+  assert.match(pricingHtml, /does not grant compliance certification/);
   assert.match(pricingHtml, /does not authorise collection or start a review/);
   assert.deepEqual(failures, []);
 });
@@ -343,8 +343,8 @@ test("prohibited homepage copy fails validation", () => {
   const rendered = renderHomepage();
   const dummyBoundary = "not a legal compliance claim";
   const prohibitedCopy = `${copy.replace(
-    "Proof other people can check.",
-    "Proof other people can check. Verified compliance.",
+    "Understand the controls before your AI agent acts.",
+    "Understand the controls before your AI agent acts. Verified compliance.",
   )}\n${dummyBoundary}`;
 
   const prohibited = assessHomepageClaims(prohibitedCopy, rendered);
@@ -369,12 +369,12 @@ test("prohibited homepage copy fails validation", () => {
   const stripped = assessHomepageClaims(strippedCopy, strippedRender);
   assert.ok(
     stripped.includes(
-      "homepage copy missing boundary: this is not a penetration test. one focused retest of reported findings is included within 30 calendar days of initial report handover.",
+      "homepage copy missing boundary: this is not a penetration test.",
     ),
   );
   assert.ok(
     stripped.includes(
-      "rendered homepage missing boundary: this is not a penetration test. one focused retest of reported findings is included within 30 calendar days of initial report handover.",
+      "rendered homepage missing boundary: this is not a penetration test.",
     ),
   );
   assert.equal(stripped.some((failure) => failure.includes(dummyBoundary)), false);

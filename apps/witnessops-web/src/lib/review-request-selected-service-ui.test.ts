@@ -19,19 +19,17 @@ const confirmationPage = readFileSync(
   "utf8",
 );
 
-test("new intake renders only the two accepted reviews and does not sell a historical service form", () => {
+test("new intake renders the agent review and does not sell a historical service form", () => {
   assert.match(requestPage, /resolveNewSalesPageQuery\(/);
   assert.match(requestPage, /NewSalesIntakeClosed/);
   assert.match(requestPage, /PUBLIC_AGENT_ACTION_OFFER/);
-  assert.match(
-    requestPage,
-    /const activeArtifacts = publicExposureOrder\s*\? publicExposureArtifacts\s*:\s*\[\]/,
-  );
-  assert.match(requestPage, /\{activeArtifacts\.length > 0 \? \(/);
+  assert.match(requestPage, /intent=\{decision\.intent\}/);
+  assert.doesNotMatch(requestPage, /publicExposureOrder/);
   assert.doesNotMatch(requestPage, /sampleArtifacts\.slice/);
   assert.doesNotMatch(requestPage, /primaryOfferOrder/);
   assert.doesNotMatch(requestPage, /selectedServiceOrder/);
   assert.doesNotMatch(requestPage, /offerId=\$\{PRIMARY_OFFER\.id\}/);
+  assert.doesNotMatch(requestPage, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
 test("selected non-agent services collect and store service-specific context", () => {

@@ -1,5 +1,10 @@
 # Two-Offer V1 — founder-approved new-sales direction
 
+> **PARKED — 27 October 2026.** External Attack Surface Review is no longer a
+> new-sales offer. The only active public offer is Agent Action Security Review
+> at €2,500 excluding VAT. This file remains the historical record of the
+> two-offer decision. Do not use it to reopen external-review sales.
+
 > **CURRENT FOUNDER AMENDMENT — 8 October 2026, later commercial instruction.**
 > The public sales portfolio is **Agent Action Security Review — EUR 2,500 fixed,
 > excluding VAT**, and **External Attack Surface Review — EUR 1,900 fixed,

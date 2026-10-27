@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { JsonLd } from "@/components/seo/json-ld";
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
+import { ParkedExternalReview } from "@/components/marketing/parked-external-review";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
@@ -11,12 +11,7 @@ import {
   catalogSkuDisposition,
   isCurrentPublicCatalogSku,
 } from "@/lib/public-commercial-routes";
-import {
-  canonicalUrl,
-  languageAlternates,
-  publicExposureBreadcrumbJsonLd,
-  publicExposureServiceJsonLd,
-} from "@/lib/public-seo";
+import { canonicalUrl, languageAlternates } from "@/lib/public-seo";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
@@ -262,6 +257,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: true },
     };
   }
+  if (sku.id === "OFFSEC-EXTERNAL-EXPOSURE") {
+    return {
+      title: "External Attack Surface Review is no longer available",
+      description: "WitnessOps no longer accepts new External Attack Surface Review engagements. This is not the Agent Action Security Review.",
+      robots: { index: false, follow: true },
+    };
+  }
   const buyerService = buyerServiceByProductId(sku.id);
   const title = buyerService?.name.en ?? sku.name;
   const description = buyerService?.situation.en ?? sku.summary;
@@ -302,23 +304,14 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
   }
   if (!isCurrentPublicCatalogSku(sku.id)) notFound();
 
+  if (sku.id === "OFFSEC-EXTERNAL-EXPOSURE") {
+    return <ParkedExternalReview locale="en" />;
+  }
   const buyerService = buyerServiceByProductId(sku.id);
   const frame = detailFrame(sku);
   if (buyerService) {
     return (
       <>
-        {sku.id === "OFFSEC-EXTERNAL-EXPOSURE" ? (
-          <>
-            <JsonLd
-              id="public-exposure-service"
-              value={publicExposureServiceJsonLd("en")}
-            />
-            <JsonLd
-              id="public-exposure-breadcrumbs"
-              value={publicExposureBreadcrumbJsonLd("en")}
-            />
-          </>
-        ) : null}
         <BuyerServiceDetail
           locale="en"
           service={buyerService}

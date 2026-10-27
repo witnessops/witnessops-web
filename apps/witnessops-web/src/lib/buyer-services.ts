@@ -154,8 +154,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Jedno istotne działanie agenta lub automatyzacji. Tylko odczyt, inspekcja, rekonstrukcja i raport. Bez instalacji platformy, zmian produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitorowania i certyfikacji, że agent jest bezpieczny.",
     },
     requestCta: {
-      en: "Start a non-secret fit check",
-      pl: "Zacznij od niepoufnej oceny",
+      en: "Request an agent review",
+      pl: "Zgłoś przegląd agenta",
     },
     // Shared /catalog/workflows detail remains owned by PRIMARY_OFFER until
     // presentation reconciliation; omit detailHref so route→request mapping

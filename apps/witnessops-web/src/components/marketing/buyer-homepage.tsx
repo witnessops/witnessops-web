@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CtaButton } from "@/components/shared/cta-button";
 import { BUYER_SERVICES, buyerRequestHref, buyerServiceRequestHref, type BuyerLocale } from "@/lib/buyer-services";
-import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
+import { publicPaidReviews } from "@/lib/public-paid-reviews";
 import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 import { PriceText } from "@/lib/price-unit";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
@@ -24,13 +24,13 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
   const body = hero?.body ?? text.support;
   const agentHref = agent ? buyerServiceRequestHref(locale, agent) : requestHref;
   const stages = pl ? [
-    ["Uzgodnij granicę", "Wskaż działanie, system i decyzję, którą mają wesprzeć ustalenia. Cenę i zasady dostępu uzgadniamy przed pracą."],
-    ["Sprawdź i przetestuj", "Sprawdź właściwy stan, zachowanie i zabezpieczenia. Wykonaj uzgodnione testy i zachowaj obserwacje wspierające wynik."],
-    ["Przekaż ustalenie", "Otrzymaj wynik, dowody, ograniczenia, niewiadome i praktyczne kolejne kroki. Naprawa i ponowne testy pozostają zależne od uzgodnionego zakresu."],
+    ["Uzgodnij granicę", "Wskaż istotne działanie, systemy i termin decyzji. Zakres, upoważnienie i obsługę materiałów uzgadniamy przed pracą."],
+    ["Odczytaj i zrekonstruuj", "Sprawdź wyzwalacz, tożsamość wykonawczą, uprawnienia, zatwierdzanie i dostępne dowody wykonania. Przegląd nie wykonuje działania."],
+    ["Przekaż raport", "Otrzymasz mapę działania, ustalenia powiązane z dowodami, zalecenia według priorytetu, udokumentowane niewiadome, raport pisemny i omówienie."],
   ] : [
-    ["Agree the boundary", "Name the action, system and decision the work needs to support. Agree price and access before work begins."],
-    ["Inspect and test", "Inspect the relevant state, behaviour and controls. Run the agreed checks and preserve the observations that support the result."],
-    ["Deliver the finding", "Receive the result, supporting evidence, limitations, unknowns and practical next steps. Corrections and retesting remain subject to the agreed scope."],
+    ["Agree the boundary", "Name the consequential action, the systems involved and the decision deadline. Agree scope, authority and evidence handling before work begins."],
+    ["Read and reconstruct", "Inspect the trigger, executing identity, permissions, approvals and available execution evidence. The review does not execute the action."],
+    ["Deliver the report", "Receive an action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout."],
   ];
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="security-verification">
     <section data-ask-trigger-guard data-ui-proof-id="homepage-hero" className={`${styles.heroSection} ${heroStyles.page} ${heroStyles.hero}`}>
@@ -43,27 +43,26 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
             <Link data-ui-proof-id="homepage-hero-primary-cta" href={agentHref} className={heroStyles.primary}>{text.aiCta}</Link>
             <Link data-ui-proof-id="homepage-sample-review-cta" className={heroStyles.textLink} href={sampleHref}>{pl ? "Zobacz historyczny przykład działania (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
           </div>
-          <p className={heroStyles.note}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
+          <p className={heroStyles.note}>{pl ? "Zacznij od krótkiego opisu. Najpierw niepoufna ocena dopasowania, potem uzgodniony zakres, upoważnienie i obsługa materiałów. Bez sekretów i materiałów produkcyjnych." : "Start with a short description. A non-secret fit check comes first, then agreed scope, authority and evidence handling. No secrets or production evidence."}</p>
         </div>
       </header>
       <div className={styles.frame}>
-        <ul className={styles.deliverableStrip} aria-label={pl ? "Podejście" : "Our approach"}>{(pl ? ["Ekspozycja", "Zmiany", "Działania", "Dowody"] : ["Exposure", "Changes", "Actions", "Evidence"]).map(item => <li key={item}>{item}</li>)}</ul>
+        <ul className={styles.deliverableStrip} aria-label={pl ? "Zakres przeglądu" : "What the review inspects"}>{(pl ? ["Wyzwalacz", "Tożsamość", "Uprawnienia", "Dowody"] : ["Trigger", "Identity", "Permissions", "Evidence"]).map(item => <li key={item}>{item}</li>)}</ul>
       </div>
     </section>
     <section className={styles.reviewSection} aria-labelledby="home-services-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{text.reviewsEyebrow}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{text.reviewsTitle}</h2><p className={styles.sectionBody}>{text.reviewsBody}</p></div>
-      <ul className={`${styles.reviewGrid} ${styles.serviceGrid} ${styles.twoOfferGrid}`}>{services.map((service) => {
-        const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-        return <li key={service.id} data-home-offer={service.id}><h3>{ai ? text.aiHeadline : text.externalHeadline}</h3><p>{service.name[locale]}</p><p className={styles.price}><PriceText text={service.price[locale]} /></p><p>{service.result[locale]}</p><p className={styles.timing}>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{ai ? text.aiCta : text.externalCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>;
-      })}</ul>
+      <ul className={`${styles.reviewGrid} ${styles.serviceGrid}`}>{services.map((service) => (
+        <li key={service.id} data-home-offer={service.id}><h3>{text.aiHeadline}</h3><p>{service.name[locale]}</p><p className={styles.price}><PriceText text={text.aiPrice} /></p><p>{text.aiWhoFor}</p><p>{text.aiDescription}</p><ul>{text.deliverables.map((item) => <li key={item}>{item}</li>)}</ul><p>{text.aiScopeNote}</p><p className={styles.timing}>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{text.aiCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>
+      ))}</ul>
       {sovereignAssistantPublished() ? <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p> : null}
       <Link className={styles.sectionLink} href={pl ? "/pl/reviews" : "/reviews"}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section className={`${styles.reviewSection} ${styles.decisionSection}`} aria-labelledby="home-decision-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Kiedy zacząć" : "When to start"}</p><h2 id="home-decision-heading" className={styles.sectionTitle}>{pl ? "Przed kolejną ważną decyzją." : "Before the next consequential step."}</h2></div>
       <ul className={styles.decisionGrid}>
-        <li><h3>{pl ? "Przed nadaniem dostępu do produkcji" : "Before production access"}</h3><p>{pl ? "System, agent lub integracja ma dostać nowy dostęp? Sprawdź ekspozycję, uprawnienia i zabezpieczenia, zanim zatwierdzisz, ograniczysz lub odłożysz zmianę." : "Giving a system, agent or integration new access? Verify its exposure, permissions and controls before you approve, restrict or delay the change."}</p></li>
-        <li><h3>{pl ? "Przed decyzją klienta o bezpieczeństwie" : "Before a customer security decision"}</h3><p>{pl ? "Klient potrzebuje dowodów na to, jak zachowuje się Twój system lub do czego ma dostęp? Zweryfikuj właściwe twierdzenie i przygotuj ustalenia, które klient może sprawdzić." : "A customer needs evidence about how your system behaves or what it can access? Verify the relevant claim and prepare findings they can inspect."}</p></li>
+        <li><h3>{pl ? "Przed uruchomieniem" : "Before launch"}</h3><p>{pl ? "Agent ma wykonać zwrot, zmienić rekord albo nadać dostęp? Najpierw poznaj wyzwalacz, tożsamość wykonawczą, uprawnienia i zatwierdzanie." : "About to let an agent issue a refund, change a record or grant access? Inspect the trigger, executing identity, permissions and approvals first."}</p></li>
+        <li><h3>{pl ? "Przed przekazaniem" : "Before handover"}</h3><p>{pl ? "Partner wdrożeniowy przekazuje agenta zespołowi? Ustalenia, niewiadome i zalecenia zostają w raporcie pisemnym." : "Handing an agent to another team? The findings, unknowns and recommendations stay in the written report."}</p></li>
       </ul>
       <p className={styles.sectionBody}>{pl ? "Powiedz, co ma się wydarzyć i do kiedy. Uzgodnimy zakres, cenę i możliwy termin przed rozpoczęciem pracy." : "Tell us what needs to happen and by when. We’ll confirm scope, price and whether we can meet your deadline before work begins."}</p>
       <Link className={styles.sectionLink} href={requestHref}>{text.fitCta}<ArrowRight size={16} aria-hidden="true" /></Link>
@@ -75,6 +74,6 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <div className={styles.evidenceNote}><p className="wo-h4">{pl ? "Przykład paczki dowodowej" : "Proof bundle example"}</p><Link href={sampleHref}>{pl ? "Zobacz, jak działa paczka dowodowa (EN)" : "See how a proof bundle works"}<ArrowRight size={16} aria-hidden="true" /></Link><p>{pl ? "Przykład syntetyczny: sprawdza opublikowane pliki i zadeklarowaną zmianę. Nie potwierdza rzeczywistej operacji u dostawcy." : "Synthetic example, not customer evidence: checks the published artifacts and declared transition. It does not establish a real provider action."}</p></div>
       <Link className={styles.sectionLink} href={`${prefix}/why-witnessops`}>{pl ? "Zobacz, jak weryfikujemy" : "See how WitnessOps verifies"}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
-    <div className={styles.frame}><section className={styles.closingSection} aria-labelledby="home-close-heading"><div><h2 id="home-close-heading">{pl ? "Co robi Twój system i co chcesz sprawdzić?" : "What does your system do and what needs checking?"}</h2><p>{pl ? "Opisz system i pytanie bezpieczeństwa. Zaproponujemy konkretny zakres i kolejny krok. Bez haseł, kluczy API i danych klientów." : "Describe the system and the security question. We’ll propose a clear scope and next step. Leave out credentials and customer data."}</p></div><CtaButton href={requestHref} variant="primary" label={text.fitCta} className={styles.closingPrimary} /></section></div>
+      <div className={styles.frame}><section className={styles.closingSection} aria-labelledby="home-close-heading"><div><h2 id="home-close-heading">{pl ? "Jakie działanie ma wykonać agent?" : "What consequential action can the agent take?"}</h2><p>{pl ? "Podaj działanie, systemy i termin decyzji. Najpierw niepoufna ocena dopasowania. Bez haseł, kluczy API i materiałów produkcyjnych." : "Name the action, the systems involved and the decision deadline. A non-secret fit check comes first. Leave out secrets and production evidence."}</p></div><CtaButton href={requestHref} variant="primary" label={text.fitCta} className={styles.closingPrimary} /></section></div>
   </main>;
 }

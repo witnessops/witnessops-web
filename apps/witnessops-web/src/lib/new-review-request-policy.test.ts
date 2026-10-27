@@ -17,30 +17,27 @@ import {
 const agent = PUBLIC_AGENT_ACTION_OFFER.id;
 const external = EXTERNAL_ATTACK_SURFACE_OFFER.productId;
 
-test("new-sales enquiry options are exactly the two accepted identities", () => {
+test("new-sales enquiry options are exactly the agent review", () => {
   assert.deepEqual(
     newSalesEnquiryOptions("en").map((option) => option.intent),
-    [agent, external],
+    [agent],
   );
   assert.deepEqual(
     newSalesEnquiryOptions("pl").map((option) => option.label),
-    [PUBLIC_AGENT_ACTION_OFFER.name.pl, EXTERNAL_ATTACK_SURFACE_OFFER.name.pl],
+    [PUBLIC_AGENT_ACTION_OFFER.name.pl],
   );
 });
 
-test("raw JSON accepts only the Agent Action offer id or the external product id", () => {
+test("raw JSON accepts only the Agent Action offer id", () => {
   assert.deepEqual(evaluateNewSalesIntakeBody({ intent: agent, email: "a@b.co" }), {
     accepted: true,
     role: "offer",
     intent: agent,
   });
-  assert.deepEqual(
-    evaluateNewSalesIntakeBody({
-      intent: external,
-      offer: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    }),
-    { accepted: true, role: "product", intent: external },
-  );
+  assert.deepEqual(evaluateNewSalesIntakeBody({ intent: external }), {
+    accepted: false,
+    reason: "parked",
+  });
   assert.deepEqual(evaluateNewSalesIntakeBody({ intent: ASK_AI_CONTACT_INTENT }), {
     accepted: true,
     role: "contact",
@@ -77,12 +74,13 @@ test("raw JSON rejects missing, ambiguous, wrong-role, historical, and unsupport
     [{ intent: "access-change-proof-run" }, "historical"],
     [{ intent: "automation-repair-handover" }, "historical"],
     [{ intent: "Third-party assessment" }, "historical"],
-    [{ intent: EXTERNAL_ATTACK_SURFACE_OFFER.id }, "wrong-role"],
+    [{ intent: EXTERNAL_ATTACK_SURFACE_OFFER.id }, "parked"],
+    [{ intent: external }, "parked"],
     [{ intent: agent, productId: external }, "ambiguous"],
-    [{ intent: external, offerId: agent }, "ambiguous"],
+    [{ intent: external, offerId: agent }, "parked"],
     [{ intent: agent, offerId: PRIMARY_OFFER.id }, "ambiguous"],
     [{ intent: agent, offer: PRIMARY_OFFER.name.en }, "ambiguous"],
-    [{ intent: external, offer: PUBLIC_AGENT_ACTION_OFFER.name.en }, "ambiguous"],
+    [{ intent: external, offer: PUBLIC_AGENT_ACTION_OFFER.name.en }, "parked"],
     [{ intent: ASK_AI_CONTACT_INTENT, offerId: agent }, "ambiguous"],
     [{ intent: ASK_AI_CONTACT_INTENT, productId: external }, "ambiguous"],
     [{ intent: 1 }, "unsupported"],
@@ -96,8 +94,12 @@ test("raw JSON rejects missing, ambiguous, wrong-role, historical, and unsupport
   }
 });
 
-test("the request page preselects only an exact new-sales identity", () => {
-  assert.deepEqual(resolveNewSalesPageQuery({}), { state: "chooser" });
+test("the request page preselects the agent review and parks the external product", () => {
+  assert.deepEqual(resolveNewSalesPageQuery({}), {
+    state: "selected",
+    role: "offer",
+    intent: agent,
+  });
   assert.deepEqual(resolveNewSalesPageQuery({ offerId: agent }), {
     state: "selected",
     role: "offer",
@@ -111,16 +113,15 @@ test("the request page preselects only an exact new-sales identity", () => {
     { state: "selected", role: "offer", intent: agent },
   );
   assert.deepEqual(resolveNewSalesPageQuery({ productId: external }), {
-    state: "selected",
-    role: "product",
-    intent: external,
+    state: "rejected",
+    reason: "parked",
   });
   assert.deepEqual(
     resolveNewSalesPageQuery({
       productId: external,
       offer: EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
     }),
-    { state: "selected", role: "product", intent: external },
+    { state: "rejected", reason: "parked" },
   );
 });
 
@@ -130,9 +131,9 @@ test("the request page rejects legacy, ambiguous, wrong-role, and display-only s
     [{ offerId: LEGACY_AGENT_ACTION_OFFER.id }, "historical"],
     [{ offerId: "customer-security-review-sprint" }, "historical"],
     [{ productId: "OFFSEC-LOCAL-AUDIT" }, "historical"],
-    [{ offerId: external }, "wrong-role"],
+    [{ offerId: external }, "parked"],
     [{ productId: agent }, "wrong-role"],
-    [{ offerId: EXTERNAL_ATTACK_SURFACE_OFFER.id }, "wrong-role"],
+    [{ offerId: EXTERNAL_ATTACK_SURFACE_OFFER.id }, "parked"],
     [{ offerId: agent, productId: external }, "ambiguous"],
     [{ offerId: [agent, PRIMARY_OFFER.id] }, "ambiguous"],
     [{ offerId: agent, offer: PRIMARY_OFFER.name.en }, "ambiguous"],

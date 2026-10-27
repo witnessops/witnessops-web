@@ -6,7 +6,6 @@ import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-conta
 import { PUBLIC_AGENT_ACTION_REVIEW_ID, publicPaidReviews } from "@/lib/public-paid-reviews";
 import { PriceText } from "@/lib/price-unit";
 import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
-import { InlineArrow } from "./inline-arrow";
 import styles from "./simple-homepage.module.css";
 
 const text = HOMEPAGE_TWO_OFFER_COPY.en;
@@ -16,17 +15,17 @@ function TextLink({ href, children, uiProofId }: { href: string; children: React
 }
 
 const IS = [
-  ["Two bounded reviews", "One named consequential action, or one authorised internet-facing system."],
-  ["Written findings tied to evidence", "Each claim sits beside the evidence that supports it."],
+  ["One bounded review", "One named consequential agent or automation action."],
+  ["Written findings tied to evidence", "Each finding sits beside the evidence that supports it."],
   ["Explicit unknowns", "What the evidence did not establish is named in writing."],
-  ["Proof you keep", "Findings and evidence are handed over at readout."],
+  ["A report you keep", "The written report and evidence are handed over at readout."],
 ] as const;
 
 const ISNT = [
-  ["Not a SOC or ongoing monitoring", "A review covers agreed scope at a point in time."],
-  ["Not a full penetration test", "External checks are low-impact and unauthenticated."],
-  ["Not certification", "No badge, seal or attestation is issued."],
-  ["Not remediation", "Recommendations are prioritised; the fixing stays with your team."],
+  ["Not execution", "The review does not perform the agent action."],
+  ["Not a production change", "We read, inspect, reconstruct and report."],
+  ["Not certification", "No badge, seal or claim that an agent is safe is issued."],
+  ["Not remediation or monitoring", "Recommendations are prioritised; fixing and continuous monitoring stay outside this review."],
 ] as const;
 
 const STEPS = [
@@ -57,18 +56,17 @@ export function SimpleHomepage() {
       <div className={`${styles.frame} ${styles.heroFrame} crop-frame`}>
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />
-          <p className={styles.eyebrow}>Sovereign evidence</p>
-          <h1 data-ui-proof-id="homepage-hero-headline"><span className={styles.heroLine}>Proof other</span> <span className={styles.heroLine}>people can{"\u00A0"}check.</span></h1>
+          <p className={styles.eyebrow}>{text.offerName}</p>
+          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
         </div>
         <div className={styles.split}>
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
           <div>
-            <p className={styles.subline}>The evidence is yours. Anyone you choose can check it.</p>
+            <p className={styles.subline}>{text.aiPrice}. {text.timing}</p>
             <div className={styles.actions}>
-              {services.map((service) => {
-                const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-                return <Link key={service.id} className={ai ? styles.primary : styles.secondary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id={ai ? "homepage-hero-primary-cta" : "homepage-external-cta"}>{ai ? text.aiCta : <>{text.externalCta} <InlineArrow /></>}</Link>;
-              })}
+              {services.filter((service) => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID).map((service) => (
+                <Link key={service.id} className={styles.primary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id="homepage-hero-primary-cta">{text.aiCta}</Link>
+              ))}
             </div>
           </div>
         </div>
@@ -77,35 +75,34 @@ export function SimpleHomepage() {
     <nav className={styles.linkRow} aria-label="Review paths">
       <div className={styles.frame}>
         <div className={styles.sectionLinks}>
-          <TextLink href="/reviews">Compare the two reviews</TextLink>
-          <TextLink href="/pricing">See all prices</TextLink>
+          <TextLink href="/reviews">See the review</TextLink>
+          <TextLink href="/pricing">See the price</TextLink>
           <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
         </div>
       </div>
     </nav>
     <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
-      <p className={styles.eyebrow}>WitnessOps reviews</p>
-      <h2>Two focused security reviews.</h2>
-      <p>Understand what one agent action can do and what your internet-facing system exposes. Compare the scope, evidence and price before requesting a review.</p>
+      <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
+      <h2>{text.reviewsTitle}</h2>
+      <p>{text.aiWhoFor}</p>
       <p>{text.reviewsBody}</p>
       <div className={styles.cards}>
-        {services.map((service) => {
-          const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
-          return <article key={service.id} className="crop" data-home-offer={service.id}>
-            <p className={styles.eyebrow}>{ai ? "Review one agent action" : "Review external exposure"}</p>
+        {services.map((service) => (
+          <article key={service.id} className="crop" data-home-offer={service.id}>
+            <p className={styles.eyebrow}>Review one agent action</p>
             <h3>{service.name.en}</h3>
-            <p className={styles.price}><PriceText text={ai ? text.aiPrice : text.externalPrice} /></p>
-            <p>{ai ? text.aiQuestion : text.externalQuestion}</p>
-            <p>{ai ? text.aiWhoFor : text.externalWhoFor}</p>
-            <p>{ai ? text.aiDescription : text.externalDescription}</p>
-            <p className={styles.scope}>{ai ? text.aiScopeNote : text.externalScopeNote}</p>
+            <p className={styles.price}><PriceText text={text.aiPrice} /></p>
+            <p>{text.aiDescription}</p>
+            <p>{text.aiWhoFor}</p>
+            <ul>{text.deliverables.map((item) => <li key={item}>{item}</li>)}</ul>
+            <p className={styles.scope}>{text.aiScopeNote}</p>
             <p className={styles.timing}>{service.timing.en}</p>
-            <TextLink href={buyerServiceRequestHref("en", service)}>{ai ? text.aiCta : text.externalCta}</TextLink>
-          </article>;
-        })}
+            <TextLink href={buyerServiceRequestHref("en", service)}>{text.aiCta}</TextLink>
+          </article>
+        ))}
       </div>
-      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>Written findings with the evidence attached, for a scope agreed before work starts. A request that exceeds the bounded review is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
+      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
@@ -148,7 +145,7 @@ export function SimpleHomepage() {
       <ul className={styles.principles}>{PRINCIPLES.map(([title, body]) => <li key={title}><h3>{title}</h3><p>{body}</p></li>)}</ul>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question. Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether a named review, or neither, is the right next step.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Request the review</p><h2 id="home-enquiry-heading">Start with a non-secret fit check.</h2><p>Name the consequential action, the systems involved and the decision deadline. Do not include secrets or production evidence.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
       <div className={`${styles.enquiryForm} crop`}><ContactForm compact landing /></div>
     </div></section>
   </main>;

@@ -188,11 +188,11 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   const home = loadHomeContent();
   assert.equal(
     home.seo.title,
-    "Security Verification & Evidence | WitnessOps",
+    "Agent Action Security Review | WitnessOps",
   );
   assert.equal(
     home.seo.og_title,
-    "Proof other people can check. | WitnessOps",
+    "Understand the controls before your AI agent acts. | WitnessOps",
   );
 
   const workflowPage = readFileSync(
@@ -216,7 +216,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
   assert.equal(pricingMetadata.title, "Review Pricing");
   assert.ok(String(pricingMetadata.description).includes(PUBLIC_AGENT_ACTION_OFFER.name.en));
-  assert.ok(String(pricingMetadata.description).includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
+  assert.equal(String(pricingMetadata.description).includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en), false);
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
   assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
@@ -245,13 +245,10 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   );
   assert.deepEqual(
     [...pricing.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
-    ["agent-action", "external-exposure"],
-    "Pricing foreground contains exactly the two founder-approved reviews",
+    ["agent-action"],
+    "Pricing foreground contains only the agent review",
   );
-  const externalCard = renderedArticle(pricing, "data-pricing-review", "external-exposure");
-  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en));
-  assert.ok(externalCard.includes(EXTERNAL_ATTACK_SURFACE_OFFER.price.en));
-  assert.match(externalCard, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(pricing, /productId=OFFSEC-EXTERNAL-EXPOSURE|Request an external review/);
   assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(agentActionCard, /Start with a broken workflow/);
   assert.match(agentActionCard, /Agent Action Security Review/);
@@ -270,19 +267,13 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     "data-buyer-service",
     PUBLIC_AGENT_ACTION_REVIEW_ID,
   );
-  const publicExposureCatalogueCard = renderedArticle(
-    catalogue,
-    "data-buyer-service",
-    "external-exposure-assessment",
-  );
   assert.doesNotMatch(agentActionCatalogueCard, /Start with a broken workflow/);
   assert.match(agentActionCatalogueCard, /Agent Action Security Review/);
   assert.match(agentActionCatalogueCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCatalogueCard, /AI Agent Tools &amp; Access Review|Agent Risk &amp; Control Review|€1,500/);
-  assert.match(catalogue, /id="system-reviews"/);
+  assert.doesNotMatch(catalogue, /id="system-reviews"/);
   assert.match(catalogue, /id="ai-reviews"/);
-  assert.match(publicExposureCatalogueCard, /External Attack Surface Review/);
-  assert.match(publicExposureCatalogueCard, /€1,900\u00A0excl.\u00A0VAT/);
+  assert.doesNotMatch(catalogue, /Request an external review|€1,900/);
 });
 
 test("Ask WitnessOps keeps the current and historical identities distinct", () => {

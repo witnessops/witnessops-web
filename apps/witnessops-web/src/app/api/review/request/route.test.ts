@@ -110,7 +110,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });
 
-test("review request route preserves the External Attack Surface Review SKU and locale", async () => {
+test("review request route rejects the parked External Attack Surface Review before issuance", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
 
@@ -129,13 +129,10 @@ test("review request route preserves the External Attack Surface Review SKU and 
     }),
   );
 
-  assert.equal(response.status, 201);
-  const payload = (await response.json()) as { intakeId: string };
-  const intake = await getIntakeById(payload.intakeId);
-
-  assert.equal(intake?.submission.intent, "OFFSEC-EXTERNAL-EXPOSURE");
-  assert.equal(intake?.submission.locale, "pl");
-  assert.match(intake?.submission.scope ?? "", /First-message boundary: no files, secrets/);
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { field?: string; reason?: string };
+  assert.equal(payload.field, "intent");
+  assert.equal(payload.reason, "parked");
 });
 
 test("review request route returns structured validation errors for the shared form contract", async () => {
@@ -251,7 +248,7 @@ test("review request enforces the durable public issuance budget before a second
         body: JSON.stringify({
           name: "Synthetic Buyer",
           email,
-          intent: "OFFSEC-EXTERNAL-EXPOSURE",
+          intent: "agent-action-security-review",
           scope: "One bounded review request.",
         }),
         headers: { "Content-Type": "application/json" },
@@ -320,7 +317,7 @@ test("review request route rejects legacy, ambiguous, and unsupported identities
   const cases = [
     { intent: "agent-tools-access-review", reason: "historical" },
     { intent: "bounded-workflow-review", reason: "historical" },
-    { intent: "external-exposure-assessment", reason: "wrong-role" },
+    { intent: "external-exposure-assessment", reason: "parked" },
     { intent: "OFFSEC-PILOT", reason: "unsupported" },
     { intent: "review", reason: "unsupported" },
     { intent: "AI Agent Tools & Access Review", reason: "unsupported" },

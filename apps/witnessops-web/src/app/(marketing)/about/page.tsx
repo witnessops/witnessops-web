@@ -17,7 +17,7 @@ export default function AboutPage() {
         About WitnessOps
       </h1>
       <p className="mt-4 text-text-secondary">
-        WitnessOps is an organization. It publishes two reviews and the records that let someone else check the work.
+        WitnessOps is an organization. It publishes one review for new engagements and the records that let someone else check the work.
       </p>
       <p className="mt-4 text-text-secondary">
         Registered details stay on the <Link href="/company" className="underline-offset-4 hover:underline">company page</Link>.

@@ -19,7 +19,7 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.doesNotMatch(source, /sessionStorage\.setItem\(\s*"/);
   const html = renderToStaticMarkup(createElement(AskSovereignPreview));
   assert.match(html, /Ask Sovereign/);
-  assert.match(html, /Hello\. I can answer from the two published reviews/);
+  assert.match(html, /Hello\. I can answer from the published review/);
   assert.match(html, /Include this transcript when I contact a person/);
   assert.match(html, /Preview, sends nothing/);
   assert.match(html, /aria-describedby="ask-sovereign-optin-hint"/);
@@ -47,7 +47,7 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.equal(SLOW_PENDING_MS, 6_000);
   assert.doesNotMatch(html, /Needs review/);
   assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
-  assert.match(html, /€1,900\u00A0excl\.\u00A0VAT/);
+  assert.doesNotMatch(html, /€1,900\u00A0excl\.\u00A0VAT/);
   assert.match(source, /Simulated response\\u00A0· preview/);
   assert.match(source, /simulatedChip: "Simulated"/);
   assert.match(source, /Podgląd: odpowiedź symulowana/);
@@ -75,8 +75,8 @@ test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pau
   assert.match(source, /setFollowUpsReady\(live !== "error" && live !== "handoff" && live !== "processing"\)/);
   assert.match(source, /activeSim === "slow" \|\| activeSim === "timeout"/);
   assert.equal(suggestionTopic("What does the External Attack Surface Review cover?"), "easr");
-  assert.equal(suggestionTopic("What does the External Attack Surface Review include, and what does it cost?"), "easr");
-  assert.equal(suggestionTopic("Co obejmuje External Attack Surface Review i ile kosztuje?"), "easr");
+  assert.equal(suggestionTopic("Is the external review still offered?"), "easr");
+  assert.equal(suggestionTopic("Czy przegląd ekspozycji jest dostępny?"), "easr");
   assert.deepEqual(
     followUpSuggestions(
       [
@@ -240,19 +240,20 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.doesNotMatch(html, /Nie zaznaczono\./);
   assert.doesNotMatch(html, /Ten wybór nie jest wysyłany i nie jest zapisywany/);
   assert.doesNotMatch(html, /Nic z tej rozmowy nie jest dołączane/);
-  assert.match(html, /Zapytaj o te dwa przeglądy/);
+  assert.match(html, /Zapytaj o przegląd/);
   assert.match(html, /aria-label="Wyślij"/);
   assert.match(html, /Na co Sovereign może odpowiedzieć/);
   assert.match(html, /Jak zacząć i gdzie napisać/);
   assert.match(html, /O tym asystencie/);
   assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
-  assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
+  assert.doesNotMatch(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
-  assert.match(html, /Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu/);
+  assert.match(html, /Pytania o przegląd WitnessOps/);
+  assert.doesNotMatch(html, /Jeden ukierunkowany retest/);
   assert.doesNotMatch(html, /One focused retest of reported findings/);
   assert.match(html, />Dokumentacja</);
   assert.match(html, /Asystent AI/);
-  assert.match(html, /Pytania o dwa przeglądy WitnessOps/);
+  assert.doesNotMatch(html, /Pytania o dwa przeglądy WitnessOps/);
   assert.doesNotMatch(html, />Docs</);
   assert.doesNotMatch(html, /AI assistant/);
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
@@ -287,7 +288,7 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
   assert.equal(suggestionLists.length, 2);
   assert.equal(greetings.length, 2);
   assert.ok(suggestionLists[0]?.some((item) => item.startsWith("What does the Agent Action")));
-  assert.ok(suggestionLists[0]?.some((item) => item.startsWith("What does the External Attack")));
+  assert.ok(suggestionLists[0]?.some((item) => item.startsWith("Is the external review")));
 
   const dir = mkdtempSync(join(tmpdir(), "ask-chip-overflow-"));
   for (const width of [320, 390]) {

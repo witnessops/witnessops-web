@@ -18,20 +18,20 @@ import {
 /**
  * New-sales intake identities.
  *
- * Accept exactly one paid review: Agent Action by offerId, or External Attack
- * Surface Review by productId. Ask follow-up remains a non-review contact
- * intent and cannot also name a review. Historical catalogue ids, display
- * labels, pilots, and aliases do not select a review and do not rewrite
- * issued records.
+ * Accept exactly one paid review: Agent Action Security Review by offerId.
+ * External Attack Surface Review is parked and is not a new-sales identity.
+ * Ask follow-up remains a non-review contact intent and cannot also name a
+ * review. Historical catalogue ids, display labels, pilots, and aliases do
+ * not select a review and do not rewrite issued records.
  */
 export const NEW_SALES_AGENT_ACTION_OFFER_ID = PUBLIC_AGENT_ACTION_OFFER.id;
 
+/** Retained so parked external requests can be recognised and rejected. */
 export const NEW_SALES_EXTERNAL_PRODUCT_ID =
   EXTERNAL_ATTACK_SURFACE_OFFER.productId;
 
 export const NEW_SALES_REVIEW_INTENTS = [
   NEW_SALES_AGENT_ACTION_OFFER_ID,
-  NEW_SALES_EXTERNAL_PRODUCT_ID,
 ] as const;
 
 export type NewSalesReviewIntent = (typeof NEW_SALES_REVIEW_INTENTS)[number];
@@ -41,6 +41,7 @@ export type IntakeRejectionReason =
   | "ambiguous"
   | "wrong-role"
   | "historical"
+  | "parked"
   | "unsupported";
 
 export type NewSalesIntakeDecision =
@@ -48,11 +49,6 @@ export type NewSalesIntakeDecision =
       accepted: true;
       role: "offer";
       intent: typeof NEW_SALES_AGENT_ACTION_OFFER_ID;
-    }
-  | {
-      accepted: true;
-      role: "product";
-      intent: typeof NEW_SALES_EXTERNAL_PRODUCT_ID;
     }
   | {
       accepted: true;
@@ -64,10 +60,9 @@ export type NewSalesIntakeDecision =
 export type NewSalesPageDecision =
   | {
       state: "selected";
-      role: "offer" | "product";
-      intent: NewSalesReviewIntent;
+      role: "offer";
+      intent: typeof NEW_SALES_AGENT_ACTION_OFFER_ID;
     }
-  | { state: "chooser" }
   | { state: "rejected"; reason: IntakeRejectionReason };
 
 const AGENT_ACTION_NAMES = [
@@ -113,16 +108,19 @@ const UNSUPPORTED_LABELS = new Set<string>([
 
 export type IntakeTokenClass =
   | "agent-offer"
-  | "external-product"
-  | "external-service"
+  | "parked"
   | "ask-contact"
   | "historical"
   | "unsupported";
 
 export function classifyIntakeToken(value: string): IntakeTokenClass {
   if (value === NEW_SALES_AGENT_ACTION_OFFER_ID) return "agent-offer";
-  if (value === NEW_SALES_EXTERNAL_PRODUCT_ID) return "external-product";
-  if (value === EXTERNAL_ATTACK_SURFACE_OFFER.id) return "external-service";
+  if (
+    value === NEW_SALES_EXTERNAL_PRODUCT_ID ||
+    value === EXTERNAL_ATTACK_SURFACE_OFFER.id
+  ) {
+    return "parked";
+  }
   if (value === ASK_AI_CONTACT_INTENT) return "ask-contact";
   if (HISTORICAL_IDS.has(value)) return "historical";
   if (UNSUPPORTED_LABELS.has(value)) return "unsupported";
@@ -135,21 +133,12 @@ export function newSalesEnquiryOptions(locale: "en" | "pl") {
       intent: NEW_SALES_AGENT_ACTION_OFFER_ID,
       label: PUBLIC_AGENT_ACTION_OFFER.name[locale],
     },
-    {
-      intent: NEW_SALES_EXTERNAL_PRODUCT_ID,
-      label: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
-    },
   ] as const;
 }
 
-export function newSalesRequestHref(
-  locale: "en" | "pl",
-  intent: NewSalesReviewIntent,
-): string {
+export function newSalesRequestHref(locale: "en" | "pl"): string {
   const base = locale === "pl" ? "/pl/review/request" : "/review/request";
-  return intent === NEW_SALES_AGENT_ACTION_OFFER_ID
-    ? `${base}?offerId=${NEW_SALES_AGENT_ACTION_OFFER_ID}`
-    : `${base}?productId=${NEW_SALES_EXTERNAL_PRODUCT_ID}`;
+  return `${base}?offerId=${NEW_SALES_AGENT_ACTION_OFFER_ID}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -168,13 +157,13 @@ function namesAgree(
 }
 
 function rejectionFor(kind: IntakeTokenClass): NewSalesIntakeDecision {
-  if (kind === "external-service") {
-    return { accepted: false, reason: "wrong-role" };
+  if (kind === "parked") {
+    return { accepted: false, reason: "parked" };
   }
   if (kind === "historical") {
     return { accepted: false, reason: "historical" };
   }
-  if (kind === "agent-offer" || kind === "external-product" || kind === "ask-contact") {
+  if (kind === "agent-offer" || kind === "ask-contact") {
     return { accepted: false, reason: "ambiguous" };
   }
   return { accepted: false, reason: "unsupported" };
@@ -229,20 +218,6 @@ export function evaluateNewSalesIntakeBody(raw: unknown): NewSalesIntakeDecision
     };
   }
 
-  if (kind === "external-product") {
-    if (offerId !== undefined) return { accepted: false, reason: "ambiguous" };
-    if (typeof productId === "string" && productId !== intent) {
-      return { accepted: false, reason: "ambiguous" };
-    }
-    const display = namesAgree(offer, EXTERNAL_NAMES);
-    if (display) return { accepted: false, reason: display };
-    return {
-      accepted: true,
-      role: "product",
-      intent: NEW_SALES_EXTERNAL_PRODUCT_ID,
-    };
-  }
-
   return rejectionFor(kind);
 }
 
@@ -290,9 +265,7 @@ export function resolveNewSalesPageQuery(input: {
 
   if (offerId.state === "one") {
     const kind = classifyIntakeToken(offerId.value);
-    if (kind === "external-product" || kind === "external-service") {
-      return { state: "rejected", reason: "wrong-role" };
-    }
+    if (kind === "parked") return { state: "rejected", reason: "parked" };
     if (kind === "historical") return { state: "rejected", reason: "historical" };
     if (kind !== "agent-offer") return { state: "rejected", reason: "unsupported" };
     const display = pageDisplayAgrees(offer, AGENT_ACTION_NAMES);
@@ -306,25 +279,19 @@ export function resolveNewSalesPageQuery(input: {
 
   if (productId.state === "one") {
     const kind = classifyIntakeToken(productId.value);
-    if (kind === "agent-offer" || kind === "external-service") {
-      return { state: "rejected", reason: "wrong-role" };
-    }
+    if (kind === "parked") return { state: "rejected", reason: "parked" };
+    if (kind === "agent-offer") return { state: "rejected", reason: "wrong-role" };
     if (kind === "historical") return { state: "rejected", reason: "historical" };
-    if (kind !== "external-product") {
-      return { state: "rejected", reason: "unsupported" };
-    }
-    const display = pageDisplayAgrees(offer, EXTERNAL_NAMES);
-    if (display) return { state: "rejected", reason: display };
-    return {
-      state: "selected",
-      role: "product",
-      intent: NEW_SALES_EXTERNAL_PRODUCT_ID,
-    };
+    return { state: "rejected", reason: "unsupported" };
   }
 
   if (offer.state !== "absent") {
     return { state: "rejected", reason: "unsupported" };
   }
 
-  return { state: "chooser" };
+  return {
+    state: "selected",
+    role: "offer",
+    intent: NEW_SALES_AGENT_ACTION_OFFER_ID,
+  };
 }

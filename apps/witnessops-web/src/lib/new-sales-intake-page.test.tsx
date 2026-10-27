@@ -26,7 +26,7 @@ function render(node: ReactNode) {
   );
 }
 
-test("English and Polish request pages sell only the two accepted identities", async () => {
+test("English and Polish request pages sell only the agent review", async () => {
   const agent = await ReviewRequestPage({
     searchParams: Promise.resolve({
       offerId: "agent-action-security-review",
@@ -45,10 +45,11 @@ test("English and Polish request pages sell only the two accepted identities", a
     searchParams: Promise.resolve({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }),
   });
   const externalHtml = render(external);
-  assert.match(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);
-  assert.match(externalHtml, /€1,900\u00A0excl.\u00A0VAT/);
-  assert.match(externalHtml, /This is not a penetration test/);
-  assert.doesNotMatch(externalHtml, /agent-action-security-review/);
+  assert.match(externalHtml, /External Attack Surface Review is no longer available/);
+  assert.match(externalHtml, /It is not the Agent Action Security Review/);
+  assert.equal(externalHtml.includes("<form"), false);
+  assert.doesNotMatch(externalHtml, /€1,900/);
+  assert.doesNotMatch(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);
 
   const polishAgent = await PolishReviewRequestPage({
     searchParams: Promise.resolve({ offerId: "agent-action-security-review" }),
@@ -79,10 +80,12 @@ test("legacy, pilot, ambiguous, and display-only request URLs do not open a form
   for (const params of cases) {
     const html = render(await ReviewRequestPage({ searchParams: Promise.resolve(params) }));
     assert.equal(html.includes("<form"), false, JSON.stringify(params));
-    assert.match(html, /This link does not start a new review/);
+    const parked = (params.productId === "OFFSEC-EXTERNAL-EXPOSURE" && !params.offerId)
+      || (params.offerId === "OFFSEC-EXTERNAL-EXPOSURE" && !params.productId);
+    assert.match(html, parked ? /no longer available/ : /This link does not start a new review/);
     assert.match(html, /Existing requests and issued agreements keep their original terms/);
     assert.match(html, /href="\/review\/request\?offerId=agent-action-security-review"/);
-    assert.match(html, /href="\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE"/);
+    assert.doesNotMatch(html, /href="\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE"/);
     assert.doesNotMatch(html, /offerId=agent-tools-access-review/);
   }
 
@@ -96,11 +99,14 @@ test("legacy, pilot, ambiguous, and display-only request URLs do not open a form
   assert.match(polish, /href="\/pl\/review\/request\?offerId=agent-action-security-review"/);
 });
 
-test("the unselected enquiry offers exactly two review identities", async () => {
+test("the unselected enquiry is the agent review and has no offer selector", async () => {
   const html = render(await ReviewRequestPage({ searchParams: Promise.resolve({}) }));
-  assert.match(html, /Which review\?/);
+  assert.doesNotMatch(html, /Which review\?/);
   assert.match(html, /value="agent-action-security-review"/);
-  assert.match(html, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
+  assert.match(html, /Consequential action/);
+  assert.match(html, /Systems involved/);
+  assert.match(html, /Decision deadline/);
+  assert.doesNotMatch(html, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
   assert.doesNotMatch(html, /One Server Security Check|Free check|Not sure|Internet Footprint Review/);
 
   const earlyBird = render(
@@ -108,13 +114,14 @@ test("the unselected enquiry offers exactly two review identities", async () => 
       searchParams: Promise.resolve({ enquiryPath: "early-bird" }),
     }),
   );
-  assert.match(earlyBird, /Which review\?/);
+  assert.match(earlyBird, /Consequential action/);
   assert.doesNotMatch(earlyBird, /Internet Footprint Review/);
 
   const polish = render(await PolishReviewRequestPage({ searchParams: Promise.resolve({}) }));
-  assert.match(polish, /Który przegląd\?/);
+  assert.doesNotMatch(polish, /Który przegląd\?/);
   assert.match(polish, /value="agent-action-security-review"/);
-  assert.match(polish, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
+  assert.match(polish, /Istotne działanie/);
+  assert.doesNotMatch(polish, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
   assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=WitnessOps%20fit%20check"/);
   assert.match(html, />engage@mail\.witnessops\.com</);
   assert.match(polish, /href="mailto:engage@mail\.witnessops\.com\?subject=WitnessOps%20fit%20check"/);

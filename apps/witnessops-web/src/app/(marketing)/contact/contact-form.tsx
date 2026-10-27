@@ -34,11 +34,7 @@ import {
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { plainOfferPrice } from "@/lib/offer-price-unit";
-import {
-  NEW_SALES_AGENT_ACTION_OFFER_ID,
-  newSalesEnquiryOptions,
-  type NewSalesReviewIntent,
-} from "@/lib/new-review-request-policy";
+import { NEW_SALES_AGENT_ACTION_OFFER_ID } from "@/lib/new-review-request-policy";
 
 type FieldName =
   | "name"
@@ -105,8 +101,7 @@ export function ContactForm({
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const submissionBusyRef = useRef(false);
   const polish = locale === "pl";
-  const [landingIntent, setLandingIntent] = useState<NewSalesReviewIntent>(NEW_SALES_AGENT_ACTION_OFFER_ID);
-  const submittedIntent = landing ? landingIntent : intent;
+  const submittedIntent = landing ? NEW_SALES_AGENT_ACTION_OFFER_ID : intent;
   const externalExposureOrder = submittedIntent === "OFFSEC-EXTERNAL-EXPOSURE";
   const agentActionOrder = submittedIntent === PUBLIC_AGENT_ACTION_OFFER.id;
   const agentToolsAccessReview = submittedIntent === AGENT_TOOLS_ACCESS_REVIEW_INTENT;
@@ -312,8 +307,8 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na Agent Action Security Review. Aktualne płatne przeglądy to Agent Action Security Review za ${PUBLIC_AGENT_ACTION_OFFER.price.pl} oraz External Attack Surface Review za ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} z jednym ponownym sprawdzeniem w ciągu 30 dni kalendarzowych od przekazania raportu. Termin realizacji uzgodniony w podpisanym zakresie prac.`
-          : "This request stays the historical AI Agent Tools & Access Review. It is not reassigned to Agent Action Security Review. The current paid reviews are Agent Action Security Review at €2,500 excluding VAT, and External Attack Surface Review at €1,900 excluding VAT with one retest within 30 calendar days of report handover. Delivery timing agreed in the signed statement of work.",
+          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
+          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,
@@ -352,10 +347,17 @@ export function ContactForm({
         fitBody: polish
           ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}.`
           : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.en}.`,
-        workflow: PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion[locale],
+        decisionTiming: polish ? "Termin decyzji" : "Decision deadline",
+        decisionTimingPlaceholder: polish
+          ? "Np. przekazanie klientowi w przyszły piątek albo decyzja o uruchomieniu do końca miesiąca."
+          : "For example: customer handover next Friday, or a launch decision by the end of the month.",
+        decisionTimingHelp: polish
+          ? "Wystarczy przybliżony termin. Termin realizacji ustalamy w podpisanym zakresie prac."
+          : "An approximate date is enough. Delivery timing is agreed in the signed statement of work.",
+        workflow: polish ? "Istotne działanie" : "Consequential action",
         workflowPlaceholder: polish
-          ? "Np. agent zwrotów może wykonać zwrot po zatwierdzeniu. Chcemy sprawdzić upoważnienie, granicę uprawnień i dowód wykonania tego jednego działania."
-          : "For example: a refund agent can issue a refund after approval. We want the authority, permission boundary, and execution evidence for that one action checked.",
+          ? "Np. agent może wykonać zwrot, zmienić rekord albo nadać dostęp."
+          : "For example: the agent can issue a refund, change a record, or grant access.",
         workflowHelp: polish
           ? "Opisz jedno działanie ogólnie. Nie wklejaj sekretów, poświadczeń, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
           : "Describe one action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
@@ -363,15 +365,15 @@ export function ContactForm({
         actionPathPlaceholder: polish
           ? "Opisz możliwy skutek tego jednego działania: zmiana rekordu, zwrot, dostęp, wiadomość albo inna konsekwencja."
           : "Describe the possible effect of this one action: a record change, refund, access grant, message, or other consequence.",
-        approval: polish ? "Kto zatwierdza i gdzie kończy się upoważnienie?" : "Who approves, and where does authority stop?",
+        approval: polish ? "Zaangażowane systemy" : "Systems involved",
         approvalPlaceholder: polish
-          ? "Wskaż rolę zatwierdzającą i granicę upoważnienia. Bez danych dostępowych."
-          : "Name the approving role and where authority stops. No access details.",
+          ? "Nazwij systemy na wysokim poziomie, np. CRM, płatności albo katalog tożsamości. Bez danych dostępowych."
+          : "Name the systems at a high level, such as a CRM, payments, or an identity directory. No access details.",
         evidence: polish ? "Jakie rodzaje dowodów wykonania są dostępne?" : "Which execution-evidence types are available?",
         evidencePlaceholder: polish
           ? "Nazwij tylko rodzaje: zgłoszenie, prompt, log, zatwierdzenie, wynik. Nie wysyłaj ich teraz."
           : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
-        send: polish ? "Poproś o niepoufną ocenę" : "Request a non-secret fit check",
+        send: polish ? "Zgłoś przegląd agenta" : "Request an agent review",
         submitBoundary: polish
           ? `Wysłanie formularza otwiera tylko ocenę dopasowania. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. To nie jest rezerwacja, płatność ani upoważnienie do inspekcji.`
           : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. It is not a booking, payment, or authority to inspect.`,
@@ -468,41 +470,40 @@ export function ContactForm({
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
-    const enquiryPath = landing ? landingIntent : "";
     const requestScope = [
-      landing
-        ? "Request: WitnessOps new-sales enquiry"
+      agentActionOrder
+        ? `Request: ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
         : externalExposureOrder
         ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
-        : agentActionOrder
-          ? `Request: ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
         : agentToolsAccessReview
           ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
           ? `Request: ${selectedNonAgentService.name.en}`
           : "Request: WitnessOps review fit check",
       `Selected product / intent: ${submittedIntent}`,
-      ...(enquiryPath ? [`Enquiry path: ${enquiryPath}`] : []),
+      `Offer: ${submittedIntent}`,
       `Request locale: ${locale}`,
-      ...(decisionTiming ? [`Decision and target date: ${decisionTiming}`] : []),
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      ...(landing
-        ? [`Review need: ${workflow || "not provided"}`]
+      ...(agentActionOrder
+        ? [
+            `Consequential action: ${workflow || "not provided"}`,
+            `Systems involved: ${approvalBoundary || "not provided"}`,
+            `Decision deadline: ${decisionTiming || "not provided"}`,
+          ]
         : [
-            `${externalExposureOrder ? "Boundary seed / internet-facing system" : agentActionOrder ? "Consequential action" : selectedNonAgentService ? "Selected-service need" : agentToolsAccessReview ? "Agent setup, connection and action" : "Review need"}: ${workflow || "not provided"}`,
-            `${externalExposureOrder ? "Trigger and timing" : agentActionOrder ? "Unintended effect" : selectedNonAgentService ? "Timing and reason" : agentToolsAccessReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-            `${externalExposureOrder ? "Authority statement" : agentActionOrder ? "Approval and authority boundary" : selectedNonAgentService ? "Scope owner, consent, and authority" : agentToolsAccessReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-            `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : agentActionOrder ? "Execution evidence types" : selectedNonAgentService ? "Available input or source types" : agentToolsAccessReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+            `${externalExposureOrder ? "Boundary seed / internet-facing system" : selectedNonAgentService ? "Selected-service need" : agentToolsAccessReview ? "Agent setup, connection and action" : "Review need"}: ${workflow || "not provided"}`,
+            `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : agentToolsAccessReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+            ...(decisionTiming ? [`Decision and target date: ${decisionTiming}`] : []),
+            `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : agentToolsAccessReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+            `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : agentToolsAccessReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
           ]),
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
-      landing
-        ? "Follow-up needed: confirm whether this exact review fits before scope, fee, or authority are agreed"
+      agentActionOrder
+        ? `Follow-up needed: one consequential action, systems involved, decision deadline, authority, executing identity, and the fixed ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} terms`
         : externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
-        : agentActionOrder
-          ? `Follow-up needed: one consequential action, authority, executing identity, approval boundary, evidence path, and the fixed ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} terms`
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
           : agentToolsAccessReview
@@ -939,24 +940,7 @@ export function ContactForm({
         </div>
       </div>
 
-      {landing && <div>
-        <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>{polish ? "Który przegląd?" : "Which review?"}</label>
-        <select
-          id="enquiryPath"
-          name="enquiryPath"
-          value={landingIntent}
-          onChange={(event) => {
-            const next = newSalesEnquiryOptions(locale).find((option) => option.intent === event.target.value);
-            if (next) setLandingIntent(next.intent);
-          }}
-          className={inputClass}
-          style={inputStyle}
-        >
-          {newSalesEnquiryOptions(locale).map((option) => <option key={option.intent} value={option.intent}>{option.label}</option>)}
-        </select>
-      </div>}
-
-      {!landing && <div>
+      {!landing && !agentActionOrder && <div>
         <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
           id="org" name="org" type="text" autoComplete="organization"
@@ -972,29 +956,86 @@ export function ContactForm({
         {fieldErrors.org && <p id="org-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.org}</p>}
       </div>}
 
+      {agentActionOrder ? <>
+        <div>
+          <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
+            {copy.workflow} <span className="text-text-muted">{copy.required}</span>
+          </label>
+          <textarea
+            id="workflow" name="workflow" rows={4} required
+            maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+            aria-describedby={fieldErrors.workflow ? "workflow-helper workflow-error" : "workflow-helper"}
+            aria-errormessage={fieldErrors.workflow ? "workflow-error" : undefined}
+            className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
+            style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+            placeholder={copy.workflowPlaceholder}
+            onInvalid={handleInvalid}
+            onInput={handleFieldInput}
+            aria-invalid={fieldErrors.workflow ? true : undefined}
+          />
+          <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.workflowHelp}</p>
+          {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
+        </div>
+        <div>
+          <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
+            {copy.approval} <span className="text-text-muted">{copy.required}</span>
+          </label>
+          <textarea
+            id="approvalBoundary" name="approvalBoundary" rows={3} required
+            maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+            className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
+            style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+            placeholder={copy.approvalPlaceholder}
+            onInvalid={handleInvalid}
+            onInput={handleFieldInput}
+            aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
+            aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+            aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+          />
+          {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
+        </div>
+        <div>
+          <label htmlFor="decisionTiming" className="mb-2 block" style={labelStyle}>
+            {copy.decisionTiming} <span className="text-text-muted">{copy.required}</span>
+          </label>
+          <textarea
+            id="decisionTiming" name="decisionTiming" rows={2} required
+            maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
+            aria-describedby={fieldErrors.decisionTiming ? "decisionTiming-helper decisionTiming-error" : "decisionTiming-helper"}
+            aria-errormessage={fieldErrors.decisionTiming ? "decisionTiming-error" : undefined}
+            aria-invalid={fieldErrors.decisionTiming ? true : undefined}
+            className={`${inputClass} ${fieldErrors.decisionTiming ? "!border-signal-red" : ""}`}
+            style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+            placeholder={copy.decisionTimingPlaceholder}
+            onInvalid={handleInvalid}
+            onInput={handleFieldInput}
+          />
+          <p id="decisionTiming-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.decisionTimingHelp}</p>
+          {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
+        </div>
+        <p className="text-xs leading-relaxed text-text-muted">{copy.noSecrets}</p>
+      </> : <>
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          {landing ? (polish ? "Co wymaga sprawdzenia?" : "What needs checking?") : copy.workflow} <span className="text-text-muted">{copy.required}</span>
+          {copy.workflow} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
-          id="workflow" name="workflow" rows={landing ? 5 : 3} required
+          id="workflow" name="workflow" rows={3} required
           maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           aria-describedby={fieldErrors.workflow ? "workflow-helper workflow-error" : "workflow-helper"}
           aria-errormessage={fieldErrors.workflow ? "workflow-error" : undefined}
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder={landing ? undefined : copy.workflowPlaceholder}
+          placeholder={copy.workflowPlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflow ? true : undefined}
         />
-        <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          {landing ? (polish ? "W pierwszym zgłoszeniu nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesji ani materiałów klienta." : "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.") : copy.workflowHelp}
-        </p>
+        <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.workflowHelp}</p>
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
-      {!landing && <div>
+      <div>
         <label htmlFor="decisionTiming" className="mb-2 block" style={labelStyle}>
           {copy.decisionTiming} <span className="text-text-muted">{copy.optional}</span>
         </label>
@@ -1011,16 +1052,16 @@ export function ContactForm({
         />
         <p id="decisionTiming-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.decisionTimingHelp}</p>
         {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
-      </div>}
-
-      {landing ? null : optionalContext ? (
+      </div>
+      </>}
+      {!agentActionOrder ? (optionalContext ? (
         <details className="border-t border-surface-border pt-4">
           <summary className="cursor-pointer text-sm font-semibold text-text-primary">
             {polish ? "Dodaj kontekst (opcjonalnie)" : "Add context (optional)"}
           </summary>
           <div className="mt-4 space-y-5">{additionalContextFields}</div>
         </details>
-      ) : additionalContextFields}
+      ) : additionalContextFields) : null}
 
       <p className="text-sm leading-6 text-text-secondary">{polish ? "Następnie potwierdzisz adres kodem z wiadomości e-mail. Potem ocenimy dopasowanie i odpowiemy z kolejnym krokiem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
       <button
@@ -1035,10 +1076,10 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? copy.sending : landing ? (polish ? "Wyślij niepoufne zgłoszenie" : "Submit non-secret enquiry") : copy.send}
+        {status === "sending" ? copy.sending : copy.send}
       </button>
 
-      {!landing && <p className="text-xs leading-relaxed text-text-muted">
+      {(agentActionOrder || !landing) && <p className="text-xs leading-relaxed text-text-muted">
         {copy.submitBoundary}
       </p>}
 

@@ -8,8 +8,9 @@ import { listAdminBuyerServices } from "./admin-service-catalog";
 
 const PUBLIC_ADMIN_SERVICE_IDS = [
   "agent-action-security-review",
-  "external-exposure-assessment",
 ] as const;
+
+const PARKED_BUYER_SERVICE_IDS = ["external-exposure-assessment"] as const;
 
 /** Historical buyer-registry ids excluded from the admin public-paid projection. */
 const RETIRED_BUYER_SERVICE_IDS = [
@@ -23,7 +24,7 @@ const RETIRED_BUYER_SERVICE_IDS = [
   "professional-public-footprint-audit",
 ] as const;
 
-test("admin services mirror the two public paid reviews without inventing contracts", () => {
+test("admin services mirror the public agent review without inventing contracts", () => {
   const services = listAdminBuyerServices();
   const publicServices = publicPaidReviews(BUYER_SERVICES);
 
@@ -35,7 +36,7 @@ test("admin services mirror the two public paid reviews without inventing contra
     publicServices.map((service) => service.id),
     [...PUBLIC_ADMIN_SERVICE_IDS],
   );
-  assert.equal(services.length, 2);
+  assert.equal(services.length, 1);
   assert.equal(BUYER_SERVICES.length, 10);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.id).filter(
@@ -45,27 +46,17 @@ test("admin services mirror the two public paid reviews without inventing contra
     ),
     [...RETIRED_BUYER_SERVICE_IDS],
   );
-  for (const id of RETIRED_BUYER_SERVICE_IDS) {
+  for (const id of [...RETIRED_BUYER_SERVICE_IDS, ...PARKED_BUYER_SERVICE_IDS]) {
     assert.equal(
       services.some((service) => service.id === id),
       false,
       id,
     );
   }
-
-  const external = services.find(
-    (service) => service.id === "external-exposure-assessment",
+  assert.equal(
+    services.some((service) => service.requestHref.includes("OFFSEC-EXTERNAL-EXPOSURE")),
+    false,
   );
-  assert.ok(external);
-  assert.match(
-    external.requestHref,
-    /^\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE(?:&|$)/,
-  );
-  assert.deepEqual(external.requestContext, {
-    kind: "catalog_sku",
-    label: "productId=OFFSEC-EXTERNAL-EXPOSURE",
-    preservesSelection: true,
-  });
 
   const agentAction = services.find(
     (service) => service.id === "agent-action-security-review",
@@ -121,8 +112,8 @@ test("admin services preserve the selected offer for every public service", () =
     (service) => !service.requestContext.preservesSelection,
   );
 
-  assert.equal(services.length, 2);
-  assert.equal(contextual.length, 2);
+  assert.equal(services.length, 1);
+  assert.equal(contextual.length, 1);
   assert.deepEqual(generic, []);
   assert.ok(
     services.some((service) =>
@@ -131,11 +122,10 @@ test("admin services preserve the selected offer for every public service", () =
       ),
     ),
   );
-  assert.ok(
+  assert.equal(
     services.some((service) =>
-      service.requestHref.startsWith(
-        "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      ),
+      service.requestHref.includes("OFFSEC-EXTERNAL-EXPOSURE"),
     ),
+    false,
   );
 });

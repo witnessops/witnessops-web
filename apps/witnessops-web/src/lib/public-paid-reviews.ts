@@ -1,8 +1,11 @@
 /**
- * Founder-approved Two-Offer V1 discovery policy, amended 2026-10-08.
+ * Active public paid-review projection.
  *
- * This is a projection, not a replacement for the historical buyer registry.
- * Do not use it to prune routes, sitemap entries, issued terms or old records.
+ * Founder decision 2026-10-27: the only new-sales review is Agent Action
+ * Security Review. External Attack Surface Review stays in the historical
+ * registry and is not part of this projection.
+ *
+ * Do not use this list to delete routes, issued terms or old records.
  * Service IDs are not interchangeable with offerId/productId request fields.
  */
 /**
@@ -15,7 +18,6 @@ export const PUBLIC_AGENT_ACTION_REVIEW_ID = "agent-action-security-review" as c
 
 export const PUBLIC_PAID_REVIEW_IDS = [
   PUBLIC_AGENT_ACTION_REVIEW_ID,
-  "external-exposure-assessment",
 ] as const;
 
 export type PublicPaidReviewId = (typeof PUBLIC_PAID_REVIEW_IDS)[number];

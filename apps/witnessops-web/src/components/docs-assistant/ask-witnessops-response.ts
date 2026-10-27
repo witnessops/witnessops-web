@@ -460,17 +460,6 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
         delivery_label: PUBLIC_AGENT_ACTION_OFFER.timing.en,
       },
     },
-    {
-      id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
-      offer: {
-        name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-        price_label: plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en),
-        unit_label:
-          "One authorised public-facing system. One focused retest within 30 calendar days of initial report handover.",
-        fit_check_label: "Non-secret fit check first. This is not a penetration test.",
-        delivery_label: EXTERNAL_ATTACK_SURFACE_OFFER.timing.en,
-      },
-    },
   ] as const;
   const matchedOffer = publicOffers.find((candidate) => candidate.id === record.offer_id);
   const offer =

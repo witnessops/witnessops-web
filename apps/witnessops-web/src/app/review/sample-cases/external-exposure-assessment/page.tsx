@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
+import Link from "next/link";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
-import { CtaButton } from "@/components/shared/cta-button";
-import { buyerOfferRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
@@ -26,8 +25,9 @@ const sampleFiles = [
 
 export const metadata: Metadata = {
   title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`,
-  description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence.`,
+  description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence. The review is no longer available for new engagements.`,
   alternates: { canonical: samplePath },
+  robots: { index: false, follow: true },
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
@@ -112,18 +112,16 @@ export default function ExternalExposureAssessmentSamplePage() {
             the former Public Exposure Review name. The stable SKU, scope, caps,
             authority rules, checks, retest, and claim boundaries are unchanged.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <CtaButton
-              href={buyerOfferRequestHref("en", "OFFSEC-EXTERNAL-EXPOSURE")}
-              variant="primary"
-              label="Request an external review"
-            />
-            <CtaButton
-              href="/catalog/offsec-external-exposure"
-              variant="secondary"
-              label="View service"
-            />
-          </div>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
+            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
+            engagements. This page remains a labelled synthetic example. It is not
+            the Agent Action Security Review and it is not a customer result.
+          </p>
+          <p className="mt-4">
+            <Link href="/reviews/external-attack-surface-review" className="inline-flex min-h-11 items-center underline underline-offset-4">
+              Read the availability notice
+            </Link>
+          </p>
         </header>
 
         <section className="border-b border-surface-border py-12">

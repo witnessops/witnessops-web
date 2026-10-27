@@ -67,9 +67,9 @@ test("omitting context leaves no history or page hint in the provider input", ()
 });
 
 test("generated prose stays distinct while sources and recommendation fields come from the catalogue", () => {
-  const service = BUYER_SERVICES.find((item) => item.id === "external-exposure-assessment")!;
+  const service = BUYER_SERVICES.find((item) => item.id === "agent-action-security-review")!;
   const answer = normalizePublicAskResponse(response(
-    "For one authorised internet-facing system, the External Attack Surface Review is the relevant review.",
+    "For one consequential agent action, the Agent Action Security Review is the relevant review.",
     service.id,
     [`service.${service.id}`],
   ));
@@ -77,15 +77,13 @@ test("generated prose stays distinct while sources and recommendation fields com
   assert.equal(answer.recommendation?.price_label, service.price.en.replaceAll("\u00A0", " "));
   assert.doesNotMatch(answer.recommendation?.price_label ?? "", /\u00A0/);
   assert.equal(answer.recommendation?.delivery_label, service.timing.en);
-  assert.equal(answer.recommendation?.detail_href, service.detailHref.en);
-  assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.match(answer.recommendation?.request_href ?? "", /offerId=agent-action-security-review/);
   assert.match(answer.recommendation?.request_href ?? "", /source=ask/);
-  assert.deepEqual(answer.presented_sources, [{
-    source_id: "service.external-exposure-assessment",
-    public_label: service.name.en,
-    canonical_href: "https://witnessops.com/catalog/offsec-external-exposure",
-    href_class: "same_site",
-  }]);
+  assert.equal(normalizePublicAskResponse(response(
+    "The external review is separate.",
+    "external-exposure-assessment",
+    ["service.external-exposure-assessment"],
+  )), null);
 });
 
 test("a withdrawn service is not presented as a new-sales price card", () => {
@@ -244,15 +242,15 @@ test("answers without a selected service cannot invent a price card", () => {
 
 test("AI overview shares the security-led site identity without hiding repair", () => {
   const request = buildPublicAskResponsesRequest({ question: "What does WitnessOps do?", config });
-  assert.match(request.input[0].content, /New paid reviews are exactly Agent Action Security Review/);
-  assert.match(request.input[0].content, /External Attack Surface Review/);
-  assert.match(request.input[0].content, /30 calendar days of initial report handover/);
+  assert.match(request.input[0].content, /The only new paid review is Agent Action Security Review/);
+  assert.match(request.input[0].content, /External Attack Surface Review is no longer available/);
+  assert.doesNotMatch(request.input[0].content, /30 calendar days of initial report handover/);
   assert.doesNotMatch(request.input[0].content, /WitnessOps leads with Automation Repair/);
   assert.doesNotMatch(request.input[0].content, /Automation Repair & Handover is also available/);
 });
 
 test("every new-sales service card retains canonical price, timing and selected inquiry route", () => {
-  for (const service of BUYER_SERVICES.filter((item) => item.id === "agent-action-security-review" || item.id === "external-exposure-assessment")) {
+  for (const service of BUYER_SERVICES.filter((item) => item.id === "agent-action-security-review")) {
     const answer = normalizePublicAskResponse(response("The service details are below.", service.id, [`service.${service.id}`]));
     assert.ok(answer?.recommendation, service.id);
     assert.equal(answer.recommendation.name, service.name.en);
@@ -328,9 +326,10 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   assert.match(agentAnswer.text, /€2,500 excl\. VAT/);
   assert.doesNotMatch(agentAnswer.text, /\u00A0/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
-  assert.equal(externalAnswer.recommendation?.service_id, 'external-exposure-assessment');
-  assert.match(externalAnswer.text, /€1,900/);
-  assert.match(externalAnswer.text, /30 calendar days|confirm fit and availability/);
+  assert.equal(externalAnswer.recommendation, null);
+  assert.match(externalAnswer.text, /no longer available/);
+  assert.match(externalAnswer.text, /not the Agent Action Security Review/);
+  assert.doesNotMatch(externalAnswer.text, /€1,900/);
   assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:withdrawn}]}), null);
   assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:withdrawn}]}), null);
   const hidden = catalogueClarification({question:'What does Professional Public Footprint Audit cost?',history:[{role:'user',content:agent}]})!;
@@ -338,7 +337,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   for (const args of [{question:`What do ${agent} and ${external} cost?`},{question:'How much does that cost?',history:[{role:'user' as const,content:`${agent} and ${external}`}]}]) {
     const answer = catalogueClarification(args)!;
     assert.equal(answer.recommendation, null);
-    assert.match(answer.text, /Which of the two reviews/);
+    assert.match(answer.text, /no longer available/);
   }
 });
 

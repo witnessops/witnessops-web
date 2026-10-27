@@ -78,10 +78,10 @@ export default function PaymentSuccessPage() {
 
         <nav className="mt-8 flex flex-wrap gap-4" aria-label="Payment next steps">
           <Link
-            href="/catalog/offsec-external-exposure"
+            href="/reviews/agent-action-security-review"
             className={`text-sm font-semibold underline underline-offset-4 hover:text-brand-accent ${verificationLight.title}`}
           >
-            Review the offer
+            Current review
           </Link>
           <Link
             href="/support"

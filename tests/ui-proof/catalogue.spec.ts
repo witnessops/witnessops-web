@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { buyerServiceById } from "../../apps/witnessops-web/src/lib/buyer-services";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 
 const scenarios = [
@@ -14,7 +14,7 @@ const scenarios = [
   { path: "/pl/catalog", width: 320, height: 740 },
 ] as const;
 
-const expectedServiceOrder = [PUBLIC_AGENT_ACTION_REVIEW_ID, "external-exposure-assessment"] as const;
+const expectedServiceOrder = [PUBLIC_AGENT_ACTION_REVIEW_ID] as const;
 
 test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
@@ -29,7 +29,7 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
     const serviceCards = page.locator("[data-buyer-service]");
-    await expect(serviceCards).toHaveCount(2);
+    await expect(serviceCards).toHaveCount(1);
     const firstCardVisuals = await serviceCards.first().evaluate((card) => {
       const style = getComputedStyle(card);
       const primaryCta = card.querySelector<HTMLElement>("a");
@@ -68,11 +68,9 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
     await expect(agentActionCard).not.toContainText("AI Agent Tools & Access Review");
     await expect(agentActionCard).not.toContainText("From €1,500");
 
-    const publicExposureCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
-    await expect(publicExposureCard).toContainText("External Attack Surface Review");
-    await expect(publicExposureCard).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.price[polish ? "pl" : "en"]);
-    await expect(publicExposureCard).toContainText(polish ? "Termin realizacji według podpisanego SOW" : "Delivery timing agreed in the signed statement of work");
-    await expect(publicExposureCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|3 dni roboczych|€550|550 €/);
+    await expect(page.locator('[data-buyer-service="external-exposure-assessment"]')).toHaveCount(0);
+    await expect(page.locator("main")).not.toContainText("Request an external review");
+    await expect(page.locator("main")).not.toContainText("Zgłoś przegląd ekspozycji");
     await expect(agentActionCard).not.toContainText(/10 working days|10 dni roboczych|3 working days|€550|550 €/);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal|Internet Footprint Review|Early Bird|€500/);
 
@@ -84,20 +82,13 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
       const requestPath = polish ? "/pl/review/request" : "/review/request";
       const request = new URL(primaryHref ?? "", "http://witnessops.test");
       expect(request.pathname).toBe(requestPath);
-      if (id === "external-exposure-assessment") {
-        expect(request.searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
-        expect(request.searchParams.has("offerId")).toBe(false);
-        await expect(primary).toHaveText(polish ? "Zgłoś przegląd ekspozycji" : "Request an external review");
-        await expect(links).toHaveCount(3);
-        await expect(links.nth(2)).toHaveAttribute("href", "/review/sample-cases/external-exposure-assessment");
-      } else {
-        expect(request.searchParams.get("offerId")).toBe(PUBLIC_AGENT_ACTION_REVIEW_ID);
-        expect(request.searchParams.has("productId")).toBe(false);
-        expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
-        await expect(primary).toHaveText(polish ? "Zgłoś przegląd agenta" : "Request an agent review");
-        await expect(links).toHaveCount(1);
-        await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
-      }
+      expect(id).toBe(PUBLIC_AGENT_ACTION_REVIEW_ID);
+      expect(request.searchParams.get("offerId")).toBe(id);
+      expect(request.searchParams.has("productId")).toBe(false);
+      expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
+      await expect(primary).toHaveText(polish ? "Zgłoś przegląd agenta" : "Request an agent review");
+      await expect(links).toHaveCount(1);
+      await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
     }
     await expect(page.locator('[data-one-pager], main a[href$=".pdf"]')).toHaveCount(0);
     await expect(page.locator('[data-buyer-service="professional-public-footprint-audit"], [data-buyer-service="one-server-security-check"], [data-buyer-service="automation-repair-handover"], [data-buyer-service="customer-security-review-sprint"], [data-buyer-service="agent-tools-access-review"]')).toHaveCount(0);
@@ -130,36 +121,26 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
   }
 });
 
-test("External Attack Surface Review pricing entry preserves sample and intake links", async ({ page }) => {
+test("pricing opens the agent review and the external review URL stays parked", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
-  await page.getByRole("link", { name: "Compare scopes and prices" }).click();
+  await page.getByRole("link", { name: "See scope and deliverables", exact: true }).click();
   await expect(page).toHaveURL(/\/reviews$/);
-  const catalogueCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
-  await expect(catalogueCard.locator('a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
-  await catalogueCard.locator('a[href="/catalog/offsec-external-exposure"]').click();
-  await expect(page).toHaveURL(/\/reviews\/external-attack-surface-review$/);
+  await expect(page.locator('[data-buyer-service="external-exposure-assessment"]')).toHaveCount(0);
+  await page.goto("/reviews/external-attack-surface-review", { waitUntil: "networkidle" });
 
   const detail = page.locator("main");
-  await expect(detail.locator("h1")).toHaveText("External Attack Surface Review");
-  await expect(detail).toContainText("€1,900\u00A0excl.\u00A0VAT");
-  await expect(detail).toContainText("One focused retest of reported findings within 30 calendar days of initial report handover.");
+  await expect(detail).toHaveAttribute("data-offer-status", "parked");
+  await expect(detail.locator("h1")).toHaveText("External Attack Surface Review is no longer available");
+  await expect(detail).toContainText("This is not the Agent Action Security Review.");
+  await expect(detail).toContainText("€2,500\u00A0excl.\u00A0VAT");
+  await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
-  await expect(detail).toContainText("This is not a penetration test");
-  const fit = detail.getByRole("link", { name: "Request an external review" }).first();
-  const fitHref = await fit.getAttribute("href");
-  expect(new URL(fitHref ?? "", "http://witnessops.test").searchParams.get("productId")).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+  const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });
+  await expect(fit).toHaveAttribute("href", "/reviews/agent-action-security-review");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
+  await expect(detail.locator("form")).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
-
-  await fit.click();
-  await expect(page).toHaveURL(/\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
-  const request = page.locator("main");
-  await expect(request).toContainText("Payment is due in full before the delivery clock starts");
-  await expect(request).toContainText(
-    "Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
-  );
-  await expect(request.locator('form input[name="intent"]')).toHaveValue("OFFSEC-EXTERNAL-EXPOSURE");
 });

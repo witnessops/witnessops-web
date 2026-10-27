@@ -13,34 +13,37 @@ const ai = { id: PUBLIC_AGENT_ACTION_REVIEW_ID, price: "€2,500 fixed", scope: 
 const external = { id: "external-exposure-assessment", productId: "OFFSEC-EXTERNAL-EXPOSURE", price: "€1,900" };
 const legacy = { id: "automation-repair-handover", price: "€250 diagnosis" };
 
-test("new paid discovery contains exactly the two founder-approved identities", () => {
-  assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, [ai.id, external.id]);
+test("new paid discovery contains exactly the founder-approved agent review", () => {
+  assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, [ai.id]);
   assert.equal(PUBLIC_AGENT_ACTION_REVIEW_ID, "agent-action-security-review");
+  assert.equal(isPublicPaidReviewId(external.id), false);
   assert.equal(ai.price, "€2,500 fixed");
   assert.equal(ai.scope, "one consequential agent or automation action");
 });
-test("discovery orders AI then external without rewriting either source record", () => {
+test("discovery selects the agent review and leaves the parked external record unselected", () => {
   const selected = publicPaidReviews([legacy, external, ai]);
-  assert.deepEqual(selected.map(({ id }) => id), [ai.id, external.id]);
+  assert.deepEqual(selected.map(({ id }) => id), [ai.id]);
   assert.equal(selected[0], ai);
-  assert.equal(selected[1], external);
 });
 test("selection preserves the historical registry and its ordering", () => {
   const registry = Object.freeze([legacy, external, ai]);
   publicPaidReviews(registry);
   assert.deepEqual(registry, [legacy, external, ai]);
 });
-test("no fallback reintroduces a retired offer when an approved review is missing", () => {
-  assert.throws(() => publicPaidReviews([ai, legacy]), /external-exposure-assessment/);
+test("no fallback reintroduces a retired or parked offer when the approved review is missing", () => {
   assert.throws(() => publicPaidReviews([external, legacy]), /agent-action-security-review/);
+  assert.throws(() => publicPaidReviews([legacy]), /agent-action-security-review/);
 });
 test("duplicate current identities fail instead of selecting arbitrary commercial terms", () => {
   assert.throws(() => publicPaidReviews([ai, external, { ...ai, price: "€500" }]), /agent-action-security-review/);
-  assert.throws(() => publicPaidReviews([ai, external, { ...external, price: "€500" }]), /external-exposure-assessment/);
+  assert.deepEqual(
+    publicPaidReviews([ai, external, { ...external, price: "€500" }]).map(({ id }) => id),
+    [ai.id],
+  );
 });
 test("only exact current service IDs pass the public-paid-review type guard", () => {
   for (const value of PUBLIC_PAID_REVIEW_IDS) assert.equal(isPublicPaidReviewId(value), true);
-  for (const value of ["bounded-workflow-review", "agent-tools-access-review", "AI Agent Tools & Access Review", "AI Agent Tools & Access Review — Private Pilot", "automation-repair-handover", "customer-security-review-sprint", "one-server-security-check", "launch-readiness-check", "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit", "early-bird", "OFFSEC-EXTERNAL-EXPOSURE", "AI Agent Tools & Access Review", "agent-tools-access-review ", "", undefined, null, 1, {}, [ai.id]]) {
+  for (const value of ["external-exposure-assessment", "bounded-workflow-review", "agent-tools-access-review", "AI Agent Tools & Access Review", "AI Agent Tools & Access Review — Private Pilot", "automation-repair-handover", "customer-security-review-sprint", "one-server-security-check", "launch-readiness-check", "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit", "early-bird", "OFFSEC-EXTERNAL-EXPOSURE", "AI Agent Tools & Access Review", "agent-tools-access-review ", "", undefined, null, 1, {}, [ai.id]]) {
     assert.equal(isPublicPaidReviewId(value), false);
   }
 });
@@ -52,7 +55,7 @@ test("older one-action, inventory review, pilot and extra-price options never se
     "agent-tools-access-review",
     "AI Agent Tools & Access Review — Private Pilot",
     "early-bird",
-    "OFFSEC-EXTERNAL-EXPOSURE", // valid only as productId for the separate external review
+    "OFFSEC-EXTERNAL-EXPOSURE", // parked product id, not a public paid review id
     "€950",
     "€500",
   ]) {

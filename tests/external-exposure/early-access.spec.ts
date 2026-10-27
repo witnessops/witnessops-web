@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { externalExposureAdapter, validateExternalSnapshot } from '../../apps/witnessops-web/src/lib/external-exposure/adapter';
 import { cleanSnapshotFixture } from './fixture';
 import { publicContactMailto } from '../../apps/witnessops-web/src/lib/public-contact';
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from '../../apps/witnessops-web/src/lib/commercial-truth';
+import { PUBLIC_AGENT_ACTION_OFFER } from '../../apps/witnessops-web/src/lib/commercial-truth';
 
 for (const width of [1440, 390]) {
   test(`free check, workspace access and paid review handoff at ${width}`, async ({ page, baseURL }, info) => {
@@ -52,9 +52,9 @@ for (const width of [1440, 390]) {
     await expect(journey).toContainText('Checks run only when you request them.');
     if (appDestination) await expect(page.getByRole('link', { name: 'Open workspace', exact: true })).toHaveAttribute('href', appDestination);
     else await expect(page.getByRole('link', { name: 'Open workspace', exact: true })).toHaveCount(0);
-    const review = page.getByRole('region', { name: 'Need help deciding what to fix?' });
-    await expect(review).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.price.en);
-    await expect(review.getByRole('link', { name: 'See the review scope', exact: true })).toHaveAttribute('href', EXTERNAL_ATTACK_SURFACE_OFFER.route.en);
+    const review = page.getByRole('region', { name: 'Need a review of one agent action?' });
+    await expect(review).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
+    await expect(review.getByRole('link', { name: 'See the review', exact: true })).toHaveAttribute('href', '/reviews/agent-action-security-review');
     const choices=page.getByRole('region',{name:'Choose what to check'});
     for(const name of ['External Exposure Check','One Server Security Check'])await expect(choices.getByRole('heading',{name,exact:true})).toBeVisible();
     await expect(choices).toContainText('setup is operator-assisted');
