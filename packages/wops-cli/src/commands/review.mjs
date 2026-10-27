@@ -180,6 +180,14 @@ export async function reviewCommand(args, options = {}) {
     return 0;
   }
   if (args[0] !== 'review' || args[1] !== 'request') throw new Error('Use wops review request --help.');
+  // Fail closed on a pipe. Reading readline/promises question() from non-TTY
+  // stdin drops lines and can leave the process with an unsettled await.
+  // A line-stream reader would accept piped PII without the confirmation
+  // prompt being visible, so a non-interactive run sends nothing.
+  if (!options.ask && !stdin.isTTY) {
+    console.error('wops review request needs an interactive terminal. Nothing was sent.');
+    return 2;
+  }
   const server = reviewServer(args);
   const body = buildReviewRequestBody(await promptFields(options.ask));
   if (!await confirmSend(options.ask, output, server, body)) {

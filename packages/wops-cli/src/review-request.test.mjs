@@ -317,6 +317,34 @@ test('confirmation no, empty, or EOF sends nothing', async () => {
   }
 });
 
+test('piped stdin exits 2 and sends nothing', async () => {
+  const hits = [];
+  const server = createServer((request, response) => {
+    hits.push({ method: request.method, url: request.url });
+    request.resume();
+    response.writeHead(201, { 'Content-Type': 'application/json' });
+    response.end('{}');
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  try {
+    const result = spawnSync(process.execPath, [
+      path.join(root, 'packages/wops-cli/src/main.mjs'),
+      'review', 'request', '--server', `http://127.0.0.1:${port}`,
+    ], {
+      input: 'Ada Lovelace\nada@acme.test\nAcme Test\nen\nOne refund action.\ny\n',
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 2);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /needs an interactive terminal/);
+    assert.match(result.stderr, /Nothing was sent/);
+    assert.equal(hits.length, 0);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
 test('review request help from the executable creates no files', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'wops-review-help-'));
   try {
