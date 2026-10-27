@@ -117,7 +117,7 @@ export default function ExternalExposureAssessmentSamplePage() {
             the Agent Action Security Review and it is not a customer result.
           </p>
           <p className="mt-4">
-            <Link href="/reviews/external-attack-surface-review" className="underline underline-offset-4">
+            <Link href="/reviews/external-attack-surface-review" className="inline-flex min-h-11 items-center underline underline-offset-4">
               Read the availability notice
             </Link>
           </p>

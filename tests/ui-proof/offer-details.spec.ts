@@ -298,14 +298,11 @@ test("External Attack Surface Review synthetic sample is buyer-safe and responsi
       ).toHaveCount(1);
     }
 
-    const fitLink = main.locator('a[href^="/review/request?"]').first();
-    const fitHref = await fitLink.getAttribute("href");
-    expect(
-      new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
-        "productId",
-      ),
-    ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
-    expect((await fitLink.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await expect(main.locator('a[href*="productId=OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
+    await expect(main.locator('a[href^="/review/request"]')).toHaveCount(0);
+    const notice = main.getByRole("link", { name: "Read the availability notice", exact: true });
+    await expect(notice).toHaveAttribute("href", "/reviews/external-attack-surface-review");
+    expect((await notice.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
