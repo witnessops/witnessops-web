@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { JsonLd } from "@/components/seo/json-ld";
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
+import { ParkedExternalReview } from "@/components/marketing/parked-external-review";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
-import {
-  languageAlternates,
-  publicExposureBreadcrumbJsonLd,
-  publicExposureServiceJsonLd,
-} from "@/lib/public-seo";
+import { languageAlternates } from "@/lib/public-seo";
 import {
   POLISH_NO_SECRETS_NOTE,
   POLISH_OFFERS,
@@ -32,6 +28,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     !(resolved in POLISH_OFFERS)
   ) {
     return { title: "Nie znaleziono oferty", robots: { index: false, follow: false } };
+  }
+  if (resolved === "OFFSEC-EXTERNAL-EXPOSURE") {
+    return {
+      title: "External Attack Surface Review nie jest już dostępny",
+      description: "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. To nie jest Agent Action Security Review.",
+      robots: { index: false, follow: true },
+    };
   }
   const id = resolved as CanonicalOffsecProductId;
   const copy = POLISH_OFFERS[id];
@@ -69,21 +72,12 @@ export default async function PolishOfferPage({ params }: PageProps) {
   const copy = POLISH_OFFERS[id];
   const buyerService = buyerServiceByProductId(id);
 
+  if (id === "OFFSEC-EXTERNAL-EXPOSURE") {
+    return <ParkedExternalReview locale="pl" />;
+  }
   if (buyerService) {
     return (
       <>
-        {id === "OFFSEC-EXTERNAL-EXPOSURE" ? (
-          <>
-            <JsonLd
-              id="public-exposure-service"
-              value={publicExposureServiceJsonLd("pl")}
-            />
-            <JsonLd
-              id="public-exposure-breadcrumbs"
-              value={publicExposureBreadcrumbJsonLd("pl")}
-            />
-          </>
-        ) : null}
         <BuyerServiceDetail
           locale="pl"
           service={buyerService}

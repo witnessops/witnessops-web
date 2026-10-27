@@ -7,7 +7,7 @@ description: >
 
 # Copy change
 
-Public website and content edits stay inside the current two offers and the claim boundary. This skill does not authorize a rename, a new price, billing, collection, or deployment.
+Public website and content edits stay inside the current paid offer and the claim boundary. This skill does not authorize a rename, a new price, billing, collection, or deployment.
 
 ## Read first
 
@@ -18,7 +18,7 @@ Public website and content edits stay inside the current two offers and the clai
 
 ## Write
 
-- Public new-sales offers are only Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT.
+- The public new-sales offer is Agent Action Security Review at €2,500 excluding VAT. External Attack Surface Review is parked and is not a new-sales offer.
 - Public contact is `engage@mail.witnessops.com` only.
 - Timing copy is `Delivery timing per signed SOW`.
 - Do not reintroduce held or historical prices and terms tracked in the commercial registry. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`, and keep them off public surfaces and new-sales selection.

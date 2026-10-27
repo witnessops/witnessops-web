@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 
-import { ReviewOffer } from "@/components/marketing/review-offer";
+import { ParkedExternalReview } from "@/components/marketing/parked-external-review";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { languageAlternates } from "@/lib/public-seo";
 import { pageSocialMetadata } from "@/lib/social-metadata";
 
-const title = "External Attack Surface Review";
+const title = `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available`;
 const description =
-  "Understand what your public-facing system exposes—and what to fix first. One authorised internet-facing system. This is not a penetration test.";
+  "WitnessOps no longer accepts new External Attack Surface Review engagements. This is not the Agent Action Security Review.";
 
 export const metadata: Metadata = {
   title,
   description,
+  robots: { index: false, follow: true },
   alternates: languageAlternates("/reviews/external-attack-surface-review", {
     en: "/reviews/external-attack-surface-review",
     pl: "/pl/reviews/external-attack-surface-review",
@@ -19,5 +21,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExternalAttackSurfaceReviewPage() {
-  return <ReviewOffer locale="en" offer="external" />;
+  return <ParkedExternalReview locale="en" />;
 }

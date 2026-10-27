@@ -32,7 +32,7 @@ export function buildMetadata(seo: {
         url: seo.og_image,
         width: 1200,
         height: 630,
-        alt: "WitnessOps — Proof other people can check. Security reviews for AI agents and internet-facing systems.",
+        alt: "WitnessOps — Understand the controls before your AI agent acts.",
       }],
       siteName: "WITNESSOPS",
     },

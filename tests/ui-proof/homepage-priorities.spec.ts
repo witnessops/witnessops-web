@@ -15,8 +15,8 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
-    await expect(page.locator("[data-home-offer]")).toHaveCount(2);
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Understand the controls before your AI agent acts.");
+    await expect(page.locator("[data-home-offer]")).toHaveCount(1);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectFreeToolEntryPoint(page);
     await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
@@ -25,11 +25,11 @@ for (const viewport of [
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
     const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
     await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
-    await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveAttribute("href", /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+    await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveCount(0);
 
     const enquiry = page.locator("#enquiry");
     await enquiry.scrollIntoViewIfNeeded();
-    await expect(enquiry.getByRole("button", { name: "Submit non-secret enquiry" })).toBeVisible();
+    await expect(enquiry.getByRole("button", { name: "Request an agent review" })).toBeVisible();
     await expect(enquiry).toContainText("confirm your email with a code");
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

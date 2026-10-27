@@ -2,20 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { ContactCompanyDetails } from "@/components/marketing/company-details";
-import {
-  buyerServiceByProductId,
-  buyerServiceByPublicOfferId,
-} from "@/lib/buyer-services";
+import { buyerServiceByPublicOfferId } from "@/lib/buyer-services";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { NewSalesIntakeClosed } from "@/components/review-request/new-sales-intake-closed";
-import {
-  NEW_SALES_EXTERNAL_PRODUCT_ID,
-  resolveNewSalesPageQuery,
-} from "@/lib/new-review-request-policy";
+import { resolveNewSalesPageQuery } from "@/lib/new-review-request-policy";
 import {
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_SALES_REVIEW_EMAIL,
@@ -26,7 +17,7 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
-  description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
+  description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
   alternates: languageAlternates("/contact", {
     en: "/contact",
     pl: "/pl/contact",
@@ -34,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
+    description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
     siteName: "WitnessOps",
     type: "website",
   },
@@ -42,28 +33,9 @@ export const metadata: Metadata = {
     images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
+    description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
   },
 };
-
-const publicExposureOutputs = [
-  {
-    title: "External attack-surface map",
-    summary: "Confirmed attacker-visible hosts, services, and endpoints inside the accepted first-party boundary.",
-  },
-  {
-    title: "Evidence-backed findings",
-    summary: "Prioritised observations with affected targets and inspectable evidence references.",
-  },
-  {
-    title: "Remediation priorities",
-    summary: "Practical fix-now and fix-next recommendations for the reported findings.",
-  },
-  {
-    title: "Limits and unknowns",
-    summary: "What was not tested, not established, stopped, excluded, or left for deeper work.",
-  },
-];
 
 const agentActionNextSteps = [
   `${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} Do not send source files or secrets.`,
@@ -76,20 +48,6 @@ const agentActionOutputs = [
   { title: "Approval and permission boundary", summary: "Where approval stops, and which permissions the action can use." },
   { title: "Evidence path", summary: "Which execution evidence is available, missing, or not yet in scope." },
   { title: "Findings and explicit unknowns", summary: "Prioritized findings for that one action, with explicit unknowns left in the record." },
-];
-
-const publicExposureNextSteps = [
-  "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
-  "We accept or reject the scope asynchronously. No sales call is required.",
-  "Delivery timing agreed in the signed statement of work. Work starts only after payment in full, an accepted SOW, written authority, agreed scope, required inputs, and the approved collection window are confirmed.",
-];
-
-const publicExposureArtifacts = [
-  "exposure-map.json",
-  "findings.json",
-  "evidence-register.json",
-  "evidence-manifest.json",
-  "MANIFEST.sha256",
 ];
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
@@ -110,33 +68,9 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </>
     );
   }
-  if (decision.state === "chooser") {
-    return <>
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
-      <p className="text-xs uppercase tracking-[0.16em] text-text-muted">Ask about your case</p>
-      <h1 className="mt-5 max-w-xl text-4xl font-medium leading-tight tracking-tight">One question. Non-secret details only.</h1>
-      <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary">Choose Agent Action Security Review or External Attack Surface Review. A display name, old identifier, or free-text note does not select a different review.</p>
-      <div className="mt-10"><ContactForm compact landing campaignAttribution={campaignAttribution} /></div>
-      <p className="mt-6 text-sm leading-6 text-text-muted">No work or target-facing check starts from this form.</p>
-      <p className="mt-3 text-sm leading-6 text-text-muted">Prefer email? <a href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)} className="underline underline-offset-4">{PUBLIC_SALES_REVIEW_EMAIL}</a></p>
-    </main>
-    <ContactCompanyDetails locale="en" />
-    </>;
-  }
-  const agentActionOrder = decision.role === "offer";
-  const publicExposureOrder = decision.role === "product";
-  const selectedOffer = agentActionOrder
-    ? buyerServiceByPublicOfferId(PUBLIC_AGENT_ACTION_OFFER.id)
-    : buyerServiceByProductId(NEW_SALES_EXTERNAL_PRODUCT_ID);
-  const activeNextSteps = publicExposureOrder
-    ? publicExposureNextSteps
-    : agentActionNextSteps;
-  const activeOutputs = publicExposureOrder
-    ? publicExposureOutputs
-    : agentActionOutputs;
-  const activeArtifacts = publicExposureOrder
-    ? publicExposureArtifacts
-    : [];
+  const selectedOffer = buyerServiceByPublicOfferId(PUBLIC_AGENT_ACTION_OFFER.id);
+  const activeNextSteps = agentActionNextSteps;
+  const activeOutputs = agentActionOutputs;
 
   return (
     <>
@@ -165,9 +99,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          {publicExposureOrder
-            ? "Name the authorised internet-facing system and why its external attack surface matters now. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test."
-            : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. We’ll confirm fit before any work. No secrets or evidence yet.`}
+          {`${PUBLIC_AGENT_ACTION_OFFER.unit.en}. We’ll confirm fit before any work. No secrets or evidence yet.`}
         </p>
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}
@@ -274,48 +206,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>
-                {publicExposureOrder
-                  ? `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance.`
-                  : `${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}. This form is not a booking, checkout, or authority to inspect.`}
+                {`${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}. This form is not a booking, checkout, or authority to inspect.`}
               </p>
               <p>No work or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
             </div>
           </section>
-
-          {activeArtifacts.length > 0 ? (
-          <section className="border border-surface-border bg-surface-bg p-5">
-            <div
-              className="mb-3"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              Typical bundle
-            </div>
-            <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
-              {activeArtifacts.map((artifact) => (
-                <li key={artifact} className="flex items-center gap-2">
-                  <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
-                  <span>{artifact}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={publicExposureOrder
-                ? "/review/sample-cases/external-exposure-assessment"
-                : "/review/sample-cases/ai-agent-action-proof-run"}
-              className="text-sm text-brand-accent underline-offset-4 hover:underline"
-            >
-              {publicExposureOrder ? `Inspect ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} sample` : "Inspect sample package"}
-            </Link>
-          </section>
-          ) : null}
 
           <section className="border border-surface-border bg-surface-bg p-5">
             <div
@@ -332,21 +228,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               Boundary kept clear
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              {publicExposureOrder ? (
-                <>
-                  <p>This is not a penetration test.</p>
-                  <p>No exploitation, credential testing, destructive activity, or persistence.</p>
-                  <p>Not a certification, attestation, completeness claim, or security guarantee.</p>
-                </>
-              ) : selectedOffer ? (
-                <p>{selectedOffer.boundary.en}</p>
-              ) : (
-                <>
-                  <p>Not a production deployment claim.</p>
-                  <p>Not a legal compliance claim.</p>
-                  <p>Not a complete AI governance program.</p>
-                </>
-              )}
+              <p>{selectedOffer?.boundary.en}</p>
             </div>
           </section>
 
@@ -372,9 +254,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             color: "var(--color-text-muted)",
           }}
         >
-          {publicExposureOrder
-            ? `What the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} delivers`
-            : `What ${PUBLIC_AGENT_ACTION_OFFER.name.en} includes`}
+          {`What ${PUBLIC_AGENT_ACTION_OFFER.name.en} includes`}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {activeOutputs.map((item, index) => (

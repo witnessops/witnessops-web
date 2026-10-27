@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-09-12"
 
 seo:
-  title: "Security Verification & Evidence | WitnessOps"
-  description: "Check public exposure, compare saved workspace observations and keep findings tied to evidence. Start with a free check or explore expert reviews."
+  title: "Agent Action Security Review | WitnessOps"
+  description: "Understand the controls before your AI agent acts. One consequential action, €2,500 excl. VAT. Request an agent review."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/witnessops-home-editorial-a-2026-10.png"
-  og_title: "Proof other people can check. | WitnessOps"
-  og_description: "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits."
+  og_title: "Understand the controls before your AI agent acts. | WitnessOps"
+  og_description: "Agent Action Security Review for engineering teams and AI implementation partners. One consequential action. €2,500 excl. VAT."
   twitter_card: "summary_large_image"
 
 theme:
@@ -194,10 +194,8 @@ footer:
   brand_line: "WitnessOps"
   subline: "Security verification with clear findings, supporting evidence and practical next steps."
   links:
-    - label: "AI Agent Tools & Access Review"
-      href: "/catalog/workflows"
-    - label: "External Attack Surface Review"
-      href: "/catalog/offsec-external-exposure"
+    - label: "Agent Action Security Review"
+      href: "/reviews/agent-action-security-review"
     - label: "Our approach"
       href: "/why-witnessops"
     - label: "Research & articles"

@@ -1,59 +1,75 @@
-import { AGENT_PRICE_EN, EXTERNAL_PRICE_EN } from "@/lib/offer-price-unit";
+import { AGENT_PRICE_EN, AGENT_PRICE_PL } from "@/lib/offer-price-unit";
 
 /**
- * Homepage presentation of the two current reviews.
- * These strings do not select an intake identity or amend offer contracts.
+ * Homepage presentation of the only current paid review.
+ * These strings do not select an intake identity or amend the offer contract.
  */
 export const HOMEPAGE_TWO_OFFER_COPY = {
   en: {
-    headline: "Proof other people can check.",
+    headline: "Understand the controls before your AI agent acts.",
     support:
-      "WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.",
-    aiQuestion: "Before your agent takes an important action, understand the controls around it.",
-    aiHeadline: "Before your agent takes an important action, understand the controls around it.",
+      "Agent Action Security Review is for engineering teams and AI implementation partners preparing to launch or hand over an agent.",
+    aiQuestion: "Understand the controls before your AI agent acts.",
+    aiHeadline: "Understand the controls before your AI agent acts.",
     aiWhoFor: "For engineering teams and AI implementation partners preparing to launch or hand over an agent.",
-    aiScopeNote: "One consequential action, such as issuing a refund, changing a record or granting access. Inspection and reconstruction only; we do not execute the action or change production.",
+    aiScopeNote:
+      "One consequential action, such as issuing a refund, changing a record or granting access. Operating mode: read, inspect, reconstruct and report. We do not execute the action, change production, remediate, monitor continuously or certify that an agent is safe. This is not a penetration test.",
     aiDescription:
-      "Review the action’s trigger, executing identity, permissions, approvals and available execution evidence. Receive an action map, sourced findings, prioritised recommendations, documented unknowns and a readout.",
+      "Inspect the trigger, executing identity, permissions, approvals and available execution evidence. You receive an action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout.",
     aiPrice: AGENT_PRICE_EN,
     aiCta: "Request an agent review",
-    externalQuestion: "Understand what your public-facing system exposes—and what to fix first.",
-    externalHeadline: "Understand what your public-facing system exposes—and what to fix first.",
-    externalWhoFor: "For SaaS and technology teams preparing for a launch, infrastructure change or customer security review.",
-    externalDescription:
-      "Review one authorised internet-facing system. Receive an exposure map, manually validated findings and practical remediation priorities.",
-    externalPrice: EXTERNAL_PRICE_EN,
-    externalScopeNote:
-      "Low-impact, unauthenticated checks within the agreed scope. This is not a penetration test. One focused retest of reported findings is included within 30 calendar days of initial report handover.",
-    externalCta: "Request an external review",
     evidenceHeadline: "Evidence survives the dashboard.",
     contactLead: "Discuss a review:",
-    reviewsEyebrow: "Two paid reviews",
-    reviewsTitle: "One agent action or one internet-facing system.",
-    reviewsBody: "The free hostname check stays a separate tool, not a third review.",
+    reviewsEyebrow: "One paid review",
+    reviewsTitle: "One consequential agent action.",
+    reviewsBody: "The free hostname check stays a separate tool, not a second review.",
     freeLabel: "Free check — not a review",
     freeTitle: "Free check",
     freeBody: "A public hostname snapshot. No account needed. Not a review.",
     freeCta: "Start a free check",
-    compareCta: "Compare these two reviews",
-    fitCta: "Ask about fit",
+    compareCta: "See scope and deliverables",
+    fitCta: "Request an agent review",
+    offerName: "Agent Action Security Review",
+    timing: "Delivery timing agreed in the signed statement of work.",
+    deliverables: [
+      "Action map",
+      "Findings linked to evidence",
+      "Prioritised recommendations",
+      "Documented unknowns",
+      "Written report and readout",
+    ],
   },
   pl: {
-    headline: "Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy.",
+    headline: "Poznaj mechanizmy kontroli, zanim agent AI wykona działanie.",
     support:
-      "WitnessOps prowadzi konkretne przeglądy bezpieczeństwa agentów AI i systemów dostępnych z internetu. Otrzymasz pisemne ustalenia, materiały do sprawdzenia i jasne priorytety kolejnych kroków.",
-    aiHeadline: "Zanim agent wykona ważne działanie, poznaj mechanizmy jego kontroli.",
+      "Agent Action Security Review jest dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
+    aiHeadline: "Poznaj mechanizmy kontroli, zanim agent AI wykona działanie.",
+    aiWhoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
+    aiScopeNote:
+      "Jedno istotne działanie, na przykład zwrot, zmiana rekordu albo nadanie dostępu. Tryb pracy: odczyt, inspekcja, rekonstrukcja i raport. Nie wykonujemy działania, nie zmieniamy produkcji, nie naprawiamy, nie monitorujemy ciągle i nie certyfikujemy, że agent jest bezpieczny.",
+    aiDescription:
+      "Sprawdzamy wyzwalacz, tożsamość wykonawczą, uprawnienia, zatwierdzanie i dostępne dowody wykonania. Otrzymujesz mapę działania, ustalenia powiązane z dowodami, zalecenia według priorytetu, udokumentowane niewiadome, raport pisemny i omówienie.",
+    aiPrice: AGENT_PRICE_PL,
     aiCta: "Zgłoś przegląd agenta",
-    externalHeadline: "Poznaj ekspozycję swojego systemu w internecie i priorytety napraw.",
-    externalCta: "Zgłoś przegląd ekspozycji",
-    reviewsEyebrow: "Dwa płatne przeglądy",
-    reviewsTitle: "Jedno działanie agenta albo jeden system dostępny z internetu.",
-    reviewsBody: "Bezpłatne sprawdzenie nazwy hosta zostaje osobnym narzędziem, nie trzecim przeglądem.",
+    evidenceHeadline: "Dowody zostają po zamknięciu panelu.",
+    contactLead: "Zapytaj o przegląd:",
+    reviewsEyebrow: "Jeden płatny przegląd",
+    reviewsTitle: "Jedno istotne działanie agenta.",
+    reviewsBody: "Bezpłatne sprawdzenie nazwy hosta zostaje osobnym narzędziem, nie drugim przeglądem.",
     freeLabel: "Bezpłatne sprawdzenie — to nie jest przegląd",
     freeTitle: "Bezpłatne sprawdzenie",
     freeBody: "Publiczny podgląd nazwy hosta. Bez konta. To nie jest przegląd.",
     freeCta: "Zacznij bezpłatne sprawdzenie",
-    compareCta: "Porównaj te dwa przeglądy",
-    fitCta: "Zapytaj o dopasowanie",
+    compareCta: "Zobacz zakres i wyniki",
+    fitCta: "Zgłoś przegląd agenta",
+    offerName: "Agent Action Security Review",
+    timing: "Termin realizacji według podpisanego SOW.",
+    deliverables: [
+      "Mapa działania",
+      "Ustalenia powiązane z dowodami",
+      "Zalecenia według priorytetu",
+      "Udokumentowane niewiadome",
+      "Raport pisemny i omówienie",
+    ],
   },
 } as const;

@@ -126,7 +126,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Proof other people can check.");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Understand the controls before your AI agent acts.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("WitnessOps reviews AI agents and internet-facing systems, with written findings, supporting evidence and clear limits.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);

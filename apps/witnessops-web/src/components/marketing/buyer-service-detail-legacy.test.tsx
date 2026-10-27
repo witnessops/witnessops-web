@@ -19,7 +19,6 @@ import {
   type BuyerService,
 } from "@/lib/buyer-services";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
-import { polishOfferRequestHref } from "@/lib/public-i18n";
 import {
   PUBLIC_AGENT_ACTION_REVIEW_ID,
   isPublicPaidReviewId,
@@ -130,7 +129,7 @@ test("published detail routes stay on the historical service and do not redirect
   assert.equal(buyerServiceById("external-exposure-assessment").detailHref.en, "/catalog/offsec-external-exposure");
 });
 
-test("the two public paid reviews still sell from their own detail identity", () => {
+test("the agent review still sells from its own detail identity", () => {
   for (const locale of ["en", "pl"] as const) {
     const agent = buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID);
     const agentHtml = markup(createElement(BuyerServiceDetail, { locale, service: agent }));
@@ -140,16 +139,14 @@ test("the two public paid reviews still sell from their own detail identity", ()
     assert.ok(hrefs(agentHtml).some((href) => href.includes(`offerId=${PUBLIC_AGENT_ACTION_REVIEW_ID}`)));
     assert.ok(hrefs(agentHtml).every((href) => !href.includes("offerId=agent-tools-access-review")));
 
-    const external = buyerServiceById("external-exposure-assessment");
-    const externalHtml = markup(createElement(BuyerServiceDetail, {
-      locale,
-      service: external,
-      requestHref: locale === "pl" ? polishOfferRequestHref("OFFSEC-EXTERNAL-EXPOSURE") : undefined,
-    }));
-    assert.equal(externalHtml.includes("data-legacy-offer-withdrawal"), false);
-    assert.match(externalHtml, /data-buyer-service-detail="external-exposure-assessment"/);
-    assert.ok(hrefs(externalHtml).some((href) => href.includes("productId=OFFSEC-EXTERNAL-EXPOSURE")));
-    assert.ok(hrefs(externalHtml).every((href) => !href.includes(PUBLIC_AGENT_ACTION_REVIEW_ID)));
-    assert.ok(hrefs(externalHtml).every((href) => !href.includes("agent-tools-access-review")));
+    const externalPage = readFileSync(
+      resolve(__dirname, locale === "pl"
+        ? "../../app/pl/reviews/external-attack-surface-review/page.tsx"
+        : "../../app/(marketing)/reviews/external-attack-surface-review/page.tsx"),
+      "utf8",
+    );
+    assert.match(externalPage, /ParkedExternalReview/);
+    assert.doesNotMatch(externalPage, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+    assert.doesNotMatch(externalPage, /Request an external review/);
   }
 });

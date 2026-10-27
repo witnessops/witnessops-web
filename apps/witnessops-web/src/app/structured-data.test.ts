@@ -21,10 +21,11 @@ test("global trust metadata is emitted on the two public homepages", () => {
   }
 });
 
-test("flagship service routes emit factual service, offer, and breadcrumb data", () => {
+test("parked external catalog routes do not emit an active offer", () => {
   for (const source of [catalogDetail, polishCatalogDetail]) {
-    assert.match(source, /publicExposureServiceJsonLd/);
-    assert.match(source, /publicExposureBreadcrumbJsonLd/);
-    assert.match(source, /OFFSEC-EXTERNAL-EXPOSURE/);
+    assert.match(source, /ParkedExternalReview/);
+    assert.doesNotMatch(source, /publicExposureServiceJsonLd/);
+    assert.doesNotMatch(source, /publicExposureBreadcrumbJsonLd/);
   }
+  assert.match(home, /homepageReviewsJsonLd/);
 });

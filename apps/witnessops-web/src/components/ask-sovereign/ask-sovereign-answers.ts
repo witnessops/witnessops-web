@@ -23,11 +23,12 @@ function agentText(locale: SovereignLocale): string {
 }
 
 function externalText(locale: SovereignLocale): string {
-  const offer = EXTERNAL_ATTACK_SURFACE_OFFER;
+  const parked = EXTERNAL_ATTACK_SURFACE_OFFER.name[locale];
+  const current = PUBLIC_AGENT_ACTION_OFFER;
   if (locale === "pl") {
-    return `${offer.name.pl} obejmuje jeden autoryzowany system dostępny z internetu. Cena: ${offer.price.pl}. ${offer.result.pl} ${offer.timing.pl}. To nie jest test penetracyjny.`;
+    return `${parked} nie jest już dostępny dla nowych zleceń. To nie jest ${current.name.pl}. Aktualny płatny przegląd dotyczy jednego istotnego działania agenta lub automatyzacji. Cena: ${current.price.pl}. ${current.timing.pl}.`;
   }
-  return `${offer.name.en} covers one authorised internet-facing system. The price is ${offer.price.en}. ${offer.result.en} ${offer.timing.en}. This is not a penetration test.`;
+  return `${parked} is no longer available for new engagements. It is not the ${current.name.en}. The current paid review covers one consequential agent or automation action. The price is ${current.price.en}. ${current.timing.en}.`;
 }
 
 function contactText(locale: SovereignLocale): string {
@@ -40,9 +41,9 @@ function contactText(locale: SovereignLocale): string {
 
 function handoffText(locale: SovereignLocale): string {
   if (locale === "pl") {
-    return "Tego tematu nie ma w opublikowanych warunkach dwóch przeglądów.";
+    return "Tego tematu nie ma w opublikowanych warunkach aktualnego przeglądu.";
   }
-  return "That topic is not in the published offer facts for the two reviews.";
+  return "That topic is not in the published offer facts for the current review.";
 }
 
 export function sovereignAnswer(question: string, locale: SovereignLocale): SovereignAnswer {

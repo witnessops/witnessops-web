@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
+import Link from "next/link";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
-import { CtaButton } from "@/components/shared/cta-button";
-import { buyerOfferRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
@@ -112,18 +111,16 @@ export default function ExternalExposureAssessmentSamplePage() {
             the former Public Exposure Review name. The stable SKU, scope, caps,
             authority rules, checks, retest, and claim boundaries are unchanged.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <CtaButton
-              href={buyerOfferRequestHref("en", "OFFSEC-EXTERNAL-EXPOSURE")}
-              variant="primary"
-              label="Request an external review"
-            />
-            <CtaButton
-              href="/catalog/offsec-external-exposure"
-              variant="secondary"
-              label="View service"
-            />
-          </div>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
+            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
+            engagements. This page remains a labelled synthetic example. It is not
+            the Agent Action Security Review and it is not a customer result.
+          </p>
+          <p className="mt-4">
+            <Link href="/reviews/external-attack-surface-review" className="underline underline-offset-4">
+              Read the availability notice
+            </Link>
+          </p>
         </header>
 
         <section className="border-b border-surface-border py-12">

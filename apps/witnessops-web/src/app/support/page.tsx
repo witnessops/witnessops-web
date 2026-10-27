@@ -6,10 +6,7 @@ import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportStart } from "@/components/support/support-start";
 import { SupportIntake } from "@/components/support/support-intake";
 import { CtaButton } from "@/components/shared/cta-button";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -58,12 +55,6 @@ const situationLanes = [
     emphasize: true,
   },
   {
-    href: "/reviews/external-attack-surface-review",
-    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    body: `One authorised internet-facing system. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}, with one focused retest.`,
-    emphasize: true,
-  },
-  {
     href: "#contact",
     title: "Product help or access",
     body: "Questions about the product, access, mailbox verification, or how to use a public surface. Verify your email to send your request to the support team.",
@@ -106,19 +97,14 @@ export default function SupportPage() {
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
             Support is for product help, access issues, and verifier questions.
-            If you want WitnessOps to run a bounded security or operational
-            review, start from the two published reviews.
+            If you want WitnessOps to review one consequential agent action,
+            start from the Agent Action Security Review.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <CtaButton
               href="/reviews/agent-action-security-review"
               variant="primary"
               label={PUBLIC_AGENT_ACTION_OFFER.name.en}
-            />
-            <CtaButton
-              href="/reviews/external-attack-surface-review"
-              variant="primary"
-              label={EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
             />
             <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             <CtaButton href="#contact" variant="secondary" label="Email support" />

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-const pricingDescription = `Compare ${PUBLIC_AGENT_ACTION_OFFER.name.en} and ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}. See their scope, evidence, prices and start conditions before requesting a review.`;
+const pricingDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
 
 export const metadata: Metadata = {
   title: "Review Pricing",

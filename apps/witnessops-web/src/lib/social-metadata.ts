@@ -5,7 +5,7 @@ export const DEFAULT_OPEN_GRAPH_IMAGES = [
     url: DEFAULT_SOCIAL_IMAGE_PATH,
     width: 1200,
     height: 630,
-    alt: "WitnessOps — Proof other people can check. Security reviews for AI agents and internet-facing systems.",
+    alt: "WitnessOps — Understand the controls before your AI agent acts.",
   },
 ];
 

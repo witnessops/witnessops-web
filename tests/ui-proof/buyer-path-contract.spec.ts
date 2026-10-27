@@ -23,7 +23,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto("/catalog", { waitUntil: "networkidle" });
-  await expect(page.locator("main")).toContainText("Two focused security reviews.");
+  await expect(page.locator("main")).toContainText("Agent Action Security Review");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
   await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
@@ -34,25 +34,11 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await expect(page.locator("main form")).toBeVisible();
   await shot(page, "catalogue-agent-action-request");
 
-  await page.goto("/catalog", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Request an external review", exact: true }).click();
-  await expect(page).toHaveURL(/\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE(?:&|$)/);
-  await expect(page.locator('main form input[name="intent"]')).toHaveValue(
-    "OFFSEC-EXTERNAL-EXPOSURE",
-  );
-  await shot(page, "catalogue-external-request");
-
   await page.goto("/pricing", { waitUntil: "networkidle" });
   await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/offerId=agent-action-security-review/);
   expect(new URL(page.url()).searchParams.get("productId")).toBeNull();
   await shot(page, "pricing-agent-action-request");
-
-  await page.goto("/pricing", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Request an external review", exact: true }).click();
-  await expect(page).toHaveURL(/productId=OFFSEC-EXTERNAL-EXPOSURE/);
-  expect(new URL(page.url()).searchParams.get("offerId")).toBeNull();
-  await shot(page, "pricing-external-request");
 
   for (const withdrawn of [
     "/catalog/workflows",
@@ -65,7 +51,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
     await expect(main.locator("h1")).toHaveText("This offer has been withdrawn");
     await expect(main).toContainText("WitnessOps no longer offers this review.");
     await expect(main.locator('a[href="/reviews/agent-action-security-review"]')).toHaveCount(1);
-    await expect(main.locator('a[href="/reviews/external-attack-surface-review"]')).toHaveCount(1);
+    await expect(main.locator('a[href="/reviews/external-attack-surface-review"]')).toHaveCount(0);
     await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
     await expect(main.locator("form")).toHaveCount(0);
     if (withdrawn === "/catalog/automation-repair") {
@@ -90,12 +76,10 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await shot(page, "conflicting-request-closed");
 
   await page.goto("/review/request", { waitUntil: "networkidle" });
-  const options = page.locator("main select option");
-  await expect(options).toHaveCount(2);
-  await expect(options.nth(0)).toHaveAttribute("value", "agent-action-security-review");
-  await expect(options.nth(1)).toHaveAttribute("value", "OFFSEC-EXTERNAL-EXPOSURE");
+  await expect(page.locator("main select")).toHaveCount(0);
+  await expect(page.locator('main form input[name="intent"]')).toHaveValue("agent-action-security-review");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
-  await shot(page, "chooser-two-offers");
+  await shot(page, "agent-review-request");
 
   await page.goto("/check", { waitUntil: "networkidle" });
   await expect(page.locator("main h1")).toContainText("Check your public exposure.");

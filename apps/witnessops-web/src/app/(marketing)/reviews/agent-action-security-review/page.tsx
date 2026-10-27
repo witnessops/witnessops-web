@@ -20,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function AgentActionSecurityReviewPage() {
-  return <ReviewOffer locale="en" offer="agent" />;
+  return <ReviewOffer locale="en" />;
 }

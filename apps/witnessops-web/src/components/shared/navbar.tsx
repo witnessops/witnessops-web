@@ -40,8 +40,8 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
     href: POLISH_PUBLIC_NAV.cta.href,
     variant: POLISH_PUBLIC_NAV.cta.variant,
   } : {
-    label: "Discuss a review",
-    href: "/contact",
+    label: "Request an agent review",
+    href: "/review/request",
     variant: "primary",
   };
   const loginHref = appUrl ? new URL("/login", appUrl).href : null;

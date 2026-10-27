@@ -181,12 +181,7 @@ export function homepageReviewsJsonLd() {
     {
       name: PUBLIC_AGENT_ACTION_OFFER.name.en,
       price: PUBLIC_AGENT_ACTION_OFFER.price.amount,
-      url: canonicalUrl("/reviews#agent-action-security-review"),
-    },
-    {
-      name: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-      price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
-      url: canonicalUrl("/reviews/external-attack-surface-review"),
+      url: canonicalUrl("/reviews/agent-action-security-review"),
     },
   ] as const;
 

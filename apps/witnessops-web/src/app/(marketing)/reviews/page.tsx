@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Reviews",
-  description:
-    "Compare the Agent Action Security Review and External Attack Surface Review. Scope, evidence and prices before work begins.",
+  title: PUBLIC_AGENT_ACTION_OFFER.name.en,
+  description: `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
   alternates: languageAlternates("/reviews", {
     en: "/reviews",
     pl: "/pl/reviews",

@@ -50,14 +50,14 @@ test("the distinct inventory review retains its original identity and its differ
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
 });
 
-test("public new-sales projection selects one-action and external only, never pilot or inventory", () => {
+test("public new-sales projection selects the agent review only", () => {
   const privatePilot = { id: "private-ai-agent-pilot", price: "€950" };
   const inventory = { id: PRIMARY_OFFER.id, price: PRIMARY_OFFER.price.en };
   const historic = { id: LEGACY_AGENT_ACTION_OFFER.id, price: LEGACY_AGENT_ACTION_OFFER.price.en };
   const current = { id: PUBLIC_AGENT_ACTION_OFFER.id, price: PUBLIC_AGENT_ACTION_OFFER.price.en };
   const external = { id: EXTERNAL_ATTACK_SURFACE_OFFER.id, price: EXTERNAL_ATTACK_SURFACE_OFFER.price.en };
   const chosen = publicPaidReviews([historic, privatePilot, external, inventory, current]);
-  assert.deepEqual(chosen, [current, external]);
-  assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, ["agent-action-security-review", "external-exposure-assessment"]);
+  assert.deepEqual(chosen, [current]);
+  assert.deepEqual(PUBLIC_PAID_REVIEW_IDS, ["agent-action-security-review"]);
   assert.equal(external.price, "€1,900\u00A0excl.\u00A0VAT");
 });

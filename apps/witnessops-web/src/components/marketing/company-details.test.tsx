@@ -255,7 +255,8 @@ test("company details render on the company and contact pages, and the footer ke
     "/review/request",
   );
   assert.match(priced, /€2,500\u00A0excl.\u00A0VAT/);
-  assert.match(external, /€1,900\u00A0excl.\u00A0VAT/);
+  assert.match(external, /no longer available/);
+  assert.doesNotMatch(external, /€1,900/);
 });
 
 test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t) => {

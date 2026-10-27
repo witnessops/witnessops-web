@@ -9,16 +9,8 @@ import PricingPage from "@/app/(marketing)/pricing/page";
 import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 
 const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
-const serviceLandings = readFileSync(
-  resolve(__dirname, "../../../../lib/service-landings.ts"),
-  "utf8",
-);
 const pricing = readFileSync(
   resolve(__dirname, "../../../(marketing)/pricing/page.tsx"),
-  "utf8",
-);
-const catalogue = readFileSync(
-  resolve(__dirname, "../../../../components/marketing/buyer-catalogue.tsx"),
   "utf8",
 );
 const homepage = readFileSync(
@@ -66,18 +58,19 @@ test("External Attack Surface Review sample preserves the synthetic and integrit
   assert.match(page, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
-test("sample remains linked from its offer detail and catalogue; pricing links to the catalogue", () => {
+test("the parked external sample stays labelled and is not a booking path", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
   const pricingHtml = renderToStaticMarkup(createElement(PricingPage));
   const catalogueHtml = renderToStaticMarkup(
     createElement(BuyerCatalogue, { locale: "en" }),
   );
+  assert.match(page, /no longer available for new\s+engagements/);
+  assert.doesNotMatch(page, /Request an external review/);
   assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
-  assert.match(serviceLandings, new RegExp(route));
   assert.match(pricingHtml, /href="\/reviews"/);
-  assert.match(pricingHtml, new RegExp(route));
-  assert.match(catalogueHtml, new RegExp(route));
-  assert.match(catalogue, new RegExp(route));
+  assert.doesNotMatch(pricingHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(catalogueHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(catalogueHtml, new RegExp(route));
   assert.doesNotMatch(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.match(homepagePreview, new RegExp(route));
 });
