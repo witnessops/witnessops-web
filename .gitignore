@@ -40,3 +40,8 @@ infra/modules/*.json
 
 # Local agent/deploy scratch (do not ship)
 var/
+
+# Local caches (not source)
+.pnpm-store/
+__pycache__/
+*.py[cod]

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test, { afterEach } from "node:test";
@@ -8,7 +8,6 @@ import { NextRequest } from "next/server";
 
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
 import {
-  clearTokenStore,
   getIntakeById,
   saveIntake,
   type IntakeRecord,
@@ -16,15 +15,21 @@ import {
 
 import { POST } from "./route";
 
-const originalAdminSecret = process.env.WITNESSOPS_ADMIN_SECRET;
+const originalEnv = new Map([
+  "WITNESSOPS_ADMIN_SECRET",
+  "WITNESSOPS_TOKEN_STORE_DIR",
+  "WITNESSOPS_TOKEN_AUDIT_DIR",
+  "WITNESSOPS_ADMIN_CORE_STORE_DIR",
+].map((name) => [name, process.env[name]]));
+const testRoots: string[] = [];
 
 afterEach(async () => {
-  if (originalAdminSecret === undefined) {
-    delete process.env.WITNESSOPS_ADMIN_SECRET;
-  } else {
-    process.env.WITNESSOPS_ADMIN_SECRET = originalAdminSecret;
+  for (const [name, value] of originalEnv) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
   }
-  await clearTokenStore();
+  // Cleanup owns only these fixture roots, never an environment-selected store.
+  await Promise.all(testRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
 async function founderCookie(): Promise<string> {
@@ -79,6 +84,7 @@ function makeIntake(): IntakeRecord {
 
 test("nested payload command cannot replace the validated outer command", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-route-"));
+  testRoots.push(baseDir);
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
   await saveIntake(makeIntake());
@@ -121,6 +127,7 @@ test("nested payload command cannot replace the validated outer command", async 
 
 test("malformed command fields are rejected before state mutation", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-schema-"));
+  testRoots.push(baseDir);
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
   await saveIntake(makeIntake());
@@ -158,6 +165,7 @@ test("malformed command fields are rejected before state mutation", async () => 
 
 test("oversized queue bodies are rejected before state mutation", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-body-limit-"));
+  testRoots.push(baseDir);
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
   await saveIntake(makeIntake());
@@ -188,6 +196,7 @@ test("oversized queue bodies are rejected before state mutation", async () => {
 
 test("queue command route contains unexpected storage errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-error-"));
+  testRoots.push(baseDir);
   const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR;
   const originalAdminStoreDir = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
   // Authentication must succeed before testing the queue storage failure.
