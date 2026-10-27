@@ -13,7 +13,6 @@ import {
   publicExposureServiceJsonLd,
   websiteJsonLd,
 } from "./public-seo";
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
 import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
 
 test("canonical URLs always use the HTTPS apex and drop query tracking", () => {
@@ -84,18 +83,17 @@ test("structured trust data is factual and syntactically serializable", () => {
   }
   assert.equal(organizationJsonLd.name, "WitnessOps");
   assert.equal("legalName" in organizationJsonLd, false);
-  assert.equal(service.offers.price, "1900");
   assert.equal(service.name, "External Attack Surface Review");
-  assert.equal(service.description, EXTERNAL_ATTACK_SURFACE_OFFER.situation.en);
-  assert.equal(
-    publicExposureServiceJsonLd("pl").description,
-    EXTERNAL_ATTACK_SURFACE_OFFER.situation.pl,
-  );
+  assert.match(service.description, /no longer available for new engagements/i);
   assert.match(service.description, /not a penetration test/i);
-  assert.equal(service.offers.description, "€1,900 excl. VAT. Delivery timing agreed in the signed statement of work.");
-  assert.doesNotMatch(service.offers.description, /\u00A0/);
-  assert.equal(service.offers.priceCurrency, "EUR");
-  assert.equal(service.offers.priceSpecification.valueAddedTaxIncluded, false);
+  assert.equal(service.offers.availability, "https://schema.org/Discontinued");
+  assert.match(service.offers.description, /No longer available for new engagements/);
+  assert.equal("price" in service.offers, false);
+  assert.doesNotMatch(JSON.stringify(service.offers), /1900|€1,900/);
+  assert.match(
+    publicExposureServiceJsonLd("pl").description,
+    /nie jest już dostępny dla nowych zleceń/,
+  );
   assert.equal("inLanguage" in service, false);
   assert.equal(breadcrumbs.itemListElement.length, 3);
 });

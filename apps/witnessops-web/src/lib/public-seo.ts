@@ -150,28 +150,27 @@ export function primaryOfferBreadcrumbJsonLd() {
 
 export function publicExposureServiceJsonLd(locale: "en" | "pl") {
   const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
+  const polish = locale === "pl";
+  const description = polish
+    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To nie jest Agent Action Security Review. To nie jest test penetracyjny."
+    : "External Attack Surface Review is no longer available for new engagements. It is not the Agent Action Security Review. It is not a penetration test.";
 
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": `${url}#service`,
     name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
-    description: EXTERNAL_ATTACK_SURFACE_OFFER.situation[locale],
+    description,
     serviceType: "External attack surface review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {
       "@type": "Offer",
       url,
-      price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
-      priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
-      description: `${plainOfferPrice(EXTERNAL_ATTACK_SURFACE_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
-        priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
-        valueAddedTaxIncluded: EXTERNAL_ATTACK_SURFACE_OFFER.price.vatIncluded,
-      },
+      availability: "https://schema.org/Discontinued",
+      description: polish
+        ? "Nie jest już dostępny dla nowych zleceń."
+        : "No longer available for new engagements.",
     },
   } as const;
 }

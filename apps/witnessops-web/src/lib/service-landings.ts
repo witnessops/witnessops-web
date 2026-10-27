@@ -1,6 +1,5 @@
 import type { BuyerLocale, BuyerService } from "@/lib/buyer-services";
 import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
@@ -210,8 +209,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 calendar days of report handover is included.`,
-    primaryCta: "Request an external review",
+      "External Attack Surface Review is no longer available for new engagements. Issued agreements keep their original terms. This is not the Agent Action Security Review.",
+    primaryCta: "See availability notice",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "See a sample review",
   },
@@ -564,8 +563,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni kalendarzowych od przekazania raportu jest wliczony.`,
-    primaryCta: "Zgłoś przegląd ekspozycji",
+      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Wydane uzgodnienia zachowują pierwotne warunki. To nie jest Agent Action Security Review.",
+    primaryCta: "Zobacz komunikat o dostępności",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },

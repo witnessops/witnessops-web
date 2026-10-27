@@ -30,9 +30,7 @@ const copy = {
     detailCta: "See scope and deliverables",
     sampleCta: "Synthetic sample",
     aiGroup: "Review one agent action",
-    externalGroup: "Review external exposure",
     aiSummary: "One consequential agent or automation action. Permissions, approvals and execution evidence.",
-    externalSummary: "One authorised internet-facing system. Not a penetration test.",
     principlesTitle: "Scope before work. Evidence beside findings.",
     principles: [
       ["Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts."],
@@ -40,7 +38,7 @@ const copy = {
       ["Understand the limits", "The report distinguishes supported findings, unavailable evidence and questions the review could not answer."],
     ],
     enquiryBoundary: "An enquiry does not authorise collection or start a review. Payment and mailbox verification are not permission to inspect a system.",
-    assuranceBoundary: "These reviews do not grant compliance certification. A report, receipt or verifier does not prove that a system is secure, complete or free of vulnerabilities.",
+    assuranceBoundary: "This review does not grant compliance certification. A report, receipt or verifier does not prove that a system is secure, complete or free of vulnerabilities.",
     unsureTitle: "Ready to request the review?",
     unsureBody: "Name the consequential action, the systems involved and the decision deadline. A non-secret fit check comes first. No work starts from the enquiry.",
     enquiryCta: "Request an agent review",
@@ -61,9 +59,7 @@ const copy = {
     detailCta: "Zobacz zakres i wyniki",
     sampleCta: "Syntetyczny przykład",
     aiGroup: "Sprawdź jedno działanie agenta",
-    externalGroup: "Sprawdź ekspozycję zewnętrzną",
     aiSummary: "Jedno istotne działanie agenta lub automatyzacji. Uprawnienia, zatwierdzanie i dowody wykonania.",
-    externalSummary: "Jeden autoryzowany system dostępny z internetu. To nie jest test penetracyjny.",
     principlesTitle: "Najpierw zakres. Ustalenia ze źródłami.",
     principles: [
       ["Uzgodniona granica", "Zakres, wyłączenia, cenę, upoważnienie i zasady obsługi materiałów uzgadniamy przed pracą."],
@@ -71,7 +67,7 @@ const copy = {
       ["Jawne ograniczenia", "Raport odróżnia ustalenia poparte źródłami, niedostępne materiały i pytania pozostające bez odpowiedzi."],
     ],
     enquiryBoundary: "Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu. Płatność i weryfikacja skrzynki nie stanowią zgody na inspekcję systemu.",
-    assuranceBoundary: "Przeglądy nie przyznają certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
+    assuranceBoundary: "Ten przegląd nie przyznaje certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
     unsureTitle: "Gotowy, aby zgłosić przegląd?",
     unsureBody: "Wskaż istotne działanie, zaangażowane systemy i termin decyzji. Najpierw niepoufna ocena dopasowania. Zgłoszenie nie rozpoczyna pracy.",
     enquiryCta: "Zgłoś przegląd agenta",
@@ -117,7 +113,7 @@ export function BuyerCatalogue({
                 <article
                   id={service.id}
                   data-buyer-service={service.id}
-                  data-pricing-review={pricing ? (ai ? "agent-action" : "external-exposure") : undefined}
+                  data-pricing-review={pricing ? "agent-action" : undefined}
                   data-pricing-service={pricing ? service.id : undefined}
                   data-price-contract={service.commercialContract.price}
                   data-timing-contract={service.commercialContract.timing}

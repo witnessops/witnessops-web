@@ -37,7 +37,7 @@ test("the current review links to a clearly historical one-action example", () =
   assert.doesNotMatch(html, /id="sample-review"/);
 });
 
-test("homepage leads with the two public paid reviews and keeps the free hostname check", () => {
+test("homepage leads with the single public paid review and keeps the free hostname check", () => {
   assert.match(source, /publicPaidReviews\(BUYER_SERVICES\)/);
   assert.match(source, /HOMEPAGE_TWO_OFFER_COPY/);
   assert.match(source, /See how WitnessOps verifies/);

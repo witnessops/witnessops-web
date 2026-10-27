@@ -280,7 +280,7 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
     }
   }
 
-  assert.match(pricingHtml, /do not grant compliance certification/);
+  assert.match(pricingHtml, /does not grant compliance certification/);
   assert.match(pricingHtml, /does not authorise collection or start a review/);
   assert.deepEqual(failures, []);
 });
