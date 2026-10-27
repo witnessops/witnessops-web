@@ -25,6 +25,7 @@ const staticRoutes: StaticRoute[] = [
   { route: "/chronicles/001-the-unauthorized-feline", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   { route: "/chronicles/002-sir-whiskers-opens-a-pull-request", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   { route: "/chronicles/003-the-meeting-nobody-authorized", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
+  { route: "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   ...editorialArticles.map(entry => ({ route: entry.href, sourcePath: entry.contentReference })),
   { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },
   { route: "/pl/catalog/automation-repair", sourcePath: "src/app/pl/catalog/automation-repair/page.tsx" },
