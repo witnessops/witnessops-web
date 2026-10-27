@@ -68,12 +68,10 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.amount, "550");
 
   const landing = getServiceLanding(service.id, "en");
-  assert.match(landing.commercialNote ?? "", /€1,900\u00A0excl.\u00A0VAT/i);
-  assert.match(landing.commercialNote ?? "", /one authorised public-facing system/i);
-  assert.match(landing.commercialNote ?? "", /No sales call required/i);
-  assert.match(landing.commercialNote ?? "", /Payment is due in full before the delivery clock starts/i);
-  assert.match(landing.commercialNote ?? "", /Payment alone does not authorise testing/i);
-  assert.match(landing.commercialNote ?? "", /One focused retest within 30 calendar days of report handover is included/);
+  assert.match(landing.commercialNote ?? "", /no longer available for new engagements/i);
+  assert.match(landing.commercialNote ?? "", /not the Agent Action Security Review/i);
+  assert.equal(landing.primaryCta, "See availability notice");
+  assert.doesNotMatch(landing.commercialNote ?? "", /€1,900|Request an external review|Payment is due in full|No sales call required/i);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500|€550|3 working days|three working days/i);
   assert.doesNotMatch(landing.steps.flat().join(" "), /3 working days|three working days|€550/);
   assert.match(landing.deliverables.join("\n"), /One focused retest of reported findings within 30 calendar days of initial report handover\./);

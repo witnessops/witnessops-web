@@ -14,6 +14,8 @@ const scenarios = [
 const requiredFields = [
   "email",
   "workflow",
+  "approvalBoundary",
+  "decisionTiming",
 ] as const;
 
 test("review request routes remain responsive, accessible, and usable", async ({ browser }) => {
@@ -70,9 +72,9 @@ test("review request routes remain responsive, accessible, and usable", async ({
       .evaluateAll((controls) =>
         controls.map((control) => control.getAttribute("name") || control.id || control.tagName.toLowerCase()),
       );
-    expect(controlOrder).toEqual(["email", "enquiryPath", "workflow", "button"]);
-
-    await expect(form.locator("#enquiryPath option")).toHaveCount(2);
+    expect(controlOrder).toEqual(["email", "workflow", "approvalBoundary", "decisionTiming", "button"]);
+    await expect(form.locator("#enquiryPath")).toHaveCount(0);
+    await expect(form.locator('input[name="intent"]')).toHaveValue("agent-action-security-review");
     for (const fieldName of requiredFields) {
       const field = form.locator(`#${fieldName}`);
       await expect(field).toHaveAttribute("required", "");
@@ -126,7 +128,8 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("One bounded technical action");
-    await form.locator("#enquiryPath").selectOption("OFFSEC-EXTERNAL-EXPOSURE");
+    await form.locator("#approvalBoundary").fill("Billing system and the approval tool");
+    await form.locator("#decisionTiming").fill("Launch decision next Friday");
     await submit.click();
 
     expect(Object.keys(submittedPayload ?? {}).sort()).toEqual([
@@ -136,8 +139,12 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "org",
       "scope",
     ]);
-    expect(submittedPayload?.intent).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+    expect(submittedPayload?.intent).toBe("agent-action-security-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
+    expect(submittedPayload?.scope).toContain("Offer: agent-action-security-review");
+    expect(submittedPayload?.scope).toContain("Consequential action: One bounded technical action");
+    expect(submittedPayload?.scope).toContain("Systems involved: Billing system and the approval tool");
+    expect(submittedPayload?.scope).toContain("Decision deadline: Launch decision next Friday");
     expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
     expect(submittedPayload?.scope).toContain("First-message boundary: no files, secrets");
 
@@ -192,7 +199,7 @@ test("historical one-action links do not select a new review", async ({ page }) 
     await expect(page.locator("main form")).toHaveCount(0);
     await expect(page.locator("main a[href*='offerId=agent-tools-access-review']")).toHaveCount(0);
     await expect(page.locator("main a[href*='offerId=agent-action-security-review']")).toBeVisible();
-    await expect(page.locator("main a[href*='productId=OFFSEC-EXTERNAL-EXPOSURE']")).toBeVisible();
+    await expect(page.locator("main a[href*='productId=OFFSEC-EXTERNAL-EXPOSURE']")).toHaveCount(0);
   }
 });
 
@@ -272,15 +279,12 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       );
     expect(controlOrder).toEqual([
       "email",
-      "org",
       "workflow",
-      "decisionTiming",
-      "agentPath",
       "approvalBoundary",
-      "evidenceAvailable",
+      "decisionTiming",
       "button",
     ]);
-    await expect(form.locator("#org")).not.toHaveAttribute("required", "");
+    await expect(form.locator("#org, #agentPath, #evidenceAvailable, #enquiryPath")).toHaveCount(0);
 
     for (const fieldName of requiredFields) {
       await expect(form.locator(`#${fieldName}`)).toHaveAttribute("required", "");
@@ -298,19 +302,17 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await form
       .locator("#workflow")
       .fill("An agent prepares an API-key rotation after a named human approval.");
-    await form.locator("summary").filter({ hasText: /Add context|Dodaj kontekst/ }).click();
-    await form.locator("#agentPath").fill("The old key may remain active or production access may fail.");
-    await form.locator("#approvalBoundary").fill("Secrets manager, deployment tool, and API provider; security lead approves.");
-    await form.locator("#evidenceAvailable").fill("Production, credential, account, and permission boundaries.");
+    await form.locator("#approvalBoundary").fill("Secrets manager, deployment tool, and API provider.");
+    await form.locator("#decisionTiming").fill("Customer handover next Friday");
     await submit.click();
 
     expect(submittedPayload?.intent).toBe("agent-action-security-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
     expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
     expect(submittedPayload?.scope).toContain("Consequential action:");
-    expect(submittedPayload?.scope).toContain("Unintended effect:");
-    expect(submittedPayload?.scope).toContain("Approval and authority boundary:");
-    expect(submittedPayload?.scope).toContain("Execution evidence types:");
+    expect(submittedPayload?.scope).toContain("Systems involved:");
+    expect(submittedPayload?.scope).toContain("Decision deadline:");
+    expect(submittedPayload?.scope).not.toContain("Unintended effect:");
     expect(submittedPayload?.scope).not.toContain("dated system-level inventory");
 
     await context.close();
@@ -328,16 +330,24 @@ test("supported request identities open a selling form and rejected identities s
 
   for (const [query, intent] of [
     ["offerId=agent-action-security-review", "agent-action-security-review"],
-    ["productId=OFFSEC-EXTERNAL-EXPOSURE", "OFFSEC-EXTERNAL-EXPOSURE"],
+    ["", "agent-action-security-review"],
   ] as const) {
-    const response = await page.goto(`/review/request?${query}`, {
+    const response = await page.goto(`/review/request${query ? `?${query}` : ""}`, {
       waitUntil: "networkidle",
     });
-    expect(response?.status(), query).toBe(200);
+    expect(response?.status(), query || "empty").toBe(200);
     const form = page.locator("main form");
     await expect(form).toBeVisible();
     await expect(form.locator('input[name="intent"]')).toHaveValue(intent);
   }
+
+  const parked = await page.goto("/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE", {
+    waitUntil: "networkidle",
+  });
+  expect(parked?.status()).toBe(200);
+  await expect(page.locator("main h1")).toHaveText("External Attack Surface Review is no longer available");
+  await expect(page.locator("main form")).toHaveCount(0);
+  await expect(page.locator("main")).toContainText("It is not the Agent Action Security Review.");
 
   for (const query of [
     "offer=AI+Agent+Tools+%26+Access+Review",
@@ -346,7 +356,6 @@ test("supported request identities open a selling form and rejected identities s
     "offerId=agent-tools-access-review",
     "offerId=agent-tools-access-review&offer=Public+Exposure+Review",
     "offerId=agent-tools-access-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
-    "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=buyer-edited+query+text",
   ]) {
     const response = await page.goto(`/review/request?${query}`, {
       waitUntil: "networkidle",
@@ -366,72 +375,38 @@ test("supported request identities open a selling form and rejected identities s
   await context.close();
 });
 
-test("External Attack Surface Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
+test("External Attack Surface Review queries stay closed and do not sell that review", async ({ browser }) => {
   for (const scenario of [
-    { locale: "en", path: "/review/request" },
-    { locale: "pl", path: "/pl/review/request" },
+    {
+      path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+      title: "External Attack Surface Review is no longer available",
+      body: "It is not the Agent Action Security Review.",
+      href: "/review/request?offerId=agent-action-security-review",
+    },
+    {
+      path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+      title: "External Attack Surface Review nie jest już dostępny",
+      body: "To nie jest Agent Action Security Review.",
+      href: "/pl/review/request?offerId=agent-action-security-review",
+    },
   ] as const) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    let submittedPayload: Record<string, unknown> | null = null;
-
+    let submissions = 0;
     await page.route("**/api/review/request", async (route) => {
-      submittedPayload = route.request().postDataJSON() as Record<string, unknown>;
-      await route.fulfill({
-        status: 201,
-        contentType: "application/json",
-        body: JSON.stringify({
-          issuanceId: `iss_external_${scenario.locale}`,
-          email: "buyer@example.com",
-          expiresAt: "2026-08-06T22:00:00.000Z",
-        }),
-      });
+      submissions += 1;
+      await route.abort();
     });
-
-    const query = new URLSearchParams({
-      productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "External Attack Surface Review",
-    });
-    await page.goto(`${scenario.path}?${query.toString()}`, {
-      waitUntil: "networkidle",
-    });
-
-    await expect(
-      page.getByText(
-        scenario.locale === "pl"
-          ? "Wybrana oferta: External Attack Surface Review"
-          : "Selected offer: External Attack Surface Review",
-      ),
-    ).toBeVisible();
-    const form = page.locator("main form");
-    await expect(form.locator('input[name="intent"]')).toHaveValue(
-      "OFFSEC-EXTERNAL-EXPOSURE",
-    );
-
-    await form.locator("#email").fill("buyer@example.com");
-    await form.locator("#workflow").fill("A bounded external exposure fit check");
-    await form.locator("#agentPath").fill("One synthetic public application boundary");
-    await form.locator("#approvalBoundary").fill("Authority will be confirmed before work");
-    await form.locator("#evidenceAvailable").fill("Evidence types only; no files supplied");
-    await form.locator('button[type="submit"]').click();
-
-    expect(submittedPayload?.intent).toBe("OFFSEC-EXTERNAL-EXPOSURE");
-    expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain(
-      "Selected product / intent: OFFSEC-EXTERNAL-EXPOSURE",
-    );
-    expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
-    expect(submittedPayload?.scope).toContain(
-      "First-message boundary: no files, secrets",
-    );
-    await expect(page.locator("main")).toContainText(
-      scenario.locale === "pl"
-        ? "To nie jest test penetracyjny."
-        : "This is not a penetration test.",
-    );
-
+    await page.goto(scenario.path, { waitUntil: "networkidle" });
+    const main = page.locator("main");
+    await expect(main.locator("h1")).toHaveText(scenario.title);
+    await expect(main).toContainText(scenario.body);
+    await expect(main.locator("form")).toHaveCount(0);
+    await expect(main).not.toContainText("€1,900");
+    await expect(main.locator(`a[href="${scenario.href}"]`)).toBeVisible();
+    expect(submissions).toBe(0);
     await context.close();
   }
 });
@@ -440,20 +415,19 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
   const routeScenarios = [
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Tell us what you want to check",
-      intent: "OFFSEC-EXTERNAL-EXPOSURE",
-      selectedOffer: /Selected offer:/,
-      boundary: "No work or target-facing check starts from this form.",
+      heading: "External Attack Surface Review is no longer available",
+      intent: null,
+      selectedOffer: null,
+      boundary: "No work or target-facing check starts from this page.",
       authorizationBoundary: null,
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Opisz, co chcesz sprawdzić",
-      intent: "OFFSEC-EXTERNAL-EXPOSURE",
-      selectedOffer: /Wybrana oferta:/,
-      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
-      authorizationBoundary:
-        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia terminu realizacji.",
+      heading: "External Attack Surface Review nie jest już dostępny",
+      intent: null,
+      selectedOffer: null,
+      boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      authorizationBoundary: null,
     },
     {
       path: "/review/request?productId=OFFSEC-PILOT",

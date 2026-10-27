@@ -269,6 +269,10 @@ export const PRIMARY_OFFER = {
   },
 } as const;
 
+/**
+ * Parked 2026-10-27 by founder decision. Keep the record for issued
+ * agreements and old lookups. Do not present it as a new-sales offer.
+ */
 export const EXTERNAL_ATTACK_SURFACE_OFFER = {
   id: "external-exposure-assessment",
   productId: "OFFSEC-EXTERNAL-EXPOSURE",

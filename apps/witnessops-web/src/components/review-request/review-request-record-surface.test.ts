@@ -82,12 +82,15 @@ test("recorded confirmation keeps the no-secret and no-conclusion boundary visib
   );
 });
 
-test("External Attack Surface Review confirmation preserves its start-work gates", () => {
+test("External Attack Surface Review confirmation states the parked offer boundary", () => {
   assert.match(confirmed, /public-exposure-review/);
-  assert.match(confirmed, /payment, the SOW, written authority, required inputs/);
-  assert.match(confirmed, /collection window/);
+  assert.match(confirmed, /no longer available for new engagements/);
+  assert.match(confirmed, /not the Agent Action Security Review/);
+  assert.match(confirmed, /No new target-facing work starts from this confirmation alone/);
   assert.match(confirmed, /external-exposure-assessment/);
   assert.match(confirmed, /EXTERNAL_ATTACK_SURFACE_OFFER\.name/);
+  assert.doesNotMatch(confirmed, /payment, the SOW, written authority, required inputs/);
+  assert.doesNotMatch(confirmed, /collection window/);
 });
 
 test("both conversion paths derive the record from the parsed verification response", () => {

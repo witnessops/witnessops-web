@@ -4,9 +4,9 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Przeglądy Agent Action i ekspozycji zewnętrznej",
+  title: "Agent Action Security Review",
   description:
-    "Porównaj Agent Action Security Review oraz External Attack Surface Review. Poznaj zakres, materiały, cenę i warunki rozpoczęcia.",
+    "Jedno istotne działanie agenta lub automatyzacji. Zakres, wyniki i cena przed rozpoczęciem pracy.",
   alternates: languageAlternates("/pl/catalog", {
     en: "/reviews",
     pl: "/pl/catalog",

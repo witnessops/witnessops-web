@@ -192,7 +192,7 @@ test("public Ask sends bounded follow-up history without changing current-questi
   let input: Array<{ role: string; content: string }> = [];
   globalThis.fetch = (async (_url, init) => {
     input = JSON.parse(String(init?.body)).input;
-    return generatedResponse("The delivery details for this review are below.", "external-exposure-assessment");
+    return generatedResponse("The delivery details for this review are below.", "agent-action-security-review");
   }) as typeof fetch;
   try {
     const result = await POST(askRequest("How long does that take?", "203.0.113.150", {
@@ -201,7 +201,7 @@ test("public Ask sends bounded follow-up history without changing current-questi
     }));
     const body = await result.json();
     assert.equal(body.answer_mode, "ai_assisted");
-    assert.equal(body.recommendation.service_id, "external-exposure-assessment");
+    assert.equal(body.recommendation.service_id, "agent-action-security-review");
     assert.equal(body.authority_answer.policy_decision.question_class_id, "outside_approved_public_context");
     assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user", "user"]);
     assert.match(input[2].content, /^KNOWN VISITOR QUALIFICATION FACTS/);
@@ -318,7 +318,7 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   const originalFetch = globalThis.fetch;
   const cases = [
     { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
-    { question: "What does the External Attack Surface Review cost?", id: "external-exposure-assessment", price: "€1,900 excl. VAT", words: "The listed price below covers one authorised public-facing system.", deterministic: true },
+    { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "External Attack Surface Review is no longer available. It is not the Agent Action Security Review.", deterministic: true, parked: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
     { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with the founder to agree the scope and review the findings.", deterministic: false },
@@ -334,7 +334,8 @@ test("public Ask answers ordinary buyer questions with canonical service routing
       const body = await result.json();
       assert.equal(calls, item.deterministic ? 0 : 1, item.question);
       assert.equal(body.answer_mode, item.deterministic ? "deterministic_fallback" : "ai_assisted", item.question);
-      if (item.deterministic) assert.match(body.template.body, /confirm fit and availability/);
+      if ("parked" in item && item.parked) assert.equal(body.template.body, item.words);
+      else if (item.deterministic) assert.match(body.template.body, /confirm fit and availability/);
       else assert.equal(body.template.body, item.words);
       assert.equal(body.recommendation?.service_id ?? null, item.id);
       assert.equal(body.recommendation?.price_label, item.price);

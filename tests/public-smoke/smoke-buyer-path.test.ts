@@ -134,7 +134,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
 test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
   assert.ok(english.requiredMarkers.includes("Tool · not a review"));
-  assert.ok(english.requiredMarkers.includes("Sovereign evidence"));
+  assert.ok(english.requiredMarkers.includes("Understand the controls before your AI agent acts."));
   assert.ok(english.requiredMarkers.includes("Scope before work. Evidence beside findings."));
   assert.equal(english.requiredMarkers.includes("Start a free check"), false);
   assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);
@@ -143,8 +143,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zgłoś przegląd agenta"));
-  assert.ok(polish.requiredMarkers.includes("Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy."));
-  assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
+  assert.ok(polish.requiredMarkers.includes("Poznaj mechanizmy kontroli, zanim agent AI wykona działanie."));
   assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
   assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
   assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
@@ -162,15 +161,18 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
   assert.ok(!route.requiredMarkers.includes("Buyer path"));
 });
 
-test("catalogue smoke preserves the two public review request paths", () => {
+test("catalogue smoke preserves the single public review request path", () => {
   for (const path of ["/", "/catalog", "/pricing", "/pl", "/pl/catalog"] as const) {
     const route = routeContract(path);
-    for (const marker of [
-      "offerId=agent-action-security-review",
-      "productId=OFFSEC-EXTERNAL-EXPOSURE",
-    ]) {
-      assert.ok(route.requiredMarkers.includes(marker), `${path} must require ${marker}`);
-    }
+    assert.ok(
+      route.requiredMarkers.includes("offerId=agent-action-security-review"),
+      `${path} must require the agent review`,
+    );
+    assert.equal(
+      route.requiredMarkers.includes("productId=OFFSEC-EXTERNAL-EXPOSURE"),
+      false,
+      `${path} must not sell the parked external review`,
+    );
     for (const marker of [
       "offerId=agent-tools-access-review",
       "offerId=automation-repair-handover",
@@ -185,13 +187,10 @@ test("catalogue smoke preserves the two public review request paths", () => {
   }
   const catalogue = routeContract("/catalog");
   for (const marker of [
-    "Two focused security reviews.",
     "Agent Action Security Review",
     "€2,500\u00A0excl.\u00A0VAT",
     "Delivery timing agreed in the signed statement of work",
     "Request an agent review",
-    "External Attack Surface Review",
-    "€1,900\u00A0excl.\u00A0VAT",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -235,19 +234,19 @@ test("intake probes reject withdrawn identities before issuance and keep the two
   assert.equal(reasons.get("Agent Action Security Review"), "unsupported");
   assert.equal(reasons.get("agent-action-security-review+product"), "ambiguous");
   assert.equal(reasons.get("agent-action-security-review+offer"), "ambiguous");
-  assert.equal(reasons.get("external-exposure-assessment"), "wrong-role");
+  assert.equal(reasons.get("external-exposure-assessment"), "parked");
   assert.ok(buyerPathIntakeProbes.some((probe) => probe.path === "/api/engage" && probe.expectReason === "historical"));
   assert.ok(buyerPathIntakeProbes.some((probe) => probe.path === "/api/contact" && probe.expectReason === "unsupported"));
-  for (const intent of ["agent-action-security-review", "OFFSEC-EXTERNAL-EXPOSURE"]) {
-    const probe = buyerPathIntakeProbes.find((item) => item.body.intent === intent && item.expectError);
-    assert.equal(probe?.expectError, "Please use your business email.");
-    assert.equal(probe?.body.email, "buyer@gmail.com");
-  }
+  const agentEmail = buyerPathIntakeProbes.find((item) => item.body.intent === "agent-action-security-review" && item.expectError);
+  assert.equal(agentEmail?.expectError, "Please use your business email.");
+  assert.equal(agentEmail?.body.email, "buyer@gmail.com");
+  const parked = buyerPathIntakeProbes.find((item) => item.body.intent === "OFFSEC-EXTERNAL-EXPOSURE");
+  assert.equal(parked?.expectReason, "parked");
 });
 
 test("request smoke markers use the current fit and start-work boundaries", () => {
   const generic = routeContract("/review/request");
-  assert.ok(generic.requiredMarkers.includes("Submit non-secret enquiry"));
+  assert.ok(generic.requiredMarkers.includes("Request an agent review"));
   assert.ok(generic.requiredMarkers.includes("Next, confirm your email with a code."));
   assert.ok(
     generic.requiredMarkers.includes(
@@ -257,7 +256,7 @@ test("request smoke markers use the current fit and start-work boundaries", () =
 
   assert.ok(
     routeContract("/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE").requiredMarkers.includes(
-      "No work or target-facing check starts from this form.",
+      "No work or target-facing check starts from this page.",
     ),
   );
   assert.ok(
@@ -269,8 +268,8 @@ test("request smoke markers use the current fit and start-work boundaries", () =
   assert.ok(agent.requiredMarkers.includes('name="intent" value="agent-action-security-review"'));
   assert.ok(agent.prohibitedMarkers?.includes("productId=OFFSEC-EXTERNAL-EXPOSURE"));
   const external = routeContract("/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE");
-  assert.ok(external.requiredMarkers.includes('name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"'));
-  assert.ok(external.prohibitedMarkers?.includes("offerId=agent-action-security-review"));
+  assert.equal(external.requiredMarkers.includes('name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"'), false);
+  assert.ok(external.requiredMarkers.includes("offerId=agent-action-security-review"));
   const repair = routeContract("/catalog/automation-repair");
   assert.ok(repair.requiredMarkers.includes("This review is not offered for new engagements."));
   assert.ok(repair.prohibitedMarkers?.includes('name="intent" value="automation-repair-handover"'));
@@ -315,7 +314,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const polishOpen = routeContract(
     "/pl/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(polishOpen.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
+  assert.ok(polishOpen.requiredMarkers.includes("€2\u00A0500\u00A0bez\u00A0VAT"));
   assert.ok(
     polishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',

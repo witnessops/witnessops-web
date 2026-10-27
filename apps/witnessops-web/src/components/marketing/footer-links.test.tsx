@@ -11,13 +11,10 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Footer } from "@/components/marketing/footer";
-import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
+import { buyerRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
-import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
-
 const appDir = resolve(__dirname, "../../app");
-const agent = buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID);
 
 function render(node: ReactNode, pathname: string) {
   return renderToStaticMarkup(
@@ -82,7 +79,7 @@ function routeFileExists(href: string): boolean {
     || existsSync(resolve(appDir, `(library)${pathname}/page.tsx`));
 }
 
-test("English and Polish footers list both locked offers and the footer-linked pages", () => {
+test("English and Polish footers list the agent review and the footer-linked pages", () => {
   const en = renderFooter("/");
   const pl = renderFooter("/pl");
   const enHrefs = hrefs(en);
@@ -90,10 +87,12 @@ test("English and Polish footers list both locked offers and the footer-linked p
 
   assert.ok(en.includes(`>${PUBLIC_AGENT_ACTION_OFFER.name.en}<`));
   assert.ok(pl.includes(`>${PUBLIC_AGENT_ACTION_OFFER.name.pl}<`));
-  assert.ok(enHrefs.includes(buyerServiceRequestHref("en", agent)));
-  assert.ok(plHrefs.includes(buyerServiceRequestHref("pl", agent)));
-  assert.ok(enHrefs.includes("/reviews/external-attack-surface-review"));
-  assert.ok(plHrefs.includes("/pl/reviews/external-attack-surface-review"));
+  assert.ok(enHrefs.includes("/reviews/agent-action-security-review"));
+  assert.ok(plHrefs.includes("/pl/reviews/agent-action-security-review"));
+  assert.ok(enHrefs.includes(buyerRequestHref("en")));
+  assert.ok(plHrefs.includes(buyerRequestHref("pl")));
+  assert.equal(enHrefs.includes("/reviews/external-attack-surface-review"), false);
+  assert.equal(plHrefs.includes("/pl/reviews/external-attack-surface-review"), false);
   assert.equal(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en), false);
 
   for (const href of ["/privacy", "/terms", "/security", "/company", "/media-kit"]) {

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   publicContactMailto,
@@ -28,11 +25,6 @@ const routes = [
     PUBLIC_AGENT_ACTION_OFFER.name.pl,
     "/pl/reviews/agent-action-security-review",
     `Jedno nazwane istotne działanie. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
-  ],
-  [
-    EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
-    "/pl/reviews/external-attack-surface-review",
-    `Jeden autoryzowany system dostępny z internetu. ${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl}.`,
   ],
   [
     "Mam istniejące zgłoszenie",

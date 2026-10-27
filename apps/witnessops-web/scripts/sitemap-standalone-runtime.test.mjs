@@ -64,6 +64,10 @@ function assertTruthfulSitemap(xml, label) {
   assert.match(xml, /<loc>https:\/\/witnessops\.com\/reviews<\/loc>/);
   assert.match(
     xml,
+    /<loc>https:\/\/witnessops\.com\/reviews\/agent-action-security-review<\/loc>/,
+  );
+  assert.doesNotMatch(
+    xml,
     /<loc>https:\/\/witnessops\.com\/reviews\/external-attack-surface-review<\/loc>/,
   );
   for (const route of [

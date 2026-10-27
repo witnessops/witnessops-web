@@ -16,14 +16,18 @@ const externalReviewRedirects = [
   {
     path: "/catalog/offsec-external-exposure",
     destination: "/reviews/external-attack-surface-review",
-    price: "€1,900\u00A0excl.\u00A0VAT",
-    request: "/review/request",
+    title: "External Attack Surface Review is no longer available",
+    differentService: "This is not the Agent Action Security Review.",
+    reviewHref: "/reviews/agent-action-security-review",
+    reviewLink: "See the Agent Action Security Review",
   },
   {
     path: "/pl/catalog/offsec-external-exposure",
     destination: "/pl/reviews/external-attack-surface-review",
-    price: "€1\u00A0900\u00A0bez\u00A0VAT",
-    request: "/pl/review/request",
+    title: "External Attack Surface Review nie jest już dostępny",
+    differentService: "To nie jest Agent Action Security Review.",
+    reviewHref: "/pl/reviews/agent-action-security-review",
+    reviewLink: "Zobacz Agent Action Security Review",
   },
 ] as const;
 
@@ -57,7 +61,7 @@ async function expectWithdrawnShell(page: Page, path: string) {
   );
   const prefix = polish ? "/pl" : "";
   await expect(main.locator(`a[href="${prefix}/reviews/agent-action-security-review"]`)).toHaveCount(1);
-  await expect(main.locator(`a[href="${prefix}/reviews/external-attack-surface-review"]`)).toHaveCount(1);
+  await expect(main.locator(`a[href="${prefix}/reviews/external-attack-surface-review"]`)).toHaveCount(0);
   await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
   await expect(main.locator("form")).toHaveCount(0);
   return main;
@@ -97,15 +101,16 @@ test("External Attack Surface Review catalogue URLs land on the review page with
       expect(response?.status(), `${offer.path} ${viewport.name}`).toBe(200);
       await expect(page).toHaveURL(new RegExp(`${offer.destination.replaceAll("/", "\\/")}$`));
       const main = page.locator("main");
-      await expect(main.locator("h1")).toHaveText("External Attack Surface Review");
-      await expect(main).toContainText(offer.price);
-      await expect(main).toContainText(
-        offer.path.startsWith("/pl") ? "To nie jest test penetracyjny." : "This is not a penetration test.",
-      );
+      await expect(main).toHaveAttribute("data-offer-status", "parked");
+      await expect(main.locator("h1")).toHaveText(offer.title);
+      await expect(main).toContainText(offer.differentService);
+      await expect(main).not.toContainText("€1,900");
+      await expect(main).not.toContainText("€1\u00A0900");
       await expect(main.locator('[data-one-pager], a[href$=".pdf"]')).toHaveCount(0);
+      await expect(main.locator("form")).toHaveCount(0);
       await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
         "content",
-        /External Attack Surface Review \| WitnessOps/,
+        new RegExp(`${offer.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\| WitnessOps`),
       );
       await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
         "href",
@@ -116,12 +121,9 @@ test("External Attack Surface Review catalogue URLs land on the review page with
         /\/pl\/reviews\/external-attack-surface-review$/,
       );
 
-      const requestLink = main.locator("aside").locator(`a[href^="${offer.request}"]`);
-      await expect(requestLink).toHaveCount(1);
-      const href = await requestLink.getAttribute("href");
-      expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("productId")).toBe(
-        "OFFSEC-EXTERNAL-EXPOSURE",
-      );
+      const requestLink = main.getByRole("link", { name: offer.reviewLink, exact: true });
+      await expect(requestLink).toHaveAttribute("href", offer.reviewHref);
+      expect(new URL((await requestLink.getAttribute("href")) ?? "", "http://witnessops.test").searchParams.get("productId")).toBeNull();
       expect((await requestLink.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
       const overflow = await page.evaluate(
@@ -296,14 +298,11 @@ test("External Attack Surface Review synthetic sample is buyer-safe and responsi
       ).toHaveCount(1);
     }
 
-    const fitLink = main.locator('a[href^="/review/request?"]').first();
-    const fitHref = await fitLink.getAttribute("href");
-    expect(
-      new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
-        "productId",
-      ),
-    ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
-    expect((await fitLink.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await expect(main.locator('a[href*="productId=OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
+    await expect(main.locator('a[href^="/review/request"]')).toHaveCount(0);
+    const notice = main.getByRole("link", { name: "Read the availability notice", exact: true });
+    await expect(notice).toHaveAttribute("href", "/reviews/external-attack-surface-review");
+    expect((await notice.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

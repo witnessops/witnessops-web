@@ -99,8 +99,8 @@ test("historical offer pages are noindex and current offer pages stay indexable"
   const polishExternal = await polishCatalogMetadata({
     params: Promise.resolve({ skuId: "offsec-external-exposure" }),
   });
-  assertIndexable(englishExternal, "/catalog/offsec-external-exposure");
-  assertIndexable(polishExternal, "/pl/catalog/offsec-external-exposure");
+  assertNoindex(englishExternal, "/catalog/offsec-external-exposure");
+  assertNoindex(polishExternal, "/pl/catalog/offsec-external-exposure");
   const robots = readFileSync(resolve(__dirname, "../app/robots.ts"), "utf8");
   assert.match(robots, /disallow: \["\/verify\/skill", "\/admin"\]/);
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
@@ -154,9 +154,8 @@ test("buyer docs and historical request copy use the signed-statement timing lin
   for (const source of [reviewWorkflow, buyerPath]) {
     assert.match(source, /Agent Action Security Review/);
     assert.match(source, /€2,500 excluding VAT/);
-    assert.match(source, /External Attack Surface Review/);
-    assert.match(source, /€1,900 excluding VAT/);
-    assert.match(source, /one retest within 30 calendar days of report handover/);
+    assert.match(source, /External Attack Surface Review is no longer available for new engagements/);
+    assert.doesNotMatch(source, /€1,900 excluding VAT/);
     assert.ok(source.includes(CURRENT_TIMING));
     assert.doesNotMatch(source, HELD_TERM);
   }
@@ -186,16 +185,18 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
     if (locale === "en") {
       assert.match(html, /€2,500/);
-      assert.match(html, /€1,900/);
+      assert.match(html, /no longer available for new engagements/);
+      assert.doesNotMatch(html, /€1,900/);
     }
     if (locale === "pl") {
       assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
-      assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
+      assert.match(html, /nie jest już dostępny/);
+      assert.doesNotMatch(html, /€1\u00A0900/);
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     }
     assert.doesNotMatch(html, HELD_TERM);
     if (locale === "en") assert.match(html, /Delivery timing agreed in the signed statement of work/);
-    if (locale === "pl") assert.match(html, /Termin realizacji uzgodniony w podpisanym zakresie prac/);
+    if (locale === "pl") assert.match(html, /Termin realizacji według podpisanego SOW/);
   }
   const confirmation = readFileSync(
     resolve(__dirname, "../components/review-request/review-request-confirmed.tsx"),
@@ -226,9 +227,8 @@ test("old offer ids stay historical and the two current ids still route", () => 
     intent: "agent-action-security-review",
   });
   assert.deepEqual(evaluateNewSalesIntakeBody({ intent: "OFFSEC-EXTERNAL-EXPOSURE", email: "a@b.co" }), {
-    accepted: true,
-    role: "product",
-    intent: "OFFSEC-EXTERNAL-EXPOSURE",
+    accepted: false,
+    reason: "parked",
   });
   assert.deepEqual(resolveNewSalesPageQuery({ offerId: "agent-tools-access-review" }), {
     state: "rejected",
@@ -240,9 +240,8 @@ test("old offer ids stay historical and the two current ids still route", () => 
     intent: "agent-action-security-review",
   });
   assert.deepEqual(resolveNewSalesPageQuery({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }), {
-    state: "selected",
-    role: "product",
-    intent: "OFFSEC-EXTERNAL-EXPOSURE",
+    state: "rejected",
+    reason: "parked",
   });
   const historical = resolveNewSalesPageQuery({ offerId: "agent-tools-access-review" });
   assert.equal(historical.state, "rejected");
@@ -257,9 +256,10 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/reviews", "/reviews/external-attack-surface-review", "/contact", "/pl/contact", "/pl/reviews"]) {
+  for (const route of ["/reviews", "/contact", "/pl/contact", "/pl/reviews"]) {
     assert.equal(paths.has(route), true, route);
   }
+  assert.equal(paths.has("/reviews/external-attack-surface-review"), false);
   assert.equal(paths.has("/review/request"), false);
   const search = await searchWitnessOpsDocs("review workflow external attack surface");
   assert.ok(search.results.some((result) => result.url.endsWith("/docs/getting-started/review-workflow")));

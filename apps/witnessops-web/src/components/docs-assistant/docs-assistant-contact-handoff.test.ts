@@ -111,10 +111,10 @@ test("removing question-sharing permission excludes the edited question", () => 
   assert.doesNotMatch(scope, /Previously selected question|Visitor-approved question:/);
 });
 
-test("Ask follow-up records only the two new-sales reviews", () => {
+test("Ask follow-up records only the agent review", () => {
   for (const service of BUYER_SERVICES) {
     const scope = buildAskAiContactScope("Discuss this review.", undefined, { serviceId: service.id });
-    if (service.id === "agent-action-security-review" || service.id === "external-exposure-assessment") {
+    if (service.id === "agent-action-security-review") {
       assert.ok(scope.includes(`Offer: ${service.id}\n`));
       assert.ok(scope.includes(`Offer name: ${service.name.en}\n`));
     } else {

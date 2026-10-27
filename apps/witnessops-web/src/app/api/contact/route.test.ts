@@ -121,7 +121,7 @@ test("contact route issues mailbox verification for review intake", async () => 
         name: "K. Witness",
         email: "operator@company.com",
         org: "Example Co",
-        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        intent: "agent-action-security-review",
         scope: "One workflow, handled over email.",
       }),
       headers: { "Content-Type": "application/json" },
@@ -137,6 +137,28 @@ test("contact route issues mailbox verification for review intake", async () => 
   assert.equal(payload.channel, "engage");
   assert.equal(payload.status, "issued");
   assert.equal(payload.admissionState, "verification_sent");
+});
+
+test("contact route rejects the parked external review before issuance", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-contact-"));
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/contact", {
+      method: "POST",
+      body: JSON.stringify({
+        email: "operator@company.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        scope: "One public hostname.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { field?: string; reason?: string };
+  assert.equal(payload.field, "intent");
+  assert.equal(payload.reason, "parked");
 });
 
 test("contact route redacts upstream issuance errors", async () => {

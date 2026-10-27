@@ -141,7 +141,8 @@ test("card identity deduplicates generated recommendations and distinguishes ass
   assert.equal(shouldShowServiceCard(generated, fallback), false);
   assert.equal(shouldShowServiceCard(fallback, generated), true);
   const other = { ...generated, recommendation: { ...generated.recommendation, service_id: "external-exposure-assessment" } } satisfies AskWitnessOpsUiAnswer;
-  assert.equal(shouldShowServiceCard(other, generated), true);
+  assert.equal(shouldShowServiceCard(other), false);
+  assert.equal(shouldShowServiceCard(other, generated), false);
   const withdrawn = { ...generated, recommendation: { ...generated.recommendation, service_id: "customer-security-review-sprint" } } satisfies AskWitnessOpsUiAnswer;
   assert.equal(shouldShowServiceCard(withdrawn), false);
   const assembled = { ...fallback, fallback_reason: undefined };

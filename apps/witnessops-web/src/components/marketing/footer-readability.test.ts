@@ -24,7 +24,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /text-xs leading-5 text-text-secondary/);
   assert.doesNotMatch(source, /Bounded reconstruction|Ograniczona rekonstrukcja/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
-  assert.match(source, /Proof other people can check\./);
+  assert.match(source, /One consequential agent action\. Written findings and explicit limits\./);
   assert.doesNotMatch(source, /label: "Assets"/);
   assert.doesNotMatch(source, /label: "Reports"/);
   assert.doesNotMatch(source, /label: "Settings"/);
@@ -101,7 +101,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
   for (const marker of [
     "PUBLIC_AGENT_ACTION_OFFER",
-    "EXTERNAL_ATTACK_SURFACE_OFFER",
+    'label: locale === "pl" ? "Zgłoś przegląd agenta" : "Request an agent review"',
     'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
     'label: "Prywatność", href: "/pl/privacy"',
@@ -129,7 +129,8 @@ test("library surface includes English and Polish library paths", () => {
 
 test("footer uses the bounded public funnel without deleting repair services", () => {
   const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["AI Agent Tools & Access Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  for (const label of ["Agent Action Security Review", "Our approach", "Research & articles", "Sample work", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  assert.doesNotMatch(home, /External Attack Surface Review|AI Agent Tools & Access Review/);
   assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });
 

@@ -68,8 +68,8 @@ export default function ChroniclesIndexPage() {
         <p className="wo-small mt-2 text-text-muted">{RESERVED_CHAPTERS[0].teaser}</p>
       </section>
       <p className="wo-small mt-10 text-text-secondary">
-        Outside the stories, WitnessOps runs two focused security reviews.{" "}
-        <Link href="/reviews" className="underline-offset-4 hover:underline">Compare the two reviews</Link>
+        Outside the stories, WitnessOps publishes one focused security review for new engagements.{" "}
+        <Link href="/reviews" className="underline-offset-4 hover:underline">See the current review</Link>
       </p>
     </main>
   );

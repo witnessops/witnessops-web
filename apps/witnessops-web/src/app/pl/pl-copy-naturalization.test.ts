@@ -18,15 +18,16 @@ test("Polish pages carry the native-review tag without changing company details"
   assert.doesNotMatch(polishLayout, /company-details/);
 });
 
-test("Polish homepage leads with the two public paid reviews", () => {
+test("Polish homepage leads with the agent review", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(homePage, /Poznaj, co potrafią Twoi agenci i co ujawniają Twoje systemy/);
+  assert.match(homePage, /HOMEPAGE_TWO_OFFER_COPY\.pl\.headline/);
+  assert.doesNotMatch(homePage, /co ujawniają Twoje systemy/);
   assert.match(buyerHomepage, /HOMEPAGE_TWO_OFFER_COPY/);
   assert.match(buyerHomepage, /publicPaidReviews\(BUYER_SERVICES\)/);
   assert.doesNotMatch(buyerHomepage, /Zweryfikuj lub napraw proces/);
   assert.doesNotMatch(buyerHomepage, /\/catalog\/automation-repair/);
   assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
-  assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
+  assert.match(buyerHomepage, /Bez haseł, kluczy API i materiałów produkcyjnych/);
   assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
 });
 

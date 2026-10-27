@@ -31,7 +31,7 @@ test("withdrawn offer paths are the catalog URLs, customer security review, and 
   assert.equal(isWithdrawnOfferPath("/catalog/offsec-external-exposure"), false);
 });
 
-test("the 410 copy names the withdrawal and the two current reviews", () => {
+test("the 410 copy names the withdrawal and the current review", () => {
   const english = withdrawnOfferCopy(false);
   const polish = withdrawnOfferCopy(true);
   const combined = JSON.stringify([english, polish]);
@@ -39,7 +39,7 @@ test("the 410 copy names the withdrawal and the two current reviews", () => {
   assert.equal(english.title, "This offer has been withdrawn");
   assert.equal(polish.title, "Ta oferta została wycofana");
   assert.ok(english.links.some(([href]) => href === "/reviews/agent-action-security-review"));
-  assert.ok(english.links.some(([href]) => href === "/reviews/external-attack-surface-review"));
+  assert.equal(english.links.some(([href]) => href.includes("external-attack-surface-review")), false);
   assert.doesNotMatch(combined, /\/catalog/);
   assert.ok(english.links.some(([href]) => href === "/contact"));
   assert.ok(polish.links.some(([href]) => href === "/pl/contact"));

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PriceText } from "@/lib/price-unit";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { getServiceLanding } from "@/lib/service-landings";
 
 import {
@@ -15,24 +16,21 @@ import {
 
 const copy = {
   en: {
-    eyebrow: "WitnessOps reviews",
-    title: "Two focused security reviews.",
-    intro: "Understand what one agent action can do and what your internet-facing system exposes. Compare the scope, evidence and price before requesting a review.",
+    eyebrow: "WitnessOps review",
+    title: "Agent Action Security Review",
+    intro: `One consequential agent or automation action for engineering teams and AI implementation partners preparing to launch or hand over an agent. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
     pricingTitle: "Review pricing and scope",
     pricingEyebrow: "Pricing",
     price: "Price",
     timing: "Timing",
     boundary: "Scope and exclusions",
     aiCta: "Request an agent review",
-    externalCta: "Request an external review",
     receive: "What you receive",
     how: "How the review works",
     detailCta: "See scope and deliverables",
     sampleCta: "Synthetic sample",
     aiGroup: "Review one agent action",
-    externalGroup: "Review external exposure",
     aiSummary: "One consequential agent or automation action. Permissions, approvals and execution evidence.",
-    externalSummary: "One authorised internet-facing system. Not a penetration test.",
     principlesTitle: "Scope before work. Evidence beside findings.",
     principles: [
       ["Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts."],
@@ -40,31 +38,28 @@ const copy = {
       ["Understand the limits", "The report distinguishes supported findings, unavailable evidence and questions the review could not answer."],
     ],
     enquiryBoundary: "An enquiry does not authorise collection or start a review. Payment and mailbox verification are not permission to inspect a system.",
-    assuranceBoundary: "These reviews do not grant compliance certification. A report, receipt or verifier does not prove that a system is secure, complete or free of vulnerabilities.",
-    unsureTitle: "Which of these two reviews fits?",
-    unsureBody: "Describe the decision you need to make. We will confirm whether the Agent Action review, the external review, or neither is the right fit. No work starts from the enquiry.",
-    enquiryCta: "Ask about fit",
-    catalogueCta: "Compare scopes and prices",
+    assuranceBoundary: "This review does not grant compliance certification. A report, receipt or verifier does not prove that a system is secure, complete or free of vulnerabilities.",
+    unsureTitle: "Ready to request the review?",
+    unsureBody: "Name the consequential action, the systems involved and the decision deadline. A non-secret fit check comes first. No work starts from the enquiry.",
+    enquiryCta: "Request an agent review",
+    catalogueCta: "See scope and deliverables",
   },
   pl: {
-    eyebrow: "Przeglądy WitnessOps",
-    title: "Dwa konkretne przeglądy bezpieczeństwa.",
-    intro: "Poznaj jedno działanie agenta i ekspozycję systemu dostępnego z internetu. Porównaj zakres, materiały i cenę przed wysłaniem zgłoszenia.",
+    eyebrow: "Przegląd WitnessOps",
+    title: "Agent Action Security Review",
+    intro: `Jedno istotne działanie agenta lub automatyzacji dla zespołów inżynierskich i partnerów wdrażających AI. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`,
     pricingTitle: "Ceny i zakres przeglądów",
     pricingEyebrow: "Ceny",
     price: "Cena",
     timing: "Termin",
     boundary: "Zakres i wyłączenia",
     aiCta: "Zgłoś przegląd agenta",
-    externalCta: "Zgłoś przegląd ekspozycji",
     receive: "Co otrzymasz",
     how: "Jak przebiega przegląd",
     detailCta: "Zobacz zakres i wyniki",
     sampleCta: "Syntetyczny przykład",
     aiGroup: "Sprawdź jedno działanie agenta",
-    externalGroup: "Sprawdź ekspozycję zewnętrzną",
     aiSummary: "Jedno istotne działanie agenta lub automatyzacji. Uprawnienia, zatwierdzanie i dowody wykonania.",
-    externalSummary: "Jeden autoryzowany system dostępny z internetu. To nie jest test penetracyjny.",
     principlesTitle: "Najpierw zakres. Ustalenia ze źródłami.",
     principles: [
       ["Uzgodniona granica", "Zakres, wyłączenia, cenę, upoważnienie i zasady obsługi materiałów uzgadniamy przed pracą."],
@@ -72,11 +67,11 @@ const copy = {
       ["Jawne ograniczenia", "Raport odróżnia ustalenia poparte źródłami, niedostępne materiały i pytania pozostające bez odpowiedzi."],
     ],
     enquiryBoundary: "Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu. Płatność i weryfikacja skrzynki nie stanowią zgody na inspekcję systemu.",
-    assuranceBoundary: "Przeglądy nie przyznają certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
-    unsureTitle: "Który z tych dwóch przeglądów pasuje?",
-    unsureBody: "Opisz decyzję, którą musisz podjąć. Potwierdzimy, czy pasuje Agent Action Security Review, przegląd ekspozycji zewnętrznej, czy żaden z nich. Zgłoszenie nie rozpoczyna pracy.",
-    enquiryCta: "Zapytaj o dopasowanie",
-    catalogueCta: "Porównaj zakres i cenę",
+    assuranceBoundary: "Ten przegląd nie przyznaje certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
+    unsureTitle: "Gotowy, aby zgłosić przegląd?",
+    unsureBody: "Wskaż istotne działanie, zaangażowane systemy i termin decyzji. Najpierw niepoufna ocena dopasowania. Zgłoszenie nie rozpoczyna pracy.",
+    enquiryCta: "Zgłoś przegląd agenta",
+    catalogueCta: "Zobacz zakres i wyniki",
   },
 } as const;
 
@@ -112,13 +107,13 @@ export function BuyerCatalogue({
           const serviceRequestHref = buyerServiceRequestHref(locale, service);
           return (
             <section key={service.id} id={groupId} aria-labelledby={`${groupId}-heading`} className="scroll-mt-28 mb-10">
-              <h2 id={`${groupId}-heading`} className="wo-h2 text-text-primary">{ai ? text.aiGroup : text.externalGroup}</h2>
-              <p className="wo-body mt-2 mb-5 text-text-secondary">{ai ? text.aiSummary : text.externalSummary}</p>
+              <h2 id={`${groupId}-heading`} className="wo-h2 text-text-primary">{text.aiGroup}</h2>
+              <p className="wo-body mt-2 mb-5 text-text-secondary">{text.aiSummary}</p>
               <div className="grid max-w-3xl gap-px overflow-hidden rounded-md border border-surface-border bg-surface-border">
                 <article
                   id={service.id}
                   data-buyer-service={service.id}
-                  data-pricing-review={pricing ? (ai ? "agent-action" : "external-exposure") : undefined}
+                  data-pricing-review={pricing ? "agent-action" : undefined}
                   data-pricing-service={pricing ? service.id : undefined}
                   data-price-contract={service.commercialContract.price}
                   data-timing-contract={service.commercialContract.timing}
@@ -150,9 +145,8 @@ export function BuyerCatalogue({
                     </ol>
                   </details> : null}
                   <div className="mt-auto flex flex-wrap gap-3 pt-3">
-                    <Link href={serviceRequestHref} className="wo-ui inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{ai ? text.aiCta : text.externalCta}</Link>
+                    <Link href={serviceRequestHref} className="wo-ui inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{text.aiCta}</Link>
                     {detailHref ? <Link href={detailHref} className="wo-ui inline-flex min-h-11 items-center border border-surface-border px-5 text-text-primary hover:bg-surface-inset">{text.detailCta}</Link> : null}
-                    {!ai ? <Link href="/review/sample-cases/external-exposure-assessment" className="wo-ui inline-flex min-h-11 items-center border border-surface-border px-5 text-text-primary hover:bg-surface-inset">{text.sampleCta}</Link> : null}
                   </div>
                 </article>
               </div>

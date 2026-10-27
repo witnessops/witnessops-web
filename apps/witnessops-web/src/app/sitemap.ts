@@ -40,10 +40,6 @@ const staticRoutes: StaticRoute[] = [
     route: "/reviews/agent-action-security-review",
     sourcePath: "src/app/(marketing)/reviews/agent-action-security-review/page.tsx",
   },
-  {
-    route: "/reviews/external-attack-surface-review",
-    sourcePath: "src/app/(marketing)/reviews/external-attack-surface-review/page.tsx",
-  },
   { route: "/how-it-works", sourcePath: "src/app/(marketing)/how-it-works/page.tsx" },
   { route: "/about", sourcePath: "src/app/(marketing)/about/page.tsx" },
   ...BUYER_SERVICES.filter(
@@ -79,11 +75,6 @@ const staticRoutes: StaticRoute[] = [
   {
     route: "/review/sample-cases/local-server-security-review",
     sourcePath: "src/app/review/sample-cases/local-server-security-review/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/external-exposure-assessment",
-    sourcePath:
-      "src/app/review/sample-cases/external-exposure-assessment/page.tsx",
   },
   {
     route: "/review/sample-cases/launch-readiness-review",
@@ -149,10 +140,6 @@ const polishRoutes: StaticRoute[] = [
   {
     route: "/pl/reviews/agent-action-security-review",
     sourcePath: "src/app/pl/reviews/agent-action-security-review/page.tsx",
-  },
-  {
-    route: "/pl/reviews/external-attack-surface-review",
-    sourcePath: "src/app/pl/reviews/external-attack-surface-review/page.tsx",
   },
   { route: "/pl/library", sourcePath: "src/app/pl/library/page.tsx" },
   ...getPolishSkus().map(({ id }) => ({

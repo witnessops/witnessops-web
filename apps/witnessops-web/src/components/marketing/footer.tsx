@@ -9,13 +9,9 @@ import {
   COMPANY_DETAILS,
   COMPANY_DETAILS_HREF,
 } from "@/lib/company-details";
-import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { buyerRequestHref } from "@/lib/buyer-services";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { isPolishPath } from "@/lib/public-i18n";
-import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 
@@ -23,19 +19,17 @@ const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
 const MEDIA_KIT_HREF = { en: "/media-kit", pl: "/pl/media-kit" } as const;
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
-const AGENT_ACTION_REVIEW = buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID);
-
 function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
   return [
     {
       label: PUBLIC_AGENT_ACTION_OFFER.name[locale],
-      href: buyerServiceRequestHref(locale, AGENT_ACTION_REVIEW),
+      href: locale === "pl"
+        ? "/pl/reviews/agent-action-security-review"
+        : "/reviews/agent-action-security-review",
     },
     {
-      label: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
-      href: locale === "pl"
-        ? "/pl/reviews/external-attack-surface-review"
-        : "/reviews/external-attack-surface-review",
+      label: locale === "pl" ? "Zgłoś przegląd agenta" : "Request an agent review",
+      href: buyerRequestHref(locale),
     },
   ];
 }
@@ -47,7 +41,7 @@ const FOOTER_LINK_CLASS =
 const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-xs text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline ";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
-const PREMIUM_FOOTER_SUBLINE = "Proof other people can check.";
+const PREMIUM_FOOTER_SUBLINE = "One consequential agent action. Written findings and explicit limits.";
 
 type FooterLink = { label: string; href: string };
 

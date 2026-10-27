@@ -40,7 +40,7 @@ const likelyCommercialFit = {
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
 
-function generatedPayload(serviceId: string = "external-exposure-assessment") {
+function generatedPayload(serviceId: string = "agent-action-security-review") {
   const service = BUYER_SERVICES.find((item) => item.id === serviceId)!;
   const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   requestUrl.searchParams.set("source", "ask");
@@ -93,8 +93,8 @@ test("generated answers show provider prose and a canonical non-primary review w
     const answer = await fetchAskWitnessOps("What do I receive from a Linux server review?");
     assert.equal(askWitnessOpsAnswerText(answer), payload.template.body);
     assert.equal(askWitnessOpsModeLabel(answer), "AI-generated answer");
-    assert.equal(answer.recommendation?.service_id, "external-exposure-assessment");
-    assert.match(answer.recommendation?.request_href ?? "", /productId=OFFSEC-EXTERNAL-EXPOSURE/);
+    assert.equal(answer.recommendation?.service_id, "agent-action-security-review");
+    assert.match(answer.recommendation?.request_href ?? "", /offerId=agent-action-security-review/);
     assert.equal(answer.receipt_id, undefined);
     assert.equal(answer.receipt_status, undefined);
   } finally {

@@ -54,19 +54,17 @@ export function withdrawnOfferCopy(polish: boolean) {
   return polish
     ? {
         title: "Ta oferta została wycofana",
-        body: "WitnessOps nie oferuje już tego przeglądu. Aktualne przeglądy i kontakt są poniżej.",
+        body: "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.",
         links: [
           ["/pl/reviews/agent-action-security-review", "Agent Action Security Review"],
-          ["/pl/reviews/external-attack-surface-review", "External Attack Surface Review"],
           ["/pl/contact", "Kontakt"],
         ] as const,
       }
     : {
         title: "This offer has been withdrawn",
-        body: "WitnessOps no longer offers this review. The current reviews and contact are below.",
+        body: "WitnessOps no longer offers this review. The current review and contact are below.",
         links: [
           ["/reviews/agent-action-security-review", "Agent Action Security Review"],
-          ["/reviews/external-attack-surface-review", "External Attack Surface Review"],
           ["/contact", "Contact"],
         ] as const,
       };

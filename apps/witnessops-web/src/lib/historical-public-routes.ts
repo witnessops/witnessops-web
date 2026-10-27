@@ -10,6 +10,11 @@ export const HISTORICAL_UNINDEXED_PUBLIC_PATHS = [
   "/pl/catalog/professional-public-footprint-audit",
   "/customer-security-review",
   "/pl/customer-security-review",
+  "/catalog/offsec-external-exposure",
+  "/pl/catalog/offsec-external-exposure",
+  "/reviews/external-attack-surface-review",
+  "/pl/reviews/external-attack-surface-review",
+  "/review/sample-cases/external-exposure-assessment",
 ] as const;
 
 export function isHistoricallyUnindexedPublicPath(value: string): boolean {

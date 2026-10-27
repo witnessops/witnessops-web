@@ -3,10 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { PriceText, PriceUnit } from "@/lib/price-unit";
 import { sovereignNeedsReviewVisible } from "@/lib/sovereign-release";
 import { sovereignAnswer, type SovereignLocale } from "./ask-sovereign-answers";
@@ -44,20 +41,16 @@ function applyThreadFade(thread: HTMLElement, snap = false) {
 }
 
 const REVIEW_TOPICS = ["Retention", "Data location", "AI provider", "AI disclosure", "Legal clauses"] as const;
-const EASR_RETEST = {
-  en: "One focused retest of reported findings within 30 calendar days of initial report handover.",
-  pl: "Jeden ukierunkowany retest zgłoszonych ustaleń w ciągu 30 dni kalendarzowych od przekazania pierwszego raportu.",
-} as const;
 
 export type SuggestionTopic = "aasr" | "easr" | "start" | "write";
 export type Suggestion = { id: SuggestionTopic; text: string };
 
 const COPY = {
   en: {
-    greeting: "Hello. I can answer from the two published reviews. Ask about scope, price or how to start.",
+    greeting: "Hello. I can answer from the published review. Ask about scope, price or how to start.",
     suggestions: [
       { id: "aasr", text: "What does the Agent Action Security Review cover?" },
-      { id: "easr", text: "What does the External Attack Surface Review include, and what does it cost?" },
+      { id: "easr", text: "Is the external review still offered?" },
       { id: "start", text: "How do I start?" },
       { id: "write", text: "Where do I write?" },
     ],
@@ -70,7 +63,7 @@ const COPY = {
     disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
     optin: "Include this transcript when I contact a person",
     optinHint: "Preview, sends nothing",
-    composer: "Ask about the two reviews",
+    composer: "Ask about the review",
     send: "Send",
     railAnswer: "What Sovereign can answer",
     railStart: "How to start, and where to write",
@@ -88,13 +81,13 @@ const COPY = {
     contact: "/contact",
     back: "Docs",
     kicker: "AI assistant",
-    lead: "Questions about the two WitnessOps reviews, answered from the published offer facts. Anything else goes to a person.",
+    lead: "Questions about the WitnessOps review, answered from the published offer facts. Anything else goes to a person.",
   },
   pl: {
-    greeting: "Dzień dobry. Odpowiadam z dwóch opublikowanych przeglądów. Pytaj o zakres, cenę albo jak zacząć.",
+    greeting: "Dzień dobry. Odpowiadam z opublikowanego przeglądu. Pytaj o zakres, cenę albo jak zacząć.",
     suggestions: [
       { id: "aasr", text: "Co obejmuje Agent Action Security Review?" },
-      { id: "easr", text: "Co obejmuje External Attack Surface Review i ile kosztuje?" },
+      { id: "easr", text: "Czy przegląd ekspozycji jest dostępny?" },
       { id: "start", text: "Jak zacząć?" },
       { id: "write", text: "Gdzie napisać?" },
     ],
@@ -107,7 +100,7 @@ const COPY = {
     disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się\u00A0mylić.",
     optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
     optinHint: "Podgląd, nic nie wysyła",
-    composer: "Zapytaj o te dwa przeglądy",
+    composer: "Zapytaj o przegląd",
     send: "Wyślij",
     railAnswer: "Na co Sovereign może odpowiedzieć",
     railStart: "Jak zacząć i gdzie napisać",
@@ -125,7 +118,7 @@ const COPY = {
     contact: "/pl/contact",
     back: "Dokumentacja",
     kicker: "Asystent AI",
-    lead: "Pytania o dwa przeglądy WitnessOps, z odpowiedzią na podstawie opublikowanych faktów oferty. Wszystko inne trafia do człowieka.",
+    lead: "Pytania o przegląd WitnessOps, z odpowiedzią na podstawie opublikowanych faktów oferty. Wszystko inne trafia do człowieka.",
   },
 } as const;
 
@@ -816,7 +809,6 @@ export function AskSovereignPreview({ locale = "en" }: { locale?: SovereignLocal
           <h3>{copy.railAnswer}</h3>
           <ul>
             <OfferFact name={PUBLIC_AGENT_ACTION_OFFER.name[locale]} price={PUBLIC_AGENT_ACTION_OFFER.price[locale]} />
-            <OfferFact name={EXTERNAL_ATTACK_SURFACE_OFFER.name[locale]} price={EXTERNAL_ATTACK_SURFACE_OFFER.price[locale]} tail={EASR_RETEST[locale]} />
             <li>{copy.railStart}</li>
           </ul>
           <h3>{copy.railAbout}</h3>

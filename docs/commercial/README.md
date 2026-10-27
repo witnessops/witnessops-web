@@ -3,12 +3,12 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Public new-sales reviews:** exactly two, as decided in [Two-Offer V1](./18-two-offer-portfolio.md). This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
+**Public new-sales review:** one, by founder decision on 2026-10-27. [Two-Offer V1](./18-two-offer-portfolio.md) remains the historical record of the earlier pair. This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
 
 - **Agent Action Security Review** — €2,500 fixed, excluding VAT. New-sales identity `agent-action-security-review`. Request path: `/review/request?offerId=agent-action-security-review`. One consequential agent or automation action, with explicit unknowns in the deliverables. Delivery timing per signed SOW. It has no detail route. This is not the historical inventory offer and not `bounded-workflow-review`.
-- **External Attack Surface Review** — €1,900 excluding VAT, under [the external offer record](./10-public-exposure-review-offer.md). Product identity `OFFSEC-EXTERNAL-EXPOSURE`; that product id is not an offerId. Request path: `/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE`. Detail route: `/catalog/offsec-external-exposure`. Delivery timing per signed SOW. One focused retest within 30 calendar days of initial report handover. This is not a penetration test.
+- **External Attack Surface Review** — parked. The [offer record](./10-public-exposure-review-offer.md) stays for issued agreements and old lookups. Product identity `OFFSEC-EXTERNAL-EXPOSURE` is not a new-sales offerId or productId. Do not book it, and do not present Agent Action Security Review as the same offer. Existing URLs explain that the review is no longer available.
 
-Neither review is ranked as the sole primary. The €950 private pilot is not a public new-sales choice. The free hostname check remains a separate tool at `/check`.
+The €950 private pilot is not a public new-sales choice. The free hostname check remains a separate tool at `/check`.
 
 Historical records stay in force for issued agreements and old lookups. The [superseded one-action contract](./16-agent-workflow-reconstruction-offer.md) uses `bounded-workflow-review`. The [inventory-plus-action contract](./17-ai-agent-tools-access-review-offer.md) uses `agent-tools-access-review` and remains at `/catalog/workflows`. Those identities are not new-sales selections.
 

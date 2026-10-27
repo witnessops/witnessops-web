@@ -8,7 +8,6 @@ import { BuyerReportDocument } from '@/components/proofpack/buyer-report';
 import { createReportModel, type ProofpackReportV1, type ReportModelInput } from '@/lib/proofpack/report-model';
 import { EXCLUSIONS, EXTERNAL_VERSION, SNAPSHOT_BOUNDARY, type ExternalSnapshotV1, type CheckStatus } from '@/lib/external-exposure/contracts';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '@/lib/commercial-truth';
-import { buyerOfferRequestHref } from '@/lib/buyer-services';
 import { InlineArrow } from '@/components/marketing/inline-arrow';
 import styles from './external-exposure.module.css';
 
@@ -162,7 +161,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
 
         <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>
       </>}
-      <aside className={styles.offer}><div><p className={styles.eyebrow}>EXPERT HELP</p><h2>Need a closer look?</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: agree the scope of a human review before work begins.</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p><a className={styles.textLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope <InlineArrow /></a></div><a className={styles.secondaryLink} href={buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId)}>Ask an expert</a></aside>
+      <aside className={styles.offer}><div><p className={styles.eyebrow}>NOT A REVIEW</p><h2>This check is not a paid review.</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available. This free hostname snapshot stays a tool, not that review.</p><a className={styles.textLink} href="/reviews/external-attack-surface-review">Read the availability notice <InlineArrow /></a></div><a className={styles.secondaryLink} href="/reviews/agent-action-security-review">See the current agent review</a></aside>
     </div>
     {result && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
   </main></>;

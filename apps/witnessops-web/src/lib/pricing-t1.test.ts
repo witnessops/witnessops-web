@@ -25,12 +25,12 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan."));
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
   assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
-  assert.match(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.match(faq, /€2,500\u00A0excl.\u00A0VAT/);
   assert.match(faq, /Delivery timing agreed in the signed statement of work/);
-  assert.match(faq, /explicit unknowns/);
-  assert.match(faq, /30 calendar days of initial report handover/);
-  assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope/);
+  assert.match(faq, /documented unknowns/);
+  assert.match(faq, /External Attack Surface Review is no longer available for new engagements/);
+  assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope|30 calendar days/);
   assert.match(faq, /agent-tools-access-review/);
   assert.doesNotMatch(faq, /primary paid entry point is \[AI Agent Tools/);
   assert.doesNotMatch(faq, /Private Pilot|Internet Footprint Review|€500/);
