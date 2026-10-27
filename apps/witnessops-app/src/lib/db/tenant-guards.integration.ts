@@ -23,6 +23,7 @@ if (!['127.0.0.1', 'localhost'].includes(target.hostname) || !/^\/[a-z0-9_]+_tes
   throw new Error('Refusing a non-local or non-test database');
 }
 const schema = `tenant_test_${randomUUID().replaceAll('-', '')}`;
+const cataloguePeerSchema = `${schema}_peer`;
 const admin = new Pool({ connectionString, max: 1 });
 const source = JSON.parse(readFileSync(new URL('../../../../../tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json', import.meta.url), 'utf8')) as ExternalSnapshotV1;
 const origin = 'https://app.example.com';
@@ -74,6 +75,12 @@ function count(result: { rowCount: number | null }) {
 
 before(async () => {
   assert.equal((await admin.query('SELECT current_database() AS db')).rows[0].db, target.pathname.slice(1));
+  // Parallel suites may own constraints with the same names in another schema.
+  await admin.query(`CREATE SCHEMA ${cataloguePeerSchema}`);
+  await admin.query(`CREATE TABLE ${cataloguePeerSchema}.parent (id int PRIMARY KEY)`);
+  await admin.query(`CREATE TABLE ${cataloguePeerSchema}.child (
+    parent_id int CONSTRAINT report_shares_workspace_run_fkey REFERENCES ${cataloguePeerSchema}.parent(id)
+  )`);
   await admin.query(`CREATE SCHEMA ${schema}`);
   const owner = new Pool({ connectionString, options: `-c search_path=${schema},public`, max: 1 });
   try {
@@ -93,6 +100,7 @@ before(async () => {
 after(async () => {
   await tenant?.end();
   await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+  await admin.query(`DROP SCHEMA IF EXISTS ${cataloguePeerSchema} CASCADE`);
   await admin.end();
 });
 
@@ -119,13 +127,13 @@ test('runtime role is not the table owner and the migration pre-check finds no c
 });
 
 test('composite foreign keys reject a cross-workspace parent and keep the previous ON DELETE action', async () => {
-  const definitions = (await tenant.query("SELECT conname, confdeltype::text AS on_delete, pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE conname = ANY($1::name[]) ORDER BY conname", [[
+  const definitions = (await tenant.query("SELECT conname, confdeltype::text AS on_delete, pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE connamespace = $2::regnamespace AND conname = ANY($1::name[]) ORDER BY conname", [[
     'server_check_executions_workspace_asset_fkey',
     'server_check_executions_workspace_run_fkey',
     'report_shares_workspace_run_fkey',
     'report_share_deliveries_workspace_share_fkey',
     'report_shares_workspace_id_id_key',
-  ]])).rows;
+  ], schema])).rows;
   assert.ok(definitions.some(row => row.conname === 'report_shares_workspace_id_id_key'));
   assert.deepEqual(definitions.filter(row => row.on_delete.trim()).map(row => [row.conname, row.on_delete]), [
     ['report_share_deliveries_workspace_share_fkey', 'c'],
