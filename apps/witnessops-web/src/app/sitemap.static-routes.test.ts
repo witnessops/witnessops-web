@@ -15,6 +15,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/chronicles/001-the-unauthorized-feline",
   "/chronicles/002-sir-whiskers-opens-a-pull-request",
   "/chronicles/003-the-meeting-nobody-authorized",
+  "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
   "/contact",
   "/pl/contact",
   "/library",
@@ -63,7 +64,6 @@ const EXCLUDED_SITEMAP_ROUTES = [
   "/review/sample-cases/custody-wallet-ops-review",
   "/review/sample-cases/incident-readiness-review",
   "/review/sample-cases/customer-security-review-sprint",
-  "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
   "/review/request",
   "/pl/review/request",
 ] as const;
