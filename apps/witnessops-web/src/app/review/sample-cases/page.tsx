@@ -30,14 +30,6 @@ export const metadata: Metadata = {
 
 const sampleCases = [
   {
-    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    href: "/review/sample-cases/external-exposure-assessment",
-    situation: "A bounded external review is documented in a synthetic sample report.",
-    youSee: "The report, findings, evidence references and limits. This public copy contains no receipt and is not an input for /verify. Not a live assessment of your environment.",
-    tags: ["Synthetic sample report", "External review example"],
-    emphasize: true,
-  },
-  {
     title: "Compromised API key rotation",
     href: "/review/sample-cases/ai-agent-action-proof-run",
     situation: "A historical synthetic example connects one bounded agent action with authority and execution evidence.",
@@ -45,6 +37,14 @@ const sampleCases = [
       "Signed sample artifacts, browser verification and an offline verifier. This is not a complete sample of the current agent review, and these tools are not standard review deliverables.",
     tags: ["Historical synthetic run", "Agent action example"],
     emphasize: true,
+  },
+  {
+    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+    href: "/review/sample-cases/external-exposure-assessment",
+    situation: "A bounded external review is documented in a synthetic sample report.",
+    youSee: "The report, findings, evidence references and limits. This public copy contains no receipt and is not an input for /verify. Not a live assessment and not available for new engagements.",
+    tags: ["Parked review sample", "Synthetic sample report"],
+    emphasize: false,
   },
   {
     title: "Witnessed synthetic CRM action",
@@ -132,12 +132,13 @@ export default function SampleCasesIndexPage() {
             Published sample, not live customer evidence. No production verification or certification.
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
-            Start with the external review example and the historical agent-action
-            specimen below. For the current scope of {PUBLIC_AGENT_ACTION_OFFER.name.en}
-            {" and "}{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}, {" "}
-            <Link href="/catalog" className="text-brand-accent underline underline-offset-4">
-              compare the two reviews
-            </Link>.
+            Start with the historical agent-action specimen below. For the current
+            scope of {PUBLIC_AGENT_ACTION_OFFER.name.en}, {" "}
+            <Link href="/reviews" className="text-brand-accent underline underline-offset-4">
+              see the current review
+            </Link>
+            . {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
+            engagements; its sample remains a labelled synthetic example.
             {" "}Older service and method samples remain available for reference;
             they are not additional reviews offered for sale.
           </p>

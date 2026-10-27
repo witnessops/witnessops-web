@@ -21,15 +21,15 @@ test("all five historical proofpacks disclose incompatible Bundle V1 and unavail
   }
 });
 
-test("index leads with current-review examples and labels historical service samples", () => {
+test("index leads with the agent specimen and labels the parked external sample", () => {
   const html = renderToStaticMarkup(<Index />);
   assert.ok(html.includes('href="/review/sample-cases/external-exposure-assessment"'));
   assert.ok(html.includes("not live customer evidence"));
   assert.ok(!html.includes("How to use these pages"));
-  const firstCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
   const agentCard = html.indexOf('href="/review/sample-cases/ai-agent-action-proof-run"');
-  assert.ok(firstCard > 0 && firstCard < agentCard);
-  assert.ok(agentCard < html.indexOf("Next steps"));
+  const externalCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
+  assert.ok(agentCard > 0 && agentCard < externalCard);
+  assert.ok(externalCard < html.indexOf("Next steps"));
   for (const withdrawn of [
     "/review/sample-cases/local-server-security-review",
     "/review/sample-cases/launch-readiness-review",
@@ -41,8 +41,10 @@ test("index leads with current-review examples and labels historical service sam
   }
   assert.ok(html.includes("Agent Action Security Review"));
   assert.ok(html.includes("External Attack Surface Review"));
+  assert.ok(html.includes("no longer available for new engagements"));
   assert.ok(html.includes("not a complete sample of the current agent review"));
   assert.ok(html.includes("not additional reviews offered for sale"));
+  assert.ok(!html.includes("compare the two reviews"));
   assert.ok(!html.includes("External Exposure assessment"));
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
 });

@@ -273,7 +273,7 @@ export default function ReviewPage() {
           >
             <h3 className="text-sm font-semibold text-text-primary">External Attack Surface Review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              A synthetic sample report for the current external review. Not a live assessment.
+              A labelled synthetic sample for a parked review. Not a live assessment and not available for new engagements.
             </p>
           </a>
         </div>

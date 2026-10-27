@@ -64,6 +64,7 @@ test("the parked external sample stays labelled and is not a booking path", () =
   const catalogueHtml = renderToStaticMarkup(
     createElement(BuyerCatalogue, { locale: "en" }),
   );
+  assert.match(page, /robots: \{ index: false, follow: true \}/);
   assert.match(page, /no longer available for new\s+engagements/);
   assert.doesNotMatch(page, /Request an external review/);
   assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);

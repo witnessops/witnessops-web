@@ -25,8 +25,9 @@ const sampleFiles = [
 
 export const metadata: Metadata = {
   title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`,
-  description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence.`,
+  description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence. The review is no longer available for new engagements.`,
   alternates: { canonical: samplePath },
+  robots: { index: false, follow: true },
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
