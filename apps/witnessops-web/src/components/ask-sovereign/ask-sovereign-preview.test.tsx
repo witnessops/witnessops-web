@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AskSovereignPreview, announcementText, armPendingQuestion, followUpSuggestions, liveText, pausedLoadPhase, PROCESSING_SHOW_DELAY_MS, PENDING_TIMEOUT_MS, SLOW_PENDING_MS, suggestionTopic } from "./ask-sovereign-preview";
 import type { SovereignSpriteState } from "./sovereign-playback";
 
-test("Ask Sovereign preview makes no fetch or XHR and stores nothing but the pause flag", () => {
+test("the default simulated preview keeps its disclosure and stores nothing but the pause flag", () => {
   const files = ["ask-sovereign-preview.tsx", "sovereign-sprite.tsx", "ask-sovereign-answers.ts", "sovereign-playback.ts", "preview-triggers.ts"];
   const source = files.map((file) => readFileSync(resolve(__dirname, file), "utf8")).join("\n");
   assert.doesNotMatch(source, /fetch\s*\(|XMLHttpRequest|sendBeacon|localStorage|indexedDB|\/api\/ask-witnessops/);
@@ -106,6 +106,38 @@ function chromeBinary(): string | null {
   }
   return null;
 }
+
+test("the embedded conversation keeps the preview disclosure and closes without navigating away", () => {
+  const html = renderToStaticMarkup(createElement(AskSovereignPreview, { onClose: () => undefined }));
+  assert.match(html, /Preview, sends nothing/);
+  assert.match(html, /<button[^>]+aria-label="Close"/);
+  assert.doesNotMatch(html, /<aside|data-sheet-behind|role="dialog"/);
+  assert.match(html, /id="ask-sovereign-draft"/);
+  assert.equal(html.match(/role="status"/g)?.length, 1);
+});
+
+test("the connected widget discloses OpenAI, limits input and disables unavailable transcript sharing", () => {
+  for (const locale of ["en", "pl"] as const) {
+    const html = renderToStaticMarkup(createElement(AskSovereignPreview, { connection: "api", locale, onClose: () => undefined }));
+    assert.match(html, /OpenAI/);
+    assert.match(html, /maxLength="2000"/);
+    assert.match(html, /type="checkbox"[^>]*disabled=""/);
+    assert.doesNotMatch(html, /Preview, sends nothing|Podgląd, nic nie wysyła/);
+    assert.doesNotMatch(html, /Include this transcript when I contact a person|Dołącz tę rozmowę, gdy napiszę do człowieka/);
+    assert.match(html, locale === "en" ? /This conversation is not attached to contact/ : /Ta rozmowa nie jest dołączana do kontaktu/);
+    assert.match(html, locale === "en" ? /I’ll say when an answer is unavailable/ : /Powiem, jeśli odpowiedź będzie niedostępna/);
+    assert.equal(html.match(/role="status"/g)?.length, 1);
+  }
+  assert.equal(announcementText("en", "error", "", false), "AI is unavailable right now. Your question was not answered. Try again later or contact a person.");
+  assert.equal(announcementText("en", "answer", "Published scope.", false), "Sovereign: Published scope.");
+});
+
+test("Polish language can be hosted at a domain root without /pl links", () => {
+  const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl", routePrefix: "" }));
+  assert.match(html, /Dzień dobry/);
+  assert.match(html, /href="\/docs"/);
+  assert.doesNotMatch(html, /href="\/pl\//);
+});
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] ?? char);

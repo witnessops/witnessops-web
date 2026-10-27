@@ -26,6 +26,15 @@ test("normalization accepts bounded recent messages and resolves only catalogue 
   });
 });
 
+test("the widget surface is explicit and unknown interface capabilities fail closed", () => {
+  assert.deepEqual(normalizeAskRequest({ question: "Can I check my website?", surface: "sovereign_widget" }), {
+    ok: true, request: { question: "Can I check my website?", surface: "sovereign_widget" },
+  });
+  for (const surface of ["unknown", "developer", "", null, true, {}]) {
+    assert.equal(normalizeAskRequest({ question: "Can I check my website?", surface }).ok, false);
+  }
+});
+
 test("malformed history, privileged roles and unknown page identifiers are rejected", () => {
   for (const context of [
     { history: null }, { history: "old question" }, { history: [null] },

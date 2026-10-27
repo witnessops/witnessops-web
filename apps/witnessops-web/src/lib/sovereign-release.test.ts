@@ -6,6 +6,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { AskSovereignPreview } from "../components/ask-sovereign/ask-sovereign-preview";
+import { AskSovereignWidget } from "../components/ask-sovereign/ask-sovereign-widget";
 
 const saved = {
   node: process.env.NODE_ENV,
@@ -38,6 +39,7 @@ test("a production build stays closed with no flags, the preview flag, or the re
       assert.equal(sovereignAssistantPublished(), false, JSON.stringify(flags));
       assert.equal(sovereignNeedsReviewVisible(), false, JSON.stringify(flags));
       assert.equal(askWitnessOpsRouteAvailable(), false, JSON.stringify(flags));
+      assert.equal(renderToStaticMarkup(createElement(AskSovereignWidget)), "", JSON.stringify(flags));
     }
     const en = await import("../app/docs/assistant/page");
     const pl = await import("../app/pl/docs/assistant/page");
@@ -78,6 +80,15 @@ test("a development preview publishes the assistant and keeps the review rail be
     const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release");
     assert.equal(sovereignAssistantPublished(), true);
     assert.equal(sovereignNeedsReviewVisible(), false);
+    const launcher = renderToStaticMarkup(createElement(AskSovereignWidget));
+    assert.match(launcher, /aria-label="Ask Sovereign"/);
+    assert.match(launcher, /aria-haspopup="dialog"/);
+    assert.match(launcher, /aria-expanded="false"/);
+    assert.match(launcher, /Preview/);
+    assert.doesNotMatch(launcher, /data-sovereign-preview/);
+    process.env.NEXT_PUBLIC_WO_PREVIEW = "0";
+    assert.equal(renderToStaticMarkup(createElement(AskSovereignWidget)), "");
+    process.env.NEXT_PUBLIC_WO_PREVIEW = "1";
     process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = "1";
     assert.equal(sovereignNeedsReviewVisible(), true);
     const html = renderToStaticMarkup(createElement(AskSovereignPreview));

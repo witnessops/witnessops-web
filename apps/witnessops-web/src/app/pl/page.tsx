@@ -5,6 +5,7 @@ import { HOMEPAGE_TWO_OFFER_COPY } from "@/components/marketing/homepage-two-off
 import { languageAlternates, organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { JsonLd } from "@/components/seo/json-ld";
+import { AskSovereignWidget } from "@/components/ask-sovereign/ask-sovereign-widget";
 
 const homeTitle = "Bezpieczeństwo i weryfikacja";
 const homeDescription = `${HOMEPAGE_TWO_OFFER_COPY.pl.headline} ${HOMEPAGE_TWO_OFFER_COPY.pl.support}`;
@@ -34,6 +35,7 @@ export default function PolishHomePage() {
       <JsonLd id="witnessops-organization" value={organizationJsonLd} />
       <JsonLd id="witnessops-website" value={websiteJsonLd} />
       <BuyerHomepage locale="pl" />
+      <AskSovereignWidget locale="pl" routePrefix="/pl" />
     </>
   );
 }
