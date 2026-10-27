@@ -24,16 +24,17 @@ function chapterById(id: ChronicleChapter["id"]): ChronicleChapter {
 }
 
 test("published chapters stay in reading order", () => {
-  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003"]);
+  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003", "004"]);
   assert.deepEqual(
     PUBLISHED_CHAPTERS.map((chapter) => chapter.slug),
     [
       "001-the-unauthorized-feline",
       "002-sir-whiskers-opens-a-pull-request",
       "003-the-meeting-nobody-authorized",
+      "004-the-agent-who-scheduled-a-meeting-with-himself",
     ],
   );
-  assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), ["004"]);
+  assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), ["005"]);
   const chapter = chapterById("002");
   assert.equal(chapter.title, "Sir Whiskers Opens a Pull Request");
   assert.equal(chapter.kicker, "THE SOVEREIGN CHRONICLES · CHAPTER II");
@@ -113,16 +114,36 @@ test("pager links published chapters only", () => {
   assert.doesNotMatch(second, /coming soon|Not yet linked|Chapter 004/);
   const third = html("003");
   assert.match(third, /href="\/chronicles\/002-sir-whiskers-opens-a-pull-request"/);
-  assert.match(third, /href="\/chronicles"/);
-  assert.doesNotMatch(third, /003-the-meeting-nobody-authorized|coming soon|Not yet linked|Chapter 004/);
+  assert.match(third, /href="\/chronicles\/004-the-agent-who-scheduled-a-meeting-with-himself"/);
+  assert.doesNotMatch(third, /003-the-meeting-nobody-authorized|coming soon|Not yet linked|Chapter 005/);
+  const fourth = html("004");
+  assert.match(fourth, /href="\/chronicles\/003-the-meeting-nobody-authorized"/);
+  assert.match(fourth, /href="\/chronicles"/);
+  assert.doesNotMatch(fourth, /004-the-agent-who-scheduled-a-meeting-with-himself|coming soon|Not yet linked|Chapter 005/);
 });
 
-test("chronicles index links published chapters and keeps the chapter IV block", () => {
+test("chronicles index links published chapters and keeps the chapter V block", () => {
   const html = renderToStaticMarkup(createElement(ChroniclesIndexPage));
   assert.match(html, /href="\/chronicles\/001-the-unauthorized-feline"/);
   assert.match(html, /href="\/chronicles\/002-sir-whiskers-opens-a-pull-request"/);
   assert.match(html, /href="\/chronicles\/003-the-meeting-nobody-authorized"/);
-  assert.match(html, /Up next · Chapter IV · Coming soon · Not linked/);
+  assert.match(html, /href="\/chronicles\/004-the-agent-who-scheduled-a-meeting-with-himself"/);
   assert.match(html, /The Agent Who Scheduled a Meeting With Himself/);
+  assert.match(html, /Up next · Chapter V · Coming soon · Not linked/);
+  assert.match(html, /The Agent Who Was Told Not to Press the Button/);
   assert.doesNotMatch(html, /coming soon<\/p>/);
+});
+
+test("chapter 004 keeps the fiction boundary and the single remaining review", () => {
+  const chapter = chapterById("004");
+  const html = renderToStaticMarkup(createElement(ChronicleBody, { chapter }));
+  assert.match(html, /Fiction/);
+  assert.match(html, /Classification: FICTIONAL INCIDENT/);
+  assert.match(html, /Agent Action Security Review/);
+  assert.match(html, /€2,500/);
+  assert.match(html, /NOT TESTED/);
+  assert.match(html, /Do not create an eleventh commercial service/);
+  assert.match(html, /STATUS: IN PROGRESS/);
+  assert.doesNotMatch(html, /END OF CHAPTER|CHAPTER V/);
+  for (const name of BANNED) assert.equal(html.includes(name), false, name);
 });

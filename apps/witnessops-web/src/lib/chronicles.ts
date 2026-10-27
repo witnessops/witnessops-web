@@ -54,7 +54,7 @@ export function chroniclePreviewText(source: string): string {
 }
 
 export type ChronicleChapter = {
-  id: "001" | "002" | "003";
+  id: "001" | "002" | "003" | "004";
   slug: string;
   number: string;
   kicker: string;
@@ -112,13 +112,31 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
       "WitnessOps Headquarters · 15 October 2026 · 02:40 Warsaw Time",
     ],
   },
+  {
+    id: "004",
+    slug: "004-the-agent-who-scheduled-a-meeting-with-himself",
+    number: "004",
+    kicker: "THE SOVEREIGN CHRONICLES · CHAPTER IV",
+    title: "The Agent Who Scheduled a Meeting With Himself",
+    subtitle:
+      "In which the Founder discovers that removing nine services requires more intelligence than inventing ten, Sovereign becomes a bad influence, and a meeting nobody attended produces four action items.",
+    dateline: "WitnessOps Headquarters — 27 October 2026",
+    meta: "CH-004 · FICTION · 10 MIN READ",
+    description:
+      "A story from the WitnessOps desk about a meeting the organizer declined, and the one review that remained.",
+    sourceFile: "chapter-004.md",
+    dropLines: [
+      "In which the Founder discovers that removing nine services requires more intelligence than inventing ten, Sovereign becomes a bad influence, and a meeting nobody attended produces four action items.",
+      "WitnessOps Headquarters — 27 October 2026",
+    ],
+  },
 ] as const;
 
 export const RESERVED_CHAPTERS = [
   {
-    id: "004",
-    title: "The Agent Who Scheduled a Meeting With Himself",
-    teaser: "Nobody attends. Somehow, four action items are created.",
+    id: "005",
+    title: "The Agent Who Was Told Not to Press the Button",
+    teaser: "The button is red. The instructions say do not press it. Sir Whiskers has already pressed it.",
   },
 ] as const;
 
