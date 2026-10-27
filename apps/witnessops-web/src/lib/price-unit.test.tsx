@@ -66,10 +66,14 @@ test("simulated answer sources use the unbreakable price unit and no middot", ()
     sovereignAnswer("Co obejmuje Agent Action Security Review?", "pl").text,
     sovereignAnswer("Co obejmuje External Attack Surface Review?", "pl").text,
   ];
-  assert.match(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
+  assert.match(answers[0], /no longer available/);
+  assert.match(answers[0], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
+  assert.doesNotMatch(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
   assert.match(answers[1], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
   assert.match(answers[2], new RegExp(AGENT_PRICE_PL));
-  assert.match(answers[3], new RegExp(EXTERNAL_PRICE_PL));
+  assert.match(answers[3], /nie jest już dostępny/);
+  assert.match(answers[3], new RegExp(AGENT_PRICE_PL));
+  assert.doesNotMatch(answers[3], new RegExp(EXTERNAL_PRICE_PL));
   for (const text of answers) {
     assert.doesNotMatch(text, MIDDOT);
     assert.doesNotMatch(text, LOOSE);
@@ -109,9 +113,9 @@ test("rendered Ask and homepage prices are nowrap units", () => {
   assert.match(html, /white-space:nowrap/);
   assert.doesNotMatch(html, MIDDOT);
   assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
-  assert.match(html, /€1,900\u00A0excl\.\u00A0VAT/);
+  assert.doesNotMatch(html, /€1,900\u00A0excl\.\u00A0VAT/);
   assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
-  assert.match(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
+  assert.doesNotMatch(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   const wrapped = renderToStaticMarkup(createElement(PriceText, { text: `The price is ${EXTERNAL_PRICE_EN}.` }));
   assert.match(wrapped, new RegExp(`<span data-price-unit="" style="white-space:nowrap">${escapeRegExp(EXTERNAL_PRICE_EN)}</span>`));
 });

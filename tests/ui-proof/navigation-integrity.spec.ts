@@ -195,7 +195,7 @@ test("the withdrawn agent tools detail stays on its URL as a 410 and does not st
   await context.close();
 });
 
-test("support sends paid-work buyers to the two current public reviews", async ({
+test("support sends paid-work buyers to the current agent review", async ({
   browser,
 }) => {
   for (const scenario of [
@@ -219,14 +219,11 @@ test("support sends paid-work buyers to the two current public reviews", async (
     await expect(main).not.toContainText("Agent Risk & Control Review");
     await expect(main).not.toContainText("From €1,500");
 
-    for (const [slug, name] of [
-      ["agent-action-security-review", "Agent Action Security Review"],
-      ["external-attack-surface-review", "External Attack Surface Review"],
-    ] as const) {
-      const offerLinks = main.locator(`a[href="${scenario.prefix}/reviews/${slug}"]`);
-      expect(await offerLinks.count(), `${scenario.path} ${slug}`).toBeGreaterThanOrEqual(1);
-      await expect(offerLinks.first()).toContainText(name);
-    }
+    const agentLinks = main.locator(`a[href="${scenario.prefix}/reviews/agent-action-security-review"]`);
+    expect(await agentLinks.count(), `${scenario.path} agent review`).toBeGreaterThanOrEqual(1);
+    await expect(agentLinks.first()).toContainText("Agent Action Security Review");
+    await expect(main.locator(`a[href="${scenario.prefix}/reviews/external-attack-surface-review"]`)).toHaveCount(0);
+    await expect(main).not.toContainText("Request an external review");
 
     await context.close();
   }

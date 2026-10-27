@@ -79,7 +79,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
 
   function getDesktopCtaClassName(variant: string) {
     const baseClassName =
-      "hidden min-h-11 items-center whitespace-nowrap rounded-sm px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-200 motion-reduce:transform-none lg:inline-flex";
+      "hidden min-h-11 items-center whitespace-nowrap rounded-sm px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-200 motion-reduce:transform-none lg:inline-flex lg:px-2 lg:tracking-[0.04em] xl:px-4 xl:tracking-[0.12em]";
 
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
@@ -145,7 +145,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
-            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5"}>
+            <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-1 xl:gap-5"}>
               {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a

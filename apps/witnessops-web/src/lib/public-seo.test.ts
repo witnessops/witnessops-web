@@ -45,10 +45,11 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
   }
 });
 
-test("homepage review data names the two locked prices with VAT excluded", () => {
+test("homepage review data names the agent review price with VAT excluded", () => {
   const data = homepageReviewsJsonLd();
   const offers = data.itemListElement.map((entry) => entry.item.offers);
-  assert.deepEqual(offers.map((offer) => offer.price), ["2500", "1900"]);
+  assert.deepEqual(offers.map((offer) => offer.price), ["2500"]);
+  assert.equal(data.itemListElement[0]?.item.name, "Agent Action Security Review");
   assert.ok(offers.every((offer) => offer.priceCurrency === "EUR" && offer.valueAddedTaxIncluded === false));
 });
 

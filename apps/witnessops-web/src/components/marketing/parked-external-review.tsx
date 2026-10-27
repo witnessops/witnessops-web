@@ -41,7 +41,7 @@ export function ParkedExternalReview({ locale }: { locale: BuyerLocale }) {
           : `This is not the ${PUBLIC_AGENT_ACTION_OFFER.name.en}. That is a different service: one consequential agent or automation action, ${price}.`}
       </p>
       <p className="mt-8">
-        <Link href={reviewHref} className="text-brand-accent underline underline-offset-4">
+        <Link href={reviewHref} className="inline-flex min-h-11 items-center text-brand-accent underline underline-offset-4">
           {polish
             ? `Zobacz ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
             : `See the ${PUBLIC_AGENT_ACTION_OFFER.name.en}`}

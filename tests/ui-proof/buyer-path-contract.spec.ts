@@ -26,7 +26,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await expect(page.locator("main")).toContainText("Agent Action Security Review");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
-  await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
+  await page.locator("[data-buyer-service='agent-action-security-review']").getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/\/review\/request\?offerId=agent-action-security-review(?:&|$)/);
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "agent-action-security-review",
@@ -35,7 +35,7 @@ test("catalogue and pricing open the two public request paths and withdrawn rout
   await shot(page, "catalogue-agent-action-request");
 
   await page.goto("/pricing", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Request an agent review", exact: true }).click();
+  await page.locator("[data-buyer-service='agent-action-security-review']").getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/offerId=agent-action-security-review/);
   expect(new URL(page.url()).searchParams.get("productId")).toBeNull();
   await shot(page, "pricing-agent-action-request");

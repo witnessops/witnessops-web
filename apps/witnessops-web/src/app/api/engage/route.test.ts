@@ -53,7 +53,7 @@ test("engage route creates issuance metadata and persists only token digest", as
       method: "POST",
       body: JSON.stringify({
         email: "security@witnessops.com",
-        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        intent: "agent-action-security-review",
       }),
       headers: { "Content-Type": "application/json" },
     }),
@@ -142,6 +142,27 @@ test("engage route creates issuance metadata and persists only token digest", as
   assert.equal(events.at(-1)?.next_state, "verification_sent");
 });
 
+test("engage route rejects the parked external review before issuance", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-engage-"));
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/engage", {
+      method: "POST",
+      body: JSON.stringify({
+        email: "security@witnessops.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { field?: string; reason?: string };
+  assert.equal(payload.field, "intent");
+  assert.equal(payload.reason, "parked");
+});
+
 test("engage route redacts upstream issuance errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-engage-"));
   applyTestEnv(baseDir);
@@ -152,7 +173,7 @@ test("engage route redacts upstream issuance errors", async () => {
       method: "POST",
       body: JSON.stringify({
         email: "security@witnessops.com",
-        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        intent: "agent-action-security-review",
       }),
       headers: { "Content-Type": "application/json" },
     }),

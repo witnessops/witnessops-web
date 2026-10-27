@@ -253,11 +253,11 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       }
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
       if (path === "/pl") {
-        const external = buyerServiceById("external-exposure-assessment");
         await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
-        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true }).first()).toHaveAttribute(
+        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true })).toHaveCount(0);
+        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd agenta", exact: true }).first()).toHaveAttribute(
           "href",
-          buyerServiceRequestHref("pl", external),
+          buyerServiceRequestHref("pl", buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID)),
         );
         await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
         await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");

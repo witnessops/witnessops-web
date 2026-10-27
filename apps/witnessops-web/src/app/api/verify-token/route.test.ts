@@ -119,24 +119,18 @@ async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
 
 async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") {
   applyTestEnv(baseDir);
-  const response = await reviewRequest(
-    new Request("https://witnessops.com/api/review/request", {
-      method: "POST",
-      body: JSON.stringify({
-        name: "Synthetic Buyer",
-        email: "security@witnessops.com",
-        intent: "OFFSEC-EXTERNAL-EXPOSURE",
-        locale,
-        scope:
-          `Request: WitnessOps review fit check\nSelected product / intent: OFFSEC-EXTERNAL-EXPOSURE\nRequest locale: ${locale}`,
-      }),
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
-  const issuance = (await response.json()) as {
-    issuanceId: string;
-    email: string;
-  };
+  const issuance = await createVerificationIssuance({
+    channel: "engage",
+    email: "security@witnessops.com",
+    source: "test-issued-historical-record",
+    submission: {
+      name: "Synthetic Buyer",
+      intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      locale,
+      scope:
+        `Request: WitnessOps review fit check\nSelected product / intent: OFFSEC-EXTERNAL-EXPOSURE\nRequest locale: ${locale}`,
+    },
+  });
   const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   const mailRaw = await readFile(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
@@ -158,7 +152,6 @@ async function issueCurrentCommercialIntentToken(
   applyTestEnv(baseDir);
   const publiclyAcceptable =
     options.intent === "agent-action-security-review" ||
-    options.intent === "OFFSEC-EXTERNAL-EXPOSURE" ||
     options.intent === "ask-ai-contact";
   const issuance = publiclyAcceptable
     ? await (async () => {
@@ -626,7 +619,7 @@ test("approved or started legacy manual replay preserves assessment lifecycle wi
   );
 });
 
-test("External Attack Surface Review stays on the locale-specific manual order path", async () => {
+test("an already issued External Attack Surface Review token stays on the manual path", async () => {
   for (const locale of ["en", "pl"] as const) {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), `witnessops-external-exposure-${locale}-`),
