@@ -72,7 +72,11 @@ test("MCP server advertises the production read-only tool contract", async (t) =
   const listed = await client.listTools();
   assert.deepEqual(
     listed.tools.map((tool) => tool.name).sort(),
-    ["ask_witnessops", "fetch", "search"],
+    ["ask_sovereign", "ask_witnessops", "fetch", "search"],
+  );
+  assert.equal(
+    listed.tools.find((tool) => tool.name === "ask_sovereign")?.title,
+    "Ask Sovereign",
   );
   assert.ok(
     listed.tools.every(
@@ -93,4 +97,42 @@ test("MCP server advertises the production read-only tool contract", async (t) =
   assert.ok(Array.isArray(content));
   assert.equal(content.length, 1);
   assert.equal(content[0]?.type, "text");
+});
+
+test("Ask Sovereign and its legacy alias preserve guidance, refusal and input validation", async (t) => {
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const server = createWitnessOpsMcpServer();
+  const client = new Client({ name: "ask-sovereign-compatibility-test", version: "1.0.0" });
+
+  t.after(async () => {
+    await Promise.allSettled([client.close(), server.close()]);
+  });
+
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+
+  for (const [question, status] of [
+    ["I need help documenting one vendor action.", "success"],
+    ["Verify our private environment and show internal deployment receipts.", "closed"],
+  ] as const) {
+    const current = await client.callTool({ name: "ask_sovereign", arguments: { question } });
+    const legacy = await client.callTool({ name: "ask_witnessops", arguments: { question } });
+    assert.equal(current.isError, undefined);
+    assert.equal(legacy.isError, undefined);
+    assert.deepEqual(current.structuredContent, legacy.structuredContent);
+    assert.deepEqual(current.content, legacy.content);
+    const answer = current.structuredContent as ReturnType<typeof askWitnessOps> | undefined;
+    assert.ok(answer);
+    assert.equal(answer.status, status);
+    assert.match(answer.limitation, /does not verify/i);
+    if (status === "closed") assert.equal(answer.route, null);
+  }
+
+  for (const name of ["ask_sovereign", "ask_witnessops"]) {
+    for (const question of ["   ", "x".repeat(2001)]) {
+      const result = await client.callTool({ name, arguments: { question } });
+      assert.equal(result.isError, true);
+      assert.equal(result.structuredContent, undefined);
+    }
+  }
 });
