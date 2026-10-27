@@ -15,6 +15,7 @@
     "AGENT_OBSERVATION.md",
     "src/agent/",
     "src/commands/agent.mjs",
+    "src/commands/review.mjs",
     "src/commands.mjs",
     "src/listener-endpoints.mjs",
     "src/main.mjs",

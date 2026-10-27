@@ -16,6 +16,24 @@ Morpheus adapter is included. Read the [contract and privacy boundary](./AGENT_O
 before collecting or sharing a record. `wops agent inspect --help` explains bounds
 and exit codes. Existing files are never overwritten.
 
+## Agent Action Security Review fit check
+
+`wops review request` sends one non-secret fit check for Agent Action Security Review.
+The intent is fixed to `agent-action-security-review`. It prompts for name, business
+email, optional organisation, locale (`en` or `pl`), and one scope note: the
+consequential action, the systems it can affect, and the decision deadline.
+The default server is `https://witnessops.com`. For the local public site:
+
+```sh
+wops review request --server http://127.0.0.1:3001
+```
+
+A submitted request is not a booking, a payment, or permission to start work.
+The command does not report findings, an authority map, fixes, receipt checks,
+or proof. It does not read or upload local observation records, MCP configuration,
+credentials, or production evidence. Mailbox verification continues from the
+message the site sends. `wops review request --help` states the same limits.
+
 ## Assisted CLI distribution and existing server check
 
 This package is the dependency-free command-line client used by an assisted
