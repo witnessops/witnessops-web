@@ -136,7 +136,7 @@ This was alarming.
 
 The Agent Action Security Review was the company’s primary offer.
 
-It cost €2,500.
+It cost €2,500 fixed, excluding VAT.
 
 It had scope documentation.
 
@@ -666,7 +666,7 @@ Agent Action Security Review
 
 €2,500
 
-Excluding VAT · One named workflow · Proof-backed findings
+Excluding VAT · One consequential agent or automation action · Proof-backed findings
 ```
 
 Sovereign looked at the Founder.
