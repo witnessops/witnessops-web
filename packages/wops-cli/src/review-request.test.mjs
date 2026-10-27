@@ -15,11 +15,12 @@ const answers = {
   org: 'Acme Test',
   locale: 'en',
   scope: 'One refund action on the billing agent. Decision needed by Friday. Systems: billing API.',
+  confirm: 'y',
 };
 
 function fields(overrides = {}) {
   const queued = { ...answers, ...overrides };
-  const order = ['name', 'email', 'org', 'locale', 'scope'];
+  const order = ['name', 'email', 'org', 'locale', 'scope', 'confirm'];
   let index = 0;
   return {
     queued,
@@ -83,7 +84,8 @@ test('review request posts only the fit check and prints mailbox verification', 
   assert.match(text, /Admission: verification_sent/);
   assert.match(text, /Expires: 2026-10-27T07:15:00.000Z/);
   assert.match(text, /not a booking, a payment, or permission to start work/);
-  assert.match(questions.at(-1), new RegExp(SCOPE_PROMPT.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(questions.join('\n'), new RegExp(SCOPE_PROMPT.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(questions.at(-1), /Send this review request\? \[y\/N\] /);
   assert.doesNotMatch(text, /iss_secret|intake-secret|authority map|finding/);
 });
 
@@ -111,14 +113,16 @@ test('rejected intake stays a non-start and does not echo arbitrary server text'
     fetch: async () => Response.json({ ok: false, error: 'Please use your business email.', detail: 'SECRET-BODY' }, { status: 400 }),
   });
   assert.equal(status, 1);
-  assert.equal(logs.join('\n'), 'Please use your business email.');
+  assert.match(logs.join('\n'), /Please use your business email\./);
+  assert.doesNotMatch(logs.join('\n'), /SECRET-BODY/);
   const hidden = [];
   assert.equal(await reviewCommand(['review', 'request'], {
     ask: fields().ask,
     output: line => hidden.push(line),
     fetch: async () => Response.json({ error: 'SECRET-BODY' }, { status: 500 }),
   }), 1);
-  assert.equal(hidden.join('\n'), 'Review request was not accepted. Try again.');
+  assert.match(hidden.join('\n'), /Review request was not accepted\. Try again\./);
+  assert.doesNotMatch(hidden.join('\n'), /SECRET-BODY/);
 });
 
 test('review request does not follow redirects or write local auth state', async () => {
@@ -135,7 +139,7 @@ test('review request does not follow redirects or write local auth state', async
     const before = await readdir(directory);
     await assert.rejects(reviewCommand(
       ['review', 'request', '--server', `http://127.0.0.1:${port}`],
-      { ask: fields().ask },
+      { ask: fields().ask, output() {} },
     ), /not sent/);
     assert.equal(leaked, 0);
     assert.deepEqual(await readdir(directory), before);
@@ -193,7 +197,7 @@ test('a response that cannot be read says the request may have been received', a
   }, async ({ port, hits }) => {
     await assert.rejects(reviewCommand(
       ['review', 'request', '--server', `http://127.0.0.1:${port}`],
-      { ask: fields().ask },
+      { ask: fields().ask, output() {} },
     ), assertUnclear);
     assert.equal(hits.length, 1);
     assert.equal(hits[0].method, 'POST');
@@ -206,7 +210,7 @@ test('a response that cannot be read says the request may have been received', a
   }, async ({ port, hits }) => {
     await assert.rejects(reviewCommand(
       ['review', 'request', '--server', `http://127.0.0.1:${port}`],
-      { ask: fields().ask },
+      { ask: fields().ask, output() {} },
     ), assertUnclear);
     assert.equal(hits.length, 1);
   });
@@ -217,7 +221,7 @@ test('a response that cannot be read says the request may have been received', a
   }, async ({ port, hits }) => {
     await assert.rejects(reviewCommand(
       ['review', 'request', '--server', `http://127.0.0.1:${port}`],
-      { ask: fields().ask },
+      { ask: fields().ask, output() {} },
     ), assertUnclear);
     assert.equal(hits.length, 1);
   });
@@ -233,7 +237,7 @@ test('a connect failure or abort before headers says the review request was not 
   await new Promise(resolve => probe.close(resolve));
   await assert.rejects(reviewCommand(
     ['review', 'request', '--server', `http://127.0.0.1:${port}`],
-    { ask: fields().ask },
+    { ask: fields().ask, output() {} },
   ), error => {
     assert.match(error.message, /The review request was not sent/);
     assert.doesNotMatch(error.message, /may have been received/);
@@ -245,6 +249,7 @@ test('a connect failure or abort before headers says the review request was not 
     ['review', 'request', '--server', 'http://127.0.0.1:9'],
     {
       ask: fields().ask,
+      output() {},
       fetch: async () => {
         fetched += 1;
         throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
@@ -256,6 +261,60 @@ test('a connect failure or abort before headers says the review request was not 
     return true;
   });
   assert.equal(fetched, 1);
+});
+
+test('confirmation yes sends once after the origin and disclaimer are shown', async () => {
+  const events = [];
+  const { ask: next } = fields();
+  const status = await reviewCommand(['review', 'request', '--server', 'http://127.0.0.1:3001'], {
+    ask: async question => {
+      events.push(`ask:${question}`);
+      return next();
+    },
+    output: line => events.push(`out:${line}`),
+    fetch: async () => {
+      events.push('fetch');
+      return Response.json(issuance(), { status: 201 });
+    },
+  });
+  assert.equal(status, 0);
+  assert.equal(events.filter(event => event === 'fetch').length, 1);
+  const before = events.slice(0, events.indexOf('fetch')).join('\n');
+  assert.match(before, /Server: http:\/\/127\.0\.0\.1:3001/);
+  assert.match(before, /Name: Ada Lovelace/);
+  assert.match(before, /Email: ada@acme\.test/);
+  assert.match(before, /Organisation: Acme Test/);
+  assert.match(before, /Locale: en/);
+  assert.match(before, /Scope: One refund action on the billing agent/);
+  assert.match(before, /not a booking, a payment, or permission to start work/);
+  assert.match(before, /A verification email will be sent to ada@acme\.test/);
+  assert.match(before, /Send this review request\? \[y\/N\] /);
+  assert.doesNotMatch(events.slice(events.indexOf('fetch') + 1).join('\n'), /Send this review request/);
+});
+
+test('confirmation no, empty, or EOF sends nothing', async () => {
+  for (const confirm of ['n', 'N', '', null, undefined]) {
+    const events = [];
+    const queued = { ...answers, confirm };
+    const order = ['name', 'email', 'org', 'locale', 'scope', 'confirm'];
+    let index = 0;
+    const status = await reviewCommand(['review', 'request', '--server', 'http://127.0.0.1:3001'], {
+      ask: async () => queued[order[index++]],
+      output: line => events.push(`out:${line}`),
+      fetch: async () => {
+        events.push('fetch');
+        throw new Error('sent');
+      },
+    });
+    const label = `confirm ${confirm === undefined ? 'undefined' : JSON.stringify(confirm)}`;
+    assert.equal(status, 0, label);
+    assert.equal(events.filter(event => event === 'fetch').length, 0, label);
+    const text = events.join('\n');
+    assert.match(text, /Server: http:\/\/127\.0\.0\.1:3001/, label);
+    assert.match(text, /not a booking, a payment, or permission to start work/, label);
+    assert.match(text, /A verification email will be sent to ada@acme\.test/, label);
+    assert.match(text, /Review request not sent\./, label);
+  }
 });
 
 test('review request help from the executable creates no files', async () => {

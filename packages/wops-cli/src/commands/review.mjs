@@ -124,26 +124,45 @@ function issuance(data, email) {
 }
 
 async function promptFields(ask) {
-  if (ask) {
-    return {
-      name: await ask('Name: '),
-      email: await ask('Business email: '),
-      org: await ask('Organisation (optional): '),
-      locale: await ask('Locale (en or pl): '),
-      scope: await ask(`${SCOPE_PROMPT}\nScope: `),
-    };
-  }
-  const rl = createInterface({ input: stdin, output: stdout });
+  const questions = openQuestions(ask);
   try {
     return {
-      name: await rl.question('Name: '),
-      email: await rl.question('Business email: '),
-      org: await rl.question('Organisation (optional): '),
-      locale: await rl.question('Locale (en or pl): '),
-      scope: await rl.question(`${SCOPE_PROMPT}\nScope: `),
+      name: await questions.ask('Name: '),
+      email: await questions.ask('Business email: '),
+      org: await questions.ask('Organisation (optional): '),
+      locale: await questions.ask('Locale (en or pl): '),
+      scope: await questions.ask(`${SCOPE_PROMPT}\nScope: `),
     };
   } finally {
-    rl.close();
+    questions.close();
+  }
+}
+
+function openQuestions(ask) {
+  if (ask) return { ask, close() {} };
+  const rl = createInterface({ input: stdin, output: stdout });
+  return { ask: prompt => rl.question(prompt), close() { rl.close(); } };
+}
+
+function confirmed(value) {
+  return String(value ?? '').trim().toLowerCase() === 'y';
+}
+
+async function confirmSend(ask, output, server, body) {
+  output([
+    `Server: ${server}`,
+    `Name: ${body.name}`,
+    `Email: ${body.email}`,
+    `Organisation: ${body.org ?? '(none)'}`,
+    `Locale: ${body.locale}`,
+    `Scope: ${body.scope}`,
+    `This is not a booking, a payment, or permission to start work. A verification email will be sent to ${body.email}.`,
+  ].join('\n'));
+  const questions = openQuestions(ask);
+  try {
+    return confirmed(await questions.ask('Send this review request? [y/N] '));
+  } finally {
+    questions.close();
   }
 }
 
@@ -163,6 +182,10 @@ export async function reviewCommand(args, options = {}) {
   if (args[0] !== 'review' || args[1] !== 'request') throw new Error('Use wops review request --help.');
   const server = reviewServer(args);
   const body = buildReviewRequestBody(await promptFields(options.ask));
+  if (!await confirmSend(options.ask, output, server, body)) {
+    output('Review request not sent.');
+    return 0;
+  }
   let result;
   try {
     result = await boundedJsonRequest(options.fetch ?? fetch, `${server}/api/review/request`, {
