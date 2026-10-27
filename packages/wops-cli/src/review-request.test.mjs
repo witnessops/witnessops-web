@@ -161,6 +161,103 @@ test('review command source stays off historical ids, files, and credential stor
   }
 });
 
+function assertUnclear(error) {
+  assert.match(error.message, /The server responded but the result is unclear/);
+  assert.match(error.message, /may have been received/);
+  assert.match(error.message, /Check your mailbox/);
+  assert.match(error.message, /do not retry immediately/);
+  assert.doesNotMatch(error.message, /not sent/);
+  return true;
+}
+
+async function withLocalPost(respond, check) {
+  const hits = [];
+  const server = createServer((request, response) => {
+    hits.push({ method: request.method, url: request.url });
+    request.resume();
+    respond(response);
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  try {
+    await check({ port, hits });
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+}
+
+test('a response that cannot be read says the request may have been received', async () => {
+  await withLocalPost(response => {
+    response.writeHead(502, { 'Content-Type': 'text/html' });
+    response.end('<html><body>bad gateway</body></html>');
+  }, async ({ port, hits }) => {
+    await assert.rejects(reviewCommand(
+      ['review', 'request', '--server', `http://127.0.0.1:${port}`],
+      { ask: fields().ask },
+    ), assertUnclear);
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].method, 'POST');
+    assert.equal(hits[0].url, '/api/review/request');
+  });
+
+  await withLocalPost(response => {
+    response.writeHead(200, { 'Content-Type': 'text/plain' });
+    response.end('not-json');
+  }, async ({ port, hits }) => {
+    await assert.rejects(reviewCommand(
+      ['review', 'request', '--server', `http://127.0.0.1:${port}`],
+      { ask: fields().ask },
+    ), assertUnclear);
+    assert.equal(hits.length, 1);
+  });
+
+  await withLocalPost(response => {
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(Buffer.alloc(20_000, 0x61));
+  }, async ({ port, hits }) => {
+    await assert.rejects(reviewCommand(
+      ['review', 'request', '--server', `http://127.0.0.1:${port}`],
+      { ask: fields().ask },
+    ), assertUnclear);
+    assert.equal(hits.length, 1);
+  });
+});
+
+test('a connect failure or abort before headers says the review request was not sent', async () => {
+  const probe = createServer((request, response) => {
+    request.resume();
+    response.end('unexpected');
+  });
+  await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
+  const port = probe.address().port;
+  await new Promise(resolve => probe.close(resolve));
+  await assert.rejects(reviewCommand(
+    ['review', 'request', '--server', `http://127.0.0.1:${port}`],
+    { ask: fields().ask },
+  ), error => {
+    assert.match(error.message, /The review request was not sent/);
+    assert.doesNotMatch(error.message, /may have been received/);
+    return true;
+  });
+
+  let fetched = 0;
+  await assert.rejects(reviewCommand(
+    ['review', 'request', '--server', 'http://127.0.0.1:9'],
+    {
+      ask: fields().ask,
+      fetch: async () => {
+        fetched += 1;
+        throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+      },
+    },
+  ), error => {
+    assert.match(error.message, /The review request was not sent/);
+    assert.doesNotMatch(error.message, /may have been received/);
+    return true;
+  });
+  assert.equal(fetched, 1);
+});
+
 test('review request help from the executable creates no files', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'wops-review-help-'));
   try {

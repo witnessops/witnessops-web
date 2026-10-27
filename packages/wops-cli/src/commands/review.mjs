@@ -1,6 +1,6 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { boundedJsonRequest } from '../commands.mjs';
+import { RESPONSE_UNCLEAR, boundedJsonRequest } from '../commands.mjs';
 import { serverOrigin } from '../storage.mjs';
 
 // Thin public intake. tools/witnessops-security-validators is a separate
@@ -170,7 +170,10 @@ export async function reviewCommand(args, options = {}) {
       headers: { Origin: server, 'Content-Type': 'application/json' },
       body,
     });
-  } catch {
+  } catch (error) {
+    if (error?.code === RESPONSE_UNCLEAR) {
+      throw new Error('The server responded but the result is unclear. The review request may have been received. Check your mailbox and do not retry immediately.');
+    }
     throw new Error('Server unreachable. The review request was not sent. Try again.');
   }
   if (!result.ok) {
