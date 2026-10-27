@@ -55,6 +55,73 @@ test('review request body is the fixed public intent and omits a blank organisat
   assert.throws(() => buildReviewRequestBody({ ...answers, scope: '' }), /Scope is invalid/);
 });
 
+test('business email keeps the length, shape, and freemail checks', () => {
+  const accept = (email, expected = email.trim().toLowerCase()) => {
+    assert.equal(buildReviewRequestBody({ ...answers, email }).email, expected, JSON.stringify(email));
+  };
+  accept('ada@acme.test');
+  accept('  Ada@Acme.Test  ', 'ada@acme.test');
+  accept('first.last@sub.example.com');
+  accept('a@b.c');
+  accept('a@b.c.');
+  accept('a@.b.c');
+  accept('a@..c');
+  accept('jörg@firma.test');
+  accept('a\u0000@b.com');
+  accept('ada@corp.gmail.com');
+  accept('ada@gmail.com.example');
+  const atLimit = `${'a'.repeat(236)}@b.c`;
+  assert.equal(atLimit.length, 240);
+  accept(atLimit);
+
+  const reject = email => {
+    assert.throws(
+      () => buildReviewRequestBody({ ...answers, email }),
+      /Email address is invalid\./,
+      JSON.stringify(email),
+    );
+  };
+  for (const email of [
+    '',
+    '   ',
+    'ada',
+    'ada@',
+    '@acme.test',
+    'ada@acme',
+    'ada@.test',
+    'ada@acme.',
+    'ada@.b',
+    'ada @acme.test',
+    'ada@ac me.test',
+    'ada@acme@test.com',
+    'ada@@acme.test',
+    'ada@acme.test\nextra',
+    'ada@acme\u00a0.test',
+    'ada@acme\u2028.test',
+    `${'a'.repeat(237)}@b.c`,
+  ]) reject(email);
+  assert.equal(`${'a'.repeat(237)}@b.c`.length, 241);
+
+  for (const domain of ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'protonmail.com', 'mail.com', 'yandex.com', 'live.com']) {
+    assert.throws(
+      () => buildReviewRequestBody({ ...answers, email: `Ada@${domain}` }),
+      /Please use your business email\./,
+      domain,
+    );
+  }
+  const freemailAtLimit = `${'a'.repeat(230)}@gmail.com`;
+  assert.equal(freemailAtLimit.length, 240);
+  assert.throws(() => buildReviewRequestBody({ ...answers, email: freemailAtLimit }), /Please use your business email\./);
+  reject(`${'a'.repeat(231)}@gmail.com`);
+
+  const pathological = `a@${'a.'.repeat(25_000)}@b.c`;
+  assert.ok(pathological.length > 240);
+  const started = performance.now();
+  reject(pathological);
+  const elapsed = performance.now() - started;
+  assert.ok(elapsed < 200, `pathological email took ${elapsed}ms`);
+});
+
 test('review request posts only the fit check and prints mailbox verification', async () => {
   const logs = [];
   const requests = [];

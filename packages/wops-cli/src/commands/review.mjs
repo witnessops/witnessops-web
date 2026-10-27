@@ -55,6 +55,46 @@ credentials, or production evidence. Mailbox verification continues after a
 successful request.`;
 
 const control = /[\x00-\x1f\x7f-\x9f]/;
+// JavaScript \s (WhiteSpace and LineTerminator). One character at a time so
+// the email check stays linear on caller input.
+const JS_WHITESPACE = new Set([
+  '\t',
+  '\n',
+  '\v',
+  '\f',
+  '\r',
+  ' ',
+  '\u00a0',
+  '\u1680',
+  '\u2000',
+  '\u2001',
+  '\u2002',
+  '\u2003',
+  '\u2004',
+  '\u2005',
+  '\u2006',
+  '\u2007',
+  '\u2008',
+  '\u2009',
+  '\u200a',
+  '\u2028',
+  '\u2029',
+  '\u202f',
+  '\u205f',
+  '\u3000',
+  '\ufeff',
+]);
+
+function hasJsWhitespace(text) {
+  for (let index = 0; index < text.length; index += 1) {
+    if (JS_WHITESPACE.has(text[index])) return true;
+  }
+  return false;
+}
+
+function domainHasInternalDot(domain) {
+  return domain.slice(1, -1).includes('.');
+}
 
 function requiredLine(value, label, max) {
   const text = String(value ?? '').trim();
@@ -71,8 +111,15 @@ function optionalLine(value, label, max) {
 
 function businessEmail(value) {
   const email = String(value ?? '').trim().toLowerCase();
+  if (email.length > SHORT_TEXT_MAX) throw new Error('Email address is invalid.');
+  const at = email.indexOf('@');
   const domain = email.split('@')[1] ?? '';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > SHORT_TEXT_MAX || domain !== email.slice(email.indexOf('@') + 1)) {
+  if (
+    at < 1
+    || hasJsWhitespace(email)
+    || !domainHasInternalDot(domain)
+    || domain !== email.slice(at + 1)
+  ) {
     throw new Error('Email address is invalid.');
   }
   if (FREEMAIL_DOMAINS.has(domain)) throw new Error('Please use your business email.');
