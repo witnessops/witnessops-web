@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -8,7 +8,6 @@ import { NextRequest } from "next/server";
 
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
 import {
-  clearTokenStore,
   saveIntake,
   saveIssuance,
   type IntakeRecord,
@@ -26,6 +25,8 @@ const originalControlPlaneServiceIdentitySubject =
   process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT;
 const originalLocalAdminBypass = process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
 const originalAdminSecret = process.env.WITNESSOPS_ADMIN_SECRET;
+const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR;
+const testRoots: string[] = [];
 
 function restoreEnv() {
   globalThis.fetch = originalFetch;
@@ -61,10 +62,16 @@ function restoreEnv() {
   } else {
     process.env.WITNESSOPS_ADMIN_SECRET = originalAdminSecret;
   }
+  if (originalStoreDir === undefined) {
+    delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
+  } else {
+    process.env.WITNESSOPS_TOKEN_STORE_DIR = originalStoreDir;
+  }
 }
 
 test.beforeEach(async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-authorize-"));
+  testRoots.push(baseDir);
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   const intake: IntakeRecord = {
     intakeId: "intk_demo123",
@@ -102,8 +109,8 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   restoreEnv();
-  delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
-  await clearTokenStore();
+  // Cleanup owns only these fixture roots, never an environment-selected store.
+  await Promise.all(testRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
 test("admin authorize route advances a requested run", async () => {

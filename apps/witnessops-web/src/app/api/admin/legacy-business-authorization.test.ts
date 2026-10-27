@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test, { afterEach } from "node:test";
@@ -8,7 +8,6 @@ import { NextRequest } from "next/server";
 
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
 import {
-  clearTokenStore,
   getIntakeById,
   saveIntake,
   saveIssuance,
@@ -31,6 +30,12 @@ const RUN_ID = "run_authz_boundary";
 const INTAKE_ID = "intk_authz_boundary";
 const ISSUANCE_ID = "iss_authz_boundary";
 const originalFetch = globalThis.fetch;
+const originalEnv = new Map([
+  "WITNESSOPS_ADMIN_SECRET",
+  "WITNESSOPS_TOKEN_STORE_DIR",
+  "WITNESSOPS_TOKEN_AUDIT_DIR",
+].map((name) => [name, process.env[name]]));
+const testRoots: string[] = [];
 
 async function sessionCookie(role: "Founder" | "Delegated Operator" | "Administrator", subject: string) {
   const now = Date.now();
@@ -50,6 +55,7 @@ async function sessionCookie(role: "Founder" | "Delegated Operator" | "Administr
 
 async function seedCase(assignedOperator: string | null): Promise<void> {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-legacy-authz-"));
+  testRoots.push(baseDir);
   process.env.WITNESSOPS_ADMIN_SECRET = "admin-secret";
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
@@ -154,10 +160,12 @@ async function callLegacyRoutes(cookie: string): Promise<Response[]> {
 
 afterEach(async () => {
   globalThis.fetch = originalFetch;
-  delete process.env.WITNESSOPS_ADMIN_SECRET;
-  delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
-  delete process.env.WITNESSOPS_TOKEN_AUDIT_DIR;
-  await clearTokenStore();
+  for (const [name, value] of originalEnv) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
+  // Cleanup owns only these fixture roots, never an environment-selected store.
+  await Promise.all(testRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
 test("legacy business routes reject Administrator sessions before mutation", async () => {
