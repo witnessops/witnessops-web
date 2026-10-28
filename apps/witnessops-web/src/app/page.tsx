@@ -4,6 +4,7 @@ import { loadHomeContent } from "@/lib/content";
 import { buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
 import { homepageReviewsJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
+import { AskSovereignWidget } from "@/components/ask-sovereign/ask-sovereign-widget";
 
 const home = loadHomeContent();
 
@@ -16,6 +17,7 @@ export default function HomePage() {
       <JsonLd id="witnessops-website" value={websiteJsonLd} />
       <JsonLd id="witnessops-reviews" value={homepageReviewsJsonLd()} />
       <SimpleHomepage />
+      <AskSovereignWidget />
     </>
   );
 }

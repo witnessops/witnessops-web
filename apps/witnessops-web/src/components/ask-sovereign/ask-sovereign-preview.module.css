@@ -256,6 +256,7 @@
 .youBubble { min-width: 0; max-width: 100%; border-radius: 8px; background: var(--color-surface-inset); padding: 12px 14px; }
 .you .handoffCaption, .sovereign .handoffCaption { margin: 0 0 8px; overflow-wrap: normal; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; color: var(--color-text-secondary); }
 .sim { display: block; margin: 0 0 8px; color: var(--color-text-secondary); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
+.sources { display: grid; gap: 4px; margin: 8px 0 0; padding-left: 18px; font-size: var(--type-small-size); line-height: var(--type-small-lh); overflow-wrap: anywhere; }
 .handoffCaption { margin: 0 0 8px; color: var(--color-text-secondary); font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; }
 .tag, .review span { color: var(--color-brand-accent); }
 .badge, .tag { margin-left: 8px; border-radius: 2px; border: 1px solid var(--color-surface-border); padding: 2px 6px; font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -455,3 +456,19 @@
   .spriteFace { transition-duration: 0ms; }
   .panel, .scrim { animation-duration: 0ms; transition-duration: 0ms; }
 }
+
+/* The homepage dialog owns placement, focus containment and viewport height. */
+.widget.page { width: 100%; height: 100%; max-width: none; margin: 0; padding: 0; }
+.widget .layout { display: block; height: 100%; min-height: 0; }
+.widget.page .panel {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  border: 0;
+  border-radius: inherit;
+  animation: none;
+}
+.widget .thread { min-height: 0; padding-bottom: 24px; }
+.widget .optinHint { flex: none; margin: 8px 0 0; }

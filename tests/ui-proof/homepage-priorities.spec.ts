@@ -22,6 +22,7 @@ for (const viewport of [
     await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
     await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
     await expect(trigger).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Ask Sovereign", exact: true })).toHaveCount(0);
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
     const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
     await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);

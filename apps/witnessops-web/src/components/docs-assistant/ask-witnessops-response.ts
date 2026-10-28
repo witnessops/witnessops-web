@@ -110,10 +110,10 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
     const currentOffer = `${offer.name} is a public review at ${offer.price_label}. ${offer.unit_label}. ${offer.fit_check_label}. ${offer.delivery_label}.`;
 
     if (answer.commercial_fit.result === "needs_boundary") {
-      return `${currentOffer} This public guide cannot inspect a device. Narrow the non-secret description to an agreed device/source boundary, one agent connection and one consequential action; the fit-check path is shown above.`;
+      return `${currentOffer} This public guide cannot inspect a device. Narrow the non-secret description to an agreed device/source boundary, one agent connection and one consequential action. You can request a fit check.`;
     }
 
-    return `${currentOffer} This public guide cannot inspect or verify the action here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
+    return `${currentOffer} This public guide cannot inspect or verify the action here. Your non-secret description is enough for a likely commercial-fit signal. You can request a fit check.`;
   }
 
   if (body.length > 0) {
@@ -153,34 +153,42 @@ export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
     : "Public WitnessOps guide";
 }
 
-const SAME_SITE_HOSTS = new Set(["witnessops.com", "www.witnessops.com"]);
+const SAME_SITE_ORIGINS = new Set(["https://witnessops.com", "https://www.witnessops.com"]);
+
+function sourceUrl(href: string): URL {
+  try {
+    const url = new URL(href);
+    const hasUnsafeCharacters = [...href].some((character) => {
+      const code = character.charCodeAt(0);
+      return code <= 0x20 || code === 0x7f || character === "\\";
+    });
+    if (
+      url.protocol === "https:" && !url.username && !url.password &&
+      !hasUnsafeCharacters && !url.pathname.startsWith("//")
+    ) return url;
+  } catch {
+    // A malformed source must not become a clickable link.
+  }
+  throw new Error("Ask WitnessOps returned an invalid source link.");
+}
 
 /**
  * Prefer path-only links for same-site public sources.
- * Hostname is validated via URL parse (not substring match) so
- * https://witnessops.com.evil.example cannot pass as same-site.
+ * Derive the target from the URL, not the server's presentation hint: a
+ * lookalike host or a different port must not become a same-site link.
  */
 export function askWitnessOpsSourceHref(source: AskWitnessOpsPresentedSource): string {
-  if (source.href_class !== "same_site") {
-    return source.canonical_href;
+  const url = sourceUrl(source.canonical_href);
+  if (SAME_SITE_ORIGINS.has(url.origin)) {
+    return `${url.pathname}${url.search}${url.hash}`;
   }
-
-  try {
-    const url = new URL(source.canonical_href);
-    if (url.protocol === "https:" && SAME_SITE_HOSTS.has(url.hostname)) {
-      return `${url.pathname}${url.search}${url.hash}`;
-    }
-  } catch {
-    // Invalid absolute URL — fall through and return the original href.
-  }
-
-  return source.canonical_href;
+  return url.href;
 }
 
 export function askWitnessOpsSourceTarget(
   source: AskWitnessOpsPresentedSource,
 ): "external" | "same_site" {
-  return source.href_class === "same_site" ? "same_site" : "external";
+  return SAME_SITE_ORIGINS.has(sourceUrl(source.canonical_href).origin) ? "same_site" : "external";
 }
 
 export function askWitnessOpsRouteLabel(routeId: string): string {
@@ -198,7 +206,9 @@ export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
     return `${PUBLIC_AGENT_ACTION_OFFER.requestRoute}?source=ask`;
   }
 
-  return route.href;
+  const href = sameSiteRouteHref(route.href);
+  if (!href) throw new Error("Ask WitnessOps returned an invalid route link.");
+  return href;
 }
 
 export async function fetchAskWitnessOps(
@@ -206,13 +216,18 @@ export async function fetchAskWitnessOps(
   context: {
     history?: readonly AskConversationMessage[];
     page_service_id?: BuyerService["id"];
+    surface?: "sovereign_widget";
+    signal?: AbortSignal;
   } = {},
 ): Promise<AskWitnessOpsUiAnswer> {
+  const deadline = AbortSignal.timeout(20_000);
+  const signal = context.signal ? AbortSignal.any([context.signal, deadline]) : deadline;
+  signal.throwIfAborted();
   const res = await fetch("/api/ask-witnessops", {
     method: "POST",
-    signal: AbortSignal.timeout(20_000),
+    signal,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, history: context.history, page_service_id: context.page_service_id }),
+    body: JSON.stringify({ question, history: context.history, page_service_id: context.page_service_id, surface: context.surface }),
   });
 
   if (!res.ok) {
@@ -548,10 +563,24 @@ function asRoute(value: unknown): AskWitnessOpsRoute | null {
     return null;
   }
 
+  const href = sameSiteRouteHref(record.href);
+  if (!href) return null;
+
   return {
     route_id: record.route_id,
-    href: record.href,
+    href,
   };
+}
+
+function sameSiteRouteHref(href: string): string | null {
+  if (!href.startsWith("/") && !href.startsWith("https://")) return null;
+  if (href.startsWith("//")) return null;
+  try {
+    const url = sourceUrl(href.startsWith("/") ? `https://witnessops.com${href}` : href);
+    return SAME_SITE_ORIGINS.has(url.origin) ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
 }
 
 function asPresentedSources(value: unknown): AskWitnessOpsPresentedSource[] {
@@ -575,6 +604,8 @@ function asPresentedSources(value: unknown): AskWitnessOpsPresentedSource[] {
       continue;
     }
 
+    // Validate before returning an answer to any rendering consumer.
+    sourceUrl(record.canonical_href);
     sources.push({
       source_id: record.source_id,
       public_label: record.public_label,

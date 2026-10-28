@@ -15,7 +15,9 @@ test("docs assistant page is noindex and renders the bounded assistant shell", (
     resolve(__dirname, "../../../components/ask-sovereign/ask-sovereign-preview.tsx"),
     "utf-8",
   );
-  assert.doesNotMatch(page, /fetch\s*\(|XMLHttpRequest|fetchAskWitnessOps|trackAskEvent/);
+  assert.doesNotMatch(page, /fetch\s*\(|XMLHttpRequest|trackAskEvent/);
+  assert.match(page, /connection = "preview"/);
+  assert.match(page, /if \(connection === "api" && !flag\)/);
 
   assert.doesNotMatch(source, /NODE_ENV/);
   assert.doesNotMatch(source, /NEXT_PUBLIC.*DOCS_ASSISTANT/i);
