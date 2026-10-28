@@ -121,6 +121,97 @@ test("follow-up requests include bounded caller context and the canonical page s
   }
 });
 
+test("caller cancellation aborts a pending request without serializing the signal", async (t) => {
+  const controller = new AbortController();
+  let observedSignal: AbortSignal | undefined;
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
+    assert.deepEqual(JSON.parse(String(init.body)), { question: "Can you help?" });
+    observedSignal = init.signal as AbortSignal;
+    return new Promise<Response>((_resolve, reject) => {
+      observedSignal!.addEventListener("abort", () => reject(observedSignal!.reason), { once: true });
+    });
+  });
+  const request = fetchAskWitnessOps("Can you help?", { signal: controller.signal });
+  controller.abort();
+  await assert.rejects(request, { name: "AbortError" });
+  assert.equal(observedSignal?.aborted, true);
+});
+
+test("widget requests explicitly identify their surface without changing ordinary callers", async (t) => {
+  const requests: unknown[] = [];
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
+    requests.push(JSON.parse(String(init.body)));
+    return new Response(JSON.stringify(generatedPayload()));
+  });
+  await fetchAskWitnessOps("What can you help with?", { surface: "sovereign_widget" });
+  await fetchAskWitnessOps("An ordinary question");
+  assert.deepEqual(requests, [
+    { question: "What can you help with?", surface: "sovereign_widget" },
+    { question: "An ordinary question" },
+  ]);
+});
+
+test("an already-cancelled request does not reach fetch", async (t) => {
+  const controller = new AbortController();
+  controller.abort();
+  const fetchMock = t.mock.method(globalThis, "fetch", async () => new Response("unused"));
+  await assert.rejects(fetchAskWitnessOps("Can you help?", { signal: controller.signal }), { name: "AbortError" });
+  assert.equal(fetchMock.mock.callCount(), 0);
+});
+
+test("the 20-second deadline still aborts when the caller supplied a signal", async (t) => {
+  const deadline = new AbortController();
+  const caller = new AbortController();
+  t.mock.method(AbortSignal, "timeout", (milliseconds: number) => {
+    assert.equal(milliseconds, 20_000);
+    return deadline.signal;
+  });
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
+    const signal = init.signal as AbortSignal;
+    return new Promise<Response>((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+  });
+  const request = fetchAskWitnessOps("A stalled question", { signal: caller.signal });
+  deadline.abort(new DOMException("The request timed out.", "TimeoutError"));
+  await assert.rejects(request, { name: "TimeoutError" });
+  assert.equal(caller.signal.aborted, false);
+});
+
+test("HTTP failures do not retry automatically and a caller retry uses the same history", async (t) => {
+  const history = [{ role: "user" as const, content: "What does WitnessOps do?" }, { role: "assistant" as const, content: "Scoped public guidance." }];
+  const requests: { body: unknown; signal: RequestInit["signal"] }[] = [];
+  let status = 429;
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init: RequestInit) => {
+    requests.push({ body: JSON.parse(String(init.body)), signal: init.signal });
+    return status === 200
+      ? new Response(JSON.stringify(generatedPayload()))
+      : new Response("upstream unavailable", { status });
+  });
+  await assert.rejects(fetchAskWitnessOps("What about pricing?", { history }), /Too many questions/);
+  assert.equal(requests.length, 1);
+  status = 503;
+  await assert.rejects(fetchAskWitnessOps("What about pricing?", { history }), /could not answer/);
+  assert.equal(requests.length, 2);
+  status = 200;
+  const answer = await fetchAskWitnessOps("What about pricing?", { history });
+  assert.equal(answer.status, "success");
+  assert.equal(requests.length, 3);
+  assert.deepEqual(requests.map(({ body }) => body), Array.from({ length: 3 }, () => ({ question: "What about pricing?", history })));
+  assert.notEqual(requests[0].signal, requests[2].signal);
+});
+
+test("malformed responses and network failures remain failures", async (t) => {
+  const mock = t.mock.method(globalThis, "fetch", async () => new Response("not JSON"));
+  await assert.rejects(fetchAskWitnessOps("Question"), SyntaxError);
+  for (const payload of [null, {}, { schema: "unrecognized" }]) {
+    mock.mock.mockImplementation(async () => new Response(JSON.stringify(payload)));
+    await assert.rejects(fetchAskWitnessOps("Question"), /invalid response|unexpected response schema/);
+  }
+  mock.mock.mockImplementation(async () => { throw new TypeError("Network unavailable"); });
+  await assert.rejects(fetchAskWitnessOps("Question"), /Network unavailable/);
+});
+
 test("a provider outage is distinguishable from normal public guidance for retry UI", async () => {
   const originalFetch = globalThis.fetch;
   try {
@@ -444,6 +535,7 @@ test("ask witnessops same-site href rejects lookalike hosts (no substring trap)"
 
   // Must not collapse to a path-only same-site link.
   assert.equal(askWitnessOpsSourceHref(evil), evil.canonical_href);
+  assert.equal(askWitnessOpsSourceTarget(evil), "external");
 
   const www = {
     source_id: "source.www",
@@ -452,6 +544,49 @@ test("ask witnessops same-site href rejects lookalike hosts (no substring trap)"
     href_class: "same_site" as const,
   };
   assert.equal(askWitnessOpsSourceHref(www), "/docs/intro");
+});
+
+test("canonical HTTPS sources retain their path, query, fragment and true origin", () => {
+  const source = {
+    source_id: "source.reference", public_label: "Reference", href_class: "same_site",
+    canonical_href: "https://witnessops.com/docs/getting-started?lang=en#reports",
+  };
+  assert.equal(askWitnessOpsSourceHref(source), "/docs/getting-started?lang=en#reports");
+  for (const canonical_href of [
+    "https://github.com/witnessops/witnessops-web/blob/main/README.md",
+    "https://witnessops.com:8443/docs",
+  ]) {
+    assert.equal(askWitnessOpsSourceTarget({ ...source, canonical_href }), "external");
+    assert.equal(askWitnessOpsSourceHref({ ...source, canonical_href }), canonical_href);
+  }
+});
+
+test("unsafe source URLs never reach rendering consumers", async (t) => {
+  const payload = generatedPayload();
+  t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify(payload)));
+  for (const canonical_href of [
+    "javascript:alert(1)", "data:text/html,unsafe", "http://witnessops.com/docs",
+    "//untrusted.example/path", "/docs", "https://user:password@witnessops.com/docs",
+    "https://witnessops.com//untrusted.example/path", "https://witnessops.com/\\untrusted.example",
+    "https://witnessops.com/\n/docs",
+  ]) {
+    payload.presented_sources[0].canonical_href = canonical_href;
+    assert.throws(() => askWitnessOpsSourceHref(payload.presented_sources[0]), /invalid source link/);
+    await assert.rejects(fetchAskWitnessOps("Question"), /invalid source link/);
+  }
+});
+
+test("unsafe and external action routes are omitted without changing the answer", async (t) => {
+  const payload = { ...generatedPayload(), route: { route_id: "route.support", href: "/support" } };
+  t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify(payload)));
+  for (const href of ["javascript:alert(1)", "//untrusted.example", "https://untrusted.example", "/\\untrusted.example", "https://witnessops.com//untrusted.example"]) {
+    payload.route.href = href;
+    const answer = await fetchAskWitnessOps("Question");
+    assert.equal(answer.route, null);
+    assert.equal(answer.template.body, payload.template.body);
+  }
+  payload.route.href = "https://witnessops.com/support#support-request";
+  assert.equal((await fetchAskWitnessOps("Question")).route?.href, "/support#support-request");
 });
 
 test("ask witnessops route labels map known buyer paths", () => {

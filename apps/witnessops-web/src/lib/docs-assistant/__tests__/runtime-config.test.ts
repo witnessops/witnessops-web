@@ -98,6 +98,7 @@ test("docs assistant runtime config fails closed when key is missing", () => {
 
 test("public Ask OpenAI config uses a separate exact production gate", () => {
   const config = readAskWitnessOpsOpenAiRuntimeConfig({
+    NODE_ENV: "production",
     WITNESSOPS_ASK_OPENAI_ENABLED: "true",
     WITNESSOPS_ASK_OPENAI_STAGE: "production",
     OPENAI_API_KEY: "test-key",
@@ -111,12 +112,53 @@ test("public Ask OpenAI config uses a separate exact production gate", () => {
   }
 });
 
-test("public Ask development needs a key and accepts only the supported public model", () => {
+test("public Ask development needs a key and accepts only supported public models", () => {
   assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development" }), { enabled: false, reason: "missing_api_key" });
   const configured = readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development", OPENAI_API_KEY: "test-key" });
   assert.equal(configured.enabled, true);
   if (configured.enabled) assert.equal(configured.model, "gpt-5.4-mini");
   assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development", OPENAI_API_KEY: "test-key", WITNESSOPS_ASK_OPENAI_MODEL: "unknown-model" }), { enabled: false, reason: "model_not_allowed" });
+});
+
+test("public Ask explicitly selects Terra without changing the default or legacy docs runtime", () => {
+  const selection = {
+    OPENAI_API_KEY: "test-key",
+    WITNESSOPS_ASK_OPENAI_MODEL: " gpt-6.1-terra ",
+  };
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({
+    NODE_ENV: "development",
+    ...selection,
+  }), { enabled: true, stage: "development", model: "gpt-6.1-terra", apiKey: "test-key" });
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({
+    NODE_ENV: "production",
+    WITNESSOPS_ASK_OPENAI_ENABLED: "true",
+    WITNESSOPS_ASK_OPENAI_STAGE: "production",
+    ...selection,
+  }), { enabled: true, stage: "production", model: "gpt-6.1-terra", apiKey: "test-key" });
+
+  const legacy = readDocsAssistantRuntimeConfig(enabledEnv(selection));
+  assert.equal(legacy.enabled, true);
+  if (legacy.enabled) assert.equal(legacy.model, "gpt-5.4-mini");
+  assert.deepEqual(readDocsAssistantRuntimeConfig(enabledEnv({
+    WITNESSOPS_DOCS_ASSISTANT_MODEL: "gpt-6.1-terra",
+  })), { enabled: false, reason: "model_not_allowed" });
+});
+
+test("selecting Terra does not bypass the public production gates or missing-key check", () => {
+  const selection = {
+    NODE_ENV: "production",
+    WITNESSOPS_ASK_OPENAI_MODEL: "gpt-6.1-terra",
+    OPENAI_API_KEY: "test-key",
+  };
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig(selection), {
+    enabled: false, reason: "gate_not_enabled",
+  });
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({
+    ...selection, WITNESSOPS_ASK_OPENAI_ENABLED: "true",
+  }), { enabled: false, reason: "stage_not_production" });
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({
+    ...selection, NODE_ENV: "development", OPENAI_API_KEY: " ",
+  }), { enabled: false, reason: "missing_api_key" });
 });
 
 test("public Ask OpenAI config fails closed for missing and staging-only gates", () => {

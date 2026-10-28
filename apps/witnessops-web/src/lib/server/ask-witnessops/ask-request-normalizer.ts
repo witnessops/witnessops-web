@@ -12,6 +12,7 @@ export interface NormalizedAskRequest {
   readonly question: string;
   readonly history?: readonly AskConversationMessage[];
   readonly page_service_id?: BuyerService["id"];
+  readonly surface?: "sovereign_widget";
 }
 
 export interface NormalizeResult {
@@ -98,9 +99,13 @@ export function normalizeAskRequest(raw: unknown): NormalizeResult | NormalizeEr
     pageServiceId = service.id;
   }
 
+  if (body.surface !== undefined && body.surface !== "sovereign_widget") {
+    return malformed("surface must identify a supported Ask interface");
+  }
+
   return {
     ok: true,
-    request: { question, ...(history ? { history } : {}), ...(pageServiceId ? { page_service_id: pageServiceId } : {}) },
+    request: { question, ...(history ? { history } : {}), ...(pageServiceId ? { page_service_id: pageServiceId } : {}), ...(body.surface === "sovereign_widget" ? { surface: body.surface } : {}) },
   };
 }
 

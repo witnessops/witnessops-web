@@ -3,6 +3,11 @@ export const DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID =
 
 export const DOCS_ASSISTANT_STAGING_MODEL = "gpt-5.4-mini";
 
+export const PUBLIC_ASK_OPENAI_MODELS = [
+  DOCS_ASSISTANT_STAGING_MODEL,
+  "gpt-6.1-terra",
+] as const;
+
 export const DOCS_ASSISTANT_CORPUS_PLAN_FILE_ID =
   "file-Si3z9HvNWAQjuCEtheZsiY";
 
@@ -89,7 +94,7 @@ export function readDocsAssistantRuntimeConfig(
 export interface AskWitnessOpsRuntimeEnabledConfig {
   enabled: true;
   stage: "production" | "development";
-  model: typeof DOCS_ASSISTANT_STAGING_MODEL;
+  model: (typeof PUBLIC_ASK_OPENAI_MODELS)[number];
   apiKey: string;
 }
 
@@ -110,8 +115,9 @@ export function readAskWitnessOpsOpenAiRuntimeConfig(
     return { enabled: false, reason: "stage_not_production" };
   }
 
-  const model = env.WITNESSOPS_ASK_OPENAI_MODEL?.trim() || DOCS_ASSISTANT_STAGING_MODEL;
-  if (model !== DOCS_ASSISTANT_STAGING_MODEL) {
+  const requestedModel = env.WITNESSOPS_ASK_OPENAI_MODEL?.trim() || DOCS_ASSISTANT_STAGING_MODEL;
+  const model = PUBLIC_ASK_OPENAI_MODELS.find((allowed) => allowed === requestedModel);
+  if (!model) {
     return { enabled: false, reason: "model_not_allowed" };
   }
 
