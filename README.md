@@ -81,16 +81,26 @@ authenticated app; see its [README](./apps/witnessops-app/README.md).
 
 The public MCP endpoint is designed to be `https://witnessops.com/mcp`; this is
 not the authenticated workspace app.
-It exposes three public, read-only tools:
+It exposes public, read-only documentation tools and Ask Sovereign:
 
 - `search` — find public WitnessOps documentation.
 - `fetch` — retrieve a selected document with its canonical citation URL.
-- `ask_witnessops` — return bounded deterministic guidance without claiming
+- `ask_sovereign` — return bounded deterministic guidance without claiming
   that a private system, customer evidence, or receipt was verified.
+- `ask_witnessops` — compatibility alias with the same inputs, outputs and limits.
+  Existing clients can keep using it while their tool lists refresh.
+
+Ask Sovereign does not send a message to a human or execute work. The MCP
+guidance tool is separate from the website assistant and its production gate.
 
 Run locally with `pnpm dev`, then connect MCP Inspector to
 `http://127.0.0.1:3001/mcp`. Production exposure and ChatGPT app connection
 remain separate explicit apply steps.
+Before accepting a connected release, check Streamable HTTP initialization,
+`tools/list`, a bounded `ask_sovereign` call, and the legacy alias on the exact
+endpoint. A successful source test does not establish that the hosted endpoint
+is reachable. A connection error must remain an unavailable result, not a
+fabricated answer or a reason to bypass the website assistant's release gate.
 
 ## Public proof-surface contract
 

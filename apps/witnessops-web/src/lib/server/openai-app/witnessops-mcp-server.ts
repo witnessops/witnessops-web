@@ -206,11 +206,11 @@ export function createWitnessOpsMcpServer(): McpServer {
   const server = new McpServer(
     {
       name: "witnessops-public-knowledge",
-      version: "1.0.0",
+      version: "1.1.0",
     },
     {
       instructions:
-        "Use search to find public WitnessOps documentation and fetch to read a selected result. Use ask_witnessops for bounded public guidance; if it returns closed, use search and fetch instead. Never treat these tools as verification of a private system, customer evidence, or a receipt, and never send secrets or private evidence.",
+        "Use search to find public WitnessOps documentation and fetch to read a selected result. Use ask_sovereign (Ask Sovereign) for bounded public guidance; ask_witnessops is a compatibility alias for existing clients. If either returns closed, use search and fetch instead. Ask Sovereign provides deterministic public guidance, not a message to a human or permission to execute work. Never treat these tools as verification of a private system, customer evidence, or a receipt, and never send secrets or private evidence.",
     },
   );
 
@@ -250,23 +250,29 @@ export function createWitnessOpsMcpServer(): McpServer {
       ),
   );
 
-  server.registerTool(
-    "ask_witnessops",
-    {
-      title: "Ask WitnessOps",
-      description:
-        "Use this only for bounded public WitnessOps fit checks, support or disclosure routing, named proof or receipt guidance, and one explicitly scoped vendor, AI-agent, incident, access, launch, or offline-inspection request. Use search and fetch for general questions or documentation.",
-      inputSchema: {
-        question: z.string().trim().min(1).max(2000),
+  const askDescription =
+    "Use Ask Sovereign only for bounded public WitnessOps fit checks, support or disclosure routing, named proof or receipt guidance, and one explicitly scoped vendor, AI-agent, incident, access, launch, or offline-inspection request. Returns deterministic public guidance; does not contact a human or execute work. Use search and fetch for general questions or documentation.";
+
+  // Keep the existing wire name usable while clients refresh their tool lists.
+  for (const name of ["ask_sovereign", "ask_witnessops"] as const) {
+    server.registerTool(
+      name,
+      {
+        title: name === "ask_sovereign" ? "Ask Sovereign" : "Ask Sovereign (legacy alias)",
+        description:
+          name === "ask_sovereign"
+            ? askDescription
+            : `Compatibility alias for ask_sovereign. Prefer ask_sovereign for new calls. ${askDescription}`,
+        inputSchema: {
+          question: z.string().trim().min(1).max(2000),
+        },
+        outputSchema: askOutputSchema,
+        annotations: readOnlyAnnotations,
       },
-      outputSchema: askOutputSchema,
-      annotations: readOnlyAnnotations,
-    },
-    async ({ question }) =>
-      observeToolCall("ask_witnessops", () =>
-        compatibleResult(askWitnessOps(question)),
-      ),
-  );
+      async ({ question }) =>
+        observeToolCall(name, () => compatibleResult(askWitnessOps(question))),
+    );
+  }
 
   return server;
 }
