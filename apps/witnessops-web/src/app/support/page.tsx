@@ -168,12 +168,12 @@ export default function SupportPage() {
               </p>
               <p className="mt-3 text-sm leading-7 text-text-secondary">
                 Support is for product help, access issues, and verifier
-                questions. Need a review instead of product help? See{" "}
+                questions.                 Need a review instead of product help? See{" "}
                 <Link
-                  href="/reviews"
+                  href="/reviews/agent-action-security-review"
                   className="font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
-                  the two published reviews
+                  the published review
                 </Link>
                 .
               </p>

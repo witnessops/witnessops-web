@@ -255,7 +255,8 @@ test("company details render on the company and contact pages, and the footer ke
     "/review/request",
   );
   assert.match(priced, /€2,500\u00A0excl.\u00A0VAT/);
-  assert.match(external, /no longer available/);
+  assert.match(external, /This link does not start a new review/);
+  assert.match(external, /engage@mail\.witnessops\.com/);
   assert.doesNotMatch(external, /€1,900/);
 });
 

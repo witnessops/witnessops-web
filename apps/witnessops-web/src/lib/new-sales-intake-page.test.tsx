@@ -45,8 +45,9 @@ test("English and Polish request pages sell only the agent review", async () => 
     searchParams: Promise.resolve({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }),
   });
   const externalHtml = render(external);
-  assert.match(externalHtml, /External Attack Surface Review is no longer available/);
-  assert.match(externalHtml, /It is not the Agent Action Security Review/);
+  assert.match(externalHtml, /This link does not start a new review/);
+  assert.match(externalHtml, /accept only Agent Action Security Review/);
+  assert.match(externalHtml, /engage@mail\.witnessops\.com/);
   assert.equal(externalHtml.includes("<form"), false);
   assert.doesNotMatch(externalHtml, /€1,900/);
   assert.doesNotMatch(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);
@@ -80,9 +81,7 @@ test("legacy, pilot, ambiguous, and display-only request URLs do not open a form
   for (const params of cases) {
     const html = render(await ReviewRequestPage({ searchParams: Promise.resolve(params) }));
     assert.equal(html.includes("<form"), false, JSON.stringify(params));
-    const parked = (params.productId === "OFFSEC-EXTERNAL-EXPOSURE" && !params.offerId)
-      || (params.offerId === "OFFSEC-EXTERNAL-EXPOSURE" && !params.productId);
-    assert.match(html, parked ? /no longer available/ : /This link does not start a new review/);
+    assert.match(html, /This link does not start a new review/);
     assert.match(html, /Existing requests and issued agreements keep their original terms/);
     assert.match(html, /href="\/review\/request\?offerId=agent-action-security-review"/);
     assert.doesNotMatch(html, /href="\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE"/);

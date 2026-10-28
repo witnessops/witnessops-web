@@ -37,8 +37,8 @@ test(
       const title = polish ? "Ta oferta została wycofana" : "This offer has been withdrawn";
       const contact = polish ? 'href="/pl/contact"' : 'href="/contact"';
       if (!html.includes(title)) mismatches.push(`${path}: missing withdrawn heading`);
-      if (!html.includes("Agent Action Security Review") || !html.includes("External Attack Surface Review")) {
-        mismatches.push(`${path}: missing current review links`);
+      if (!html.includes("Agent Action Security Review")) {
+        mismatches.push(`${path}: missing current review link`);
       }
       if (!html.includes(contact)) mismatches.push(`${path}: missing contact link`);
       if (!html.includes("site-footer") || !html.includes("WitnessOps")) {

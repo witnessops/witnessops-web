@@ -259,8 +259,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   if (sku.id === "OFFSEC-EXTERNAL-EXPOSURE") {
     return {
-      title: "External Attack Surface Review is no longer available",
-      description: "WitnessOps no longer accepts new External Attack Surface Review engagements. This is not the Agent Action Security Review.",
+      title: "This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.",
+      description: "This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.",
       robots: { index: false, follow: true },
     };
   }

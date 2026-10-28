@@ -126,15 +126,14 @@ test("pricing opens the agent review and the external review URL stays parked", 
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
   await page.getByRole("link", { name: "See scope and deliverables", exact: true }).click();
-  await expect(page).toHaveURL(/\/reviews$/);
+  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
   await expect(page.locator('[data-buyer-service="external-exposure-assessment"]')).toHaveCount(0);
   await page.goto("/reviews/external-attack-surface-review", { waitUntil: "networkidle" });
 
   const detail = page.locator("main");
-  await expect(detail).toHaveAttribute("data-offer-status", "parked");
-  await expect(detail.locator("h1")).toHaveText("External Attack Surface Review is no longer available");
-  await expect(detail).toContainText("This is not the Agent Action Security Review.");
-  await expect(detail).toContainText("€2,500\u00A0excl.\u00A0VAT");
+  await expect(detail).toHaveAttribute("data-offer-status", "not-offered-on-website");
+  await expect(detail.locator("h1")).toHaveText("This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.");
+  await expect(detail).not.toContainText("€2,500");
   await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
   const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });

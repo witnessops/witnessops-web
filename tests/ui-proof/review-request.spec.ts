@@ -345,9 +345,10 @@ test("supported request identities open a selling form and rejected identities s
     waitUntil: "networkidle",
   });
   expect(parked?.status()).toBe(200);
-  await expect(page.locator("main h1")).toHaveText("External Attack Surface Review is no longer available");
+  await expect(page.locator("main h1")).toHaveText("This link does not start a new review");
   await expect(page.locator("main form")).toHaveCount(0);
-  await expect(page.locator("main")).toContainText("It is not the Agent Action Security Review.");
+  await expect(page.locator("main")).toContainText("accept only Agent Action Security Review");
+  await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
 
   for (const query of [
     "offer=AI+Agent+Tools+%26+Access+Review",
@@ -379,14 +380,14 @@ test("External Attack Surface Review queries stay closed and do not sell that re
   for (const scenario of [
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      title: "External Attack Surface Review is no longer available",
-      body: "It is not the Agent Action Security Review.",
+      title: "This link does not start a new review",
+      body: "accept only Agent Action Security Review",
       href: "/review/request?offerId=agent-action-security-review",
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      title: "External Attack Surface Review nie jest już dostępny",
-      body: "To nie jest Agent Action Security Review.",
+      title: "Ten link nie rozpoczyna nowego przeglądu",
+      body: "wyłącznie Agent Action Security Review",
       href: "/pl/review/request?offerId=agent-action-security-review",
     },
   ] as const) {
@@ -415,7 +416,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
   const routeScenarios = [
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "External Attack Surface Review is no longer available",
+      heading: "This link does not start a new review",
       intent: null,
       selectedOffer: null,
       boundary: "No work or target-facing check starts from this page.",
@@ -423,7 +424,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "External Attack Surface Review nie jest już dostępny",
+      heading: "Ten link nie rozpoczyna nowego przeglądu",
       intent: null,
       selectedOffer: null,
       boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",

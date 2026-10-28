@@ -135,6 +135,30 @@ test("review request route rejects the parked External Attack Surface Review bef
   assert.equal(payload.reason, "parked");
 });
 
+test("review request route rejects enquiryPath OFFSEC-EXTERNAL-EXPOSURE before issuance", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-enquiry-"));
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        intent: "agent-action-security-review",
+        enquiryPath: "OFFSEC-EXTERNAL-EXPOSURE",
+        scope: "One consequential agent action. No secrets.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { field?: string; reason?: string };
+  assert.equal(payload.field, "intent");
+  assert.equal(payload.reason, "parked");
+});
+
 test("review request route returns structured validation errors for the shared form contract", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);

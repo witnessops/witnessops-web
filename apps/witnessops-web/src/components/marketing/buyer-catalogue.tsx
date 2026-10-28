@@ -39,9 +39,9 @@ const copy = {
     ],
     enquiryBoundary: "An enquiry does not authorise collection or start a review. Payment and mailbox verification are not permission to inspect a system.",
     assuranceBoundary: "This review does not grant compliance certification. A report, receipt or verifier does not prove that a system is secure, complete or free of vulnerabilities.",
-    unsureTitle: "Ready to request the review?",
-    unsureBody: "Name the consequential action, the systems involved and the decision deadline. A non-secret fit check comes first. No work starts from the enquiry.",
-    enquiryCta: "Request an agent review",
+    unsureTitle: "Is this review the right fit?",
+    unsureBody: "Describe the decision you need to make. We will confirm whether Agent Action Security Review is the right fit. A non-secret fit check comes first. No work starts from the enquiry.",
+    enquiryCta: "Ask about fit",
     catalogueCta: "See scope and deliverables",
   },
   pl: {
@@ -68,9 +68,9 @@ const copy = {
     ],
     enquiryBoundary: "Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu. Płatność i weryfikacja skrzynki nie stanowią zgody na inspekcję systemu.",
     assuranceBoundary: "Ten przegląd nie przyznaje certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
-    unsureTitle: "Gotowy, aby zgłosić przegląd?",
-    unsureBody: "Wskaż istotne działanie, zaangażowane systemy i termin decyzji. Najpierw niepoufna ocena dopasowania. Zgłoszenie nie rozpoczyna pracy.",
-    enquiryCta: "Zgłoś przegląd agenta",
+    unsureTitle: "Czy ten przegląd pasuje?",
+    unsureBody: "Opisz decyzję, którą chcesz podjąć. Potwierdzimy, czy Agent Action Security Review jest właściwy. Najpierw niepoufna ocena dopasowania. Zgłoszenie nie rozpoczyna pracy.",
+    enquiryCta: "Zapytaj o dopasowanie",
     catalogueCta: "Zobacz zakres i wyniki",
   },
 } as const;
@@ -166,7 +166,7 @@ export function BuyerCatalogue({
           <div><h2 className="wo-h2 text-text-primary">{text.unsureTitle}</h2><p className="wo-small mt-2 text-text-secondary">{text.unsureBody}</p></div>
           <Link href={buyerRequestHref(locale)} className="wo-ui inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
         </section>
-        {pricing ? <Link href={locale === "pl" ? "/pl/reviews" : "/reviews"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
+        {pricing ? <Link href={locale === "pl" ? "/pl/reviews/agent-action-security-review" : "/reviews/agent-action-security-review"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
       </div>
     </main>
   );

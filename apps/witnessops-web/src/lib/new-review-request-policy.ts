@@ -176,9 +176,19 @@ function rejectionFor(kind: IntakeTokenClass): NewSalesIntakeDecision {
 export function evaluateNewSalesIntakeBody(raw: unknown): NewSalesIntakeDecision {
   if (!isRecord(raw)) return { accepted: false, reason: "unsupported" };
 
-  const { intent, offerId, productId, offer } = raw;
+  const { intent, offerId, productId, offer, enquiryPath } = raw;
   const sideFieldPresent =
     offerId !== undefined || productId !== undefined || offer !== undefined;
+
+  if (enquiryPath !== undefined && typeof enquiryPath !== "string") {
+    return { accepted: false, reason: "unsupported" };
+  }
+  if (
+    typeof enquiryPath === "string" &&
+    classifyIntakeToken(enquiryPath) === "parked"
+  ) {
+    return { accepted: false, reason: "parked" };
+  }
 
   if (intent === undefined || intent === "") {
     return {

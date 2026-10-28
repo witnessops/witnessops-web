@@ -1,18 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
-import { languageAlternates } from "@/lib/public-seo";
-
-export const metadata: Metadata = {
-  title: "Agent Action Security Review",
-  description:
-    "Jedno istotne działanie agenta lub automatyzacji. Zakres, wyniki i cena przed rozpoczęciem pracy.",
-  alternates: languageAlternates("/pl/reviews", {
-    en: "/reviews",
-    pl: "/pl/reviews",
-  }),
-};
-
+/** Temporary. The Polish index follows the English review index. */
 export default function PolishReviewsPage() {
-  return <BuyerCatalogue locale="pl" />;
+  redirect("/pl/reviews/agent-action-security-review");
 }
