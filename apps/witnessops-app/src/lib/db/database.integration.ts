@@ -1197,6 +1197,14 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
   assert.deepEqual(reopened.source.registry,Buffer.from(pinnedRegistryInput().bytes));
   assert.equal(isBuyerReport(reopened.model),true); assert.equal(reopened.model.identity.sourceDigest,sha256(zip));
   assert.equal(reopened.model.identity.productVersion,'1.2.2');
+  const graphPosture = reopened.evidenceArtifacts.find(item => item.id === 'host_posture');
+  assert.ok(graphPosture?.content);
+  assert.equal(reopened.model.sourceArtifacts.find(item => item.id === 'host_posture')?.content, undefined);
+  const graphResponse = await service.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks');
+  assert.equal(graphResponse.status,200);
+  const graphBody = await graphResponse.json();
+  assert.deepEqual(graphBody.evidenceArtifacts,reopened.evidenceArtifacts);
+  assert.deepEqual(graphBody.model,reopened.model);
   assert.equal((await linux.reopen(viewer,workspace,run.id)).run.id,run.id);
   await assert.rejects(linux.reopen(b,wb,run.id), /not found/);
   await assert.rejects(linux.reopen(b,workspace,run.id), /not found/);

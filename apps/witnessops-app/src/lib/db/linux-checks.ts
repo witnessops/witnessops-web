@@ -17,6 +17,7 @@ import { requireLinuxClassification } from '../linux-admission';
 import { canonicalSource } from '../source-digest';
 import { ApiError, requireId } from '../errors';
 import { acceptedWorkspacePlan, requireLinuxSourceLimit } from './plan-admission';
+import { linuxReportEvidence } from '../linux-report-evidence';
 
 export const sha256 = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 export type LinuxSource = { zipName: string; zip: Buffer; signature: Buffer; registry: Buffer };
@@ -34,7 +35,7 @@ async function verify(source: LinuxSource, generatedAt: string) {
   // Import verification context, not another copy of the source/report.
   const { report: _report, ...verification } = result;
   void _report;
-  return { model, metadata, verification, snapshot: linuxServerSnapshotFromVerifiedResult(result) };
+  return { model, metadata, verification, snapshot: linuxServerSnapshotFromVerifiedResult(result), evidenceArtifacts: linuxReportEvidence(model, result) };
 }
 type Row = { id: string; asset_id: string; created_at: Date; source_digest: string; metadata: Omit<LinuxCheckRun, 'id' | 'assetId' | 'createdAt' | 'sourceDigest'> };
 const projection = (r: Row): LinuxCheckRun => ({ ...r.metadata, id: r.id, assetId: r.asset_id, createdAt: r.created_at.toISOString(), sourceDigest: r.source_digest });
@@ -81,7 +82,7 @@ export class LinuxCheckStore {
       const source = { zipName: row.zip_name, zip: row.zip_bytes, signature: row.signature_bytes, registry: row.registry_bytes };
       if (sha256(source.zip) !== row.source_digest || sha256(source.signature) !== row.signature_digest || sha256(source.registry) !== row.registry_digest) throw new ApiError(422, 'Stored source correspondence failed.');
       const checked = await verify(source, row.created_at.toISOString());
-      return { run: projection(row), model: checked.model, source, snapshot: checked.snapshot,
+      return { run: projection(row), model: checked.model, source, snapshot: checked.snapshot, evidenceArtifacts: checked.evidenceArtifacts,
         projectionMatches: row.derived_snapshot === null ? null : isLinuxServerSnapshot(row.derived_snapshot) && canonicalSource(row.derived_snapshot) === canonicalSource(checked.snapshot) };
     });
   }
