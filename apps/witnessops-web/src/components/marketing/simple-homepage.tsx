@@ -128,7 +128,7 @@ export function SimpleHomepage() {
       <ol className={styles.steps}>
         {STEPS.map(([index, title, body]) => <li key={index}><span>{index}</span><h3>{title}</h3><p>{body}</p></li>)}
       </ol>
-      <p className={styles.note}><Link href="/early-access">How the app works</Link></p>
+      <p className={styles.note}><Link href="/reviews/agent-action-security-review">See the review scope</Link></p>
     </div></section>
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
