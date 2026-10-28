@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
@@ -37,14 +37,6 @@ const sampleCases = [
       "Signed sample artifacts, browser verification and an offline verifier. This is not a complete sample of the current agent review, and these tools are not standard review deliverables.",
     tags: ["Historical synthetic run", "Agent action example"],
     emphasize: true,
-  },
-  {
-    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    href: "/review/sample-cases/external-exposure-assessment",
-    situation: "A bounded external review is documented in a synthetic sample report.",
-    youSee: "The report, findings, evidence references and limits. This public copy contains no receipt and is not an input for /verify. Not a live assessment and not available for new engagements.",
-    tags: ["Parked review sample", "Synthetic sample report"],
-    emphasize: false,
   },
   {
     title: "Witnessed synthetic CRM action",
@@ -134,12 +126,10 @@ export default function SampleCasesIndexPage() {
           <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
             Start with the historical agent-action specimen below. For the current
             scope of {PUBLIC_AGENT_ACTION_OFFER.name.en}, {" "}
-            <Link href="/reviews" className="text-brand-accent underline underline-offset-4">
+            <Link href="/reviews/agent-action-security-review" className="text-brand-accent underline underline-offset-4">
               see the current review
             </Link>
-            . {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
-            engagements; its sample remains a labelled synthetic example.
-            {" "}Older service and method samples remain available for reference;
+            . Older service and method samples remain available for reference;
             they are not additional reviews offered for sale.
           </p>
         </header>

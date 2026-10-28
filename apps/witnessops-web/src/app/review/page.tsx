@@ -267,15 +267,6 @@ export default function ReviewPage() {
               Replay one signed synthetic run, then verify its exact evidence yourself.
             </p>
           </a>
-          <a
-            href="/review/sample-cases/external-exposure-assessment"
-            className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
-          >
-            <h3 className="text-sm font-semibold text-text-primary">External Attack Surface Review</h3>
-            <p className="mt-2 text-sm leading-6 text-text-secondary">
-              A labelled synthetic sample for a parked review. Not a live assessment and not available for new engagements.
-            </p>
-          </a>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton

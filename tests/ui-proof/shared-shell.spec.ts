@@ -72,8 +72,8 @@ const canonicalChrome = {
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
-  ["/catalog", "/reviews"],
-  ["/pl/catalog", "/pl/reviews"],
+  ["/catalog", "/reviews/agent-action-security-review"],
+  ["/pl/catalog", "/pl/reviews/agent-action-security-review"],
   ["/review/request", "/review/request"],
   ["/docs", "/docs"],
   ["/pl/docs", "/pl/docs"],
@@ -321,9 +321,8 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         if (viewport.width < 1024) await openMobileMenu(page);
         // English routes now live inside grouped navigation. Inspect the active
         // link in its expanded group, preserving the one-current-page contract.
-        if (!route.startsWith("/pl")) {
-          const groupName = route === "/catalog" || route === "/reviews" ? "Reviews" : "Resources";
-          const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
+        if (!route.startsWith("/pl") && route !== "/catalog" && route !== "/reviews") {
+          const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: "Resources", exact: true });
           await groupToggle.click();
           await expect(groupToggle).toHaveAttribute("aria-expanded", "true");
         }

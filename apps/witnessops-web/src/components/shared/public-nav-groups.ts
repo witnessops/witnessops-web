@@ -3,10 +3,6 @@ export const PUBLIC_NAV_GROUPS = [
     { label: "How the app works", href: "/early-access", description: "Checks, saved observations and reports." },
     { label: "Get started", href: "/docs/getting-started", description: "Free signup, email verification and your own workspace." },
   ] },
-  { label: "Reviews", description: "One agreed scope. Clear findings.", links: [
-    { label: "Agent Action Security Review", href: "/reviews/agent-action-security-review", description: "Review the controls around one agent action." },
-    { label: "The review", href: "/reviews", description: "Scope, price and deliverables." },
-  ] },
   { label: "Resources", description: "Understand the product and its limits.", links: [
     { label: "Docs", href: "/docs", description: "App guides, CLI setup and reference." },
     { label: "Understand results", href: "/docs/getting-started/results", description: "Snapshots, reports and signed packages." },

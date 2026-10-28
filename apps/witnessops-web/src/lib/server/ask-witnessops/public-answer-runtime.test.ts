@@ -400,7 +400,7 @@ test("answers without a selected service cannot invent a price card", () => {
 test("AI overview shares the security-led site identity without hiding repair", () => {
   const request = buildPublicAskResponsesRequest({ question: "What does WitnessOps do?", config });
   assert.match(request.input[0].content, /The only new paid review is Agent Action Security Review/);
-  assert.match(request.input[0].content, /External Attack Surface Review is no longer available/);
+  assert.match(request.input[0].content, /I can't answer that here\. Please email engage@mail\.witnessops\.com\./);
   assert.doesNotMatch(request.input[0].content, /30 calendar days of initial report handover/);
   assert.doesNotMatch(request.input[0].content, /WitnessOps leads with Automation Repair/);
   assert.doesNotMatch(request.input[0].content, /Automation Repair & Handover is also available/);
@@ -484,9 +484,8 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   assert.doesNotMatch(agentAnswer.text, /\u00A0/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation, null);
-  assert.match(externalAnswer.text, /no longer available/);
-  assert.match(externalAnswer.text, /not the Agent Action Security Review/);
-  assert.doesNotMatch(externalAnswer.text, /€1,900/);
+  assert.equal(externalAnswer.text, "I can't answer that here. Please email engage@mail.witnessops.com.");
+  assert.doesNotMatch(externalAnswer.text, /€1,900|no longer available/i);
   assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:withdrawn}]}), null);
   assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:withdrawn}]}), null);
   const hidden = catalogueClarification({question:'What does Professional Public Footprint Audit cost?',history:[{role:'user',content:agent}]})!;
@@ -494,7 +493,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   for (const args of [{question:`What do ${agent} and ${external} cost?`},{question:'How much does that cost?',history:[{role:'user' as const,content:`${agent} and ${external}`}]}]) {
     const answer = catalogueClarification(args)!;
     assert.equal(answer.recommendation, null);
-    assert.match(answer.text, /no longer available/);
+    assert.equal(answer.text, "I can't answer that here. Please email engage@mail.witnessops.com.");
   }
 });
 

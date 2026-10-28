@@ -82,10 +82,10 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(information.getByText('Mock observation 3', { exact: true })).toBeVisible();
   await expect(page.getByText('No score or severity ranking is assigned.', { exact: false })).toBeVisible();
   await expect(page.locator('input[type=email]')).toHaveCount(0);
-  await expect(page.locator('main')).toContainText('External Attack Surface Review is no longer available');
+  await expect(page.locator('main')).toContainText('This check is not a paid review.');
+  await expect(page.locator('main')).not.toContainText('External Attack Surface Review');
   await expect(page.locator('main').getByRole('link', { name: 'Ask an expert', exact: true })).toHaveCount(0);
-  await expect(page.locator('main').getByRole('link', { name: 'Read the availability notice', exact: true })).toHaveAttribute('href', '/reviews/external-attack-surface-review');
-  await expect(page.locator('main').getByRole('link', { name: 'See the current agent review', exact: true })).toHaveAttribute('href', '/reviews/agent-action-security-review');
+  await expect(page.locator('main').getByRole('link', { name: 'Read the availability notice', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('result-mobile.png'), fullPage: true });
 });

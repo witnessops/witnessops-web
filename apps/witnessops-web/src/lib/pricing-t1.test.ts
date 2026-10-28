@@ -29,7 +29,7 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.match(faq, /€2,500\u00A0excl.\u00A0VAT/);
   assert.match(faq, /Delivery timing agreed in the signed statement of work/);
   assert.match(faq, /documented unknowns/);
-  assert.match(faq, /External Attack Surface Review is no longer available for new engagements/);
+  assert.doesNotMatch(faq, /External Attack Surface Review/);
   assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope|30 calendar days/);
   assert.match(faq, /agent-tools-access-review/);
   assert.doesNotMatch(faq, /primary paid entry point is \[AI Agent Tools/);

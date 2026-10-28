@@ -209,7 +209,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "External Attack Surface Review is no longer available for new engagements. Issued agreements keep their original terms. This is not the Agent Action Security Review.",
+      "This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.",
     primaryCta: "See availability notice",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "See a sample review",
@@ -563,7 +563,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Wydane uzgodnienia zachowują pierwotne warunki. To nie jest Agent Action Security Review.",
+      "Ten przegląd nie jest oferowany na tej stronie. Aby o niego zapytać, napisz na engage@mail.witnessops.com.",
     primaryCta: "Zobacz komunikat o dostępności",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz przykładowy przegląd (EN)",

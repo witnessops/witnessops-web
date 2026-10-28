@@ -89,14 +89,10 @@ test("shared review CTAs keep canonical product context on detail and selected r
     new URLSearchParams(detailHref.split("?")[1]),
   );
 
-  assert.equal(selectedRequestHref, detailHref);
-  assert.match(detailHref, /^\/pl\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE&/);
-  const selected = selectedServiceFromHref(selectedRequestHref);
-  assert.equal(selected?.name.pl, "External Attack Surface Review");
-  assert.equal(
-    selected?.price.pl,
-    "€1\u00A0900\u00A0bez\u00A0VAT",
-  );
+  assert.equal(detailHref, "/pl/review/request");
+  assert.equal(selectedRequestHref, "/pl/review/request");
+  assert.doesNotMatch(detailHref, /OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.doesNotMatch(selectedRequestHref, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
 test("every selectable service detail keeps its catalogue-authoritative request", () => {
@@ -117,9 +113,10 @@ test("every selectable service detail keeps its catalogue-authoritative request"
         detailHref,
         emptySearch,
       );
+      const parked = service.id === "external-exposure-assessment";
       assert.equal(
         fromDetail,
-        isWithdrawnOfferPath(detailHref) ? buyerRequestHref(locale) : expected,
+        isWithdrawnOfferPath(detailHref) || parked ? buyerRequestHref(locale) : expected,
         `${locale} ${service.id} detail`,
       );
 
@@ -130,7 +127,7 @@ test("every selectable service detail keeps its catalogue-authoritative request"
       );
       assert.equal(
         fromSelectedRequest,
-        expected,
+        parked ? buyerRequestHref(locale) : expected,
         `${locale} ${service.id} selected request`,
       );
     }
@@ -164,7 +161,7 @@ test("review CTA context drops unknown values into a neutral enquiry and preserv
         "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=buyer-edited-text",
       ),
     ),
-    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Attack+Surface+Review",
+    "/review/request",
   );
   assert.equal(
     reviewRequestHrefForLocation(

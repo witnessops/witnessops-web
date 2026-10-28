@@ -7,7 +7,7 @@ import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i1
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary navigation exposes the simplified website destinations", () => {
-  for (const href of ["/early-access", "/reviews", "/pricing", "/check", "/docs"]) {
+  for (const href of ["/early-access", "/reviews/agent-action-security-review", "/pricing", "/check", "/docs"]) {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
@@ -20,7 +20,7 @@ test("shared navigation preserves Polish destinations and selected enquiry", () 
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
   assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/reviews", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
+    "/pl/reviews/agent-action-security-review", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);
 });
 
@@ -164,7 +164,8 @@ test("English public navigation uses Request an agent review as the primary acti
   assert.doesNotMatch(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
   assert.match(groups, /label: "Sample work", href: "\/review\/sample-cases"/);
-  assert.match(groups, /label: "The review", href: "\/reviews"/);
+  assert.doesNotMatch(groups, /External Attack Surface Review|All reviews|Compare the two/);
+  assert.match(readFileSync(resolve(__dirname, "desktop-navbar-menu.tsx"), "utf-8"), /href="\/reviews\/agent-action-security-review">Reviews/);
   assert.match(groups, /label: "The Sovereign Chronicles", href: "\/chronicles"/);
   assert.match(groups, /label: "Tool · not a review"/);
 });

@@ -227,10 +227,10 @@ export function classifyCommercialFit(args: {
   }
 
   const selection = selectPublicOffer(question);
-  if (selection === "ambiguous") {
+  if (selection === "ambiguous" || selection === "external") {
     return assessment("unknown", "other");
   }
-  const offerChoice: PublicAskOffer = selection === "external" ? "external" : "agent-action";
+  const offerChoice: PublicAskOffer = "agent-action";
 
   const specimenId = matchingSpecimenId(question);
 
@@ -239,15 +239,6 @@ export function classifyCommercialFit(args: {
     MULTI_WORKFLOW_PATTERN.test(question)
   ) {
     return assessment("needs_boundary", "workflow", specimenId, offerChoice);
-  }
-
-  if (selection === "external") {
-    return assessment(
-      "likely",
-      OFFER_DETAIL_PATTERN.test(question) ? "offer" : "workflow",
-      specimenId,
-      "external",
-    );
   }
 
   // A generic infrastructure or vendor price question is not an inquiry about

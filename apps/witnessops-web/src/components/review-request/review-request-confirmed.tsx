@@ -11,7 +11,6 @@ import {
   type BuyerService,
 } from "@/lib/buyer-services";
 import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import {
@@ -57,18 +56,17 @@ const copy = {
     ],
     primaryOfferNextSteps: [
       "This recorded request stays agent-tools-access-review. It is not reassigned to Agent Action Security Review.",
-      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")}. External Attack Surface Review is no longer available for new engagements.`,
+      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")}.`,
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review is no longer available for new engagements. This recorded request is not the Agent Action Security Review.",
+      "This recorded request is not the Agent Action Security Review.",
       "Issued agreements keep their original terms. We will confirm by email whether any remaining work still applies under those terms.",
       "No new target-facing work starts from this confirmation alone.",
     ],
     waitLabel: "Inspect while you wait",
     specimen: "Inspect a sample review record",
     accessChangeSpecimen: "Inspect an access-change proof sample",
-    publicExposureSpecimen: `Inspect the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} sample`,
     proofModel: "Read the proof model",
     serviceCatalogue: "Explore the service catalogue",
     missingEyebrow: "Review request / no local record",
@@ -98,18 +96,17 @@ const copy = {
     ],
     primaryOfferNextSteps: [
       "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
-      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
+      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zapisane zgłoszenie nie jest Agent Action Security Review.",
+      "To zapisane zgłoszenie nie jest Agent Action Security Review.",
       "Wydane uzgodnienia zachowują pierwotne warunki. Potwierdzimy e-mailem, czy jakakolwiek pozostała praca nadal wynika z tych warunków.",
       "Samo to potwierdzenie nie rozpoczyna nowej pracy wobec celu.",
     ],
     waitLabel: "Sprawdź w oczekiwaniu",
     specimen: "Sprawdź przykładowy zapis przeglądu (EN)",
     accessChangeSpecimen: "Sprawdź przykład zmiany dostępu (EN)",
-    publicExposureSpecimen: `Sprawdź przykład ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} (EN)`,
     proofModel: "Przeczytaj model dowodowy",
     serviceCatalogue: "Zobacz katalog usług",
     missingEyebrow: "Zgłoszenie przeglądu / brak lokalnego zapisu",
@@ -198,10 +195,7 @@ export function ReviewRequestConfirmed({
         ? text.primaryOfferNextSteps
         : text.nextSteps;
   const proofResource = publicExposureReview
-    ? {
-        href: "/review/sample-cases/external-exposure-assessment",
-        label: text.publicExposureSpecimen,
-      }
+    ? undefined
     : confirmation.requestKind === "agent-risk-control-review" || aiAgentActionProofRun
       ? {
           href: "/review/sample-cases/ai-agent-action-proof-run",

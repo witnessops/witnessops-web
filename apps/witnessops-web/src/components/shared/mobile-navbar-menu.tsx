@@ -189,7 +189,10 @@ export function MobileNavbarMenu({
               {group.links.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={currentPath === link.href ? "page" : undefined} className="flex min-h-11 items-center rounded px-3 text-sm text-text-secondary hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent">{link.label}</Link>)}
             </div>
           </section>)}
-          {(groups ? [{ label: "Pricing", href: "/pricing" }] : links).map((link) => (
+          {(groups ? [
+            { label: "Reviews", href: "/reviews/agent-action-security-review" },
+            { label: "Pricing", href: "/pricing" },
+          ] : links).map((link) => (
             <Link
               key={link.href}
               href={link.href}

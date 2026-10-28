@@ -57,9 +57,19 @@ test("commercial routes with defensible replacements redirect directly", async (
     destination: "/reviews",
     permanent: true,
   });
+  assert.deepEqual(bySource.get("/reviews"), {
+    source: "/reviews",
+    destination: "/reviews/agent-action-security-review",
+    permanent: false,
+  });
+  assert.deepEqual(bySource.get("/pl/reviews"), {
+    source: "/pl/reviews",
+    destination: "/pl/reviews/agent-action-security-review",
+    permanent: false,
+  });
   assert.deepEqual(bySource.get("/catalog"), {
     source: "/catalog",
-    destination: "/reviews",
+    destination: "/reviews/agent-action-security-review",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/catalog/offsec-external-exposure"), {
@@ -69,7 +79,7 @@ test("commercial routes with defensible replacements redirect directly", async (
   });
   assert.deepEqual(bySource.get("/pl/catalog"), {
     source: "/pl/catalog",
-    destination: "/pl/reviews",
+    destination: "/pl/reviews/agent-action-security-review",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/pl/catalog/offsec-external-exposure"), {

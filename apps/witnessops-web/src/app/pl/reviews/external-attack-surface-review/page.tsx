@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 
 import { ParkedExternalReview } from "@/components/marketing/parked-external-review";
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
+import { RETIRED_REVIEW_NOTICE } from "@/lib/other-offer-scope-guard";
 import { languageAlternates } from "@/lib/public-seo";
 import { pageSocialMetadata } from "@/lib/social-metadata";
 
-const title = `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny`;
-const description =
-  "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. To nie jest Agent Action Security Review.";
+const title = RETIRED_REVIEW_NOTICE.pl;
+const description = RETIRED_REVIEW_NOTICE.pl;
 
 export const metadata: Metadata = {
   title,

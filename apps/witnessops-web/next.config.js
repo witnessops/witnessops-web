@@ -147,6 +147,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/reviews",
+        destination: "/reviews/agent-action-security-review",
+        permanent: false,
+      },
+      {
+        source: "/pl/reviews",
+        destination: "/pl/reviews/agent-action-security-review",
+        permanent: false,
+      },
+      {
         // Relative Location. A route handler would build the target from the
         // listen host (localhost under next start, 0.0.0.0 under standalone).
         source: "/og/home",
@@ -175,7 +185,7 @@ const nextConfig = {
       },
       {
         source: "/pl/catalog",
-        destination: "/pl/reviews",
+        destination: "/pl/reviews/agent-action-security-review",
         permanent: true,
       },
       {
@@ -215,7 +225,7 @@ const nextConfig = {
       },
       {
         source: "/catalog",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {

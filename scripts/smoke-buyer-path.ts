@@ -182,7 +182,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Buyer path for a security or operational review",
       "Agent Action Security Review",
-      "External Attack Surface Review",
+      "external-exposure-assessment",
       "View services",
       "Start a review",
       "receipt-only",
@@ -194,7 +194,6 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "legal audit opinion",
       "Minimal buyer reading order",
       "€2,500 excluding VAT",
-      "no longer available for new engagements",
       "Delivery timing agreed in the signed statement of work.",
       "offerId=agent-action-security-review",
     ],
@@ -225,7 +224,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Review workflow",
       "Agent Action Security Review",
       "€2,500 excluding VAT",
-      "External Attack Surface Review is no longer available for new engagements",
+      "public_exposure_review",
       "Delivery timing agreed in the signed statement of work.",
       "offerId=agent-action-security-review",
       "It is not a penetration test.",
@@ -353,7 +352,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       PUBLIC_AGENT_ACTION_OFFER.timing.en,
       "Request an agent review",
       "An enquiry does not authorise collection or start a review.",
-      "A non-secret fit check comes first. No work starts from the enquiry.",
+      "No work or target-facing check starts from this form.",
       "offerId=agent-action-security-review",
     ],
     prohibitedMarkers: [
@@ -502,10 +501,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/catalog/offsec-external-exposure",
     requiredMarkers: [
-      "External Attack Surface Review is no longer available",
-      "This is not the Agent Action Security Review",
-      "Issued agreements keep their original terms.",
-      "/reviews/agent-action-security-review",
+      "This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.",
     ],
     prohibitedMarkers: [
       "€1,900",
@@ -637,8 +633,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
     requiredMarkers: [
-      "External Attack Surface Review is no longer available",
-      "It is not the Agent Action Security Review",
+      "This link does not start a new review",
+      "accept only Agent Action Security Review",
+      "engage@mail.witnessops.com",
       "Existing requests and issued agreements keep their original terms.",
       "offerId=agent-action-security-review",
       "No work or target-facing check starts from this page.",
@@ -704,8 +701,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
     requiredMarkers: [
-      "External Attack Surface Review nie jest już dostępny",
-      "To nie jest Agent Action Security Review",
+      "Ten link nie rozpoczyna nowego przeglądu",
+      "engage@mail.witnessops.com",
       "offerId=agent-action-security-review",
       "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
     ],
@@ -810,7 +807,6 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Illustrative reviews, findings and evidence.",
       "Sample cases",
       "Agent Action Security Review",
-      "External Attack Surface Review",
       "Historical service sample",
       "Compromised API key rotation",
       "SBOM field checklist (method sample)",
@@ -859,7 +855,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/review/sample-cases/external-exposure-assessment",
     requiredMarkers: [
       "Synthetic worked example, not customer evidence.",
-      "External Attack Surface Review",
+      "Synthetic external-exposure sample",
       "OFFSEC-EXTERNAL-EXPOSURE",
       "Sample package files",
       "findings.json",
@@ -869,7 +865,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "does not prove that a target is secure",
       "This public sample contains no receipt",
       "not an input for /verify",
-      "no longer available for new engagements",
+      "former Public Exposure Review",
       "labelled synthetic example",
     ],
     prohibitedMarkers: [

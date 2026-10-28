@@ -41,7 +41,7 @@ function isAdminApiMutation(request: NextRequest): boolean {
 }
 
 const WITHDRAWN_SHELL_HEADER = "x-witnessops-withdrawn-shell";
-const WITHDRAWN_FALLBACK_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>This offer has been withdrawn</title><body><p>This offer has been withdrawn.</p><p>Ta oferta została wycofana.</p><p><a href="/reviews">Reviews</a></p></body></html>`;
+const WITHDRAWN_FALLBACK_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>This offer has been withdrawn</title><body><p>This offer has been withdrawn.</p><p>Ta oferta została wycofana.</p><p><a href="/reviews/agent-action-security-review">Agent Action Security Review</a></p></body></html>`;
 
 function withdrawnFallback() {
   return new NextResponse(WITHDRAWN_FALLBACK_HTML, {

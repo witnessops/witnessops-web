@@ -16,7 +16,6 @@ export type PublicLanguagePair = {
 
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
-  { en: "/reviews", pl: "/pl/reviews" },
   {
     en: "/reviews/agent-action-security-review",
     pl: "/pl/reviews/agent-action-security-review",
@@ -152,26 +151,16 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
   const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
   const polish = locale === "pl";
   const description = polish
-    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To nie jest Agent Action Security Review. To nie jest test penetracyjny."
-    : "External Attack Surface Review is no longer available for new engagements. It is not the Agent Action Security Review. It is not a penetration test.";
+    ? "Ten przegląd nie jest oferowany na tej stronie. Aby o niego zapytać, napisz na engage@mail.witnessops.com."
+    : "This review is not offered on this website. To ask about it, email engage@mail.witnessops.com.";
 
   return {
     "@context": "https://schema.org",
-    "@type": "Service",
-    "@id": `${url}#service`,
-    name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
+    "@type": "WebPage",
+    "@id": `${url}#notice`,
+    name: description,
     description,
-    serviceType: "External attack surface review",
     url,
-    provider: { "@id": organizationJsonLd["@id"] },
-    offers: {
-      "@type": "Offer",
-      url,
-      availability: "https://schema.org/Discontinued",
-      description: polish
-        ? "Nie jest już dostępny dla nowych zleceń."
-        : "No longer available for new engagements.",
-    },
   } as const;
 }
 
@@ -215,8 +204,10 @@ export function publicExposureBreadcrumbJsonLd(locale: "en" | "pl") {
       path: isPolish ? "/pl" : "/",
     },
     {
-      name: isPolish ? "Usługi" : "Services",
-      path: isPolish ? "/pl/reviews" : "/reviews",
+      name: isPolish ? "Przegląd" : "Review",
+      path: isPolish
+        ? "/pl/reviews/agent-action-security-review"
+        : "/reviews/agent-action-security-review",
     },
     {
       name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],

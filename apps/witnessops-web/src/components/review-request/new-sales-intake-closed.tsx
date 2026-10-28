@@ -4,17 +4,12 @@ import {
   newSalesRequestHref,
   type IntakeRejectionReason,
 } from "@/lib/new-review-request-policy";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 const copy = {
   en: {
     title: "This link does not start a new review",
-    parkedTitle: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available`,
-    body: `New paid-review requests accept only ${PUBLIC_AGENT_ACTION_OFFER.name.en}. A legacy, unknown, or conflicting identifier is not a request.`,
-    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. It is not the ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
+    body: `New paid-review requests accept only ${PUBLIC_AGENT_ACTION_OFFER.name.en}. A legacy, unknown, or conflicting identifier is not a request. To ask about this link, email engage@mail.witnessops.com.`,
     records:
       "Existing requests and issued agreements keep their original terms.",
     agent: PUBLIC_AGENT_ACTION_OFFER.name.en,
@@ -22,9 +17,7 @@ const copy = {
   },
   pl: {
     title: "Ten link nie rozpoczyna nowego przeglądu",
-    parkedTitle: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny`,
-    body: `Nowe płatne zgłoszenia przyjmują wyłącznie ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Stary, nieznany albo sprzeczny identyfikator nie jest zgłoszeniem.`,
-    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. To nie jest ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`,
+    body: `Nowe płatne zgłoszenia przyjmują wyłącznie ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Stary, nieznany albo sprzeczny identyfikator nie jest zgłoszeniem. Aby zapytać o ten link, napisz na engage@mail.witnessops.com.`,
     records:
       "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
     agent: PUBLIC_AGENT_ACTION_OFFER.name.pl,
@@ -40,7 +33,6 @@ export function NewSalesIntakeClosed({
   reason: IntakeRejectionReason;
 }) {
   const text = copy[locale];
-  const parked = reason === "parked";
   return (
     <main
       id="main-content"
@@ -48,8 +40,8 @@ export function NewSalesIntakeClosed({
       className="mx-auto max-w-3xl px-6 py-16 lg:py-24"
       data-intake-rejection={reason}
     >
-      <h1 className="text-4xl font-semibold">{parked ? text.parkedTitle : text.title}</h1>
-      <p className="mt-5 leading-7">{parked ? text.parkedBody : text.body}</p>
+      <h1 className="text-4xl font-semibold">{text.title}</h1>
+      <p className="mt-5 leading-7">{text.body}</p>
       <p className="mt-5 leading-7">{text.records}</p>
       <ul className="mt-6 space-y-3">
         <li>

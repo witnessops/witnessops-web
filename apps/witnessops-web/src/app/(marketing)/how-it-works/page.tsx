@@ -32,7 +32,7 @@ export default function HowItWorksPage() {
       </ol>
       <p className="mt-8 text-sm text-text-muted">Delivery timing agreed in the signed statement of work.</p>
       <p className="mt-4 text-sm text-text-secondary">
-        <Link href="/reviews" className="underline-offset-4 hover:underline">See the current review</Link>
+        <Link href="/reviews/agent-action-security-review" className="underline-offset-4 hover:underline">See the current review</Link>
         {" · "}
         <Link href="/early-access" className="underline-offset-4 hover:underline">How the app works</Link>
         {" · "}

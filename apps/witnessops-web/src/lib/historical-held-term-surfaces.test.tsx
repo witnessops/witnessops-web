@@ -154,7 +154,7 @@ test("buyer docs and historical request copy use the signed-statement timing lin
   for (const source of [reviewWorkflow, buyerPath]) {
     assert.match(source, /Agent Action Security Review/);
     assert.match(source, /€2,500 excluding VAT/);
-    assert.match(source, /External Attack Surface Review is no longer available for new engagements/);
+    assert.doesNotMatch(source, /External Attack Surface Review is no longer available for new engagements/);
     assert.doesNotMatch(source, /€1,900 excluding VAT/);
     assert.ok(source.includes(CURRENT_TIMING));
     assert.doesNotMatch(source, HELD_TERM);
@@ -185,12 +185,12 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
     if (locale === "en") {
       assert.match(html, /€2,500/);
-      assert.match(html, /no longer available for new engagements/);
+      assert.doesNotMatch(html, /no longer available for new engagements/);
       assert.doesNotMatch(html, /€1,900/);
     }
     if (locale === "pl") {
       assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
-      assert.match(html, /nie jest już dostępny/);
+      assert.doesNotMatch(html, /nie jest już dostępny/);
       assert.doesNotMatch(html, /€1\u00A0900/);
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     }
@@ -256,9 +256,11 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/reviews", "/contact", "/pl/contact", "/pl/reviews"]) {
+  for (const route of ["/contact", "/pl/contact", "/reviews/agent-action-security-review", "/pl/reviews/agent-action-security-review"]) {
     assert.equal(paths.has(route), true, route);
   }
+  assert.equal(paths.has("/reviews"), false);
+  assert.equal(paths.has("/pl/reviews"), false);
   assert.equal(paths.has("/reviews/external-attack-surface-review"), false);
   assert.equal(paths.has("/review/request"), false);
   const search = await searchWitnessOpsDocs("review workflow external attack surface");

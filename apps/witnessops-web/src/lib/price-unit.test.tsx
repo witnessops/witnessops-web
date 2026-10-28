@@ -66,13 +66,13 @@ test("simulated answer sources use the unbreakable price unit and no middot", ()
     sovereignAnswer("Co obejmuje Agent Action Security Review?", "pl").text,
     sovereignAnswer("Co obejmuje External Attack Surface Review?", "pl").text,
   ];
-  assert.match(answers[0], /no longer available/);
-  assert.match(answers[0], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
+  assert.equal(answers[0], "I can't answer that here. Please email engage@mail.witnessops.com.");
+  assert.doesNotMatch(answers[0], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
   assert.doesNotMatch(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
   assert.match(answers[1], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
   assert.match(answers[2], new RegExp(AGENT_PRICE_PL));
-  assert.match(answers[3], /nie jest już dostępny/);
-  assert.match(answers[3], new RegExp(AGENT_PRICE_PL));
+  assert.equal(answers[3], "I can't answer that here. Please email engage@mail.witnessops.com.");
+  assert.doesNotMatch(answers[3], new RegExp(AGENT_PRICE_PL));
   assert.doesNotMatch(answers[3], new RegExp(EXTERNAL_PRICE_PL));
   for (const text of answers) {
     assert.doesNotMatch(text, MIDDOT);

@@ -9,6 +9,8 @@ import {
 } from "@/lib/buyer-services";
 import { isWithdrawnOfferPath } from "@/lib/withdrawn-offer-routes";
 
+const PARKED_PUBLIC_REQUEST_SERVICE_ID = "external-exposure-assessment";
+
 type SearchParamsReader = Pick<URLSearchParams, "get">;
 
 function serviceForDetailRoute(
@@ -57,13 +59,13 @@ export function reviewRequestHrefForLocation(
   const requestHref = buyerRequestHref(locale);
   const routeService = serviceForDetailRoute(locale, pathname);
 
-  if (routeService) {
+  if (routeService && routeService.id !== PARKED_PUBLIC_REQUEST_SERVICE_ID) {
     return buyerServiceRequestHref(locale, routeService);
   }
 
   if (pathname === requestHref) {
     const selectedService = selectedServiceFromRequest(searchParams);
-    if (selectedService) {
+    if (selectedService && selectedService.id !== PARKED_PUBLIC_REQUEST_SERVICE_ID) {
       return buyerServiceRequestHref(locale, selectedService);
     }
   }

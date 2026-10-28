@@ -9,16 +9,12 @@ import styles from "./review-offer.module.css";
 
 const COPY = {
   en: {
-    all: "The review",
-    reviews: "/reviews",
     receive: "What you receive",
     limits: "Scope and limits",
     start: "How to start",
     agentEyebrow: "Review one agent action",
   },
   pl: {
-    all: "Przegląd",
-    reviews: "/pl/reviews",
     receive: "Co otrzymasz",
     limits: "Zakres i ograniczenia",
     start: "Jak zacząć",
@@ -41,7 +37,6 @@ export function ReviewOffer({ locale }: { locale: BuyerLocale }) {
   return (
     <main id="main-content" tabIndex={-1} className={`buyer-page ${styles.page}`}>
       <div className={styles.grid}>
-        <p className={styles.back}><Link href={copy.reviews}>{copy.all}</Link></p>
         <div className={styles.content}>
           <p className={styles.eyebrow}>{copy.agentEyebrow}</p>
           <h1>{current.name[locale]}</h1>

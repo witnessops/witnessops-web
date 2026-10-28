@@ -75,7 +75,7 @@ export function SimpleHomepage() {
     <nav className={styles.linkRow} aria-label="Review paths">
       <div className={styles.frame}>
         <div className={styles.sectionLinks}>
-          <TextLink href="/reviews">See the review</TextLink>
+          <TextLink href="/reviews/agent-action-security-review">See the review</TextLink>
           <TextLink href="/pricing">See the price</TextLink>
           <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
         </div>
