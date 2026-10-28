@@ -1,6 +1,55 @@
 import { spawn } from 'node:child_process';
 import { AuthStorage, serverOrigin } from './storage.mjs';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Shared by auth and the public review fit check. Redirects are errors.
+// Response bytes are capped before JSON parsing.
+// Fetch failures are before any response (connect error, abort before headers,
+// redirect rejection). Read and parse failures are after a response exists.
+export const REQUEST_NOT_SENT = 'request-not-sent';
+export const RESPONSE_UNCLEAR = 'response-unclear';
+
+function classifiedTransportError(code, cause) {
+  const error = new Error(code, cause === undefined ? undefined : { cause });
+  error.code = code;
+  return error;
+}
+
+export async function boundedJsonRequest(fetcher, url, { method, headers, body, timeoutMs = 10_000, maxBytes = 16_384 } = {}) {
+  let response;
+  try {
+    response = await fetcher(url, {
+      method,
+      redirect: 'error',
+      signal: AbortSignal.timeout(timeoutMs),
+      headers,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  } catch (error) {
+    throw classifiedTransportError(REQUEST_NOT_SENT, error);
+  }
+  try {
+    const reader = response.body?.getReader();
+    if (!reader) throw classifiedTransportError(RESPONSE_UNCLEAR);
+    const chunks = [];
+    let size = 0;
+    try {
+      for (;;) {
+        const item = await reader.read();
+        if (item.done) break;
+        size += item.value.byteLength;
+        if (size > maxBytes) throw classifiedTransportError(RESPONSE_UNCLEAR);
+        chunks.push(item.value);
+      }
+    } finally {
+      await reader.cancel();
+    }
+    return { ok: response.ok, status: response.status, data: JSON.parse(Buffer.concat(chunks).toString('utf8')) };
+  } catch (error) {
+    if (error?.code === RESPONSE_UNCLEAR) throw error;
+    throw classifiedTransportError(RESPONSE_UNCLEAR, error);
+  }
+}
 export async function openBrowser(url) {
   const command = process.platform === 'darwin' ? 'open' : 'xdg-open';
   return new Promise(resolve => {
@@ -17,14 +66,11 @@ export async function run(args, options = {}) {
   const fetcher = options.fetch ?? fetch, now = options.now ?? Date.now, sleep = options.sleep ?? pause;
   const request = async (server, path, body, credential) => {
     try {
-      const response = await fetcher(`${server}/api/cli/${path}`, { method: body === undefined ? 'GET' : 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000), headers: { Origin: server, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(credential ? { Authorization: `Bearer ${credential}` } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
-      const reader = response.body?.getReader(); if (!reader) throw new Error();
-      const chunks = []; let size = 0;
-      try {
-        for (;;) { const item = await reader.read(); if (item.done) break; size += item.value.byteLength; if (size > 16_384) throw new Error(); chunks.push(item.value); }
-      } finally { await reader.cancel(); }
-      const raw = Buffer.concat(chunks).toString('utf8');
-      return { ok: response.ok, status: response.status, data: JSON.parse(raw) };
+      return await boundedJsonRequest(fetcher, `${server}/api/cli/${path}`, {
+        method: body === undefined ? 'GET' : 'POST',
+        headers: { Origin: server, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(credential ? { Authorization: `Bearer ${credential}` } : {}) },
+        ...(body === undefined ? {} : { body }),
+      });
     } catch { throw new Error('Server unreachable. Current session status cannot be confirmed. Try again.'); }
   };
   const display = data => {

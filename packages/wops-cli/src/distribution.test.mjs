@@ -58,9 +58,10 @@ test('versioned archive installs and runs without a repository checkout', async 
     assert.match(help.stdout, /wops auth login \[--server URL\]/);
     assert.match(help.stdout, /sudo wops server check/);
     assert.match(help.stdout, /wops agent inspect/);
+    assert.match(help.stdout, /wops review request/);
     assert.match(help.stdout, /reconcile retained state/);
 
-    for (const args of [['auth', '--help'], ['server', 'check', '--help'], ['agent', 'inspect', '--help']]) {
+    for (const args of [['auth', '--help'], ['server', 'check', '--help'], ['agent', 'inspect', '--help'], ['review', 'request', '--help']]) {
       const before = await readdir(scratch);
       const result = spawnSync(path.join(prefix, 'bin/wops'), args, {
         encoding: 'utf8',
@@ -71,7 +72,7 @@ test('versioned archive installs and runs without a repository checkout', async 
       assert.equal(result.status, 0, result.stderr);
       assert.equal(result.stderr, '');
       assert.match(result.stdout, /^Usage:/);
-      assert.match(result.stdout, args[0] === 'auth' ? /wops auth logout/ : args[0] === 'agent' ? /no sign-in, sudo, upload, network/ : /accepted root-owned Local Audit runtime/);
+      assert.match(result.stdout, args[0] === 'auth' ? /wops auth logout/ : args[0] === 'agent' ? /no sign-in, sudo, upload, network/ : args[0] === 'review' ? /agent-action-security-review/ : /accepted root-owned Local Audit runtime/);
       assert.deepEqual(await readdir(scratch), before, 'help must not create authentication or collection state');
     }
     const inspect = spawnSync(process.execPath, [path.join(prefix, 'bin/wops'), 'agent', 'inspect'], {
