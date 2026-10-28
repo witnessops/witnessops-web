@@ -3,9 +3,11 @@ node_modules/
 .next-dev/
 dist/
 .turbo/
+# Local environment files; keep safe example templates visible.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 deploy/topology.env
 .witnessops-token-store/
 *.tsbuildinfo
@@ -18,11 +20,18 @@ deploy/topology.env
 tmp/
 out/
 output/
+# Generated CI/build output (keep other artifact paths visible).
+/artifacts/app-validation/
+/artifacts/build-image/
+/artifacts/build-output/
+/artifacts/release/
+/artifacts/supply-chain-gate/
 /artifacts/ui-proof/
+/artifacts/verified-image/
 
-# Screenshot / audit artifacts
-audit-*.png
-*-cards.png
+# Root-level screenshot / audit scratch; retain nested product images.
+/audit-*.png
+/*-cards.png
 .playwright-cli
 
 # Azure Developer CLI local environment (contains live env identifiers / secrets)
