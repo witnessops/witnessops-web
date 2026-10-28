@@ -12,6 +12,18 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
+      "statusCode": 307,
+      "regex": "^(?!/_next)/reviews(?:/)?$"
+    },
+    {
+      "source": "/pl/reviews",
+      "destination": "/pl/reviews/agent-action-security-review",
+      "statusCode": 307,
+      "regex": "^(?!/_next)/pl/reviews(?:/)?$"
+    },
+    {
       "source": "/og/home",
       "destination": "/og/witnessops-home-editorial-a-2026-10.png",
       "statusCode": 308,
@@ -43,7 +55,7 @@
     },
     {
       "source": "/pl/catalog",
-      "destination": "/pl/reviews",
+      "destination": "/pl/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/pl/catalog(?:/)?$"
     },
@@ -91,7 +103,7 @@
     },
     {
       "source": "/catalog",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog(?:/)?$"
     },

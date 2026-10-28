@@ -26,16 +26,35 @@ for attempt in $(seq 1 60); do
   if curl -fsS "${base}/" >/dev/null; then break; fi
   sleep 1
 done
-for route in / /pl /reviews /contact /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/external-exposure-assessment; do
-  test "$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${base}${route}")" = 200
-done
-# Existing redirect contracts; never follow the external status destination.
 headers="$(mktemp)"
 trap 'rm -f "${headers}"; docker rm -f "${container}" >/dev/null' EXIT
-for pair in '/status https://status.vaultmesh.org/' '/catalog /reviews'; do
-  read -r route destination <<< "${pair}"
-  test "$(curl --silent --show-error --dump-header "${headers}" --output /dev/null --write-out '%{http_code}' "${base}${route}")" = 308
-  tr -d '\r' < "${headers}" | grep -Fxi "location: ${destination}" >/dev/null
+assert_route() {
+  local route="$1" expected_status="$2" destination="${3:-}" status
+  status="$(curl --silent --show-error --dump-header "${headers}" --output /dev/null --write-out '%{http_code}' "${base}${route}")" || {
+    printf 'Runtime image request failed: %s\n' "${route}" >&2
+    return 1
+  }
+  if [[ "${status}" != "${expected_status}" ]]; then
+    printf 'Runtime image route %s: expected HTTP %s, received %s\n' "${route}" "${expected_status}" "${status}" >&2
+    return 1
+  fi
+  if [[ -n "${destination}" ]] && ! tr -d '\r' < "${headers}" | grep -Fxi "location: ${destination}" >/dev/null; then
+    printf 'Runtime image route %s: expected Location %s\n' "${route}" "${destination}" >&2
+    return 1
+  fi
+}
+for route in / /pl /reviews/agent-action-security-review /pl/reviews/agent-action-security-review /contact /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/external-exposure-assessment; do
+  assert_route "${route}" 200
+done
+# Check exact redirect contracts without following any destination.
+for contract in \
+  '/status 308 https://status.vaultmesh.org/' \
+  '/reviews 307 /reviews/agent-action-security-review' \
+  '/pl/reviews 307 /pl/reviews/agent-action-security-review' \
+  '/catalog 308 /reviews/agent-action-security-review' \
+  '/pl/catalog 308 /pl/reviews/agent-action-security-review'; do
+  read -r route status destination <<< "${contract}"
+  assert_route "${route}" "${status}" "${destination}"
 done
 # Existing local public raster, without widening remote image sources.
 curl --fail --silent --show-error "${base}/_next/image?url=%2Fimages%2Fkarol-stefanski.jpg&w=64&q=75" >/dev/null

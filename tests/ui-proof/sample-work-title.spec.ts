@@ -27,6 +27,6 @@ for (const width of [390, 1440]) {
     await expect(page).toHaveURL(/\/review\/sample-cases$/);
     await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
     await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
-    await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
+    await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(0);
   });
 }

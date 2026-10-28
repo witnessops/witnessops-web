@@ -624,7 +624,17 @@ test("confirmation routes render a bounded browser-held request record", async (
         confirmed.locator(
           'a[href="/review/sample-cases/external-exposure-assessment"]',
         ),
-      ).toHaveCount(1);
+      ).toHaveCount(0);
+      await expect(confirmed).toContainText(
+        scenario.locale === "pl"
+          ? "To zapisane zgłoszenie nie jest Agent Action Security Review."
+          : "This recorded request is not the Agent Action Security Review.",
+      );
+      await expect(confirmed).toContainText(
+        scenario.locale === "pl"
+          ? "Samo to potwierdzenie nie rozpoczyna nowej pracy wobec celu."
+          : "No new target-facing work starts from this confirmation alone.",
+      );
       await expect(
         page.locator('[data-ui-proof-id="review-request-record-missing"]'),
       ).toHaveCount(0);

@@ -20,7 +20,10 @@ export function ParkedExternalReview({ locale }: { locale: BuyerLocale }) {
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
         WitnessOps
       </p>
-      <h1 className="mt-4 text-3xl font-semibold leading-tight text-text-primary">
+      <h1
+        className="mt-4 text-3xl font-semibold leading-tight text-text-primary"
+        style={{ overflowWrap: "anywhere" }}
+      >
         {notice}
       </h1>
     </main>

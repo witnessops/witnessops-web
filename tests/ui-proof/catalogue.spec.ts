@@ -4,19 +4,15 @@ import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/com
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 
 const scenarios = [
-  { path: "/catalog", width: 1440, height: 1100 },
-  { path: "/catalog", width: 768, height: 1024 },
-  { path: "/catalog", width: 390, height: 844 },
-  { path: "/catalog", width: 320, height: 740 },
-  { path: "/pl/catalog", width: 1440, height: 1100 },
-  { path: "/pl/catalog", width: 768, height: 1024 },
-  { path: "/pl/catalog", width: 390, height: 844 },
-  { path: "/pl/catalog", width: 320, height: 740 },
+  { path: "/pricing", width: 1440, height: 1100 },
+  { path: "/pricing", width: 768, height: 1024 },
+  { path: "/pricing", width: 390, height: 844 },
+  { path: "/pricing", width: 320, height: 740 },
 ] as const;
 
 const expectedServiceOrder = [PUBLIC_AGENT_ACTION_REVIEW_ID] as const;
 
-test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
+test("single-review pricing remains responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
     const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height }, colorScheme: "dark" });
     const page = await context.newPage();
@@ -121,6 +117,48 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
   }
 });
 
+test("catalogue and review indexes redirect directly to the responsive agent offer", async ({ browser, request }) => {
+  for (const prefix of ["", "/pl"]) {
+    const destination = `${prefix}/reviews/agent-action-security-review`;
+    for (const [route, status] of [["catalog", 308], ["reviews", 307]] as const) {
+      const redirect = await request.get(`${prefix}/${route}`, { maxRedirects: 0 });
+      expect(redirect.status(), `${prefix}/${route}`).toBe(status);
+      expect(redirect.headers().location, `${prefix}/${route} is one hop`).toBe(destination);
+    }
+
+    for (const { width, height } of scenarios) {
+      const context = await browser.newContext({ viewport: { width, height }, colorScheme: "dark" });
+      const page = await context.newPage();
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+      const response = await page.goto(`${prefix}/catalog`, { waitUntil: "networkidle" });
+      expect(response?.status()).toBe(200);
+      expect(new URL(page.url()).pathname).toBe(destination);
+      const locale = prefix ? "pl" : "en";
+      const main = page.locator("main");
+      await expect(main.locator("h1")).toHaveText(PUBLIC_AGENT_ACTION_OFFER.name[locale]);
+      await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.price[locale]);
+      await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.timing[locale]);
+      await expect(main.locator('a[href*="external-attack-surface-review"], a[href*="external-exposure-assessment"]')).toHaveCount(0);
+      const cta = main.getByRole("link", { name: prefix ? "Zgłoś przegląd agenta" : "Request an agent review", exact: true });
+      const href = new URL((await cta.getAttribute("href")) ?? "", "http://witnessops.test");
+      expect(href.pathname).toBe(`${prefix}/review/request`);
+      expect(href.searchParams.get("offerId")).toBe(PUBLIC_AGENT_ACTION_REVIEW_ID);
+      expect(href.searchParams.has("productId")).toBe(false);
+      expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+      await cta.focus();
+      expect(await cta.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return style.outlineStyle !== "none" || style.boxShadow !== "none";
+      })).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      expect(errors).toEqual([]);
+      await context.close();
+    }
+  }
+});
+
 test("pricing opens the agent review and the external review URL stays parked", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
@@ -136,8 +174,8 @@ test("pricing opens the agent review and the external review URL stays parked", 
   await expect(detail).not.toContainText("€2,500");
   await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
-  const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });
-  await expect(fit).toHaveAttribute("href", "/reviews/agent-action-security-review");
+  await expect(detail.locator('a[href*="/reviews/"], a[href*="/review/request"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
   await expect(detail.locator("form")).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
