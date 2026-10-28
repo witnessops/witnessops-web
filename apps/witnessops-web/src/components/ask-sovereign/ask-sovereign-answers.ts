@@ -1,7 +1,10 @@
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+  FREE_CHECK_ANSWER,
+  OTHER_OFFER_DECLINE,
+  isFreeCheckQuestion,
+  isOtherOfferQuestion,
+} from "@/lib/other-offer-scope-guard";
 
 export type SovereignLocale = "en" | "pl";
 export type SovereignAnswerKind = "agent" | "external" | "contact" | "handoff";
@@ -22,13 +25,8 @@ function agentText(locale: SovereignLocale): string {
   return `${offer.name.en} reviews one named consequential action. The price is ${offer.price.en}. ${offer.timing.en}. Inspection and reconstruction only; the review does not execute the action or change production.`;
 }
 
-function externalText(locale: SovereignLocale): string {
-  const parked = EXTERNAL_ATTACK_SURFACE_OFFER.name[locale];
-  const current = PUBLIC_AGENT_ACTION_OFFER;
-  if (locale === "pl") {
-    return `${parked} nie jest już dostępny dla nowych zleceń. To nie jest ${current.name.pl}. Aktualny płatny przegląd dotyczy jednego istotnego działania agenta lub automatyzacji. Cena: ${current.price.pl}. ${current.timing.pl}.`;
-  }
-  return `${parked} is no longer available for new engagements. It is not the ${current.name.en}. The current paid review covers one consequential agent or automation action. The price is ${current.price.en}. ${current.timing.en}.`;
+function externalText(): string {
+  return OTHER_OFFER_DECLINE;
 }
 
 function contactText(locale: SovereignLocale): string {
@@ -51,8 +49,11 @@ export function sovereignAnswer(question: string, locale: SovereignLocale): Sove
   if (/retain|retention|data location|where (is|are) (the )?data|provider|openai|model|legal|disclosure|privacy law|gdpr|przechow|lokalizacj|dostawc|ujawnien|klauzul/.test(q)) {
     return { kind: "handoff", text: handoffText(locale), needsReview: true };
   }
-  if (/external|attack surface|1,900|1900|retest|ekspozycj|powierzchn/.test(q)) {
-    return { kind: "external", text: externalText(locale), needsReview: false };
+  if (isOtherOfferQuestion(question)) {
+    return { kind: "external", text: externalText(), needsReview: false };
+  }
+  if (isFreeCheckQuestion(question)) {
+    return { kind: "contact", text: FREE_CHECK_ANSWER[locale], needsReview: false };
   }
   if (/agent action|2,500|2500|consequential|istotn/.test(q)) {
     return { kind: "agent", text: agentText(locale), needsReview: false };

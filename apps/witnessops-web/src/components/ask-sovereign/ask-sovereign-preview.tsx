@@ -60,7 +60,6 @@ const COPY = {
     apiGreeting: "Ask about scope, price or how to start. I’ll say when an answer is unavailable.",
     suggestions: [
       { id: "aasr", text: "What does the Agent Action Security Review cover?" },
-      { id: "easr", text: "Is the external review still offered?" },
       { id: "start", text: "How do I start?" },
       { id: "write", text: "Where do I write?" },
     ],
@@ -106,7 +105,6 @@ const COPY = {
     apiGreeting: "Zapytaj o zakres, cenę albo jak zacząć. Powiem, jeśli odpowiedź będzie niedostępna.",
     suggestions: [
       { id: "aasr", text: "Co obejmuje Agent Action Security Review?" },
-      { id: "easr", text: "Czy przegląd ekspozycji jest dostępny?" },
       { id: "start", text: "Jak zacząć?" },
       { id: "write", text: "Gdzie napisać?" },
     ],

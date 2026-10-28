@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { buildDocsAssistantDisabledResponse } from "@/lib/docs-assistant/disabled-response";
+import { OTHER_OFFER_DECLINE, isOtherOfferQuestion } from "@/lib/other-offer-scope-guard";
 import { buildDocsAssistantRefusalAnswer, evaluateDocsAssistantRefusalPolicy } from "@/lib/docs-assistant/refusal-policy";
 import { readDocsAssistantRuntimeConfig } from "@/lib/docs-assistant/runtime-config";
 import {
@@ -63,6 +64,24 @@ export async function POST(request: Request) {
   const validatedPayload = validateDocsAssistantAskPayload(rawPayload);
   if (!validatedPayload.ok || !validatedPayload.payload) {
     return invalidRequestResponse(validatedPayload.error ?? "invalid_request");
+  }
+
+  if (isOtherOfferQuestion(validatedPayload.payload.question)) {
+    return NextResponse.json(
+      {
+        schema_version: "docs-assistant.answer.v1",
+        answer_status: "cannot_claim",
+        question: validatedPayload.payload.question,
+        documented_facts: [],
+        inference: [],
+        citations: [],
+        unsupported_reason: OTHER_OFFER_DECLINE,
+        human_review_required: true,
+        not_proven: ["other_offer_out_of_scope"],
+        boundary_findings: ["other_offer_out_of_scope"],
+      },
+      { headers: NO_STORE_HEADERS },
+    );
   }
 
   const refusalDecision = evaluateDocsAssistantRefusalPolicy(

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { classifyQuestion } from "./authority-classifier";
-import { PUBLIC_AGENT_ACTION_OFFER, EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
@@ -124,14 +124,13 @@ test("marks whole-estate requests as needing a one-workflow boundary", () => {
   assert.deepEqual(result.commercialFit.offer, CURRENT_AGENT_ACTION_OFFER);
 });
 
-test("selects the external review and its 30-day retest without treating it as the agent review", () => {
+test("does not select the external review or attach its price", () => {
   const result = classify(
     "What is included in the External Attack Surface Review and how much does it cost?",
   );
-  assert.equal(result.commercialFit.result, "likely");
-  assert.equal(result.commercialFit.offer_id, EXTERNAL_ATTACK_SURFACE_OFFER.id);
-  assert.match(result.commercialFit.offer?.unit_label ?? "", /30 calendar days of initial report handover/);
-  assert.match(result.commercialFit.offer?.fit_check_label ?? "", /not a penetration test/i);
+  assert.equal(result.commercialFit.result, "unknown");
+  assert.equal(result.commercialFit.offer_id, null);
+  assert.equal(result.commercialFit.offer, null);
 });
 
 test("does not choose a review when the question names both current offers", () => {

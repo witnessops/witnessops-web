@@ -320,7 +320,7 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
   assert.equal(suggestionLists.length, 2);
   assert.equal(greetings.length, 2);
   assert.ok(suggestionLists[0]?.some((item) => item.startsWith("What does the Agent Action")));
-  assert.ok(suggestionLists[0]?.some((item) => item.startsWith("Is the external review")));
+  assert.ok(suggestionLists[0]?.every((item) => !/external review|External Attack Surface|1,900/.test(item)));
 
   const dir = mkdtempSync(join(tmpdir(), "ask-chip-overflow-"));
   for (const width of [320, 390]) {

@@ -15,9 +15,8 @@ test("simulated answers use the current review and park the external review", ()
   assert.match(agent.text, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agent.text, /retest/i);
   assert.equal(external.kind, "external");
-  assert.match(external.text, /no longer available/);
-  assert.match(external.text, /not the Agent Action Security Review/);
-  assert.doesNotMatch(external.text, /€1,900/);
+  assert.equal(external.text, "I can't answer that here. Please email engage@mail.witnessops.com.");
+  assert.doesNotMatch(external.text, /€1,900|no longer available|discontinued/i);
   assert.equal(handoff.kind, "handoff");
   assert.equal(handoff.needsReview, true);
   assert.doesNotMatch(handoff.text, /engage@/);
@@ -26,9 +25,9 @@ test("simulated answers use the current review and park the external review", ()
   assert.equal(polishHandoff.kind, "handoff");
   assert.doesNotMatch(polishHandoff.text, /engage@/);
   assert.match(polishHandoff.text, /\.$/);
-  const polishExternal = sovereignAnswer("ile kosztuje ekspozycja", "pl").text;
+  const polishExternal = sovereignAnswer("Ile kosztuje przegląd External Attack Surface Review?", "pl").text;
   const polishAgent = sovereignAnswer("ile kosztuje przegląd agenta za 2500", "pl").text;
-  assert.match(polishExternal, /nie jest już dostępny/);
+  assert.equal(polishExternal, "I can't answer that here. Please email engage@mail.witnessops.com.");
   assert.doesNotMatch(polishExternal, /€1\u00A0900/);
   assert.match(polishAgent, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(`${polishExternal}\n${polishAgent}`, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);

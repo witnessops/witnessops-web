@@ -318,7 +318,7 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   const originalFetch = globalThis.fetch;
   const cases = [
     { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
-    { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "External Attack Surface Review is no longer available. It is not the Agent Action Security Review.", deterministic: true, parked: true },
+    { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "I can't answer that here. Please email engage@mail.witnessops.com.", deterministic: true, parked: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
     { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with the founder to agree the scope and review the findings.", deterministic: false },

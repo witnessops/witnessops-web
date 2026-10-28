@@ -103,6 +103,10 @@ export function boundaryLabel(label: string): string {
 }
 
 function friendlyUnsupportedReason(reason: string): string {
+  if (reason === "I can't answer that here. Please email engage@mail.witnessops.com.") {
+    return reason;
+  }
+
   if (reason === "production_readiness_not_allowed") {
     return "I cannot claim production readiness from the Ask WitnessOps public-material boundary. A human review of the named artifact, verifier, and proof path is required.";
   }
