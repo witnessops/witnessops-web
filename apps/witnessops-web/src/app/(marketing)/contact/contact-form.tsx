@@ -84,7 +84,7 @@ function stringField(data: FormData, name: string) {
 
 export function ContactForm({
   locale = "en",
-  intent = "review",
+  intent = NEW_SALES_AGENT_ACTION_OFFER_ID,
   campaignAttribution,
   compact = false,
   landing = false,
@@ -1096,7 +1096,7 @@ export function ContactForm({
 
       {!landing && <div
         className="pt-4 border-t border-surface-border"
-        style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-text-secondary)", letterSpacing: "0.03em" }}
       >
         <div className="flex flex-wrap items-center gap-y-1">
           <span
@@ -1115,7 +1115,7 @@ export function ContactForm({
             </span>
             <a
               href={salesReviewMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-              className="break-all underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
+              className="break-all underline decoration-current underline-offset-2 transition-colors hover:text-text-primary"
               style={{ color: "inherit" }}
             >
               {PUBLIC_SALES_REVIEW_EMAIL}

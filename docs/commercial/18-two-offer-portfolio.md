@@ -5,6 +5,14 @@
 > at €2,500 excluding VAT. This file remains the historical record of the
 > two-offer decision. Do not use it to reopen external-review sales.
 
+> **GATE 1 SOURCE AMENDMENT — 28 October 2026.** Founder approval selects
+> one active offer and authorises branch/preview implementation and verification.
+> Current detail routes are `/reviews/agent-action-security-review` and
+> `/pl/reviews/agent-action-security-review`; intake keeps
+> `offerId=agent-action-security-review`. Earlier statements below that there is
+> no detail route describe the earlier stage. `/catalog/workflows` retains its
+> historical inventory-review identity. Production remains a separate Gate 2.
+
 > **CURRENT FOUNDER AMENDMENT — 8 October 2026, later commercial instruction.**
 > The public sales portfolio is **Agent Action Security Review — EUR 2,500 fixed,
 > excluding VAT**, and **External Attack Surface Review — EUR 1,900 fixed,

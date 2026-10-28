@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PriceText } from "@/lib/price-unit";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { getServiceLanding } from "@/lib/service-landings";
+import { agentActionServiceJsonLd } from "@/lib/public-seo";
 
 import {
   BUYER_SERVICES,
@@ -48,8 +49,8 @@ const copy = {
     eyebrow: "Przegląd WitnessOps",
     title: "Agent Action Security Review",
     intro: `Jedno istotne działanie agenta lub automatyzacji dla zespołów inżynierskich i partnerów wdrażających AI. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`,
-    pricingTitle: "Ceny i zakres przeglądów",
-    pricingEyebrow: "Ceny",
+    pricingTitle: "Cena i zakres przeglądu",
+    pricingEyebrow: "Cena",
     price: "Cena",
     timing: "Termin",
     boundary: "Zakres i wyłączenia",
@@ -89,6 +90,7 @@ export function BuyerCatalogue({
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(agentActionServiceJsonLd(locale)) }} />
       <div className="mx-auto max-w-6xl px-6 py-8 lg:py-12">
         <header className="max-w-4xl pb-7 md:pb-10">
           <p className="wo-eyebrow text-brand-accent">{pricing ? text.pricingEyebrow : text.eyebrow}</p>
@@ -100,9 +102,8 @@ export function BuyerCatalogue({
           const ai = service.id === PUBLIC_AGENT_ACTION_REVIEW_ID;
           const landing = getServiceLanding(service.id, locale);
           const groupId = ai ? "ai-reviews" : "system-reviews";
-          // Agent Action has no detail route. /catalog/workflows remains the
-          // historical agent-tools-access-review record, so this card does not
-          // link there. The request CTA carries offerId=agent-action-security-review.
+          // /catalog/workflows remains the historical inventory review record.
+          // Current detail and request links retain the one-action identity.
           const detailHref = service.detailHref[locale];
           const serviceRequestHref = buyerServiceRequestHref(locale, service);
           return (
@@ -166,7 +167,6 @@ export function BuyerCatalogue({
           <div><h2 className="wo-h2 text-text-primary">{text.unsureTitle}</h2><p className="wo-small mt-2 text-text-secondary">{text.unsureBody}</p></div>
           <Link href={buyerRequestHref(locale)} className="wo-ui inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-text-inverse transition-colors hover:brightness-110">{text.enquiryCta}</Link>
         </section>
-        {pricing ? <Link href={locale === "pl" ? "/pl/reviews" : "/reviews"} className="mt-6 inline-flex min-h-11 items-center underline underline-offset-4">{text.catalogueCta}</Link> : null}
       </div>
     </main>
   );

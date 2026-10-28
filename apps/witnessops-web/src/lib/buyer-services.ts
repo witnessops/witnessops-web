@@ -157,10 +157,11 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "Request an agent review",
       pl: "Zgłoś przegląd agenta",
     },
-    // Shared /catalog/workflows detail remains owned by PRIMARY_OFFER until
-    // presentation reconciliation; omit detailHref so route→request mapping
-    // stays unambiguous. PUBLIC_AGENT_ACTION_OFFER.route documents the target.
-    detailHref: {},
+    // The historical inventory review retains /catalog/workflows and its identity.
+    detailHref: {
+      en: "/reviews/agent-action-security-review",
+      pl: "/pl/reviews/agent-action-security-review",
+    },
   },
   {
     id: "one-server-security-check",

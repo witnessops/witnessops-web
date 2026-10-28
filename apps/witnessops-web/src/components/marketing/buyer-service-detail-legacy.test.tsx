@@ -124,7 +124,10 @@ test("published detail routes stay on the historical service and do not redirect
   assert.doesNotMatch(workflowsSource, /PUBLIC_AGENT_ACTION_OFFER|agent-action-security-review/);
   assert.equal(buyerServiceById("agent-tools-access-review").detailHref.en, "/catalog/workflows");
   assert.equal(buyerServiceById("agent-tools-access-review").id, PRIMARY_OFFER.id);
-  assert.deepEqual(buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID).detailHref, {});
+  assert.deepEqual(buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID).detailHref, {
+    en: "/reviews/agent-action-security-review",
+    pl: "/pl/reviews/agent-action-security-review",
+  });
   assert.equal(buyerServiceById("one-server-security-check").detailHref.en, "/catalog/offsec-local-audit");
   assert.equal(buyerServiceById("external-exposure-assessment").detailHref.en, "/catalog/offsec-external-exposure");
 });

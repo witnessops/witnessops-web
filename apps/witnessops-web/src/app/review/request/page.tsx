@@ -15,27 +15,44 @@ import {
 import { languageAlternates } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-export const metadata: Metadata = {
-  title: "Tell Us What You Need Reviewed",
-  description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
-  alternates: languageAlternates("/contact", {
-    en: "/contact",
-    pl: "/pl/contact",
-  }),
-  openGraph: {
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
-    title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
-    siteName: "WitnessOps",
-    type: "website",
-  },
-  twitter: {
-    images: DEFAULT_TWITTER_IMAGES,
-    card: "summary_large_image",
-    title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
-  },
-};
+const requestDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = (await searchParams) ?? {};
+  const decision = resolveNewSalesPageQuery({
+    offerId: params.offerId,
+    productId: params.productId,
+    offer: params.offer,
+  });
+  const title = decision.state === "selected"
+    ? `Request ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
+    : "This link does not start a new review";
+  const description = decision.state === "selected"
+    ? requestDescription
+    : "This request link is unavailable for new engagements. Existing requests and issued agreements keep their original terms.";
+
+  return {
+    title,
+    description,
+    alternates: languageAlternates("/contact", {
+      en: "/contact",
+      pl: "/pl/contact",
+    }),
+    openGraph: {
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
+      title: `${title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "website",
+    },
+    twitter: {
+      images: DEFAULT_TWITTER_IMAGES,
+      card: "summary_large_image",
+      title: `${title} | WitnessOps`,
+      description,
+    },
+  };
+}
 
 const agentActionNextSteps = [
   `${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} Do not send source files or secrets.`,

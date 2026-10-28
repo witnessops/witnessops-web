@@ -4,8 +4,8 @@ import test from "node:test";
 import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import PolishReviewRequestPage from "@/app/pl/review/request/page";
-import ReviewRequestPage from "@/app/review/request/page";
+import PolishReviewRequestPage, { generateMetadata as polishMetadata } from "@/app/pl/review/request/page";
+import ReviewRequestPage, { generateMetadata as englishMetadata } from "@/app/review/request/page";
 
 function render(node: ReactNode) {
   return renderToStaticMarkup(
@@ -128,4 +128,21 @@ test("the unselected enquiry is the agent review and has no offer selector", asy
   assert.match(polish, />engage@mail\.witnessops\.com</);
   assert.doesNotMatch(html, /karol\.stefanski@/);
   assert.doesNotMatch(polish, /karol\.stefanski@/);
+});
+
+test("enquiry metadata preserves the canonical contact alias and describes rejected links accurately", async () => {
+  for (const [locale, generateMetadata] of [["en", englishMetadata], ["pl", polishMetadata]] as const) {
+    const active = await generateMetadata({ searchParams: Promise.resolve({}) });
+    assert.match(String(active.title), /Agent Action Security Review/);
+    assert.equal(active.alternates?.canonical, `https://witnessops.com${locale === "pl" ? "/pl" : ""}/contact`);
+    for (const query of [
+      { productId: "OFFSEC-EXTERNAL-EXPOSURE" },
+      { offerId: "agent-tools-access-review" },
+      { offerId: "unknown" },
+    ]) {
+      const rejected = await generateMetadata({ searchParams: Promise.resolve(query) });
+      assert.match(String(rejected.title), locale === "pl" ? /nie rozpoczyna przeglądu/ : /does not start a new review/);
+      assert.doesNotMatch(String(rejected.description), /€|Request Agent|Rozpocznij/);
+    }
+  }
 });

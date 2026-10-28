@@ -114,8 +114,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     whoFor: "Engineering teams and AI implementation partners preparing to launch or hand over an agent.",
     scopeNote: "One consequential agent or automation action, such as issuing a refund, changing a record or granting access.",
     deliverables: [
-      "Action map of the trigger, executing identity, permissions and approvals.",
-      "Findings linked to the available execution evidence.",
+      "Action map of the trigger, executing identity, effective permissions and approvals.",
+      "Sourced findings linked to the available execution evidence.",
       "Prioritised recommendations.",
       "Explicit unknowns.",
       "Written report and readout.",
@@ -128,7 +128,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Report and readout", "Delivery timing agreed in the signed statement of work. Your team owns remediation decisions."],
     ],
     boundaries: [
-      "One consequential agent or automation action only; multi-workflow programmes need a separate quote.",
+      "One consequential agent or automation action only. Other workflows and whole-environment assurance are outside scope.",
       "Default operating mode: read, inspect, reconstruct and report.",
       "No platform installation, production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that an agent is safe.",
       "Historical synthetic samples are not a full-review sample and do not change the agreed commercial terms.",
@@ -465,8 +465,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     whoFor: "Zespoły inżynierskie i partnerzy wdrażający AI przed uruchomieniem lub przekazaniem agenta.",
     scopeNote: "Jedno istotne działanie agenta lub automatyzacji, na przykład zwrot, zmiana rekordu albo nadanie dostępu.",
     deliverables: [
-      "Mapa działania: wyzwalacz, tożsamość wykonawcza, uprawnienia i zatwierdzanie.",
-      "Ustalenia powiązane z dostępnymi dowodami wykonania.",
+      "Mapa działania: wyzwalacz, tożsamość wykonawcza, efektywne uprawnienia i zatwierdzanie.",
+      "Ustalenia ze źródłami powiązane z dostępnymi dowodami wykonania.",
       "Zalecenia według priorytetu.",
       "Jawne niewiadome.",
       "Raport pisemny i omówienie.",
@@ -479,7 +479,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Raport i omówienie", "Termin realizacji według podpisanego SOW. Decyzje o naprawach należą do Twojego zespołu."],
     ],
     boundaries: [
-      "Tylko jedno istotne działanie agenta lub automatyzacji; programy obejmujące wiele workflow wymagają osobnej wyceny.",
+      "Tylko jedno istotne działanie agenta lub automatyzacji. Inne przepływy i ocena całego środowiska pozostają poza zakresem.",
       "Domyślny tryb pracy: odczyt, inspekcja, rekonstrukcja i raportowanie.",
       "Bez instalacji platformy, zmian produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitorowania i certyfikacji, że agent jest bezpieczny.",
       "Historyczne przykłady syntetyczne nie są próbką pełnego przeglądu i nie zmieniają uzgodnionych warunków handlowych.",
