@@ -61,7 +61,8 @@ function assertTruthfulSitemap(xml, label) {
   assert.match(xml, /<urlset\b[^>]*>/);
   assert.match(xml, /<\/urlset>\s*$/);
   assert.match(xml, /<loc>https:\/\/witnessops\.com<\/loc>/);
-  assert.match(xml, /<loc>https:\/\/witnessops\.com\/reviews<\/loc>/);
+  assert.doesNotMatch(xml, /<loc>https:\/\/witnessops\.com\/reviews<\/loc>/);
+  assert.doesNotMatch(xml, /<loc>https:\/\/witnessops\.com\/pl\/reviews<\/loc>/);
   assert.match(
     xml,
     /<loc>https:\/\/witnessops\.com\/reviews\/agent-action-security-review<\/loc>/,
@@ -69,6 +70,14 @@ function assertTruthfulSitemap(xml, label) {
   assert.doesNotMatch(
     xml,
     /<loc>https:\/\/witnessops\.com\/reviews\/external-attack-surface-review<\/loc>/,
+  );
+  assert.doesNotMatch(
+    xml,
+    /<loc>https:\/\/witnessops\.com\/pl\/reviews\/external-attack-surface-review<\/loc>/,
+  );
+  assert.doesNotMatch(
+    xml,
+    /<loc>https:\/\/witnessops\.com\/review\/sample-cases\/external-exposure-assessment<\/loc>/,
   );
   for (const route of [
     "/catalog",
