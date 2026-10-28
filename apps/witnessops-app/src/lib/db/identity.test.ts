@@ -12,7 +12,11 @@ const identity: Identity = {
   displayName: "User A",
 };
 
-function scriptedPool(stored: { id: string; status: string; display_name: string | null; verified_email_snapshot: string | null } | null, raced?: typeof stored) {
+function scriptedPool(
+  stored: { id: string; status: string; display_name: string | null; verified_email_snapshot: string | null } | null,
+  raced?: typeof stored,
+  locked?: typeof stored,
+) {
   const sql: string[] = [];
   let sawAdvisory = false;
   const client = {
@@ -21,7 +25,11 @@ function scriptedPool(stored: { id: string; status: string; display_name: string
       if (text === "BEGIN" || text === "COMMIT" || text === "ROLLBACK") return { rows: [], rowCount: 0 };
       if (text.includes("pg_advisory_xact_lock")) { sawAdvisory = true; return { rows: [], rowCount: 0 }; }
       if (text.includes("FROM identity_mappings")) {
-        const row = sawAdvisory && raced !== undefined ? raced : stored;
+        const row = text.includes("FOR UPDATE") && locked !== undefined
+          ? locked
+          : sawAdvisory && raced !== undefined
+            ? raced
+            : stored;
         return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
       }
       if (text.startsWith("INSERT") || text.startsWith("UPDATE")) return { rows: [], rowCount: 1 };
@@ -75,4 +83,44 @@ test("disabled account is rejected under the row lock and is not rewritten", asy
   await assert.rejects(resolveIdentity(pool, identity), (error: unknown) => error instanceof ApiError && error.status === 403);
   assert.equal(sql.some(query => query.includes("FOR UPDATE OF u")), true);
   assert.equal(sql.some(query => query.startsWith("UPDATE") || query.startsWith("INSERT")), false);
+});
+
+test("a profile that becomes disabled under the row lock is not rewritten", async () => {
+  const { pool, sql } = scriptedPool(
+    { ...row, display_name: "Old" },
+    undefined,
+    { ...row, status: "disabled" },
+  );
+  await assert.rejects(resolveIdentity(pool, identity), (error: unknown) => error instanceof ApiError && error.status === 403);
+  assert.equal(sql.some(query => query.includes("FOR UPDATE OF u")), true);
+  assert.equal(sql.some(query => query.includes("pg_advisory_xact_lock")), false);
+  assert.equal(sql.some(query => query.startsWith("UPDATE") || query.startsWith("INSERT")), false);
+});
+
+test("a sign-in that loses the create race to a disabled account is not rewritten", async () => {
+  const { pool, sql } = scriptedPool(null, { ...row, status: "disabled" });
+  await assert.rejects(resolveIdentity(pool, identity), (error: unknown) => error instanceof ApiError && error.status === 403);
+  assert.equal(sql.some(query => query.includes("pg_advisory_xact_lock")), true);
+  assert.equal(sql.some(query => query.includes("FOR UPDATE OF u")), true);
+  assert.equal(sql.some(query => query.startsWith("INSERT") || query.startsWith("UPDATE")), false);
+});
+
+test("a changed name and email locks once and writes both columns", async () => {
+  const { pool, sql } = scriptedPool({ ...row, display_name: "Old", verified_email_snapshot: "old@example.test" });
+  const user = await resolveIdentity(pool, identity);
+  assert.equal(user.id, row.id);
+  assert.equal(user.verifiedEmail, true);
+  assert.equal(sql.filter(query => query.includes("FOR UPDATE OF u")).length, 1);
+  assert.equal(sql.filter(query => query.startsWith("UPDATE")).length, 1);
+  assert.equal(sql.filter(query => query.startsWith("INSERT INTO identity_mappings")).length, 1);
+  assert.equal(sql.filter(query => query.startsWith("INSERT INTO users")).length, 0);
+});
+
+test("a create race that finds a different profile updates it instead of inserting another user", async () => {
+  const { pool, sql } = scriptedPool(null, { ...row, display_name: "Old", verified_email_snapshot: identity.email });
+  assert.equal((await resolveIdentity(pool, identity)).id, row.id);
+  assert.equal(sql.some(query => query.includes("pg_advisory_xact_lock")), true);
+  assert.equal(sql.filter(query => query.startsWith("INSERT INTO users")).length, 0);
+  assert.equal(sql.filter(query => query.startsWith("UPDATE")).length, 1);
+  assert.equal(sql.filter(query => query.startsWith("INSERT INTO identity_mappings")).length, 0);
 });
