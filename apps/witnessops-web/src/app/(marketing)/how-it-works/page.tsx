@@ -34,8 +34,6 @@ export default function HowItWorksPage() {
       <p className="mt-4 text-sm text-text-secondary">
         <Link href="/reviews" className="underline-offset-4 hover:underline">See the current review</Link>
         {" · "}
-        <Link href="/early-access" className="underline-offset-4 hover:underline">How the app works</Link>
-        {" · "}
         <Link href="/contact" className="underline-offset-4 hover:underline">Discuss a review</Link>
       </p>
     </main>

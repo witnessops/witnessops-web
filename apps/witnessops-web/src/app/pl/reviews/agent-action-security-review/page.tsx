@@ -8,15 +8,16 @@ import { pageSocialMetadata } from "@/lib/social-metadata";
 import { getServiceLanding } from "@/lib/service-landings";
 
 const landing = getServiceLanding(PUBLIC_AGENT_ACTION_REVIEW_ID, "pl");
+const description = `${landing.headline} ${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`;
 
 export const metadata: Metadata = {
   title: PUBLIC_AGENT_ACTION_OFFER.name.pl,
-  description: landing.headline,
+  description,
   alternates: languageAlternates("/pl/reviews/agent-action-security-review", {
     en: "/reviews/agent-action-security-review",
     pl: "/pl/reviews/agent-action-security-review",
   }),
-  ...pageSocialMetadata(PUBLIC_AGENT_ACTION_OFFER.name.pl, landing.headline),
+  ...pageSocialMetadata(PUBLIC_AGENT_ACTION_OFFER.name.pl, description),
 };
 
 export default function PolishAgentActionSecurityReviewPage() {

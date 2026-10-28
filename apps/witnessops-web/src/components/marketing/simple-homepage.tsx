@@ -29,9 +29,9 @@ const ISNT = [
 ] as const;
 
 const STEPS = [
-  ["01", "Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts."],
-  ["02", "Start without secrets", "The initial enquiry uses a short, non-secret description. Do not send credentials or production evidence."],
-  ["03", "Understand the limits", "The report distinguishes supported findings, unavailable evidence and questions the review could not answer."],
+  ["01", "Start without secrets", "Describe one action and the decision you need to make. Do not send credentials or production evidence."],
+  ["02", "Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts. Delivery timing is agreed in the signed statement of work."],
+  ["03", "Review the findings", "Receive the action map, sourced findings and prioritised recommendations in a written report and readout. Unavailable evidence and unanswered questions stay explicit."],
 ] as const;
 
 const PRINCIPLES = [
@@ -62,7 +62,8 @@ export function SimpleHomepage() {
         <div className={styles.split}>
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
           <div>
-            <p className={styles.subline}>{text.aiPrice}. {text.timing}</p>
+            <p className={styles.heroPrice}><PriceText text={text.aiPrice} /></p>
+            <p className={styles.subline}>{text.timing}</p>
             <div className={styles.actions}>
               {services.filter((service) => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID).map((service) => (
                 <Link key={service.id} className={styles.primary} href={buyerServiceRequestHref("en", service)} data-ui-proof-id="homepage-hero-primary-cta">{text.aiCta}</Link>
@@ -84,9 +85,13 @@ export function SimpleHomepage() {
     <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
-      <h2>{text.reviewsTitle}</h2>
-      <p>{text.aiWhoFor}</p>
-      <p>{text.reviewsBody}</p>
+      <div className={styles.offerLayout}>
+      <div className={styles.offerIntro}>
+        <h2>{text.reviewsTitle}</h2>
+        <p>{text.aiWhoFor}</p>
+        <p>Issuing a refund, changing a record or granting access: understand the path from trigger to action, where approval is required and what the available evidence supports.</p>
+        <p className={styles.note}>{text.reviewsBody}</p>
+      </div>
       <div className={styles.cards}>
         {services.map((service) => (
           <article key={service.id} className="crop" data-home-offer={service.id}>
@@ -94,13 +99,13 @@ export function SimpleHomepage() {
             <h3>{service.name.en}</h3>
             <p className={styles.price}><PriceText text={text.aiPrice} /></p>
             <p>{text.aiDescription}</p>
-            <p>{text.aiWhoFor}</p>
             <ul>{text.deliverables.map((item) => <li key={item}>{item}</li>)}</ul>
             <p className={styles.scope}>{text.aiScopeNote}</p>
             <p className={styles.timing}>{service.timing.en}</p>
             <TextLink href={buyerServiceRequestHref("en", service)}>{text.aiCta}</TextLink>
           </article>
         ))}
+      </div>
       </div>
       <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
@@ -128,7 +133,7 @@ export function SimpleHomepage() {
       <ol className={styles.steps}>
         {STEPS.map(([index, title, body]) => <li key={index}><span>{index}</span><h3>{title}</h3><p>{body}</p></li>)}
       </ol>
-      <p className={styles.note}><Link href="/early-access">How the app works</Link></p>
+      <p className={styles.note}><Link href="/reviews/agent-action-security-review">See the review scope</Link></p>
     </div></section>
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />

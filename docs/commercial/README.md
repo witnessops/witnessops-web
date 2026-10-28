@@ -5,7 +5,7 @@ Written for learning the offers while you sell and deliver them.
 
 **Public new-sales review:** one, by founder decision on 2026-10-27. [Two-Offer V1](./18-two-offer-portfolio.md) remains the historical record of the earlier pair. This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
 
-- **Agent Action Security Review** — €2,500 fixed, excluding VAT. New-sales identity `agent-action-security-review`. Request path: `/review/request?offerId=agent-action-security-review`. One consequential agent or automation action, with explicit unknowns in the deliverables. Delivery timing per signed SOW. It has no detail route. This is not the historical inventory offer and not `bounded-workflow-review`.
+- **Agent Action Security Review** — €2,500 fixed, excluding VAT. New-sales identity `agent-action-security-review`. Detail routes: `/reviews/agent-action-security-review` and `/pl/reviews/agent-action-security-review`. Request path: `/review/request?offerId=agent-action-security-review`. One consequential agent or automation action, with explicit unknowns in the deliverables. Delivery timing per signed SOW. This is not the historical inventory offer and not `bounded-workflow-review`.
 - **External Attack Surface Review** — parked. The [offer record](./10-public-exposure-review-offer.md) stays for issued agreements and old lookups. Product identity `OFFSEC-EXTERNAL-EXPOSURE` is not a new-sales offerId or productId. Do not book it, and do not present Agent Action Security Review as the same offer. Existing URLs explain that the review is no longer available.
 
 The €950 private pilot is not a public new-sales choice. The free hostname check remains a separate tool at `/check`.
@@ -14,10 +14,9 @@ Historical records stay in force for issued agreements and old lookups. The [sup
 
 ## Start here
 
-1. **[Current portfolio](./18-two-offer-portfolio.md)** and **[external offer record](./10-public-exposure-review-offer.md)** — current promises and exclusions.
-2. **[Scope agreement](./06-scope-agreement-skeleton.md)** — select one current scope block; keep historical terms separate.
-3. **[Dry-run checklist](./05-dry-run-checklist.md)** and **[operator playbook](./07-operator-playbook-complete.md)** — use their current two-offer sections.
-4. **[External order and fit check](./11-public-exposure-review-fit-check.md)** — current external intake template.
+1. **Current public scope:** one consequential agent or automation action. Review its trigger, executing identity, effective permissions, approvals and available execution evidence. Deliver an action map, sourced findings, prioritised recommendations, explicit unknowns, written report and readout.
+2. **[Scope agreement](./06-scope-agreement-skeleton.md)** — start with a non-secret fit check, then agree scope, authority and evidence handling. Use only the one-action scope for new sales. Delivery timing is agreed in the signed statement of work. Work is limited to reading, inspection, reconstruction and reporting, with existing exclusions preserved.
+3. **Historical references:** [Two-Offer V1](./18-two-offer-portfolio.md), [external offer](./10-public-exposure-review-offer.md), [external fit check](./11-public-exposure-review-fit-check.md), [dry-run checklist](./05-dry-run-checklist.md) and [operator playbook](./07-operator-playbook-complete.md) preserve earlier terms and process. Their two-offer or external sections do not reopen retired sales.
 
 The [former run sheet](./THIS-WEEK.md), [learning guide](./00-offer-learning-guide.md),
 older reply/delivery/claim/demo templates, [drafts](./drafts/) and
@@ -68,7 +67,7 @@ Source routes below. A listed URL is not evidence that the route is the released
 | --- | --- |
 | Catalog | https://witnessops.com/catalog |
 | Agent Action Security Review request | https://witnessops.com/review/request?offerId=agent-action-security-review |
-| External Attack Surface Review request | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
+| Retired External Attack Surface Review request (availability notice only) | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
 | Historical AI Agent Tools & Access Review | https://witnessops.com/catalog/workflows |
 | Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
 | Historical CSR service | https://witnessops.com/customer-security-review |
@@ -80,7 +79,7 @@ Source routes below. A listed URL is not evidence that the route is the released
 | One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |
 | External Attack Surface Review | https://witnessops.com/catalog/offsec-external-exposure |
 | External Attack Surface Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
-| Review request chooser | https://witnessops.com/review/request |
+| Agent review fit check | https://witnessops.com/review/request |
 | Free hostname check | https://witnessops.com/check |
 | All samples | https://witnessops.com/review/sample-cases |
 

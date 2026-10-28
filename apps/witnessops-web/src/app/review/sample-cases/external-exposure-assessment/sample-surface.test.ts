@@ -68,7 +68,8 @@ test("the parked external sample stays labelled and is not a booking path", () =
   assert.match(page, /no longer available for new\s+engagements/);
   assert.doesNotMatch(page, /Request an external review/);
   assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
-  assert.match(pricingHtml, /href="\/reviews"/);
+  assert.match(pricingHtml, /href="\/reviews\/agent-action-security-review"/);
+  assert.match(pricingHtml, /offerId=agent-action-security-review/);
   assert.doesNotMatch(pricingHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.doesNotMatch(catalogueHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.doesNotMatch(catalogueHtml, new RegExp(route));

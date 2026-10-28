@@ -65,7 +65,7 @@ test("dragging, keyboard movement, reset and conversation lifecycle", async ({ p
   await last.press("Escape");
   await expect(dialog).not.toBeVisible();
   await expect(pet).toBeFocused();
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
   expect(requests).toEqual([{ question: "What does the Agent Action Security Review cover?", history: [], surface: "sovereign_widget" }]);
 });
 

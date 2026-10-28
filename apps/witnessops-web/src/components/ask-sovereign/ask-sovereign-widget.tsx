@@ -73,7 +73,7 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
           }}
         >
           <span className={styles.character} aria-hidden="true" />
-          <span className={styles.label}>Ask Sovereign</span>
+          <span className={styles.label}>{locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign"}</span>
           <span className={styles.hint}>{locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me"}</span>
         </button>
         <button type="button" className={styles.resetPet} aria-label={resetLabel} title={resetLabel} onClick={resetPositions}>↺</button>

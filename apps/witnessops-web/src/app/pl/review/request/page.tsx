@@ -25,7 +25,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       : "To zgłoszenie nie rozpoczyna przeglądu",
     description: agentActionOrder
       ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
-      : "External Attack Surface Review nie jest już dostępny. Nowe zgłoszenia dotyczą wyłącznie Agent Action Security Review.",
+      : "Ten link nie jest dostępny dla nowych zleceń. Istniejące zgłoszenia i podpisane umowy zachowują pierwotne warunki.",
     alternates: languageAlternates("/pl/contact", {
       en: "/contact",
       pl: "/pl/contact",

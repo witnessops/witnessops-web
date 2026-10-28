@@ -157,8 +157,8 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     pl: "Zanim agent wykona ważne działanie, poznaj mechanizmy jego kontroli.",
   },
   situation: {
-    en: "For engineering teams and AI implementation partners preparing to launch or hand over an agent that can issue refunds, change records or grant access. We review one consequential action: its trigger, executing identity, permissions, approvals and available execution evidence.",
-    pl: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta, który może zwracać płatności, zmieniać rekordy lub nadawać dostęp. Sprawdzamy jedno istotne działanie: wyzwalacz, tożsamość wykonawczą, uprawnienia, zatwierdzanie i dostępne dowody wykonania.",
+    en: "For engineering teams and AI implementation partners preparing to launch or hand over an agent that can issue refunds, change records or grant access. We review one consequential action: its trigger, executing identity, effective permissions, approvals and available execution evidence.",
+    pl: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta, który może zwracać płatności, zmieniać rekordy lub nadawać dostęp. Sprawdzamy jedno istotne działanie: wyzwalacz, tożsamość wykonawczą, efektywne uprawnienia, zatwierdzanie i dostępne dowody wykonania.",
   },
   commercialContract: {
     price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
@@ -174,8 +174,8 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     pl: "Termin realizacji według podpisanego SOW",
   },
   result: {
-    en: "An action map, findings linked to sources, prioritised recommendations, documented unknowns and a readout to help your team decide what needs attention.",
-    pl: "Mapa działania, ustalenia ze źródłami, zalecenia według priorytetu, jawne niewiadome i omówienie, które pomogą zespołowi ustalić, co wymaga uwagi.",
+    en: "An action map, findings linked to sources, prioritised recommendations, documented unknowns, a written report and a readout to help your team decide what needs attention.",
+    pl: "Mapa działania, ustalenia ze źródłami, zalecenia według priorytetu, jawne niewiadome, raport pisemny i omówienie, które pomogą zespołowi ustalić, co wymaga uwagi.",
   },
   included: {
     en: [

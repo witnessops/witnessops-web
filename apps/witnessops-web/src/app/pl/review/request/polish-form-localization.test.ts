@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import PolishReviewRequestPage, { generateMetadata } from "./page";
 
 const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const form = readFileSync(
@@ -9,16 +12,32 @@ const form = readFileSync(
   "utf-8",
 );
 
-test("Polish request chrome uses the agent review and closes a parked external query", () => {
+test("Polish request chrome uses the agent review and closes a parked external query", async () => {
   assert.match(page, /resolveNewSalesPageQuery\(/);
   assert.match(page, /generateMetadata/);
   assert.match(page, /NewSalesIntakeClosed/);
   assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.name\.pl/);
   assert.match(page, /agentActionOrder/);
   assert.match(page, /Opisz, co chcesz sprawdzić/);
-  assert.match(page, /External Attack Surface Review nie jest już dostępny/);
   assert.doesNotMatch(page, /decision\.role === "product"/);
   assert.doesNotMatch(page, /EXTERNAL_ATTACK_SURFACE_OFFER/);
+
+  const externalQuery = { searchParams: Promise.resolve({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }) };
+  const external = renderToStaticMarkup(await PolishReviewRequestPage(externalQuery));
+  assert.match(external, /External Attack Surface Review nie jest już dostępny/);
+  assert.match(external, /To nie jest Agent Action Security Review/);
+  assert.doesNotMatch(external, /<form|€1[\s,\u00a0]?900/);
+
+  const unknownQuery = { searchParams: Promise.resolve({ offerId: "unknown" }) };
+  const unknown = renderToStaticMarkup(await PolishReviewRequestPage(unknownQuery));
+  assert.match(unknown, /Ten link nie rozpoczyna nowego przeglądu/);
+  assert.doesNotMatch(unknown, /<form|External Attack Surface Review nie jest już dostępny/);
+  for (const query of [externalQuery, unknownQuery]) {
+    const metadata = await generateMetadata(query);
+    assert.equal(metadata.title, "To zgłoszenie nie rozpoczyna przeglądu");
+    assert.match(String(metadata.description), /Istniejące zgłoszenia i podpisane umowy zachowują pierwotne warunki/);
+    assert.doesNotMatch(String(metadata.description), /€|Rozpocznij|External Attack Surface Review/);
+  }
 });
 
 test("Polish review request selects the native Polish form copy", () => {

@@ -207,6 +207,32 @@ export function homepageReviewsJsonLd() {
   } as const;
 }
 
+/** The active fixed-scope review; historical offer schemas keep their own identity. */
+export function agentActionServiceJsonLd(locale: "en" | "pl") {
+  const offer = PUBLIC_AGENT_ACTION_OFFER;
+  const url = canonicalUrl(locale === "pl"
+    ? "/pl/reviews/agent-action-security-review"
+    : "/reviews/agent-action-security-review");
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: offer.name[locale],
+    description: `${offer.unit[locale]}. ${offer.timing[locale]}.`,
+    serviceType: "Agent action security review",
+    url,
+    provider: { "@id": organizationJsonLd["@id"] },
+    offers: {
+      "@type": "Offer",
+      url,
+      price: offer.price.amount,
+      priceCurrency: offer.price.currency,
+      valueAddedTaxIncluded: false,
+      description: `${plainOfferPrice(offer.price[locale])}. ${offer.timing[locale]}.`,
+    },
+  } as const;
+}
+
 export function publicExposureBreadcrumbJsonLd(locale: "en" | "pl") {
   const isPolish = locale === "pl";
   const items = [

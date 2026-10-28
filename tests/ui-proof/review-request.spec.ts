@@ -203,6 +203,83 @@ test("historical one-action links do not select a new review", async ({ page }) 
   }
 });
 
+test("the agent enquiry recovers from request and code errors and confirms through controlled doubles", async ({ browser }) => {
+  for (const locale of ["en", "pl"] as const) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 740 } });
+    const page = await context.newPage();
+    const prefix = locale === "pl" ? "/pl" : "";
+    let requests = 0;
+    let verifications = 0;
+    const submitted: Record<string, unknown>[] = [];
+    await page.route("**/api/review/request", async (route) => {
+      requests += 1;
+      submitted.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: requests === 1 ? 429 : 201,
+        contentType: "application/json",
+        body: JSON.stringify(requests === 1
+          ? { error: "Please try again shortly." }
+          : { issuanceId: "iss_synthetic_gate_one", email: "buyer@example.org", expiresAt: "2026-10-28T23:00:00.000Z" }),
+      });
+    });
+    await page.route("**/api/verify-token", async (route) => {
+      verifications += 1;
+      expect(route.request().postDataJSON()).toEqual({
+        issuanceId: "iss_synthetic_gate_one", email: "buyer@example.org", token: "ABCD-EFGH-JKLM",
+      });
+      await route.fulfill({
+        status: verifications === 1 ? 400 : 200,
+        contentType: "application/json",
+        body: JSON.stringify(verifications === 1
+          ? { error: "Invalid or expired code." }
+          : {
+              channel: "engage", intakeId: "int_synthetic_gate_one", issuanceId: "iss_synthetic_gate_one",
+              threadId: null, email: "buyer@example.org", verifiedAt: "2026-10-28T20:00:00.000Z",
+              status: "verified", admissionState: "admitted", assessmentRunId: null,
+              assessmentStatus: "unavailable", postVerifyPath: `${prefix}/review/request/confirmed`,
+            }),
+      });
+    });
+
+    await page.goto(`${prefix}/contact`, { waitUntil: "networkidle" });
+    const form = page.locator("main form");
+    await expect(form.locator("select")).toHaveCount(0);
+    await form.locator("#email").fill("buyer@example.org");
+    await form.locator("#workflow").fill("Synthetic fit check: an agent can issue a refund after approval.");
+    await form.locator("#approvalBoundary").fill("Payment provider and customer support tool.");
+    await form.locator("#decisionTiming").fill("Before the next release.");
+    await form.locator('button[type="submit"]').click();
+    const summary = form.locator('[role="alert"][tabindex="-1"]');
+    await expect(summary).toBeFocused();
+    await expect(form.locator("#workflow")).toHaveValue("Synthetic fit check: an agent can issue a refund after approval.");
+    await form.locator('button[type="submit"]').click();
+    await expect(page.locator("#verification-code")).toBeVisible();
+    expect(requests).toBe(2);
+    expect(submitted.every((body) => body.intent === "agent-action-security-review")).toBe(true);
+
+    const code = page.locator("#verification-code");
+    await code.fill("abcdefghjklm");
+    await expect(code).toHaveValue("ABCD-EFGH-JKLM");
+    const confirm = page.locator('main form button[type="submit"]');
+    await expect(confirm).toBeDisabled();
+    await page.locator('main form input[type="checkbox"]').check();
+    await confirm.click();
+    await expect(page.locator('#verification-code-error[role="alert"]')).toBeVisible();
+    await expect(code).toHaveValue("ABCD-EFGH-JKLM");
+    await confirm.click();
+    await expect(page).toHaveURL(new RegExp(`${prefix}/review/request/confirmed$`));
+    expect(verifications).toBe(2);
+    const record = page.locator('[data-ui-proof-id="review-request-record"]');
+    await expect(record).toContainText("Agent Action Security Review");
+    await expect(record).toContainText("int_synthetic_gate_one");
+    const heldRecord = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("witnessops.review-request-confirmation.v1") ?? "null"));
+    expect(heldRecord.requestKind).toBe("agent-action-security-review");
+    expect(heldRecord.locale).toBe(locale);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await context.close();
+  }
+});
+
 test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {

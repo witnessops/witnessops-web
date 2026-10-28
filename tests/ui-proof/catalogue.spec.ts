@@ -16,7 +16,7 @@ const scenarios = [
 
 const expectedServiceOrder = [PUBLIC_AGENT_ACTION_REVIEW_ID] as const;
 
-test("two-review catalogue routes remain responsive and usable", async ({ browser }) => {
+test("single-review catalogue routes remain responsive and usable", async ({ browser }) => {
   for (const scenario of scenarios) {
     const context = await browser.newContext({ viewport: { width: scenario.width, height: scenario.height }, colorScheme: "dark" });
     const page = await context.newPage();
@@ -87,7 +87,8 @@ test("two-review catalogue routes remain responsive and usable", async ({ browse
       expect(request.searchParams.has("productId")).toBe(false);
       expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
       await expect(primary).toHaveText(polish ? "Zgłoś przegląd agenta" : "Request an agent review");
-      await expect(links).toHaveCount(1);
+      await expect(links).toHaveCount(2);
+      await expect(links.nth(1)).toHaveAttribute("href", `${polish ? "/pl" : ""}/reviews/agent-action-security-review`);
       await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
     }
     await expect(page.locator('[data-one-pager], main a[href$=".pdf"]')).toHaveCount(0);
@@ -125,8 +126,8 @@ test("pricing opens the agent review and the external review URL stays parked", 
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
-  await page.getByRole("link", { name: "See scope and deliverables", exact: true }).click();
-  await expect(page).toHaveURL(/\/reviews$/);
+  await page.getByRole("link", { name: "See scope and deliverables", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
   await expect(page.locator('[data-buyer-service="external-exposure-assessment"]')).toHaveCount(0);
   await page.goto("/reviews/external-attack-surface-review", { waitUntil: "networkidle" });
 

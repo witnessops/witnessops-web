@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { runBuyerPathIntakeProbes } from "../../scripts/smoke-buyer-path";
 
-const evidenceDir = "/opt/cursor/artifacts/buyer-path";
+const evidenceDir = path.resolve("artifacts/ui-proof/buyer-path");
 
 async function shot(page: Page, name: string) {
   await mkdir(evidenceDir, { recursive: true });
@@ -15,7 +15,7 @@ async function shot(page: Page, name: string) {
   });
 }
 
-test("catalogue and pricing open the two public request paths and withdrawn routes stay closed", async ({
+test("catalogue and pricing open the agent request path and withdrawn routes stay closed", async ({
   page,
   baseURL,
 }) => {

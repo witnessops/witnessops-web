@@ -8,6 +8,7 @@ import {
   languageAlternates,
   languagePairForPath,
   homepageReviewsJsonLd,
+  agentActionServiceJsonLd,
   organizationJsonLd,
   publicExposureBreadcrumbJsonLd,
   publicExposureServiceJsonLd,
@@ -50,6 +51,25 @@ test("homepage review data names the agent review price with VAT excluded", () =
   assert.deepEqual(offers.map((offer) => offer.price), ["2500"]);
   assert.equal(data.itemListElement[0]?.item.name, "Agent Action Security Review");
   assert.ok(offers.every((offer) => offer.priceCurrency === "EUR" && offer.valueAddedTaxIncluded === false));
+});
+
+test("active detail structured data keeps fixed price, localized identity and agreed timing", () => {
+  for (const locale of ["en", "pl"] as const) {
+    const service = agentActionServiceJsonLd(locale);
+    assert.equal(service.name, "Agent Action Security Review");
+    assert.equal(service.url, canonicalUrl(`${locale === "pl" ? "/pl" : ""}/reviews/agent-action-security-review`));
+    assert.deepEqual(service.offers, {
+      "@type": "Offer",
+      url: service.url,
+      price: "2500",
+      priceCurrency: "EUR",
+      valueAddedTaxIncluded: false,
+      description: locale === "en"
+        ? "€2,500 excl. VAT. Delivery timing agreed in the signed statement of work."
+        : "€2 500 bez VAT. Termin realizacji według podpisanego SOW.",
+    });
+    assert.doesNotMatch(JSON.stringify(service), /AggregateOffer|lowPrice|1900|10 working days|agent-tools-access-review/);
+  }
 });
 
 test("paired pages keep en, pl and x-default, and withdrawn pages have none", () => {

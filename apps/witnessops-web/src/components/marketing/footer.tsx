@@ -65,7 +65,7 @@ interface FooterProps {
 }
 
 const POLISH_FOOTER = {
-  subline: "Weryfikacja bezpieczeństwa z jasnymi ustaleniami, materiałami źródłowymi i praktycznymi kolejnymi krokami.",
+  subline: "Jedno istotne działanie agenta. Pisemne ustalenia i jawne granice przeglądu.",
   links: [
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Badania i artykuły (EN)", href: "/research" },

@@ -73,6 +73,43 @@ const viewports = [
   { name: "mobile", width: 390, height: 844 },
 ] as const;
 
+test("current review puts its price and fit-check CTA before long detail on narrow screens", async ({ browser }) => {
+  for (const locale of ["en", "pl"] as const) {
+    const path = `${locale === "pl" ? "/pl" : ""}/reviews/agent-action-security-review`;
+    for (const width of [1440, 390, 320]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+      const page = await context.newPage();
+      const response = await page.goto(path, { waitUntil: "networkidle" });
+      expect(response?.status()).toBe(200);
+      const main = page.locator('[data-buyer-service-detail="agent-action-security-review"]');
+      await expect(main.locator("h1")).toHaveText("Agent Action Security Review");
+      const commercial = main.getByRole("complementary");
+      await expect(commercial).toContainText(locale === "en" ? "€2,500\u00a0excl.\u00a0VAT" : "€2\u00a0500\u00a0bez\u00a0VAT");
+      const cta = commercial.getByRole("link");
+      const target = new URL((await cta.getAttribute("href")) ?? "", "http://witnessops.test");
+      expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);
+      expect(target.searchParams.get("offerId")).toBe("agent-action-security-review");
+      await expect(main).toContainText(locale === "en" ? "effective permissions" : "efektywne uprawnienia");
+      await expect(main).toContainText(locale === "en" ? "Explicit unknowns" : "Jawne niewiadome");
+      await expect(main).not.toContainText(/€1,900|separate quote|10 working days/);
+      await expect(main.getByRole("link", { name: /historical synthetic|Historyczny syntetyczny/ })).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
+      if (width < 768) {
+        const ctaBox = await cta.boundingBox();
+        const firstDetail = await main.getByRole("heading", { name: locale === "en" ? "What you receive" : "Co otrzymasz", exact: true }).boundingBox();
+        expect(ctaBox!.y + ctaBox!.height).toBeLessThan(firstDetail!.y);
+      }
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${path} at ${width}px`).toBeLessThanOrEqual(1);
+      await cta.focus();
+      expect(await cta.evaluate(element => {
+        const style = getComputedStyle(element);
+        return style.outlineStyle !== "none" || style.boxShadow !== "none";
+      })).toBe(true);
+      await context.close();
+    }
+  }
+});
+
 test("withdrawn offer details answer 410 inside the site shell on their own URL", async ({ browser }) => {
   for (const path of withdrawnOffers) {
     for (const viewport of viewports) {
