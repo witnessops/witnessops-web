@@ -125,7 +125,7 @@ export function createFoundationService(options: {
               if (artifact !== 'zip' && artifact !== 'signature') throw new ApiError(400, 'Choose an original source artifact.');
               return new Response(new Uint8Array(reopened.source[artifact]), { headers: { ...headers, 'Content-Type': 'application/octet-stream', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `attachment; filename="${reopened.source.zipName}${artifact === 'zip' ? '' : '.sig.json'}"` } });
             }
-            return json({ run: reopened.run, model: reopened.model, snapshot: reopened.snapshot, comparison: reopened.comparison, projectionMatches: reopened.projectionMatches });
+            return json({ run: reopened.run, model: reopened.model, evidenceArtifacts: reopened.evidenceArtifacts, snapshot: reopened.snapshot, comparison: reopened.comparison, projectionMatches: reopened.projectionMatches });
           } finally { importGate.leave(workspaceId); }
         }
         if (request.method === 'POST') {

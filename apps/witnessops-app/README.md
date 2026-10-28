@@ -46,6 +46,20 @@ These use the local migration connection and reject non-loopback databases. They
 
 `/early-access` on the public site explains the account and invitation path. `Save this baseline` transfers no snapshot, source, email or hostname. With self-service enabled, the user creates an account or signs in, verifies email, creates their own workspace, then adds the hostname and authorizes a **fresh** saved observation. Joining someone else’s workspace requires its Owner’s invitation. Restricted environments retain the explicit invitation path. The public site's optional server variable `WITNESSOPS_EARLY_ACCESS_APP_URL` enables app and signup links to an approved app origin (root URL, HTTPS; loopback HTTP allowed locally). Development defaults to the existing local app. Configuring or publishing a live app origin remains a separate deployment action.
 
+## Report exploration
+
+Saved hostname and Linux reports show recorded outcome charts, then suggested
+follow-up for incomplete evidence and findings. Suggestions are a reading aid,
+separate from saved recommendations; they do not run checks or change evidence.
+Inspecting a suggested item selects its recorded coverage or finding in the map.
+
+The evidence map resolves exact artifact identities and supported source-section
+references. Missing, unsupported and ambiguous references stay explicit. Linux
+report reads include a separate member-only `evidenceArtifacts` projection of the
+checked posture content after the existing source verification and classification
+checks. The original report model, PDF output, saved source and recipient-sharing
+projection are unchanged. Opening a graph node performs no new verification.
+
 ## Behavior events and feedback
 
 `product_events` records only a fixed event name, internal user/workspace/asset/run IDs, an optional known check ID, server timestamp and event-contract version. No hostname, source evidence, URL, comment or arbitrary metadata is accepted. Workspace membership is rechecked for each event. Lifecycle events are server-owned; clients can report only the seven declared view/export/escalation actions. One event per user/object/check/action avoids re-render/reload inflation; it measures adoption, not total click counts. The bound is 250 distinct records per user/hour. Recording is best-effort and uses short transaction timeouts; failure cannot roll back an asset or successful run.
