@@ -142,7 +142,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
       await expect(page.locator("main")).toContainText("Published sample, not live customer evidence. No production verification or certification.");
       await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
-      await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(0);
+      await expect(page.locator('main a[href="/review/sample-cases/external-exposure-assessment"]')).toHaveCount(1);
       await page.goto("/", { waitUntil: "networkidle" });
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);

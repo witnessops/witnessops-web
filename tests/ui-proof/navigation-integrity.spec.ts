@@ -436,18 +436,10 @@ for (const width of [1440, 390]) {
 test("grouped desktop navigation supports keyboard, dismissal and document navigation", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
-  const reviews = page.locator("nav.public-shell").getByRole("link", { name: "Reviews", exact: true });
-  await expect(reviews).toHaveAttribute("href", "/reviews/agent-action-security-review");
-  await expect(page.getByRole("button", { name: "Reviews", exact: true })).toHaveCount(0);
-  await reviews.focus();
-  await page.keyboard.press("Enter");
-  await expectPath(page, "/reviews/agent-action-security-review");
-  await expect(reviews).toHaveAttribute("aria-current", "page");
-  await page.goto("/");
   const resources = page.getByRole("button", { name: "Resources", exact: true });
   await resources.focus();
   await page.keyboard.press("ArrowDown");
-  const panel = page.locator(`#${await resources.getAttribute("aria-controls")}`);
+  const panel = page.locator("#public-nav-group-2");
   await expect(panel).toBeVisible();
   await expect(panel.getByRole("link", { name: /^Docs/ })).toBeFocused();
   await page.keyboard.press("Escape");
@@ -465,9 +457,8 @@ test("grouped desktop navigation supports keyboard, dismissal and document navig
 test("grouped desktop navigation keeps final links reachable in short windows", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 400 });
   await page.goto("/");
-  const resources = page.getByRole("button", { name: "Resources", exact: true });
-  await resources.click();
-  const panel = page.locator(`#${await resources.getAttribute("aria-controls")}`);
+  await page.getByRole("button", { name: "Resources", exact: true }).click();
+  const panel = page.locator("#public-nav-group-2");
   await expect(panel).toBeVisible();
   const panelBox = await panel.boundingBox();
   expect(panelBox).not.toBeNull();
@@ -489,26 +480,18 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   await page.goto("/");
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  for (const name of ["Product", "Resources"]) {
+  for (const name of ["Product", "Reviews", "Resources"]) {
     await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
   }
-  const reviews = menu.getByRole("link", { name: "Reviews", exact: true });
-  await expect(reviews).toHaveAttribute("href", "/reviews/agent-action-security-review");
-  await expect(menu.getByRole("button", { name: "Reviews", exact: true })).toHaveCount(0);
   if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();
   else await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
   await menu.getByRole("button", { name: "Product", exact: true }).click();
   await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
-  const resources = menu.getByRole("button", { name: "Resources", exact: true });
-  await resources.click();
-  await expect(menu.locator(`#${await resources.getAttribute("aria-controls")}`).getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
+  await menu.getByRole("button", { name: "Resources", exact: true }).click();
+  await expect(menu.locator("#witnessops-mobile-menu-group-2").getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
   await menu.getByRole("link", { name: "Docs", exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
-  await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
-  await page.getByRole("button", { name: "Open primary navigation" }).click();
-  await reviews.click();
-  await expectPath(page, "/reviews/agent-action-security-review");
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

@@ -57,7 +57,7 @@ export function DesktopNavbarMenu() {
         <div className={styles.bottom}><span>Proof other people can check.</span></div>
       </div>
     </div>)}
-    <Link className={styles.trigger} aria-current={pathname === "/reviews/agent-action-security-review" ? "page" : undefined} href="/reviews/agent-action-security-review">Reviews</Link>
+    <Link className={styles.trigger} href="/reviews/agent-action-security-review">Reviews</Link>
     <Link className={styles.trigger} href="/pricing">Pricing</Link>
   </div>;
 }

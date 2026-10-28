@@ -15,7 +15,7 @@ async function shot(page: Page, name: string) {
   });
 }
 
-test("catalogue and pricing open only the agent request and withdrawn routes stay closed", async ({
+test("catalogue and pricing open the two public request paths and withdrawn routes stay closed", async ({
   page,
   baseURL,
 }) => {
@@ -23,11 +23,10 @@ test("catalogue and pricing open only the agent request and withdrawn routes sta
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto("/catalog", { waitUntil: "networkidle" });
-  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
   await expect(page.locator("main")).toContainText("Agent Action Security Review");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
-  await page.locator("main").getByRole("link", { name: "Request an agent review", exact: true }).click();
+  await page.locator("[data-buyer-service='agent-action-security-review']").getByRole("link", { name: "Request an agent review", exact: true }).click();
   await expect(page).toHaveURL(/\/review\/request\?offerId=agent-action-security-review(?:&|$)/);
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "agent-action-security-review",
