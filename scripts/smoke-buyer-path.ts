@@ -352,7 +352,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       PUBLIC_AGENT_ACTION_OFFER.timing.en,
       "Request an agent review",
       "An enquiry does not authorise collection or start a review.",
-      "A non-secret fit check comes first. No work starts from the enquiry.",
+      "No work or target-facing check starts from this form.",
       "offerId=agent-action-security-review",
     ],
     prohibitedMarkers: [
