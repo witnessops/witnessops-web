@@ -5,7 +5,6 @@ import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
   normalizeHost,
   toPublicDocsHref,
@@ -209,16 +208,6 @@ export default async function DocsIndexPage() {
             the evidence and trust inputs that were not independently checked.
           </li>
         </ol>
-        <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
-          Separate report example (contains no receipt):{" "}
-          <Link
-            href="/review/sample-cases/external-exposure-assessment"
-            className="text-brand-accent underline-offset-2 hover:underline"
-          >
-            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} synthetic sample
-          </Link>
-          . It is not customer evidence.
-        </p>
       </section>
 
       <section className="mb-12" aria-labelledby="docs-quick-heading">

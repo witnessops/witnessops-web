@@ -5,8 +5,6 @@ import sitemap from "./sitemap";
 import { canonicalUrl } from "@/lib/public-seo";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
-  "/reviews",
-  "/pl/reviews",
   "/pl/reviews/agent-action-security-review",
   "/reviews/agent-action-security-review",
   "/how-it-works",
@@ -31,6 +29,8 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
 ] as const;
 
 const EXCLUDED_SITEMAP_ROUTES = [
+  "/reviews",
+  "/pl/reviews",
   "/catalog",
   "/pl/catalog",
   "/pl/catalog/offsec-external-exposure",

@@ -36,7 +36,6 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/(library)/library/[slug]/page.tsx",
   })),
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
-  { route: "/reviews", sourcePath: "src/app/(marketing)/reviews/page.tsx" },
   {
     route: "/reviews/agent-action-security-review",
     sourcePath: "src/app/(marketing)/reviews/agent-action-security-review/page.tsx",
@@ -137,7 +136,6 @@ const REDIRECTED_POLISH_CATALOG = new Set([
 
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
-  { route: "/pl/reviews", sourcePath: "src/app/pl/reviews/page.tsx" },
   {
     route: "/pl/reviews/agent-action-security-review",
     sourcePath: "src/app/pl/reviews/agent-action-security-review/page.tsx",

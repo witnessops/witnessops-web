@@ -42,7 +42,8 @@ const expectedFiles = [
 ] as const;
 
 test("External Attack Surface Review sample surface expects only the sanitized buyer-safe files", () => {
-  assert.match(page, /EXTERNAL_ATTACK_SURFACE_OFFER\.name\.en/);
+  assert.match(page, /Synthetic external-exposure sample/);
+  assert.doesNotMatch(page, /EXTERNAL_ATTACK_SURFACE_OFFER/);
   assert.match(page, /former Public Exposure Review title as historical artifact identity/);
   assert.match(page, /\/samples\/offsec-external-exposure/);
   for (const file of expectedFiles) {
@@ -65,10 +66,11 @@ test("the parked external sample stays labelled and is not a booking path", () =
     createElement(BuyerCatalogue, { locale: "en" }),
   );
   assert.match(page, /robots: \{ index: false, follow: true \}/);
-  assert.match(page, /no longer available for new\s+engagements/);
+  assert.doesNotMatch(page, /no longer available for new\s+engagements/);
   assert.doesNotMatch(page, /Request an external review/);
+  assert.doesNotMatch(page, /View service/);
   assert.match(pricing, /<BuyerCatalogue locale="en" surface="pricing" \/>/);
-  assert.match(pricingHtml, /href="\/reviews"/);
+  assert.match(pricingHtml, /href="\/reviews\/agent-action-security-review"/);
   assert.doesNotMatch(pricingHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.doesNotMatch(catalogueHtml, /productId=OFFSEC-EXTERNAL-EXPOSURE/);
   assert.doesNotMatch(catalogueHtml, new RegExp(route));

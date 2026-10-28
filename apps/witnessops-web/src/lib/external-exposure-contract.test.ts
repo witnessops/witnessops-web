@@ -68,8 +68,8 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.amount, "550");
 
   const landing = getServiceLanding(service.id, "en");
-  assert.match(landing.commercialNote ?? "", /no longer available for new engagements/i);
-  assert.match(landing.commercialNote ?? "", /not the Agent Action Security Review/i);
+  assert.match(landing.commercialNote ?? "", /not offered on this website/i);
+  assert.match(landing.commercialNote ?? "", /engage@mail\.witnessops\.com/);
   assert.equal(landing.primaryCta, "See availability notice");
   assert.doesNotMatch(landing.commercialNote ?? "", /€1,900|Request an external review|Payment is due in full|No sales call required/i);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500|€550|3 working days|three working days/i);

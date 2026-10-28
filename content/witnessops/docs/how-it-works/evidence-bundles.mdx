@@ -1,6 +1,6 @@
 ---
 title: "Evidence Bundles"
-description: "Historical External Attack Surface Review package boundary, reconstructable manifest references, and the separation between producer output and independent verification. That review is no longer available for new engagements."
+description: "Historical package boundary, reconstructable manifest references, and the separation between producer output and independent verification."
 section: "docs"
 order: 3
 nav_label: "Evidence Bundles"
@@ -11,9 +11,9 @@ draft: false
 
 An evidence bundle is the portable package around a receipt. The package carries the bytes needed to reconstruct evidence references and run checks that a receipt-only surface cannot perform.
 
-## 1. External Attack Surface Review package
+## 1. Historical public_exposure_review package
 
-External Attack Surface Review is no longer available for new engagements. The layout below is the historical proof-engine delivery contract for that parked offer. It is not a current sales path and it is not the Agent Action Security Review.
+The layout below is the historical proof-engine delivery contract for the `public_exposure_review` profile. It is not a current sales path and it is not the Agent Action Security Review.
 
 | Path | Role |
 | --- | --- |
@@ -62,7 +62,7 @@ When required evidence or trust inputs are missing, the correct outcome is incom
 
 ## 5. Other package profiles
 
-Older documentation described a universal `CLAIM.json`, DSSE envelope, RFC 3161 token, NDJSON receipt chain, and trust-directory layout. Those artifacts may exist in retained, compatibility, or design lanes, but they are not the canonical External Attack Surface Review package and are not required inputs to the current public receipt adapter.
+Older documentation described a universal `CLAIM.json`, DSSE envelope, RFC 3161 token, NDJSON receipt chain, and trust-directory layout. Those artifacts may exist in retained, compatibility, or design lanes, but they are not the canonical `public_exposure_review` package and are not required inputs to the current public receipt adapter.
 
 If a package declares DSSE, RFC 3161, in-toto, continuity, or transparency layers, verify the matching artifacts with tooling that implements that exact profile. Do not infer those layers from filenames or receipt JSON alone.
 

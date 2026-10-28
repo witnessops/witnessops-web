@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
-import Link from "next/link";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const samplePath = "/review/sample-cases/external-exposure-assessment";
@@ -24,13 +22,13 @@ const sampleFiles = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`,
-  description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence. The review is no longer available for new engagements.`,
+  title: "Synthetic external-exposure sample",
+  description: "Inspect a labelled synthetic external-exposure package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence.",
   alternates: { canonical: samplePath },
   robots: { index: false, follow: true },
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
-    title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
+    title: "Synthetic external-exposure sample | WitnessOps",
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
     siteName: "WitnessOps",
@@ -39,7 +37,7 @@ export const metadata: Metadata = {
   twitter: {
     images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
-    title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
+    title: "Synthetic external-exposure sample | WitnessOps",
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
   },
@@ -85,7 +83,7 @@ export default function ExternalExposureAssessmentSamplePage() {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner
           showActions={false}
-          title={EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
+          title="Synthetic external-exposure sample"
           note="Synthetic worked example, not customer evidence. Local fixture observations only; no public company or customer was assessed. The preserved package files retain the former Public Exposure Review title as historical artifact identity."
         />
 
@@ -94,11 +92,11 @@ export default function ExternalExposureAssessmentSamplePage() {
             Synthetic sample
           </p>
           <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
+            Synthetic external-exposure sample
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
-            A concise, buyer-safe example of the authority record, external
-            attack-surface map, exposed services, evidence-backed findings,
+            A concise, buyer-safe example of the authority record, exposure
+            map, exposed services, evidence-backed findings,
             remediation priorities, handover, focused retest, manifest, and verifier
             result produced for a bounded synthetic target. This is not a penetration test.
           </p>
@@ -111,16 +109,6 @@ export default function ExternalExposureAssessmentSamplePage() {
             Naming continuity: these immutable sample artifacts were published under
             the former Public Exposure Review name. The stable SKU, scope, caps,
             authority rules, checks, retest, and claim boundaries are unchanged.
-          </p>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
-            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
-            engagements. This page remains a labelled synthetic example. It is not
-            the Agent Action Security Review and it is not a customer result.
-          </p>
-          <p className="mt-4">
-            <Link href="/reviews/external-attack-surface-review" className="inline-flex min-h-11 items-center underline underline-offset-4">
-              Read the availability notice
-            </Link>
           </p>
         </header>
 

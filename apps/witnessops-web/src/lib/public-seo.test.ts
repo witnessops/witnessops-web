@@ -83,16 +83,13 @@ test("structured trust data is factual and syntactically serializable", () => {
   }
   assert.equal(organizationJsonLd.name, "WitnessOps");
   assert.equal("legalName" in organizationJsonLd, false);
-  assert.equal(service.name, "External Attack Surface Review");
-  assert.match(service.description, /no longer available for new engagements/i);
-  assert.match(service.description, /not a penetration test/i);
-  assert.equal(service.offers.availability, "https://schema.org/Discontinued");
-  assert.match(service.offers.description, /No longer available for new engagements/);
-  assert.equal("price" in service.offers, false);
-  assert.doesNotMatch(JSON.stringify(service.offers), /1900|€1,900/);
+  assert.match(service.name, /not offered on this website/i);
+  assert.match(service.description, /engage@mail\.witnessops\.com/);
+  assert.equal("offers" in service, false);
+  assert.doesNotMatch(JSON.stringify(service), /1900|€1,900|no longer available/i);
   assert.match(
     publicExposureServiceJsonLd("pl").description,
-    /nie jest już dostępny dla nowych zleceń/,
+    /nie jest oferowany na tej stronie/,
   );
   assert.equal("inLanguage" in service, false);
   assert.equal(breadcrumbs.itemListElement.length, 3);
