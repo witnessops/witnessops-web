@@ -71,8 +71,38 @@ test("MCP route advertises the tool list over Streamable HTTP", async () => {
   };
   assert.deepEqual(
     payload.result?.tools?.map((tool) => tool.name).sort(),
-    ["ask_witnessops", "fetch", "search"],
+    ["ask_sovereign", "ask_witnessops", "fetch", "search"],
   );
+});
+
+test("MCP route serves Ask Sovereign and its compatibility alias over Streamable HTTP", async () => {
+  const results: unknown[] = [];
+  for (const name of ["ask_sovereign", "ask_witnessops"]) {
+    const response = await POST(
+      mcpRequest(
+        {
+          jsonrpc: "2.0",
+          id: 10,
+          method: "tools/call",
+          params: {
+            name,
+            arguments: { question: "I need help documenting one vendor action." },
+          },
+        },
+        "192.0.2.14",
+      ),
+    );
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      error?: unknown;
+      result?: { isError?: boolean; structuredContent?: { status?: string } };
+    };
+    assert.equal(payload.error, undefined);
+    assert.equal(payload.result?.isError, undefined);
+    assert.equal(payload.result?.structuredContent?.status, "success");
+    results.push(payload.result);
+  }
+  assert.deepEqual(results[0], results[1]);
 });
 
 test("MCP route rejects an oversized body without Content-Length", async () => {
