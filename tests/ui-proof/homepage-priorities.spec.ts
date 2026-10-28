@@ -52,7 +52,8 @@ test("Polish homepage keeps the own-system case and localized docs destination e
     await expect(page.locator(selector)).toHaveAttribute("content", /Poznaj mechanizmy kontroli, zanim agent AI wykona działanie/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review jest dla zespołów inżynierskich i partnerów wdrażających AI");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review pomaga zespołom inżynierskim i partnerom wdrażającym AI");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("co wymaga uwagi przed uruchomieniem lub przekazaniem agenta");
   const offers = page.locator("[data-home-offer]");
   await expect(offers).toHaveCount(1);
   for (const offer of await offers.all()) {
