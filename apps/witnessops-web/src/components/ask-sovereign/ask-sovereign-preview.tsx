@@ -872,7 +872,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
                       <p><a href={actionHref(`${buyerServiceRequestHref(locale, service)}&source=ask`)}>{locale === "pl" ? "Poproś o zakres" : "Request scope"}</a></p>
                     </div>
                   ) : null}
-                  {turn.answer?.route ? (
+                  {!service && turn.answer?.route ? (
                     <p data-answer-route=""><a href={actionHref(askWitnessOpsRouteHref(turn.answer.route))}>{locale === "pl" ? PL_ROUTE_LABELS[turn.answer.route.route_id] ?? "Przejdź dalej" : askWitnessOpsRouteLabel(turn.answer.route.route_id)}</a></p>
                   ) : null}
                   {turn.answer && turn.answer.presented_sources.length > 0 ? (

@@ -148,6 +148,7 @@ test("a validated commercial recommendation preserves its terms and explicit req
   await page.route("**/api/ask-witnessops", (route) => route.fulfill({ json: {
     ...generatedAnswer("A person can confirm whether this published agent review fits the problem."),
     recommendation,
+    route: { route_id: "route.fit-check", href: recommendation.request_href },
   } }));
   const dialog = await openWidget(page);
   await dialog.getByRole("textbox").fill("Which service reviews a consequential agent action?");
@@ -157,6 +158,7 @@ test("a validated commercial recommendation preserves its terms and explicit req
   await expect(card).toContainText(recommendation.price_label);
   await expect(card).toContainText(recommendation.delivery_label);
   await expect(card.locator(`a[href="${recommendation.request_href}"]`)).toHaveCount(1);
+  await expect(dialog.locator('a[href*="/review/request"]')).toHaveCount(1);
 });
 
 for (const failure of ["503", "429", "network"] as const) {
