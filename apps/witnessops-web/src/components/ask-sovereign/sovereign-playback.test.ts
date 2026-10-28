@@ -39,7 +39,7 @@ test("every manifest file sha256 matches the asset bytes", () => {
     for (const value of Object.values(record)) visit(value);
   };
   visit(manifest);
-  assert.equal(manifest.version, "2026-10-15-preview-v2");
+  assert.equal(manifest.version, "2026-10-28-clean-b");
   assert.equal("desktop" in manifest.states.HANDOFF.variants && "mobile" in manifest.states.HANDOFF.variants, true);
   assert.equal(hashed.length, 128);
   assert.equal(hashed.length, readdirSync(root).filter((name) => /\.(webp|png)$/.test(name)).length);
