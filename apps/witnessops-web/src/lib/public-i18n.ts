@@ -13,7 +13,7 @@ export const POLISH_NO_SECRETS_NOTE =
 
 export const POLISH_PUBLIC_NAV = {
   links: [
-    { label: "Usługi", href: "/pl/reviews" },
+    { label: "Usługi", href: "/pl/reviews/agent-action-security-review" },
     { label: "Przykładowe prace", href: "/review/sample-cases" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Dokumentacja", href: "/pl/docs" },

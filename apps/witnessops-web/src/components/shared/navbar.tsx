@@ -30,7 +30,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
   const logoHref = polish ? "/pl" : "/";
   const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
     { label: "How the app works", href: "/early-access" },
-    { label: "Reviews", href: "/reviews" },
+    { label: "Reviews", href: "/reviews/agent-action-security-review" },
     { label: "Pricing", href: "/pricing" },
     { label: "Tool · not a review", href: "/check" },
     { label: "Docs", href: "/docs" },

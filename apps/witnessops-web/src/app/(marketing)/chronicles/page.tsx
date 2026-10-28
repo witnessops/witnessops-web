@@ -72,7 +72,7 @@ export default function ChroniclesIndexPage() {
       </section>
       <p className="wo-small mt-10 text-text-secondary">
         Outside the stories, WitnessOps publishes one focused security review for new engagements.{" "}
-        <Link href="/reviews" className="underline-offset-4 hover:underline">See the current review</Link>
+        <Link href="/reviews/agent-action-security-review" className="underline-offset-4 hover:underline">See the current review</Link>
       </p>
     </main>
   );

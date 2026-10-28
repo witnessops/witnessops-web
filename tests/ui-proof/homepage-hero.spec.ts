@@ -467,12 +467,12 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
     { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
-    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844, status: 200, finalPath: "/reviews" },
-    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
+    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844, status: 200, finalPath: "/reviews/agent-action-security-review" },
+    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100, status: 200, finalPath: "/reviews/agent-action-security-review" },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844, status: 410 },
     { name: "workflow-offer-desktop-1440", path: "/catalog/workflows", width: 1440, height: 1100, status: 410 },
-    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844, status: 200, finalPath: "/reviews" },
-    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
+    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844, status: 200, finalPath: "/reviews/agent-action-security-review" },
+    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100, status: 200, finalPath: "/reviews/agent-action-security-review" },
   ] as const;
 
   for (const capture of pageCaptures) {

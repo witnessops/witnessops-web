@@ -55,8 +55,8 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <ul className={`${styles.reviewGrid} ${styles.serviceGrid}`}>{services.map((service) => (
         <li key={service.id} data-home-offer={service.id}><h3>{text.aiHeadline}</h3><p>{service.name[locale]}</p><p className={styles.price}><PriceText text={text.aiPrice} /></p><p>{text.aiWhoFor}</p><p>{text.aiDescription}</p><ul>{text.deliverables.map((item) => <li key={item}>{item}</li>)}</ul><p>{text.aiScopeNote}</p><p className={styles.timing}>{service.timing[locale]}</p><Link className={styles.textLink} href={buyerServiceRequestHref(locale, service)}>{text.aiCta}<ArrowRight size={16} aria-hidden="true" /></Link></li>
       ))}</ul>
-      {sovereignAssistantPublished() ? <p className={styles.askEntry}>{pl ? "Nie wiesz, który przegląd pasuje?" : "Not sure which review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p> : null}
-      <Link className={styles.sectionLink} href={pl ? "/pl/reviews" : "/reviews"}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
+      {sovereignAssistantPublished() ? <p className={styles.askEntry}>{pl ? "Nie wiesz, czy ten przegląd pasuje?" : "Not sure this review fits?"} <Link href="/docs/assistant">{pl ? "Zapytaj o zakres (EN)" : "Ask about scope"}<ArrowRight size={16} aria-hidden="true" /></Link></p> : null}
+      <Link className={styles.sectionLink} href={pl ? "/pl/reviews/agent-action-security-review" : "/reviews/agent-action-security-review"}>{text.compareCta}<ArrowRight size={16} aria-hidden="true" /></Link>
     </div></section>
     <section className={`${styles.reviewSection} ${styles.decisionSection}`} aria-labelledby="home-decision-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Kiedy zacząć" : "When to start"}</p><h2 id="home-decision-heading" className={styles.sectionTitle}>{pl ? "Przed kolejną ważną decyzją." : "Before the next consequential step."}</h2></div>
