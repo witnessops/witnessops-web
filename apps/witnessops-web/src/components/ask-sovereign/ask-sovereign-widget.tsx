@@ -7,6 +7,7 @@ import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 import { type SovereignLocale } from "./ask-sovereign-answers";
 import { AskSovereignPreview } from "./ask-sovereign-preview";
 import { useFloatingWidget } from "./use-floating-widget";
+import { pointOutsideBox, shouldDismissBackdrop } from "./widget-dismiss";
 import styles from "./ask-sovereign-widget.module.css";
 
 const WAVE_FRAMES = [0, 1, 2, 1, 2, 3] as const;
@@ -61,7 +62,10 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
   const pet = useFloatingWidget(launcherRef, true, launcherRest);
   const greet = useOnceWave();
   const panel = useFloatingWidget(dialogRef, visible);
-  const close = useCallback(() => dialogRef.current?.close(), []);
+  const dismissOutside = useRef(false);
+  const close = useCallback(() => {
+    if (dialogRef.current?.open) dialogRef.current.close();
+  }, []);
   const resetLabel = locale === "pl" ? "Przywróć pozycję" : "Reset position";
   const moveLabel = locale === "pl" ? "Przenieś czat" : "Move chat";
 
@@ -142,6 +146,24 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
         style={panel.style}
         data-dragging={panel.dragging || undefined}
         aria-label={locale === "pl" ? "Ask Sovereign — podgląd" : "Ask Sovereign preview"}
+        onPointerDown={(event) => {
+          if (event.button !== 0) {
+            dismissOutside.current = false;
+            return;
+          }
+          const box = event.currentTarget.getBoundingClientRect();
+          dismissOutside.current = pointOutsideBox({ x: event.clientX, y: event.clientY }, box);
+        }}
+        onPointerUp={(event) => {
+          const startedOutside = dismissOutside.current;
+          dismissOutside.current = false;
+          if (event.button !== 0) return;
+          const box = event.currentTarget.getBoundingClientRect();
+          if (shouldDismissBackdrop(startedOutside, { x: event.clientX, y: event.clientY }, box)) close();
+        }}
+        onPointerCancel={() => {
+          dismissOutside.current = false;
+        }}
         onClose={() => {
           setVisible(false);
           launcherRef.current?.querySelector("button")?.focus({ preventScroll: true });

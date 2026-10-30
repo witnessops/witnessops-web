@@ -425,7 +425,7 @@
     padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
     overflow: hidden;
   }
-  .bar { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); }
+  .bar { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); touch-action: none; }
   .sheetNotice { display: block; }
   .handoffCard { align-items: stretch; margin-left: 16px; padding: 20px; }
   .handoffCta { min-height: 52px; width: 100%; }

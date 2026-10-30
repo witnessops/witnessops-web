@@ -144,6 +144,51 @@ test("the mobile keyboard leaves conversation and composer usable", async ({ pag
   await expect(dialog.getByText("Podgląd, nic nie wysyła", { exact: true })).toBeInViewport();
 });
 
+test("clicking the dimmed page closes the chat and keeps the conversation", async ({ page }) => {
+  await page.route("**/api/ask-witnessops", async (route) => {
+    await route.fulfill({ json: generatedAnswer("A mocked review answer kept after click-away.") });
+  });
+  await page.goto("/");
+  const pet = page.getByRole("button", { name: "Ask Sovereign", exact: true });
+  await pet.click();
+  const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
+  await dialog.getByRole("button", { name: "What does the Agent Action Security Review cover?", exact: true }).click();
+  await expect(dialog.getByText("A mocked review answer kept after click-away.", { exact: true })).toBeVisible();
+  const draft = dialog.getByRole("textbox", { name: "Ask about the review" });
+  await draft.fill("Kept after click-away");
+  const panel = await box(dialog);
+  await page.mouse.move(panel.x + 24, panel.y + panel.height - 24);
+  await page.mouse.down();
+  await page.mouse.move(24, 24, { steps: 4 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  await page.mouse.click(24, 24);
+  await expect(dialog).not.toBeVisible();
+  await expect(pet).toBeFocused();
+  await expect(page).toHaveURL("http://127.0.0.1:3012/");
+  await pet.click();
+  await expect(draft).toHaveValue("Kept after click-away");
+  await expect(dialog.getByText("A mocked review answer kept after click-away.", { exact: true })).toBeVisible();
+});
+
+test("a downward flick on the phone header closes the chat", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const pet = page.getByRole("button", { name: "Ask Sovereign", exact: true });
+  await pet.click();
+  const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
+  const title = dialog.locator("#ask-sovereign-title");
+  const start = await box(title);
+  const x = start.x + 12;
+  const y = start.y + start.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 140, { steps: 6 });
+  await page.mouse.up();
+  await expect(dialog).not.toBeVisible();
+  await expect(pet).toBeFocused();
+});
+
 test("first opening does not later steal focus from a chosen control", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Ask Sovereign", exact: true }).click();

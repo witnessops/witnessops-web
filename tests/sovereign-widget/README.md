@@ -12,7 +12,10 @@ while the composer and preview disclosure stay visible when the keyboard opens.
 Temporary viewport changes clamp the pet without forgetting its chosen position.
 
 Closing preserves the draft, pending request and conversation in component memory
-until page navigation/reload. Position is not persisted. Normal questions send the
+until page navigation/reload. On a wide screen, a press that starts and ends on
+the dimmed page closes the chat. On a phone, a downward flick on the header
+closes it. The close button and Escape still close it. A drag that starts
+inside the chat does not. Position is not persisted. Normal questions send the
 question and recent complete exchanges to the existing API. The transcript is not
 automatically included in contact. Explicit development `?sim=` scenarios remain
 simulated and make no API request; the dedicated assistant preview keeps its
