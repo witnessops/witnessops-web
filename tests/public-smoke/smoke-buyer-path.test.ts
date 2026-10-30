@@ -63,17 +63,21 @@ test("evaluateBuyerPathRoute requires status 200 and all expected markers", () =
   assert.deepEqual(result.missingMarkers, ["Do not submit"]);
 });
 
-test("withdrawn automation routes require a 410 notice without old sales copy", () => {
-  for (const [path, title, currentReview, oldPrice] of [
-    ["/catalog/automation-repair", "This offer has been withdrawn", "/reviews/agent-action-security-review", "€250 diagnosis"],
-    ["/pl/catalog/automation-repair", "Ta oferta została wycofana", "/pl/reviews/agent-action-security-review", "€250 za diagnozę"],
+test("withdrawn offer routes require a 410 notice without old sales copy or intake", () => {
+  for (const [path, title, body, currentReview, oldPrice, oldIntent] of [
+    ["/catalog/automation-repair", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "€250 diagnosis", 'name="intent" value="automation-repair-handover"'],
+    ["/pl/catalog/automation-repair", "Ta oferta została wycofana", "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.", "/pl/reviews/agent-action-security-review", "€250 za diagnozę", 'name="intent" value="automation-repair-handover"'],
+    ["/catalog/workflows", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "Starting at €2,500 · excluding VAT", 'name="intent" value="agent-tools-access-review"'],
+    ["/customer-security-review", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "From €1,600 · excluding VAT", 'name="intent" value="customer-security-review-sprint"'],
+    ["/pl/customer-security-review", "Ta oferta została wycofana", "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.", "/pl/reviews/agent-action-security-review", "Od 7 000 zł (ok. €1 600) · bez VAT", 'name="intent" value="customer-security-review-sprint"'],
   ] as const) {
     const route = routeContract(path);
     assert.equal(route.expectedStatus, 410, path);
     assert.ok(route.requiredMarkers.includes(title), path);
+    assert.ok(route.requiredMarkers.includes(body), path);
     assert.ok(route.requiredMarkers.includes(currentReview), path);
     assert.ok(route.prohibitedMarkers?.includes(oldPrice), path);
-    assert.ok(route.prohibitedMarkers?.includes('name="intent" value="automation-repair-handover"'), path);
+    assert.ok(route.prohibitedMarkers?.includes(oldIntent), path);
 
     const notice = route.requiredMarkers.join("\n");
     assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice).ok, true, path);
@@ -81,9 +85,11 @@ test("withdrawn automation routes require a 410 notice without old sales copy", 
     const missingTitle = evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice.replace(title, ""));
     assert.equal(missingTitle.ok, false, path);
     assert.ok(missingTitle.missingMarkers.includes(title), path);
-    const oldSale = evaluateBuyerPathRoute(route, "https://witnessops.com", 410, `${notice}\n${oldPrice}`);
-    assert.equal(oldSale.ok, false, path);
-    assert.ok(oldSale.prohibitedMarkersPresent.includes(oldPrice), path);
+    for (const oldMarker of [oldPrice, oldIntent]) {
+      const oldSale = evaluateBuyerPathRoute(route, "https://witnessops.com", 410, `${notice}\n${oldMarker}`);
+      assert.equal(oldSale.ok, false, `${path} ${oldMarker}`);
+      assert.ok(oldSale.prohibitedMarkersPresent.includes(oldMarker), path);
+    }
   }
 });
 
@@ -234,10 +240,10 @@ test("catalogue smoke preserves the single public review request path", () => {
     assert.ok(catalogue.prohibitedMarkers?.includes(marker), `/catalog must reject ${marker}`);
   }
   const workflows = routeContract("/catalog/workflows");
-  assert.ok(workflows.requiredMarkers.includes("Starting at €2,500 · excluding VAT"));
-  assert.ok(workflows.requiredMarkers.includes("This review is not offered for new engagements."));
-  assert.ok(workflows.prohibitedMarkers?.includes("offerId=agent-action-security-review"));
-  assert.ok(workflows.prohibitedMarkers?.includes("€2,500 fixed"));
+  assert.equal(workflows.expectedStatus, 410);
+  assert.ok(workflows.requiredMarkers.includes("This offer has been withdrawn"));
+  assert.ok(workflows.requiredMarkers.includes("WitnessOps no longer offers this review. The current review and contact are below."));
+  assert.ok(workflows.requiredMarkers.includes("/reviews/agent-action-security-review"));
   const freeCheck = routeContract("/check");
   assert.ok(freeCheck.requiredMarkers.includes("Run free check"));
   assert.ok(freeCheck.prohibitedMarkers?.includes("Private Pilot"));
