@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { sovereignAssistantPublished } from "@/lib/sovereign-release";
@@ -9,12 +9,57 @@ import { AskSovereignPreview } from "./ask-sovereign-preview";
 import { useFloatingWidget } from "./use-floating-widget";
 import styles from "./ask-sovereign-widget.module.css";
 
+const WAVE_FRAMES = [0, 1, 2, 1, 2, 3] as const;
+const WAVE_MS = [120, 160, 200, 160, 200, 240] as const;
+
+function launcherRest(bounds: { width: number }): { x: number; y: number } {
+  if (bounds.width < 768) return { x: 8, y: 96 };
+  return { x: 56, y: 104 };
+}
+
+function useOnceWave(): { waving: boolean; frame: number; showLabel: boolean } {
+  const [waving, setWaving] = useState(false);
+  const [frame, setFrame] = useState(0);
+  const [showLabel, setShowLabel] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setWaving(true);
+    setShowLabel(true);
+    let index = 0;
+    let timer = 0;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      if (index >= WAVE_FRAMES.length) {
+        setWaving(false);
+        timer = window.setTimeout(() => {
+          if (!cancelled) setShowLabel(false);
+        }, 420);
+        return;
+      }
+      setFrame(WAVE_FRAMES[index] ?? 0);
+      const wait = WAVE_MS[index] ?? 0;
+      index += 1;
+      timer = window.setTimeout(next, wait);
+    };
+    next();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  return { waving, frame, showLabel };
+}
+
 function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; routePrefix: "" | "/pl" }) {
   const launcherRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [opened, setOpened] = useState(false);
   const [visible, setVisible] = useState(false);
-  const pet = useFloatingWidget(launcherRef);
+  const pet = useFloatingWidget(launcherRef, true, launcherRest);
+  const greet = useOnceWave();
   const panel = useFloatingWidget(dialogRef, visible);
   const close = useCallback(() => dialogRef.current?.close(), []);
   const resetLabel = locale === "pl" ? "Przywróć pozycję" : "Reset position";
@@ -72,8 +117,15 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
             if (!dragged || event.detail === 0) open();
           }}
         >
-          <span className={styles.character} aria-hidden="true" />
-          <span className={styles.label}>{locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign"}</span>
+          {greet.showLabel ? (
+            <span className={styles.label}>{locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign"}</span>
+          ) : null}
+          <span
+            className={styles.character}
+            data-wave={greet.waving ? "" : undefined}
+            style={greet.waving ? ({ "--wave-frame": greet.frame } as CSSProperties) : undefined}
+            aria-hidden="true"
+          />
           <span className={styles.hint}>{locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me"}</span>
         </button>
         <button type="button" className={styles.resetPet} aria-label={resetLabel} title={resetLabel} onClick={resetPositions}>↺</button>

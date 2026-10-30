@@ -104,7 +104,7 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   await expect.poll(async () => (await box(pet)).x + (await box(pet)).width).toBeLessThanOrEqual(374.5);
   const initial = await box(pet);
   const touch = await context.newCDPSession(page);
-  const start = { x: initial.x + 70, y: initial.y + 50, id: 1 };
+  const start = { x: initial.x + initial.width / 2, y: initial.y + initial.height / 2, id: 1 };
   await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [start] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...start, x: start.x - 100, y: start.y - 250 }] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
@@ -113,7 +113,7 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   expect((await box(pet)).y).toBeCloseTo(initial.y - 250, 0);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const moved = await box(pet);
-  const next = { x: moved.x + 70, y: moved.y + 50, id: 2 };
+  const next = { x: moved.x + moved.width / 2, y: moved.y + moved.height / 2, id: 2 };
   await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [next] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...next, x: next.x - 40, y: next.y - 100 }] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
