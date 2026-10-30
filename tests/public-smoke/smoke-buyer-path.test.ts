@@ -63,6 +63,30 @@ test("evaluateBuyerPathRoute requires status 200 and all expected markers", () =
   assert.deepEqual(result.missingMarkers, ["Do not submit"]);
 });
 
+test("withdrawn automation routes require a 410 notice without old sales copy", () => {
+  for (const [path, title, currentReview, oldPrice] of [
+    ["/catalog/automation-repair", "This offer has been withdrawn", "/reviews/agent-action-security-review", "€250 diagnosis"],
+    ["/pl/catalog/automation-repair", "Ta oferta została wycofana", "/pl/reviews/agent-action-security-review", "€250 za diagnozę"],
+  ] as const) {
+    const route = routeContract(path);
+    assert.equal(route.expectedStatus, 410, path);
+    assert.ok(route.requiredMarkers.includes(title), path);
+    assert.ok(route.requiredMarkers.includes(currentReview), path);
+    assert.ok(route.prohibitedMarkers?.includes(oldPrice), path);
+    assert.ok(route.prohibitedMarkers?.includes('name="intent" value="automation-repair-handover"'), path);
+
+    const notice = route.requiredMarkers.join("\n");
+    assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice).ok, true, path);
+    assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 200, notice).ok, false, path);
+    const missingTitle = evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice.replace(title, ""));
+    assert.equal(missingTitle.ok, false, path);
+    assert.ok(missingTitle.missingMarkers.includes(title), path);
+    const oldSale = evaluateBuyerPathRoute(route, "https://witnessops.com", 410, `${notice}\n${oldPrice}`);
+    assert.equal(oldSale.ok, false, path);
+    assert.ok(oldSale.prohibitedMarkersPresent.includes(oldPrice), path);
+  }
+});
+
 test("evaluateBuyerPathRoute fails when old public markers are still present", () => {
   const route: BuyerPathSmokeRoute = {
     path: "/review/sample-cases/ai-agent-action-proof-run",
@@ -271,7 +295,8 @@ test("request smoke markers use the current fit and start-work boundaries", () =
   assert.equal(external.requiredMarkers.includes('name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"'), false);
   assert.ok(external.requiredMarkers.includes("offerId=agent-action-security-review"));
   const repair = routeContract("/catalog/automation-repair");
-  assert.ok(repair.requiredMarkers.includes("This review is not offered for new engagements."));
+  assert.equal(repair.expectedStatus, 410);
+  assert.ok(repair.requiredMarkers.includes("This offer has been withdrawn"));
   assert.ok(repair.prohibitedMarkers?.includes('name="intent" value="automation-repair-handover"'));
 });
 

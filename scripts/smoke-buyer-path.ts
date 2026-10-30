@@ -13,6 +13,7 @@ type FetchLike = (
 
 export type BuyerPathSmokeRoute = {
   path: string;
+  expectedStatus?: 200 | 410;
   requiredMarkers: string[];
   prohibitedMarkers?: string[];
 };
@@ -73,13 +74,15 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/catalog/automation-repair",
-    requiredMarkers: ["Automation Repair &amp; Handover", "€250 diagnosis", "€750 total including diagnosis only if", "about six total delivery hours", "No promise to fix every automation", "operating and recovery instructions", "Want someone to look after it?", "This review is not offered for new engagements.", "data-legacy-offer-withdrawal=\"automation-repair-handover\""],
-    prohibitedMarkers: ["Describe the problem", 'name="intent" value="automation-repair-handover"'],
+    expectedStatus: 410,
+    requiredMarkers: ["This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review"],
+    prohibitedMarkers: ["Automation Repair &amp; Handover", "€250 diagnosis", "€750 total including diagnosis only if", "Describe the problem", 'name="intent" value="automation-repair-handover"'],
   },
   {
     path: "/pl/catalog/automation-repair",
-    requiredMarkers: ["Naprawa i przejęcie automatyzacji", "€250 za diagnozę", "€750 łącznie z diagnozą tylko wtedy", "Ten przegląd nie jest oferowany dla nowych zleceń."],
-    prohibitedMarkers: ["Opisz problem"],
+    expectedStatus: 410,
+    requiredMarkers: ["Ta oferta została wycofana", "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.", "/pl/reviews/agent-action-security-review"],
+    prohibitedMarkers: ["Naprawa i przejęcie automatyzacji", "€250 za diagnozę", "€750 łącznie z diagnozą tylko wtedy", "Opisz problem", 'name="intent" value="automation-repair-handover"'],
   },
   {
     path: "/review/request?offerId=automation-repair-handover",
@@ -1016,7 +1019,7 @@ export function evaluateBuyerPathRoute(
     url: new URL(route.path, `${baseUrl}/`).toString(),
     status,
     ok:
-      status === 200 &&
+      status === (route.expectedStatus ?? 200) &&
       missingMarkers.length === 0 &&
       prohibitedMarkersPresent.length === 0,
     missingMarkers,

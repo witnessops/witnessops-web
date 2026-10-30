@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const withdrawnOffers = [
   "/catalog/workflows",
+  "/catalog/automation-repair",
   "/catalog/offsec-local-audit",
   "/catalog/offsec-launch-ready",
   "/catalog/offsec-custody-ops",
@@ -10,6 +11,7 @@ const withdrawnOffers = [
   "/pl/catalog/offsec-launch-ready",
   "/pl/catalog/offsec-custody-ops",
   "/pl/catalog/offsec-incident-ready",
+  "/pl/catalog/automation-repair",
 ] as const;
 
 const externalReviewRedirects = [
@@ -111,6 +113,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
 });
 
 test("withdrawn offer details answer 410 inside the site shell on their own URL", async ({ browser }) => {
+  test.setTimeout(120_000);
   for (const path of withdrawnOffers) {
     for (const viewport of viewports) {
       const context = await browser.newContext({ viewport, reducedMotion: "reduce" });

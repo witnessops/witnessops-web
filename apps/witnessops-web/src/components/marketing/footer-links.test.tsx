@@ -60,11 +60,11 @@ function hrefs(html: string): string[] {
 
 function routeFileExists(href: string): boolean {
   const pathname = href.split(/[?#]/)[0] || "/";
-  if (pathname.startsWith("/catalog/") && pathname !== "/catalog/automation-repair") {
+  if (pathname.startsWith("/catalog/")) {
     return existsSync(resolve(appDir, "(marketing)/catalog/[skuId]/page.tsx"))
       || existsSync(resolve(appDir, `(marketing)${pathname}/page.tsx`));
   }
-  if (pathname.startsWith("/pl/catalog/") && pathname !== "/pl/catalog/automation-repair") {
+  if (pathname.startsWith("/pl/catalog/")) {
     return existsSync(resolve(appDir, "pl/catalog/[skuId]/page.tsx"));
   }
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {

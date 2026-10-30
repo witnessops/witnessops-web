@@ -35,7 +35,7 @@ for(const width of [1440,390])test(`footer and research at ${width}`,async({page
  await expect(footer).not.toContainText('AI Agent Tools & Access Review');await expect(footer).not.toContainText('Repair and handover');await expect(footer.getByRole('link',{name:'Ask an expert',exact:true})).toHaveAttribute('href',/\/review\/request/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole('link',{name:'How to read a public exposure snapshot',exact:true}).click();await expect(page.getByRole('heading',{level:1})).toHaveText('How to read a public exposure snapshot');await expect(page.locator('main')).toContainText('No new target was checked');await expect(page.getByRole('button',{name:'Ask WitnessOps',exact:true})).toBeVisible();
- expect((await page.goto('/catalog/automation-repair'))?.status()).toBe(200);await expect(page.locator('main')).toContainText('Automation Repair');
+ expect((await page.goto('/catalog/automation-repair'))?.status()).toBe(410);await expect(page.getByRole('heading',{name:'This offer has been withdrawn'})).toBeVisible();
 });
 test('Polish footer uses supported destinations and labels English-only surfaces',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/pl');const footer=page.locator('#site-footer');

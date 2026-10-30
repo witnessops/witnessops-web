@@ -57,8 +57,9 @@ function withdrawnFallback() {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Withdrawn offer pages stay in the repo. The public response is 410 and
-  // reuses the rendered site shell from /withdrawn-offer.
+  // Withdrawn offer URLs remain recognized even when their page source is
+  // retired. The public response is 410 and reuses the rendered site shell
+  // from /withdrawn-offer.
   if (
     isWithdrawnOfferPath(pathname) &&
     request.headers.get(WITHDRAWN_SHELL_HEADER) !== "1"

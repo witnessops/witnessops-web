@@ -1,5 +1,6 @@
 /**
- * Offer URLs that stay in the repo but are no longer served.
+ * Withdrawn offer URLs remain recognized for 410 responses even when their
+ * page implementations have been retired.
  * Path list and withdrawal copy reused from cursor/withdrawn-offer-410-c2e3
  * (1c715e92), plus /customer-security-review and its Polish twin (A6).
  */

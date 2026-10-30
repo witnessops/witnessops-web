@@ -5,11 +5,9 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import AutomationRepairPage from "@/app/(marketing)/catalog/automation-repair/page";
 import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
 import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
 import CustomerSecurityReviewPage from "@/app/customer-security-review/page";
-import PolishAutomationRepairPage from "@/app/pl/catalog/automation-repair/page";
 import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
 import PolishCustomerSecurityReviewPage from "@/app/pl/customer-security-review/page";
 import {
@@ -81,8 +79,6 @@ test("legacy detail pages keep their service identity and do not start a new rev
 test("published detail routes stay on the historical service and do not redirect", () => {
   const pages = [
     [CatalogWorkflowsPage, "agent-tools-access-review", "en"],
-    [AutomationRepairPage, "automation-repair-handover", "en"],
-    [PolishAutomationRepairPage, "automation-repair-handover", "pl"],
     [CustomerSecurityReviewPage, "customer-security-review-sprint", "en"],
     [PolishCustomerSecurityReviewPage, "customer-security-review-sprint", "pl"],
     [ProfessionalPublicFootprintAuditPage, "professional-public-footprint-audit", "en"],
@@ -98,11 +94,6 @@ test("published detail routes stay on the historical service and do not redirect
   assert.match(workflows, /href="\/review\/sample-cases\/ai-agent-action-proof-run"/);
   assert.match(workflows, /AI Agent Tools &amp; Access Review|AI Agent Tools & Access Review/);
   assert.doesNotMatch(workflows, /Agent Action Security Review/);
-
-  const repair = markup(createElement(AutomationRepairPage));
-  assert.match(repair, /href="\/catalog\/workflows"/);
-  assert.match(repair, /separate historical service/);
-  assert.doesNotMatch(repair, /Describe what you need/);
 
   const englishSku = readFileSync(
     resolve(__dirname, "../../app/(marketing)/catalog/[skuId]/page.tsx"),
