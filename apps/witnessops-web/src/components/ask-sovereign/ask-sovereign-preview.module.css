@@ -93,10 +93,8 @@
   width: 32px;
   height: 32px;
   flex: none;
-  background: image-set(url("/ask-sovereign/sovereign-icon-32-light@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-icon-32-light@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-icon-32-light@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-icon-32-light@2x.png") type("image/png") 2x) center / 32px 32px no-repeat;
-}
-:global(html[data-theme="dark"]) .mark {
-  background-image: image-set(url("/ask-sovereign/sovereign-icon-32-dark@1x.webp") type("image/webp") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.webp") type("image/webp") 2x, url("/ask-sovereign/sovereign-icon-32-dark@1x.png") type("image/png") 1x, url("/ask-sovereign/sovereign-icon-32-dark@2x.png") type("image/png") 2x);
+  background: url("/ask-sovereign/clean/sovereign-icon-32-dark@2x.png") center / 32px 32px no-repeat;
+  image-rendering: pixelated;
 }
 .name { min-width: 0; flex: none; margin: 0; overflow: visible; font-size: var(--type-h4-size); font-weight: var(--type-h4-wt); line-height: var(--type-h4-lh); letter-spacing: 0; white-space: nowrap; text-overflow: clip; }
 .titleUnit { white-space: nowrap; border: 0; padding: 0; margin: 0; font-size: inherit; line-height: inherit; font-weight: inherit; background: none; }

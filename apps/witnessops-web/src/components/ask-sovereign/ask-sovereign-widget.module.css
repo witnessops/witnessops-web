@@ -26,23 +26,15 @@
   display: block;
   width: var(--frame-w);
   height: 61px;
-  background: url("/ask-sovereign/sovereign-idle-still-light@2x.webp") center / var(--frame-w) 100% no-repeat;
+  background: url("/ask-sovereign/clean/sovereign-idle-still-dark@2x.png") center / var(--frame-w) 100% no-repeat;
   image-rendering: pixelated;
 }
 
 .character[data-wave] {
-  background-image: url("/ask-sovereign/sovereign-greet-light@2x.webp");
+  background-image: url("/ask-sovereign/clean/sovereign-greet-dark@2x.png");
   background-repeat: no-repeat;
   background-size: calc(var(--frame-w) * 4) 100%;
   background-position: calc(var(--wave-frame) * var(--frame-w) * -1) 0;
-}
-
-:global(html[data-theme="dark"]) .character {
-  background-image: url("/ask-sovereign/launcher-idle-dark@2x.png");
-}
-
-:global(html[data-theme="dark"]) .character[data-wave] {
-  background-image: url("/ask-sovereign/launcher-greet-dark@2x.png");
 }
 
 .label {

@@ -19,7 +19,8 @@ function scaleOf(): "@1x" | "@2x" {
 }
 
 function assetUrl(name: SovereignSpriteState, theme: "light" | "dark", scale: "@1x" | "@2x", still: boolean, viewport: SpriteViewport): string {
-  return `/ask-sovereign/${spriteAsset(name, theme, scale, still, viewport)}`;
+  const file = spriteAsset(name, theme, scale, still, viewport).replace(/\.webp$/i, ".png").replace("-light", "-dark");
+  return `/ask-sovereign/clean/${file}`;
 }
 
 function decodeImage(src: string): Promise<boolean> {
