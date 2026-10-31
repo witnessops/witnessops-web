@@ -121,10 +121,19 @@ artifact names, artifact URLs, displayed digests, and displayed-vs-manifest-hash
 artifact relationship. The page and source tests should read from that contract
 rather than duplicating commits, digests, or sample URLs.
 
-Current boundary: this repository records and displays pinned external manifest
-provenance for the sample, but a separate cross-repo verification lane is needed
-before claiming that `witnessops-web` independently recomputes the external
-sample artifact bytes.
+Current boundary: this repository mirrors the fixed signed synthetic API-key
+rotation specimen as exact same-origin bytes. Its sample-specific browser and
+[offline verifier](./apps/witnessops-web/public/samples/api-key-rotation/v1/verify.mjs)
+check the purpose-limited demo signer, evidence hashes, receipt references,
+authority, scope, and declared synthetic rotation transition. The
+[artifact tests](./apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/artifact-links.test.ts)
+compare the mirrored files with the pinned manifest and verifier digests.
+
+These checks cover that fixed synthetic specimen only. They do not establish a
+real provider action, real credential compromise, source-system truth, production
+signing-key custody, legal compliance, or whole-environment assurance. Public
+`/verify` and `/api/verify` remain receipt-only; sample verification does not widen
+their accepted inputs.
 
 ## Security
 
