@@ -2,11 +2,9 @@
 
 Write in email or PDF. Keep short. **Nothing starts until both sides accept.**
 
-For a new agreement, use the matching current scope block below with the
-[current portfolio](./18-two-offer-portfolio.md) and, for the external review,
-[its offer record](./10-public-exposure-review-offer.md). Copy only the selected
-review's terms. Historical blocks preserve earlier agreements; they are not
-new-sales options.
+For a new agreement, use only the Agent Action Security Review scope below and
+the [current commercial index](./README.md). The historical blocks preserve
+earlier agreements; they are not new-sales options.
 
 ---
 
@@ -14,14 +12,17 @@ new-sales options.
 
 ```text
 WitnessOps — Scope agreement
-Product: [Agent Action Security Review | External Attack Surface Review]
-Historical option, not for a new agreement: [CSR Sprint | One Server Security Check | AI Agent Tools & Access Review]
+Product: Agent Action Security Review
 Engagement ref: [id]
 Date: [ISO date]
 Customer: [legal or trading name]
 Decision owner: [name, role, email]
 WitnessOps contact: [name, email]
 ```
+
+External Attack Surface Review, CSR Sprint, One Server Security Check and AI
+Agent Tools & Access Review are historical identities for issued agreements,
+not alternatives to paste into a new agreement.
 
 ---
 
@@ -54,7 +55,10 @@ WitnessOps contact: [name, email]
 The distinct historical inventory-plus-action review is not included. This
 one-action scope does not require or promise a full device inventory.
 
-### Current: External Attack Surface Review
+### Historical: External Attack Surface Review — existing agreements only
+
+This scope is retained to interpret agreements accepted under the former
+two-offer portfolio. Do not select or quote it for a new agreement.
 
 ```text
 - Service identity: external-exposure-assessment
@@ -86,7 +90,7 @@ retesting remains held and is not offered. This is not a penetration test.
 
 ### Historical scope blocks — existing agreements only
 
-The following blocks do not define either current review. Preserve the terms
+The following blocks do not define the current Agent Action review. Preserve the terms
 actually accepted under the historical offer identity.
 
 **CSR**
@@ -127,9 +131,9 @@ actually accepted under the historical offer identity.
 
 ## 3. Out of scope / exclusions
 
-For a new agreement, use the selected current scope block and its owning offer
-record for the complete exclusions. The earlier examples below are retained
-for historical agreements only; they do not replace either current boundary.
+For a new agreement, use the Agent Action scope block above and state the
+complete exclusions in the accepted SOW. The earlier examples below are
+retained for historical agreements only; they do not replace the current boundary.
 
 ```text
 [Explicit list. Examples:]
@@ -151,14 +155,18 @@ Timing: [match public line or firm date after authority/inputs confirmed]
 Payment: [terms]
 ```
 
-Current paid reviews, for a new agreement:
+Current paid review, for a new agreement:
 
 - Agent Action Security Review: €2,500 excluding VAT (fixed fee). Inspection and reporting only; no retesting.
-- External Attack Surface Review: €1,900 excluding VAT (fixed fee), with one focused retest of reported findings within 30 calendar days of initial report handover.
 
 Delivery timing agreed in the signed statement of work.
 
-AI Agent Tools & Access Review, CSR Sprint and One Server Security Check are historical options. Do not copy their former quote or handover wording into a new agreement. Existing agreements under those offers keep the terms already signed. Record the actual start date and any pause.
+The historical External Attack Surface Review standard price was
+€1,900 excluding VAT (fixed fee), with one focused retest of reported findings within
+30 calendar days of initial report handover. AI Agent Tools & Access Review,
+CSR Sprint and One Server Security Check are also historical. Do not copy any
+former quote or handover wording into a new agreement. Existing agreements
+keep their signed terms. Record the actual start date and any pause.
 
 ---
 
@@ -169,12 +177,14 @@ AI Agent Tools & Access Review, CSR Sprint and One Server Security Check are his
 - Evidence / collection only after this agreement is accepted
 - Handling: [how files move, retention, who may access]
 - Material: approved non-secret source material only, through the agreed channel
-- External review: credential and secret collection are excluded at every stage
 ```
+
+For historical External Attack Surface Review agreements, credential and
+secret collection remain excluded at every stage.
 
 The following handling paragraph is historical and applies only to AI Agent
 Tools & Access Review agreements; its correction round and retention default do
-not become terms of either current review.
+not become terms of the current review.
 
 For AI Agent Tools & Access Review, name both parties and decision owners,
 source owners, operator, approved read-only method, secure transfer channel,
@@ -193,17 +203,18 @@ No access or evidence transfer begins from an initial request alone.
 ## 6. Claim limits
 
 For the current agent review, use the one-action scope above and the
-[current portfolio](./18-two-offer-portfolio.md): findings and recommendations
+[current commercial index](./README.md): findings and recommendations
 from agreed inspection, with explicit unknowns; no execution, remediation,
-retesting or security guarantee. For the external review, use the complete
-exclusions and evidence limits in [its offer record](./10-public-exposure-review-offer.md).
+retesting or security guarantee. For historical External Attack Surface Review
+agreements, use the complete exclusions and evidence limits in [its offer
+record](./10-public-exposure-review-offer.md).
 Package-integrity checks do not prove that a system is secure.
 
 For historical AI Agent Tools & Access Review agreements, use the limits in
 `17-ai-agent-tools-access-review-offer.md`: agreed-source observation only,
 one action path, manual/read-only work, explicit unavailable and uninspected
-states, and no complete discovery or security guarantee. For the other
-products, use their current owning commercial contract and approved blurb.
+states, and no complete discovery or security guarantee. For other historical
+products, use the owning contract and approved blurb from that agreement.
 
 ---
 

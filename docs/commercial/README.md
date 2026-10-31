@@ -1,7 +1,7 @@
-# Commercial delivery kit — current reviews and historical records
+# Commercial delivery kit — current review and historical records
 
-Operator-facing materials so the live catalog + samples convert into real engagements.
-Written for learning the offers while you sell and deliver them.
+Operator-facing materials for the current review and its sample, with earlier
+offer records retained for issued agreements.
 
 **Public new-sales review:** one, by founder decision on 2026-10-27. [Two-Offer V1](./18-two-offer-portfolio.md) remains the historical record of the earlier pair. This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
 
@@ -10,13 +10,13 @@ Written for learning the offers while you sell and deliver them.
 
 The €950 private pilot is not a public new-sales choice. The free hostname check remains a separate tool at `/check`.
 
-Historical records stay in force for issued agreements and old lookups. The [superseded one-action contract](./16-agent-workflow-reconstruction-offer.md) uses `bounded-workflow-review`. The [inventory-plus-action contract](./17-ai-agent-tools-access-review-offer.md) uses `agent-tools-access-review` and remains at `/catalog/workflows`. Those identities are not new-sales selections.
+Historical records stay in force for issued agreements and old lookups. The [superseded one-action contract](./16-agent-workflow-reconstruction-offer.md) uses `bounded-workflow-review`. The [inventory-plus-action contract](./17-ai-agent-tools-access-review-offer.md) uses `agent-tools-access-review`; its former `/catalog/workflows` route now serves a 410 withdrawal notice. Those identities are not new-sales selections.
 
 ## Start here
 
 1. **Current public scope:** one consequential agent or automation action. Review its trigger, executing identity, effective permissions, approvals and available execution evidence. Deliver an action map, sourced findings, prioritised recommendations, explicit unknowns, written report and readout.
 2. **[Scope agreement](./06-scope-agreement-skeleton.md)** — start with a non-secret fit check, then agree scope, authority and evidence handling. Use only the one-action scope for new sales. Delivery timing is agreed in the signed statement of work. Work is limited to reading, inspection, reconstruction and reporting, with existing exclusions preserved.
-3. **Historical references:** [Two-Offer V1](./18-two-offer-portfolio.md), [external offer](./10-public-exposure-review-offer.md), [external fit check](./11-public-exposure-review-fit-check.md), [dry-run checklist](./05-dry-run-checklist.md) and [operator playbook](./07-operator-playbook-complete.md) preserve earlier terms and process. Their two-offer or external sections do not reopen retired sales.
+3. **Readiness and history:** the [dry-run checklist](./05-dry-run-checklist.md) and [operator playbook](./07-operator-playbook-complete.md) open with current Agent Action-only guidance. Their earlier two-offer, CSR and One Server sections, [Two-Offer V1](./18-two-offer-portfolio.md), the [external offer](./10-public-exposure-review-offer.md) and [external fit check](./11-public-exposure-review-fit-check.md) preserve historical terms and process. They do not reopen retired sales.
 
 The [former run sheet](./THIS-WEEK.md), [learning guide](./00-offer-learning-guide.md),
 older reply/delivery/claim/demo templates, [drafts](./drafts/) and
@@ -44,20 +44,20 @@ retained as superseded research, not a current general naming policy.
 | 02 | [Delivery emails](./02-delivery-email.md) | Historical CSR / One Server handovers |
 | 03 | [Claim blurbs](./03-claim-blurb.md) | Historical CSR / One Server claim limits |
 | 04 | [Demo script 15 min](./04-demo-script-15min.md) | Historical demo sequence; not current sales instructions |
-| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current two-offer readiness; earlier rehearsal retained as historical |
-| 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | After fit; before work |
-| 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current two-offer lifecycle; earlier playbooks retained as historical |
+| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current Agent Action readiness; earlier rehearsals retained as historical |
+| 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | Agent Action terms for a new agreement; historical blocks for issued agreements |
+| 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current Agent Action lifecycle; earlier delivery paths retained as historical |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Historical July 2026 research and superseded PLN display policy |
-| 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
-| 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
+| 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | Historical fixed-scope terms for issued agreements |
+| 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Historical fit and order process; not for new sales |
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Historical sampled research; naming instructions superseded |
-| 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
+| 13 | [Public route disposition](./13-public-route-disposition.md) | Historical route disposition record; verify current routes in source |
 | 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
 | 15 | [Agent Risk & Control Review offer](./15-agent-risk-control-review-offer.md) | Superseded 2026-08-26 positioning retained as a historical commercial record |
 | 16 | [Agent Action Security Review offer](./16-agent-workflow-reconstruction-offer.md) | Superseded historical one-action contract (`bounded-workflow-review`). Not the new-sales Agent Action identity |
 | 17 | [AI Agent Tools & Access Review offer](./17-ai-agent-tools-access-review-offer.md) | Historical inventory-plus-action contract (`agent-tools-access-review`). Not a new-sales identity |
-| 18 | [Two-Offer V1](./18-two-offer-portfolio.md) | Founder new-sales decision for the two public reviews. Not a deployment record |
+| 18 | [Two-Offer V1](./18-two-offer-portfolio.md) | Historical two-offer decision; External is parked for new sales. Not a deployment record |
 
 ## Public anchors
 
@@ -68,16 +68,16 @@ Source routes below. A listed URL is not evidence that the route is the released
 | Catalog | https://witnessops.com/catalog |
 | Agent Action Security Review request | https://witnessops.com/review/request?offerId=agent-action-security-review |
 | Retired External Attack Surface Review request (availability notice only) | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
-| Historical AI Agent Tools & Access Review | https://witnessops.com/catalog/workflows |
+| Former inventory-offer route (410 withdrawal notice) | https://witnessops.com/catalog/workflows |
 | Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
-| Historical CSR service | https://witnessops.com/customer-security-review |
+| Former CSR service route (410 withdrawal notice) | https://witnessops.com/customer-security-review |
 | CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |
 | CSR full synthetic package | https://witnessops.com/samples/csr-sprint-synthetic/ |
-| Historical One Server service | https://witnessops.com/catalog/offsec-local-audit |
+| Former One Server service route (410 withdrawal notice) | https://witnessops.com/catalog/offsec-local-audit |
 | One Server sample page | https://witnessops.com/review/sample-cases/local-server-security-review |
 | One Server web fixture | https://witnessops.com/samples/offsec-shield-local-server-audit/ |
 | One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |
-| External Attack Surface Review | https://witnessops.com/catalog/offsec-external-exposure |
+| External review availability notice (redirect) | https://witnessops.com/catalog/offsec-external-exposure |
 | External Attack Surface Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
 | Agent review fit check | https://witnessops.com/review/request |
 | Free hostname check | https://witnessops.com/check |

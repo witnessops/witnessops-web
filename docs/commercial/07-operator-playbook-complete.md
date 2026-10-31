@@ -1,38 +1,53 @@
-# Operator playbook — current two-offer delivery path
+# Operator playbook — current Agent Action Security Review path
 
-Start with the [current portfolio](./18-two-offer-portfolio.md), the matching
-[scope agreement block](./06-scope-agreement-skeleton.md), and the
-[external offer record](./10-public-exposure-review-offer.md) when applicable.
-The historical playbooks below are not current new-sales instructions.
+Start with the [current commercial index](./README.md) and the Agent Action
+[scope agreement block](./06-scope-agreement-skeleton.md). The historical
+External, CSR and One Server paths below are not new-sales instructions.
 
 ## Current lifecycle
 
 | Stage | Required outcome |
 | --- | --- |
-| Enquiry | Non-secret description of one consequential agent action or one internet-facing system, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
-| Fit | Select `agent-action-security-review` or external product `OFFSEC-EXTERNAL-EXPOSURE`; confirm that the bounded review fits the need. Do not reinterpret a historical request or offer the private pilot. |
-| Agreement | Confirm selected scope, exclusions, authority, handling, inputs, payment terms and capacity. Agent: €2,500 excl. VAT. External: €1,900 excl. VAT. Delivery timing agreed in the signed statement of work. |
-| Work | Agent: read, inspect, reconstruct and report one action. External: approved low-impact unauthenticated checks and manual validation within the signed target schedule and caps. Stop and re-scope when the authorised boundary no longer holds. |
-| Package | Match the selected offer's deliverables, link findings to evidence, prioritise recommendations and state unknowns. Do not promise execution, remediation, certification or complete security. |
-| Handover | Agent: action map, sourced findings, prioritised recommendations, documented unknowns and readout. External: package from the offer record and one focused retest of reported findings. |
-| Follow-up | External only: one focused retest of reported findings within 30 calendar days of initial report handover; record that date and the agreed retest window. No agent retest or additional/late external retest is offered. |
-
-For external work, the maximum scope is one system, 1 registrable root domain,
-10 confirmed first-party hostnames, 3 customer-attributed public IP addresses
-and 20 public service endpoints. An endpoint is a confirmed hostname or IP plus
-protocol and port. Caps are not testing authority; the signed schedule controls.
-No exploitation or authenticated testing is included. This is not a penetration test.
+| Enquiry | Non-secret description of one consequential agent or automation action, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
+| Fit | Select only `agent-action-security-review`; confirm that one bounded action fits the need. Do not reinterpret a historical request or offer the private pilot. |
+| Agreement | Confirm the one-action scope, exclusions, authority, handling, inputs, payment terms and capacity. The fixed fee is €2,500 excl. VAT; delivery timing is agreed in the signed statement of work. |
+| Work | Read, inspect, reconstruct and report one action. Stop and re-scope when the authorised boundary no longer holds. |
+| Package | Link findings to evidence, prioritise recommendations and state unknowns. Do not promise execution, remediation, retesting, certification or complete security. |
+| Handover | Deliver the action map, sourced findings, prioritised recommendations, documented unknowns, written report and readout. |
+| Follow-up | Record open items and decisions against the accepted agreement. No retest or remediation is included in the agent review. |
 
 ## Current operator checks
 
 - [ ] The selected review, identifiers and accepted terms agree; the public
-  new-sales choice contains exactly two reviews, with the free check separate.
+  new-sales choice contains only Agent Action Security Review, with the free
+  check separate.
 - [ ] Initial enquiry, scope acceptance, payment and permission to work remain
-  separate; collection or testing starts only after the applicable gates.
+  separate; inspection starts only after the applicable gates.
 - [ ] The package matches the agreed scope, preserves evidence limits and
   labels samples as synthetic. Historical templates are not sent as current terms.
-- [ ] Handover and any included external retest are recorded against the
-  accepted agreement. Existing historical agreements keep their original terms.
+- [ ] Handover is recorded against the accepted agreement. Existing historical
+  agreements keep their original terms.
+
+## Historical External Attack Surface Review path — issued agreements only
+
+The earlier two-offer path is retained to interpret agreements accepted under
+External Attack Surface Review. It is parked for new sales and is not an
+alternative in a new scope agreement.
+
+| Stage | Earlier external-review terms |
+| --- | --- |
+| Identity and original fit | The issued agreement identifies historical product `OFFSEC-EXTERNAL-EXPOSURE` and the one internet-facing system, decision owner and intended deadline. Do not select it for new fit. |
+| Agreement | Confirm the signed target schedule, exclusions, authority, handling, inputs, payment terms and capacity. The former reference fixed fee was €1,900 excl. VAT; the actual signed terms control. Delivery timing was agreed in the signed statement of work. |
+| Work | Approved low-impact unauthenticated checks and manual validation within the signed target schedule and caps. Stop and re-scope when the authorised boundary no longer holds. |
+| Package and handover | Use the historical [offer record](./10-public-exposure-review-offer.md), including its evidence-backed package and 45-minute handover. No exploitation, remediation, certification or complete-security claim. |
+| Follow-up | One focused retest of reported findings within 30 calendar days of initial report handover; record that date and the agreed retest window. Additional or late retests remain held. |
+
+For an issued external agreement, the maximum scope is one system, 1 registrable
+root domain, 10 confirmed first-party hostnames, 3 customer-attributed public
+IP addresses and 20 public service endpoints. An endpoint is a confirmed
+hostname or IP plus protocol and port. Caps are not testing authority; the
+signed schedule controls. No exploitation or authenticated testing is included.
+This is not a penetration test.
 
 ## Historical complete P0 path — CSR and One Server only
 
