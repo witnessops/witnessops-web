@@ -177,3 +177,37 @@ Migration 0022 adds capture reservations to existing server executions. Stop all
 Rollback warning for migrations 0020 and 0023 (the 0022 warning above does not cover them). Migration 0020 adds share-password columns (`scrypt-v1` hash, attempt counter, window) to `report_share_access` and a `report_share_unlocks` table (`db/migrations/0020_share_passwords.sql`; the unlock session cap is 32 per share, `src/lib/db/share-passwords.ts:50`). App source before that migration contains no reference to `password_hash`, so an image older than 0020 has no password-check code; do not run one against a database that holds password-protected shares. Migration 0023 adds a `retired` execution state with `retired_at`/`retired_by_user_id`, replaces two constraints on `server_check_executions` and replaces the `preserve_server_execution` trigger function (`db/migrations/0023_retired_server_check_executions.sql`); app source before 0023 does not reference `retired`, so an older image does not know that state. Treat rollback below 0020 or 0023 as unsupported without a separately reviewed compatibility check, as with 0022.
 
 Every plan uses the same operational maximum of 32 retained executions and 200 MiB of reserved capture input per workspace. Source/seat allowances remain separate. An upload's digest and byte reservation commit before custody persistence, and current CLI authority is rechecked before validation. Rejected/partial writes and reservations with no file remain charged. No automatic expiry, deletion or refund exists; releasing capacity requires a separately reviewed reconciliation that proves bytes absent and old writers stopped. Registry, signatures and generated Proofpacks are additional retained files, bounded by execution admission rather than the capture-input byte total. Host filesystem containment remains a deployment requirement. Successful retry does not overwrite capture bytes or repeat signing.
+
+
+## Local synthetic AASR fixture
+
+`/aasr-fixture` is a development-only Agent Action Security Review engagement for
+one pinned synthetic `crm.contact.update` action. `WITNESSOPS_AASR_FIXTURE=1`
+enables the page and `/api/aasr-fixture` only outside production. Production
+always returns 404, including when the flag is set. The feature adds no public
+navigation, database schema, collection adapter, recipient link or send action.
+
+The API uses the existing AuthKit identity, account/session revocation and
+current PostgreSQL workspace membership checks. Its fixed synthetic workspace
+selector grants no access. A separately assigned synthetic reviewer must be a
+current Contributor at the assigned membership generation; an Owner does not
+acquire reviewer authority. There is no client-side actor selector. Assignment
+identifiers are test fixtures, not a procedure for admitting real accounts.
+
+The server retains the original source bytes separately from canonical and
+claimed digests. Scope, evidence, accepted report and recipient projection are
+bound to ordered transitions, revisions and a server-held integrity anchor.
+The report remains `PARTIAL_EVIDENCE`: source authenticity, evidence truth and
+runtime approval enforcement remain UNKNOWN. Customer report acceptance precedes
+recipient preparation, and the final state says `DELIVERY SIMULATED`. There are
+zero external actions. In-memory engagement state survives a browser refresh
+only while that process remains alive; restarting it loses that state.
+
+The browser harness under `tests/aasr-fixture/` renders the actual component and
+uses real HTTP requests against the native service with a disposable database.
+Its fixed server-injected test identities do not exercise hosted WorkOS login
+and are never part of the app runtime. Run it with the dedicated Playwright
+configuration after preparing the isolated test database. The regular app browser
+suite separately checks the default-off page/API refusal. App unit, database,
+route-parity and full repository health gates remain required; fixture success
+does not establish a deployed or customer-ready AASR service.

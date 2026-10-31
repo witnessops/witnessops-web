@@ -1,0 +1,15 @@
+.header { flex-wrap: wrap; gap: 12px 24px; padding-block: 12px; }
+.badge { color: var(--attention); font-size: 12px; margin-right: auto; }
+.main { display: grid; gap: 24px; }
+.boundary { border-left: 3px solid var(--attention); padding: 16px 20px; background: var(--raised); }
+.boundary p { margin-top: 8px; color: var(--muted); }
+.panel { border: 1px solid var(--border); border-radius: 8px; padding: 24px; min-width: 0; }
+.panel > p, .panel > details, .panel > h3 { margin-top: 12px; }
+.heading { display: flex; gap: 16px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.actions button { white-space: normal; }
+.notice { color: var(--attention); font-weight: 500; }
+.finding { margin-block: 16px; padding-left: 16px; border-left: 2px solid var(--border); }
+.finding p { margin-top: 8px; }
+.digest, .digests dd { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .panel { padding: 16px; } .header { align-items: flex-start; } .badge { width: 100%; order: 3; } .actions { flex-direction: column; align-items: stretch; } }
