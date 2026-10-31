@@ -42,12 +42,17 @@ do not need to be re-emitted for structural web verify to continue working.
 | `fixtures/verify/offsec-shield-valid.json` | Legacy dual-read valid |
 | `fixtures/verify/offsec-shield-bad-binding.json` | Legacy dual-read invalid |
 
-## Public sample
+## Retired public sample
 
-- Buyer route: `/review/sample-cases/local-server-security-review`
-- Legacy route redirects permanently from `/review/sample-cases/offsec-shield-local-server-audit`
-- Fixture storage under `public/samples/offsec-shield-local-server-audit/` (stable storage id)
-- Primary sample `RECEIPT.json` ships `witnessops.local_server_audit.receipt.v1`
+The public local-server sample has been retired from the source tree. The buyer
+route `/review/sample-cases/local-server-security-review` returns a `410 Gone`
+withdrawal response. The legacy route
+`/review/sample-cases/offsec-shield-local-server-audit` redirects there.
+
+The former `public/samples/offsec-shield-local-server-audit/` directory,
+including its `RECEIPT.json`, has been removed. For adapter checks, use the
+retained [internal fixtures](../apps/witnessops-web/fixtures/verify/) listed above.
+They remain available for primary-schema and legacy dual-read tests.
 
 ## Implementation
 
