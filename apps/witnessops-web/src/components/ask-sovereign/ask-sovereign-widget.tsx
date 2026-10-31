@@ -130,7 +130,7 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
             style={greet.waving ? ({ "--wave-frame": greet.frame } as CSSProperties) : undefined}
             aria-hidden="true"
           />
-          <span className={styles.hint}>{locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me"}</span>
+          <span className={styles.hint}>{process.env.NODE_ENV === "production" ? (locale === "pl" ? "Przeciągnij" : "Drag me") : (locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me")}</span>
         </button>
         <button type="button" className={styles.resetPet} aria-label={resetLabel} title={resetLabel} onClick={resetPositions}>↺</button>
       </div>
@@ -145,7 +145,7 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
         className={styles.dialog}
         style={panel.style}
         data-dragging={panel.dragging || undefined}
-        aria-label={locale === "pl" ? "Ask Sovereign — podgląd" : "Ask Sovereign preview"}
+        aria-label={process.env.NODE_ENV === "production" ? (locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign") : (locale === "pl" ? "Ask Sovereign — podgląd" : "Ask Sovereign preview")}
         onPointerDown={(event) => {
           if (event.button !== 0) {
             dismissOutside.current = false;

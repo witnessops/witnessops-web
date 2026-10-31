@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
-// The assistant is deliberately unavailable in production builds. Stop website
+// Development simulation/connection coverage. Production chat is checked by
+// tests/ui-proof/production-chat.spec.ts against the release build. Stop website
 // dev/build first: this fixture owns the same .next directory during acceptance.
 export default defineConfig({
   testDir: ".",

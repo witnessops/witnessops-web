@@ -1,6 +1,6 @@
 # Sovereign homepage widget acceptance
 
-The homepage mounts Sovereign behind the development preview flag and uses the
+The homepage publishes Sovereign in production and uses the
 existing `/api/ask-witnessops` request/response contract. The Sovereign character
 is a draggable launcher. Clicking opens
 the conversation; dragging does not. The desktop dialog has its own move handle.
@@ -19,7 +19,10 @@ inside the chat does not. Position is not persisted. Normal questions send the
 question and recent complete exchanges to the existing API. The transcript is not
 automatically included in contact. Explicit development `?sim=` scenarios remain
 simulated and make no API request; the dedicated assistant preview keeps its
-simulation default. This widget does not change the production release gate.
+simulation default under `next dev`. Production always uses the API, including
+the dedicated English and Polish assistant pages. Internal review controls and
+`?sim=` scenarios remain disabled in production. Booking and voice are not part
+of this chat release.
 
 The public Ask runtime accepts `WITNESSOPS_ASK_OPENAI_MODEL=gpt-6.1-terra`;
 its existing default remains `gpt-5.4-mini`. Model selection is server-side and
@@ -37,8 +40,11 @@ CI=1 pnpm exec playwright test --config tests/sovereign-widget/playwright.config
 
 The default uses Playwright Chromium. An installed Chrome may be selected with
 `PLAYWRIGHT_CHROMIUM_CHANNEL=chrome`. Touch input is emulated by Chromium; this
-does not claim testing on a physical phone. Public production acceptance remains
-`tests/ui-proof/homepage-priorities.spec.ts`, using the build from `pnpm health`.
+does not claim testing on a physical phone. Public production acceptance includes
+`tests/ui-proof/production-chat.spec.ts` and `homepage-priorities.spec.ts`, using
+the build from `pnpm health`. Provider responses are mocked in browser tests;
+the production-mode route tests independently exercise a mocked provider call,
+configuration failures and input-policy refusals. No live credentials are used.
 Keyboard regressions explicitly simulate a shrinking visual viewport while the
 layout viewport stays unchanged, and cover delayed focus and position restoration.
 

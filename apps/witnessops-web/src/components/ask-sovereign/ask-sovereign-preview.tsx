@@ -322,6 +322,7 @@ function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setT
 
 export function AskSovereignPreview({ locale = "en", routePrefix, onClose, connection = "preview" }: { locale?: SovereignLocale; routePrefix?: "" | "/pl"; onClose?: () => void; connection?: "preview" | "api" }) {
   const copy = COPY[locale];
+  const apiConnection = process.env.NODE_ENV === "production" || connection === "api";
   const prefix = routePrefix ?? (locale === "pl" ? "/pl" : "");
   const links = sovereignLinks(prefix);
   function actionHref(href: string): string {
@@ -355,9 +356,9 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [mobile, setMobile] = useState(false);
-  const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: connection === "api" ? copy.apiGreeting : copy.greeting }]);
+  const [turns, setTurns] = useState<Turn[]>([{ role: "sovereign", text: apiConnection ? copy.apiGreeting : copy.greeting }]);
   const [activeSim, setActiveSim] = useState<ReturnType<typeof simFlag>>(null);
-  const useApi = connection === "api" && activeSim === null;
+  const useApi = apiConnection && activeSim === null;
   const [pending, setPending] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [followUpsReady, setFollowUpsReady] = useState(true);
@@ -663,7 +664,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
       publishAnnouncement(announcementText(locale, "error"));
       return;
     }
-    if (connection === "api" && !flag) {
+    if (apiConnection && !flag) {
       if (phase === "ERROR") setPhase("IDLE");
       setPending(true);
       setLive("processing");
@@ -822,7 +823,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
               </a>}
             </div>
           </header>
-          {locale === "pl" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
+          {locale === "pl" && process.env.NODE_ENV !== "production" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
           <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
