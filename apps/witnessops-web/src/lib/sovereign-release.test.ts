@@ -22,7 +22,7 @@ function restore() {
   else process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE = saved.release;
 }
 
-test("a production build stays closed with no flags, the preview flag, or the release flag", async () => {
+test("production publishes real chat while preview flags cannot expose internal controls", async () => {
   const cases = [
     {},
     { NEXT_PUBLIC_WO_PREVIEW: "1" },
@@ -35,38 +35,30 @@ test("a production build stays closed with no flags, the preview flag, or the re
       delete process.env.NEXT_PUBLIC_WO_PREVIEW;
       delete process.env.NEXT_PUBLIC_SOVEREIGN_RELEASE;
       Object.assign(process.env, flags);
-      const { sovereignAssistantPublished, sovereignNeedsReviewVisible, askWitnessOpsRouteAvailable } = await import("./sovereign-release");
-      assert.equal(sovereignAssistantPublished(), false, JSON.stringify(flags));
+      const { sovereignAssistantPublished, sovereignNeedsReviewVisible } = await import("./sovereign-release");
+      assert.equal(sovereignAssistantPublished(), true, JSON.stringify(flags));
       assert.equal(sovereignNeedsReviewVisible(), false, JSON.stringify(flags));
-      assert.equal(askWitnessOpsRouteAvailable(), false, JSON.stringify(flags));
-      assert.equal(renderToStaticMarkup(createElement(AskSovereignWidget)), "", JSON.stringify(flags));
+      for (const locale of ["en", "pl"] as const) {
+        const launcher = renderToStaticMarkup(createElement(AskSovereignWidget, { locale }));
+        assert.match(launcher, /aria-haspopup="dialog"/);
+        assert.doesNotMatch(launcher, /Preview|Podgląd|podgląd/);
+        const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale, connection: "preview" }));
+        assert.match(html, /OpenAI/);
+        assert.doesNotMatch(html, /Needs review|PL copy pending native review|Preview, sends nothing|Podgląd, nic nie wysyła|Simulated|Symulacja/);
+      }
     }
     const en = await import("../app/docs/assistant/page");
     const pl = await import("../app/pl/docs/assistant/page");
     for (const page of [en.default, pl.default]) {
-      assert.throws(() => page(), (error: unknown) => {
-        const digest = typeof error === "object" && error && "digest" in error ? String(error.digest) : "";
-        return digest.includes("404") || digest.includes("NEXT_HTTP_ERROR_FALLBACK");
-      });
+      assert.match(renderToStaticMarkup(page()), /OpenAI/);
     }
-    const html = renderToStaticMarkup(createElement(AskSovereignPreview));
-    assert.doesNotMatch(html, /Needs review/);
-    assert.doesNotMatch(html, /cloudflareinsights|witnessops-analytics/);
     const { footerResourceLinks } = await import("../components/marketing/footer");
-    assert.equal(footerResourceLinks().some((link) => link.href === "/docs/assistant" || link.label === "Ask Sovereign"), false);
-    const footer = readFileSync(resolve(__dirname, "../components/marketing/footer.tsx"), "utf8");
-    const home = readFileSync(resolve(__dirname, "../components/marketing/buyer-homepage.tsx"), "utf8");
+    assert.equal(footerResourceLinks().some((link) => link.href === "/docs/assistant"), true);
     const sitemap = readFileSync(resolve(__dirname, "../app/sitemap.ts"), "utf8");
     const beacon = readFileSync(resolve(__dirname, "../../public/witnessops-analytics.js"), "utf8");
-    const config = readFileSync(resolve(__dirname, "../../next.config.js"), "utf8");
-    assert.match(footer, /footerResourceLinks\(\)/);
-    assert.match(footer, /label: "Ask Sovereign"/);
-    assert.match(home, /sovereignAssistantPublished\(\) \? <p className=\{styles\.askEntry\}/);
     assert.doesNotMatch(sitemap, /\/docs\/assistant/);
     assert.match(beacon, /\/docs\/assistant/);
     assert.match(beacon, /\/pl\/docs\/assistant/);
-    assert.match(config, /NEXT_PUBLIC_WO_PREVIEW: process\.env\.NEXT_PUBLIC_WO_PREVIEW \?\? "0"/);
-    assert.match(config, /NEXT_PUBLIC_SOVEREIGN_RELEASE: process\.env\.NEXT_PUBLIC_SOVEREIGN_RELEASE \?\? "0"/);
   } finally {
     restore();
   }

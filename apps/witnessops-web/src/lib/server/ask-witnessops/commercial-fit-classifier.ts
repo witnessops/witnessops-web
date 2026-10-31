@@ -85,7 +85,7 @@ const CERTIFICATION_PATTERN =
 const SECURITY_CONCLUSION_PATTERN =
   /\b(?:is|prove|verify|certify|guarantee)\b.{0,48}\b(?:secure|safe|vulnerability[- ]?free|production[- ]?ready|correct)\b|\b(?:secure|safe|vulnerability[- ]?free|production[- ]?ready)\b.{0,48}\b(?:prove|verify|certify|guarantee)\b/i;
 const UNAUTHORIZED_CONTEXT_PATTERN =
-  /\b(without (?:authorization|permission|consent|approval)|unauthorized|not authori[sz]ed|not approved|unapproved|no permission|no approval|competitor|rival)\b/i;
+  /\b(without (?:authorization|permission|consent|approval)|unauthorized|not authori[sz]ed|not approved|unapproved|no permission|no approval|competitor|rival|stolen)\b/i;
 const UNAUTHORIZED_ACTION_PATTERN =
   /\b(test(?:s|ing)?|scan(?:s|ning)?|probe(?:s|d|ing)?|hack(?:s|ed|ing)?|exploit(?:s|ed|ing)?|access(?:es|ed|ing)?|enter(?:s|ed|ing)?|bypass(?:es|ed|ing)?|persist(?:s|ed|ing)?|attack(?:s|ed|ing)?|steal(?:s|ing)?|exfiltrat(?:e|es|ed|ing)|harvest(?:s|ed|ing)?|scrape(?:s|d|ing)?)\b/i;
 

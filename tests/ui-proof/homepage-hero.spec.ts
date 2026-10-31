@@ -285,8 +285,8 @@ async function openAskSurface(page: Page, width: number) {
   return page.locator("main");
 }
 
-test("Ask WitnessOps stays closed in the production build", async ({ browser }) => {
-  test.skip(askPreviewServer, "Production closed-state proof does not apply to a preview server.");
+test("production publishes the assistant page without the retired Ask WitnessOps launcher", async ({ browser }) => {
+  test.skip(askPreviewServer, "Production publication proof does not apply to a preview server.");
   for (const width of [1440, 390]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
     try {
@@ -295,19 +295,20 @@ test("Ask WitnessOps stays closed in the production build", async ({ browser }) 
       await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
       await expect(page.getByRole("dialog", { name: "ASK WITNESSOPS" })).toHaveCount(0);
       const assistant = await page.goto("/docs/assistant", { waitUntil: "networkidle" });
-      expect(assistant?.status()).toBe(404);
+      expect(assistant?.status()).toBe(200);
+      await expect(page.getByRole("textbox")).toBeVisible();
       await expect(page.getByLabel("Ask WitnessOps question")).toHaveCount(0);
     } finally { await context.close(); }
   }
   const context = await browser.newContext();
   try {
-    const response = await context.request.post("/api/ask-witnessops", { data: { question: "We're launching an AI agent.", history: [] } });
-    expect(response.status()).toBe(410);
+    const response = await context.request.post("/api/ask-witnessops", { data: "{", headers: { "content-type": "application/json" } });
+    expect(response.status()).toBe(400);
   } finally { await context.close(); }
 });
 
 test("Ask WitnessOps keeps the fallback paid-review path visible and controlled", async ({ browser }) => {
-  test.skip(!askPreviewServer, "Ask WitnessOps is unpublished in production builds; set UI_PROOF_ASK_PREVIEW=1 against a preview server.");
+  test.skip(!askPreviewServer, "Legacy Ask WitnessOps component fixture; current production chat is covered in production-chat.spec.ts.");
   for (const width of [1440, 640, 639, 390]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
     try {
@@ -369,7 +370,7 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
 });
 
 test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
-  test.skip(!askPreviewServer, "Ask WitnessOps is unpublished in production builds; set UI_PROOF_ASK_PREVIEW=1 against a preview server.");
+  test.skip(!askPreviewServer, "Legacy Ask WitnessOps component fixture; current production chat is covered in production-chat.spec.ts.");
   expect(generatedQuestionnaireAnswer.route.href).toBe(generatedQuestionnaireAnswer.recommendation.request_href);
   expect(new URL(generatedQuestionnaireAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
   const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";

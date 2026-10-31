@@ -269,7 +269,7 @@ test("Polish docs keep the logo local and link to a live English docs route", as
 });
 
 for (const width of [390, 1440]) {
-  test(`production keeps the unpublished Ask launcher and route closed at ${width}px`, async ({ browser }) => {
+  test(`production keeps the retired launcher absent and admits the chat route at ${width}px`, async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width, height: 844 },
       reducedMotion: "reduce",
@@ -287,9 +287,9 @@ for (const width of [390, 1440]) {
     await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
 
     const ask = await page.request.post("/api/ask-witnessops", {
-      data: { question: "We're launching an AI agent.", history: [] },
+      data: "{", headers: { "content-type": "application/json" },
     });
-    expect(ask.status()).toBe(410);
+    expect(ask.status()).toBe(400);
 
     await context.close();
   });

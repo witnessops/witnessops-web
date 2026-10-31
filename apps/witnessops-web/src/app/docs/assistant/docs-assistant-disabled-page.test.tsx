@@ -17,7 +17,8 @@ test("docs assistant page is noindex and renders the bounded assistant shell", (
   );
   assert.doesNotMatch(page, /fetch\s*\(|XMLHttpRequest|trackAskEvent/);
   assert.match(page, /connection = "preview"/);
-  assert.match(page, /if \(connection === "api" && !flag\)/);
+  assert.match(page, /const apiConnection = process\.env\.NODE_ENV === "production" \|\| connection === "api"/);
+  assert.match(page, /if \(apiConnection && !flag\)/);
 
   assert.doesNotMatch(source, /NODE_ENV/);
   assert.doesNotMatch(source, /NEXT_PUBLIC.*DOCS_ASSISTANT/i);

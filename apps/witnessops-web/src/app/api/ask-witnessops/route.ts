@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { askWitnessOpsRouteAvailable } from "@/lib/sovereign-release";
 import { unsupportedClaimRepair, appResultBoundaryExplanation } from "@/lib/docs-assistant/conversation-guidance";
 import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-normalizer";
 import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
@@ -65,14 +64,8 @@ function bodyTooLargeRequest(limit: number) {
 }
 
 export async function POST(request: Request) {
-  // Production stays closed until a later release GO changes
-  // askWitnessOpsRouteAvailable(). The preview flag cannot reopen this route.
-  if (!askWitnessOpsRouteAvailable()) {
-    return new NextResponse("Gone", {
-      status: 410,
-      headers: { "Cache-Control": "no-store", "content-type": "text/plain; charset=utf-8" },
-    });
-  }
+  // Public chat uses the same input, policy and provider-configuration gates
+  // in production. Provider availability never bypasses these boundaries.
   const telemetryTransport = request.headers.get("X-WitnessOps-Event") === "1";
   const bodyLimit = telemetryTransport ? ASK_TELEMETRY_BODY_LIMIT_BYTES : ASK_REQUEST_BODY_LIMIT_BYTES;
   const rateLimitedResponse = telemetryTransport
