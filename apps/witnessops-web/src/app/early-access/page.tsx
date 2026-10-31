@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { publicContactMailto } from '@/lib/public-contact';
 import { getCanonicalAlternates } from '@witnessops/config';
 import { getWorkspaceAppUrl } from '@/lib/workspace-access';
 import { PUBLIC_AGENT_ACTION_OFFER } from '@/lib/commercial-truth';
@@ -14,7 +13,7 @@ export default function EarlyAccessPage() {
   return <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-6 pb-16 pt-16 font-sans lg:pt-24">
     <p className="text-xs uppercase tracking-[0.16em] text-text-muted">How the app works</p>
     <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.13] tracking-[-0.035em] text-text-primary md:text-5xl">Keep the evidence.<br />See what changed.</h1>
-    <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary">Check a public hostname or import a signed check from one Linux server. Keep the evidence, compare later checks, and export a readable report.</p>
+    <p className="mt-6 max-w-2xl text-base leading-7 text-text-secondary">Run a free public hostname check, or import a supported Linux package you already hold. Keep the evidence, compare later checks, and export a readable report.</p>
     <div className="mt-6 flex flex-wrap items-center gap-5"><Link className="inline-flex min-h-12 items-center rounded-sm border border-brand-accent bg-brand-accent px-6 py-3 font-medium text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4" href="/check">Run a free check</Link>{signIn ? <a className="inline-flex min-h-12 items-center text-text-primary underline underline-offset-4" href={signIn}>Open workspace <InlineArrow /></a> : null}</div>
     <p className="mt-3 text-sm leading-6 text-text-secondary">The free check needs no account. Create an account, verify your email, then create your own workspace.</p>
     <section className="mt-12 border-t border-surface-border pt-12 lg:mt-16 lg:pt-16" aria-labelledby="workspace-journey">
@@ -26,7 +25,7 @@ export default function EarlyAccessPage() {
       </ol>
     </section>
     <section className="mt-12 border-t border-surface-border pt-12 lg:mt-16 lg:pt-16" aria-labelledby="early-access-choices">
-      <h2 id="early-access-choices" className="text-2xl font-medium tracking-tight text-text-primary md:text-3xl">Choose what to check</h2>
+      <h2 id="early-access-choices" className="text-2xl font-medium tracking-tight text-text-primary md:text-3xl">Ways to use the workspace</h2>
       <div className="mt-7 grid gap-4 md:grid-cols-2">
         <article className="min-w-0 rounded-md border border-surface-border p-6 lg:p-7">
           <p className="text-xs uppercase tracking-widest text-text-secondary">Public hostname</p><h3 className="mt-3 text-lg font-medium text-text-primary">External Exposure Check</h3>
@@ -35,11 +34,10 @@ export default function EarlyAccessPage() {
           <Link href="/check" className="mt-5 inline-flex min-h-12 items-center text-text-primary underline underline-offset-4">Try the free snapshot <InlineArrow /></Link>
         </article>
         <article className="min-w-0 rounded-md border border-surface-border p-6 lg:p-7">
-          <p className="text-xs uppercase tracking-widest text-text-secondary">Linux server</p><h3 className="mt-3 text-lg font-medium text-text-primary">One Server Security Check</h3>
-          <p className="mt-3 text-sm leading-6 text-text-secondary">An authorized operator collects locally on one Linux server. Import the signed source into your workspace.</p>
+          <p className="text-xs uppercase tracking-widest text-text-secondary">Linux package</p><h3 className="mt-3 text-lg font-medium text-text-primary">Import an existing Linux check</h3>
+          <p className="mt-3 text-sm leading-6 text-text-secondary">Import a supported Linux check package you already hold. The workspace keeps its source files so you can inspect the recorded result and compare a later check.</p>
           <ul className="mt-5 space-y-3 text-sm leading-6 text-text-primary"><li>Import a Local Audit 1.2.2 Proofpack ZIP and its matching detached signature.</li><li>Open findings, collection gaps, evidence and the report.</li><li>Import a later check to compare; download the original signed files.</li></ul>
-          <p className="mt-5 text-sm leading-6 text-text-secondary">Linux setup is operator-assisted. The app does not connect by SSH or run a collector on your server.</p>
-          <a href={publicContactMailto('WitnessOps — One Server Security Check setup')} className="mt-3 inline-flex min-h-12 items-center text-text-primary underline underline-offset-4">Ask about Linux setup <InlineArrow /></a>
+          <p className="mt-5 text-sm leading-6 text-text-secondary">This path is for an existing package. The app does not connect by SSH or run a collector on your server.</p>
         </article>
       </div>
     </section>
