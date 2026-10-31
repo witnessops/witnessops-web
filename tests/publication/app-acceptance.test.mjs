@@ -35,6 +35,17 @@ test('workflow aggregate has stable name, all direct needs, always and no author
   assert.ok(Object.hasOwn(workflow.on, 'workflow_call'));
 });
 test('actual inline gate accepts all successful prerequisites', () => assert.equal(execute(JSON.stringify(success())).status, 0));
+test('browser admission includes AASR desktop and mobile in both existing engines', () => {
+  const browser = workflow.jobs.browser;
+  assert.deepEqual(browser.strategy.matrix.project, ['chromium', 'webkit']);
+  assert.ok(browser.services.postgres);
+  const regular = browser.steps.find(step => step.id === 'browser');
+  const aasr = browser.steps.find(step => step.id === 'aasr_browser');
+  assert.equal(regular.run, 'pnpm test:app-browser --project=${{ matrix.project }}');
+  assert.equal(aasr.run, 'pnpm exec playwright test --config tests/aasr-fixture/playwright.config.ts --project=${{ matrix.project }} --project=${{ matrix.project }}-mobile');
+  assert.equal(aasr.if, undefined);
+  assert.equal(aasr['continue-on-error'], undefined);
+});
 for (const key of keys) {
   for (const state of ['failure', 'cancelled', 'skipped', '', 'neutral', 'pending', 'SUCCESS', null, true]) {
     test(`${key} ${JSON.stringify(state)} is rejected`, () => {
@@ -77,12 +88,13 @@ for (const variant of ['valid', 'missing', 'malformed', 'symlink']) {
       if (variant === 'symlink') { writeFileSync(join(root, 'secret'), sentinel); symlinkSync(join(root, 'secret'), browserFile); }
       const result = spawnSync(process.execPath, [new URL('./safe-ci-diagnostics.mjs', import.meta.url).pathname], {
         env: { PATH: process.env.PATH, RUNNER_TEMP: root, TMPDIR: root, TMP: root, TEMP: root,
-          APP_STEP_RESULTS: JSON.stringify({ db: { outcome: 'failure', outputs: { password: sentinel } }, migration: { outcome: sentinel } }) }, encoding: 'utf8',
+          APP_STEP_RESULTS: JSON.stringify({ db: { outcome: 'failure', outputs: { password: sentinel } }, aasr_browser: { outcome: 'failure', outputs: { password: sentinel } }, migration: { outcome: sentinel } }) }, encoding: 'utf8',
       });
       assert.equal(result.status, 0, result.stderr);
       const raw = readFileSync(join(root, 'app-safe-diagnostics/summary.json'), 'utf8');
       assert.ok(!raw.includes(sentinel)); const data = JSON.parse(raw);
       assert.equal(data.outcomes.db, 'failure'); assert.equal(data.outcomes.migration, 'unknown');
+      assert.equal(data.outcomes.aasr_browser, 'failure');
       assert.deepEqual(Object.keys(data), ['outcomes', 'browser']);
       assert.equal(data.browser.availability, variant === 'valid' ? 'available' : 'unavailable');
       if (variant === 'valid') assert.equal(data.browser.failedTests, 1);

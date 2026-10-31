@@ -179,20 +179,53 @@ Rollback warning for migrations 0020 and 0023 (the 0022 warning above does not c
 Every plan uses the same operational maximum of 32 retained executions and 200 MiB of reserved capture input per workspace. Source/seat allowances remain separate. An upload's digest and byte reservation commit before custody persistence, and current CLI authority is rechecked before validation. Rejected/partial writes and reservations with no file remain charged. No automatic expiry, deletion or refund exists; releasing capacity requires a separately reviewed reconciliation that proves bytes absent and old writers stopped. Registry, signatures and generated Proofpacks are additional retained files, bounded by execution admission rather than the capture-input byte total. Host filesystem containment remains a deployment requirement. Successful retry does not overwrite capture bytes or repeat signing.
 
 
-## Local synthetic AASR fixture
+## Synthetic AASR fixture and isolated staging profile
 
-`/aasr-fixture` is a development-only Agent Action Security Review engagement for
-one pinned synthetic `crm.contact.update` action. `WITNESSOPS_AASR_FIXTURE=1`
-enables the page and `/api/aasr-fixture` only outside production. Production
-always returns 404, including when the flag is set. The feature adds no public
-navigation, database schema, collection adapter, recipient link or send action.
+`/aasr-fixture` is an Agent Action Security Review engagement for one pinned
+synthetic `crm.contact.update` action. In a standard development build,
+`WITNESSOPS_AASR_FIXTURE=1` enables the page and `/api/aasr-fixture`. Standard
+production builds always return 404, including when runtime flags are set.
+The feature adds no public navigation, database schema, collection adapter,
+recipient link or send action.
+
+An explicitly compiled `WITNESSOPS_BUILD_PROFILE=aasr-staging` artifact is the
+separate staging exception. Its reviewed HTTPS origin, WorkOS test client and
+database target digest are bound at build time through
+`WITNESSOPS_STAGING_BUILD_ORIGIN`, `WITNESSOPS_STAGING_BUILD_WORKOS_CLIENT_ID`
+and `WITNESSOPS_STAGING_BUILD_DATABASE_SHA256`. The callback must match that
+origin. Runtime variables cannot convert a standard artifact into staging.
+Staging still runs an optimized build with `NODE_ENV=production`; runtime
+configuration must match the compiled bindings, explicitly select staging and
+the fixture, use the staging proxy mode and contain only the admitted test
+authentication and dedicated staging database configuration. Unrelated provider
+credentials and product feature flags are refused. No migration runs at startup.
+
+The staging root uses native sign-in. A signed-in tester remains on an
+access-pending page until the reviewed assignment and current membership pass
+server checks; an assigned tester proceeds to the fixture. Sign-out uses the
+existing native server action and durable session revocation. Use separate
+browser profiles for Owner and reviewer. The outer staging access gate is not
+user identity or role authority, and native sign-out does not clear the browser's
+credentials for that separate gate. Staging admits only the entry, native login
+and callback, fixture page/API, required static assets and native sign-out action;
+unrelated product routes are refused.
 
 The API uses the existing AuthKit identity, account/session revocation and
 current PostgreSQL workspace membership checks. Its fixed synthetic workspace
-selector grants no access. A separately assigned synthetic reviewer must be a
-current Contributor at the assigned membership generation; an Owner does not
-acquire reviewer authority. There is no client-side actor selector. Assignment
-identifiers are test fixtures, not a procedure for admitting real accounts.
+selector grants no access. An independently assigned reviewer must be a current
+Contributor at the assigned membership generation; an Owner does not acquire
+reviewer authority. There is no client-side actor selector. The development
+assignment identifiers are test fixtures, not a procedure for admitting real
+accounts. Hosted staging instead requires an operator-reviewed
+`witnessops.aasr-staging-assignment.v1` file identified by
+`WITNESSOPS_AASR_STAGING_ASSIGNMENT_FILE`. It binds the reviewed environment,
+distinct native user IDs and subjects, and each current membership generation.
+Missing, malformed, mismatched or stale assignments grant no fixture access.
+Native identity resolution can precede assignment, so sign-in remains available
+while access is pending. Never run the browser harness's fictional identity
+seeding helper against a hosted staging database. The separate
+[staging assignment operator contract](AASR_STAGING_ASSIGNMENT.md) describes
+reviewed native IDs, current generations, dry-run/apply and rollback evidence.
 
 The server retains the original source bytes separately from canonical and
 claimed digests. Scope, evidence, accepted report and recipient projection are
@@ -206,8 +239,14 @@ only while that process remains alive; restarting it loses that state.
 The browser harness under `tests/aasr-fixture/` renders the actual component and
 uses real HTTP requests against the native service with a disposable database.
 Its fixed server-injected test identities do not exercise hosted WorkOS login
-and are never part of the app runtime. Run it with the dedicated Playwright
-configuration after preparing the isolated test database. The regular app browser
-suite separately checks the default-off page/API refusal. App unit, database,
-route-parity and full repository health gates remain required; fixture success
-does not establish a deployed or customer-ready AASR service.
+and are never part of the app runtime. After preparing the isolated test database,
+run `pnpm exec playwright test --config tests/aasr-fixture/playwright.config.ts`
+from the repository root. The existing 16 cases cover Chromium and WebKit at
+desktop and mobile sizes; app-validation CI runs this dedicated matrix alongside
+the unchanged regular app browser suite. The latter separately checks the
+default-off page/API refusal. Entry rendering tests cover signed-out and pending
+states; these are presentation checks, not hosted sign-in proof. App unit,
+database, route-parity and full repository health gates remain required.
+Fixture success does not establish deployment, hosted WorkOS acceptance or a
+customer-ready AASR service. Deployment and real two-identity staging acceptance
+require their own authorized environment and review.

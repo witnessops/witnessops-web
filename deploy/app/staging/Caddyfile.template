@@ -1,0 +1,44 @@
+# Render with render-caddy.mjs; never install unresolved placeholders.
+{
+	auto_https disable_redirects
+	servers {
+		strict_sni_host on
+		protocols h1 h2
+	}
+}
+
+https://__STAGING_HOST__ {
+	tls {
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+	header X-Robots-Tag "noindex, nofollow"
+	header Referrer-Policy "no-referrer"
+	header Cache-Control "no-store"
+
+	# Access logs are intentionally absent: callback query strings carry
+	# short-lived authorization codes/state. Never enable credential logging.
+	route {
+		basic_auth bcrypt "WitnessOps private staging" {
+			__GATE_USER_1__ __GATE_HASH_1__
+			__GATE_USER_2__ __GATE_HASH_2__
+		}
+		@fixture_surface path / /login /callback /aasr-fixture /api/aasr-fixture /_next/static/* /favicon.ico
+		handle @fixture_surface {
+			reverse_proxy 127.0.0.1:3020 {
+				header_up -Authorization
+				header_up -Proxy-Authorization
+				header_up -Forwarded
+				header_up Host __STAGING_HOST__
+				header_up X-Forwarded-For {http.request.remote.host}
+				header_up X-Real-IP {http.request.remote.host}
+				header_up X-Forwarded-Host __STAGING_HOST__
+				header_up X-Forwarded-Proto https
+			}
+		}
+		handle {
+			respond 404
+		}
+	}
+}

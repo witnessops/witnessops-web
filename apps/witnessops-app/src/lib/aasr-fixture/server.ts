@@ -13,6 +13,9 @@ import { resolveIdentity } from '../db/identity';
 import { requireWorkspaceMembership } from '../db/workspaces';
 import { readExternalRequestBody } from '../../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../../witnessops-web/src/lib/json-ambiguity';
+import { isAasrStagingBuild, isProductionAppBuild, stagingRuntimeReady } from '../aasr-staging/config';
+import { currentStagingAssignment, requireStagingFixtureActor, type StagingAssignment } from './assignment';
+import { lockUnrevokedSession } from '../db/sessions';
 
 // Synthetic assignment only, never inferred from a customer role or HTTP claim.
 export const AASR_FIXTURE_REVIEWER_ID = '22000000-0000-4000-8000-000000000002';
@@ -36,8 +39,11 @@ async function readCommand(request: Request): Promise<{ command: string; expecte
  * Native adapters always use AuthKit sessions and current PostgreSQL membership. */
 export function createAasrFixtureService(options: {
   pool?: Pool; identity?: typeof authenticatedWebSession; origin?: string; enabled?: () => boolean;
+  /** Trusted in-process test composition only; never supplied by a route. */
+  stagingAssignment?: () => StagingAssignment | null;
 } = {}) {
   let engine: ReturnType<typeof createFixtureEngine> | undefined;
+  let engineAssignment: string | undefined;
   let queue: Promise<unknown> = Promise.resolve();
   const denied: { reason: string; at: string }[] = [];
   const rememberDenial = (status: number) => {
@@ -46,7 +52,8 @@ export function createAasrFixtureService(options: {
   };
   async function handle(request: Request): Promise<Response> {
     // Refuse before importing evidence, resolving identity, or opening the database.
-    if (process.env.NODE_ENV === 'production' || !(options.enabled ?? aasrFixtureEnabled)()) return json({ error: 'Not found.' }, 404);
+    if ((!isAasrStagingBuild() && (isProductionAppBuild || process.env.NODE_ENV === 'production'))
+      || (isAasrStagingBuild() && !stagingRuntimeReady()) || !(options.enabled ?? aasrFixtureEnabled)()) return json({ error: 'Not found.' }, 404);
     try {
       if (new URL(request.url).pathname !== AASR_FIXTURE_PATH) throw new ApiError(404, 'Not found.');
       if (!['GET', 'POST'].includes(request.method)) throw new ApiError(405, 'Method not supported.');
@@ -59,18 +66,28 @@ export function createAasrFixtureService(options: {
       const pool = options.pool ?? database();
       const user = await resolveIdentity(pool, web.identity);
       user.session = web.session;
+      const staging = isAasrStagingBuild() || Boolean(options.stagingAssignment);
+      const assignment = staging ? (options.stagingAssignment ?? currentStagingAssignment)() : null;
+      // An operator assignment change cannot inherit the prior actors' in-memory
+      // workflow. Restart is explicit; do not silently reset accepted evidence.
+      const assignmentKey = staging ? JSON.stringify(assignment) : undefined;
+      if (engineAssignment !== undefined && assignmentKey !== engineAssignment) throw new ApiError(403, 'The staging assignment changed. Restart the fixture before continuing.');
       const engineModule = await import('./engine');
       engine ??= engineModule.createFixtureEngine({ workspaceId: workspace });
       const current = engine;
       const candidate = current.fork();
       const result = await transaction(pool, async client => {
-        const member = await requireWorkspaceMembership(client, user, workspace);
         let role: EngineActor['role'];
-        if (user.id === AASR_FIXTURE_REVIEWER_ID) {
-          if (member.role !== REVIEWER_MEMBERSHIP_ROLE || member.generation !== REVIEWER_GENERATION) throw new ApiError(403, 'The independent reviewer assignment is not current.');
-          role = 'reviewer';
-        } else if (member.role === WORKSPACE_OWNER_ROLE) role = WORKSPACE_OWNER_ROLE;
-        else throw new ApiError(403, 'An Owner or independently assigned reviewer is required.');
+        if (staging) role = await requireStagingFixtureActor(client, user, web, assignment);
+        else {
+          await lockUnrevokedSession(client, web.session);
+          const member = await requireWorkspaceMembership(client, user, workspace);
+          if (user.id === AASR_FIXTURE_REVIEWER_ID) {
+            if (member.role !== REVIEWER_MEMBERSHIP_ROLE || member.generation !== REVIEWER_GENERATION) throw new ApiError(403, 'The independent reviewer assignment is not current.');
+            role = 'reviewer';
+          } else if (member.role === WORKSPACE_OWNER_ROLE) role = WORKSPACE_OWNER_ROLE;
+          else throw new ApiError(403, 'An Owner or independently assigned reviewer is required.');
+        }
         const actor: EngineActor = { id: user.id, workspaceId: workspace, role };
         let commandError: Error | undefined;
         try { if (input) candidate.command(actor, input.command, input.expectedRevision); }
@@ -80,6 +97,7 @@ export function createAasrFixtureService(options: {
       // The transaction is the authorization linearization point. Serialize every
       // operation and publish its candidate only after successful COMMIT.
       current.adopt(candidate);
+      engineAssignment = assignmentKey;
       if (result.commandError) throw result.commandError;
       return json(result.view);
     } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
 import { AASR_FIXTURE_PATH, AASR_FIXTURE_WORKSPACE_ID } from "../lib/aasr-fixture/contract";
@@ -36,7 +36,7 @@ async function request(command?: string, expectedRevision?: number): Promise<Vie
   return body as View;
 }
 
-export function AasrFixtureApp() {
+export function AasrFixtureApp({ staging = false, sessionActions }: { staging?: boolean; sessionActions?: ReactNode } = {}) {
   const [view, setView] = useState<View | null>(null);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
@@ -64,14 +64,16 @@ export function AasrFixtureApp() {
     <a className="skip-link" href="#main-content">Skip to content</a>
     <header className="app-header"><div className={`header-inner ${styles.header}`}>
       <Link className="wordmark" href="/" aria-label="WitnessOps overview"><WitnessOpsMark size="sm" decorative /> WitnessOps</Link>
-      <span className={styles.badge}>Synthetic fixture · local only</span>
-      <Link className="text-action" href="/">Back to workspace</Link>
+      <span className={styles.badge}>Synthetic fixture · {staging ? "staging" : "local only"}</span>
+      <Link className="text-action" href="/">{staging ? "Staging home" : "Back to workspace"}</Link>
+      {sessionActions}
     </div></header>
     <main id="main-content" className={`main-content ${styles.main}`}>
       <div className="page-heading"><div><p className="eyebrow">Agent Action Security Review</p><h1>Synthetic engagement</h1><p className="support">One fictional action, from accepted scope to simulated delivery.</p></div></div>
       <aside className={styles.boundary} aria-label="Fixture boundary">
-        <strong>Development fixture — no customer review or external action.</strong>
+        <strong>{staging ? "Staging simulation" : "Development fixture"} — no customer review or external action.</strong>
         <p>State is held in this server process only. Refresh reloads its current revision; restarting the process loses the engagement. Nothing is collected, sent or published.</p>
+        {staging ? <p>Use separate browser profiles for the assigned Owner and reviewer. Signing out ends your native app session; it does not clear the browser’s separate staging access credentials.</p> : null}
       </aside>
       {error ? <div className="error" role="alert">{error}</div> : null}
       {busy ? <p role="status" className="pending">Loading current engagement…</p> : null}

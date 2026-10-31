@@ -17,6 +17,7 @@ import { activateEarlyAccess, earlyAccess, requireWorkspaceAccess } from './db/a
 import { ActivityStore } from './db/activity';
 import { CLIENT_EVENTS, type ClientEvent, type ProductEvent } from './early-access';
 import type { AppUser } from './db/identity';
+import { aasrStagingBuildBindings, stagingRuntimeReady } from './aasr-staging/config';
 
 function rejectAdmission(status: number, message: string, reason: "unknown_proxy_mode" | "forwarding_metadata" | "origin" | "query"): never {
   const error = new ApiError(status, message);
@@ -32,12 +33,13 @@ export function admitRequest(request: Request, origin: string, proxyMode?: strin
   // request.url from that listener rather than the HTTP Host header. Never use
   // forwarded values to choose an origin; compare all of them to fixed config.
   const proxyEnabled = proxyMode === "caddy-loopback-v1";
-  if (proxyMode && !proxyEnabled) rejectAdmission(403, "Unknown app proxy mode.", "unknown_proxy_mode");
-  const proxyAlias = proxyEnabled && origin === "https://app.witnessops.com" && url.origin === "https://0.0.0.0:3020";
+  const stagingProxyEnabled = proxyMode === 'caddy-aasr-staging-v1' && stagingRuntimeReady() && origin === aasrStagingBuildBindings().origin;
+  if (proxyMode && !proxyEnabled && !stagingProxyEnabled) rejectAdmission(403, "Unknown app proxy mode.", "unknown_proxy_mode");
+  const proxyAlias = ((proxyEnabled && origin === "https://app.witnessops.com") || stagingProxyEnabled) && url.origin === "https://0.0.0.0:3020";
   if (request.headers.has("forwarded")) rejectAdmission(403, "Unexpected forwarding metadata.", "forwarding_metadata");
   for (const [name, expected] of [["x-forwarded-host", configured.host], ["x-forwarded-proto", configured.protocol.slice(0, -1)]]) {
     const value = request.headers.get(name);
-    if ((value !== null && value !== expected) || (proxyAlias && value !== expected)) rejectAdmission(403, "Unexpected forwarding metadata.", "forwarding_metadata");
+    if ((value !== null && value !== expected) || ((proxyAlias || stagingProxyEnabled) && value !== expected)) rejectAdmission(403, "Unexpected forwarding metadata.", "forwarding_metadata");
   }
   if (request.headers.get("host") !== configured.host || (url.origin !== origin && !internalAlias && !proxyAlias)) rejectAdmission(403, "Use the configured app origin.", "origin");
   if (request.headers.has("origin") && request.headers.get("origin") !== origin) rejectAdmission(403, "Use the app origin.", "origin");
