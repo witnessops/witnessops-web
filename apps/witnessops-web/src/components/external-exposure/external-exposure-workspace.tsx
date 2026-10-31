@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { exampleExposureResult } from '@/lib/external-exposure/example-result';
+import { ExternalExposureActions } from './external-exposure-actions';
 import { takeAskCheck, normalizeAskHostname, type AskCheckContext } from '@/lib/external-exposure/ask-handoff';
 import { DocsAssistantContactHandoff } from '@/components/docs-assistant/docs-assistant-contact-handoff';
 import { useBuyerReportPrint } from '@/components/proofpack/buyer-report-print';
@@ -40,7 +42,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
   const [hostname, setHostname] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState<{ snapshot: ExternalSnapshotV1; model: ProofpackReportV1 } | null>(null);
+  const [result, setResult] = useState<{ kind: 'live'; snapshot: ExternalSnapshotV1; model: ProofpackReportV1 } | { kind: 'example'; snapshot: typeof exampleExposureResult; model: null } | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const active = useRef<{ id: number; controller: AbortController } | null>(null);
   const sequence = useRef(0);
@@ -104,7 +106,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
       if (id !== sequence.current) return;
       if (payload.snapshot?.version !== EXTERNAL_VERSION || payload.model?.identity?.productId !== 'external-exposure-snapshot' || payload.model?.subject?.label !== payload.snapshot?.target) throw new Error('The returned snapshot data could not be admitted.');
       const model = createReportModel(payload.model as ReportModelInput);
-      setResult({ snapshot: payload.snapshot, model });
+      setResult({ kind: 'live', snapshot: payload.snapshot, model });
     } catch (cause) {
       if (id === sequence.current && !controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'The snapshot could not be completed.');
     } finally {
@@ -123,12 +125,12 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
     <div className={styles.screen}>
       <section className={styles.intro}>
         <p className={styles.eyebrow}>FREE HOSTNAME CHECK</p>
-        <IntroHeading className={styles.title}>Check your public exposure.</IntroHeading>
-        <p className={styles.lead}>Ten checks of one public hostname. No account or email required.</p>
+        <IntroHeading className={styles.title}>Check your hostname. Know what to do next.</IntroHeading>
+        <p className={styles.lead}>Ten public checks, explained findings and practical follow-up steps. No account or email required.</p>
       </section>
       <form className={styles.form} onSubmit={submit} aria-label="Run an external exposure snapshot">
         <label htmlFor="external-hostname">Public hostname</label>
-        <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button ref={runButton} type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
+        <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button ref={runButton} type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button><button className={styles.exampleButton} type="button" disabled={busy} onClick={() => { clearResult(); setResult({ kind: 'example', snapshot: exampleExposureResult, model: null }); }}>See an example result</button></div>
         <p id="hostname-help">Use a hostname you own or are authorized to check, such as example.com.</p>
         <p className={styles.promise}>Read the findings and download your result. No account needed.</p>
         <details className={styles.executionDetails}><summary>How this check works</summary><p>Enter only the hostname, without https://, a path or a port. WitnessOps servers make ten bounded public DNS, TLS and HTTP observations. No exploitation or credentials; web connections use ports 80/443 only. Changing the hostname, choosing Clear, or leaving the page removes the displayed result. This feature does not store results.</p><Link className={styles.textLink} href="/docs/getting-started/free-check">Read the Free Check guide <InlineArrow /></Link></details>
@@ -139,22 +141,24 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
       {!result && <section className={styles.included}><h2>What gets checked</h2><ul>{CHECK_GROUPS.map(group => <li key={group.title}><h3>{group.title}</h3><p>{group.description}</p><small>{group.topics}</small></li>)}</ul><details><summary>Scope and limitations</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
       {result && <>
         <section className={styles.result} aria-label="Snapshot results">
-          <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
+          <p className={styles.eyebrow}>{result.kind === 'example' ? 'SYNTHETIC EXAMPLE' : 'YOUR SNAPSHOT'}</p>
+          {result.kind === 'example' && <p className={styles.exampleNotice}>Illustrative result only. No hostname was checked. These are not findings about example.com.</p>}
           <h2 ref={resultHeading} tabIndex={-1}>{result.snapshot.target}</h2>
-          <p className={styles.muted}>{result.snapshot.checks.length} check results · {formatUtcTime(result.snapshot.finished_at)} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
+          {result.kind === 'live' ? <p className={styles.muted}>{result.snapshot.checks.length} check results · {formatUtcTime(result.snapshot.finished_at)} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p> : <p className={styles.muted}>Ten illustrative check results · no collection time or live evidence</p>}
           <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{expected.length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
           <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
-          <div className={styles.actions} aria-label="Report actions"><button className={styles.reportPrimary} type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
-          <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account. Saving as PDF opens your browser’s print dialog; choose Save as PDF.</p>
+          <ExternalExposureActions key={`${result.kind}:${result.snapshot.target}:${result.snapshot.finished_at}`} checks={result.snapshot.checks} hostname={result.snapshot.target} observedAt={result.snapshot.finished_at} example={result.kind === 'example'} />
+          {result.kind === 'live' && <><div className={styles.actions} aria-label="Report actions"><button className={styles.reportPrimary} type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
+          <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account. Saving as PDF opens your browser’s print dialog; choose Save as PDF.</p></>}
           <div className={styles.resultColumns}>
             <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
             <section aria-labelledby="expected-heading"><h3 id="expected-heading">What was observed as expected?</h3><p>{expected.length} of the ten checks returned an expected observation. This is not an overall security assessment.</p>{expected.length > 0 && <details className={styles.information}><summary>Inspect expected observations</summary><ul>{expected.map(check => <li key={check.check_id} data-status={check.status}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}</section>
           </div>
           {information.length > 0 && <details className={styles.information}><summary>{information.length} informational {information.length === 1 ? 'observation' : 'observations'}</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
           <div className={styles.unknowns}><section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section></div>
-          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the full report.</p></div><details><summary>Source data and report details</summary><p className={styles.muted}>{EXTERNAL_VERSION}. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
+          {result.kind === 'live' && <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the full report.</p></div><details><summary>Source data and report details</summary><p className={styles.muted}>{EXTERNAL_VERSION}. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>}
         </section>
-        <section className={styles.nextStep} aria-label="Save a persistent baseline"><div><h2>Keep a history in your workspace</h2><p>After sign-in, add your hostname and authorize a new saved check. Come back after a change, run again, and compare the recorded results.</p><p className={styles.muted}>Create an account, verify your email, then create your workspace. This transient snapshot is not automatically imported.</p>{workspaceUrl ? <a className={styles.textLink} href="/early-access">How workspace access works <InlineArrow /></a> : null}</div><a className={styles.primaryLink} href={workspaceUrl ?? '/early-access'}>{workspaceUrl ? 'Open workspace' : 'See workspace access'}</a></section>
+        {result.kind === 'live' ? <section className={styles.nextStep} aria-label="Save a persistent baseline"><div><h2>Keep a history in your workspace</h2><p>After sign-in, add your hostname and authorize a new saved check. Come back after a change, run again, and compare the recorded results.</p><p className={styles.muted}>Create an account, verify your email, then create your workspace. This transient snapshot is not automatically imported.</p>{workspaceUrl ? <a className={styles.textLink} href="/early-access">How workspace access works <InlineArrow /></a> : null}</div><a className={styles.primaryLink} href={workspaceUrl ?? '/early-access'}>{workspaceUrl ? 'Open workspace' : 'See workspace access'}</a></section> : <section className={styles.nextStep}><div><h2>Ready to check your hostname?</h2><p>The example has made no network requests. Enter a hostname you own or are authorized to check to collect a new snapshot.</p></div><button type="button" onClick={() => { clearResult(); hostnameInput.current?.focus(); }}>Use my own hostname</button></section>}
         {askContext?.email && <section aria-label="Optional follow-up" className={styles.nextStep}>
           {!discuss ? <button type="button" onClick={() => setDiscuss(true)}>Discuss this result</button> : <DocsAssistantContactHandoff expanded initialEmail={askContext.email} surface="page" trackOpen={false} onExpandedChange={setDiscuss} />}
         </section>}
@@ -163,6 +167,6 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
       </>}
       <aside className={styles.offer}><div><p className={styles.eyebrow}>NOT A REVIEW</p><h2>This check is not a paid review.</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available. This free hostname snapshot stays a tool, not that review.</p><a className={styles.textLink} href="/reviews/external-attack-surface-review">Read the availability notice <InlineArrow /></a></div><a className={styles.secondaryLink} href="/reviews/agent-action-security-review">See the current agent review</a></aside>
     </div>
-    {result && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
+    {result?.kind === 'live' && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
   </main></>;
 }
