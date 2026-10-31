@@ -15,6 +15,8 @@ export const WITHDRAWN_OFFER_PATHS = [
   "/pl/catalog/offsec-incident-ready",
   "/catalog/automation-repair",
   "/pl/catalog/automation-repair",
+  "/catalog/professional-public-footprint-audit",
+  "/pl/catalog/professional-public-footprint-audit",
   "/customer-security-review",
   "/pl/customer-security-review",
   "/catalog/workflows",

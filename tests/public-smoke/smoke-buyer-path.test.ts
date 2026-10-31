@@ -70,6 +70,8 @@ test("withdrawn offer routes require a 410 notice without old sales copy or inta
     ["/catalog/workflows", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "Starting at €2,500 · excluding VAT", 'name="intent" value="agent-tools-access-review"'],
     ["/customer-security-review", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "From €1,600 · excluding VAT", 'name="intent" value="customer-security-review-sprint"'],
     ["/pl/customer-security-review", "Ta oferta została wycofana", "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.", "/pl/reviews/agent-action-security-review", "Od 7 000 zł (ok. €1 600) · bez VAT", 'name="intent" value="customer-security-review-sprint"'],
+    ["/catalog/professional-public-footprint-audit", "This offer has been withdrawn", "WitnessOps no longer offers this review. The current review and contact are below.", "/reviews/agent-action-security-review", "€4,900 · excluding VAT", 'name="intent" value="professional-public-footprint-audit"'],
+    ["/pl/catalog/professional-public-footprint-audit", "Ta oferta została wycofana", "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.", "/pl/reviews/agent-action-security-review", "4 900 EUR · bez VAT", 'name="intent" value="professional-public-footprint-audit"'],
   ] as const) {
     const route = routeContract(path);
     assert.equal(route.expectedStatus, 410, path);
@@ -90,6 +92,19 @@ test("withdrawn offer routes require a 410 notice without old sales copy or inta
       assert.equal(oldSale.ok, false, `${path} ${oldMarker}`);
       assert.ok(oldSale.prohibitedMarkersPresent.includes(oldMarker), path);
     }
+  }
+});
+
+test("footprint withdrawal removes the old availability claim", () => {
+  for (const [path, availability] of [
+    ["/catalog/professional-public-footprint-audit", "Available by request"],
+    ["/pl/catalog/professional-public-footprint-audit", "Dostępny na zapytanie"],
+  ] as const) {
+    const route = routeContract(path);
+    assert.ok(route.prohibitedMarkers?.includes(availability), path);
+    const notice = route.requiredMarkers.join("\n");
+    assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice).ok, true, path);
+    assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 410, notice + "\n" + availability).ok, false, path);
   }
 });
 

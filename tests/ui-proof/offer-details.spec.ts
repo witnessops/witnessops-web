@@ -3,6 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 const withdrawnOffers = [
   "/catalog/workflows",
   "/catalog/automation-repair",
+  "/catalog/professional-public-footprint-audit",
+  "/pl/catalog/professional-public-footprint-audit",
   "/catalog/offsec-local-audit",
   "/catalog/offsec-launch-ready",
   "/catalog/offsec-custody-ops",
@@ -30,25 +32,6 @@ const externalReviewRedirects = [
     differentService: "To nie jest Agent Action Security Review.",
     reviewHref: "/pl/reviews/agent-action-security-review",
     reviewLink: "Zobacz Agent Action Security Review",
-  },
-] as const;
-
-const offers = [
-  {
-    path: "/catalog/professional-public-footprint-audit",
-    service: "professional-public-footprint-audit",
-    name: "Professional Public Footprint Audit",
-    price: "€4,900 · excluding VAT",
-    timing: "7–10 working days",
-    request: "/review/request",
-  },
-  {
-    path: "/pl/catalog/professional-public-footprint-audit",
-    service: "professional-public-footprint-audit",
-    name: "Audyt publicznego śladu zawodowego",
-    price: "4 900 EUR · bez VAT",
-    timing: "7–10 dni roboczych",
-    request: "/pl/review/request",
   },
 ] as const;
 
@@ -120,6 +103,9 @@ test("withdrawn offer details answer 410 inside the site shell on their own URL"
       const page = await context.newPage();
       const main = await expectWithdrawnShell(page, path);
       await expect(main).not.toContainText(/Request a scope|Start with a short description/);
+      if (path.includes("professional-public-footprint-audit")) {
+        await expect(main).not.toContainText(/Available by request|Dostępny na zapytanie|€4,900|4 900 EUR|7–10/);
+      }
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
@@ -170,109 +156,6 @@ test("External Attack Surface Review catalogue URLs land on the review page with
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
       expect(overflow).toBeLessThanOrEqual(1);
-      expect(pageErrors).toEqual([]);
-      await context.close();
-    }
-  }
-});
-
-test("historical offer details use the canonical buyer contract and visual system", async ({ browser }) => {
-  test.setTimeout(180_000);
-
-  for (const offer of offers) {
-    for (const viewport of viewports) {
-      const context = await browser.newContext({ viewport, reducedMotion: "reduce", colorScheme: "dark" });
-      const page = await context.newPage();
-      const consoleErrors: string[] = [];
-      const pageErrors: string[] = [];
-      page.on("console", (message) => {
-        if (message.type() === "error") consoleErrors.push(message.text());
-      });
-      page.on("pageerror", (error) => pageErrors.push(error.message));
-
-      const response = await page.goto(offer.path, { waitUntil: "networkidle" });
-      expect(response?.status(), `${offer.path} ${viewport.name}`).toBe(200);
-      const main = page.locator(`[data-buyer-service-detail="${offer.service}"]`);
-      await expect(main).toBeVisible();
-      await expect(main).toContainText(offer.name);
-      await expect(main.locator("h1")).toBeVisible();
-      await expect(main).toHaveAttribute("data-price-contract", /.+/);
-      await main.locator("summary").filter({ hasText: offer.path.startsWith("/pl") ? "Jak przebiega współpraca" : "How the engagement works" }).click();
-      const numberedSteps = main.locator("ol").first();
-      await expect(numberedSteps).toHaveCSS("list-style-type", "none");
-      const firstStep = (await numberedSteps.locator("li").first().innerText()).trim();
-      expect(firstStep).toMatch(/^1\.\s+\S/);
-      expect(firstStep).not.toMatch(/^1\.\s+1\./);
-      await expect(main.locator('[data-one-pager], a[href$=".pdf"]')).toHaveCount(0);
-      await expect(main).toContainText(offer.timing);
-      await expect(main).toContainText(offer.price);
-      await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
-
-      await expect(
-        main.locator('[data-service-availability="available_by_request"]'),
-      ).toHaveCount(0);
-      await expect(main.locator(`a[href^="${offer.request}"]`)).toHaveCount(0);
-      await expect(main).toContainText(
-        offer.path.startsWith("/pl")
-          ? "Jedna osoba, która wyraziła zgodę"
-          : "One consenting professional",
-      );
-      await expect(main).toContainText(
-        offer.path.startsWith("/pl") ? "Ciągły monitoring" : "Ongoing monitoring",
-      );
-      await expect(main).toContainText(
-        offer.path.startsWith("/pl") ? "Porady prawne" : "Legal advice",
-      );
-      await expect(
-        main.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),
-      ).toHaveCount(0);
-
-      const metrics = await main.evaluate((element) => ({
-        background: (() => {
-          for (let node: Element | null = element; node; node = node.parentElement) {
-            const color = getComputedStyle(node).backgroundColor;
-            if (color !== "rgba(0, 0, 0, 0)" && color !== "transparent") return color;
-          }
-          return null;
-        })(),
-        color: getComputedStyle(element).color,
-        tokens: {
-          background: getComputedStyle(element)
-            .getPropertyValue("--color-surface-bg")
-            .trim()
-            .toLowerCase(),
-          primary: getComputedStyle(element)
-            .getPropertyValue("--color-text-primary")
-            .trim()
-            .toLowerCase(),
-          accent: getComputedStyle(element)
-            .getPropertyValue("--color-brand-accent")
-            .trim()
-            .toLowerCase(),
-          inverse: getComputedStyle(element)
-            .getPropertyValue("--color-text-inverse")
-            .trim()
-            .toLowerCase(),
-        },
-        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      }));
-      expect(metrics.background).toBe("rgb(11, 12, 11)");
-      expect(metrics.color).toBe("rgb(245, 241, 232)");
-      expect(metrics.tokens).toEqual({
-        background: "#0b0c0b",
-        primary: "#f5f1e8",
-        accent: "#b89b62",
-        inverse: "#0b0c0b",
-      });
-      expect(metrics.overflow).toBeLessThanOrEqual(1);
-
-      await expect(main.locator(`[data-legacy-offer-withdrawal="${offer.service}"]`).first()).toBeVisible();
-      await expect(main.locator('a[href*="agent-action-security-review"]')).toHaveCount(0);
-      await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
-      await expect(main.locator('a[href*="/catalog/offsec-external-exposure"]')).toHaveCount(0);
-      await expect(page).toHaveURL(new RegExp(`${offer.path.replaceAll("/", "\\/")}$`));
-
-      expect(consoleErrors).toEqual([]);
       expect(pageErrors).toEqual([]);
       await context.close();
     }

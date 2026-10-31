@@ -9,7 +9,7 @@ import {
   withdrawnOfferCopy,
 } from "./withdrawn-offer-routes";
 
-test("withdrawn offer paths are the catalog URLs, customer security review, and Polish twins", () => {
+test("withdrawn offer paths include catalog URLs, customer security review, and Polish twins", () => {
   assert.deepEqual(WITHDRAWN_OFFER_PATHS, [
     "/catalog/offsec-local-audit",
     "/pl/catalog/offsec-local-audit",
@@ -21,6 +21,8 @@ test("withdrawn offer paths are the catalog URLs, customer security review, and 
     "/pl/catalog/offsec-incident-ready",
     "/catalog/automation-repair",
     "/pl/catalog/automation-repair",
+    "/catalog/professional-public-footprint-audit",
+    "/pl/catalog/professional-public-footprint-audit",
     "/customer-security-review",
     "/pl/customer-security-review",
     "/catalog/workflows",
@@ -28,6 +30,8 @@ test("withdrawn offer paths are the catalog URLs, customer security review, and 
   assert.equal(isWithdrawnOfferPath("/catalog/offsec-local-audit/"), true);
   assert.equal(isWithdrawnOfferPath("/customer-security-review"), true);
   assert.equal(isWithdrawnOfferPath("/catalog/workflows"), true);
+  assert.equal(isWithdrawnOfferPath("/catalog/professional-public-footprint-audit/"), true);
+  assert.equal(isWithdrawnOfferPath("/pl/catalog/professional-public-footprint-audit"), true);
   assert.equal(isWithdrawnOfferPath("/catalog/offsec-external-exposure"), false);
 });
 

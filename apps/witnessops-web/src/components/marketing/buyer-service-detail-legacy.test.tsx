@@ -5,8 +5,6 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
-import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
 import {
   BUYER_SERVICES,
   buyerServiceById,
@@ -73,16 +71,11 @@ test("legacy detail pages keep their service identity and do not start a new rev
   }
 });
 
-test("surviving historical detail pages keep their service identity", () => {
-  const pages = [
-    [ProfessionalPublicFootprintAuditPage, "professional-public-footprint-audit", "en"],
-    [PolishProfessionalPublicFootprintAuditPage, "professional-public-footprint-audit", "pl"],
-  ] as const;
-
-  for (const [Page, id, locale] of pages) {
-    const html = markup(createElement(Page));
-    assertHistoricalStopSell(html, buyerServiceById(id), locale);
-  }
+test("historical service records keep their identity", () => {
+  assert.deepEqual(buyerServiceById("professional-public-footprint-audit").detailHref, {
+    en: "/catalog/professional-public-footprint-audit",
+    pl: "/pl/catalog/professional-public-footprint-audit",
+  });
 
   const englishSku = readFileSync(
     resolve(__dirname, "../../app/(marketing)/catalog/[skuId]/page.tsx"),

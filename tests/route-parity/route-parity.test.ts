@@ -9,6 +9,8 @@ const baselineRoot = __dirname;
 const addedOfferRoutes = ["/check", "/early-access", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
 const retiredRoutes = [
   { publicPath: "/catalog/workflows", appPath: "/(marketing)/catalog/workflows/page" },
+  { publicPath: "/catalog/professional-public-footprint-audit", appPath: "/(marketing)/catalog/professional-public-footprint-audit/page" },
+  { publicPath: "/pl/catalog/professional-public-footprint-audit", appPath: "/pl/catalog/professional-public-footprint-audit/page" },
   { publicPath: "/customer-security-review", appPath: "/customer-security-review/page" },
   { publicPath: "/pl/customer-security-review", appPath: "/pl/customer-security-review/page" },
 ] as const;

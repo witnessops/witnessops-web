@@ -9,12 +9,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { generateMetadata as englishCatalogMetadata } from "@/app/(marketing)/catalog/[skuId]/page";
-import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
-import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
 import { metadata as englishCatalogIndexMetadata } from "@/app/(marketing)/catalog/page";
-import { metadata as englishFootprintMetadata } from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
 import { metadata as homeMetadata } from "@/app/page";
-import { metadata as polishFootprintMetadata } from "@/app/pl/catalog/professional-public-footprint-audit/page";
 import { generateMetadata as polishCatalogMetadata } from "@/app/pl/catalog/[skuId]/page";
 import { metadata as polishHomeMetadata } from "@/app/pl/page";
 import sitemap from "@/app/sitemap";
@@ -57,12 +53,6 @@ function render(node: ReactNode) {
   );
 }
 
-function jsonLdBlocks(html: string): string[] {
-  return [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/g)].map(
-    (match) => match[1] ?? "",
-  );
-}
-
 function assertNoindex(metadata: { robots?: unknown }, route: string) {
   assert.deepEqual(metadata.robots, { index: false, follow: true }, route);
 }
@@ -72,9 +62,7 @@ function assertIndexable(metadata: { robots?: unknown }, route: string) {
   assert.notEqual(robots?.index, false, route);
 }
 
-test("surviving historical offer pages are noindex and current offer pages stay indexable", async () => {
-  assertNoindex(englishFootprintMetadata, "/catalog/professional-public-footprint-audit");
-  assertNoindex(polishFootprintMetadata, "/pl/catalog/professional-public-footprint-audit");
+test("surviving historical offer metadata is noindex and current pages stay indexable", async () => {
   assertIndexable(homeMetadata, "/");
   assertIndexable(polishHomeMetadata, "/pl");
   assertIndexable(englishCatalogIndexMetadata, "/catalog");
@@ -93,28 +81,13 @@ test("surviving historical offer pages are noindex and current offer pages stay 
   }
 });
 
-test("rendered surviving historical pages keep their record banner and emit no held-term JSON-LD", () => {
-  const rendered = [
-    render(createElement(ProfessionalPublicFootprintAuditPage)),
-    render(createElement(PolishProfessionalPublicFootprintAuditPage)),
-  ];
-  const banners = [
-    "This review is not offered for new engagements.",
-    "Ten przegląd nie jest oferowany dla nowych zleceń.",
-  ];
-  rendered.forEach((html, index) => {
-    assert.match(html, new RegExp(banners[index]!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-    for (const block of jsonLdBlocks(html)) {
-      assert.doesNotMatch(block, HELD_TERM, block);
-    }
-  });
-  const builders = [
+test("current structured data omits held historical terms", () => {
+  for (const value of [
     organizationJsonLd,
     websiteJsonLd,
     publicExposureServiceJsonLd("en"),
     publicExposureServiceJsonLd("pl"),
-  ];
-  for (const value of builders) {
+  ]) {
     assert.doesNotMatch(JSON.stringify(value), HELD_TERM);
   }
 });

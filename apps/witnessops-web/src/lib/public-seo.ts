@@ -35,10 +35,6 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
     en: "/reviews/external-attack-surface-review",
     pl: "/pl/reviews/external-attack-surface-review",
   },
-  {
-    en: "/catalog/professional-public-footprint-audit",
-    pl: "/pl/catalog/professional-public-footprint-audit",
-  },
 ] as const;
 
 function normalizePathname(pathname: string): string {

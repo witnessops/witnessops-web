@@ -44,29 +44,26 @@ test("catalogue and pricing open the agent request path and withdrawn routes sta
     "/catalog/workflows",
     "/catalog/automation-repair",
     "/customer-security-review",
+    "/catalog/professional-public-footprint-audit",
+    "/pl/catalog/professional-public-footprint-audit",
   ]) {
     const response = await page.goto(withdrawn, { waitUntil: "networkidle" });
     expect(response?.status(), withdrawn).toBe(410);
     const main = page.locator("main");
-    await expect(main.locator("h1")).toHaveText("This offer has been withdrawn");
-    await expect(main).toContainText("WitnessOps no longer offers this review.");
-    await expect(main.locator('a[href="/reviews/agent-action-security-review"]')).toHaveCount(1);
+    const polish = withdrawn.startsWith("/pl/");
+    await expect(main.locator("h1")).toHaveText(polish ? "Ta oferta została wycofana" : "This offer has been withdrawn");
+    await expect(main).toContainText(polish ? "WitnessOps nie oferuje już tego przeglądu." : "WitnessOps no longer offers this review.");
+    await expect(main.locator(polish ? 'a[href="/pl/reviews/agent-action-security-review"]' : 'a[href="/reviews/agent-action-security-review"]')).toHaveCount(1);
     await expect(main.locator('a[href="/reviews/external-attack-surface-review"]')).toHaveCount(0);
     await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
     await expect(main.locator("form")).toHaveCount(0);
+    if (withdrawn.includes("professional-public-footprint-audit")) {
+      await expect(main).not.toContainText(/€4,900|4 900 EUR|Available by request|Dostępny na zapytanie/);
+    }
     if (withdrawn === "/catalog/automation-repair") {
       await shot(page, "withdrawn-automation-repair");
     }
   }
-
-  const historical = await page.goto("/catalog/professional-public-footprint-audit", {
-    waitUntil: "networkidle",
-  });
-  expect(historical?.status()).toBe(200);
-  const historicalMain = page.locator("main");
-  await expect(historicalMain).toContainText("This review is not offered for new engagements.");
-  await expect(historicalMain.locator('a[href*="/review/request"]')).toHaveCount(0);
-  await expect(historicalMain.locator("form")).toHaveCount(0);
 
   await page.goto("/review/request?offerId=agent-tools-access-review&productId=OFFSEC-EXTERNAL-EXPOSURE", {
     waitUntil: "networkidle",

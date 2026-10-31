@@ -83,16 +83,6 @@ test("paired pages keep en, pl and x-default, and withdrawn pages have none", ()
   }
 });
 
-test("professional public footprint audit has reciprocal English and Polish routes", () => {
-  assert.deepEqual(
-    languagePairForPath("/catalog/professional-public-footprint-audit"),
-    {
-      en: "/catalog/professional-public-footprint-audit",
-      pl: "/pl/catalog/professional-public-footprint-audit",
-    },
-  );
-});
-
 test("structured trust data is factual and syntactically serializable", () => {
   const service = publicExposureServiceJsonLd("en");
   const breadcrumbs = publicExposureBreadcrumbJsonLd("en");
