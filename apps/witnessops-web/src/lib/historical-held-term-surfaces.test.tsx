@@ -9,18 +9,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { generateMetadata as englishCatalogMetadata } from "@/app/(marketing)/catalog/[skuId]/page";
-import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
 import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
 import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
-import CustomerSecurityReviewPage from "@/app/customer-security-review/page";
-import PolishCustomerSecurityReviewPage from "@/app/pl/customer-security-review/page";
 import { metadata as englishCatalogIndexMetadata } from "@/app/(marketing)/catalog/page";
 import { metadata as englishFootprintMetadata } from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
-import { metadata as englishCustomerSecurityMetadata } from "@/app/customer-security-review/page";
 import { metadata as homeMetadata } from "@/app/page";
 import { metadata as polishFootprintMetadata } from "@/app/pl/catalog/professional-public-footprint-audit/page";
 import { generateMetadata as polishCatalogMetadata } from "@/app/pl/catalog/[skuId]/page";
-import { metadata as polishCustomerSecurityMetadata } from "@/app/pl/customer-security-review/page";
 import { metadata as polishHomeMetadata } from "@/app/pl/page";
 import sitemap from "@/app/sitemap";
 import {
@@ -33,8 +28,6 @@ import {
 } from "@/lib/historical-public-routes";
 import {
   organizationJsonLd,
-  primaryOfferBreadcrumbJsonLd,
-  primaryOfferServiceJsonLd,
   publicExposureServiceJsonLd,
   websiteJsonLd,
 } from "@/lib/public-seo";
@@ -79,17 +72,9 @@ function assertIndexable(metadata: { robots?: unknown }, route: string) {
   assert.notEqual(robots?.index, false, route);
 }
 
-test("historical offer pages are noindex and current offer pages stay indexable", async () => {
+test("surviving historical offer pages are noindex and current offer pages stay indexable", async () => {
   assertNoindex(englishFootprintMetadata, "/catalog/professional-public-footprint-audit");
   assertNoindex(polishFootprintMetadata, "/pl/catalog/professional-public-footprint-audit");
-  assertNoindex(englishCustomerSecurityMetadata, "/customer-security-review");
-  assertNoindex(polishCustomerSecurityMetadata, "/pl/customer-security-review");
-  assert.deepEqual(CatalogWorkflowsPage, CatalogWorkflowsPage);
-  const workflowsSource = readFileSync(
-    resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"),
-    "utf8",
-  );
-  assert.match(workflowsSource, /robots: \{ index: false, follow: true \}/);
   assertIndexable(homeMetadata, "/");
   assertIndexable(polishHomeMetadata, "/pl");
   assertIndexable(englishCatalogIndexMetadata, "/catalog");
@@ -108,18 +93,12 @@ test("historical offer pages are noindex and current offer pages stay indexable"
   }
 });
 
-test("rendered historical pages keep their record banner and emit no held-term JSON-LD", () => {
+test("rendered surviving historical pages keep their record banner and emit no held-term JSON-LD", () => {
   const rendered = [
-    render(createElement(CatalogWorkflowsPage)),
     render(createElement(ProfessionalPublicFootprintAuditPage)),
     render(createElement(PolishProfessionalPublicFootprintAuditPage)),
-    render(createElement(CustomerSecurityReviewPage)),
-    render(createElement(PolishCustomerSecurityReviewPage)),
   ];
   const banners = [
-    "This review is not offered for new engagements.",
-    "This review is not offered for new engagements.",
-    "Ten przegląd nie jest oferowany dla nowych zleceń.",
     "This review is not offered for new engagements.",
     "Ten przegląd nie jest oferowany dla nowych zleceń.",
   ];
@@ -132,8 +111,6 @@ test("rendered historical pages keep their record banner and emit no held-term J
   const builders = [
     organizationJsonLd,
     websiteJsonLd,
-    primaryOfferServiceJsonLd(),
-    primaryOfferBreadcrumbJsonLd(),
     publicExposureServiceJsonLd("en"),
     publicExposureServiceJsonLd("pl"),
   ];

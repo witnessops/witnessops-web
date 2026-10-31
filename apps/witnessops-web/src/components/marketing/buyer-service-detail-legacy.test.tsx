@@ -6,10 +6,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import ProfessionalPublicFootprintAuditPage from "@/app/(marketing)/catalog/professional-public-footprint-audit/page";
-import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
-import CustomerSecurityReviewPage from "@/app/customer-security-review/page";
 import PolishProfessionalPublicFootprintAuditPage from "@/app/pl/catalog/professional-public-footprint-audit/page";
-import PolishCustomerSecurityReviewPage from "@/app/pl/customer-security-review/page";
 import {
   BUYER_SERVICES,
   buyerServiceById,
@@ -76,11 +73,8 @@ test("legacy detail pages keep their service identity and do not start a new rev
   }
 });
 
-test("published detail routes stay on the historical service and do not redirect", () => {
+test("surviving historical detail pages keep their service identity", () => {
   const pages = [
-    [CatalogWorkflowsPage, "agent-tools-access-review", "en"],
-    [CustomerSecurityReviewPage, "customer-security-review-sprint", "en"],
-    [PolishCustomerSecurityReviewPage, "customer-security-review-sprint", "pl"],
     [ProfessionalPublicFootprintAuditPage, "professional-public-footprint-audit", "en"],
     [PolishProfessionalPublicFootprintAuditPage, "professional-public-footprint-audit", "pl"],
   ] as const;
@@ -90,11 +84,6 @@ test("published detail routes stay on the historical service and do not redirect
     assertHistoricalStopSell(html, buyerServiceById(id), locale);
   }
 
-  const workflows = markup(createElement(CatalogWorkflowsPage));
-  assert.match(workflows, /href="\/review\/sample-cases\/ai-agent-action-proof-run"/);
-  assert.match(workflows, /AI Agent Tools &amp; Access Review|AI Agent Tools & Access Review/);
-  assert.doesNotMatch(workflows, /Agent Action Security Review/);
-
   const englishSku = readFileSync(
     resolve(__dirname, "../../app/(marketing)/catalog/[skuId]/page.tsx"),
     "utf8",
@@ -103,18 +92,16 @@ test("published detail routes stay on the historical service and do not redirect
     resolve(__dirname, "../../app/pl/catalog/[skuId]/page.tsx"),
     "utf8",
   );
-  const workflowsSource = readFileSync(
-    resolve(__dirname, "../../app/(marketing)/catalog/workflows/page.tsx"),
-    "utf8",
-  );
   assert.match(englishSku, /permanentRedirect\("\/catalog"\)/);
   assert.doesNotMatch(englishSku, /permanentRedirect\("\/catalog\/workflows"\)/);
   assert.doesNotMatch(englishSku, /permanentRedirect\("\/catalog\/offsec-external-exposure"\)/);
   assert.doesNotMatch(polishSku, /permanentRedirect/);
-  assert.match(workflowsSource, /buyerServiceById\(PRIMARY_OFFER\.id\)/);
-  assert.doesNotMatch(workflowsSource, /PUBLIC_AGENT_ACTION_OFFER|agent-action-security-review/);
   assert.equal(buyerServiceById("agent-tools-access-review").detailHref.en, "/catalog/workflows");
   assert.equal(buyerServiceById("agent-tools-access-review").id, PRIMARY_OFFER.id);
+  assert.deepEqual(buyerServiceById("customer-security-review-sprint").detailHref, {
+    en: "/customer-security-review",
+    pl: "/pl/customer-security-review",
+  });
   assert.deepEqual(buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID).detailHref, {
     en: "/reviews/agent-action-security-review",
     pl: "/pl/reviews/agent-action-security-review",

@@ -23,15 +23,10 @@ import {
 } from "@/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "@/lib/public-paid-reviews";
 import { loadHomeContent } from "@/lib/content";
-import {
-  primaryOfferBreadcrumbJsonLd,
-  primaryOfferServiceJsonLd,
-} from "@/lib/public-seo";
 import { classifyCommercialFit } from "@/lib/server/ask-witnessops/commercial-fit-classifier";
 import { getServiceLanding } from "@/lib/service-landings";
 
 const ACTIVE_PRIMARY_PRESENTATION_SOURCES = [
-  "../app/(marketing)/catalog/workflows/page.tsx",
   "../app/(marketing)/contact/contact-form.tsx",
   "../app/(marketing)/pricing/page.tsx",
   "../app/pl/page.tsx",
@@ -151,23 +146,14 @@ test("one canonical record defines the primary paid entry point", () => {
   assert.equal(second?.commercialRole, "secondary");
 });
 
-test("the primary detail contract exposes every required inclusion and exclusion", () => {
+test("the historical primary contract retains its inclusions and exclusions", () => {
   const landing = getServiceLanding(PRIMARY_OFFER.id, "en");
   for (const item of PRIMARY_OFFER.included.en) {
     assert.ok(landing.deliverables.some((line) => line.startsWith(item)), `Missing included item: ${item}`);
   }
   assert.match(landing.steps.flat().join(" "), /10 working days after accepted scope/i);
-
-  const workflowPage = readFileSync(
-    resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"),
-    "utf8",
-  );
-  assert.match(workflowPage, /notIncluded=\{\[\.\.\.PRIMARY_OFFER\.notIncluded\.en\]\}/);
-  assert.match(workflowPage, /promoteCommercialContract/);
-  assert.match(workflowPage, /dated system-level inventory/);
-  assert.match(workflowPage, /downstream permission and execution records/);
-  assert.match(workflowPage, /historical synthetic one-action sample/);
-  assert.doesNotMatch(workflowPage, /The sample pack can be tested through \/verify/i);
+  assert.ok(PRIMARY_OFFER.notIncluded.en.includes("Platform installation or production modification"));
+  assert.ok(PRIMARY_OFFER.notIncluded.en.includes("Continuous monitoring or certification"));
 });
 
 test("English and Polish entry links preserve the primary offer selection", () => {
@@ -184,7 +170,7 @@ test("English and Polish entry links preserve the primary offer selection", () =
   }
 });
 
-test("primary metadata, structured data, and offer ownership stay current", () => {
+test("current homepage metadata and offer ownership stay current", () => {
   const home = loadHomeContent();
   assert.equal(
     home.seo.title,
@@ -194,18 +180,6 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     home.seo.og_title,
     "Understand the controls before your AI agent acts. | WitnessOps",
   );
-
-  const workflowPage = readFileSync(
-    resolve(__dirname, "../app/(marketing)/catalog/workflows/page.tsx"),
-    "utf8",
-  );
-  assert.match(workflowPage, /buyerServiceById\(PRIMARY_OFFER\.id\)/);
-  assert.match(workflowPage, /title: service\.name\.en/);
-  assert.match(workflowPage, /description: service\.situation\.en/);
-  assert.match(workflowPage, /canonical: PRIMARY_OFFER\.route/);
-  assert.doesNotMatch(workflowPage, /primaryOfferServiceJsonLd\(\)/);
-  assert.match(workflowPage, /robots: \{ index: false, follow: true \}/);
-  assert.match(workflowPage, /primaryOfferBreadcrumbJsonLd\(\)/);
 
   const homepageSource = readFileSync(
     resolve(__dirname, "../../../../content/witnessops/landing/home.yaml"),
@@ -217,23 +191,6 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.equal(pricingMetadata.title, "Review Pricing");
   assert.ok(String(pricingMetadata.description).includes(PUBLIC_AGENT_ACTION_OFFER.name.en));
   assert.equal(String(pricingMetadata.description).includes(EXTERNAL_ATTACK_SURFACE_OFFER.name.en), false);
-
-  const serviceJsonLd = primaryOfferServiceJsonLd();
-  assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
-  assert.equal(serviceJsonLd.url, "https://witnessops.com/catalog/workflows");
-  assert.equal(serviceJsonLd.offers["@type"], "AggregateOffer");
-  assert.equal(serviceJsonLd.offers.lowPrice, "2500");
-  assert.equal(serviceJsonLd.offers.priceCurrency, "EUR");
-  assert.match(serviceJsonLd.offers.description, /One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action/);
-  assert.match(serviceJsonLd.offers.description, /Non-secret fit and scoping request first/);
-  assert.doesNotMatch(
-    serviceJsonLd.offers.description,
-    /10 working days|3 working days|three working days|€550/,
-  );
-  assert.equal(
-    primaryOfferBreadcrumbJsonLd().itemListElement.at(-1)?.name,
-    PRIMARY_OFFER.name.en,
-  );
 
   const pricing = renderToStaticMarkup(createElement(AppRouterContext.Provider, {
     value: { back() {}, forward() {}, refresh() {}, push() {}, replace() {}, prefetch() {} },

@@ -7,6 +7,11 @@ const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
 const addedOfferRoutes = ["/check", "/early-access", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
+const retiredRoutes = [
+  { publicPath: "/catalog/workflows", appPath: "/(marketing)/catalog/workflows/page" },
+  { publicPath: "/customer-security-review", appPath: "/customer-security-review/page" },
+  { publicPath: "/pl/customer-security-review", appPath: "/pl/customer-security-review/page" },
+] as const;
 
 function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -54,6 +59,11 @@ test("routes-manifest matches the frozen baseline", () => {
   );
 
   const manifest = actual as { staticRoutes: { page: string; regex: string; namedRegex: string; routeKeys: object }[]; headers: {source:string; headers:{key:string;value:string}[];regex:string}[] };
+  const expectedManifest = expected as typeof manifest;
+  for (const { publicPath } of retiredRoutes) {
+    assert.equal(expectedManifest.staticRoutes.filter(route => route.page === publicPath).length, 1);
+    assert.equal(manifest.staticRoutes.filter(route => route.page === publicPath).length, 0);
+  }
   const additions = manifest.staticRoutes.filter(route => addedOfferRoutes.some(path => path === route.page));
   assert.deepEqual(additions.map(route => route.page), [...addedOfferRoutes]);
   for (const route of additions) {
@@ -85,7 +95,10 @@ test("routes-manifest matches the frozen baseline", () => {
     assert.deepEqual(header.headers, [{ key: "Content-Security-Policy", value: baseCsp.replace("script-src 'self'", "script-src 'self' https://static.cloudflareinsights.com/beacon.min.js").replace("connect-src 'self'", "connect-src 'self' https://cloudflareinsights.com/cdn-cgi/rum") }]);
     for (const excluded of ["/admin", "/api/admin/workos/callback", "/check", "/proofpack", "/package/private", "/assessment/private", "/verify-token"]) assert.equal(new RegExp(header.regex).test(excluded), false);
   }
-  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
+  assert.deepEqual(
+    { ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) },
+    { ...expectedManifest, staticRoutes: expectedManifest.staticRoutes.filter(route => !retiredRoutes.some(({ publicPath }) => publicPath === route.page)) },
+  );
 });
 
 test("app-paths-manifest matches the frozen baseline", () => {
@@ -97,9 +110,15 @@ test("app-paths-manifest matches the frozen baseline", () => {
   );
 
   const manifest = { ...(actual as Record<string, string>) };
+  const expectedManifest = { ...(expected as Record<string, string>) };
+  for (const { appPath } of retiredRoutes) {
+    assert.equal(expectedManifest[appPath], `app${appPath}.js`);
+    assert.equal(Object.hasOwn(manifest, appPath), false);
+    delete expectedManifest[appPath];
+  }
   for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }
-  assert.deepEqual(manifest, expected);
+  assert.deepEqual(manifest, expectedManifest);
 });

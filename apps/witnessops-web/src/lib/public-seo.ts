@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 import { plainOfferPrice } from "@/lib/offer-price-unit";
@@ -106,47 +105,6 @@ export const websiteJsonLd = {
   publisher: { "@id": organizationJsonLd["@id"] },
   inLanguage: ["en", "pl"],
 } as const;
-
-export function primaryOfferServiceJsonLd() {
-  const url = canonicalUrl(PRIMARY_OFFER.route);
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "@id": `${url}#service`,
-    name: PRIMARY_OFFER.name.en,
-    description: PRIMARY_OFFER.situation.en,
-    serviceType: "AI agent tools and access review",
-    url,
-    provider: { "@id": organizationJsonLd["@id"] },
-    offers: {
-      "@type": "AggregateOffer",
-      url,
-      lowPrice: PRIMARY_OFFER.price.amount,
-      priceCurrency: PRIMARY_OFFER.price.currency,
-      description: `${plainOfferPrice(PRIMARY_OFFER.price.en)}. ${PRIMARY_OFFER.unit.en}. ${PRIMARY_OFFER.fitCheck.en}.`,
-    },
-  } as const;
-}
-
-export function primaryOfferBreadcrumbJsonLd() {
-  const items = [
-    { name: "Home", path: "/" },
-    { name: "Services", path: "/catalog" },
-    { name: PRIMARY_OFFER.name.en, path: PRIMARY_OFFER.route },
-  ];
-
-  return {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.name,
-      item: canonicalUrl(item.path),
-    })),
-  } as const;
-}
 
 export function publicExposureServiceJsonLd(locale: "en" | "pl") {
   const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
