@@ -104,44 +104,53 @@ test("one canonical record defines the primary paid entry point", () => {
   assert.equal(featured.length, 1, "Exactly one offer may define the homepage");
   assert.equal(primaries.length, 1, "Exactly one offer may be commercially primary");
 
-  const primary = buyerServiceById(PRIMARY_OFFER.id);
-  assert.equal(featured[0]?.id, PRIMARY_OFFER.id);
+  const current = buyerServiceById(PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(featured[0]?.id, PUBLIC_AGENT_ACTION_OFFER.id);
   assert.equal(primaries[0], featured[0]);
-  assert.equal(primary.name, PRIMARY_OFFER.name);
-  assert.equal(primary.commercialContract, PRIMARY_OFFER.commercialContract);
-  assert.equal(primary.price, PRIMARY_OFFER.price);
-  assert.equal(primary.timing, PRIMARY_OFFER.timing);
-  assert.equal(primary.name.en, "AI Agent Tools & Access Review");
+  assert.equal(current.name, PUBLIC_AGENT_ACTION_OFFER.name);
+  assert.equal(current.commercialContract, PUBLIC_AGENT_ACTION_OFFER.commercialContract);
+  assert.equal(current.price, PUBLIC_AGENT_ACTION_OFFER.price);
+  assert.equal(current.timing, PUBLIC_AGENT_ACTION_OFFER.timing);
+  assert.equal(current.detailHref.en, "/reviews/agent-action-security-review");
+
+  const historical = buyerServiceById(PRIMARY_OFFER.id);
+  assert.notEqual(historical.commercialRole, "primary");
+  assert.notEqual(historical.homepageFeatured, true);
+  assert.equal(historical.name, PRIMARY_OFFER.name);
+  assert.equal(historical.commercialContract, PRIMARY_OFFER.commercialContract);
+  assert.equal(historical.price, PRIMARY_OFFER.price);
+  assert.equal(historical.timing, PRIMARY_OFFER.timing);
+  assert.equal(historical.name.en, "AI Agent Tools & Access Review");
   assert.equal(PRIMARY_OFFER.deliveryMethod.en, "Manual agent/tool observation and action reconstruction");
   assert.equal(
     PRIMARY_OFFER.mailSubject,
     "WitnessOps request — AI Agent Tools & Access Review",
   );
-  assert.equal(primary.price.en, "Starting at €2,500 · excluding VAT");
-  assert.equal(primary.price.pl, "Od €2 500 · bez VAT");
+  assert.equal(historical.price.en, "Starting at €2,500 · excluding VAT");
+  assert.equal(historical.price.pl, "Od €2 500 · bez VAT");
   assert.equal(
-    primary.timing.en,
+    historical.timing.en,
     "Target: 10 working days after accepted scope, authority, payment, handling and required inputs are confirmed",
   );
-  assert.equal(primary.detailHref.en, PRIMARY_OFFER.route);
-  assert.equal(primary.detailHref.pl, PRIMARY_OFFER.route);
-  assert.equal(primary.productId, undefined);
+  assert.equal(historical.detailHref.en, PRIMARY_OFFER.route);
+  assert.equal(historical.detailHref.pl, PRIMARY_OFFER.route);
+  assert.equal(historical.productId, undefined);
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.equal(PRIMARY_OFFER.requestRoute, "/review/request");
   assert.equal(PRIMARY_OFFER.unit.en, "One agreed device and OS, one dated system-level inventory, one named agent setup, one selected connection and one consequential action");
   assert.equal(
-    primary.cardSituation.en,
+    historical.cardSituation.en,
     "See which agent tools are visible on an agreed device and what one consequential action can reach.",
   );
-  assert.match(primary.situation.en, /coding agents and tool connections/i);
-  assert.equal(primary.requestCta?.en, "Request a scope and fixed quote");
-  assert.match(primary.boundary.en, /One agreed device and dated system-level inventory/i);
-  assert.match(primary.boundary.en, /Manual, read-only inspection/i);
-  assert.match(primary.situation.en, /observed in agreed sources/i);
+  assert.match(historical.situation.en, /coding agents and tool connections/i);
+  assert.equal(historical.requestCta?.en, "Request a scope and fixed quote");
+  assert.match(historical.boundary.en, /One agreed device and dated system-level inventory/i);
+  assert.match(historical.boundary.en, /Manual, read-only inspection/i);
+  assert.match(historical.situation.en, /observed in agreed sources/i);
 
   const [first, second] = buyerServicesByCommercialPriority();
-  assert.equal(first?.id, PRIMARY_OFFER.id);
+  assert.equal(first?.id, PUBLIC_AGENT_ACTION_OFFER.id);
   assert.equal(second?.id, "external-exposure-assessment");
   assert.equal(second?.commercialRole, "secondary");
 });
@@ -156,7 +165,7 @@ test("the historical primary contract retains its inclusions and exclusions", ()
   assert.ok(PRIMARY_OFFER.notIncluded.en.includes("Continuous monitoring or certification"));
 });
 
-test("English and Polish entry links preserve the primary offer selection", () => {
+test("English and Polish historical links preserve the former offer ID", () => {
   for (const [locale, pathname] of [
     ["en", "/review/request"],
     ["pl", "/pl/review/request"],

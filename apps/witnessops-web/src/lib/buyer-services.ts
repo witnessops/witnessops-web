@@ -68,9 +68,9 @@ function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
 }
 
 /**
- * Canonical public catalogue — situation cards only (v1.6 OffSec index aligned).
+ * Commercial service registry, including records for withdrawn offers.
+ * Public new-sales surfaces select the active review through publicPaidReviews.
  * Operator scripts and checks are methods under a package, not extra cards.
- * Order and names are fixed for EN/PL buyer surfaces.
  */
 export const BUYER_SERVICES: readonly BuyerService[] = [
   {
@@ -118,8 +118,6 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
 
   {
     id: PRIMARY_OFFER.id,
-    commercialRole: "primary",
-    homepageFeatured: true,
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
     cardSituation: PRIMARY_OFFER.cardSituation,
@@ -142,6 +140,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   },
   {
     id: PUBLIC_AGENT_ACTION_OFFER.id,
+    commercialRole: "primary",
+    homepageFeatured: true,
     commercialContract: PUBLIC_AGENT_ACTION_OFFER.commercialContract,
     name: PUBLIC_AGENT_ACTION_OFFER.name,
     cardSituation: PUBLIC_AGENT_ACTION_OFFER.cardSituation,

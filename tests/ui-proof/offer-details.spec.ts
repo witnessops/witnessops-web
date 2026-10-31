@@ -287,6 +287,19 @@ test("Customer Security Review Sprint is withdrawn in both languages", async ({ 
   }
 });
 
+test("historical customer review sample points to the current review without reopening intake", async ({ page }) => {
+  const response = await page.goto("/review/sample-cases/customer-security-review-sprint", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(200);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  const main = page.locator('[data-page="csr-sample"]');
+  await expect(main.locator('[data-historical-offer="withdrawn"]')).toContainText("Historical sample, offer withdrawn");
+  await expect(main.getByRole("link", { name: "See the Agent Action Security Review", exact: true })).toHaveCount(2);
+  await expect(main.locator('a[href="/reviews/agent-action-security-review"]')).toHaveCount(2);
+  await expect(main.locator('a[href^="/review/request"]')).toHaveCount(0);
+  await expect(main.locator("form")).toHaveCount(0);
+  await expect(main).not.toContainText("Ask about this review");
+});
+
 test("External Attack Surface Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
   const expectedFiles = [
     "README.md",

@@ -98,14 +98,16 @@ test("EN and PL homepage sources project only the agent review", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });
 
-test("security leads while the repair contract stays intact", () => {
+test("Agent Action leads while historical contracts stay intact", () => {
   const lead = BUYER_SERVICES.find(service => service.commercialRole === "primary");
-  assert.equal(lead?.id, PRIMARY_OFFER.id);
+  assert.equal(lead?.id, PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(lead?.homepageFeatured, true);
   const repair = BUYER_SERVICES.find(service => service.id === "automation-repair-handover");
   assert.equal(repair?.price.en, "€250 diagnosis · excluding VAT");
   assert.match(repair?.boundary.en ?? "", /stop after diagnosis or accept a separate quote/);
   const specialist = BUYER_SERVICES.find(service => service.id === PRIMARY_OFFER.id);
-  assert.equal(specialist?.homepageFeatured, true);
+  assert.notEqual(specialist?.homepageFeatured, true);
+  assert.notEqual(specialist?.commercialRole, "primary");
   assert.equal(specialist?.price.en, "Starting at €2,500 · excluding VAT");
   assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
   assert.equal(sampleCommitShort, "d4ad234bd815");

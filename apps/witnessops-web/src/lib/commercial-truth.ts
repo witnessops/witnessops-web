@@ -199,7 +199,7 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   },
 } as const;
 
-/** Current distinct commercial offer; route continuity does not imply ID continuity. */
+/** Historical inventory offer; its original ID and terms remain for old requests. */
 export const PRIMARY_OFFER = {
   id: "agent-tools-access-review",
   route: "/catalog/workflows",

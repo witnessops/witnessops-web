@@ -62,6 +62,7 @@ export default function CustomerSecurityReviewSamplePage() {
         <SampleCaseBanner
           title="Customer Security Review Sprint"
           note="Synthetic demonstration only. It shows how WitnessOps packages proposed answers, evidence references, qualifications, and open items for one questionnaire and one product scope. Not live customer evidence and not certification."
+          showActions={false}
         />
         <HistoricalOfferSampleLabel />
 
@@ -79,9 +80,9 @@ export default function CustomerSecurityReviewSamplePage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton
-              href="/review/request"
+              href="/reviews/agent-action-security-review"
               variant="primary"
-              label="Ask about this review"
+              label="See the Agent Action Security Review"
             />
             <CtaButton
               href="/catalog"
@@ -205,9 +206,9 @@ export default function CustomerSecurityReviewSamplePage() {
         <div className="border-t border-surface-border pt-10">
           <div className="flex flex-wrap gap-3">
             <CtaButton
-              href="/review/request"
+              href="/reviews/agent-action-security-review"
               variant="primary"
-              label="Ask about this review"
+              label="See the Agent Action Security Review"
             />
             <CtaButton
               href="/catalog"
