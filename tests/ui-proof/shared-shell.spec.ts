@@ -461,6 +461,9 @@ test("media kit exposes the exact canonical logo package without mobile overflow
 
     expect(response?.status()).toBe(200);
     await expect(page.locator('[data-ui-proof-id="logo-system-package"]')).toBeVisible();
+    await expect(page.locator("main")).toContainText("Agent Action Security Review");
+    await expect(page.locator("#screenshots")).toHaveCount(0);
+    await expect(page.locator('a[href^="/media-kit/witnessops-homepage-"]')).toHaveCount(0);
     await expect(page.getByRole("link", { name: /Download complete WitnessOps Logo System v1 ZIP/ })).toHaveAttribute(
       "href",
       packagePath,
@@ -491,6 +494,18 @@ test("media kit exposes the exact canonical logo package without mobile overflow
       const manifest = await manifestResponse.json();
       expect(manifest.status).toBe("CANONICAL_PRODUCTION_ASSET_SET");
       expect(manifest.files).toHaveLength(46);
+
+      for (const fileName of ["witnessops-homepage-desktop.png", "witnessops-homepage-mobile.png"]) {
+        const retiredImage = await page.request.get(`/media-kit/${fileName}`);
+        expect(retiredImage.status()).toBe(404);
+      }
+
+      const polishResponse = await page.goto("/pl/media-kit", { waitUntil: "networkidle" });
+      expect(polishResponse?.status()).toBe(200);
+      await expect(page.locator("main")).toContainText("Agent Action Security Review");
+      await expect(page.locator("#screenshots")).toHaveCount(0);
+      await expect(page.locator('a[href^="/media-kit/witnessops-homepage-"]')).toHaveCount(0);
+      await expect(page.locator('[data-ui-proof-id="logo-system-package"]')).toBeVisible();
     }
 
     await context.close();

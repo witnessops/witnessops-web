@@ -28,7 +28,6 @@ test("media kit uses the homepage-native public shell and approved section struc
     "About WitnessOps",
     "Logos and marks",
     "Brand colours and typography",
-    "Product screenshots",
     "Usage and contact",
   ]) {
     assert.ok(contentSource.includes(heading), `Missing Media kit section: ${heading}`);
@@ -41,13 +40,17 @@ test("media kit metadata has the exact title and canonical route", () => {
   assert.match(pageSource, /canonicalUrl\("\/media-kit"\)/);
   assert.match(pageSource, /title: "Media kit \| WitnessOps"/);
   assert.match(pageSource, /export default function MediaKitPage\(\) \{\s*return <MediaKitContent locale="en" \/>;/);
+  assert.doesNotMatch(pageSource, /product screenshots/i);
+  const polishPageSource = readFileSync(resolve(__dirname, "../pl/media-kit/page.tsx"), "utf8");
+  assert.doesNotMatch(polishPageSource, /zrzuty produktu/i);
 });
 
 test("media kit preserves the approved description, palette and type wording", () => {
   assert.match(
     contentSource,
-    /WitnessOps delivers bounded security and operational reviews with[\s\S]*evidence references, clear limits and a practical handover\./,
+    /WitnessOps delivers Agent Action Security Review: a bounded, read-only review of one consequential agent or automation action/,
   );
+  assert.doesNotMatch(contentSource, /bounded security and operational reviews|product screenshots/i);
   for (const marker of ["#0B0C0B", "#B89B62", "#F5F1E8", "Inter", "IBM Plex Mono"]) {
     assert.ok(contentSource.includes(marker), `Missing Media kit marker: ${marker}`);
   }
@@ -59,7 +62,6 @@ test("media kit downloads are same-origin, complete and descriptively labelled",
   assert.match(contentSource, /download=\{asset\.fileName\}/);
   assert.match(contentSource, /aria-label=\{tx\(/);
   assert.match(contentSource, /tx\(locale, "Download", "Pobierz"\)\} \{asset\.format\}/);
-  assert.match(contentSource, /download=\{screenshot\.fileName\}/);
   assert.match(contentSource, /Download complete ZIP/);
   assert.match(contentSource, /WitnessOps_Logo_System_v1\.zip/);
   assert.match(contentSource, /Package manifest/);
@@ -119,15 +121,16 @@ test("versioned logo-system artifacts are served with immutable cache headers", 
   assert.match(nextConfig, /public, max-age=31536000, immutable/);
 });
 
-test("media kit screenshot files exist in the public tree", () => {
+test("media kit no longer publishes withdrawn homepage screenshots", () => {
   for (const fileName of [
     "witnessops-homepage-desktop.png",
     "witnessops-homepage-mobile.png",
   ]) {
+    assert.equal(contentSource.includes(fileName), false);
     assert.equal(
       existsSync(resolve(publicRoot, `media-kit/${fileName}`)),
-      true,
-      `Missing Media kit screenshot: ${fileName}`,
+      false,
+      `Withdrawn Media kit screenshot remains: ${fileName}`,
     );
   }
 });
