@@ -4,7 +4,7 @@ import { getWorkspaceAppUrl } from '@/lib/workspace-access';
 
 export const metadata: Metadata = {
   title: 'External Exposure Snapshot',
-  description: 'Run a free external exposure check for your company hostname. Ten bounded public observations, clear limitations and a report. No email required.',
+  description: 'Run a free external exposure check for your company hostname. Ten bounded public observations, explained findings and practical follow-up steps. No email required.',
   alternates: { canonical: '/check' },
   robots: { index: true, follow: true },
 };

@@ -125,3 +125,23 @@
 }
 .inputRow>button:hover:not(:disabled), .screen .reportPrimary:hover { background: var(--public-control-hover, #e7e2d7); border-color: var(--public-control-hover, #e7e2d7); }
 .inputRow>button:active:not(:disabled), .screen .reportPrimary:active { background: var(--public-control-pressed, #d8d1c3); border-color: var(--public-control-pressed, #d8d1c3); }
+
+.inputRow>.exampleButton { background: transparent; border-color: var(--color-surface-border-strong); color: var(--color-text-primary); }
+.inputRow>.exampleButton:hover:not(:disabled) { background: var(--color-surface-inset); border-color: var(--color-surface-border-strong); }
+.exampleNotice { border-left: 3px solid var(--color-brand-accent); padding: 14px 18px; background: var(--color-surface-inset); }
+.nextActions { margin: 32px 0; }
+.nextActions>p { font-size: 14px; color: var(--color-text-secondary); }
+.actionGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; list-style: none; padding: 0; margin: 24px 0; }
+.actionCard { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--color-surface-border); border-radius: var(--radius-card); padding: 24px; background: var(--color-surface-card); overflow-wrap: anywhere; }
+.actionCard h4 { font-size: 21px; font-weight: 500; margin: 8px 0 14px; }
+.actionCard p,.actionCard dd { font-size: 14px; margin: 0 0 16px; color: var(--color-text-secondary); }
+.actionCard .actionLabel { font-size: 12px; color: var(--color-brand-accent); margin: 0; }
+.actionCard dl { margin: 0; }
+.actionCard dt { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+.actionCard dd { margin-left: 0; }
+.actionCard details { margin-top: auto; margin-bottom: 12px; }
+.actionCard .copyStatus { font-size: 12px; margin: 8px 0 0; }
+.copyStatus:empty { display: none; }
+.taskText { width: 100%; min-height: 240px; margin-top: 12px; border: 1px solid var(--color-surface-border-strong); border-radius: var(--radius-control); padding: 12px; color: var(--color-text-primary); background: var(--color-surface-bg); font: 13px/1.6 var(--font-mono); }
+.taskText:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--focus-offset); }
+@media(max-width:700px) { .actionGrid { grid-template-columns: 1fr; } .actionCard { padding: 20px; } }

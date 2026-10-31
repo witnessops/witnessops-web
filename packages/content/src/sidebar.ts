@@ -84,7 +84,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   },
   {
     id: "cli", title: "CLI",
-    description: "Optional source setup and browser authentication.",
+    description: "Optional CLI setup from a supplied pilot archive and browser authentication.",
     layerChildPrefixes: [],
     items: [
       { kind: "doc", href: "/docs/getting-started/cli", title: "CLI setup and authentication" },
