@@ -170,9 +170,9 @@ test("grouped navigation keeps the current review and focused resources", () => 
   assert.ok(resources);
   assert.deepEqual(resources.links.map((link) => [link.label, link.href]), [
     ["Docs", "/docs"],
-    ["Sample work", "/review/sample-cases"],
+    ["Examples", "/review/sample-cases"],
     ["Verify a receipt", "/verify"],
     ["Tool · not a review", "/check"],
   ]);
-  assert.equal(resources.links[1].description, "Agent-action examples and their evidence limits.");
+  assert.equal(resources.links[1].description, "Agent actions, approvals and supporting evidence.");
 });

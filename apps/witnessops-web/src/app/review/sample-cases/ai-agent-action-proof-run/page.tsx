@@ -54,7 +54,7 @@ export default function ApiKeyRotationSamplePage() {
           <span>No live systems</span>
         </div>
         <h1>
-          See a key rotation, step by step.
+          API key rotation: authority, execution and evidence.
         </h1>
         <p className={styles.heroLead}>
           Replay a synthetic run. See what changed, what was checked, and what remains unproven.

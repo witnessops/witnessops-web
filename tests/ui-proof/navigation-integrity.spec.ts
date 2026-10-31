@@ -77,7 +77,7 @@ test("the homepage sample-work link opens the sample library", async ({
   await fragmentLink.click();
 
   await expect(page).toHaveURL(/\/review\/sample-cases$/);
-  await expect(page.getByRole("heading", { name: "Sample work", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Examples", exact: true })).toBeVisible();
   await saveEvidence(page, "01-desktop-sample-cases.png");
 
   await context.close();
@@ -104,7 +104,7 @@ test("route navigation and Back restore scroll without a second-frame snap", asy
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
     .locator("footer")
-    .getByRole("link", { name: "Sample work", exact: true });
+    .getByRole("link", { name: "Examples", exact: true });
   await receiptLink.scrollIntoViewIfNeeded();
   const expectedScrollY = await page.evaluate(() => window.scrollY);
   expect(expectedScrollY).toBeGreaterThan(0);
@@ -148,7 +148,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
     .locator("footer")
-    .getByRole("link", { name: "Sample work", exact: true });
+    .getByRole("link", { name: "Examples", exact: true });
   await receiptLink.click();
   await expectPath(page, "/review/sample-cases");
   await page.locator(`main a[href="${SAMPLE_PATH}"]`).first().click();
@@ -157,7 +157,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /^See a key rotation, step by step\.$/,
+      name: /^API key rotation: authority, execution and evidence\.$/,
     }),
   ).toBeVisible();
   await expect(page.getByText("Synthetic demo", { exact: true })).toBeVisible();
@@ -442,7 +442,7 @@ test("grouped desktop navigation supports keyboard, dismissal and document navig
   const panel = page.locator("#public-nav-group-2");
   await expect(panel).toBeVisible();
   await expect(panel.locator("a")).toHaveCount(4);
-  await expect(panel.locator('a[href="/review/sample-cases"]')).toContainText("Agent-action examples and their evidence limits.");
+  await expect(panel.locator('a[href="/review/sample-cases"]')).toContainText("Agent actions, approvals and supporting evidence.");
   for (const href of ["/docs/getting-started/results", "/research", "/chronicles"]) {
     await expect(panel.locator(`a[href="${href}"]`)).toHaveCount(0);
   }

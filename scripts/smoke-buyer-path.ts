@@ -779,7 +779,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/sample-cases",
     requiredMarkers: [
-      "Examples of agent actions, approvals and evidence.",
+      "Agent actions, approvals and supporting evidence.",
       "Sample cases",
       "Agent Action Security Review",
       "Compromised API key rotation",
@@ -887,7 +887,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Synthetic demo",
       "No live systems",
-      "See a key rotation, step by step.",
+      "API key rotation: authority, execution and evidence.",
       "checks the pinned bundle digest,",
       "Published sample, not live customer evidence",
       "No real provider, credential, compromise, customer, or",

@@ -27,19 +27,19 @@ test("retired sample downloads are no longer public", async ({ request }) => {
 });
 
 for (const width of [390, 1440]) {
-  test(`sample-work titles preserve routes and sample boundaries at ${width}`, async ({ page }, testInfo) => {
+  test(`examples titles preserve routes and sample boundaries at ${width}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     expect((await page.goto("/review/sample-cases"))?.status()).toBe(200);
     await expect(page).toHaveURL(/\/review\/sample-cases$/);
-    await expect(page).toHaveTitle("Sample work | WitnessOps");
-    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Sample work | WitnessOps");
-    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Sample work | WitnessOps");
+    await expect(page).toHaveTitle("Examples | WitnessOps");
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Examples | WitnessOps");
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Examples | WitnessOps");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://witnessops.com/review/sample-cases");
     const main = page.locator("main");
-    await expect(main.getByRole("heading", { level: 1 })).toHaveText("Sample work");
-    await expect(main).toContainText("Examples of agent actions, approvals and evidence.");
+    await expect(main.getByRole("heading", { level: 1 })).toHaveText("Examples");
+    await expect(main).toContainText("Agent actions, approvals and supporting evidence.");
     await expect(main).toContainText("Published sample, not live customer evidence. No production verification or certification.");
-    await expect(main.locator("header").first().getByText("Examples", { exact: true })).toHaveCount(0);
+    await expect(main.locator("header").first().getByRole("heading", { level: 1, name: "Examples", exact: true })).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`sample-work-${width}.png`) });
     const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
@@ -47,11 +47,11 @@ for (const width of [390, 1440]) {
     await nav.getByRole("button", { name: "Resources", exact: true }).click();
     const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
     await expect(sampleLink).toHaveCount(1);
-    await expect(sampleLink).toContainText("Sample work");
+    await expect(sampleLink).toContainText("Examples");
     await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");
     await sampleLink.click();
     await expect(page).toHaveURL(/\/review\/sample-cases$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Sample work", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Examples", exact: true })).toBeVisible();
     await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);
     const sampleCards = page.locator('main a[href^="/review/sample-cases/"]');
     await expect(sampleCards).toHaveCount(4);
