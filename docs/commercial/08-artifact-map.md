@@ -16,7 +16,6 @@ Complete index of artifacts used for demos, learning, and delivery.
 | `offsec-incident-ready/` | Incident readiness suite sample | proofpack + package dir |
 | `offsec-access-removed/` | Access-removed **method** sample | proofpack + package dir |
 | `csr-sprint-synthetic/` | CSR full synthetic package | `exports/`, `evidence/`, `canonical/`, `manifest.json` |
-| `offsec-swarm-mesh-trust-round3/` | Legacy mesh sample | (legacy) |
 
 **Note:** Prefer `.proofpack` over `.zip` for downloads (static `.zip` often 404 on this runtime).
 

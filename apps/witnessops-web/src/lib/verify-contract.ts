@@ -35,8 +35,7 @@ export type VerifyInputKind =
   | "public-exposure-review-receipt"
   | "local-server-audit-receipt"
   /** @deprecated Dual-read responses use local-server-audit-receipt */
-  | "offsec-shield-receipt"
-  | "offsec-swarm-mesh-export";
+  | "offsec-shield-receipt";
 
 export interface VerifySuccessResponse {
   ok: true;
@@ -46,8 +45,7 @@ export interface VerifySuccessResponse {
     | "witnessops.verify.public_exposure_review_receipt.v1"
     | "witnessops.verify.local_server_audit_receipt.v1"
     /** @deprecated Alias retained for type compatibility; responses emit primary id */
-    | "witnessops.verify.offsec_shield_receipt.v1"
-    | "witnessops.verify.offsec_swarm_mesh_export.v1";
+    | "witnessops.verify.offsec_shield_receipt.v1";
   verdict: VerifyVerdict;
   scope: VerificationVerdict_["verification_mode"];
   artifactRevalidation: VerificationVerdict_["artifact_revalidation"];
