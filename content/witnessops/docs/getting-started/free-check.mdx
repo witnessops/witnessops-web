@@ -11,6 +11,8 @@ draft: false
 
 The [Free Check](/check) observes one public hostname from the outside. It needs no account or email. Use it only for a hostname you own or are authorized to check.
 
+Choose **See an example result** to explore the layout before running a check. The example is synthetic: no hostname is contacted, no collection time is assigned, and it cannot be downloaded as a live report or source snapshot. Any administrator task copied from it retains the synthetic-example label.
+
 ## Run the check
 
 1. Open [Free Check](/check). Enter the hostname alone, such as `example.com`, without `https://`, a path or a port. IP addresses are not accepted.
@@ -31,6 +33,12 @@ The ten checks cover the public DNS target, TLS certificate, legacy TLS, HTTP-to
 | Collection error | The observation could not be completed for that check. |
 
 There is no overall security score. A timeout or error can leave a question unresolved; it does not prove that the target is safe or vulnerable. [Read how to interpret a public exposure snapshot](/research/reading-a-public-exposure-snapshot).
+
+## Choose a follow-up
+
+**Your next actions** shows the suggested follow-up, responsible administrator and way to check again for attention items and inconclusive checks. The cards keep the original check order; they are not a severity ranking. Unknown results and collection errors ask for clarification, not an assumed repair.
+
+Choose **Copy task for my administrator** to copy that check's hostname, recorded time, observation, supporting details and limits. Paste and edit the task wherever you normally coordinate work. Nothing is sent automatically. If the clipboard is unavailable, the page displays selectable task text instead. A task does not authorize a configuration change or a new check.
 
 ## Keep a copy or build a history
 

@@ -32,8 +32,8 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   expect(response?.headers()['content-security-policy']).toContain("connect-src 'self'");
   await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'index, follow');
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', 'https://witnessops.com/check');
-  await expect(page.getByRole('heading', { name: 'Check your public exposure.', exact: true })).toBeVisible();
-  await expect(page.getByText('Ten checks of one public hostname. No account or email required.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Check your hostname. Know what to do next.', exact: true })).toBeVisible();
+  await expect(page.getByText('Ten public checks, explained findings and practical follow-up steps. No account or email required.', { exact: true })).toBeVisible();
   await expect(page.getByText('See what your company exposes publicly.', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
   await expect(page.locator('#site-footer')).toBeVisible();
@@ -64,9 +64,9 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('heading', { name: 'What needs attention?', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'What remains unknown?', exact: true })).toBeVisible();
   const resultRegion = page.getByRole('region', { name: 'Snapshot results' });
-  expect(await resultRegion.locator('h3, details > summary').allTextContents()).toEqual([
-    'What needs attention?', 'What was observed as expected?', 'Inspect expected observations',
-    '1 informational observation', 'What remains unknown?', 'Full evidence', 'Source data and report details',
+  expect(await resultRegion.locator('h3').allTextContents()).toEqual([
+    'Your next actions', 'What needs attention?', 'What was observed as expected?',
+    'What remains unknown?', 'Full evidence',
   ]);
   const expectedDetails = page.getByText('Inspect expected observations', { exact: true }).locator('..');
   await expect(expectedDetails).toHaveJSProperty('open', false);
@@ -281,7 +281,7 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
     await expect(link).toHaveAttribute('href', '/check');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await link.click();
-    await expect(page.getByRole('heading', { name: 'Check your public exposure.', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Check your hostname. Know what to do next.', exact: true })).toBeVisible();
     await expect(page.getByLabel('Public hostname', { exact: true })).toBeVisible();
   }
 });

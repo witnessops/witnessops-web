@@ -64,7 +64,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/check",
     requiredMarkers: [
-      "Check your public exposure.",
+      "Check your hostname. Know what to do next.",
       "Run free check",
       "No account or email required.",
       "This feature does not store results.",

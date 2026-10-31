@@ -79,7 +79,7 @@ test("catalogue and pricing open the agent request path and withdrawn routes sta
   await shot(page, "agent-review-request");
 
   await page.goto("/check", { waitUntil: "networkidle" });
-  await expect(page.locator("main h1")).toContainText("Check your public exposure.");
+  await expect(page.locator("main h1")).toContainText("Check your hostname. Know what to do next.");
   await expect(page.getByRole("button", { name: "Run free check" })).toBeVisible();
   await shot(page, "free-hostname-check");
 
