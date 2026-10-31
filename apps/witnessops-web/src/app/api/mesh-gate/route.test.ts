@@ -40,15 +40,22 @@ async function postDocument(doc: unknown): Promise<Response> {
   );
 }
 
-test("mesh-gate GET returns discovery", async () => {
+test("mesh-gate GET reports the retired index without advertising a download", async () => {
   const response = await GET();
   assert.equal(response.status, 200);
-  const body = (await response.json()) as { schema: string; scope: string };
+  const body = await response.json();
   assert.equal(body.schema, "witnessops.mesh_gate_discovery.v1");
   assert.equal(body.scope, "operator-mesh-hygiene-only");
+  assert.equal(body.index_published, false);
+  assert.equal(body.well_known_index, null);
+  assert.match(body.post, /offseclane\.mesh_receipt_public\.v1/);
+  assert.match(body.disclaimer, /operator index is retired/);
+  assert.match(body.disclaimer, /legacy structural compatibility only/);
+  assert.match(body.disclaimer, /not Agent Action Security Review evidence/);
+  assert.doesNotMatch(JSON.stringify(body), /\.well-known\/mesh-receipt-index/);
 });
 
-test("mesh-gate POST validates published public sample", async () => {
+test("mesh-gate POST retains validation of the synthetic compatibility fixture", async () => {
   const sample = fixtureSample();
   const response = await POST(
     new Request("https://witnessops.com/api/mesh-gate", {

@@ -21,6 +21,8 @@ import {
 import {
   isPolishOfferPath,
   isWithdrawnOfferPath,
+  isWithdrawnSamplePath,
+  withdrawnSampleCopy,
 } from "@/lib/withdrawn-offer-routes";
 
 const surface = getSurface("witnessops");
@@ -43,8 +45,12 @@ function isAdminApiMutation(request: NextRequest): boolean {
 const WITHDRAWN_SHELL_HEADER = "x-witnessops-withdrawn-shell";
 const WITHDRAWN_FALLBACK_HTML = `<!doctype html><html lang="en"><meta charset="utf-8"><title>This offer has been withdrawn</title><body><p>This offer has been withdrawn.</p><p>Ta oferta została wycofana.</p><p><a href="/reviews">Reviews</a></p></body></html>`;
 
-function withdrawnFallback() {
-  return new NextResponse(WITHDRAWN_FALLBACK_HTML, {
+function withdrawnFallback(sample = false, polish = false) {
+  const copy = withdrawnSampleCopy(polish);
+  const html = sample
+    ? `<!doctype html><html lang="${polish ? "pl" : "en"}"><meta charset="utf-8"><title>${copy.title}</title><body><h1>${copy.title}</h1><p>${copy.body}</p>${copy.links.map(([href, label]) => `<p><a href="${href}">${label}</a></p>`).join("")}</body></html>`
+    : WITHDRAWN_FALLBACK_HTML;
+  return new NextResponse(html, {
     status: 410,
     headers: {
       "content-type": "text/html; charset=utf-8",
@@ -57,9 +63,9 @@ function withdrawnFallback() {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Withdrawn offer URLs remain recognized even when their page source is
+  // Withdrawn offer and sample URLs remain recognized even when their page source is
   // retired. The public response is 410 and reuses the rendered site shell
-  // from /withdrawn-offer.
+  // from the matching offer or sample notice.
   if (
     isWithdrawnOfferPath(pathname) &&
     request.headers.get(WITHDRAWN_SHELL_HEADER) !== "1"
@@ -72,10 +78,11 @@ export async function middleware(request: NextRequest) {
     if (request.method === "HEAD") {
       return new NextResponse(null, { status: 410, headers });
     }
+    const sample = isWithdrawnSamplePath(pathname);
+    const polish = isPolishOfferPath(pathname);
     const shell = request.nextUrl.clone();
-    shell.pathname = isPolishOfferPath(pathname)
-      ? "/pl/withdrawn-offer"
-      : "/withdrawn-offer";
+    const shellPath = sample ? "/review/withdrawn-sample" : "/withdrawn-offer";
+    shell.pathname = `${polish ? "/pl" : ""}${shellPath}`;
     shell.search = "";
     try {
       const rendered = await fetch(shell, {
@@ -87,7 +94,7 @@ export async function middleware(request: NextRequest) {
         },
         signal: AbortSignal.timeout(8000),
       });
-      if (!rendered.ok) return withdrawnFallback();
+      if (!rendered.ok) return withdrawnFallback(sample, polish);
       return new NextResponse(await rendered.arrayBuffer(), {
         status: 410,
         headers: {
@@ -97,7 +104,7 @@ export async function middleware(request: NextRequest) {
         },
       });
     } catch {
-      return withdrawnFallback();
+      return withdrawnFallback(sample, polish);
     }
   }
 

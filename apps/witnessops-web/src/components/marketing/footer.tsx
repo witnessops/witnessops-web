@@ -48,7 +48,6 @@ type FooterLink = { label: string; href: string };
 export function footerResourceLinks(): FooterLink[] {
   return [
     { label: "Sample work", href: "/review/sample-cases" },
-    { label: "Research", href: "/research" },
     ...(sovereignAssistantPublished() ? [{ label: "Ask Sovereign", href: "/docs/assistant" }] : []),
     { label: "Verify a receipt", href: "/verify" },
   ];
@@ -68,7 +67,6 @@ const POLISH_FOOTER = {
   subline: "Jedno istotne działanie agenta. Pisemne ustalenia i jawne granice przeglądu.",
   links: [
     { label: "Podejście", href: "/pl/why-witnessops" },
-    { label: "Badania i artykuły (EN)", href: "/research" },
     { label: "Przykładowe prace", href: "/review/sample-cases" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },

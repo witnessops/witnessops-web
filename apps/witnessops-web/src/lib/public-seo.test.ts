@@ -14,7 +14,7 @@ import {
   publicExposureServiceJsonLd,
   websiteJsonLd,
 } from "./public-seo";
-import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
+import { WITHDRAWN_OFFER_PATHS, WITHDRAWN_SAMPLE_PATHS } from "./withdrawn-offer-routes";
 
 test("canonical URLs always use the HTTPS apex and drop query tracking", () => {
   assert.equal(CANONICAL_ORIGIN, "https://witnessops.com");
@@ -78,7 +78,7 @@ test("paired pages keep en, pl and x-default, and withdrawn pages have none", ()
     pl: "/pl/contact",
   });
   assert.equal(languagePairForPath("/review/request"), undefined);
-  for (const path of WITHDRAWN_OFFER_PATHS) {
+  for (const path of [...WITHDRAWN_OFFER_PATHS, ...WITHDRAWN_SAMPLE_PATHS]) {
     assert.equal(languagePairForPath(path), undefined, path);
   }
 });

@@ -44,7 +44,7 @@ for (const width of [1440,390]) {
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     }
     await page.locator('#site-footer').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`footer-${width}.png`)});
-    await expect(page.locator('#site-footer').getByRole('link',{name:'Research',exact:true})).toHaveAttribute('href','/research');
+    await expect(page.locator('#site-footer').getByRole('link',{name:'Research',exact:true})).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 }

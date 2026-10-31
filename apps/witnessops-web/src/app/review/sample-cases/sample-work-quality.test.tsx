@@ -1,60 +1,43 @@
 import assert from "node:assert/strict";
+import { readdirSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
+import { WITHDRAWN_SAMPLE_PATHS } from "@/lib/withdrawn-offer-routes";
 import Index from "./page";
-import Launch from "./launch-readiness-review/page";
-import Custody from "./custody-wallet-ops-review/page";
-import Access from "./access-removed-proof/page";
-import Incident from "./incident-readiness-review/page";
-import Local from "./local-server-security-review/page";
-import CustomerSecurityReview from "./customer-security-review-sprint/page";
 
-test("all five historical proofpacks disclose incompatible Bundle V1 and unavailable verifier", () => {
-  for (const Page of [Launch, Custody, Access, Incident, Local]) {
-    const html = renderToStaticMarkup(<Page />);
-    assert.ok(html.includes("earlier proofpack format"));
-    assert.match(html, /not compatible with the\s*current Bundle V1 verifier/);
-    assert.match(html, /pinned historical verifier is not presently\s*available/);
-    assert.match(html, /href="\/samples\/[^" ]+\.proofpack"/);
-    assert.ok(!html.includes('href="/proofpack"'));
-    assert.ok(!html.includes("Offline product verifier path"));
-    if (Page !== Local) assert.ok(!html.includes('href="/verify"'));
-  }
-});
+const agentSamples = [
+  "ai-agent-action-proof-run",
+  "witnessed-crm-status-change",
+  "privileged-access-grant",
+  "approval-gated-containment",
+];
 
-test("index leads with the agent specimen and labels the parked external sample", () => {
+test("sample index exposes only four agent-action examples with their limits", () => {
   const html = renderToStaticMarkup(<Index />);
-  assert.ok(html.includes('href="/review/sample-cases/external-exposure-assessment"'));
-  assert.ok(html.includes("not live customer evidence"));
-  assert.ok(!html.includes("How to use these pages"));
-  const agentCard = html.indexOf('href="/review/sample-cases/ai-agent-action-proof-run"');
-  const externalCard = html.indexOf('href="/review/sample-cases/external-exposure-assessment"');
-  assert.ok(agentCard > 0 && agentCard < externalCard);
-  assert.ok(externalCard < html.indexOf("Next steps"));
-  for (const withdrawn of [
-    "/review/sample-cases/local-server-security-review",
-    "/review/sample-cases/launch-readiness-review",
-    "/review/sample-cases/custody-wallet-ops-review",
-    "/review/sample-cases/incident-readiness-review",
-    "/review/sample-cases/customer-security-review-sprint",
-  ]) {
-    assert.equal(html.includes(`href="${withdrawn}"`), false, withdrawn);
+  const linkedCases = [...html.matchAll(/href="(\/review\/sample-cases\/[^"#?]+)"/g)]
+    .map((match) => match[1]);
+  assert.deepEqual(linkedCases, agentSamples.map((slug) => `/review/sample-cases/${slug}`));
+  for (const route of WITHDRAWN_SAMPLE_PATHS) {
+    assert.equal(html.includes(`href="${route}"`), false, route);
   }
-  assert.ok(html.includes("Agent Action Security Review"));
-  assert.ok(html.includes("External Attack Surface Review"));
-  assert.ok(html.includes("no longer available for new engagements"));
-  assert.ok(html.includes("not a complete sample of the current agent review"));
-  assert.ok(html.includes("not additional reviews offered for sale"));
-  assert.ok(!html.includes("compare the two reviews"));
-  assert.ok(!html.includes("External Exposure assessment"));
+  assert.match(html, /Agent Action Security Review/);
+  assert.match(html, /not live customer evidence/);
+  assert.match(html, /not a complete sample of the current agent review/);
+  assert.match(html, /not complete deliverables from the current paid review/);
+  assert.match(html, /Explanatory example only/);
+  assert.doesNotMatch(html, /External Attack Surface Review|SBOM field checklist|Access removed proof/);
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
 });
 
-test("withdrawn customer review sample links only to the current review", () => {
-  const html = renderToStaticMarkup(<CustomerSecurityReview />);
-  assert.match(html, /Historical sample, offer withdrawn/);
-  assert.equal((html.match(/href="\/reviews\/agent-action-security-review"/g) ?? []).length, 2);
-  assert.ok(!html.includes('href="/review/request'));
-  assert.ok(!html.includes("Ask about this review"));
-  assert.ok(!html.includes("Start a review"));
+test("public sample downloads are limited to the retained agent examples and verifier conformance", () => {
+  const folders = readdirSync(resolve(__dirname, "../../../../public/samples"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  assert.deepEqual(folders, [
+    "api-key-rotation",
+    "governed-agent-verifier-conformance",
+    "witnessed-crm-status-change",
+  ]);
 });

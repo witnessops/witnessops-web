@@ -61,3 +61,53 @@ test("an OK withdrawn shell is still served as 410", async () => {
   assert.match(requested, /\/pl\/withdrawn-offer/);
   assert.match(await response.text(), /shell ok/);
 });
+
+test("retired samples select the sample shell in EN and PL without changing the 410 response", async () => {
+  for (const [path, shellPath] of [
+    ["/review/sample-cases/sbom-cisa-2026-minimum-elements", "/review/withdrawn-sample"],
+    ["/PL/REVIEW/SAMPLE-CASES/ACCESS-REMOVED-PROOF", "/pl/review/withdrawn-sample"],
+  ]) {
+    let requested = "";
+    globalThis.fetch = async (input) => {
+      requested = String(input);
+      return new Response("<html>sample shell</html>", { status: 200 });
+    };
+    const response = await middleware(withdrawnRequest(path));
+    assert.equal(response.status, 410);
+    assert.equal(response.headers.get("x-robots-tag"), "noindex");
+    assert.equal(new URL(requested).pathname, shellPath);
+    assert.match(await response.text(), /sample shell/);
+  }
+});
+
+test("failed sample-shell fetches keep a localized sample retirement fallback with no-store", async () => {
+  for (const polish of [false, true]) {
+    for (const failure of ["throw", "timeout", "non-ok"]) {
+      globalThis.fetch = async () => {
+        if (failure === "throw") throw new Error("private error");
+        if (failure === "timeout") throw new DOMException("private error", "TimeoutError");
+        return new Response("private error", { status: 500 });
+      };
+      const prefix = polish ? "/pl" : "";
+      const response = await middleware(withdrawnRequest(`${prefix}/review/sample-cases/external-exposure-assessment`));
+      assert.equal(response.status, 410);
+      assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.equal(response.headers.get("x-robots-tag"), "noindex");
+      const body = await response.text();
+      assert.ok(body.includes(polish ? "Ten przykład został wycofany" : "This sample has been retired"));
+      assert.ok(body.includes(`href="${prefix}/reviews/agent-action-security-review"`));
+      assert.match(body, /href="\/review\/sample-cases"/);
+      assert.doesNotMatch(body, /private error|This offer has been withdrawn|Ta oferta została wycofana/);
+    }
+  }
+});
+
+test("retired sample HEAD requests return noindex 410 without fetching a shell", async () => {
+  globalThis.fetch = async () => {
+    assert.fail("HEAD must not fetch a shell");
+  };
+  const response = await middleware(withdrawnRequest("/review/sample-cases/access-removed-proof", "HEAD"));
+  assert.equal(response.status, 410);
+  assert.equal(response.headers.get("x-robots-tag"), "noindex");
+  assert.equal(await response.text(), "");
+});

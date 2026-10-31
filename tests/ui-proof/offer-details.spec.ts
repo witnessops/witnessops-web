@@ -35,20 +35,26 @@ const externalReviewRedirects = [
   },
 ] as const;
 
-async function expectWithdrawnShell(page: Page, path: string) {
+async function expectWithdrawnShell(page: Page, path: string, sample = false) {
   const response = await page.goto(path, { waitUntil: "networkidle" });
   expect(response?.status(), path).toBe(410);
   await expect(page).toHaveURL(new RegExp(`${path.replaceAll("/", "\\/")}$`));
   const main = page.locator("main");
-  const polish = path.startsWith("/pl/");
+  const polish = path.toLowerCase().startsWith("/pl/");
   await expect(main.locator("h1")).toHaveText(
-    polish ? "Ta oferta została wycofana" : "This offer has been withdrawn",
+    sample
+      ? (polish ? "Ten przykład został wycofany" : "This sample has been retired")
+      : (polish ? "Ta oferta została wycofana" : "This offer has been withdrawn"),
   );
   const prefix = polish ? "/pl" : "";
   await expect(main.locator(`a[href="${prefix}/reviews/agent-action-security-review"]`)).toHaveCount(1);
   await expect(main.locator(`a[href="${prefix}/reviews/external-attack-surface-review"]`)).toHaveCount(0);
   await expect(main.locator('a[href*="/review/request"]')).toHaveCount(0);
   await expect(main.locator("form")).toHaveCount(0);
+  if (sample) {
+    await expect(main.locator('a[href="/review/sample-cases"]')).toHaveCount(1);
+    await expect(main).not.toContainText(/This offer has been withdrawn|Ta oferta została wycofana/);
+  }
   return main;
 }
 
@@ -115,6 +121,21 @@ test("withdrawn offer details answer 410 inside the site shell on their own URL"
   }
 });
 
+test("case variants of withdrawn OffSec catalogue URLs answer 410 in EN and PL", async ({ page }) => {
+  test.setTimeout(90_000);
+  for (const slug of [
+    "OFFSEC-LOCAL-AUDIT",
+    "OFFSEC-LAUNCH-READY",
+    "OFFSEC-CUSTODY-OPS",
+    "OFFSEC-INCIDENT-READY",
+  ]) {
+    for (const prefix of ["/catalog", "/PL/CATALOG"] as const) {
+      const path = `${prefix}/${slug}`;
+      await expectWithdrawnShell(page, path);
+    }
+  }
+});
+
 test("External Attack Surface Review catalogue URLs land on the review page with its request path", async ({ browser }) => {
   for (const offer of externalReviewRedirects) {
     for (const viewport of viewports) {
@@ -170,83 +191,34 @@ test("Customer Security Review Sprint is withdrawn in both languages", async ({ 
   }
 });
 
-test("historical customer review sample points to the current review without reopening intake", async ({ page }) => {
-  const response = await page.goto("/review/sample-cases/customer-security-review-sprint", { waitUntil: "networkidle" });
-  expect(response?.status()).toBe(200);
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-  const main = page.locator('[data-page="csr-sample"]');
-  await expect(main.locator('[data-historical-offer="withdrawn"]')).toContainText("Historical sample, offer withdrawn");
-  await expect(main.getByRole("link", { name: "See the Agent Action Security Review", exact: true })).toHaveCount(2);
-  await expect(main.locator('a[href="/reviews/agent-action-security-review"]')).toHaveCount(2);
-  await expect(main.locator('a[href^="/review/request"]')).toHaveCount(0);
-  await expect(main.locator("form")).toHaveCount(0);
-  await expect(main).not.toContainText("Ask about this review");
-});
-
-test("External Attack Surface Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
-  const expectedFiles = [
-    "README.md",
-    "external-exposure-assessment.md",
-    "exposure-map.json",
-    "findings.json",
-    "evidence-register.json",
-    "handover-agenda.md",
-    "focused-retest-result.md",
-    "synthetic-rehearsal-checklist.md",
-    "synthetic-timesheet.md",
-    "CLAIM_BOUNDARY.md",
-    "evidence-manifest.json",
-    "verifier-result.json",
-    "MANIFEST.sha256",
-  ];
-
-  for (const viewport of viewports) {
-    const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
-    const page = await context.newPage();
-    const consoleErrors: string[] = [];
-    const pageErrors: string[] = [];
-    page.on("console", (message) => {
-      if (message.type() === "error") consoleErrors.push(message.text());
-    });
-    page.on("pageerror", (error) => pageErrors.push(error.message));
-
-    const response = await page.goto(
-      "/review/sample-cases/external-exposure-assessment",
-      { waitUntil: "networkidle" },
-    );
-    expect(response?.status()).toBe(200);
-    const main = page.locator(
-      '[data-page="external-exposure-assessment-sample"]',
-    );
-    await expect(main.locator("h1")).toHaveText("External Attack Surface Review");
-    await expect(main).toContainText("This is not a penetration test");
-    await expect(main).toContainText(
-      "Synthetic worked example, not customer evidence.",
-    );
-    await expect(main).toContainText(
-      "Neither result proves that observations are complete",
-    );
-    await expect(main).not.toContainText("assessment of WitnessOps");
-
-    for (const file of expectedFiles) {
-      await expect(
-        main.locator(`a[href="/samples/offsec-external-exposure/${file}"]`),
-      ).toHaveCount(1);
+test("retired sample pages answer 410 in EN and PL, including case variants", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const slug of [
+    "external-exposure-assessment",
+    "access-removed-proof",
+    "sbom-cisa-2026-minimum-elements",
+    "local-server-security-review",
+    "launch-readiness-review",
+    "custody-wallet-ops-review",
+    "incident-readiness-review",
+    "customer-security-review-sprint",
+  ]) {
+    for (const prefix of ["/review/sample-cases", "/pl/review/sample-cases"]) {
+      const canonical = `${prefix}/${slug}`;
+      for (const path of [canonical, canonical.toUpperCase()]) {
+        const main = await expectWithdrawnShell(page, path, true);
+        await expect(main.locator('a[href*="/samples/"], a[href$=".proofpack"]')).toHaveCount(0);
+        await expect(main).not.toContainText(/Download|Synthetic worked example|Historical sample, offer withdrawn/);
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+        expect(overflow, path).toBeLessThanOrEqual(1);
+      }
+      const response = await page.request.head(canonical);
+      expect(response.status(), canonical).toBe(410);
+      expect(response.headers()["x-robots-tag"], canonical).toBe("noindex");
     }
-
-    await expect(main.locator('a[href*="productId=OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
-    await expect(main.locator('a[href^="/review/request"]')).toHaveCount(0);
-    const notice = main.getByRole("link", { name: "Read the availability notice", exact: true });
-    await expect(notice).toHaveAttribute("href", "/reviews/external-attack-surface-review");
-    expect((await notice.boundingBox())?.height).toBeGreaterThanOrEqual(44);
-
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
-    expect(consoleErrors).toEqual([]);
-    expect(pageErrors).toEqual([]);
-    await context.close();
   }
 });
 

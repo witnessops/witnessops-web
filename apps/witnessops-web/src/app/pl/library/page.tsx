@@ -78,12 +78,7 @@ const secondaryGroups = [
       [
         "Pakiet zmiany agenta AI",
         "/review/sample-cases/ai-agent-action-proof-run",
-        "Pełny pakiet przykładowy po angielsku.",
-      ],
-      [
-        "Kontrola elementów SBOM (CISA 2026)",
-        "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-        "Lista kontrolna na syntetycznym SBOM, nie certyfikat.",
+        "Historyczny syntetyczny przykład jednego działania, nie pełna próbka obecnego przeglądu. Materiał po angielsku.",
       ],
     ],
   },

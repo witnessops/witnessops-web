@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-import { withdrawnOfferCopy } from "@/lib/withdrawn-offer-routes";
+import { withdrawnOfferCopy, withdrawnSampleCopy } from "@/lib/withdrawn-offer-routes";
 
 /** Withdrawal notice rendered inside the public site shell. */
-export function WithdrawnOfferNotice({ polish }: { polish: boolean }) {
-  const copy = withdrawnOfferCopy(polish);
+export function WithdrawnOfferNotice({ polish, sample = false }: { polish: boolean; sample?: boolean }) {
+  const copy = sample ? withdrawnSampleCopy(polish) : withdrawnOfferCopy(polish);
 
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-16 sm:py-20">

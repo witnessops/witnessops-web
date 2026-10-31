@@ -87,7 +87,10 @@ test("External Attack Surface Review confirmation states the parked offer bounda
   assert.match(confirmed, /no longer available for new engagements/);
   assert.match(confirmed, /not the Agent Action Security Review/);
   assert.match(confirmed, /No new target-facing work starts from this confirmation alone/);
-  assert.match(confirmed, /external-exposure-assessment/);
+  assert.match(confirmed, /\/pl\/reviews\/external-attack-surface-review/);
+  assert.match(confirmed, /\/reviews\/external-attack-surface-review/);
+  assert.match(confirmed, /availability notice/);
+  assert.doesNotMatch(confirmed, /\/review\/sample-cases\/(?:external-exposure-assessment|access-removed-proof)/);
   assert.match(confirmed, /EXTERNAL_ATTACK_SURFACE_OFFER\.name/);
   assert.doesNotMatch(confirmed, /payment, the SOW, written authority, required inputs/);
   assert.doesNotMatch(confirmed, /collection window/);

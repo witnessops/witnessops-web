@@ -15,13 +15,6 @@ const caddySource = readFileSync(
   resolve(__dirname, "../../../../deploy/Caddyfile.witnessops-canonical-host"),
   "utf8",
 );
-const sbomSampleSource = readFileSync(
-  resolve(
-    __dirname,
-    "review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
-  ),
-  "utf8",
-);
 
 test("retired access-removal URLs preserve compatibility with permanent redirects", async () => {
   const redirects = (await nextConfig.redirects?.()) ?? [];
@@ -101,8 +94,4 @@ test("Caddy canonicalizes HTTP and www directly to the HTTPS apex", () => {
     caddySource,
     /witnessops\.com, www\.witnessops\.com, docs\.witnessops\.com/,
   );
-});
-
-test("public samples do not link to contained unresolved offers", () => {
-  assert.doesNotMatch(sbomSampleSource, /href="\/catalog\/sbom-min-elements"/);
 });

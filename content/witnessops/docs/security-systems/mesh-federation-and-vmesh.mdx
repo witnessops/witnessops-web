@@ -53,9 +53,17 @@ Mesh federation is **operator infrastructure hygiene**. It supports how you run 
 - Public mesh receipts are redacted: no filesystem paths, no scope-lock bodies.
 - Ingest acceptance does not imply hunt verify PASS.
 
-## 6. Public mesh gate (ADR 0008)
+## 6. Legacy mesh gate compatibility (ADR 0008)
 
-Integrators can read a published operator index at `/.well-known/mesh-receipt-index.json` and POST redacted `offseclane.mesh_receipt_public.v1` documents to `/api/mesh-gate` for structure and `content_sha256` checks.
+The demonstration operator index formerly served at
+`/.well-known/mesh-receipt-index.json` has been removed from source. GET
+`/api/mesh-gate` reports `index_published: false` and `well_known_index: null`.
+This source change does not establish deployment.
+
+POST `/api/mesh-gate` remains for legacy structural compatibility: it checks
+submitted redacted `offseclane.mesh_receipt_public.v1` documents and their
+`content_sha256`. Its synthetic test fixture is not a published operator index
+or an Agent Action Security Review sample.
 
 That API is **not** `/api/verify` and does not prove customer environment security.
 

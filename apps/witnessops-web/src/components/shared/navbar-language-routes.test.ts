@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i18n";
+import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary navigation exposes the simplified website destinations", () => {
@@ -155,16 +156,23 @@ test("English public navigation uses Request an agent review as the primary acti
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
 });
 
- test("grouped navigation respects the CTA variant and preserves catalogue destinations", () => {
+test("grouped navigation keeps the current review and focused resources", () => {
   const mobile = readFileSync(resolve(__dirname, "mobile-navbar-menu.tsx"), "utf-8");
-  const groups = readFileSync(resolve(__dirname, "public-nav-groups.ts"), "utf-8");
   assert.match(mobile, /variant=\{cta.variant as/);
   assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
   assert.match(navbar, /label: "Request an agent review"/);
   assert.doesNotMatch(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
-  assert.match(groups, /label: "Sample work", href: "\/review\/sample-cases"/);
-  assert.match(groups, /label: "The review", href: "\/reviews"/);
-  assert.match(groups, /label: "The Sovereign Chronicles", href: "\/chronicles"/);
-  assert.match(groups, /label: "Tool · not a review"/);
+  const reviews = PUBLIC_NAV_GROUPS.find((group) => group.label === "Reviews");
+  assert.ok(reviews);
+  assert.ok(reviews.links.some((link) => link.label === "The review" && link.href === "/reviews"));
+  const resources = PUBLIC_NAV_GROUPS.find((group) => group.label === "Resources");
+  assert.ok(resources);
+  assert.deepEqual(resources.links.map((link) => [link.label, link.href]), [
+    ["Docs", "/docs"],
+    ["Sample work", "/review/sample-cases"],
+    ["Verify a receipt", "/verify"],
+    ["Tool · not a review", "/check"],
+  ]);
+  assert.equal(resources.links[1].description, "Agent-action examples and their evidence limits.");
 });

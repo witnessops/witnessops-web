@@ -26,8 +26,12 @@ for attempt in $(seq 1 60); do
   if curl -fsS "${base}/" >/dev/null; then break; fi
   sleep 1
 done
-for route in / /pl /reviews /contact /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/external-exposure-assessment; do
+for route in / /pl /reviews /contact /review/request /verify /proofpack /images/karol-stefanski.jpg /review/sample-cases/ai-agent-action-proof-run /review/sample-cases/witnessed-crm-status-change; do
   test "$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${base}${route}")" = 200
+done
+# Removed non-agent sample pages must remain retired in the built runtime.
+for sample in external-exposure-assessment access-removed-proof sbom-cisa-2026-minimum-elements local-server-security-review launch-readiness-review custody-wallet-ops-review incident-readiness-review customer-security-review-sprint; do
+  test "$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${base}/review/sample-cases/${sample}")" = 410
 done
 # Existing redirect contracts; never follow the external status destination.
 headers="$(mktemp)"

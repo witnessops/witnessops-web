@@ -1,6 +1,9 @@
 export const CURRENT_PUBLIC_CATALOG_SKU_IDS = [
-  "OFFSEC-LOCAL-AUDIT",
   "OFFSEC-EXTERNAL-EXPOSURE",
+] as const;
+
+export const WITHDRAWN_CATALOG_SKU_IDS = [
+  "OFFSEC-LOCAL-AUDIT",
   "OFFSEC-LAUNCH-READY",
   "OFFSEC-CUSTODY-OPS",
   "OFFSEC-INCIDENT-READY",
@@ -39,6 +42,7 @@ export const UNRESOLVED_CATALOG_SKU_IDS = [
 
 type CatalogSkuDisposition =
   | "current"
+  | "withdrawn"
   | "private_preview"
   | "replacement_available"
   | "unresolved";
@@ -46,6 +50,9 @@ type CatalogSkuDisposition =
 export function catalogSkuDisposition(id: string): CatalogSkuDisposition {
   if ((CURRENT_PUBLIC_CATALOG_SKU_IDS as readonly string[]).includes(id)) {
     return "current";
+  }
+  if ((WITHDRAWN_CATALOG_SKU_IDS as readonly string[]).includes(id)) {
+    return "withdrawn";
   }
   if ((PRIVATE_PREVIEW_CATALOG_SKU_IDS as readonly string[]).includes(id)) {
     return "private_preview";

@@ -47,7 +47,7 @@ retained as superseded research, not a current general naming policy.
 | 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current Agent Action readiness; earlier rehearsals retained as historical |
 | 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | Agent Action terms for a new agreement; historical blocks for issued agreements |
 | 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current Agent Action lifecycle; earlier delivery paths retained as historical |
-| 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
+| 08 | [Artifact map](./08-artifact-map.md) | Current agent examples, retained verifier fixtures and retired sample identities |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Historical July 2026 research and superseded PLN display policy |
 | 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | Historical fixed-scope terms for issued agreements |
 | 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Historical fit and order process; not for new sales |
@@ -69,27 +69,31 @@ Source routes below. A listed URL is not evidence that the route is the released
 | Agent Action Security Review request | https://witnessops.com/review/request?offerId=agent-action-security-review |
 | Retired External Attack Surface Review request (availability notice only) | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
 | Former inventory-offer route (410 withdrawal notice) | https://witnessops.com/catalog/workflows |
-| Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
+| Compromised API key rotation (historical synthetic agent specimen) | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
+| Witnessed synthetic CRM action | https://witnessops.com/review/sample-cases/witnessed-crm-status-change |
+| Privileged access grant (explanatory example) | https://witnessops.com/review/sample-cases/privileged-access-grant |
+| Approval-gated containment (explanatory example) | https://witnessops.com/review/sample-cases/approval-gated-containment |
 | Former CSR service route (410 withdrawal notice) | https://witnessops.com/customer-security-review |
-| CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |
-| CSR full synthetic package | https://witnessops.com/samples/csr-sprint-synthetic/ |
 | Former One Server service route (410 withdrawal notice) | https://witnessops.com/catalog/offsec-local-audit |
-| One Server sample page | https://witnessops.com/review/sample-cases/local-server-security-review |
-| One Server web fixture | https://witnessops.com/samples/offsec-shield-local-server-audit/ |
-| One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |
 | External review availability notice (redirect) | https://witnessops.com/catalog/offsec-external-exposure |
-| External Attack Surface Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
 | Agent review fit check | https://witnessops.com/review/request |
 | Free hostname check | https://witnessops.com/check |
-| All samples | https://witnessops.com/review/sample-cases |
+| Agent action examples | https://witnessops.com/review/sample-cases |
 
-## Linux sample runs found on this device
+## Sample retirement — 2026-10-31 source change
 
-| Artifact | Location | Public? |
-| --- | --- | --- |
-| Web fixture (demo-host) | Site `/samples/offsec-shield-local-server-audit/` | Yes |
-| Suite product sample `pr_lsa_20260710120000_198fd7aceb` | Site `/samples/offsec-local-audit/` + Desktop suite | Yes (mirrored) |
-| Restricted live-style report (valid + **partial**) | Held outside this public repo | **No — private operator study only** |
+The sample index now contains only examples relevant to the Agent Action Security
+Review. They remain synthetic or explanatory; none is a complete customer review
+delivery. A signed specimen does not add signing or a verifier to the current
+review's standard deliverables.
+
+The earlier External, One Server, CSR, launch, custody, incident, access-removal
+and SBOM sample pages are retired with 410 responses. Their stale public download
+families, including the mesh export, are removed from this source tree. The
+[artifact map](./08-artifact-map.md) records the retired names and paths;
+historical documents and Git history preserve their identity. Independent
+receipt-verifier fixtures remain for compatibility and rejection tests. Private
+operator evidence is unchanged. This is not a production deployment record.
 
 ## Operating rules
 

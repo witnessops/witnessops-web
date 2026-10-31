@@ -13,6 +13,7 @@ import {
   PRIVATE_PREVIEW_CATALOG_SKU_IDS,
   REPLACED_CATALOG_SKU_IDS,
   UNRESOLVED_CATALOG_SKU_IDS,
+  WITHDRAWN_CATALOG_SKU_IDS,
 } from "@/lib/public-commercial-routes";
 
 /**
@@ -83,6 +84,7 @@ const HISTORICAL_IDS = new Set<string>([
     service.productId ? [service.id, service.productId] : [service.id],
   ),
   ...CURRENT_PUBLIC_CATALOG_SKU_IDS,
+  ...WITHDRAWN_CATALOG_SKU_IDS,
 ]);
 
 HISTORICAL_IDS.delete(NEW_SALES_AGENT_ACTION_OFFER_ID);

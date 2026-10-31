@@ -94,6 +94,12 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.equal(enHrefs.includes("/reviews/external-attack-surface-review"), false);
   assert.equal(plHrefs.includes("/pl/reviews/external-attack-surface-review"), false);
   assert.equal(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en), false);
+  assert.equal(enHrefs.includes("/research"), false);
+  assert.equal(plHrefs.includes("/research"), false);
+  assert.ok(enHrefs.includes("/review/sample-cases"));
+  assert.ok(plHrefs.includes("/review/sample-cases"));
+  assert.ok(enHrefs.includes("/verify"));
+  assert.ok(plHrefs.includes("/pl/verify"));
 
   for (const href of ["/privacy", "/terms", "/security", "/company", "/media-kit"]) {
     assert.ok(enHrefs.includes(href), `missing EN footer href ${href}`);

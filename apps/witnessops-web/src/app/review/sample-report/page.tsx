@@ -148,9 +148,9 @@ export default function SampleReportPage() {
               See what a bounded review looks like
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              Situation: you want to see how a bounded review is written before
-              requesting one. This page is an illustrative report shape and
-              judgment style only. It is not a live customer report and not a
+              This example illustrates one automated deployment action, relevant
+              to Agent Action Security Review. It shows a report shape and
+              judgment style, not a complete delivery of the current paid review. It is not a live customer report and not a
               claim of completed verification for your system.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">

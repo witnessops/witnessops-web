@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  loadPublishedMeshReceiptIndex,
-  validateMeshReceiptPublic,
-} from "@/lib/mesh-gate";
+import { validateMeshReceiptPublic } from "@/lib/mesh-gate";
 import {
   findDuplicateJsonObjectKey,
   JsonAmbiguityScanLimitError,
@@ -19,15 +16,14 @@ export const runtime = "nodejs";
 const BODY_LIMIT = 256 * 1024;
 
 export async function GET() {
-  const index = loadPublishedMeshReceiptIndex();
   return NextResponse.json({
     schema: "witnessops.mesh_gate_discovery.v1",
     scope: "operator-mesh-hygiene-only",
-    well_known_index: "/.well-known/mesh-receipt-index.json",
+    well_known_index: null,
     post: "Submit JSON body: offseclane.mesh_receipt_public.v1",
-    index_published: index !== null,
+    index_published: false,
     disclaimer:
-      "Does not replace /api/verify, bastion hunt verify, or local-server-audit package offline verify.",
+      "The demonstration operator index is retired. POST remains for legacy structural compatibility only; not Agent Action Security Review evidence or /api/verify proof.",
   });
 }
 

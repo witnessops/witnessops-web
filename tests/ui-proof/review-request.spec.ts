@@ -634,6 +634,8 @@ test("confirmation routes render a bounded browser-held request record", async (
       reviewStarted: "Review started",
       evidenceAccepted: "Customer evidence accepted",
       no: "No",
+      availability: "/reviews/external-attack-surface-review",
+      availabilityLabel: "Read the External Attack Surface Review availability notice",
       boundary:
         "Do not send secrets or source materials until scope and evidence handling are agreed.",
     },
@@ -645,6 +647,8 @@ test("confirmation routes render a bounded browser-held request record", async (
       reviewStarted: "Przegląd rozpoczęty",
       evidenceAccepted: "Materiały klienta przyjęte",
       no: "Nie",
+      availability: "/pl/reviews/external-attack-surface-review",
+      availabilityLabel: "Sprawdź dostępność External Attack Surface Review",
       boundary:
         "Nie wysyłaj sekretów ani materiałów źródłowych, dopóki nie uzgodnimy zakresu i sposobu ich obsługi.",
     },
@@ -698,9 +702,12 @@ test("confirmation routes render a bounded browser-held request record", async (
       expect(negativeFacts.filter((value) => value.trim() === scenario.no)).toHaveLength(2);
       await expect(
         confirmed.locator(
-          'a[href="/review/sample-cases/external-exposure-assessment"]',
+          `a[href="${scenario.availability}"]`,
         ),
-      ).toHaveCount(1);
+      ).toHaveText(scenario.availabilityLabel);
+      await expect(
+        confirmed.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
+      ).toHaveCount(0);
       await expect(
         page.locator('[data-ui-proof-id="review-request-record-missing"]'),
       ).toHaveCount(0);

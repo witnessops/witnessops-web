@@ -6,13 +6,21 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/check", "/early-access", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
+const addedOfferRoutes = ["/check", "/early-access", "/pl/review/withdrawn-sample", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot", "/review/withdrawn-sample"] as const;
 const retiredRoutes = [
   { publicPath: "/catalog/workflows", appPath: "/(marketing)/catalog/workflows/page" },
   { publicPath: "/catalog/professional-public-footprint-audit", appPath: "/(marketing)/catalog/professional-public-footprint-audit/page" },
   { publicPath: "/pl/catalog/professional-public-footprint-audit", appPath: "/pl/catalog/professional-public-footprint-audit/page" },
   { publicPath: "/customer-security-review", appPath: "/customer-security-review/page" },
   { publicPath: "/pl/customer-security-review", appPath: "/pl/customer-security-review/page" },
+  { publicPath: "/review/sample-cases/access-removed-proof", appPath: "/review/sample-cases/access-removed-proof/page" },
+  { publicPath: "/review/sample-cases/customer-security-review-sprint", appPath: "/review/sample-cases/customer-security-review-sprint/page" },
+  { publicPath: "/review/sample-cases/custody-wallet-ops-review", appPath: "/review/sample-cases/custody-wallet-ops-review/page" },
+  { publicPath: "/review/sample-cases/external-exposure-assessment", appPath: "/review/sample-cases/external-exposure-assessment/page" },
+  { publicPath: "/review/sample-cases/incident-readiness-review", appPath: "/review/sample-cases/incident-readiness-review/page" },
+  { publicPath: "/review/sample-cases/launch-readiness-review", appPath: "/review/sample-cases/launch-readiness-review/page" },
+  { publicPath: "/review/sample-cases/local-server-security-review", appPath: "/review/sample-cases/local-server-security-review/page" },
+  { publicPath: "/review/sample-cases/sbom-cisa-2026-minimum-elements", appPath: "/review/sample-cases/sbom-cisa-2026-minimum-elements/page" },
 ] as const;
 
 function loadJson(path: string) {
@@ -118,7 +126,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
     assert.equal(Object.hasOwn(manifest, appPath), false);
     delete expectedManifest[appPath];
   }
-  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page"]) {
+  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }

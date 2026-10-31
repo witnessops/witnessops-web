@@ -67,8 +67,7 @@ const copy = {
     ],
     waitLabel: "Inspect while you wait",
     specimen: "Inspect a sample review record",
-    accessChangeSpecimen: "Inspect an access-change proof sample",
-    publicExposureSpecimen: `Inspect the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} sample`,
+    publicExposureAvailability: `Read the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} availability notice`,
     proofModel: "Read the proof model",
     serviceCatalogue: "Explore the service catalogue",
     missingEyebrow: "Review request / no local record",
@@ -108,8 +107,7 @@ const copy = {
     ],
     waitLabel: "Sprawdź w oczekiwaniu",
     specimen: "Sprawdź przykładowy zapis przeglądu (EN)",
-    accessChangeSpecimen: "Sprawdź przykład zmiany dostępu (EN)",
-    publicExposureSpecimen: `Sprawdź przykład ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} (EN)`,
+    publicExposureAvailability: `Sprawdź dostępność ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`,
     proofModel: "Przeczytaj model dowodowy",
     serviceCatalogue: "Zobacz katalog usług",
     missingEyebrow: "Zgłoszenie przeglądu / brak lokalnego zapisu",
@@ -188,8 +186,6 @@ export function ReviewRequestConfirmed({
     confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
     confirmation.requestKind === "ai-agent-action-proof-run";
-  const accessChangeProofRun =
-    confirmation.requestKind === "access-change-proof-run";
   const nextSteps = publicExposureReview
     ? text.publicExposureNextSteps
     : agentActionRequest
@@ -199,19 +195,16 @@ export function ReviewRequestConfirmed({
         : text.nextSteps;
   const proofResource = publicExposureReview
     ? {
-        href: "/review/sample-cases/external-exposure-assessment",
-        label: text.publicExposureSpecimen,
+        href: locale === "pl"
+          ? "/pl/reviews/external-attack-surface-review"
+          : "/reviews/external-attack-surface-review",
+        label: text.publicExposureAvailability,
       }
     : confirmation.requestKind === "agent-risk-control-review" || aiAgentActionProofRun
       ? {
           href: "/review/sample-cases/ai-agent-action-proof-run",
           label: text.specimen,
         }
-      : accessChangeProofRun
-        ? {
-            href: "/review/sample-cases/access-removed-proof",
-            label: text.accessChangeSpecimen,
-          }
       : undefined;
   const serviceId = serviceIdByRequestKind[confirmation.requestKind];
   const selectedService = serviceId ? buyerServiceById(serviceId) : undefined;

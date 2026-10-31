@@ -441,6 +441,11 @@ test("grouped desktop navigation supports keyboard, dismissal and document navig
   await page.keyboard.press("ArrowDown");
   const panel = page.locator("#public-nav-group-2");
   await expect(panel).toBeVisible();
+  await expect(panel.locator("a")).toHaveCount(4);
+  await expect(panel.locator('a[href="/review/sample-cases"]')).toContainText("Agent-action examples and their evidence limits.");
+  for (const href of ["/docs/getting-started/results", "/research", "/chronicles"]) {
+    await expect(panel.locator(`a[href="${href}"]`)).toHaveCount(0);
+  }
   await expect(panel.getByRole("link", { name: /^Docs/ })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
@@ -466,7 +471,7 @@ test("grouped desktop navigation keeps final links reachable in short windows", 
 
   await panel.hover();
   await page.mouse.wheel(0, 600);
-  await expect.poll(() => panel.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await expect(panel.locator("a")).toHaveCount(4);
   const finalLink = panel.locator("a").last();
   await expect(finalLink).toHaveAttribute("href", "/check");
   await expect(finalLink).toBeInViewport({ ratio: 1 });
@@ -489,9 +494,28 @@ test("grouped mobile navigation keeps product and resource links reachable", asy
   await menu.getByRole("button", { name: "Product", exact: true }).click();
   await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
   await menu.getByRole("button", { name: "Resources", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-2").getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
+  const resourceLinks = menu.locator("#witnessops-mobile-menu-group-2");
+  await expect(resourceLinks.locator("a")).toHaveCount(4);
+  for (const href of ["/docs/getting-started/results", "/research", "/chronicles"]) {
+    await expect(resourceLinks.locator(`a[href="${href}"]`)).toHaveCount(0);
+  }
+  await expect(resourceLinks.getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
   await menu.getByRole("link", { name: "Docs", exact: true }).click();
   await expect(page).toHaveURL(/\/docs$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("Resources footer keeps the supported links without Research in both languages", async ({ page }) => {
+  for (const [pathname, label, verifyHref] of [
+    ["/", "Resources", "/verify"],
+    ["/pl", "Zasoby", "/pl/verify"],
+  ]) {
+    await page.goto(pathname);
+    const resources = page.locator("#site-footer").getByRole("navigation", { name: label, exact: true });
+    await expect(resources).toBeVisible();
+    await expect(resources.locator('a[href="/research"]')).toHaveCount(0);
+    await expect(resources.locator('a[href="/review/sample-cases"]')).toBeVisible();
+    await expect(resources.locator(`a[href="${verifyHref}"]`)).toBeVisible();
+  }
 });
