@@ -45,7 +45,7 @@ const primaryPaths = [
   { href: "/docs/getting-started", title: "Start with the app", description: "Free signup, workspace invitations, your first observation and reports.", cta: "Get started" },
   { href: "/docs/getting-started/first-observation", title: "Your first observation", description: "Add an authorized hostname, run a permitted check and find its report.", cta: "Follow the steps" },
   { href: "/docs/getting-started/results", title: "Understand results", description: "Unsigned snapshots, reports and signed packages have different limits.", cta: "Read your result" },
-  { href: "/docs/getting-started/cli", title: "CLI setup and authentication", description: "Run the current CLI source, sign in through your browser and check your session.", cta: "Set up the CLI" },
+  { href: "/docs/getting-started/cli", title: "CLI setup and authentication", description: "Install the supplied CLI pilot archive, sign in through your browser and check your session.", cta: "Set up the CLI" },
   {
     href: "/verify",
     title: "Verify a receipt",
