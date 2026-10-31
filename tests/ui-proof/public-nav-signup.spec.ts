@@ -56,7 +56,7 @@ for (const width of [390, 1440]) {
     await nav.getByRole('button', { name: 'Resources', exact: true }).click();
     const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
     await expect(sampleLink).toHaveCount(1);
-    await expect(sampleLink).toContainText('Sample work');
+    await expect(sampleLink).toContainText('Examples');
     await expect(sampleLink).toHaveAttribute('href', '/review/sample-cases');
     await nav.getByRole('button', { name: 'Reviews', exact: true }).click();
     await nav.locator('a[href="/catalog"]:visible').click();

@@ -19,7 +19,7 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "See a key rotation, step by step.",
+      name: "API key rotation: authority, execution and evidence.",
     }),
   ).toBeVisible();
   await expect(page.getByText("VALID SYNTHETIC SPECIMEN", { exact: true })).toBeVisible();

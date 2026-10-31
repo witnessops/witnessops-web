@@ -110,7 +110,7 @@ test("public page makes replay, local verification, tamper challenge, and limits
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
   const client = readFileSync(resolve(__dirname, "api-key-rotation-demo.tsx"), "utf8");
 
-  assert.match(page, /See a key rotation, step by step\./);
+  assert.match(page, /API key rotation: authority, execution and evidence\./);
   assert.match(page, /Synthetic demo/);
   assert.match(page, /No live systems/);
   assert.match(page, /Published sample, not live customer evidence/);

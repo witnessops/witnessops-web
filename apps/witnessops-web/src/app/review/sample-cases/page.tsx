@@ -7,13 +7,13 @@ import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
-  title: "Sample work",
+  title: "Examples",
   description:
     "Explore agent-action examples: authority, approvals, execution evidence and explicit limits. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
-    title: "Sample work | WitnessOps",
+    title: "Examples | WitnessOps",
     description:
       "Explore agent-action examples: authority, approvals, execution evidence and explicit limits.",
     siteName: "WitnessOps",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     images: DEFAULT_TWITTER_IMAGES,
     card: "summary_large_image",
-    title: "Sample work | WitnessOps",
+    title: "Examples | WitnessOps",
     description:
       "Explore agent-action examples: authority, approvals, execution evidence and explicit limits.",
   },
@@ -95,10 +95,10 @@ export default function SampleCasesIndexPage() {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <header className="max-w-4xl border-b border-surface-border pb-6">
           <h1 className="text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            Sample work
+            Examples
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            Examples of agent actions, approvals and evidence.
+            Agent actions, approvals and supporting evidence.
           </p>
           <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
             Explore four examples relevant to Agent Action Security Review.

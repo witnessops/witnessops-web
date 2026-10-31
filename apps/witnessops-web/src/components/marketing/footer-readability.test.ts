@@ -120,7 +120,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
 test("footer Resources keeps bounded utilities and omits Research", () => {
   const links = footerResourceLinks();
-  assert.ok(links.some((link) => link.label === "Sample work" && link.href === "/review/sample-cases"));
+  assert.ok(links.some((link) => link.label === "Examples" && link.href === "/review/sample-cases"));
   assert.ok(links.some((link) => link.label === "Verify a receipt" && link.href === "/verify"));
   assert.equal(links.some((link) => link.href === "/research"), false);
 });
@@ -137,7 +137,7 @@ test("library surface includes English and Polish library paths", () => {
 
 test("footer uses the bounded public funnel without deleting repair services", () => {
   const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["Agent Action Security Review", "Our approach", "Research & articles", "Sample work", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  for (const label of ["Agent Action Security Review", "Our approach", "Research & articles", "Examples", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
   assert.doesNotMatch(home, /External Attack Surface Review|AI Agent Tools & Access Review/);
   assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });

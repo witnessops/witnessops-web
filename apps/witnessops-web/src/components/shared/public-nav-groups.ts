@@ -9,7 +9,7 @@ export const PUBLIC_NAV_GROUPS = [
   ] },
   { label: "Resources", description: "Understand the product and its limits.", links: [
     { label: "Docs", href: "/docs", description: "App guides, CLI setup and reference." },
-    { label: "Sample work", href: "/review/sample-cases", description: "Agent-action examples and their evidence limits." },
+    { label: "Examples", href: "/review/sample-cases", description: "Agent actions, approvals and supporting evidence." },
     { label: "Verify a receipt", href: "/verify", description: "Supported receipt JSON and named checks." },
     { label: "Tool · not a review", href: "/check", description: "A public hostname snapshot. No account needed." },
   ] },

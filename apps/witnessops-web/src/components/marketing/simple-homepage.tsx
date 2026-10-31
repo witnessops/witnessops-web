@@ -78,7 +78,7 @@ export function SimpleHomepage() {
         <div className={styles.sectionLinks}>
           <TextLink href="/reviews">See the review</TextLink>
           <TextLink href="/pricing">See the price</TextLink>
-          <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore sample work</TextLink>
+          <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore examples</TextLink>
         </div>
       </div>
     </nav>
