@@ -3,10 +3,16 @@ import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server
 import {reportHost} from './lib/report-host';
 import { authConfiguration } from "./lib/auth-config";
 import { appReportOnlyContentSecurityPolicy, createCspNonce } from "./lib/app-security-headers";
+import { aasrStagingRequestBoundary } from './lib/aasr-staging/routes';
 
 const reportOnlyHeader = "Content-Security-Policy-Report-Only";
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
+  const stagingRefusal = aasrStagingRequestBoundary(request);
+  if (stagingRefusal) return stagingRefusal;
+  // Preserve the ordinary artifact's former matcher exclusions; staging still
+  // checks its runtime and route boundary before serving any static response.
+  if (['_next/static', '_next/image', 'favicon.ico'].some(path => request.nextUrl.pathname.startsWith(`/${path}`))) return NextResponse.next();
   try {
     const named=reportHost(request.headers.get('host'));
     if(named){
@@ -32,4 +38,4 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
     return response;
   });
 }
-export const config = { runtime: "nodejs", matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
+export const config = { runtime: "nodejs", matcher: ["/:path*"] };

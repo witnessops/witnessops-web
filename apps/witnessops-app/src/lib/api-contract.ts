@@ -2,7 +2,7 @@ import type { HttpMethod } from "../../../witnessops-web/src/lib/server/api-cont
 /** Product endpoints plus one narrowly token-authorized recipient endpoint. WorkOS authenticates; the database
  * owns active workspace membership. These are separate from the public API. */
 export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: readonly HttpMethod[]; summary: string }> = [
-  { path: "/api/aasr-fixture", methods: ["GET", "POST"], summary: "Development-only synthetic AASR workflow; native membership and independent reviewer assignment; always disabled in production" },
+  { path: "/api/aasr-fixture", methods: ["GET", "POST"], summary: "Synthetic AASR workflow for local development or an explicitly compiled staging profile; native membership and independent assignment required; disabled in standard production builds" },
   { path: "/api/help", methods: ["POST"], summary: "Authenticated documentation-only guidance with generic page context" },
   { path: "/api/billing", methods: ["GET", "POST"], summary: "Workspace billing status and Owner-only sandbox Checkout/Portal" },
   { path: "/api/billing/webhook", methods: ["POST"], summary: "Raw-body Stripe-signed sandbox subscription reconciliation" },

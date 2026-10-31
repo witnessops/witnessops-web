@@ -27,7 +27,22 @@ export async function requireUnrevokedSession(pool: Pool | PoolClient, key: Sess
   }
 }
 
+/** Hold until the caller's transaction commits. Logout takes the matching
+ * exclusive lock, so a protected fixture transition and revocation have a
+ * single database ordering instead of racing after a revocation read. */
+export async function lockUnrevokedSession(client: PoolClient, key: SessionKey): Promise<void> {
+  sessionKey(key.issuer, key.sessionId, key.subject);
+  await client.query('SELECT pg_advisory_xact_lock_shared(hashtextextended($1, 39116))', [JSON.stringify([key.issuer, key.sessionId])]);
+  await requireUnrevokedSession(client, key);
+}
+
 export async function revokeSession(pool: Pool, key: SessionKey): Promise<void> {
   sessionKey(key.issuer, key.sessionId, key.subject);
-  await pool.query("INSERT INTO revoked_sessions (issuer,session_id,subject) VALUES ($1,$2,$3) ON CONFLICT (issuer,session_id) DO NOTHING", [key.issuer, key.sessionId, key.subject]);
+  // One statement retains the pool API and makes lock + insert atomic even
+  // outside an explicit transaction. All native logout callers use this path.
+  await pool.query(`WITH session_lock AS MATERIALIZED (
+    SELECT pg_advisory_xact_lock(hashtextextended($1, 39116))
+  ) INSERT INTO revoked_sessions (issuer,session_id,subject)
+    SELECT $2,$3,$4 FROM session_lock ON CONFLICT (issuer,session_id) DO NOTHING`,
+  [JSON.stringify([key.issuer, key.sessionId]), key.issuer, key.sessionId, key.subject]);
 }

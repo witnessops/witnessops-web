@@ -149,6 +149,7 @@ jobs:
         id: parity
         run: |
           node --test deploy/aws/validate-phase3.test.mjs deploy/aws/verify-scan-evidence.test.mjs deploy/aws/validate-trivy-image.test.mjs
+          node --test deploy/app/staging/config.test.mjs
           python3 deploy/aws/inspect-oci-image.test.py
           python3 deploy/app/host/test_lifecycle.py
           git diff --check
@@ -248,6 +249,9 @@ jobs:
         env:
           APP_CI_TIMINGS: '1'
         run: pnpm test:app-browser --project=${{ matrix.project }}
+      - name: Synthetic AASR desktop and mobile browser acceptance
+        id: aasr_browser
+        run: pnpm exec playwright test --config tests/aasr-fixture/playwright.config.ts --project=${{ matrix.project }} --project=${{ matrix.project }}-mobile
       - name: Preserve content-free browser timings
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

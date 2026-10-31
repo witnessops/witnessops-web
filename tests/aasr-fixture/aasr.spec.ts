@@ -2,8 +2,8 @@ import { test, expect, type Browser, type BrowserContext, type Page, type TestIn
 
 const workspace = "11000000-0000-4000-8000-000000000001";
 const api = "/api/aasr-fixture";
-async function participant(browser: Browser, baseURL: string, session: string) {
-  const context = await browser.newContext({ baseURL });
+async function participant(browser: Browser, baseURL: string, session: string, info: TestInfo) {
+  const context = await browser.newContext({ baseURL, viewport: info.project.use.viewport });
   await context.addCookies([{ name: "aasr_test_session", value: session, url: baseURL }]);
   const page = await context.newPage();
   await page.goto("/");
@@ -46,13 +46,13 @@ test.beforeEach(async ({ request }) => {
 test("native HTTP journey preserves separate participants, partial evidence and simulated delivery", async ({ browser, baseURL }, info) => {
   const contexts: BrowserContext[] = [];
   try {
-    const owner = await participant(browser, baseURL!, "owner"), reviewer = await participant(browser, baseURL!, "reviewer");
+    const owner = await participant(browser, baseURL!, "owner", info), reviewer = await participant(browser, baseURL!, "reviewer", info);
     contexts.push(owner.context, reviewer.context);
-    const viewport = info.project.use.viewport;
-    if (viewport) { await owner.page.setViewportSize(viewport); await reviewer.page.setViewportSize(viewport); }
     const external: string[] = [];
     for (const { page } of [owner, reviewer]) page.on("request", request => { if (!request.url().startsWith(baseURL!)) external.push(request.url()); });
     await expect(owner.page.getByRole("heading", { name: "Synthetic engagement", exact: true })).toBeVisible();
+    await expect(owner.page.getByRole("complementary", { name: "Fixture boundary" })).toContainText("restarting the process loses the engagement");
+    await expect(owner.page.getByRole("complementary", { name: "Fixture boundary" })).toContainText("Nothing is collected, sent or published");
     await expect(owner.page.getByRole("region", { name: "Recipient preview" })).toHaveCount(0);
     await expect(owner.page.getByRole("button", { name: "Record partial-evidence review", exact: true })).toHaveCount(0);
     await expect(owner.page.getByRole("region", { name: "Evidence provenance" })).toContainText("UNKNOWN");
@@ -89,8 +89,8 @@ test("native HTTP journey preserves separate participants, partial evidence and 
   } finally { await Promise.all(contexts.map(context => context.close())); }
 });
 
-test("stale controls refresh the authoritative revision without replaying an accepted action", async ({ browser, baseURL }) => {
-  const first = await participant(browser, baseURL!, "owner"), second = await participant(browser, baseURL!, "owner");
+test("stale controls refresh the authoritative revision without replaying an accepted action", async ({ browser, baseURL }, info) => {
+  const first = await participant(browser, baseURL!, "owner", info), second = await participant(browser, baseURL!, "owner", info);
   try {
     await expect(second.page.getByTestId("aasr-revision")).toHaveText("0");
     await act(first.page, "Accept fixed scope", 1);
@@ -102,8 +102,8 @@ test("stale controls refresh the authoritative revision without replaying an acc
 });
 
 for (const session of ["viewer", "stranger"]) {
-  test(`${session} cannot access the engagement or assert reviewer authority`, async ({ browser, baseURL }) => {
-    const { context, page } = await participant(browser, baseURL!, session);
+  test(`${session} cannot access the engagement or assert reviewer authority`, async ({ browser, baseURL }, info) => {
+    const { context, page } = await participant(browser, baseURL!, session, info);
     try {
       await expect(page.getByRole("alert")).toBeVisible();
       await expect(page.getByRole("region", { name: "Engagement status" })).toHaveCount(0);
