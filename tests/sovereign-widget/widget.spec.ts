@@ -104,7 +104,7 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   await expect.poll(async () => (await box(pet)).x + (await box(pet)).width).toBeLessThanOrEqual(374.5);
   const initial = await box(pet);
   const touch = await context.newCDPSession(page);
-  const start = { x: initial.x + 70, y: initial.y + 50, id: 1 };
+  const start = { x: initial.x + initial.width / 2, y: initial.y + initial.height / 2, id: 1 };
   await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [start] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...start, x: start.x - 100, y: start.y - 250 }] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
@@ -113,7 +113,7 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   expect((await box(pet)).y).toBeCloseTo(initial.y - 250, 0);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const moved = await box(pet);
-  const next = { x: moved.x + 70, y: moved.y + 50, id: 2 };
+  const next = { x: moved.x + moved.width / 2, y: moved.y + moved.height / 2, id: 2 };
   await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [next] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...next, x: next.x - 40, y: next.y - 100 }] });
   await touch.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
@@ -142,6 +142,51 @@ test("the mobile keyboard leaves conversation and composer usable", async ({ pag
   expect(await thread.evaluate((el) => el.clientHeight - parseFloat(getComputedStyle(el).paddingBottom))).toBeGreaterThanOrEqual(64);
   await dialog.getByText("Podgląd, nic nie wysyła", { exact: true }).scrollIntoViewIfNeeded();
   await expect(dialog.getByText("Podgląd, nic nie wysyła", { exact: true })).toBeInViewport();
+});
+
+test("clicking the dimmed page closes the chat and keeps the conversation", async ({ page }) => {
+  await page.route("**/api/ask-witnessops", async (route) => {
+    await route.fulfill({ json: generatedAnswer("A mocked review answer kept after click-away.") });
+  });
+  await page.goto("/");
+  const pet = page.getByRole("button", { name: "Ask Sovereign", exact: true });
+  await pet.click();
+  const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
+  await dialog.getByRole("button", { name: "What does the Agent Action Security Review cover?", exact: true }).click();
+  await expect(dialog.getByText("A mocked review answer kept after click-away.", { exact: true })).toBeVisible();
+  const draft = dialog.getByRole("textbox", { name: "Ask about the review" });
+  await draft.fill("Kept after click-away");
+  const panel = await box(dialog);
+  await page.mouse.move(panel.x + 24, panel.y + panel.height - 24);
+  await page.mouse.down();
+  await page.mouse.move(24, 24, { steps: 4 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  await page.mouse.click(24, 24);
+  await expect(dialog).not.toBeVisible();
+  await expect(pet).toBeFocused();
+  await expect(page).toHaveURL("http://127.0.0.1:3012/");
+  await pet.click();
+  await expect(draft).toHaveValue("Kept after click-away");
+  await expect(dialog.getByText("A mocked review answer kept after click-away.", { exact: true })).toBeVisible();
+});
+
+test("a downward flick on the phone header closes the chat", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const pet = page.getByRole("button", { name: "Ask Sovereign", exact: true });
+  await pet.click();
+  const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
+  const title = dialog.locator("#ask-sovereign-title");
+  const start = await box(title);
+  const x = start.x + 12;
+  const y = start.y + start.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 140, { steps: 6 });
+  await page.mouse.up();
+  await expect(dialog).not.toBeVisible();
+  await expect(pet).toBeFocused();
 });
 
 test("first opening does not later steal focus from a chosen control", async ({ page }) => {

@@ -1,9 +1,9 @@
 .pet {
   position: fixed;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
+  right: max(72px, env(safe-area-inset-right));
+  bottom: max(120px, env(safe-area-inset-bottom));
   z-index: 60;
-  width: 148px;
+  width: max-content;
 }
 
 .launcher {
@@ -22,54 +22,96 @@
 }
 
 .character {
+  --frame-w: 56px;
   display: block;
-  width: 94px;
-  height: 102px;
-  background: url("/ask-sovereign/sovereign-greet-still-light@2x.webp") center / 94px 102px no-repeat;
+  width: var(--frame-w);
+  height: 61px;
+  background: url("/ask-sovereign/clean/sovereign-idle-still-dark@2x.png") center / var(--frame-w) 100% no-repeat;
   image-rendering: pixelated;
 }
 
-:global(html[data-theme="dark"]) .character {
-  background-image: url("/ask-sovereign/sovereign-greet-still-dark@2x.webp");
+.character[data-wave] {
+  background-image: url("/ask-sovereign/clean/sovereign-greet-dark@2x.png");
+  background-repeat: no-repeat;
+  background-size: calc(var(--frame-w) * 4) 100%;
+  background-position: calc(var(--wave-frame) * var(--frame-w) * -1) 0;
 }
 
 .label {
-  padding: 5px 12px;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  margin: 0;
+  padding: 4px 9px 5px;
   border: 1px solid var(--color-brand-accent);
   border-radius: 999px;
   background: var(--color-surface-card);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
-  font-size: var(--type-small-size);
-  line-height: var(--type-small-lh);
-  font-weight: 500;
+  box-shadow: none;
+  color: var(--color-text-primary);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  transform-origin: right bottom;
+  animation: sovereign-ask-once 1.6s ease 1 forwards;
+}
+
+@keyframes sovereign-ask-once {
+  0% {
+    opacity: 0;
+    color: var(--color-text-secondary);
+    border-color: transparent;
+    transform: translateY(4px);
+  }
+  18% {
+    opacity: 1;
+    color: var(--color-text-primary);
+    border-color: var(--color-brand-accent);
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+    color: var(--color-text-primary);
+    border-color: var(--color-brand-accent);
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    border-color: transparent;
+    transform: translateY(-3px);
+  }
 }
 
 .hint {
-  margin-top: 4px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--color-surface-card);
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  line-height: 16px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .resetPet {
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 32px;
-  height: 32px;
+  right: -12px;
+  top: 22px;
+  width: 22px;
+  height: 22px;
   border: 1px solid var(--color-surface-border);
   border-radius: 50%;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 13px;
   cursor: pointer;
 }
 
 .pet button:focus-visible, .moveBar button:focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: 2px; }
-.launcher:hover .label, .resetPet:hover { background: var(--color-surface-inset); }
+.resetPet:hover { background: var(--color-surface-inset); }
 .pet[data-dragging] .launcher, .dialog[data-dragging] .moveHandle { cursor: grabbing; }
 
 .dialog {
@@ -100,18 +142,10 @@
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
 @media (max-width: 767px) {
-  .pet { width: 72px; }
-  .launcher {
-    min-height: 72px;
-    justify-content: center;
-    border: 1px solid var(--color-surface-border);
-    border-radius: 18px;
-    background: var(--color-surface-card);
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
-  }
-  .character { width: 54px; height: 58px; background-size: 54px 58px; }
-  .label, .hint { display: none; }
-  .resetPet { right: -4px; top: -4px; }
+  .pet { width: 48px; right: max(24px, env(safe-area-inset-right)); bottom: max(112px, env(safe-area-inset-bottom)); }
+  .character { --frame-w: 44px; height: 48px; }
+  .hint { display: none; }
+  .resetPet { right: -8px; top: 16px; width: 18px; height: 18px; font-size: 11px; }
   .dialog {
     left: 0 !important;
     top: var(--widget-viewport-top, 0px) !important;

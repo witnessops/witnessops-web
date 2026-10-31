@@ -13,7 +13,13 @@ function viewportBounds(): Viewport {
   };
 }
 
-export function useFloatingWidget(ref: RefObject<HTMLElement | null>, active = true) {
+const NO_INSET: Point = { x: 0, y: 0 };
+
+export function useFloatingWidget(
+  ref: RefObject<HTMLElement | null>,
+  active = true,
+  restInset: Point | ((bounds: Viewport) => Point) = NO_INSET,
+) {
   // A keyboard/rotation may temporarily clamp the rendered position. Only an
   // explicit move should replace the user's choice; null means bottom-right.
   const preferredPosition = useRef<Point | null>(null);
@@ -28,10 +34,13 @@ export function useFloatingWidget(ref: RefObject<HTMLElement | null>, active = t
     const size = element.getBoundingClientRect();
     if (!size.width || !size.height) return;
     const bounds = viewportBounds();
-    const next = constrainPosition(requested ?? preferredPosition.current ?? defaultPosition(size, bounds), size, bounds);
+    const inset = typeof restInset === "function" ? restInset(bounds) : restInset;
+    const rested = defaultPosition(size, bounds);
+    const home = { x: rested.x - inset.x, y: rested.y - inset.y };
+    const next = constrainPosition(requested ?? preferredPosition.current ?? home, size, bounds);
     if (requested) preferredPosition.current = next;
     setPoint((current) => current?.x === next.x && current.y === next.y ? current : next);
-  }, [ref]);
+  }, [ref, restInset]);
 
   const reset = useCallback(() => {
     preferredPosition.current = null;

@@ -15,6 +15,7 @@ import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { SovereignSprite } from "./sovereign-sprite";
 import { snapThreadClearOfFade, threadFadePx } from "./thread-fade";
 import { sovereignLinks } from "./floating-position";
+import { shouldDismissSwipe } from "./widget-dismiss";
 import { ASK_MAX_QUESTION_LENGTH, keepRecentAskHistory, type AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { askWitnessOpsAnswerText, askWitnessOpsRouteHref, askWitnessOpsRouteLabel, askWitnessOpsSourceHref, askWitnessOpsSourceTarget, fetchAskWitnessOps, type AskWitnessOpsUiAnswer } from "@/components/docs-assistant/ask-witnessops-response";
 
@@ -792,14 +793,13 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
             className={styles.bar}
             data-header-chip={activeSim === "slow" || activeSim === "timeout" || activeSim === "typing" ? "" : undefined}
             onPointerDown={(event) => {
-              if (!mobile || embedded) return;
+              if (!mobile) return;
+              if (event.target instanceof Element && event.target.closest("button, a")) return;
               const startY = event.clientY;
               const start = performance.now();
               function end(up: PointerEvent) {
-                const distance = up.clientY - startY;
-                const velocity = distance / Math.max(1, performance.now() - start);
-                if (distance > 96 || velocity > 0.5) close();
                 window.removeEventListener("pointerup", end);
+                if (shouldDismissSwipe(up.clientY - startY, performance.now() - start)) close();
               }
               window.addEventListener("pointerup", end);
             }}
