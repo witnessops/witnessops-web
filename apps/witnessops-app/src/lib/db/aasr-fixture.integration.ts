@@ -1,10 +1,12 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import type { PoolClient } from 'pg';
 import { createAasrTestDatabase, aasrTestSession, AASR_TEST_USERS, type AasrTestActor } from '../../../../../tests/app-foundation/aasr-db';
 import { createAasrFixtureService } from '../aasr-fixture/server';
 import { AASR_FIXTURE_PATH, AASR_FIXTURE_WORKSPACE_ID } from '../aasr-fixture/contract';
 import { parseStagingAssignment } from '../aasr-fixture/assignment';
-import { applyAssignment, inspectAssignment, rollbackAssignment } from '../aasr-fixture/assignment-operator';
+import { applyAssignment, inspectAssignment, rollbackAssignment, verifyStagingDatabaseRoles } from '../aasr-fixture/assignment-operator';
 import { transaction } from './pool';
 import { revokeSession } from './sessions';
 const origin = 'http://127.0.0.1:3022';
@@ -21,6 +23,74 @@ function request(command?: string, revision = 0, headers: Record<string, string>
     ...(command ? { body: JSON.stringify({ command, expectedRevision: revision }) } : {}),
   });
 }
+
+async function withStagingRuntimeRole(check: (client: PoolClient, role: string, schema: string, verify: () => Promise<void>) => Promise<void>) {
+  const suffix = randomUUID().replaceAll('-', '');
+  const role = `aasr_role_${suffix}`, schema = `aasr_schema_${suffix}`;
+  const client = await db.control.connect();
+  try {
+    await client.query('BEGIN');
+    const actual = (await client.query<{ database: string; username: string; schema: string }>(
+      'SELECT current_database() AS database,current_user AS username,current_schema() AS schema')).rows[0];
+    await client.query(`CREATE ROLE ${role} LOGIN`);
+    await client.query(`CREATE SCHEMA ${schema}`);
+    await client.query(`GRANT USAGE ON SCHEMA ${schema} TO ${role}`);
+    await client.query(`ALTER ROLE ${role} SET search_path TO ${schema}`);
+    assert.notEqual(actual.schema, schema, 'the runtime schema must differ from the migration connection schema');
+    const verify = () => verifyStagingDatabaseRoles(client, role, actual.database, actual.username);
+    await verify(); // No ownership, CREATE or administrative privilege in the baseline.
+    await check(client, role, schema, verify);
+  } finally { await client.query('ROLLBACK'); client.release(); }
+}
+
+test('staging preflight accepts an unprivileged login with a different runtime search path', async () => {
+  await withStagingRuntimeRole(async (_client, _role, _schema, verify) => { await verify(); });
+});
+test('staging preflight rejects CREATE outside the migration search path', async () => {
+  await withStagingRuntimeRole(async (client, role, schema, verify) => {
+    await client.query(`GRANT CREATE ON SCHEMA ${schema} TO ${role}`);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
+test('staging preflight rejects schema ownership outside the migration search path', async () => {
+  await withStagingRuntimeRole(async (client, role, schema, verify) => {
+    await client.query(`ALTER SCHEMA ${schema} OWNER TO ${role}`);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
+test('staging preflight rejects relation ownership outside the migration search path', async () => {
+  await withStagingRuntimeRole(async (client, role, schema, verify) => {
+    await client.query(`CREATE TABLE ${schema}.owned_relation (id integer)`);
+    await client.query(`ALTER TABLE ${schema}.owned_relation OWNER TO ${role}`);
+    assert.equal((await client.query('SELECT has_schema_privilege($1,$2,\'CREATE\') AS allowed', [role, schema])).rows[0].allowed, false);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
+test('staging preflight rejects SET ROLE access to schema CREATE outside the migration search path', async () => {
+  await withStagingRuntimeRole(async (client, role, schema, verify) => {
+    const creator = `${role}_create`;
+    await client.query(`CREATE ROLE ${creator} NOLOGIN`);
+    await client.query(`ALTER ROLE ${role} NOINHERIT`);
+    await client.query(`GRANT USAGE,CREATE ON SCHEMA ${schema} TO ${creator}`);
+    await client.query(`GRANT ${creator} TO ${role}`);
+    assert.equal((await client.query('SELECT has_schema_privilege($1,$2,\'CREATE\') AS allowed', [role, schema])).rows[0].allowed, false);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
+test('staging preflight rejects replication-capable runtime logins', async () => {
+  await withStagingRuntimeRole(async (client, role, _schema, verify) => {
+    await client.query(`ALTER ROLE ${role} REPLICATION`);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
+test('staging preflight rejects membership in a replication-capable role', async () => {
+  await withStagingRuntimeRole(async (client, role, _schema, verify) => {
+    const replicationRole = `${role}_repl`;
+    await client.query(`CREATE ROLE ${replicationRole} NOLOGIN REPLICATION`);
+    await client.query(`GRANT ${replicationRole} TO ${role}`);
+    await assert.rejects(verify(), /no ownership.*administrative\/create privileges/);
+  });
+});
 test('current native membership allows owner and assigned reviewer, refuses viewer, contributor and stranger', async () => {
   assert.equal((await session('owner')(request())).status, 200);
   const reviewer = await session('reviewer')(request());

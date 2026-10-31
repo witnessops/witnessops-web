@@ -44,8 +44,11 @@ reviewed build binding and runtime connection. Password rotation alone does not
 change it. Both database and role names must end `_staging`. Connection URL
 queries/fragments are rejected. The migration connection must address that same
 database using a separate identity. The runtime role must be a login with no
-administrative attributes, direct/effective ownership, membership in owner or
-privileged roles, or database/schema CREATE privilege. Missing runtime grants
+administrative attributes (including REPLICATION), direct/effective ownership,
+membership in owner or privileged roles, or database/schema CREATE privilege.
+The preflight checks every schema and relation in the bound database, independent
+of the migration and runtime search paths, including privileges reachable through
+role membership even when automatic inheritance is disabled. Missing runtime grants
 remain a separate deployment preflight; this command grants no database rights.
 
 Supply these through the approved private environment, never shell arguments,

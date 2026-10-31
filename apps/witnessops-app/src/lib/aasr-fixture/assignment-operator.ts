@@ -51,18 +51,23 @@ export function parseAssignmentPlan(raw: string, assignment: StagingAssignment):
 /** The runtime connection is a login role, never an owner or a role able to
  * inherit/SET ROLE into an owner or privileged role. PostgreSQL's implicit
  * pg_database_owner/public-schema relationship is covered by database owner
- * membership, in addition to explicit schema and relation ownership. */
+ * membership, in addition to explicit schema and relation ownership. Check
+ * every schema/relation in the bound database, independent of either role's
+ * search_path; a migration connection must not hide the runtime's privileges. */
 export async function verifyStagingDatabaseRoles(client: PoolClient, runtimeRole: string, expectedDatabase: string, migrationRole: string): Promise<void> {
-  const actual = (await client.query<{ database: string; username: string }>('SELECT current_database() AS database,current_user AS username')).rows[0];
+  const actual = (await client.query<{ database: string; username: string }>('SELECT pg_catalog.current_database() AS database,current_user AS username')).rows[0];
   if (actual.database !== expectedDatabase || actual.username !== migrationRole || runtimeRole === migrationRole) throw new Error('Connected database identity differs from the reviewed target.');
   const role = (await client.query<{ safe: boolean }>(`SELECT r.rolcanlogin
-    AND NOT EXISTS(SELECT 1 FROM pg_roles privileged WHERE (privileged.rolsuper OR privileged.rolcreatedb OR privileged.rolcreaterole OR privileged.rolbypassrls) AND pg_has_role(r.oid,privileged.oid,'MEMBER'))
-    AND NOT EXISTS(SELECT 1 FROM pg_database d WHERE d.datname=current_database() AND pg_has_role(r.oid,d.datdba,'MEMBER'))
-    AND NOT EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspname=current_schema() AND pg_has_role(r.oid,n.nspowner,'MEMBER'))
-    AND NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=current_schema() AND pg_has_role(r.oid,c.relowner,'MEMBER'))
-    AND NOT has_database_privilege(r.oid,current_database(),'CREATE')
-    AND NOT has_schema_privilege(r.oid,current_schema(),'CREATE') AS safe
-    FROM pg_roles r WHERE r.rolname=$1`, [runtimeRole])).rows[0];
+    AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_roles reachable
+      WHERE pg_catalog.pg_has_role(r.oid,reachable.oid,'MEMBER') AND (
+        reachable.rolsuper OR reachable.rolcreatedb OR reachable.rolcreaterole OR reachable.rolbypassrls OR reachable.rolreplication
+        OR EXISTS(SELECT 1 FROM pg_catalog.pg_database d WHERE d.datname=pg_catalog.current_database() AND d.datdba=reachable.oid)
+        OR EXISTS(SELECT 1 FROM pg_catalog.pg_namespace n WHERE n.nspowner=reachable.oid
+          OR pg_catalog.has_schema_privilege(reachable.oid,n.oid,'CREATE'))
+        OR EXISTS(SELECT 1 FROM pg_catalog.pg_class c WHERE c.relowner=reachable.oid)
+        OR pg_catalog.has_database_privilege(reachable.oid,pg_catalog.current_database(),'CREATE')
+      )) AS safe
+    FROM pg_catalog.pg_roles r WHERE r.rolname=$1`, [runtimeRole])).rows[0];
   if (!role?.safe) throw new Error('The bound runtime login role must have no ownership, owner-role membership or administrative/create privileges.');
 }
 async function snapshot(client: PoolClient, assignment: StagingAssignment): Promise<AssignmentSnapshot> {
