@@ -76,8 +76,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "After a non-secret fit check. One questionnaire. One product scope.",
     primaryCta: "Scope this review",
-    sampleHref: "/review/sample-cases/customer-security-review-sprint",
-    sampleLabel: "See a sample response",
   },
   "agent-tools-access-review": {
     headline: "Know which agent tools are visible and what one action can reach.",
@@ -171,8 +169,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "valid on a receipt means named verifier checks passed, not that the host is secure or uncompromised.",
       "Secrets, credentials and private keys are never requested in the fit check.",
     ],
-    sampleHref: "/review/sample-cases/local-server-security-review",
-    sampleLabel: "See a sample review",
     commercialNote: "Standard line after a non-secret fit check for one authorised host.",
     primaryCta: "Scope this review",
   },
@@ -211,8 +207,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "External Attack Surface Review is no longer available for new engagements. Issued agreements keep their original terms. This is not the Agent Action Security Review.",
     primaryCta: "See availability notice",
-    sampleHref: "/review/sample-cases/external-exposure-assessment",
-    sampleLabel: "See a sample review",
   },
   "launch-readiness-check": {
     headline: "See what changed before the launch decision.",
@@ -249,8 +243,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check within the public range for the agreed host and baseline.",
     primaryCta: "Scope this review",
-    sampleHref: "/review/sample-cases/launch-readiness-review",
-    sampleLabel: "See a sample review",
   },
   "key-access-custody-review": {
     headline: "Know which custody controls your evidence supports.",
@@ -287,8 +279,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check for the agreed custody or wallet-ops surface.",
     primaryCta: "Scope this review",
-    sampleHref: "/review/sample-cases/custody-wallet-ops-review",
-    sampleLabel: "See a sample review",
   },
   "incident-readiness-review": {
     headline: "Find gaps in your plan for one incident scenario.",
@@ -325,8 +315,6 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check for one defined scenario and environment.",
     primaryCta: "Scope this review",
-    sampleHref: "/review/sample-cases/incident-readiness-review",
-    sampleLabel: "See a sample review",
   },
   "professional-public-footprint-audit": {
     headline: "Understand your public professional record.",
@@ -427,8 +415,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz. Jeden zakres produktu.",
     primaryCta: "Omów zakres przeglądu",
-    sampleHref: "/review/sample-cases/customer-security-review-sprint",
-    sampleLabel: "Zobacz przykładowe odpowiedzi (EN)",
   },
   "agent-tools-access-review": {
     headline: "Sprawdź widoczne narzędzia agenta i dostęp w jednym działaniu.",
@@ -522,8 +508,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "valid na receipt oznacza przejście nazwanych kontroli weryfikatora, nie to, że host jest bezpieczny lub nieprzekompromitowany.",
       "Sekrety, poświadczenia i klucze prywatne nie są proszone na etapie wstępnej oceny.",
     ],
-    sampleHref: "/review/sample-cases/local-server-security-review",
-    sampleLabel: "Zobacz przykładowy przegląd (EN)",
     commercialNote:
       "Linia standardowa po wstępnej ocenie bez informacji poufnych dla jednego autoryzowanego hosta.",
     primaryCta: "Omów zakres przeglądu",
@@ -565,8 +549,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Wydane uzgodnienia zachowują pierwotne warunki. To nie jest Agent Action Security Review.",
     primaryCta: "Zobacz komunikat o dostępności",
-    sampleHref: "/review/sample-cases/external-exposure-assessment",
-    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "launch-readiness-check": {
     headline: "Sprawdź zmiany przed wdrożeniem.",
@@ -603,8 +585,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie w publicznym zakresie dla uzgodnionego hosta i bazy.",
     primaryCta: "Omów zakres przeglądu",
-    sampleHref: "/review/sample-cases/launch-readiness-review",
-    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "key-access-custody-review": {
     headline: "Uporządkuj obraz kontroli nad aktywami.",
@@ -641,8 +621,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie dla uzgodnionej powierzchni custody lub wallet-ops.",
     primaryCta: "Omów zakres przeglądu",
-    sampleHref: "/review/sample-cases/custody-wallet-ops-review",
-    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "incident-readiness-review": {
     headline: "Poznaj braki przed incydentem.",
@@ -679,8 +657,6 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie dla jednego zdefiniowanego scenariusza i środowiska.",
     primaryCta: "Omów zakres przeglądu",
-    sampleHref: "/review/sample-cases/incident-readiness-review",
-    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "professional-public-footprint-audit": {
     headline: "Zobacz swój profil oczami klienta.",

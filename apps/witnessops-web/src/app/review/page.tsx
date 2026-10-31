@@ -251,11 +251,12 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Inspect public example reviews
+          Inspect agent-action examples
         </h2>
         <p className="mt-4 max-w-[760px] text-sm leading-relaxed text-text-muted">
-          See how a bounded review is packaged before you request work: situation,
-          evidence references, limits, and what another party can re-check.
+          Inspect a bounded action, its evidence references and limits before you
+          request work. These synthetic examples are not complete samples of the
+          current Agent Action Security Review.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <a
@@ -268,12 +269,12 @@ export default function ReviewPage() {
             </p>
           </a>
           <a
-            href="/review/sample-cases/external-exposure-assessment"
+            href="/review/sample-cases/witnessed-crm-status-change"
             className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
           >
-            <h3 className="text-sm font-semibold text-text-primary">External Attack Surface Review</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Witnessed synthetic CRM action</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              A labelled synthetic sample for a parked review. Not a live assessment and not available for new engagements.
+              Replay a recorded synthetic status change, its authority and read-back. The demonstration receipt is unsigned; no live CRM action runs.
             </p>
           </a>
         </div>

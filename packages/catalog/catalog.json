@@ -100,15 +100,9 @@
       "surface": "witnessops.com"
     },
     {
-      "id": "local-server-security-review",
-      "title": "Local server security review",
-      "href": "/review/sample-cases/local-server-security-review",
-      "surface": "witnessops.com"
-    },
-    {
-      "id": "approval-gated-containment",
-      "title": "Approval-gated containment",
-      "href": "/review/sample-cases/approval-gated-containment",
+      "id": "witnessed-crm-status-change",
+      "title": "Witnessed synthetic CRM action",
+      "href": "/review/sample-cases/witnessed-crm-status-change",
       "surface": "witnessops.com"
     },
     {
@@ -118,9 +112,9 @@
       "surface": "witnessops.com"
     },
     {
-      "id": "sbom-cisa-2026-minimum-elements",
-      "title": "SBOM minimum-elements check",
-      "href": "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+      "id": "approval-gated-containment",
+      "title": "Approval-gated containment",
+      "href": "/review/sample-cases/approval-gated-containment",
       "surface": "witnessops.com"
     }
   ],
@@ -728,7 +722,7 @@
       ],
       "cta": {
         "primary": "/review/request",
-        "secondary": "/review/sample-cases/sbom-cisa-2026-minimum-elements"
+        "secondary": null
       },
       "surfaces": [
         "witnessops.com"

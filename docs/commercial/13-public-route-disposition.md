@@ -13,6 +13,15 @@ Founder decision: the following historical records stay reachable by URL, keep t
 | `/customer-security-review` and `/pl/customer-security-review` | noindex, follow; not in sitemap; sample and Polish library links point at the catalogue |
 | `/access-change-proof-run` | permanent redirect to `/catalog` |
 
+## Amendment — 2026-10-31
+
+In this repository source revision, `/catalog/professional-public-footprint-audit`
+and `/pl/catalog/professional-public-footprint-audit` serve the shared 410
+withdrawal notice. This supersedes the 2026-10-09 reachable-page disposition
+and the 2026-08-13 current-secondary row for new enquiries. The historical
+identity and issued terms remain records, not current offers. Source state does
+not establish deployment.
+
 This record separates confirmed route behavior from unresolved commercial decisions. It does not retire an offer merely because its current name or catalog record looks old.
 
 | Route or family | Classification | Implemented outcome | Evidence |

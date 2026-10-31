@@ -22,7 +22,7 @@ test("Pricing T1 footprint terms create no intake identity or delivery contract"
 
 test("English FAQ describes review pricing without changing signup boundaries", () => {
   const faq = readFileSync(resolve(__dirname, "../../../../content/witnessops/docs/faq.mdx"), "utf8");
-  assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page now lists the published one-off review offers. Signup does not grant a paid app plan."));
+  assert.ok(faq.includes("Creating an account is free. No card or subscription is required. The pricing page lists the current one-off review. Signup does not grant a paid app plan."));
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
   assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
   assert.doesNotMatch(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
@@ -32,6 +32,8 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.match(faq, /External Attack Surface Review is no longer available for new engagements/);
   assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope|30 calendar days/);
   assert.match(faq, /agent-tools-access-review/);
+  assert.match(faq, /Its `\/catalog\/workflows` URL now shows a withdrawal notice and cannot start a new request/);
+  assert.doesNotMatch(faq, /\]\(\/catalog\/workflows\)/);
   assert.doesNotMatch(faq, /primary paid entry point is \[AI Agent Tools/);
   assert.doesNotMatch(faq, /Private Pilot|Internet Footprint Review|€500/);
 });

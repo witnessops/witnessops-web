@@ -18,7 +18,6 @@ const expectedDestinations = {
     "/pl/catalog",
     "/review/sample-cases",
     "/review/sample-cases/ai-agent-action-proof-run",
-    "/review/sample-cases/sbom-cisa-2026-minimum-elements",
     "/pl/verify",
     "/docs/how-it-works/verification",
     "/docs",

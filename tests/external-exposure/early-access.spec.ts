@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { externalExposureAdapter, validateExternalSnapshot } from '../../apps/witnessops-web/src/lib/external-exposure/adapter';
 import { cleanSnapshotFixture } from './fixture';
-import { publicContactMailto } from '../../apps/witnessops-web/src/lib/public-contact';
 import { PUBLIC_AGENT_ACTION_OFFER } from '../../apps/witnessops-web/src/lib/commercial-truth';
 
 for (const width of [1440, 390]) {
@@ -55,10 +54,12 @@ for (const width of [1440, 390]) {
     const review = page.getByRole('region', { name: 'Need a review of one agent action?' });
     await expect(review).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
     await expect(review.getByRole('link', { name: 'See the review', exact: true })).toHaveAttribute('href', '/reviews/agent-action-security-review');
-    const choices=page.getByRole('region',{name:'Choose what to check'});
-    for(const name of ['External Exposure Check','One Server Security Check'])await expect(choices.getByRole('heading',{name,exact:true})).toBeVisible();
-    await expect(choices).toContainText('setup is operator-assisted');
-    await expect(choices.getByRole('link',{name:'Ask about Linux setup',exact:true})).toHaveAttribute('href',publicContactMailto('WitnessOps — One Server Security Check setup'));
+    const choices=page.getByRole('region',{name:'Ways to use the workspace'});
+    for(const name of ['External Exposure Check','Import an existing Linux check'])await expect(choices.getByRole('heading',{name,exact:true})).toBeVisible();
+    await expect(choices).toContainText('Local Audit 1.2.2 Proofpack ZIP and its matching detached signature');
+    await expect(choices).toContainText('The app does not connect by SSH or run a collector on your server.');
+    await expect(choices).not.toContainText('One Server Security Check');
+    await expect(choices.locator('a[href^="mailto:"]')).toHaveCount(0);
     await expect(choices.getByRole('link',{name:'Try the free snapshot',exact:true})).toHaveAttribute('href','/check');
     await expect(page.locator('main')).toContainText('not automatically imported');
     await expect(page.locator('main')).toContainText('ten bounded observations');

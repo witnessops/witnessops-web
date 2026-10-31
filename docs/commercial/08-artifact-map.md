@@ -1,76 +1,80 @@
-# Artifact map — samples and operator files
+# Artifact map — agent examples and retired samples
 
-Complete index of artifacts used for demos, learning, and delivery.  
-**Public** = safe on witnessops.com. **Private** = disk only.
+The current public sample set supports the **Agent Action Security Review**.
+Examples are synthetic or explanatory, not customer evidence or complete review
+deliveries. This map records repository source state as of 2026-10-31; it does
+not establish production deployment.
 
----
+## Retained public examples
 
-## Public site samples (`https://witnessops.com/samples/…`)
-
-| Path under `/samples/` | Product / role | Key files |
+| Page under `/review/sample-cases/` | Role | Public artifacts |
 | --- | --- | --- |
-| `offsec-shield-local-server-audit/` | One Server **web fixture** | `RECEIPT.json`, `VERIFY_NOTE.json`, `evidence/*`, `SAMPLE-MANIFEST.json` |
-| `offsec-local-audit/` | One Server **full suite sample** | `proofpack-….proofpack`, `local-server-audit-pr_lsa_…/BUYER_WALKTHROUGH.md`, `report.md`, `findings.json`, `receipt.json` |
-| `offsec-launch-ready/` | Launch readiness suite sample | proofpack + package dir |
-| `offsec-custody-ops/` | Custody suite sample | proofpack + package dir |
-| `offsec-incident-ready/` | Incident readiness suite sample | proofpack + package dir |
-| `offsec-access-removed/` | Access-removed **method** sample | proofpack + package dir |
-| `csr-sprint-synthetic/` | CSR full synthetic package | `exports/`, `evidence/`, `canonical/`, `manifest.json` |
-| `offsec-swarm-mesh-trust-round3/` | Legacy mesh sample | (legacy) |
+| `ai-agent-action-proof-run` | Historical synthetic compromised-key rotation specimen | `/samples/api-key-rotation/v1/`; exact specimen bytes, manifest and sample-specific verifier |
+| `witnessed-crm-status-change` | Recorded synthetic CRM action and browser replay | `/samples/witnessed-crm-status-change/v1/specimen.json`; generated unsigned demo receipt |
+| `privileged-access-grant` | Explanatory approval, identity and permission-boundary example | Narrative only; no complete downloadable package |
+| `approval-gated-containment` | Explanatory action gated by approval | Narrative only; no complete downloadable package |
 
-**Note:** Prefer `.proofpack` over `.zip` for downloads (static `.zip` often 404 on this runtime).
+`/review/sample-report` illustrates the report shape for one deployment-approval
+action. It is not a live customer report or a claim that a review was performed.
 
----
+`/samples/governed-agent-verifier-conformance/v1/` remains a technical verifier
+fixture used by the skill contract and conformance checks. It is not another paid
+review or customer case. `/verify` and `/api/verify` remain receipt-only.
 
-## Public sample **pages**
+The key-rotation specimen's signed artifacts and verifier are purpose-limited demo
+mechanics. They do not add signed receipts, production signing-key custody or
+source-system verification to the Agent Action Security Review's deliverables.
 
-| Page | Links to |
+## Retired sample pages
+
+These stable paths return 410 in the source revision. Their page implementations
+are removed; none is relabelled as an Agent Action Security Review sample.
+
+| Retired path under `/review/sample-cases/` | Historical identity |
 | --- | --- |
-| `/review/sample-cases/local-server-security-review` | Shield fixture + suite local-audit package |
-| `/review/sample-cases/customer-security-review-sprint` | CSR synthetic table + package files |
-| `/review/sample-cases/launch-readiness-review` | `/samples/offsec-launch-ready/` |
-| `/review/sample-cases/custody-wallet-ops-review` | `/samples/offsec-custody-ops/` |
-| `/review/sample-cases/incident-readiness-review` | `/samples/offsec-incident-ready/` |
-| `/review/sample-cases/access-removed-proof` | method only |
-| `/review/sample-cases/sbom-cisa-2026-minimum-elements` | method only |
-| `/review/sample-cases/ai-agent-action-proof-run` | GitHub sample-cases |
+| `external-exposure-assessment` | External Attack Surface Review; former Public Exposure Review sample |
+| `local-server-security-review` | One Server / Local Server Audit sample |
+| `customer-security-review-sprint` | Customer Security Review Sprint sample |
+| `launch-readiness-review` | Launch readiness sample |
+| `custody-wallet-ops-review` | Custody / wallet-ops sample |
+| `incident-readiness-review` | Incident readiness sample |
+| `access-removed-proof` | Access-removal method sample |
+| `sbom-cisa-2026-minimum-elements` | SBOM minimum-elements method sample |
 
----
+## Removed public downloads
 
-## Private disk artifacts (operator)
+The following folders are removed from `apps/witnessops-web/public/samples/`.
+Earlier paths in historical commercial documents identify retired artifacts, not
+current download instructions. Their original names and bytes remain in Git
+history; manifests and signatures have not been rewritten into new samples.
 
-| Absolute path | Role | Public? |
-| --- | --- | --- |
-| `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/` | Full suite extract (source, samples, hardening) | No (source); samples mirrored selectively |
-| `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1_6.zip` | Suite archive | No |
-| Private live-style report held outside this repo | Operator study of a **valid + partial** outcome | **Never public** |
-| `~/Downloads/WITNESSOPS_CUSTOMER_SECURITY_REVIEW_SYNTHETIC_DATA_V1/` | CSR synthetic source (mirrored to site samples) | Source private; mirror public |
-| `~/Downloads/WitnessOps_CSR_*` | CSR campaign / one-pager sources | Private |
-| `repos/witnessops-web/docs/commercial/` | This kit | Repo (not marketing pages) |
+| Retired folder | Historical artifact identity |
+| --- | --- |
+| `offsec-external-exposure/` | External Attack Surface Review synthetic worked example |
+| `offsec-shield-local-server-audit/` | One Server web fixture; `local-fixture-a` family |
+| `offsec-local-audit/` | One Server suite sample; `pr_lsa_20260710120000_198fd7aceb` |
+| `offsec-launch-ready/` | Launch readiness suite sample |
+| `offsec-custody-ops/` | Custody suite sample |
+| `offsec-incident-ready/` | Incident readiness suite sample |
+| `offsec-access-removed/` | Access-removal method sample |
+| `csr-sprint-synthetic/` | CSR synthetic questionnaire package |
+| `offsec-swarm-mesh-trust-round3/` | Legacy mesh export; not accepted by the receipt-only verifier |
 
----
+The former `/.well-known/mesh-receipt-index.json` demonstration and its duplicate
+index fixture are also removed. GET `/api/mesh-gate` reports no published index
+and provides no download link. Its POST structural validator and independent
+receipt fixture remain for compatibility; they are not Agent Action Security
+Review deliverables.
 
-## One Server sample families (do not confuse)
+## Retained test fixtures and private evidence
 
-| Family | Sample id / run | Use for |
-| --- | --- | --- |
-| Web fixture | `offsec-shield-local-server-audit` / `local-fixture-a` | `/verify` structural story, light demo |
-| Suite product sample | `pr_lsa_20260710120000_198fd7aceb` | Full buyer walkthrough + offline verify story |
-| Private live-style | Restricted artifact held outside this repo | Operator learning of **partial** outcomes only |
+Independent fixtures under `apps/witnessops-web/fixtures/verify/` remain for
+receipt-verifier compatibility and rejection coverage. In particular,
+`swarm-mesh-export-round3.json` tests rejection of mesh exports; the local-server
+and legacy Shield receipt fixtures test their existing structural adapter. They
+do not depend on the removed public downloads and are not current offer samples.
 
----
-
-## Quick open commands (local)
-
-```bash
-# Suite LSA walkthrough
-open ~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/products/OFFSEC-LOCAL-AUDIT/sample/local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md
-
-# Private partial report: use the restricted operator artifact index
-
-# CSR answer matrix
-open ~/Downloads/WITNESSOPS_CUSTOMER_SECURITY_REVIEW_SYNTHETIC_DATA_V1/exports/answer_matrix.csv
-
-# Commercial kit
-open ~/WitnessOps/repos/witnessops-web/docs/commercial/README.md
-```
+Historical commercial records preserve issued-offer names and IDs. Private
+operator source packages and restricted live-style reports remain outside this
+public repository and are unchanged by this cleanup. Use their owning private
+artifact index; public samples do not authorize access to private evidence.

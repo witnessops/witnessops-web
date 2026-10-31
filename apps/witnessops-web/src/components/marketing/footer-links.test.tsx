@@ -60,11 +60,11 @@ function hrefs(html: string): string[] {
 
 function routeFileExists(href: string): boolean {
   const pathname = href.split(/[?#]/)[0] || "/";
-  if (pathname.startsWith("/catalog/") && pathname !== "/catalog/automation-repair") {
+  if (pathname.startsWith("/catalog/")) {
     return existsSync(resolve(appDir, "(marketing)/catalog/[skuId]/page.tsx"))
       || existsSync(resolve(appDir, `(marketing)${pathname}/page.tsx`));
   }
-  if (pathname.startsWith("/pl/catalog/") && pathname !== "/pl/catalog/automation-repair") {
+  if (pathname.startsWith("/pl/catalog/")) {
     return existsSync(resolve(appDir, "pl/catalog/[skuId]/page.tsx"));
   }
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {
@@ -94,6 +94,12 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.equal(enHrefs.includes("/reviews/external-attack-surface-review"), false);
   assert.equal(plHrefs.includes("/pl/reviews/external-attack-surface-review"), false);
   assert.equal(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en), false);
+  assert.equal(enHrefs.includes("/research"), false);
+  assert.equal(plHrefs.includes("/research"), false);
+  assert.ok(enHrefs.includes("/review/sample-cases"));
+  assert.ok(plHrefs.includes("/review/sample-cases"));
+  assert.ok(enHrefs.includes("/verify"));
+  assert.ok(plHrefs.includes("/pl/verify"));
 
   for (const href of ["/privacy", "/terms", "/security", "/company", "/media-kit"]) {
     assert.ok(enHrefs.includes(href), `missing EN footer href ${href}`);

@@ -100,6 +100,14 @@ test("media kit names the brand and the legal entity without withdrawn offers", 
     assert.ok(html.includes(COMPANY_DETAILS[locale].legalName));
     assert.match(html, new RegExp(`href="${locale === "pl" ? "/pl/company" : "/company"}"`));
     assert.ok(html.includes(PUBLIC_CONTACT_EMAIL));
+    assert.match(html, /Agent Action Security Review/);
+    assert.match(
+      html,
+      locale === "pl"
+        ? /jednego istotnego działania agenta lub automatyzacji/
+        : /one consequential agent or automation action/,
+    );
+    assert.doesNotMatch(html, /External Attack Surface Review|witnessops-homepage-(desktop|mobile)\.png|id="screenshots"/);
     assert.doesNotMatch(html, /Karol|Stefańsk|stefanski|AI Agent Tools|€250|€750|Start with a question|HubSpot|Notion|Google Drive/i);
   }
   const polish = render(createElement(MediaKitContent, { locale: "pl" }));

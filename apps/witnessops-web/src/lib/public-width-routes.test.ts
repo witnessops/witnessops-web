@@ -7,27 +7,18 @@ import { mergeWidthRoutes, sampleCaseRoutes } from "../../scripts/public-width-r
 
 const appDir = resolve(__dirname, "../..");
 
-test("width routes include every sample case, including ones missing from the sitemap", () => {
+test("width routes include all four retained agent-action examples", () => {
   const samples = sampleCaseRoutes(appDir);
-  assert.ok(samples.includes("/review/sample-cases/customer-security-review-sprint"));
-  assert.ok(samples.length >= 12);
+  assert.deepEqual([...samples].sort(), [
+    "/review/sample-cases/ai-agent-action-proof-run",
+    "/review/sample-cases/approval-gated-containment",
+    "/review/sample-cases/privileged-access-grant",
+    "/review/sample-cases/witnessed-crm-status-change",
+  ]);
   const merged = mergeWidthRoutes(["/support", "/pl"], samples);
   assert.equal(merged.includes("/pl/check"), false);
-  assert.ok(merged.includes("/review/sample-cases/customer-security-review-sprint"));
+  assert.ok(merged.includes("/review/sample-cases/witnessed-crm-status-change"));
   assert.ok(merged.includes("/support"));
-});
-
-test("the customer security sample table scrolls inside a labelled region", () => {
-  const page = readFileSync(
-    resolve(appDir, "src/app/review/sample-cases/customer-security-review-sprint/page.tsx"),
-    "utf8",
-  );
-  assert.match(page, /role="region"/);
-  assert.match(page, /min-w-0/);
-  assert.match(page, /overflow-x-auto/);
-  assert.match(page, /tabIndex=\{0\}/);
-  assert.match(page, /aria-label="Synthetic example response table"/);
-  assert.match(page, /csr-sprint-synthetic\/\$\{file\}`[\s\S]{0,180}\[overflow-wrap:anywhere\]/);
 });
 
 test("support email can break and the direct-email control is not a fixed flex line", () => {

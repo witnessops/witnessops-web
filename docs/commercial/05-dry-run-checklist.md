@@ -1,18 +1,18 @@
-# Dry-run checklist — current two-offer portfolio
+# Dry-run checklist — current Agent Action Security Review
 
-Use this checklist for the current [Agent Action Security Review and External
-Attack Surface Review](./18-two-offer-portfolio.md). Rehearse with labelled
-synthetic material. A dry run does not authorise customer access or testing.
+Use the current [Agent Action Security Review](./README.md) scope for a new-sales
+dry run. Rehearse with labelled synthetic material. A dry run does not authorise
+customer access or testing.
 
 ## Current readiness checks
 
-- [ ] New-sales discovery and request selection identify exactly the two current
-  paid reviews. The free hostname check is separate; retired offers and the
-  private pilot are not new-sales choices.
-- [ ] Agent request identity is `agent-action-security-review`; external product
-  identity is `OFFSEC-EXTERNAL-EXPOSURE`. Historical IDs retain their old meaning.
-- [ ] Price is €2,500 excl. VAT for the agent review, or €1,900 fixed
-  excluding VAT for the external review. Delivery timing is per signed SOW.
+- [ ] New-sales discovery and request selection identify only Agent Action
+  Security Review. The free hostname check is separate; the parked external
+  review, retired offers and private pilot are not new-sales choices.
+- [ ] Request identity is `agent-action-security-review`. Historical IDs,
+  including `OFFSEC-EXTERNAL-EXPOSURE`, retain their old meaning.
+- [ ] Price is €2,500 excl. VAT for Agent Action Security Review. Delivery
+  timing is agreed in the signed SOW.
 - [ ] The [current scope block](./06-scope-agreement-skeleton.md) matches the
   selected review. Scope, authority, handling, required inputs, payment terms
   and capacity are resolved before work; a request alone grants no authority.
@@ -20,6 +20,18 @@ synthetic material. A dry run does not authorise customer access or testing.
   reconstruct and report: action map, sourced findings, prioritised
   recommendations, documented unknowns and readout. No action execution,
   remediation, retesting or full-device inventory is promised.
+- [ ] Samples remain labelled synthetic. Available evidence, missing coverage
+  and verification limits are clear; no security or certification guarantee.
+- [ ] Record review/date, scope gaps and the next owner before accepting work.
+
+## Historical External Attack Surface Review rehearsal — issued agreements only
+
+The former two-offer readiness checks below preserve terms for existing
+agreements. External Attack Surface Review is parked for new sales; do not use
+these checks to select or quote a new review.
+
+- [ ] The historical reference price was €1,900 fixed excluding VAT; check
+  the issued agreement for its accepted price and signed-SOW delivery timing.
 - [ ] External rehearsal follows one signed system/target schedule within
   1 root domain / 10 first-party hostnames / 3 public IPs / 20 endpoints,
   using approved low-impact unauthenticated checks and manual validation.
@@ -28,9 +40,6 @@ synthetic material. A dry run does not authorise customer access or testing.
   including the 45-minute handover and one focused retest of reported findings
   within 30 calendar days of initial report handover. Additional or late retests
   remain held and are not offered.
-- [ ] Samples remain labelled synthetic. Available evidence, missing coverage
-  and verification limits are clear; no security or certification guarantee.
-- [ ] Record review/date, scope gaps and the next owner before accepting work.
 
 ## Historical CSR and One Server rehearsal — not current sales instructions
 

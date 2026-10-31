@@ -8,6 +8,7 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { WITHDRAWN_CATALOG_SKU_IDS } from "@/lib/public-commercial-routes";
 import {
   evaluateNewSalesIntakeBody,
   newSalesEnquiryOptions,
@@ -43,6 +44,15 @@ test("raw JSON accepts only the Agent Action offer id", () => {
     role: "contact",
     intent: ASK_AI_CONTACT_INTENT,
   });
+});
+
+test("withdrawn catalogue SKU IDs retain their historical intake identity", () => {
+  for (const intent of WITHDRAWN_CATALOG_SKU_IDS) {
+    assert.deepEqual(evaluateNewSalesIntakeBody({ intent }), {
+      accepted: false,
+      reason: "historical",
+    });
+  }
 });
 
 test("raw JSON rejects missing, ambiguous, wrong-role, historical, and unsupported identities", () => {

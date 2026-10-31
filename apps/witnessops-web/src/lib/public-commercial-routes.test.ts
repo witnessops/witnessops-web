@@ -15,14 +15,22 @@ import {
 } from "./buyer-services";
 import { PRIMARY_OFFER } from "./commercial-truth";
 
-test("commercial SKU route dispositions preserve current offers and contain drift", () => {
-  assert.equal(catalogSkuDisposition("OFFSEC-LOCAL-AUDIT"), "current");
+test("commercial SKU route dispositions keep withdrawn offers out of public detail pages", () => {
+  for (const id of [
+    "OFFSEC-LOCAL-AUDIT",
+    "OFFSEC-LAUNCH-READY",
+    "OFFSEC-CUSTODY-OPS",
+    "OFFSEC-INCIDENT-READY",
+  ]) {
+    assert.equal(catalogSkuDisposition(id), "withdrawn", id);
+    assert.equal(isCurrentPublicCatalogSku(id), false, id);
+  }
   assert.equal(catalogSkuDisposition("OFFSEC-EXTERNAL-EXPOSURE"), "current");
+  assert.equal(isCurrentPublicCatalogSku("OFFSEC-EXTERNAL-EXPOSURE"), true);
   assert.equal(catalogSkuDisposition("SAAS-TEAM"), "private_preview");
   assert.equal(catalogSkuDisposition("WORKFLOW-S"), "replacement_available");
   assert.equal(catalogSkuDisposition("OFFSEC-PILOT"), "unresolved");
   assert.equal(catalogSkuDisposition("OFFSEC-RETAINER"), "unresolved");
-  assert.equal(isCurrentPublicCatalogSku("OFFSEC-LOCAL-AUDIT"), true);
   assert.equal(isCurrentPublicCatalogSku("OFFSEC-PILOT"), false);
 });
 

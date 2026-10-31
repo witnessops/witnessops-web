@@ -5,7 +5,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
+import AgentActionSecurityReviewPage from "@/app/(marketing)/reviews/agent-action-security-review/page";
 
 import {
   sampleCommitShort,
@@ -20,18 +20,10 @@ import { HOMEPAGE_TWO_OFFER_COPY } from "./homepage-two-offer-copy";
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
 const catalogueSource = readFileSync(resolve(__dirname, "buyer-catalogue.tsx"), "utf8");
 const detailSource = readFileSync(resolve(__dirname, "buyer-service-detail.tsx"), "utf8");
-const customerReviewSource = readFileSync(
-  resolve(__dirname, "../../app/customer-security-review/page.tsx"),
-  "utf8",
-);
-const polishCustomerReviewSource = readFileSync(
-  resolve(__dirname, "../../app/pl/customer-security-review/page.tsx"),
-  "utf8",
-);
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
 test("the current review links to a clearly historical one-action example", () => {
-  const html = renderToStaticMarkup(createElement(CatalogWorkflowsPage));
+  const html = renderToStaticMarkup(createElement(AgentActionSecurityReviewPage));
   assert.match(html, /href="\/review\/sample-cases\/ai-agent-action-proof-run"/);
   assert.match(html, /historical synthetic one-action example/);
   assert.doesNotMatch(html, /id="sample-review"/);
@@ -106,14 +98,16 @@ test("EN and PL homepage sources project only the agent review", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
 });
 
-test("security leads while the repair contract stays intact", () => {
+test("Agent Action leads while historical contracts stay intact", () => {
   const lead = BUYER_SERVICES.find(service => service.commercialRole === "primary");
-  assert.equal(lead?.id, PRIMARY_OFFER.id);
+  assert.equal(lead?.id, PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(lead?.homepageFeatured, true);
   const repair = BUYER_SERVICES.find(service => service.id === "automation-repair-handover");
   assert.equal(repair?.price.en, "€250 diagnosis · excluding VAT");
   assert.match(repair?.boundary.en ?? "", /stop after diagnosis or accept a separate quote/);
   const specialist = BUYER_SERVICES.find(service => service.id === PRIMARY_OFFER.id);
-  assert.equal(specialist?.homepageFeatured, true);
+  assert.notEqual(specialist?.homepageFeatured, true);
+  assert.notEqual(specialist?.commercialRole, "primary");
   assert.equal(specialist?.price.en, "Starting at €2,500 · excluding VAT");
   assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
   assert.equal(sampleCommitShort, "d4ad234bd815");
@@ -160,8 +154,6 @@ test("marketing PDFs remain stored but are absent from public buyer choices", ()
   for (const buyerSource of [
     catalogueSource,
     detailSource,
-    customerReviewSource,
-    polishCustomerReviewSource,
   ]) {
     assert.doesNotMatch(buyerSource, /One-pager|data-one-pager|\.pdf/i);
   }

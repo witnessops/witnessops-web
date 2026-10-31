@@ -3,19 +3,19 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
-import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample work",
   description:
-    "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven. Not live customer evidence.",
+    "Explore agent-action examples: authority, approvals, execution evidence and explicit limits. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Sample work | WitnessOps",
     description:
-      "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
+      "Explore agent-action examples: authority, approvals, execution evidence and explicit limits.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sample work | WitnessOps",
     description:
-      "Inspect labelled sample reviews before you request work: what was checked, what evidence is referenced, and what remains unproven.",
+      "Explore agent-action examples: authority, approvals, execution evidence and explicit limits.",
   },
 };
 
@@ -39,39 +39,12 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-    href: "/review/sample-cases/external-exposure-assessment",
-    situation: "A bounded external review is documented in a synthetic sample report.",
-    youSee: "The report, findings, evidence references and limits. This public copy contains no receipt and is not an input for /verify. Not a live assessment and not available for new engagements.",
-    tags: ["Parked review sample", "Synthetic sample report"],
-    emphasize: false,
-  },
-  {
     title: "Witnessed synthetic CRM action",
     href: "/review/sample-cases/witnessed-crm-status-change",
     situation: "A recorded bounded action changes only Acme from NEW to REVIEWED.",
     youSee:
       "Original run authority, replay-only consent, the fixed action sequence, independent read-back, and an unsigned exact-byte demonstration receipt.",
     tags: ["Recorded synthetic run", "Replay + unsigned receipt"],
-    emphasize: false,
-  },
-  {
-    title: "Access removed proof (method sample)",
-    href: "/review/sample-cases/access-removed-proof",
-    situation: "One named access-removal event with sanitised before/after observations.",
-    youSee:
-      "Package shape and limits. Not a public product card and not universal access-elimination.",
-    tags: ["Method sample", "Not a product card"],
-    emphasize: false,
-  },
-  {
-    title: "SBOM field checklist (method sample)",
-    href: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-    situation:
-      "A labelled synthetic package shows how a field checklist can sit inside a delivery, not a public product card.",
-    youSee:
-      "Generation context, present/partial gaps, and limits. Not compliance certification and not a catalogue SKU promotion.",
-    tags: ["Method sample", "Not a product card"],
     emphasize: false,
   },
   {
@@ -97,13 +70,13 @@ const sampleCases = [
 const nextSteps = [
   {
     title: "Verify a receipt",
-    description: "Check supported receipt JSON only. Sample-specific verifiers and historical packages have their own limits.",
+    description: "Check supported receipt JSON only. The key-rotation specimen has its own sample-specific verifier.",
     href: "/verify",
     label: "Open verifier",
   },
   {
     title: "Illustrative sample report",
-    description: "A generic report shape for orientation, not a live customer report.",
+    description: "An illustrative report about one automated deployment action, not a live customer report.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
@@ -125,10 +98,10 @@ export default function SampleCasesIndexPage() {
             Sample work
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            Illustrative reviews, findings and evidence.
+            Examples of agent actions, approvals and evidence.
           </p>
           <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
-            Inspect the evidence, findings and limits of a bounded review.
+            Explore four examples relevant to Agent Action Security Review.
             Published sample, not live customer evidence. No production verification or certification.
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
@@ -137,10 +110,8 @@ export default function SampleCasesIndexPage() {
             <Link href="/reviews" className="text-brand-accent underline underline-offset-4">
               see the current review
             </Link>
-            . {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new
-            engagements; its sample remains a labelled synthetic example.
-            {" "}Older service and method samples remain available for reference;
-            they are not additional reviews offered for sale.
+            . These examples illustrate individual actions and evidence limits;
+            they are not complete deliverables from the current paid review.
           </p>
         </header>
 

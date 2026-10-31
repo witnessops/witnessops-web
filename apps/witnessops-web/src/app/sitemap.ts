@@ -27,8 +27,6 @@ const staticRoutes: StaticRoute[] = [
   { route: "/chronicles/003-the-meeting-nobody-authorized", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   { route: "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself", sourcePath: "src/app/(marketing)/chronicles/[slug]/page.tsx" },
   ...editorialArticles.map(entry => ({ route: entry.href, sourcePath: entry.contentReference })),
-  { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },
-  { route: "/pl/catalog/automation-repair", sourcePath: "src/app/pl/catalog/automation-repair/page.tsx" },
   { route: "" },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
   ...listSkills().map(({ slug }) => ({
@@ -72,36 +70,6 @@ const staticRoutes: StaticRoute[] = [
     route: "/review/sample-cases/witnessed-crm-status-change",
     sourcePath:
       "src/app/review/sample-cases/witnessed-crm-status-change/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/local-server-security-review",
-    sourcePath: "src/app/review/sample-cases/local-server-security-review/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/launch-readiness-review",
-    sourcePath: "src/app/review/sample-cases/launch-readiness-review/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/custody-wallet-ops-review",
-    sourcePath: "src/app/review/sample-cases/custody-wallet-ops-review/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/incident-readiness-review",
-    sourcePath: "src/app/review/sample-cases/incident-readiness-review/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/customer-security-review-sprint",
-    sourcePath:
-      "src/app/review/sample-cases/customer-security-review-sprint/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/access-removed-proof",
-    sourcePath: "src/app/review/sample-cases/access-removed-proof/page.tsx",
-  },
-  {
-    route: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-    sourcePath:
-      "src/app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
   },
   {
     route: "/review/sample-cases/approval-gated-containment",

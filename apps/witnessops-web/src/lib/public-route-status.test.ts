@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { WITHDRAWN_OFFER_PATHS } from "./withdrawn-offer-routes";
+import { WITHDRAWN_OFFER_PATHS, WITHDRAWN_SAMPLE_PATHS, isWithdrawnSamplePath } from "./withdrawn-offer-routes";
 
 const CANONICAL_CONTACT = "https://witnessops.com/contact";
 const CANONICAL_PL_CONTACT = "https://witnessops.com/pl/contact";
@@ -11,7 +11,7 @@ function canonicalHref(html: string): string | null {
 }
 
 test(
-  "withdrawn offer URLs return 410 inside the site shell",
+  "withdrawn offer and sample URLs return 410 inside the site shell",
   { skip: process.env.PUBLIC_ROUTE_BASE_URL ? false : "PUBLIC_ROUTE_BASE_URL is not set" },
   async () => {
     const base = process.env.PUBLIC_ROUTE_BASE_URL;
@@ -27,20 +27,25 @@ test(
       return { response, html };
     }
 
-    for (const path of WITHDRAWN_OFFER_PATHS) {
+    for (const path of [...WITHDRAWN_OFFER_PATHS, ...WITHDRAWN_SAMPLE_PATHS]) {
       const { response, html } = await read(path);
       if (response.status !== 410) {
         mismatches.push(`${path}: expected 410, got ${response.status}`);
         continue;
       }
       const polish = path.startsWith("/pl/");
-      const title = polish ? "Ta oferta została wycofana" : "This offer has been withdrawn";
-      const contact = polish ? 'href="/pl/contact"' : 'href="/contact"';
+      const sample = isWithdrawnSamplePath(path);
+      const title = sample
+        ? (polish ? "Ten przykład został wycofany" : "This sample has been retired")
+        : (polish ? "Ta oferta została wycofana" : "This offer has been withdrawn");
+      const nextLink = sample
+        ? 'href="/review/sample-cases"'
+        : (polish ? 'href="/pl/contact"' : 'href="/contact"');
       if (!html.includes(title)) mismatches.push(`${path}: missing withdrawn heading`);
-      if (!html.includes("Agent Action Security Review") || !html.includes("External Attack Surface Review")) {
-        mismatches.push(`${path}: missing current review links`);
+      if (!html.includes("Agent Action Security Review")) {
+        mismatches.push(`${path}: missing current review link`);
       }
-      if (!html.includes(contact)) mismatches.push(`${path}: missing contact link`);
+      if (!html.includes(nextLink)) mismatches.push(`${path}: missing sample or contact link`);
       if (!html.includes("site-footer") || !html.includes("WitnessOps")) {
         mismatches.push(`${path}: 410 page is outside the site shell`);
       }

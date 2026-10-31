@@ -37,13 +37,11 @@
 .primaryDownload:hover { background: var(--color-action-fill-hover, var(--color-text-secondary)); border-color: var(--color-action-fill-hover, var(--color-text-secondary)); }
 .secondaryDownload { color: var(--color-text-primary); background: transparent; }
 .secondaryDownload:hover { background: var(--color-surface-inset); border-color: var(--color-brand-accent); }
-.screenshotGrid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 32px; }
-.screenshotImage { width: 100%; height: auto; max-height: 480px; object-fit: contain; }
 @media (max-width: 640px) {
   .legalPage { padding-top: 32px; padding-bottom: 56px; }
   .policyNav { margin-bottom: 28px; gap: 6px; }
   .policyNav a { padding: 8px 14px; }
   .legalHeader { padding-bottom: 24px; margin-bottom: 24px; }
-  .relatedGrid, .screenshotGrid { grid-template-columns: 1fr; }
+  .relatedGrid { grid-template-columns: 1fr; }
   .mediaPage > section, .mediaPage > section:first-child { padding-top: 40px; padding-bottom: 40px; }
 }

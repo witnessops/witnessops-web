@@ -61,8 +61,7 @@ test("confirmation resources stay aligned to the recorded service kind", () => {
   assert.match(confirmationPage, /buyerServiceById\(serviceId\)/);
   assert.match(confirmationPage, /selectedService\.detailHref\[locale\]/);
   assert.match(confirmationPage, /"ai-agent-action-proof-run"/);
-  assert.match(confirmationPage, /"access-change-proof-run"/);
-  assert.match(confirmationPage, /\/review\/sample-cases\/access-removed-proof/);
+  assert.doesNotMatch(confirmationPage, /\/review\/sample-cases\/(access-removed-proof|external-exposure-assessment)/);
   assert.match(confirmationPage, /\{proofResource \? \(/);
   assert.doesNotMatch(
     confirmationPage,

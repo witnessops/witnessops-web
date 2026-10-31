@@ -18,12 +18,10 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/(marketing)/pricing/page.tsx",
   "src/app/(marketing)/catalog/page.tsx",
   "src/app/(marketing)/catalog/[skuId]/page.tsx",
-  "src/app/(marketing)/catalog/workflows/page.tsx",
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-two-offer-copy.ts",
   "src/components/marketing/simple-homepage.tsx",
-  "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -34,22 +32,12 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/sample-report/page.tsx",
   "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   "src/app/review/sample-cases/ai-agent-action-proof-run/api-key-rotation-demo.tsx",
-  "src/app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
-  "src/app/review/sample-cases/local-server-security-review/page.tsx",
-  "src/app/review/sample-cases/external-exposure-assessment/page.tsx",
-  "src/app/review/sample-cases/launch-readiness-review/page.tsx",
-  "src/app/review/sample-cases/custody-wallet-ops-review/page.tsx",
-  "src/app/review/sample-cases/incident-readiness-review/page.tsx",
-  "src/app/review/sample-cases/customer-security-review-sprint/page.tsx",
-  "src/app/review/sample-cases/access-removed-proof/page.tsx",
   "src/app/review/sample-cases/approval-gated-containment/page.tsx",
   "src/app/review/sample-cases/privileged-access-grant/page.tsx",
   "src/app/review/sample-cases/page.tsx",
-  "src/components/marketing/offsec-suite-sample.tsx",
   "src/app/support/page.tsx",
   "src/app/verify/page.tsx",
   "src/components/marketing/why-witnessops.tsx",
-  "src/app/customer-security-review/page.tsx",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
@@ -141,8 +129,6 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-two-offer-copy.ts",
   "src/components/marketing/simple-homepage.tsx",
-  "src/components/marketing/homepage-synthetic-preview.ts",
-  "src/components/marketing/offsec-suite-sample.tsx",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
@@ -378,16 +364,6 @@ test("prohibited homepage copy fails validation", () => {
     ),
   );
   assert.equal(stripped.some((failure) => failure.includes(dummyBoundary)), false);
-});
-
-test("homepage synthetic preview preserves English and Polish customer-evidence boundaries", () => {
-  const source = readFileSync(
-    resolve(webRoot, "src/components/marketing/homepage-synthetic-preview.ts"),
-    "utf8",
-  );
-
-  assert.match(source, /Synthetic example, not customer evidence/);
-  assert.match(source, /Syntetyczny przykład, nie są to materiały klienta/);
 });
 
 test("claim-boundary guard scans only public presentation sources", () => {

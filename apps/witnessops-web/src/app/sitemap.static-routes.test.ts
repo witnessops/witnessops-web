@@ -3,6 +3,7 @@ import test from "node:test";
 
 import sitemap from "./sitemap";
 import { canonicalUrl } from "@/lib/public-seo";
+import { WITHDRAWN_OFFER_PATHS, WITHDRAWN_SAMPLE_PATHS } from "@/lib/withdrawn-offer-routes";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/reviews",
@@ -23,14 +24,15 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
-  "/review/sample-cases/access-removed-proof",
-  "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+  "/review/sample-cases/witnessed-crm-status-change",
   "/pl/library",
   "/review/sample-cases/approval-gated-containment",
   "/review/sample-cases/privileged-access-grant",
 ] as const;
 
 const EXCLUDED_SITEMAP_ROUTES = [
+  "/review/withdrawn-sample",
+  "/pl/review/withdrawn-sample",
   "/catalog",
   "/pl/catalog",
   "/pl/catalog/offsec-external-exposure",
@@ -88,6 +90,13 @@ test("sitemap excludes redirects, private previews, and unresolved commercial ro
     assert.ok(
       !urls.has(canonicalUrl(route)),
       `Expected sitemap to exclude ${route}`,
+    );
+  }
+
+  for (const route of [...WITHDRAWN_OFFER_PATHS, ...WITHDRAWN_SAMPLE_PATHS]) {
+    assert.ok(
+      !urls.has(canonicalUrl(route)),
+      `Expected sitemap to omit retired route ${route}`,
     );
   }
 });

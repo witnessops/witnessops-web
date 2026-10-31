@@ -1,8 +1,9 @@
 /**
- * Historical offer pages that stay reachable by URL and carry a historical
- * record banner. They are omitted from the sitemap, internal docs search,
- * and the Ask WitnessOps public source index. robots.txt does not Disallow
- * them; each page sets robots { index: false, follow: true }.
+ * Historical public URLs omitted from the sitemap, internal docs search, and
+ * the Ask WitnessOps public source index. Workflows, customer security review,
+ * and professional public footprint URLs are middleware-owned 410 withdrawal
+ * responses. The other entries remain reachable historical or parked pages
+ * with noindex copy. robots.txt does not Disallow these URLs.
  */
 export const HISTORICAL_UNINDEXED_PUBLIC_PATHS = [
   "/catalog/workflows",

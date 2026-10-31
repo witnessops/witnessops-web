@@ -1,9 +1,6 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 
 export const MESH_RECEIPT_PUBLIC_SCHEMA = "offseclane.mesh_receipt_public.v1";
-export const MESH_RECEIPT_INDEX_SCHEMA = "offseclane.mesh_receipt_index.v1";
 
 export type MeshGateVerdict = "mesh_gate_valid" | "mesh_gate_invalid";
 
@@ -240,23 +237,6 @@ export function computeMeshReceiptContentSha256(doc: JsonObject): string {
     forHash[key] = value;
   }
   return sha256Canonical(forHash);
-}
-
-function resolveMeshGateFixtureRoot(): string {
-  const candidates = [
-    path.resolve(process.cwd(), "fixtures/mesh-gate"),
-    path.resolve(process.cwd(), "apps/witnessops-web/fixtures/mesh-gate"),
-  ];
-  for (const root of candidates) {
-    if (fs.existsSync(root)) return root;
-  }
-  return candidates[0];
-}
-
-export function loadPublishedMeshReceiptIndex(): Record<string, unknown> | null {
-  const file = path.join(resolveMeshGateFixtureRoot(), "mesh-receipt-index.json");
-  if (!fs.existsSync(file)) return null;
-  return JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, unknown>;
 }
 
 export function validateMeshReceiptPublic(

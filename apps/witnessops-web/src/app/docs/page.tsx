@@ -5,7 +5,6 @@ import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { CtaButton } from "@/components/shared/cta-button";
-import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
   normalizeHost,
   toPublicDocsHref,
@@ -210,14 +209,14 @@ export default async function DocsIndexPage() {
           </li>
         </ol>
         <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
-          Separate report example (contains no receipt):{" "}
+          Agent-action examples:{" "}
           <Link
-            href="/review/sample-cases/external-exposure-assessment"
+            href="/review/sample-cases"
             className="text-brand-accent underline-offset-2 hover:underline"
           >
-            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} synthetic sample
+            inspect the labelled examples and their limits
           </Link>
-          . It is not customer evidence.
+          . These are not customer evidence or complete samples of the current review.
         </p>
       </section>
 

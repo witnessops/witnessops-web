@@ -59,9 +59,9 @@ const FILE_FIXTURES = [
   },
   {
     id: "swarm-mesh-export-round3",
-    label: "Swarm mesh export (round 3 trust+revoke)",
+    label: "Unsupported Swarm mesh export",
     description:
-      "offsec.swarm.mesh_export.v1 DEV export; R3 structural adapter (not PV/QV/WV).",
+      "Negative fixture: offsec.swarm.mesh_export.v1 is rejected by the receipt-only /verify boundary.",
     fileName: "swarm-mesh-export-round3.json",
     provenance: "app",
     expected: {

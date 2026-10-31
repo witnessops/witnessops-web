@@ -51,7 +51,7 @@ test("public catalogue uses the approved service names in Polish", () => {
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
 });
 
-test("detailed Polish offer routes retain extended technical copy under buyer names", () => {
+test("historical Polish offer copy does not reopen withdrawn detail routes", () => {
   assert.ok(POLISH_OFFERS["OFFSEC-LOCAL-AUDIT"]?.name);
   assert.ok(POLISH_OFFERS["OFFSEC-EXTERNAL-EXPOSURE"]?.name);
   assert.ok(POLISH_OFFERS["OFFSEC-LAUNCH-READY"]?.name);
@@ -59,5 +59,8 @@ test("detailed Polish offer routes retain extended technical copy under buyer na
   assert.ok(POLISH_OFFERS["OFFSEC-INCIDENT-READY"]?.name);
   // Pilot copy is retained as unresolved, but it is not a public sitemap route.
   assert.ok(POLISH_OFFERS["OFFSEC-PILOT"]?.name);
-  assert.equal(getPolishSkus().length, 5);
+  assert.deepEqual(
+    getPolishSkus().map((sku) => sku.id),
+    ["OFFSEC-EXTERNAL-EXPOSURE"],
+  );
 });

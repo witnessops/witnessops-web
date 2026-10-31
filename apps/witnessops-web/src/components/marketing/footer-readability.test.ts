@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 import {
+  footerResourceLinks,
   isExternalFooterHref,
   isFooterRequestHref,
   isLibraryPath,
@@ -102,7 +103,6 @@ test("footer provides Polish homepage labels without changing route contracts", 
   for (const marker of [
     "PUBLIC_AGENT_ACTION_OFFER",
     'label: locale === "pl" ? "Zgłoś przegląd agenta" : "Request an agent review"',
-    'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
     'label: "Prywatność", href: "/pl/privacy"',
     'label: "Warunki", href: "/pl/terms"',
@@ -110,11 +110,19 @@ test("footer provides Polish homepage labels without changing route contracts", 
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
+  assert.doesNotMatch(source, /label: "Badania i artykuły \(EN\)"/);
 
   assert.equal(PRIMARY_OFFER.name.pl, "Przegląd narzędzi i dostępu agenta AI");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.match(source, /reviewRequestHrefForLocation\(/);
   assert.match(source, /primaryHref=\{reviewRequestHref\}/);
+});
+
+test("footer Resources keeps bounded utilities and omits Research", () => {
+  const links = footerResourceLinks();
+  assert.ok(links.some((link) => link.label === "Sample work" && link.href === "/review/sample-cases"));
+  assert.ok(links.some((link) => link.label === "Verify a receipt" && link.href === "/verify"));
+  assert.equal(links.some((link) => link.href === "/research"), false);
 });
 
 test("library surface includes English and Polish library paths", () => {

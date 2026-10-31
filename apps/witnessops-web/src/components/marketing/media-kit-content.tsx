@@ -247,39 +247,6 @@ const interfaceColours = [
   { name: { en: "Warm ivory", pl: "Ciepła kość słoniowa" }, value: "#F5F1E8", swatchClass: "bg-[#F5F1E8]" },
 ] as const;
 
-const screenshots = [
-  {
-    title: { en: "WitnessOps homepage — desktop", pl: "Strona główna WitnessOps — komputer" },
-    description: {
-      en: "The desktop homepage hero and primary public navigation.",
-      pl: "Nagłówek strony głównej i główna nawigacja publiczna na komputerze.",
-    },
-    src: "/media-kit/witnessops-homepage-desktop.png",
-    alt: {
-      en: "WitnessOps desktop homepage with the headline Proof other people can check.",
-      pl: "Strona główna WitnessOps na komputerze z nagłówkiem Proof other people can check.",
-    },
-    width: 1506,
-    height: 900,
-    fileName: "witnessops-homepage-desktop.png",
-  },
-  {
-    title: { en: "WitnessOps homepage — mobile", pl: "Strona główna WitnessOps — telefon" },
-    description: {
-      en: "The homepage hero and compact navigation on a narrow screen.",
-      pl: "Nagłówek strony głównej i zwarta nawigacja na wąskim ekranie.",
-    },
-    src: "/media-kit/witnessops-homepage-mobile.png",
-    alt: {
-      en: "WitnessOps mobile homepage with compact header and the headline Proof other people can check.",
-      pl: "Strona główna WitnessOps na telefonie ze zwartym nagłówkiem i tytułem Proof other people can check.",
-    },
-    width: 390,
-    height: 844,
-    fileName: "witnessops-homepage-mobile.png",
-  },
-] as const;
-
 const downloadClassName = styles.primaryDownload;
 const secondaryDownloadClassName = styles.secondaryDownload;
 
@@ -384,8 +351,8 @@ export function MediaKitContent({
           <p className="mt-7 max-w-[42rem] text-base leading-8 text-text-secondary sm:text-lg">
             {tx(
               locale,
-              "The exact Logo System v1 package, browser-ready exports, public interface colours, product screenshots and company copy for accurate references to WitnessOps.",
-              "Dokładny pakiet Logo System v1, pliki gotowe do przeglądarki, kolory interfejsu, zrzuty produktu i opis spółki do wiernych odniesień do WitnessOps.",
+              "The exact Logo System v1 package, browser-ready exports, public interface colours and company copy for accurate references to WitnessOps.",
+              "Dokładny pakiet Logo System v1, pliki gotowe do przeglądarki, kolory interfejsu i opis spółki do wiernych odniesień do WitnessOps.",
             )}
           </p>
           <div className={`${cardClassName} mt-8`} data-media-kit-names="">
@@ -484,8 +451,8 @@ export function MediaKitContent({
           <p className="mt-7 text-lg leading-8 text-text-secondary">
             {tx(
               locale,
-              "WitnessOps delivers bounded security and operational reviews with evidence references, clear limits and a practical handover.",
-              "WitnessOps prowadzi ograniczone przeglądy bezpieczeństwa i operacyjne, z odniesieniami do dowodów, jasnymi granicami i praktycznym przekazaniem.",
+              "WitnessOps delivers Agent Action Security Review: a bounded, read-only review of one consequential agent or automation action, with sourced findings, explicit unknowns, a written report and a readout.",
+              "WitnessOps prowadzi Agent Action Security Review: ograniczony przegląd jednego istotnego działania agenta lub automatyzacji w trybie tylko do odczytu, z ustaleniami opartymi na źródłach, jawnymi niewiadomymi, raportem pisemnym i omówieniem.",
             )}
           </p>
         </div>
@@ -648,58 +615,6 @@ export function MediaKitContent({
             "Mosiądz służy do oszczędnego wyróżnienia w interfejsie, nigdy w logo. Plików fontów nie udostępniamy tutaj do pobrania.",
           )}
         </p>
-      </SectionShell>
-
-      <SectionShell id="screenshots" spacing="spacious" className="border-b border-surface-border">
-        <div className="max-w-[720px]">
-          <p className={eyebrowClassName}>{tx(locale, "Product screenshots", "Zrzuty produktu")}</p>
-          <h2 className={sectionTitleClassName}>
-            {tx(locale, "Website design previews", "Podgląd projektu strony")}
-          </h2>
-          <p className="mt-6 text-base leading-8 text-text-secondary">
-            {tx(
-              locale,
-              "These images preview the website design. They contain no customer evidence, completed forms or private data; they do not establish what is currently deployed.",
-              "Te obrazy pokazują projekt strony. Nie zawierają dowodów klientów, wypełnionych formularzy ani danych prywatnych i nie ustalają, co jest obecnie wdrożone.",
-            )}
-          </p>
-        </div>
-        <div className={styles.screenshotGrid}>
-          {screenshots.map((screenshot) => (
-            <figure key={screenshot.fileName} className={cardClassName}>
-              <div className="overflow-hidden rounded-md border border-surface-border bg-black">
-                <Image
-                  src={screenshot.src}
-                  unoptimized
-                  loading="eager"
-                  alt={screenshot.alt[locale]}
-                  width={screenshot.width}
-                  height={screenshot.height}
-                  sizes="(max-width: 767px) 90vw, 1100px"
-                  className={styles.screenshotImage}
-                />
-              </div>
-              <figcaption className="mt-5">
-                <h3 className="text-lg font-semibold text-text-primary">{screenshot.title[locale]}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">{screenshot.description[locale]}</p>
-                <a
-                  href={screenshot.src}
-                  download={screenshot.fileName}
-                  aria-label={tx(
-                    locale,
-                    `Download ${screenshot.title.en} as PNG, ${screenshot.width} × ${screenshot.height}`,
-                    `Pobierz ${screenshot.title.pl} jako PNG, ${screenshot.width} × ${screenshot.height}`,
-                  )}
-                  className={`${downloadClassName} mt-4`}
-                >
-                  <span className="break-words">
-                    {tx(locale, "Download PNG", "Pobierz PNG")} · {screenshot.width} × {screenshot.height}
-                  </span>
-                </a>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
       </SectionShell>
 
       <SectionShell id="usage-and-contact" spacing="spacious">

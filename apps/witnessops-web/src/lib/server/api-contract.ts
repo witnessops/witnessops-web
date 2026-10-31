@@ -163,7 +163,7 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     methods: ["GET", "POST"],
     category: "public-utility",
     summary:
-      "Operator mesh hygiene: validate published offseclane.mesh_receipt_public.v1 (not customer security proof)",
+      "Legacy operator mesh hygiene: validate submitted offseclane.mesh_receipt_public.v1; no published operator index (not customer security proof)",
   },
   {
     path: "/api/assessment/[issuanceId]",

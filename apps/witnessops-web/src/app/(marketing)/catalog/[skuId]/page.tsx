@@ -251,6 +251,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
     };
   }
+  if (disposition === "withdrawn") {
+    return {
+      title: "This offer has been withdrawn",
+      robots: { index: false, follow: true },
+    };
+  }
   if (disposition === "replacement_available") {
     return {
       title: "Offer moved",

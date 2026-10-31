@@ -6,7 +6,22 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/early-access", "/pl/catalog/automation-repair", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
+const addedOfferRoutes = ["/check", "/early-access", "/pl/review/withdrawn-sample", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot", "/review/withdrawn-sample"] as const;
+const retiredRoutes = [
+  { publicPath: "/catalog/workflows", appPath: "/(marketing)/catalog/workflows/page" },
+  { publicPath: "/catalog/professional-public-footprint-audit", appPath: "/(marketing)/catalog/professional-public-footprint-audit/page" },
+  { publicPath: "/pl/catalog/professional-public-footprint-audit", appPath: "/pl/catalog/professional-public-footprint-audit/page" },
+  { publicPath: "/customer-security-review", appPath: "/customer-security-review/page" },
+  { publicPath: "/pl/customer-security-review", appPath: "/pl/customer-security-review/page" },
+  { publicPath: "/review/sample-cases/access-removed-proof", appPath: "/review/sample-cases/access-removed-proof/page" },
+  { publicPath: "/review/sample-cases/customer-security-review-sprint", appPath: "/review/sample-cases/customer-security-review-sprint/page" },
+  { publicPath: "/review/sample-cases/custody-wallet-ops-review", appPath: "/review/sample-cases/custody-wallet-ops-review/page" },
+  { publicPath: "/review/sample-cases/external-exposure-assessment", appPath: "/review/sample-cases/external-exposure-assessment/page" },
+  { publicPath: "/review/sample-cases/incident-readiness-review", appPath: "/review/sample-cases/incident-readiness-review/page" },
+  { publicPath: "/review/sample-cases/launch-readiness-review", appPath: "/review/sample-cases/launch-readiness-review/page" },
+  { publicPath: "/review/sample-cases/local-server-security-review", appPath: "/review/sample-cases/local-server-security-review/page" },
+  { publicPath: "/review/sample-cases/sbom-cisa-2026-minimum-elements", appPath: "/review/sample-cases/sbom-cisa-2026-minimum-elements/page" },
+] as const;
 
 function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -54,6 +69,11 @@ test("routes-manifest matches the frozen baseline", () => {
   );
 
   const manifest = actual as { staticRoutes: { page: string; regex: string; namedRegex: string; routeKeys: object }[]; headers: {source:string; headers:{key:string;value:string}[];regex:string}[] };
+  const expectedManifest = expected as typeof manifest;
+  for (const { publicPath } of retiredRoutes) {
+    assert.equal(expectedManifest.staticRoutes.filter(route => route.page === publicPath).length, 1);
+    assert.equal(manifest.staticRoutes.filter(route => route.page === publicPath).length, 0);
+  }
   const additions = manifest.staticRoutes.filter(route => addedOfferRoutes.some(path => path === route.page));
   assert.deepEqual(additions.map(route => route.page), [...addedOfferRoutes]);
   for (const route of additions) {
@@ -85,7 +105,10 @@ test("routes-manifest matches the frozen baseline", () => {
     assert.deepEqual(header.headers, [{ key: "Content-Security-Policy", value: baseCsp.replace("script-src 'self'", "script-src 'self' https://static.cloudflareinsights.com/beacon.min.js").replace("connect-src 'self'", "connect-src 'self' https://cloudflareinsights.com/cdn-cgi/rum") }]);
     for (const excluded of ["/admin", "/api/admin/workos/callback", "/check", "/proofpack", "/package/private", "/assessment/private", "/verify-token"]) assert.equal(new RegExp(header.regex).test(excluded), false);
   }
-  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
+  assert.deepEqual(
+    { ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) },
+    { ...expectedManifest, staticRoutes: expectedManifest.staticRoutes.filter(route => !retiredRoutes.some(({ publicPath }) => publicPath === route.page)) },
+  );
 });
 
 test("app-paths-manifest matches the frozen baseline", () => {
@@ -97,9 +120,15 @@ test("app-paths-manifest matches the frozen baseline", () => {
   );
 
   const manifest = { ...(actual as Record<string, string>) };
-  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page"]) {
+  const expectedManifest = { ...(expected as Record<string, string>) };
+  for (const { appPath } of retiredRoutes) {
+    assert.equal(expectedManifest[appPath], `app${appPath}.js`);
+    assert.equal(Object.hasOwn(manifest, appPath), false);
+    delete expectedManifest[appPath];
+  }
+  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }
-  assert.deepEqual(manifest, expected);
+  assert.deepEqual(manifest, expectedManifest);
 });

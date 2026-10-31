@@ -6,7 +6,7 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 export const metadata: Metadata = {
   title: "Media kit",
   description:
-    "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
+    "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance and company description.",
   alternates: languageAlternates("/media-kit", {
     en: "/media-kit",
     pl: "/pl/media-kit",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     images: DEFAULT_OPEN_GRAPH_IMAGES,
     title: "Media kit | WitnessOps",
     description:
-      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
+      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance and company description.",
     siteName: "WitnessOps",
     type: "website",
     url: canonicalUrl("/media-kit"),
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Media kit | WitnessOps",
     description:
-      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
+      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance and company description.",
   },
 };
 

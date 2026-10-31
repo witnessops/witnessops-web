@@ -117,9 +117,8 @@ test("WEB-011: countAudioFiles ignores non-audio files", async () => {
   assert.equal(await countAudioFiles(dir), 1);
 });
 
-test("WEB-011: countAudioFiles on the real audio tree returns at least 1", async () => {
-  const result = await countAudioFiles();
-  assert.ok(result >= 1, `expected at least 1 audio file, got ${result}`);
+test("WEB-011: countAudioFiles on the retired audio tree returns 0", async () => {
+  assert.equal(await countAudioFiles(), 0);
 });
 
 // ---------------------------------------------------------------------------
