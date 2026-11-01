@@ -1,0 +1,30 @@
+.panel { border-top: 1px solid var(--border); padding: 28px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.eyebrow, .kind { color: var(--muted); font: 10px/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+.eyebrow { margin: 0 0 5px; }
+.header h3 { color: var(--fg); font-size: 20px; font-weight: 560; letter-spacing: -.02em; margin: 0; }
+.count { border: 1px solid var(--border); border-radius: 20px; padding: 5px 10px; color: var(--attention); font-size: 11px; flex-shrink: 0; }
+.intro, .boundary, .notice, .empty { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.intro { margin: 10px 0 20px; max-width: 78ch; }
+.notice { border-left: 2px solid var(--attention); padding-left: 12px; margin: 14px 0; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 0; margin: 0; list-style: none; }
+.card { min-width: 0; display: flex; flex-direction: column; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-wrap: anywhere; }
+.card[data-kind="evidence"] .kind { color: var(--attention); }
+.cardHeading h4 { font-size: 15px; font-weight: 560; line-height: 1.4; color: var(--fg); margin: 6px 0 18px; }
+.recorded { padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.recorded h5, .guidance dt { font-size: 11px; color: var(--fg); font-weight: 560; margin: 0 0 5px; }
+.recorded p, .guidance dd { color: var(--muted); font-size: 12px; line-height: 1.65; margin: 0 0 8px; }
+.recorded p:last-child { margin-bottom: 0; }
+.recorded strong { color: var(--fg); font-weight: 500; }
+.guidance { margin: 14px 0 4px; }
+.guidance > div + div { margin-top: 14px; }
+.inspect { color: var(--fg); background: transparent; border: none; text-align: left; font-size: 12px; min-height: 44px; padding: 10px 0 0; cursor: pointer; margin-top: auto; }
+.inspect:hover { text-decoration: underline; text-underline-offset: 4px; }
+.inspect:focus-visible, .more summary:focus-visible { outline: 2px solid var(--attention); outline-offset: 4px; border-radius: 2px; }
+.more { margin-top: 16px; }
+.more summary { display: list-item; cursor: pointer; color: var(--fg); font-size: 12px; min-height: 44px; padding: 12px 0; }
+.more[open] summary { margin-bottom: 4px; }
+.boundary { margin: 18px 0 0; max-width: 96ch; }
+@media (max-width: 1100px) { .cards { grid-template-columns: 1fr; } .card { padding: 18px; } }
+@media (max-width: 600px) { .panel { padding: 22px 20px; } .header { flex-direction: column; gap: 10px; } }
+@media print { .panel { display: none; } }

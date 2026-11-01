@@ -90,7 +90,7 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
   </div>;
 }
 
-function LinuxReport({ model, run, workspaceId, comparison, role }: { model: ProofpackReportV1; run: LinuxCheckRun; workspaceId: string; comparison?: LinuxComparison; role: string }) {
+function LinuxReport({ model, evidenceArtifacts, run, workspaceId, comparison, role }: { model: ProofpackReportV1; evidenceArtifacts?: ProofpackReportV1['sourceArtifacts']; run: LinuxCheckRun; workspaceId: string; comparison?: LinuxComparison; role: string }) {
   const context = { linux: true, evidenceHref: (finding: typeof model.findings[number]) => `#report-evidence-${model.findings.indexOf(finding) + 1}`, recheckHref: hasWorkspaceCapability(role, 'linux:import') ? `/assets/${run.assetId}` : undefined };
   const { print, printRoot } = useBuyerReportPrint(model, reportFollowThrough(model, context, false));
   const [error, setError] = useState('');
@@ -110,7 +110,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
       <div className="support"><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p></div>
       <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run <span className="identifier">{run.id}</span></p>
     </div></header>
-    <ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceHref={context.evidenceHref} />
+    <ReportOverview key={model.identity.reportId + model.identity.sourceDigest} model={model} evidenceArtifacts={evidenceArtifacts} evidenceHref={context.evidenceHref} />
     <section className="linux-export-panel" aria-labelledby="linux-export-heading">
       <div><h2 id="linux-export-heading">Report and original source</h2><p className="quiet">Save the readable report for a review. Keep the original ZIP and its signature together for verification.</p></div>
       <div className="actions"><button className="button" onClick={print}>Save report as PDF</button><button className="button secondary" onClick={() => void download('zip')}>Download original ZIP</button><button className="button secondary" onClick={() => void download('signature')}>Download detached signature</button><Link className="button secondary" href={`/reports/${run.id}`}>Open report</Link></div>
@@ -122,7 +122,7 @@ function LinuxReport({ model, run, workspaceId, comparison, role }: { model: Pro
 }
 
 export function LinuxCheckPage({ runId, workspaceId, role }: { runId: string; workspaceId: string; role: string }) {
-  const [loaded, setLoaded] = useState<{ model: ProofpackReportV1; run: LinuxCheckRun; comparison?: LinuxComparison } | null>(null), [error, setError] = useState('');
+  const [loaded, setLoaded] = useState<{ model: ProofpackReportV1; evidenceArtifacts?: ProofpackReportV1['sourceArtifacts']; run: LinuxCheckRun; comparison?: LinuxComparison } | null>(null), [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let active = true;
@@ -136,7 +136,7 @@ export function LinuxCheckPage({ runId, workspaceId, role }: { runId: string; wo
     return () => { active = false; controller.abort(); };
   }, [runId, workspaceId]);
   if (error) return <p role="alert">{error}</p>;
-  return loaded ? <><ReportShare key={`${workspaceId}:${runId}`} workspaceId={workspaceId} runId={runId} role={role}/><LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} role={role} comparison={loaded.comparison} /></> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
+  return loaded ? <><ReportShare key={`${workspaceId}:${runId}`} workspaceId={workspaceId} runId={runId} role={role}/><LinuxReport model={loaded.model} evidenceArtifacts={loaded.evidenceArtifacts} run={loaded.run} workspaceId={workspaceId} role={role} comparison={loaded.comparison} /></> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
 }
 
 function LinuxChanges({ comparison }: { comparison?: LinuxComparison }) {
