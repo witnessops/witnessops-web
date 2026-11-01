@@ -120,7 +120,8 @@ test("the unselected enquiry is the agent review and has no offer selector", asy
   const polish = render(await PolishReviewRequestPage({ searchParams: Promise.resolve({}) }));
   assert.doesNotMatch(polish, /Który przegląd\?/);
   assert.match(polish, /value="agent-action-security-review"/);
-  assert.match(polish, /Istotne działanie/);
+  assert.match(polish, /Co ma zrobić agent\?/);
+  assert.match(polish, /krótki opis jednego działania/);
   assert.doesNotMatch(polish, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
   assert.match(html, /href="mailto:engage@mail\.witnessops\.com\?subject=WitnessOps%20fit%20check"/);
   assert.match(html, />engage@mail\.witnessops\.com</);

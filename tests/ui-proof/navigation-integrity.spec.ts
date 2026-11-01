@@ -402,6 +402,39 @@ test("the docs drawer and search preserve stacked focus and scroll locks", async
   await context.close();
 });
 
+test("Polish docs landing makes the service guide easy to find", async ({ page }) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/pl/docs");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dokumentacja WitnessOps");
+    await expect(page.getByText("Utworzenie konta jest bezpłatne i nie wymaga karty.", { exact: false })).toBeVisible();
+    const guide = page.getByRole("link", { name: "Poznaj usługę", exact: true });
+    await expect(guide).toHaveAttribute("href", "/pl/docs/understand-the-service");
+    await guide.click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Zrozum usługę");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
+test("Polish docs drawer has localized controls and retains keyboard behavior", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/pl/docs/understand-the-service", { waitUntil: "networkidle" });
+  await expect(page.getByRole("navigation", { name: "Skróty dokumentacji" })).toBeVisible();
+  const trigger = page.getByRole("button", { name: "Przeglądaj dokumentację" });
+  await expect(trigger).toHaveText("Przeglądaj dokumentację");
+  await trigger.click();
+  const drawer = page.getByRole("dialog", { name: "Nawigacja" });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Zamknij nawigację" })).toBeFocused();
+  const filter = drawer.getByRole("textbox", { name: "Filtruj nawigację dokumentacji" });
+  await expect(filter).toHaveAttribute("placeholder", "/ szukaj…");
+  await filter.fill("Zrozum usługę");
+  await expect(drawer.getByRole("link", { name: /Zrozum usługę/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 for (const width of [1440, 390]) {
   test(`support question box sends nothing while the assistant is unpublished at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });

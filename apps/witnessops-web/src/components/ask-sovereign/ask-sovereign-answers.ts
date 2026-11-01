@@ -17,7 +17,7 @@ const CONTACT = "engage@mail.witnessops.com";
 function agentText(locale: SovereignLocale): string {
   const offer = PUBLIC_AGENT_ACTION_OFFER;
   if (locale === "pl") {
-    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${offer.price.pl}. ${offer.timing.pl}. Tylko inspekcja i rekonstrukcja. Przegląd nie wykonuje działania i nie zmienia produkcji.`;
+    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${offer.price.pl}. ${offer.timing.pl}. Analizujemy dostępne materiały i opisujemy działanie w zakresie, który można ustalić. Nie wykonujemy działania ani nie zmieniamy systemu produkcyjnego.`;
   }
   return `${offer.name.en} reviews one named consequential action. The price is ${offer.price.en}. ${offer.timing.en}. Inspection and reconstruction only; the review does not execute the action or change production.`;
 }
@@ -54,7 +54,7 @@ export function sovereignAnswer(question: string, locale: SovereignLocale): Sove
   if (/external|attack surface|1,900|1900|retest|ekspozycj|powierzchn/.test(q)) {
     return { kind: "external", text: externalText(locale), needsReview: false };
   }
-  if (/agent action|2,500|2500|consequential|istotn/.test(q)) {
+  if (/review cover|co obejmuje przegląd|agent action|2,500|2500|consequential|istotn/.test(q) || ["what does witnessops do?", "is it right for my agent?", "czym zajmuje się witnessops?", "czy to pasuje do mojego agenta?"].includes(q.trim())) {
     return { kind: "agent", text: agentText(locale), needsReview: false };
   }
   if (/start|write|email|contact|where|zaczą|napisz|kontakt|gdzie/.test(q)) {

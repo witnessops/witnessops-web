@@ -59,6 +59,10 @@ test("direct confirmation-page visits do not claim a verified request", () => {
   assert.match(confirmed, /No request record in this browser/);
   assert.match(confirmed, /No confirmed request record is present/);
   assert.match(confirmed, /readReviewRequestConfirmation/);
+  assert.match(confirmed, /WitnessOps \/ zapis zgłoszenia/);
+  assert.match(confirmed, /Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu/);
+  assert.match(confirmed, /uzgodniony zakres prac/);
+  assert.match(confirmed, /Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy/);
   assert.doesNotMatch(confirmed, /Your mailbox is verified/);
   assert.doesNotMatch(confirmed, /Request verified/);
 });
@@ -74,7 +78,7 @@ test("recorded confirmation keeps the no-secret and no-conclusion boundary visib
   );
   assert.match(
     confirmed,
-    /Nie wysyłaj sekretów ani materiałów źródłowych/,
+    /Nie wysyłaj sekretów\. Materiałów źródłowych nie wysyłaj, dopóki nie uzgodnimy zakresu i bezpiecznego sposobu ich obsługi\./,
   );
   assert.match(
     confirmed,

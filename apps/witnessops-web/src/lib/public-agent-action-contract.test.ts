@@ -37,7 +37,7 @@ test("new Agent Action public contract reuses the fixed one-action terms without
     const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
     const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
     assert.match(rendered, locale === "en" ? /Delivery timing agreed in the signed statement of work/ : /Termin realizacji według podpisanego SOW/);
-    assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Jawne niewiadome/);
+    assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Czego nie udało się ustalić i jakich dowodów brakuje/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
   }
 });

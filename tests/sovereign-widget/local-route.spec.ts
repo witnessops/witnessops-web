@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const unavailable = "AI is unavailable right now. Your question was not answered. Try again later or contact a person.";
+const unavailable = "Sovereign couldn’t answer right now. Your question is still here.";
 
 // The fixture server in playwright.config.ts starts with OPENAI_API_KEY="".
 // These requests reach the real local route; the other connection tests mock it.
@@ -67,7 +67,7 @@ test("several real-route failures keep each question marked and retry only the l
     await expect(dialog.locator("[data-retry]")).toHaveCount(1);
     expect(requests).toEqual(questions.slice(0, index + 1).map((item) => ({ question: item, history: [], surface: "sovereign_widget" })));
   }
-  await expect(dialog.getByRole("checkbox", { name: "This conversation is not attached to contact" })).toBeDisabled();
+  await expect(dialog.getByRole("checkbox")).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("three-failures.png"), animations: "disabled" });
 
   const retryResponse = responseFor();

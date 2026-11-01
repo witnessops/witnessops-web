@@ -131,8 +131,8 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
             aria-hidden="true"
           />
           <span className={styles.hint}>{process.env.NODE_ENV === "production" ? (locale === "pl" ? "Przeciągnij" : "Drag me") : (locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me")}</span>
+          <span className={styles.talkLabel} data-sovereign-talk-label="" aria-hidden="true">{locale === "pl" ? "Porozmawiaj z Sovereign" : "Talk to Sovereign"}</span>
         </button>
-        <button type="button" className={styles.resetPet} aria-label={resetLabel} title={resetLabel} onClick={resetPositions}>↺</button>
       </div>
       <p id="sovereign-move-help" className={styles.srOnly}>
         {locale === "pl"
@@ -171,7 +171,7 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
         onKeyDown={(event) => {
           if (event.key !== "Tab" || event.ctrlKey || event.altKey || event.metaKey) return;
           const controls = [...event.currentTarget.querySelectorAll<HTMLElement>(
-            'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])',
+            'a[href], button, summary, input, select, textarea, [tabindex]:not([tabindex="-1"])',
           )].filter((element) => !element.hasAttribute("disabled") && element.getClientRects().length > 0);
           const first = controls[0];
           const last = controls[controls.length - 1];
@@ -184,14 +184,17 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
           }
         }}
       >
-        <div className={styles.moveBar}>
+        <details className={styles.positionMenu}>
+          <summary role="button" aria-label={locale === "pl" ? "Opcje okna" : "Window options"}>···</summary>
+          <div className={styles.moveBar}>
           <button type="button" className={styles.moveHandle} aria-label={moveLabel} aria-describedby="sovereign-move-help" {...panel.handlers}>
             <span aria-hidden="true">⠿</span> {moveLabel}
           </button>
           <button type="button" className={styles.resetPanel} onClick={resetPositions}>{resetLabel}</button>
-        </div>
+          </div>
+        </details>
         {/* Minimize without discarding the in-memory conversation or in-flight reply. */}
-        {opened ? <AskSovereignPreview locale={locale} routePrefix={routePrefix} onClose={close} connection="api" /> : null}
+        {opened ? <AskSovereignPreview locale={locale} routePrefix={routePrefix} onClose={close} connection="api" active={visible} /> : null}
       </dialog>
     </>
   );

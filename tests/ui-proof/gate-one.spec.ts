@@ -143,7 +143,7 @@ test("Gate 1 retired sales links explain withdrawal and preserved utility routes
       expect(response?.status()).toBe(200);
       const main = page.getByRole("main");
       await expect(main).toHaveAttribute("data-offer-status", "parked");
-      await expect(main).toContainText(prefix ? "To nie jest Agent Action Security Review" : "This is not the Agent Action Security Review");
+      await expect(main).toContainText(prefix ? "Obecnie oferujemy inny przegląd: Agent Action Security Review" : "This is not the Agent Action Security Review");
       await expect(main).not.toContainText(/1[,\s\u00a0]?900/);
       await expect(main.locator('form, a[href*="/review/request"]')).toHaveCount(0);
     }

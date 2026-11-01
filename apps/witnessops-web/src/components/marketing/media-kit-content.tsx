@@ -260,12 +260,12 @@ const cardClassName =
 const ASSET_PL: Record<string, { title: string; description: string; alt: string }> = {
   "Primary stacked logo — black": {
     title: "Główne logo piętrowe — czarne",
-    description: "Główny układ na okładki i duże, wyśrodkowane użycia.",
+    description: "Główny układ do umieszczenia na środku okładek i innych dużych powierzchni.",
     alt: "Czarne główne logo piętrowe WitnessOps",
   },
   "Primary stacked logo — white": {
     title: "Główne logo piętrowe — białe",
-    description: "Odwrócony główny układ na ciemne okładki i duże użycia.",
+    description: "Biała wersja głównego układu na ciemne okładki i inne duże powierzchnie.",
     alt: "Białe główne logo piętrowe WitnessOps",
   },
   "Horizontal logo — black": {
@@ -280,12 +280,12 @@ const ASSET_PL: Record<string, { title: string; description: string; alt: string
   },
   "W mark — black": {
     title: "Znak W — czarny",
-    description: "Zwarty znak na jasne tła i małe użycia.",
+    description: "Zwarty znak na jasne tło, także do użycia w małych rozmiarach.",
     alt: "Czarny geometryczny znak W WitnessOps",
   },
   "W mark — white": {
     title: "Znak W — biały",
-    description: "Zwarty znak na ciemne tła i małe użycia.",
+    description: "Zwarty znak na ciemne tło, także do użycia w małych rozmiarach.",
     alt: "Biały geometryczny znak W WitnessOps",
   },
   "App icon — dark": {
@@ -352,7 +352,7 @@ export function MediaKitContent({
             {tx(
               locale,
               "The exact Logo System v1 package, browser-ready exports, public interface colours and company copy for accurate references to WitnessOps.",
-              "Dokładny pakiet Logo System v1, pliki gotowe do przeglądarki, kolory interfejsu i opis spółki do wiernych odniesień do WitnessOps.",
+              "Oficjalny pakiet Logo System v1, pliki do użycia w przeglądarce, kolory interfejsu i informacje o spółce WitnessOps.",
             )}
           </p>
           <div className={`${cardClassName} mt-8`} data-media-kit-names="">
@@ -369,7 +369,7 @@ export function MediaKitContent({
               {tx(
                 locale,
                 "Logo System v1 is the current brand master. Write the brand as WitnessOps. Use the legal name for company references. Do not redraw the mark or replace the supplied wordmark.",
-                "Logo System v1 jest aktualnym wzorcem marki. Nazwę marki zapisuj jako WitnessOps. Nazwy prawnej używaj w odniesieniach do spółki. Nie przerysowuj znaku i nie zastępuj dostarczonego wordmarku.",
+                "Logo System v1 jest aktualnym wzorcem marki. Nazwę marki zapisuj jako WitnessOps. Nazwy prawnej używaj w odniesieniach do spółki. Nie przerysowuj znaku i nie zastępuj dostarczonego znaku słownego.",
               )}
             </p>
             <p className="mt-3 text-sm leading-7">
@@ -385,9 +385,9 @@ export function MediaKitContent({
         >
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <p className={eyebrowClassName}>{tx(locale, "Canonical package", "Pakiet kanoniczny")} · {LOGO_SYSTEM.version}</p>
+              <p className={eyebrowClassName}>{tx(locale, "Canonical package", "Oficjalny pakiet")} · {LOGO_SYSTEM.version}</p>
               <span className="rounded-xs border border-brand-accent/50 bg-brand-accent/10 px-3 py-1 font-mono text-[0.64rem] font-semibold uppercase tracking-[0.08em] text-brand-accent">
-                {tx(locale, LOGO_SYSTEM.status, "Kanoniczny zestaw produkcyjny")}
+                {tx(locale, LOGO_SYSTEM.status, "Oficjalny zestaw produkcyjny")}
               </span>
             </div>
             <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-text-primary sm:text-3xl">
@@ -417,7 +417,7 @@ export function MediaKitContent({
               {[
                 [LOGO_SYSTEM.manifestHref, tx(locale, "Package manifest", "Manifest pakietu")],
                 [LOGO_SYSTEM.checksumsHref, tx(locale, "File checksums", "Sumy plików")],
-                [LOGO_SYSTEM.readmeHref, tx(locale, "Usage README", "README użycia")],
+                [LOGO_SYSTEM.readmeHref, tx(locale, "Usage README", "Instrukcja użycia (README)")],
               ].map(([href, label]) => (
                 <a
                   key={href}
@@ -452,7 +452,7 @@ export function MediaKitContent({
             {tx(
               locale,
               "WitnessOps delivers Agent Action Security Review: a bounded, read-only review of one consequential agent or automation action, with sourced findings, explicit unknowns, a written report and a readout.",
-              "WitnessOps prowadzi Agent Action Security Review: ograniczony przegląd jednego istotnego działania agenta lub automatyzacji w trybie tylko do odczytu, z ustaleniami opartymi na źródłach, jawnymi niewiadomymi, raportem pisemnym i omówieniem.",
+              "WitnessOps oferuje Agent Action Security Review: przegląd jednego ważnego działania agenta lub automatyzacji, bez wykonywania go ani zmieniania systemu. Klient otrzymuje raport ze źródłami ustaleń, zaleceniami oraz opisem tego, czego nie udało się ustalić, a następnie omawiamy go wspólnie.",
             )}
           </p>
         </div>
@@ -462,7 +462,7 @@ export function MediaKitContent({
         <div className="max-w-[720px]">
           <p className={eyebrowClassName}>{tx(locale, "Logos and marks", "Logotypy i znaki")}</p>
           <h2 className={sectionTitleClassName}>
-            {tx(locale, "Use the supplied masters, not a redraw", "Użyj dostarczonych wzorców, nie przerysowania")}
+            {tx(locale, "Use the supplied masters, not a redraw", "Używaj dostarczonych plików, nie przerysowuj logo")}
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
             {tx(
@@ -528,7 +528,7 @@ export function MediaKitContent({
               {[
                 [LOGO_SYSTEM.brandSheetPngHref, "witnessops-brand-sheet.png", tx(locale, "Brand sheet PNG", "Arkusz marki PNG")],
                 [LOGO_SYSTEM.brandSheetSvgHref, "witnessops-brand-sheet.svg", tx(locale, "Brand sheet SVG", "Arkusz marki SVG")],
-                [LOGO_SYSTEM.clearspaceHref, "witnessops-clearspace.svg", tx(locale, "Clearspace guide", "Prowadnica odstępu")],
+                [LOGO_SYSTEM.clearspaceHref, "witnessops-clearspace.svg", tx(locale, "Clearspace guide", "Zasady pola ochronnego")],
                 [LOGO_SYSTEM.constructionHref, "witnessops-construction-grid.svg", tx(locale, "Construction grid", "Siatka konstrukcyjna")],
                 [LOGO_SYSTEM.markConstructionHref, "mark-construction.json", tx(locale, "Geometry JSON", "Geometria JSON")],
               ].map(([href, fileName, label]) => (
@@ -556,7 +556,7 @@ export function MediaKitContent({
             {tx(
               locale,
               "The logo identity is monochrome. The website pairs charcoal surfaces with warm ivory text and muted brass accents. These interface colours do not recolour the master identity.",
-              "Tożsamość logo jest monochromatyczna. Strona łączy powierzchnie w kolorze węgla z ciepłą kością słoniową tekstu i przygaszonym mosiądzem akcentów. Te kolory interfejsu nie przemalowują wzorca tożsamości.",
+              "Logo jest monochromatyczne. Na stronie używamy ciemnych powierzchni, tekstu w kolorze ciepłej kości słoniowej i przygaszonych mosiężnych akcentów. Kolorów interfejsu nie stosuj do oryginalnego logo.",
             )}
           </p>
         </div>
@@ -612,7 +612,7 @@ export function MediaKitContent({
           {tx(
             locale,
             "Brass is for restrained interface emphasis, never the logo. Font files are not offered for download here.",
-            "Mosiądz służy do oszczędnego wyróżnienia w interfejsie, nigdy w logo. Plików fontów nie udostępniamy tutaj do pobrania.",
+            "Mosiężny kolor służy do subtelnych wyróżnień w interfejsie, nie do logo. Plików czcionek nie udostępniamy tutaj do pobrania.",
           )}
         </p>
       </SectionShell>
@@ -621,13 +621,13 @@ export function MediaKitContent({
         <div className="max-w-[760px]">
           <p className={eyebrowClassName}>{tx(locale, "Usage and contact", "Użycie i kontakt")}</p>
           <h2 className={sectionTitleClassName}>
-            {tx(locale, "Keep references accurate and the assets intact", "Odniesienia mają być wierne, a pliki nienaruszone")}
+            {tx(locale, "Keep references accurate and the assets intact", "Przedstawiaj WitnessOps rzetelnie i nie zmieniaj plików")}
           </h2>
           <ul className="mt-7 space-y-3 text-base leading-7 text-text-secondary marker:text-brand-accent">
             <li>{tx(locale, "Do not stretch, redraw or add decorative effects to the logo or mark.", "Nie rozciągaj, nie przerysowuj i nie dodawaj ozdobnych efektów do logo ani znaku.")}</li>
             <li>{tx(locale, "Use the black or white version that preserves clear contrast.", "Użyj wersji czarnej albo białej, która zachowuje wyraźny kontrast.")}</li>
             <li>{tx(locale, "Keep at least X = 1/8 of the mark height as clearspace.", "Zachowaj co najmniej X = 1/8 wysokości znaku jako odstęp.")}</li>
-            <li>{tx(locale, "Do not recolour the logo orange; the master identity is monochrome.", "Nie przemalowuj logo na pomarańczowo; wzorzec tożsamości jest monochromatyczny.")}</li>
+            <li>{tx(locale, "Do not recolour the logo orange; the master identity is monochrome.", "Nie zmieniaj logo na pomarańczowe; oryginalne logo jest monochromatyczne.")}</li>
             <li>{tx(locale, "Do not use these assets to imply certification, endorsement or customer status.", "Nie używaj tych plików, żeby sugerować certyfikację, rekomendację albo status klienta.")}</li>
           </ul>
         </div>

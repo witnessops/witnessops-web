@@ -13,7 +13,7 @@ test("primary navigation exposes the simplified website destinations", () => {
   }
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
-  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Zgłoś przegląd agenta");
+  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Zapytaj o przegląd agenta");
   assert.equal(POLISH_PUBLIC_NAV.cta.href, "/pl/review/request");
 });
 

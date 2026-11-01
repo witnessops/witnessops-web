@@ -19,6 +19,10 @@ import { shouldDismissSwipe } from "./widget-dismiss";
 import { ASK_MAX_QUESTION_LENGTH, keepRecentAskHistory, type AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { askWitnessOpsAnswerText, askWitnessOpsRouteHref, askWitnessOpsRouteLabel, askWitnessOpsSourceHref, askWitnessOpsSourceTarget, fetchAskWitnessOps, type AskWitnessOpsUiAnswer } from "@/components/docs-assistant/ask-witnessops-response";
 
+import { sovereignRequestError } from "./sovereign-request-error";
+import { SovereignBookingPreview } from "./sovereign-booking-preview";
+import { AnswerActions, useAnswerReader } from "./answer-actions";
+
 const PAUSE_KEY = "wo-sovereign-paused";
 const PL_ROUTE_LABELS: Record<string, string> = {
   "route.fit-check": "Poproś o zakres",
@@ -58,12 +62,16 @@ export type Suggestion = { id: SuggestionTopic; text: string };
 const COPY = {
   en: {
     greeting: "Hello. I can answer from the published review. Ask about scope, price or how to start.",
-    apiGreeting: "Ask about scope, price or how to start. I’ll say when an answer is unavailable.",
+    apiGreeting: "Hi, I’m Sovereign. I can explain WitnessOps and help you explore the fit.",
+    opening: "Where shall we start?",
+    aboutChoice: "What does WitnessOps do?", fitChoice: "Is it right for my agent?",
+    bookChoice: "Book a fit call", bookingHint: "20 minutes · Demo calendar",
+    bookingInvite: "Want to talk through your agent’s fit?",
+    bookingDetail: "Try a 20-minute fit call in the demo calendar.",
+    keepAsking: "Keep asking",
     suggestions: [
-      { id: "aasr", text: "What does the Agent Action Security Review cover?" },
-      { id: "easr", text: "Is the external review still offered?" },
+      { id: "aasr", text: "What does the review cover?" },
       { id: "start", text: "How do I start?" },
-      { id: "write", text: "Where do I write?" },
     ],
     idle: "Ready",
     checking: "Checking the published facts…",
@@ -71,12 +79,12 @@ const COPY = {
     notAnswered: "Not answered",
     errorNote: "Nothing was sent. Try again?",
     retry: "Retry",
-    disclaimer: "You are chatting with an AI assistant. It answers only from published offer facts and can be wrong.",
+    disclaimer: "AI assistant · Answers from published WitnessOps facts. May make mistakes.",
     optin: "Include this transcript when I contact a person",
     apiOptin: "This conversation is not attached to contact",
     optinHint: "Preview, sends nothing",
-    apiHint: "AI answers use your question and recent replies with OpenAI. Contact does not include this conversation.",
-    apiError: "AI is unavailable right now. Your question was not answered. Try again later or contact a person.",
+    apiHint: "Your question and recent replies go to OpenAI. This conversation is not attached to contact.",
+    apiError: sovereignRequestError(undefined, "en"),
     apiAbout: "AI answers use published WitnessOps information and recent replies from this conversation. This page keeps the conversation in memory until you leave or reload.",
     generated: "AI-generated answer",
     published: "Published information",
@@ -103,13 +111,17 @@ const COPY = {
     lead: "Questions about the WitnessOps review, answered from the published offer facts. Anything else goes to a person.",
   },
   pl: {
-    greeting: "Dzień dobry. Odpowiadam z opublikowanego przeglądu. Pytaj o zakres, cenę albo jak zacząć.",
-    apiGreeting: "Zapytaj o zakres, cenę albo jak zacząć. Powiem, jeśli odpowiedź będzie niedostępna.",
+    greeting: "Dzień dobry. Odpowiadam na podstawie opublikowanych informacji o przeglądzie. Pytaj o zakres, cenę albo jak zacząć.",
+    apiGreeting: "Cześć, jestem Sovereign. Wyjaśnię, czym zajmuje się WitnessOps i pomogę sprawdzić dopasowanie.",
+    opening: "Od czego zaczniemy?",
+    aboutChoice: "Czym zajmuje się WitnessOps?", fitChoice: "Czy to pasuje do mojego agenta?",
+    bookChoice: "Umów rozmowę", bookingHint: "20 minut · Fikcyjny kalendarz",
+    bookingInvite: "Chcesz omówić dopasowanie swojego agenta?",
+    bookingDetail: "Wypróbuj 20-minutową rozmowę w fikcyjnym kalendarzu.",
+    keepAsking: "Pytaj dalej",
     suggestions: [
-      { id: "aasr", text: "Co obejmuje Agent Action Security Review?" },
-      { id: "easr", text: "Czy przegląd ekspozycji jest dostępny?" },
+      { id: "aasr", text: "Co obejmuje przegląd?" },
       { id: "start", text: "Jak zacząć?" },
-      { id: "write", text: "Gdzie napisać?" },
     ],
     idle: "Gotowy do pytań",
     checking: "Sprawdzam opublikowane informacje…",
@@ -117,12 +129,12 @@ const COPY = {
     notAnswered: "Bez odpowiedzi",
     errorNote: "Nic nie zostało wysłane. Spróbować ponownie?",
     retry: "Spróbuj ponownie",
-    disclaimer: "Rozmawiasz z asystentem AI. Odpowiada tylko na podstawie opublikowanych faktów oferty i może się\u00A0mylić.",
+    disclaimer: "Asystent AI · Odpowiedzi z opublikowanych faktów WitnessOps. Może się\u00A0mylić.",
     optin: "Dołącz tę rozmowę, gdy napiszę do człowieka",
     apiOptin: "Ta rozmowa nie jest dołączana do kontaktu",
     optinHint: "Podgląd, nic nie wysyła",
-    apiHint: "OpenAI odpowiada na podstawie pytania i ostatnich wiadomości. Kontakt nie dołącza tej rozmowy.",
-    apiError: "AI jest teraz niedostępne. Pytanie nie dostało odpowiedzi. Spróbuj później lub skontaktuj się z człowiekiem.",
+    apiHint: "OpenAI odpowiada na podstawie pytania i ostatnich wiadomości. Ta rozmowa nie jest dołączana do kontaktu.",
+    apiError: sovereignRequestError(undefined, "pl"),
     apiAbout: "AI korzysta z opublikowanych informacji WitnessOps i ostatnich wiadomości z tej rozmowy. Strona zachowuje rozmowę w pamięci do jej opuszczenia lub odświeżenia.",
     generated: "Odpowiedź wygenerowana przez AI",
     published: "Opublikowane informacje",
@@ -146,7 +158,7 @@ const COPY = {
     contact: "/pl/contact",
     back: "Dokumentacja",
     kicker: "Asystent AI",
-    lead: "Pytania o przegląd WitnessOps, z odpowiedzią na podstawie opublikowanych faktów oferty. Wszystko inne trafia do człowieka.",
+    lead: "Odpowiadam na pytania o przegląd na podstawie opublikowanych informacji. W innych sprawach możesz skontaktować się z nami.",
   },
 } as const;
 
@@ -156,7 +168,7 @@ const CONTACT_ADDRESS = "engage@mail.witnessops.com";
 export function suggestionTopic(text: string): SuggestionTopic | null {
   const q = text.toLowerCase();
   if (/external|attack surface|ekspozycj|powierzchn|1[,.]?\s?900|1900|retest/.test(q)) return "easr";
-  if (/agent action|consequential|istotn|2[,.]?\s?500|2500/.test(q)) return "aasr";
+  if (/review cover|co obejmuje przegląd|agent action|consequential|istotn|2[,.]?\s?500|2500/.test(q)) return "aasr";
   if (/how do i start|jak zacząć|\bstart\b/.test(q)) return "start";
   if (/where do i write|gdzie napisać|\bwrite\b|napisz|email/.test(q)) return "write";
   return null;
@@ -223,7 +235,7 @@ function withoutTerminalErrorTurn(turns: Turn[]): Turn[] {
   return next;
 }
 
-type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean; answer?: AskWitnessOpsUiAnswer };
+type Turn = { role: "you" | "sovereign"; text: string; simulated?: boolean; simulatedError?: boolean; needsReview?: boolean; answer?: AskWitnessOpsUiAnswer; failure?: string };
 type Live = "idle" | "processing" | "answered" | "handoff" | "error";
 
 export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSpriteState): string {
@@ -236,7 +248,7 @@ export function liveText(locale: SovereignLocale, live: Live, phase: SovereignSp
 
 export function announcementText(locale: SovereignLocale, kind: "answer" | "handoff" | "error", answer = "", simulated = true): string {
   if (!simulated) {
-    if (kind === "error") return COPY[locale].apiError;
+    if (kind === "error") return answer || COPY[locale].apiError;
     return `Sovereign: ${answer}${kind === "handoff" ? (locale === "pl" ? " Link do kontaktu jest w rozmowie." : " The contact link is in the conversation.") : ""}`;
   }
   if (locale === "pl") {
@@ -320,7 +332,7 @@ function writeAnnouncement(node: HTMLParagraphElement | null, text: string, setT
   setText(text);
 }
 
-export function AskSovereignPreview({ locale = "en", routePrefix, onClose, connection = "preview" }: { locale?: SovereignLocale; routePrefix?: "" | "/pl"; onClose?: () => void; connection?: "preview" | "api" }) {
+export function AskSovereignPreview({ locale = "en", routePrefix, onClose, connection = "preview", active = true }: { locale?: SovereignLocale; routePrefix?: "" | "/pl"; onClose?: () => void; connection?: "preview" | "api"; active?: boolean }) {
   const copy = COPY[locale];
   const apiConnection = process.env.NODE_ENV === "production" || connection === "api";
   const prefix = routePrefix ?? (locale === "pl" ? "/pl" : "");
@@ -332,7 +344,12 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
     return /^\/(?:support|security|review\/request)(?:[/?#]|$)/.test(path) ? `${prefix}${path}` : href;
   }
   const embedded = Boolean(onClose);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const reader = useAnswerReader(active && !bookingOpen, locale);
+  const [dismissedBookingTurn, setDismissedBookingTurn] = useState<number | null>(null);
+  const bookingEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
   const close = useCallback(() => {
+    setBookingOpen(false);
     if (onClose) onClose();
     else window.location.assign(links.docs);
   }, [links.docs, onClose]);
@@ -341,6 +358,17 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   const composerRef = useRef<HTMLInputElement>(null);
   const announcerRef = useRef<HTMLParagraphElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
+  const chatScroll = useRef(0);
+  function changeBookingOpen(open: boolean) {
+    if (open && !bookingOpen) chatScroll.current = threadRef.current?.scrollTop ?? 0;
+    setBookingOpen(open);
+  }
+  useLayoutEffect(() => {
+    if (!bookingOpen && threadRef.current) {
+      threadRef.current.scrollTop = chatScroll.current;
+      applyThreadFade(threadRef.current);
+    }
+  }, [bookingOpen]);
   const turnRefs = useRef<Array<HTMLLIElement | null>>([]);
   const generation = useRef(0);
   const pendingCancel = useRef<(() => void) | null>(null);
@@ -351,6 +379,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   const [phase, setPhase] = useState<SovereignSpriteState>("GREETING");
   const [live, setLive] = useState<Live>("idle");
   const [announcement, setAnnouncement] = useState<string>("");
+  const announceAction = useCallback((text: string) => writeAnnouncement(announcerRef.current, text, setAnnouncement), []);
   const [draft, setDraft] = useState("");
   const [share, setShare] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -401,7 +430,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
     publishAnnouncement(announcementText(locale, "answer", answer.text, !apiAnswer));
   }
 
-  function failQuestion(text: string, simulated = true) {
+  function failQuestion(text: string, simulated = true, failure = copy.apiError) {
     clearPendingTimers();
     requestInFlight.current = false;
     setPending(false);
@@ -416,12 +445,12 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
           break;
         }
       }
-      next.splice(at, 0, { role: "sovereign", text: "", simulatedError: true, simulated });
+      next.splice(at, 0, { role: "sovereign", text: "", simulatedError: true, simulated, failure });
       return next;
     });
     setPhase("ERROR");
     setLive("error");
-    publishAnnouncement(announcementText(locale, "error", "", simulated));
+    publishAnnouncement(announcementText(locale, "error", failure, simulated));
   }
 
   useEffect(() => {
@@ -530,8 +559,14 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   useEffect(() => {
     const thread = threadRef.current;
     if (!thread) return;
+    if (bookingOpen) return;
     const syncFade = () => applyThreadFade(thread);
-    const snapFade = () => applyThreadFade(thread, true);
+    // Initial observation must preserve the position restored on a mode change.
+    let initialResize = true;
+    const snapFade = () => {
+      applyThreadFade(thread, !initialResize);
+      initialResize = false;
+    };
     syncFade();
     thread.addEventListener("scroll", syncFade, { passive: true });
     thread.addEventListener("scrollend", syncFade);
@@ -544,7 +579,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
       thread.removeEventListener("scrollend", syncFade);
       observer.disconnect();
     };
-  }, [turns, live, followUpsReady, mobile]);
+  }, [turns, live, followUpsReady, mobile, bookingOpen]);
 
   useEffect(() => {
     if (!mobile || embedded) return;
@@ -694,8 +729,8 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
           ]);
         }
         showAnswer(text, { text: responseText, kind: answer.status === "closed" ? "handoff" : "answer", needsReview: false }, answer);
-      }).catch(() => {
-        if (generation.current === gen) failQuestion(text, false);
+      }).catch((reason: unknown) => {
+        if (generation.current === gen) failQuestion(text, false, sovereignRequestError(reason, locale));
       });
       return;
     }
@@ -764,15 +799,21 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   const previewHint = <p id="ask-sovereign-optin-hint" className={styles.optinHint}>{useApi ? copy.apiHint : copy.optinHint}</p>;
   const askDock = (
     <div className={styles.askDock}>
-      <div className={styles.chips} data-ask-chips="">
+      {!askedText && !actionBeats ? <div className={styles.openingChoices} data-opening-choices="">
+        <p>{copy.opening}</p>
+        {[copy.aboutChoice, copy.fitChoice].map((question) => <button key={question} type="button" disabled={pending} onClick={() => ask(question)}>{question}<InlineArrow /></button>)}
+        {bookingEnabled ? <button type="button" className={styles.bookingChoice} onClick={() => changeBookingOpen(true)} disabled={pending}>
+          <span>{copy.bookChoice}<small>{copy.bookingHint}</small></span><InlineArrow />
+        </button> : null}
+      </div> : <div className={styles.chips} data-ask-chips="">
         {suggestions.map((suggestion) => (
           <button key={suggestion.id} type="button" data-suggestion={suggestion.id} disabled={pending} onClick={() => ask(suggestion.text)}>{suggestion.text}</button>
         ))}
-      </div>
-      <label className={styles.optin}>
+      </div>}
+      {!useApi ? <label className={styles.optin}>
         <input type="checkbox" checked={share} disabled={useApi} aria-describedby="ask-sovereign-optin-hint" onChange={(event) => setShare(event.target.checked)} />
-        {useApi ? copy.apiOptin : copy.optin}
-      </label>
+        {copy.optin}
+      </label> : null}
       {!embedded ? previewHint : null}
     </div>
   );
@@ -823,8 +864,17 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
               </a>}
             </div>
           </header>
+          {bookingEnabled ? <nav className={styles.modeNav} aria-label={locale === "pl" ? "Tryb Sovereign" : "Sovereign mode"}>
+            <button type="button" aria-pressed={!bookingOpen} onClick={() => {
+              changeBookingOpen(false);
+              requestAnimationFrame(() => composerRef.current?.focus({ preventScroll: true }));
+            }}>{locale === "pl" ? "Czat" : "Chat"}</button>
+            <button type="button" aria-pressed={bookingOpen} disabled={pending} onClick={() => changeBookingOpen(true)}>{locale === "pl" ? "Rezerwacja" : "Book a call"}</button>
+          </nav> : null}
           {locale === "pl" && process.env.NODE_ENV !== "production" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
-          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title">
+          {bookingEnabled ? <SovereignBookingPreview locale={locale} open={bookingOpen} /> : null}
+          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title" hidden={bookingOpen}>
+          <div>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
           <ol className={styles.transcript} aria-busy={pending ? "true" : "false"}>
@@ -838,6 +888,12 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
               const retry = turn.role === "sovereign" && turn.simulatedError && index === turns.length - 1 && live === "error" ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
               const sprite = <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />;
               const latestAnswer = turn.role === "sovereign" && (turn.simulated || turn.answer) && !turn.simulatedError;
+              if (showError && useApi) {
+                return <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={`${styles.sovereign} ${styles.connectionError}`}>
+                  <p data-connection-error="">{turn.failure ?? copy.apiError}</p>
+                  <div className={styles.errorActions}>{retry}<a href={links.contact}>{locale === "pl" ? "Kontakt" : "Contact a person"}</a></div>
+                </li>;
+              }
               if (showError) {
                 return (
                   <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={styles.sovereign}>
@@ -859,6 +915,22 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
               const service = turn.answer?.recommendation
                 ? BUYER_SERVICES.find((item) => item.id === turn.answer?.recommendation?.service_id)
                 : undefined;
+              const fit = turn.answer?.commercial_fit;
+              const answerLabel = turn.answer
+                ? turn.answer.answer_mode === "ai_assisted" ? copy.generated : turn.answer.answer_mode === "policy_refusal" ? copy.boundary : copy.published
+                : previewCaption;
+              const answerText = [answerLabel, turn.text, service ? `${service.name[locale]}\n${service.pricingVisible === false ? service.availability?.label[locale] ?? "" : service.price[locale]}\n${service.timing[locale]}` : null].filter(Boolean).join("\n\n");
+              const exportText = ["Ask Sovereign", answerText, ...(turn.answer?.presented_sources ?? []).map((source) => `${source.public_label}: ${new URL(askWitnessOpsSourceHref(source), "https://witnessops.com").href}`), copy.disclaimer].join("\n\n");
+              const canOfferBooking = bookingEnabled && index === turns.length - 1 && index > 0 && live === "answered" && !pending && dismissedBookingTurn !== index && (
+                turn.answer
+                  ? turn.answer.status === "success" && turn.answer.answer_mode !== "policy_refusal"
+                    && !["not_fit", "blocked"].includes(fit?.result ?? "")
+                    && (!turn.answer.route || !["route.support", "route.security-disclosure"].includes(turn.answer.route.route_id))
+                    && (turn.answer.recommendation?.service_id === PUBLIC_AGENT_ACTION_OFFER.id
+                      || (fit?.offer_id === PUBLIC_AGENT_ACTION_OFFER.id && ["likely", "needs_boundary"].includes(fit.result))
+                      || askedText === copy.aboutChoice || askedText === copy.fitChoice)
+                  : Boolean(turn.simulated && askedText && sovereignAnswer(askedText, locale).kind === "agent")
+              );
               const content = (
                 <>
                   <span>{turn.role === "you" ? copy.you : "Sovereign"}</span>
@@ -883,12 +955,21 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
                       ))}
                     </ul>
                   ) : null}
+                  {turn.role === "sovereign" && turn.text ? <AnswerActions key={exportText} locale={locale} id={index} text={exportText} speechText={answerText} reader={reader} announce={announceAction} /> : null}
+                  {canOfferBooking ? <div className={styles.bookingFollowUp} data-booking-follow-up="">
+                    <p><strong>{copy.bookingInvite}</strong></p>
+                    <p>{copy.bookingDetail}</p>
+                    <div>
+                      <button type="button" className={styles.bookingChoice} onClick={() => changeBookingOpen(true)}>{copy.bookChoice}<InlineArrow /></button>
+                      <button type="button" onClick={() => { setDismissedBookingTurn(index); composerRef.current?.focus(); }}>{copy.keepAsking}</button>
+                    </div>
+                  </div> : null}
                   {turn.needsReview && showReview ? <p className={styles.tag}>Needs review</p> : null}
                 </>
               );
               const body = withSprite ? (
                 <div className={styles.withSprite}>
-                  {sprite}
+                  <div className={styles.compactMascot} data-chat-mascot="">{sprite}</div>
                   <div>{content}</div>
                 </div>
               ) : content;
@@ -915,15 +996,16 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
           ) : null}
           {embedded ? askDock : null}
           </div>
-          {!embedded ? askDock : null}
-          {embedded ? previewHint : null}
-          <form className={styles.composer} aria-busy={pending ? "true" : "false"} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
+          </div>
+          {!embedded && !bookingOpen ? askDock : null}
+          {embedded && !bookingOpen ? previewHint : null}
+          {!bookingOpen ? <form className={styles.composer} aria-busy={pending ? "true" : "false"} onSubmit={(event) => { event.preventDefault(); ask(draft); }}>
             <label className={styles.composerLabel} htmlFor="ask-sovereign-draft">{copy.composer}</label>
-            <input id="ask-sovereign-draft" ref={composerRef} value={draft} maxLength={ASK_MAX_QUESTION_LENGTH} disabled={pending} onChange={(event) => setDraft(event.target.value)} />
+            <input id="ask-sovereign-draft" ref={composerRef} placeholder={locale === "pl" ? "Zadaj własne pytanie…" : "Or ask your own question…"} value={draft} maxLength={ASK_MAX_QUESTION_LENGTH} disabled={pending} onChange={(event) => setDraft(event.target.value)} />
             <button type="submit" aria-label={copy.send} disabled={pending}>
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
             </button>
-          </form>
+          </form> : null}
         </section>
         {!embedded ? <aside className={styles.rail} data-sheet-behind>
           <p className={styles.back}><Link href={links.docs} prefetch={false}>{copy.back}</Link></p>

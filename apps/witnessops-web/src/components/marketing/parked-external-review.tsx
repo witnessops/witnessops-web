@@ -32,12 +32,12 @@ export function ParkedExternalReview({ locale }: { locale: BuyerLocale }) {
       </h1>
       <p className="mt-6 text-lg leading-8 text-text-secondary">
         {polish
-          ? "WitnessOps nie przyjmuje nowych zleceń na ten przegląd. Wydane uzgodnienia zachowują pierwotne warunki."
+          ? "WitnessOps nie przyjmuje nowych zleceń na ten przegląd. Dotychczasowe uzgodnienia zachowują pierwotne warunki."
           : "WitnessOps no longer accepts new engagements for this review. Issued agreements keep their original terms."}
       </p>
       <p className="mt-4 leading-7 text-text-secondary">
         {polish
-          ? `To nie jest ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. To inna usługa: jedno istotne działanie agenta lub automatyzacji, ${price}.`
+          ? `Obecnie oferujemy inny przegląd: ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Dotyczy on jednego ważnego działania agenta lub automatyzacji i kosztuje ${price}.`
           : `This is not the ${PUBLIC_AGENT_ACTION_OFFER.name.en}. That is a different service: one consequential agent or automation action, ${price}.`}
       </p>
       <p className="mt-8">

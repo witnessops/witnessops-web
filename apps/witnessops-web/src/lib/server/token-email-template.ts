@@ -1,4 +1,5 @@
 import type { ChannelName } from "@/lib/channel-policy";
+import { formatPolishVerificationExpiry } from "@/lib/verification-expiry-format";
 import {
   getCommercialRequestLabel,
   isOperatorHandledCommercialRequestIntent,
@@ -9,7 +10,7 @@ import {
   emailTextStyle,
 } from "./email-theme-light";
 
-export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v4-light" as const;
+export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v5-light" as const;
 
 export interface VerificationEmailTemplateInput {
   channel: Exclude<ChannelName, "noreply">;
@@ -84,9 +85,9 @@ function manualCommercialVerificationCopy(
         "Wpisz kod w polu weryfikacyjnym. Link nie jest wymagany.",
         "Potwierdź, że weryfikacja dotyczy wyłącznie dostępu do skrzynki.",
       ],
-      verificationPageLabel: "Otwórz stronę weryfikacji",
+      verificationPageLabel: "Otwórz stronę weryfikacji (po angielsku)",
       reopenLead: "Strona zgłoszenia nie jest już otwarta?",
-      reopenLink: "Otwórz bezpieczną stronę weryfikacji",
+      reopenLink: "Otwórz bezpieczną stronę weryfikacji (po angielsku)",
       reopenTail: "i wpisz tam kod.",
       meaningTitle: "Co oznacza ta weryfikacja",
       meaningLines: [
@@ -150,13 +151,18 @@ function escapeHtml(value: string): string {
     .replace(/\"/g, "&quot;");
 }
 
+function manualCommercialExpiry(input: VerificationEmailTemplateInput): string {
+  if (input.locale !== "pl") return input.expiresAt;
+  return formatPolishVerificationExpiry(input.expiresAt) ?? "Nie udało się ustalić terminu wygaśnięcia.";
+}
+
 function renderManualCommercialVerificationHtml(
   input: VerificationEmailTemplateInput,
 ): string {
   const code = escapeHtml(input.token);
   const intakeId = escapeHtml(input.intakeId);
   const issuanceId = escapeHtml(input.issuanceId);
-  const expiresAt = escapeHtml(input.expiresAt);
+  const expiresAt = escapeHtml(manualCommercialExpiry(input));
   const verifyUrl = escapeHtml(input.verifyUrl);
   const copy = manualCommercialVerificationCopy(input);
 
@@ -252,7 +258,7 @@ export function renderVerificationEmail(
         copy.referenceLabel,
         `${copy.intakeLabel}: ${input.intakeId}`,
         `${copy.issuanceLabel}: ${input.issuanceId}`,
-        `${copy.expiresLabel}: ${input.expiresAt}`,
+        `${copy.expiresLabel}: ${manualCommercialExpiry(input)}`,
       ].join("\n"),
       html: renderManualCommercialVerificationHtml(input),
       templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,

@@ -211,6 +211,13 @@ export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
   return href;
 }
 
+export class AskWitnessOpsRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "AskWitnessOpsRequestError";
+  }
+}
+
 export async function fetchAskWitnessOps(
   question: string,
   context: {
@@ -231,7 +238,7 @@ export async function fetchAskWitnessOps(
   });
 
   if (!res.ok) {
-    throw new Error(await askWitnessOpsRequestErrorMessage(res));
+    throw new AskWitnessOpsRequestError(await askWitnessOpsRequestErrorMessage(res), res.status);
   }
 
   const payload: unknown = await res.json();

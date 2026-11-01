@@ -17,6 +17,7 @@ import {
   type VerifyTokenResponse,
 } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
+import { formatPolishVerificationExpiry } from "@/lib/verification-expiry-format";
 import {
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
@@ -60,6 +61,9 @@ const inputClass =
 
 const textareaClass =
   "min-h-32 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg md:min-h-24";
+
+const POLISH_UNCERTAIN_SEND_ERROR =
+  "Nie udało się potwierdzić wysłania zgłoszenia. Sprawdź skrzynkę e-mail i połączenie przed ponowną próbą.";
 
 const buttonFocusClass = "";
 
@@ -120,7 +124,7 @@ export function ContactForm({
     ? {
         sendError: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
         verifyError: "Nie udało się potwierdzić kodu. Spróbuj ponownie.",
-        boundaryError: "Potwierdź granicę przed sprawdzeniem kodu.",
+        boundaryError: "Zaznacz potwierdzenie pod kodem, aby przejść dalej.",
         emailError: "Wpisz prawidłowy służbowy adres e-mail.",
         requiredError: "To pole jest wymagane.",
         verifying: "Sprawdzanie kodu...",
@@ -128,11 +132,11 @@ export function ContactForm({
         mailboxVerification: "Weryfikacja skrzynki pocztowej",
         enterCode: "Wpisz kod z wiadomości e-mail",
         codeSent: "Wysłaliśmy kod na adres",
-        codeInstructions: "Pozostaw tę stronę otwartą i wpisz kod poniżej. Wiadomość zawiera tylko kod; link nie jest wymagany.",
-        mailboxBoundary: "Weryfikacja skrzynki nie rozpoczyna przeglądu. Dopasowanie, zakres, cena, termin i obsługa materiałów są najpierw potwierdzane e-mailem.",
+        codeInstructions: "Wpisz poniżej kod z wiadomości e-mail. Nie musisz otwierać żadnego linku.",
+        mailboxBoundary: "Potwierdzenie adresu e-mail nie rozpoczyna przeglądu. Najpierw odpowiemy na zapytanie i uzgodnimy zakres, cenę, termin oraz sposób przekazania materiałów.",
         verificationCode: "Kod weryfikacyjny",
         codeExpiry: "Nie udostępniaj tego kodu. Kod wygasa:",
-        verificationConsent: "Rozumiem, że potwierdza to wyłącznie dostęp do skrzynki pocztowej. Przegląd nie rozpoczyna się na tym etapie. Nie wyślę danych poufnych, logów, zrzutów ekranu, eksportów kodu, danych uwierzytelniających, kluczy prywatnych, kodów MFA, danych klientów ani materiałów produkcyjnych, dopóki zakres i sposób obsługi materiałów nie zostaną uzgodnione.",
+        verificationConsent: "Rozumiem, że kod potwierdza tylko dostęp do mojego adresu e-mail i nie rozpoczyna przeglądu. Nie prześlę haseł, danych dostępowych, kluczy prywatnych, kluczy API, tokenów, kodów MFA ani innych sekretów. Logów, zrzutów ekranu, kodu źródłowego, danych klientów ani innych materiałów poufnych lub produkcyjnych nie prześlę przed uzgodnieniem zakresu i bezpiecznego sposobu ich przekazania i obsługi.",
         confirming: "Potwierdzanie...",
         confirmMailbox: "Potwierdź skrzynkę",
         newRequest: "Rozpocznij nowe zgłoszenie",
@@ -342,40 +346,40 @@ export function ContactForm({
     ? {
         ...baseCopy,
         fitTitle: polish
-          ? `Rozpocznij ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`
+          ? `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`
           : `Start your ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
         fitBody: polish
           ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}.`
           : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.en}.`,
-        decisionTiming: polish ? "Termin decyzji" : "Decision deadline",
+        decisionTiming: polish ? "Do kiedy potrzebujesz decyzji?" : "Decision deadline",
         decisionTimingPlaceholder: polish
           ? "Np. przekazanie klientowi w przyszły piątek albo decyzja o uruchomieniu do końca miesiąca."
           : "For example: customer handover next Friday, or a launch decision by the end of the month.",
         decisionTimingHelp: polish
           ? "Wystarczy przybliżony termin. Termin realizacji ustalamy w podpisanym zakresie prac."
           : "An approximate date is enough. Delivery timing is agreed in the signed statement of work.",
-        workflow: polish ? "Istotne działanie" : "Consequential action",
+        workflow: polish ? "Co ma zrobić agent?" : "Consequential action",
         workflowPlaceholder: polish
-          ? "Np. agent może wykonać zwrot, zmienić rekord albo nadać dostęp."
+          ? "Np. agent ma zwrócić płatność, zmienić dane w CRM albo nadać dostęp do repozytorium."
           : "For example: the agent can issue a refund, change a record, or grant access.",
         workflowHelp: polish
-          ? "Opisz jedno działanie ogólnie. Nie wklejaj sekretów, poświadczeń, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
+          ? "Wystarczy krótki opis jednego działania. Nie wklejaj haseł, kluczy API, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
           : "Describe one action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
         actionPath: polish ? "Co może pójść inaczej, niż zamierzono?" : "What can go differently than intended?",
         actionPathPlaceholder: polish
           ? "Opisz możliwy skutek tego jednego działania: zmiana rekordu, zwrot, dostęp, wiadomość albo inna konsekwencja."
           : "Describe the possible effect of this one action: a record change, refund, access grant, message, or other consequence.",
-        approval: polish ? "Zaangażowane systemy" : "Systems involved",
+        approval: polish ? "Z jakich systemów korzysta agent?" : "Systems involved",
         approvalPlaceholder: polish
-          ? "Nazwij systemy na wysokim poziomie, np. CRM, płatności albo katalog tożsamości. Bez danych dostępowych."
+          ? "Np. CRM, system płatności i katalog użytkowników. Podaj nazwy lub rodzaje systemów, bez danych dostępowych."
           : "Name the systems at a high level, such as a CRM, payments, or an identity directory. No access details.",
         evidence: polish ? "Jakie rodzaje dowodów wykonania są dostępne?" : "Which execution-evidence types are available?",
         evidencePlaceholder: polish
           ? "Nazwij tylko rodzaje: zgłoszenie, prompt, log, zatwierdzenie, wynik. Nie wysyłaj ich teraz."
           : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
-        send: polish ? "Zgłoś przegląd agenta" : "Request an agent review",
+        send: polish ? "Wyślij zapytanie" : "Request an agent review",
         submitBoundary: polish
-          ? `Wysłanie formularza otwiera tylko ocenę dopasowania. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. To nie jest rezerwacja, płatność ani upoważnienie do inspekcji.`
+          ? `Wysyłasz zapytanie o przegląd za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
           : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. It is not a booking, payment, or authority to inspect.`,
       }
     : undefined;
@@ -523,9 +527,17 @@ export function ContactForm({
           locale,
           scope: requestScope,
         }),
+      }).catch((error: unknown) => {
+        if (polish) {
+          throw new Error(POLISH_UNCERTAIN_SEND_ERROR);
+        }
+        throw error;
       });
 
       if (!res.ok) {
+        if (polish && res.status >= 500) {
+          throw new Error(POLISH_UNCERTAIN_SEND_ERROR);
+        }
         const payload = await res.json().catch(() => ({
           error: "Failed to send.",
         })) as { error?: string; field?: string };
@@ -544,7 +556,7 @@ export function ContactForm({
       if (!payload?.issuanceId || !payload.email || !payload.expiresAt) {
         throw new Error(
           polish
-            ? "Weryfikacja została rozpoczęta, ale odpowiedź była niepełna."
+            ? POLISH_UNCERTAIN_SEND_ERROR
             : "Verification was issued, but the response was incomplete.",
         );
       }
@@ -623,7 +635,7 @@ export function ContactForm({
         } catch {
           throw new Error(
             polish
-              ? "Skrzynka została potwierdzona, ale ta przeglądarka nie mogła zapisać zapisu zgłoszenia."
+              ? "Skrzynka została potwierdzona, ale ta przeglądarka nie mogła zapisać potwierdzenia zgłoszenia."
               : "Mailbox confirmation completed, but this browser could not store the request record.",
           );
         }
@@ -738,6 +750,7 @@ export function ContactForm({
   );
 
   if (verificationStep) {
+    const polishExpiry = polish ? formatPolishVerificationExpiry(verificationStep.expiresAt) : null;
     return (
       <div className="-m-4 rounded border border-[#cfc9bd] bg-[#f7f5f1] p-4 text-[#121212] sm:-m-6 sm:p-6 md:-m-8 md:p-8">
         <form
@@ -803,7 +816,11 @@ export function ContactForm({
               className={verificationLight.input}
             />
             <p id="verification-code-help" className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
-              {copy.codeExpiry} {verificationStep.expiresAt}.
+              {polish
+                ? polishExpiry
+                  ? `${copy.codeExpiry} ${polishExpiry}.`
+                  : "Nie udostępniaj tego kodu. Nie udało się ustalić terminu jego wygaśnięcia."
+                : `${copy.codeExpiry} ${verificationStep.expiresAt}.`}
             </p>
           </div>
 
@@ -889,7 +906,7 @@ export function ContactForm({
       {(status === "error" || Object.keys(fieldErrors).length > 0) && (
         <div ref={errorSummaryRef} tabIndex={-1} role="alert" className="scroll-mt-24 border-l-2 border-signal-red bg-surface-inset p-4 text-sm leading-6 focus:outline focus:outline-2 focus:outline-brand-accent">
           <h2 className="font-semibold">{polish ? "Sprawdź zgłoszenie" : "Check your request"}</h2>
-          {status === "error" && <p className="mt-2">{errorMessage} {polish ? "Twoje odpowiedzi pozostają w formularzu. Popraw je lub spróbuj ponownie." : "Your answers are still in the form. Correct them or try again."}</p>}
+          {status === "error" && <p className="mt-2">{errorMessage} {polish ? (errorMessage === POLISH_UNCERTAIN_SEND_ERROR ? "Twoje odpowiedzi pozostają w formularzu." : "Twoje odpowiedzi pozostają w formularzu. Popraw je lub spróbuj ponownie.") : "Your answers are still in the form. Correct them or try again."}</p>}
           <ul className="mt-2 space-y-1">
             {Object.entries(fieldErrors).map(([field, message]) => (
               <li key={field}><a className="underline underline-offset-4" href={`#${field}`} onClick={(event) => {
@@ -1063,7 +1080,7 @@ export function ContactForm({
         </details>
       ) : additionalContextFields) : null}
 
-      <p className="text-sm leading-6 text-text-secondary">{polish ? "Następnie potwierdzisz adres kodem z wiadomości e-mail. Potem ocenimy dopasowanie i odpowiemy z kolejnym krokiem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
+      <p className="text-sm leading-6 text-text-secondary">{polish ? "Po wysłaniu formularza wpisz kod z wiadomości e-mail. Następnie sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
       <button
         type="submit"
         disabled={status === "sending"}

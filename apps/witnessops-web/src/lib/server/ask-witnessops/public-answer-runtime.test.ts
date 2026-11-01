@@ -552,3 +552,31 @@ test("product guidance includes current access and evidence boundaries without s
     attempt: "initial", event: "openai_error", request_id: "req_usage", status: 200, duration_ms: events[0].duration_ms, error_class: "provider_invalid_answer"});
   assert.doesNotMatch(JSON.stringify(events), /PRIVATE|test-only-placeholder/);
 });
+
+
+test("homepage introduction is concise published review guidance without a provider call", async () => {
+  const { catalogueClarification } = await import("./public-answer-runtime");
+  for (const question of ["What does WitnessOps do?", "What is WitnessOps?", "What problems does WitnessOps solve?"]) {
+    const answer = catalogueClarification({ question, surface: "sovereign_widget" })!;
+    assert.ok(answer);
+    assert.match(answer.text, /Agent Action Security Review/);
+    assert.match(answer.text, /permissions, approvals and execution evidence/);
+    assert.ok(answer.text.split(/\s+/).length <= 55);
+    assert.doesNotMatch(answer.text, /signup|CLI|invitations|support|snapshot|booked/i);
+    assert.equal(answer.recommendation, null);
+    assert.equal(answer.presented_sources.length, 1);
+  }
+  for (const question of ["Czym zajmuje się WitnessOps?", "Co robi WitnessOps?"]) {
+    const polish = catalogueClarification({ question, surface: "sovereign_widget" })!;
+    assert.match(polish.text, /uprawnienia, zatwierdzenia/);
+  }
+  assert.equal(catalogueClarification({ question: "What does WitnessOps do?" }), null);
+  assert.equal(catalogueClarification({ question: "What does WitnessOps do? I cannot log in.", surface: "sovereign_widget" }), null);
+});
+
+test("widget buyer guidance stays concise while preserving requested product support", () => {
+  const request = buildPublicAskResponsesRequest({ question: "Is it right for my agent?", config, surface: "sovereign_widget" });
+  const body = JSON.stringify(request);
+  assert.match(body, /Do not enumerate signup, invitations, CLI, reports, support or the free check unless the visitor asks/);
+  assert.match(body, /Do not recommend paid work for account support/);
+});

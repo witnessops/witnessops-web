@@ -16,7 +16,10 @@ test("child titles do not already include the root WitnessOps suffix", () => {
   ]) {
     const source = readFileSync(resolve(webRoot, page), "utf8");
     assert.match(source, /title: "Ask Sovereign"/);
-    assert.match(source, /title: \{ absolute: "Page not found · WitnessOps" \}/);
+    const missingTitle = page.includes("/pl/")
+      ? /title: \{ absolute: "Nie znaleziono strony · WitnessOps" \}/
+      : /title: \{ absolute: "Page not found · WitnessOps" \}/;
+    assert.match(source, missingTitle);
     assert.doesNotMatch(source, /Ask Sovereign \| WitnessOps/);
   }
 });

@@ -14,11 +14,11 @@ export const POLISH_NO_SECRETS_NOTE =
 export const POLISH_PUBLIC_NAV = {
   links: [
     { label: "Usługi", href: "/pl/reviews" },
-    { label: "Przykłady", href: "/review/sample-cases" },
+    { label: "Przykłady (EN)", href: "/review/sample-cases" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Dokumentacja", href: "/pl/docs" },
   ],
-  cta: { label: "Zgłoś przegląd agenta", href: "/pl/review/request", variant: "primary" },
+  cta: { label: "Zapytaj o przegląd agenta", href: "/pl/review/request", variant: "primary" },
 } as const;
 
 export type PolishOfferCopy = {

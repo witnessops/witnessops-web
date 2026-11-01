@@ -81,19 +81,19 @@ const copy = {
     eyebrow: "Zgłoszenie przeglądu / zapisane",
     title: "Twoje zgłoszenie zostało zapisane.",
     intro:
-      "Zachowaj poniższy numer referencyjny. WitnessOps ma teraz niepoufne podsumowanie zgłoszenia do asynchronicznej oceny dopasowania i zakresu.",
+      "Zachowaj poniższy numer referencyjny. WitnessOps otrzymał niepoufne podsumowanie zgłoszenia i oceni dopasowanie oraz zakres.",
     boundaryNote:
-      "Nie wysyłaj sekretów ani materiałów źródłowych, dopóki nie uzgodnimy zakresu i sposobu ich obsługi. Nie sformułowano żadnych wniosków dotyczących bezpieczeństwa, kwestii prawnych ani zgodności.",
+      "Nie wysyłaj sekretów. Materiałów źródłowych nie wysyłaj, dopóki nie uzgodnimy zakresu i bezpiecznego sposobu ich obsługi. Nie sformułowano żadnych wniosków dotyczących bezpieczeństwa, kwestii prawnych ani zgodności.",
     nextLabel: "Co wydarzy się dalej",
     nextSteps: [
-      "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
+      "Sprawdzimy, czy zgłoszenie pasuje do przeglądu o określonym zakresie.",
       "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
     ],
     agentActionNextSteps: [
-      `Ocenimy jedno istotne działanie agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.pl} Na razie bez sekretów.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed pracą uzgadniamy upoważnienie, tożsamość wykonującą, granicę zatwierdzenia i ścieżkę dowodów.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl}. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
+      "Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu. Nie wysyłaj jeszcze danych poufnych.",
+      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed rozpoczęciem pracy uzgadniamy zakres, upoważnienie i sposób postępowania z materiałami i dowodami. Na ich podstawie analizujemy tożsamość wykonującą działanie oraz zasady jego zatwierdzania.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} (uzgodniony zakres prac). Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
       "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
@@ -102,10 +102,10 @@ const copy = {
     ],
     publicExposureNextSteps: [
       "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zapisane zgłoszenie nie jest Agent Action Security Review.",
-      "Wydane uzgodnienia zachowują pierwotne warunki. Potwierdzimy e-mailem, czy jakakolwiek pozostała praca nadal wynika z tych warunków.",
+      "Dotychczasowe uzgodnienia zachowują pierwotne warunki. Potwierdzimy e-mailem, czy na ich podstawie pozostały jeszcze prace do wykonania.",
       "Samo to potwierdzenie nie rozpoczyna nowej pracy wobec celu.",
     ],
-    waitLabel: "Sprawdź w oczekiwaniu",
+    waitLabel: "Przydatne materiały",
     specimen: "Sprawdź przykładowy zapis przeglądu (EN)",
     publicExposureAvailability: `Sprawdź dostępność ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`,
     proofModel: "Przeczytaj model dowodowy",
@@ -114,7 +114,7 @@ const copy = {
     missingTitle: "Brak zapisu zgłoszenia w tej przeglądarce.",
     missingBody:
       "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia. Otwórz tę stronę przez proces weryfikacji skrzynki; bezpośrednia wizyta nie potwierdza skrzynki ani zgłoszenia.",
-    restart: "Rozpocznij zgłoszenie zakresu",
+    restart: "Przejdź do zgłoszenia",
   },
 } as const;
 
@@ -140,7 +140,7 @@ export function ReviewRequestConfirmed({
         className="mx-auto min-h-[60vh] max-w-[960px] px-6 py-12 md:py-16"
         aria-busy="true"
       >
-        <p className={verificationLight.label}>WitnessOps / request record</p>
+        <p className={verificationLight.label}>{locale === "pl" ? "WitnessOps / zapis zgłoszenia" : "WitnessOps / request record"}</p>
         <p className={`mt-4 text-sm ${verificationLight.muted}`}>
           {text.loading}
         </p>

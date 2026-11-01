@@ -418,7 +418,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Poznaj mechanizmy kontroli, zanim agent AI wykona działanie.", "Zgłoś przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
+    requiredMarkers: ["Poznaj mechanizmy kontroli, zanim agent AI wykona działanie.", "Zapytaj o przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
@@ -427,7 +427,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       PUBLIC_AGENT_ACTION_OFFER.name.pl,
       PUBLIC_AGENT_ACTION_OFFER.price.pl,
       PUBLIC_AGENT_ACTION_OFFER.timing.pl,
-      "Zgłoś przegląd agenta",
+      "Zapytaj o przegląd agenta",
       "offerId=agent-action-security-review",
     ],
     prohibitedMarkers: [
@@ -667,7 +667,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Istotne działanie",
       "Zaangażowane systemy",
       "Termin decyzji",
-      "Zgłoś przegląd agenta",
+      "Zapytaj o przegląd agenta",
       'name="intent" value="agent-action-security-review"',
       PUBLIC_AGENT_ACTION_OFFER.price.pl,
     ],

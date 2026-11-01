@@ -16,15 +16,15 @@ export const POLISH_DOCS_SECTIONS = [
       ["Strona główna dokumentacji", "/pl/docs"],
       ["Zrozum usługę", "/pl/docs/understand-the-service"],
       ["Jak działa WitnessOps", "/pl/docs/how-witnessops-works"],
-      ["Wybierz ofertę", "/pl/catalog"],
-      ["Rozpocznij przegląd", "/pl/review/request"],
+      ["Poznaj ofertę", "/pl/catalog"],
+      ["Zapytaj o przegląd", "/pl/review/request"],
       ["Najczęstsze pytania", "/pl/docs/faq"],
     ],
   },
   {
     id: "deliveries-verification",
     title: "DOSTAWA I WERYFIKACJA",
-    description: "Dostawa, podpisany zapis wykonania i ograniczenia wyniku.",
+    description: "Rezultaty, sprawdzanie zapisów i ograniczenia wyników.",
     items: [
       ["Co otrzymasz", "/pl/docs/what-you-receive"],
       ["Zweryfikuj zapis", "/pl/verify"],
@@ -53,7 +53,7 @@ export const POLISH_DOCS_SECTIONS = [
     id: "technical-en",
     title: "DOKUMENTACJA TECHNICZNA",
     description:
-      "Pełna dokumentacja techniczna (EN) na witnessops.com/docs, nie jest to kopia PL stubów.",
+      "Pełna dokumentacja techniczna jest dostępna po angielsku na witnessops.com/docs.",
     items: [
       ["Dokumentacja techniczna (EN)", EN_TECHNICAL_DOCS_HREF],
     ],

@@ -9,14 +9,14 @@ const primaryPaths = [
     href: "/pl/catalog",
     title: "Usługi",
     description:
-      "Porównaj przeglądy według sytuacji, rezultatu, ceny i terminu.",
-    cta: "Przeglądaj usługi",
+      "Poznaj zakres przeglądu, jego rezultat, cenę i warunki realizacji.",
+    cta: "Zobacz ofertę",
   },
   {
     href: "/review/sample-cases",
     title: "Przykłady",
     description:
-      "Zobacz przykładowe przeglądy, ustalenia i dowody. Materiały są w języku angielskim.",
+      "Zobacz oznaczone przykłady działań i materiałów. Są dostępne po angielsku.",
     cta: "Zobacz przykłady",
   },
   {
@@ -30,53 +30,53 @@ const primaryPaths = [
 
 const secondaryGroups = [
   {
-    title: "Przewodniki dla kupujących",
-    description: "Zakres, przekazanie wyniku i sposób zgłoszenia.",
+    title: "Informacje dla klientów",
+    description: "Zakres przeglądu, raport i sposób kontaktu.",
     links: [
       [
         "Dlaczego WitnessOps",
         "/pl/why-witnessops",
-        "Jak praca o określonym zakresie staje się zrozumiała i możliwa do sprawdzenia.",
+        "Jak przedstawiamy zakres pracy, ustalenia i ich ograniczenia.",
       ],
       [
         "Dokumentacja po polsku",
         "/pl/docs",
-        "Objaśnienia w zatwierdzonej polskiej wersji.",
+        "Wybrane informacje o WitnessOps po polsku.",
       ],
       [
         "Katalog usług",
         "/pl/catalog",
-        "Aktualne przeglądy i ich granice.",
+        "Aktualna oferta i jej zakres.",
       ],
       [
-        "Rozpocznij przegląd",
+        "Zapytaj o przegląd",
         "/pl/review/request",
-        "Krótka, niepoufna ocena dopasowania, bez plików i sekretów.",
+        "Opisz potrzebę bez danych poufnych. Najpierw sprawdzimy, czy przegląd jest odpowiedni.",
       ],
     ],
   },
   {
     title: "Usługi",
-    description: "Katalog i granice ofert.",
+    description: "Aktualna oferta i jej ograniczenia.",
     links: [
       [
         "Katalog usług",
         "/pl/catalog",
-        "Natywne polskie opisy zatwierdzonych ofert.",
+        "Opis przeglądu w języku polskim.",
       ],
     ],
   },
   {
     title: "Przykłady",
-    description: "Oznaczone przykłady przeglądów, nie dane klientów.",
+    description: "Przykłady są oznaczone i nie zawierają danych klientów.",
     links: [
       [
-        "Przykłady przeglądów",
+        "Przykłady działań (EN)",
         "/review/sample-cases",
-        "Sytuacje, materiały i granice: treść przykładowa po angielsku.",
+        "Przykładowe sytuacje i materiały wraz z ich ograniczeniami. Treść po angielsku.",
       ],
       [
-        "Pakiet zmiany agenta AI",
+        "Historyczny przykład działania agenta AI (EN)",
         "/review/sample-cases/ai-agent-action-proof-run",
         "Historyczny syntetyczny przykład jednego działania, nie pełna próbka obecnego przeglądu. Materiał po angielsku.",
       ],
@@ -97,7 +97,7 @@ const secondaryGroups = [
         "Co wynik ustala, a czego nie.",
       ],
       [
-        "Dokumentacja (EN hubs)",
+        "Dokumentacja (EN)",
         "/docs",
         "Model i granice: pełna treść techniczna po angielsku.",
       ],
@@ -111,7 +111,7 @@ const exampleBoundary =
 export const metadata: Metadata = {
   title: "Biblioteka",
   description:
-    "Publiczne punkty wejścia do usług, przykładów, weryfikacji zapisów i dokumentacji.",
+    "Oferta WitnessOps, przykłady, weryfikacja zapisów i dokumentacja w jednym miejscu.",
   alternates: languageAlternates("/pl/library", {
     en: "/library",
     pl: "/pl/library",
@@ -127,11 +127,11 @@ export default function PolishLibraryPage() {
             Biblioteka
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] text-text-primary md:text-5xl">
-            Publiczne punkty wejścia
+            Oferta, przykłady i dokumentacja
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
-            Zacznij od usług, przykładu albo sprawdzenia zapisu. Dokumentację
-            otwieraj dopiero, gdy potrzebujesz szczegółów.
+            Poznaj ofertę, obejrzyj przykłady lub sprawdź zapis WitnessOps.
+            W dokumentacji znajdziesz szczegóły techniczne.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <CtaButton
@@ -147,7 +147,7 @@ export default function PolishLibraryPage() {
             <CtaButton
               href="/pl/review/request"
               variant="secondary"
-              label="Rozpocznij przegląd"
+              label="Zapytaj o przegląd"
             />
           </div>
         </header>
@@ -192,7 +192,7 @@ export default function PolishLibraryPage() {
             className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Więcej tras
+            Więcej materiałów
             <span className="h-px flex-1 bg-surface-border" />
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">

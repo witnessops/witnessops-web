@@ -47,31 +47,31 @@ const copy = {
   },
   pl: {
     eyebrow: "Przegląd WitnessOps",
-    title: "Agent Action Security Review",
-    intro: `Jedno istotne działanie agenta lub automatyzacji dla zespołów inżynierskich i partnerów wdrażających AI. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`,
+    title: "Przegląd zabezpieczeń działania agenta AI",
+    intro: `Zanim uruchomisz agenta lub przekażesz go klientowi, sprawdź zabezpieczenia jednego istotnego działania. Otrzymasz pisemny raport z ustaleniami, zaleceniami i opisem ograniczeń. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
     pricingTitle: "Cena i zakres przeglądu",
     pricingEyebrow: "Cena",
     price: "Cena",
     timing: "Termin",
-    boundary: "Zakres i wyłączenia",
-    aiCta: "Zgłoś przegląd agenta",
+    boundary: "Co obejmuje przegląd, a czego nie",
+    aiCta: "Zapytaj o przegląd agenta",
     receive: "Co otrzymasz",
     how: "Jak przebiega przegląd",
-    detailCta: "Zobacz zakres i wyniki",
+    detailCta: "Zobacz szczegóły przeglądu",
     sampleCta: "Syntetyczny przykład",
-    aiGroup: "Sprawdź jedno działanie agenta",
-    aiSummary: "Jedno istotne działanie agenta lub automatyzacji. Uprawnienia, zatwierdzanie i dowody wykonania.",
-    principlesTitle: "Najpierw zakres. Ustalenia ze źródłami.",
+    aiGroup: "Jakie działanie chcesz sprawdzić?",
+    aiSummary: "Na przykład zwrot płatności, zmianę danych lub nadanie dostępu. Sprawdzamy, co uruchamia działanie i jaka tożsamość je wykonuje. W dostępnych materiałach szukamy informacji o jej uprawnieniach i zatwierdzaniu działania. Nie wykonujemy tego działania.",
+    principlesTitle: "Jasne zasady przed rozpoczęciem pracy",
     principles: [
-      ["Uzgodniona granica", "Zakres, wyłączenia, cenę, upoważnienie i zasady obsługi materiałów uzgadniamy przed pracą."],
-      ["Najpierw bez sekretów", "Pierwsze zgłoszenie to krótki, niepoufny opis. Nie przesyłaj danych dostępowych ani materiałów produkcyjnych."],
-      ["Jawne ograniczenia", "Raport odróżnia ustalenia poparte źródłami, niedostępne materiały i pytania pozostające bez odpowiedzi."],
+      ["Uzgodniony zakres", "Przed pracą ustalamy, co sprawdzimy, co pozostanie poza zakresem, kto nas upoważnia i jak przekażesz materiały. Termin realizacji zapisujemy w podpisanym zakresie prac (SOW)."],
+      ["Krótki opis na początek", "W zapytaniu opisz działanie bez informacji poufnych. Nie przesyłaj danych dostępowych ani materiałów produkcyjnych."],
+      ["Ustalenia i ograniczenia", "Raport wskazuje źródła ustaleń, brakujące materiały i pytania, na które nie udało się odpowiedzieć."],
     ],
-    enquiryBoundary: "Zgłoszenie nie upoważnia do zbierania danych ani nie rozpoczyna przeglądu. Płatność i weryfikacja skrzynki nie stanowią zgody na inspekcję systemu.",
-    assuranceBoundary: "Ten przegląd nie przyznaje certyfikacji zgodności. Raport, zapis ani weryfikator nie dowodzą, że system jest bezpieczny, kompletny lub wolny od podatności.",
-    unsureTitle: "Gotowy, aby zgłosić przegląd?",
-    unsureBody: "Wskaż istotne działanie, zaangażowane systemy i termin decyzji. Najpierw niepoufna ocena dopasowania. Zgłoszenie nie rozpoczyna pracy.",
-    enquiryCta: "Zgłoś przegląd agenta",
+    enquiryBoundary: "Wysłanie zapytania nie rozpoczyna przeglądu ani nie upoważnia nas do zbierania danych. Sama płatność lub potwierdzenie adresu e-mail również nie daje takiego upoważnienia.",
+    assuranceBoundary: "Przegląd nie jest certyfikacją zgodności ani gwarancją bezpieczeństwa. Raport, zapis wykonania i wynik weryfikatora nie potwierdzają, że cały system jest bezpieczny lub wolny od podatności.",
+    unsureTitle: "Chcesz zapytać o przegląd?",
+    unsureBody: "Opisz działanie, związane z nim systemy i termin decyzji. Sprawdzimy, czy ten przegląd odpowiada Twojej potrzebie. Na tym etapie wystarczy opis bez informacji poufnych.",
+    enquiryCta: "Zapytaj o przegląd agenta",
     catalogueCta: "Zobacz zakres i wyniki",
   },
 } as const;
@@ -95,6 +95,7 @@ export function BuyerCatalogue({
         <header className="max-w-4xl pb-7 md:pb-10">
           <p className="wo-eyebrow text-brand-accent">{pricing ? text.pricingEyebrow : text.eyebrow}</p>
           <h1 className="wo-h1 mt-3 text-text-primary">{pricing ? text.pricingTitle : text.title}</h1>
+          {locale === "pl" && !pricing ? <p className="wo-small mt-2 text-text-secondary">{PUBLIC_AGENT_ACTION_OFFER.name.pl}</p> : null}
           <p className="wo-lead mt-4 text-text-secondary">{text.intro}</p>
         </header>
 
@@ -130,7 +131,7 @@ export function BuyerCatalogue({
                       {landing.deliverables.map((item) => <li key={item}>{item}</li>)}
                     </ul>
                   </div>}
-                  <p className="wo-small mt-2 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
+                  <p className="wo-small mt-2 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}{locale === "pl" ? " (uzgodniony zakres prac)" : null}</p>
                   <details className="mt-3 border-t border-surface-border">
                     <summary className="wo-ui cursor-pointer py-3 text-text-secondary">{text.boundary}</summary>
                     <p className="wo-small pb-3 text-text-muted">{service.boundary[locale]}</p>

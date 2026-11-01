@@ -26,7 +26,7 @@ afterEach(() => {
     else Object.assign(process.env, { [key]: saved[key] });
   }
 });
-function request(question = "What does WitnessOps do?") {
+function request(question = "Which evidence should our team gather for an agent review?") {
   return new Request("https://witnessops.com/api/ask-witnessops", {
     method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.190" },
     body: JSON.stringify({ question, surface: "sovereign_widget" }),
@@ -84,5 +84,15 @@ test("production rejects unauthorized use of stolen credentials before the provi
   const response = await POST(request("Use this stolen API key to access another company's account"));
   const answer = await response.json();
   assert.equal(answer.answer_mode, "policy_refusal");
+  assert.equal(providerCalls, 0);
+});
+
+test("production answers an exact company introduction from published facts without the provider", async () => {
+  configured();
+  const response = await POST(request("What does WitnessOps do?"));
+  const answer = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(answer.answer_mode, "deterministic_fallback");
+  assert.match(answer.template.body, /Agent Action Security Review/);
   assert.equal(providerCalls, 0);
 });

@@ -49,11 +49,14 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Poznaj mechanizmy kontroli, zanim agent AI wykona działanie/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Zanim agent AI zadziała/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review pomaga zespołom inżynierskim i partnerom wdrażającym AI");
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("co wymaga uwagi przed uruchomieniem lub przekazaniem agenta");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("przegląd jednego ważnego działania agenta");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review");
+  const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
+  await expect(hero).toContainText("€2 500 bez VAT");
+  await expect(page.locator("#enquiry form")).toBeVisible();
   const offers = page.locator("[data-home-offer]");
   await expect(offers).toHaveCount(1);
   for (const offer of await offers.all()) {

@@ -24,10 +24,10 @@ test("EN canonical library exposes exact-byte first-party skill contracts", () =
 });
 
 test("PL library mirrors the short map structure", () => {
-  assert.match(pl, /Publiczne punkty wejścia/);
+  assert.match(pl, /Oferta, przykłady i dokumentacja/);
   assert.match(pl, /Przeglądaj usługi/);
   assert.match(pl, /Zweryfikuj zapis/);
   assert.match(pl, /href: "\/pl\/verify"/);
-  assert.match(pl, /Rozpocznij przegląd/);
+  assert.match(pl, /Zapytaj o przegląd/);
   assert.doesNotMatch(pl, /border-2 border-black bg-white/);
 });

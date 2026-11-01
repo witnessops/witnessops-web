@@ -80,6 +80,13 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   // public-utility
   // -------------------------------------------------------------------------
   {
+    path: "/api/sovereign-booking",
+    methods: ["POST"],
+    category: "public-utility",
+    summary: "Local fictional booking and opt-in GPT-Live preview",
+    note: "Always returns 410 in production. Non-production additionally requires the preview flag, loopback host, same-origin JSON requests and an opaque per-preview capability. Calendar writes require an explicit reviewed confirmation; voice tools cannot confirm. No real calendar or email integration.",
+  },
+  {
     path: "/api/ask-witnessops",
     methods: ["POST"],
     category: "public-utility",

@@ -18,8 +18,8 @@ test("proof-run verification email uses light paper theme", () => {
     intent: "ai-agent-action-proof-run",
   });
 
-  assert.equal(rendered.templateVersion, "tier1-code-v4-light");
-  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v4-light");
+  assert.equal(rendered.templateVersion, "tier1-code-v5-light");
+  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v5-light");
   assert.ok(rendered.html);
   assert.match(rendered.html!, /background-color:#f7f5f1/);
   assert.match(rendered.html!, /background-color:#ffffff/);
@@ -67,9 +67,12 @@ test("Polish engage requests localize the buyer verification boundary", () => {
   );
   assert.match(rendered.text, /Kod weryfikacyjny: ABCD-EFGH-JKLM/);
   assert.match(rendered.text, /Nie rozpoczyna przeglądu ani pracy/);
+  assert.match(rendered.text, /Wygasa: 30 lipca 2026, 14:00:00 \(czas w Polsce, UTC\+02:00\)/);
+  assert.match(rendered.text, /Otwórz stronę weryfikacji \(po angielsku\): https:\/\/witnessops\.com\/verify-token\?context=opaque/);
   assert.doesNotMatch(rendered.text, /Confirm your/);
   assert.ok(rendered.html);
-  assert.match(rendered.html!, /Otwórz bezpieczną stronę weryfikacji/);
+  assert.match(rendered.html!, /Otwórz bezpieczną stronę weryfikacji \(po angielsku\)/);
+  assert.match(rendered.html!, /30 lipca 2026, 14:00:00 \(czas w Polsce, UTC\+02:00\)/);
   assert.doesNotMatch(rendered.html!, /What this verification means/);
 });
 
@@ -87,4 +90,25 @@ test("explicit governed recon retains its dedicated verification path", () => {
 
   assert.equal(rendered.html, undefined);
   assert.match(rendered.text, /Open Verification Page:/);
+});
+
+test("Polish email never invents an expiry for an invalid timestamp", () => {
+  const rendered = renderVerificationEmail({channel: "engage", email: "buyer@example.test", intakeId: "intk_pl", issuanceId: "iss_pl", token: "ABCD-EFGH-JKLM", expiresAt: "not-a-timestamp", verifyUrl: "https://witnessops.com/verify-token?context=opaque", intent: "agent-action-security-review", locale: "pl"});
+  assert.match(rendered.text, /Wygasa: Nie udało się ustalić terminu wygaśnięcia\./);
+  assert.match(rendered.html!, /Wygasa: Nie udało się ustalić terminu wygaśnięcia\./);
+  assert.doesNotMatch(rendered.text, /not-a-timestamp/);
+});
+
+test("Polish email identifies each autumn overlap instant in both text and HTML", () => {
+  for (const [expiresAt, display] of [
+    ["2026-10-25T00:30:12Z", "25 października 2026, 02:30:12 (czas w Polsce, UTC+02:00)"],
+    ["2026-10-25T01:30:12Z", "25 października 2026, 02:30:12 (czas w Polsce, UTC+01:00)"],
+  ]) {
+    const rendered = renderVerificationEmail({channel: "engage", email: "buyer@example.test", intakeId: "intk_pl", issuanceId: "iss_pl", token: "ABCD-EFGH-JKLM", expiresAt, verifyUrl: "https://witnessops.com/verify-token?context=opaque", intent: "agent-action-security-review", locale: "pl"});
+    assert.ok(rendered.text.includes(`Wygasa: ${display}`));
+    assert.ok(rendered.html!.includes(`Wygasa: ${display}`));
+    assert.ok(rendered.text.includes("https://witnessops.com/verify-token?context=opaque"));
+    assert.ok(rendered.html!.includes("https://witnessops.com/verify-token?context=opaque"));
+    assert.equal(rendered.templateVersion, "tier1-code-v5-light");
+  }
 });

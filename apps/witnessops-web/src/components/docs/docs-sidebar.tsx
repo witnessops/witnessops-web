@@ -24,6 +24,7 @@ interface NavSection {
 
 interface DocsSidebarProps {
   sections: NavSection[];
+  locale?: "en" | "pl";
 }
 
 const FOCUSABLE_SELECTOR =
@@ -41,7 +42,8 @@ const desktopSidebarStyle = {
   height: "calc(100dvh - var(--app-navbar-height, 72px))",
 } as React.CSSProperties;
 
-export function DocsSidebar({ sections }: DocsSidebarProps) {
+export function DocsSidebar({ sections, locale = "en" }: DocsSidebarProps) {
+  const polish = locale === "pl";
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -211,7 +213,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
 
   const renderSidebarContent = (mobile: boolean) => (
     <nav
-      aria-label="Documentation navigation"
+      aria-label={polish ? "Nawigacja po dokumentacji" : "Documentation navigation"}
       className="sidebar-kb"
       data-docs-nav-surface="sidebar"
     >
@@ -222,12 +224,12 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="/ search…"
+          placeholder={polish ? "/ szukaj…" : "/ search…"}
           autoComplete="off"
           spellCheck={false}
           className="sidebar-kb-search-input"
           style={mobile ? { fontSize: "16px" } : undefined}
-          aria-label="Filter documentation navigation"
+          aria-label={polish ? "Filtruj nawigację dokumentacji" : "Filter documentation navigation"}
         />
       </div>
 
@@ -248,7 +250,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                 className={`sidebar-kb-section-header ${active ? "active" : ""}`}
                 onClick={() => toggleSection(section.id)}
                 aria-expanded={expanded}
-                aria-label={`${expanded ? "Collapse" : "Expand"} ${section.title}`}
+                aria-label={`${expanded ? (polish ? "Zwiń" : "Collapse") : (polish ? "Rozwiń" : "Expand")} ${section.title}`}
               >
                 <span
                   className={`sidebar-kb-bullet ${sectionBulletColor(section.id)}`}
@@ -293,14 +295,14 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
         type="button"
         className={styles.browseButton}
         onClick={() => setDrawerOpen(true)}
-        aria-label="Open documentation menu"
+        aria-label={polish ? "Przeglądaj dokumentację" : "Open documentation menu"}
         aria-controls={drawerId}
         aria-expanded={drawerOpen}
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M2 4.5H16M2 9H12M2 13.5H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span>Browse docs</span>
+        <span>{polish ? "Przeglądaj dokumentację" : "Browse docs"}</span>
       </button>, menuSlot)}
 
       {/* Desktop sidebar */}
@@ -335,13 +337,13 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                 id="docs-mobile-drawer-title"
                 className="text-sm font-semibold text-text-primary"
               >
-                Navigation
+                {polish ? "Nawigacja" : "Navigation"}
               </span>
               <button
                 type="button"
                 className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-card hover:text-text-primary"
                 onClick={closeDrawer}
-                aria-label="Close navigation"
+                aria-label={polish ? "Zamknij nawigację" : "Close navigation"}
                 data-docs-drawer-initial-focus
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

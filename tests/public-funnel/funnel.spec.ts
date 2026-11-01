@@ -40,7 +40,8 @@ for(const width of [1440,390])test(`footer and research at ${width}`,async({page
 });
 test('Polish footer uses supported destinations and labels English-only surfaces',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/pl');const footer=page.locator('#site-footer');
- for(const [label,href] of [['Agent Action Security Review','/pl/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review'],['External Attack Surface Review','/pl/reviews/external-attack-surface-review'],['Podejście','/pl/why-witnessops'],['Przykłady','/review/sample-cases'],['Dokumentacja','/pl/docs'],['Sprawdź zapis','/pl/verify'],['Prywatność','/pl/privacy'],['Warunki','/pl/terms'],['Bezpieczeństwo','/pl/security'],['Dane spółki','/pl/company'],['Zestaw dla mediów','/pl/media-kit']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+ for(const [label,href] of [['Agent Action Security Review','/pl/reviews/agent-action-security-review'],['Zapytaj o przegląd agenta','/pl/review/request'],['Podejście','/pl/why-witnessops'],['Przykłady (EN)','/review/sample-cases'],['Dokumentacja','/pl/docs'],['Sprawdź zapis','/pl/verify'],['Prywatność','/pl/privacy'],['Warunki','/pl/terms'],['Bezpieczeństwo','/pl/security'],['Dane spółki','/pl/company'],['Zestaw dla mediów','/pl/media-kit']])await expect(footer.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+ await expect(footer.getByRole('link',{name:'External Attack Surface Review',exact:true})).toHaveCount(0);
  await expect(footer.getByRole('link',{name:'Badania i artykuły (EN)',exact:true})).toHaveCount(0);
  await expect(footer.getByRole('link',{name:'Narzędzie, nie przegląd',exact:true})).toHaveCount(0);
  await expect(footer.getByRole('link',{name:'AI Agent Tools & Access Review (EN)',exact:true})).toHaveCount(0);

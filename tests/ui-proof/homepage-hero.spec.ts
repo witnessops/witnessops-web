@@ -240,6 +240,12 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/review/sample-cases" : "/review/sample-cases/ai-agent-action-proof-run");
       await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
       if (path === "/pl") {
+        const primary = page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]');
+        const box = await primary.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.y + box!.height).toBeLessThanOrEqual(900);
+        await expect(page.locator('#enquiry form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
+        await expect(page.locator("#home-limits-heading")).toBeVisible();
         await expect(page.locator("[data-review-finding]")).toHaveCount(0);
         await expect(page.locator('[data-ui-proof-id="homepage-hero"] img, [data-hero-gap]')).toHaveCount(0);
       } else {
@@ -255,12 +261,12 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       if (path === "/pl") {
         await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
         await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true })).toHaveCount(0);
-        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd agenta", exact: true }).first()).toHaveAttribute(
+        await expect(page.locator("main").getByRole("link", { name: "Zapytaj o przegląd agenta", exact: true }).first()).toHaveAttribute(
           "href",
           buyerServiceRequestHref("pl", buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID)),
         );
         await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
-        await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
+        await expect(page.locator("#how-it-works")).toContainText("Ustalamy zakres");
       } else {
         await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence. Explicit limits.");
         await expect(page.locator("#enquiry form")).toBeVisible();

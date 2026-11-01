@@ -28,7 +28,7 @@ function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
         : "/reviews/agent-action-security-review",
     },
     {
-      label: locale === "pl" ? "Zgłoś przegląd agenta" : "Request an agent review",
+      label: locale === "pl" ? "Zapytaj o przegląd agenta" : "Request an agent review",
       href: buyerRequestHref(locale),
     },
   ];
@@ -64,10 +64,10 @@ interface FooterProps {
 }
 
 const POLISH_FOOTER = {
-  subline: "Jedno istotne działanie agenta. Pisemne ustalenia i jawne granice przeglądu.",
+  subline: "Jedno ważne działanie agenta. Pisemny raport i jasno opisane ograniczenia.",
   links: [
     { label: "Podejście", href: "/pl/why-witnessops" },
-    { label: "Przykłady", href: "/review/sample-cases" },
+    { label: "Przykłady (EN)", href: "/review/sample-cases" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Sprawdź zapis", href: "/pl/verify" },
   ],

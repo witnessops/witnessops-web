@@ -29,7 +29,7 @@ const externalReviewRedirects = [
     path: "/pl/catalog/offsec-external-exposure",
     destination: "/pl/reviews/external-attack-surface-review",
     title: "External Attack Surface Review nie jest już dostępny",
-    differentService: "To nie jest Agent Action Security Review.",
+    differentService: "Obecnie oferujemy inny przegląd: Agent Action Security Review.",
     reviewHref: "/pl/reviews/agent-action-security-review",
     reviewLink: "Zobacz Agent Action Security Review",
   },
@@ -73,7 +73,8 @@ test("current review puts its price and fit-check CTA before long detail on narr
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
       const main = page.locator('[data-buyer-service-detail="agent-action-security-review"]');
-      await expect(main.locator("h1")).toHaveText("Agent Action Security Review");
+      await expect(main.locator("h1")).toHaveText(locale === "en" ? "Agent Action Security Review" : "Przegląd zabezpieczeń działania agenta AI");
+      await expect(main.locator("header")).toContainText("Agent Action Security Review");
       const commercial = main.getByRole("complementary");
       await expect(commercial).toContainText(locale === "en" ? "€2,500\u00a0excl.\u00a0VAT" : "€2\u00a0500\u00a0bez\u00a0VAT");
       const cta = commercial.getByRole("link");
@@ -81,7 +82,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);
       expect(target.searchParams.get("offerId")).toBe("agent-action-security-review");
       await expect(main).toContainText(locale === "en" ? "effective permissions" : "efektywne uprawnienia");
-      await expect(main).toContainText(locale === "en" ? "Explicit unknowns" : "Jawne niewiadome");
+      await expect(main).toContainText(locale === "en" ? "Explicit unknowns" : "Czego nie udało się ustalić i jakich dowodów brakuje");
       await expect(main).not.toContainText(/€1,900|separate quote|10 working days/);
       await expect(main.getByRole("link", { name: /historical synthetic|Historyczny syntetyczny/ })).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
       if (width < 768) {
