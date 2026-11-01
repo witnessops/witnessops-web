@@ -154,11 +154,11 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   id: "agent-action-security-review",
   cardSituation: {
     en: "Before your agent takes an important action, understand the controls around it.",
-    pl: "Zanim agent wykona ważne działanie, poznaj mechanizmy jego kontroli.",
+    pl: "Zanim agent wykona ważne działanie, sprawdź, kto i co może je kontrolować.",
   },
   situation: {
     en: "For engineering teams and AI implementation partners preparing to launch or hand over an agent that can issue refunds, change records or grant access. We review one consequential action: its trigger, executing identity, effective permissions, approvals and available execution evidence.",
-    pl: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta, który może zwracać płatności, zmieniać rekordy lub nadawać dostęp. Sprawdzamy jedno istotne działanie: wyzwalacz, tożsamość wykonawczą, efektywne uprawnienia, zatwierdzanie i dostępne dowody wykonania.",
+    pl: "Dla zespołów inżynierskich i partnerów wdrażających AI, którzy przygotowują do uruchomienia lub przekazania agenta mogącego zwracać płatności, zmieniać dane lub nadawać dostęp. Sprawdzamy jedno istotne działanie: co je uruchamia, jaka tożsamość je wykonuje, efektywne uprawnienia, sposób zatwierdzania i dostępne dowody wykonania.",
   },
   commercialContract: {
     price: LEGACY_AGENT_ACTION_OFFER.commercialContract.price,
@@ -175,7 +175,7 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   },
   result: {
     en: "An action map, findings linked to sources, prioritised recommendations, documented unknowns, a written report and a readout to help your team decide what needs attention.",
-    pl: "Mapa działania, ustalenia ze źródłami, zalecenia według priorytetu, jawne niewiadome, raport pisemny i omówienie, które pomogą zespołowi ustalić, co wymaga uwagi.",
+    pl: "Otrzymasz mapę działania, ustalenia ze źródłami, zalecenia uporządkowane według priorytetu, opis niewiadomych oraz pisemny raport i jego omówienie. Pomoże to zespołowi zdecydować, co wymaga uwagi.",
   },
   included: {
     en: [

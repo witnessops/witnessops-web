@@ -155,7 +155,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     requestCta: {
       en: "Request an agent review",
-      pl: "Zgłoś przegląd agenta",
+      pl: "Zapytaj o przegląd agenta",
     },
     // The historical inventory review retains /catalog/workflows and its identity.
     detailHref: {

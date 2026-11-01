@@ -5,7 +5,7 @@ import { languageAlternates } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 const description =
-  "Kanoniczny WitnessOps Logo System v1, sumy kontrolne, zasady marki i opis spółki.";
+  "Logo WitnessOps, sumy kontrolne plików, zasady użycia marki i informacje o spółce.";
 
 export const metadata: Metadata = {
   title: "Zestaw dla mediów",

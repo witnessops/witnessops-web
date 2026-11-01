@@ -102,7 +102,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
   for (const marker of [
     "PUBLIC_AGENT_ACTION_OFFER",
-    'label: locale === "pl" ? "Zgłoś przegląd agenta" : "Request an agent review"',
+    'label: locale === "pl" ? "Zapytaj o przegląd agenta" : "Request an agent review"',
     'label: "Podejście"',
     'label: "Prywatność", href: "/pl/privacy"',
     'label: "Warunki", href: "/pl/terms"',

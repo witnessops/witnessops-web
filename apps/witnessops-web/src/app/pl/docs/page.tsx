@@ -8,7 +8,7 @@ const EN_DOCS = getDocsUrl("witnessops", "/", { mode: "canonical" });
 export const metadata: Metadata = {
   title: "Dokumentacja",
   description:
-    "Dowiedz się, co dostarcza WitnessOps, co wspiera wynik i jak go sprawdzić.",
+    "Dowiedz się, co otrzymasz od WitnessOps i jak sprawdzić wynik.",
   alternates: languageAlternates("/pl/docs", {
     en: "/docs",
     pl: "/pl/docs",
@@ -23,14 +23,17 @@ export default function PolishDocsPage() {
           Dokumentacja
         </p>
         <h1 className="mt-3 max-w-4xl text-4xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary">
-          Dowiedz się, co dostarcza WitnessOps, co wspiera wynik i jak go
-          sprawdzić.
+          Dokumentacja WitnessOps
         </h1>
         <p className="mt-5 max-w-3xl text-sm leading-7 text-text-muted">
-          Utworzenie konta jest bezpłatne i nie wymaga karty. Po potwierdzeniu adresu e-mail możesz utworzyć własny obszar roboczy bez zaproszenia. Dołączenie do obszaru roboczego innej osoby wymaga zaproszenia od jego właściciela. Aplikacja działa w przeglądarce; CLI jest opcjonalne. Przeglądy eksperckie wymagają osobnego uzgodnienia zakresu i ceny.
+          Poznaj przegląd ekspercki oraz aplikację i CLI WitnessOps. Zakres i cenę przeglądu uzgadniamy osobno.
+        </p>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-text-muted">
+          Utworzenie konta jest bezpłatne i nie wymaga karty. Po potwierdzeniu adresu e-mail możesz utworzyć własny obszar roboczy bez zaproszenia. Dołączenie do obszaru roboczego innej osoby wymaga zaproszenia od jego właściciela. Aplikacja działa w przeglądarce; CLI jest opcjonalne.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <CtaButton href={getDocsUrl("witnessops", "/getting-started", { mode: "canonical" })} variant="primary" label="Pierwsze kroki (EN)" />
+          <CtaButton href="/pl/docs/understand-the-service" variant="primary" label="Poznaj usługę" />
+          <CtaButton href={getDocsUrl("witnessops", "/getting-started", { mode: "canonical" })} variant="secondary" label="Pierwsze kroki (EN)" />
           <CtaButton
             href="/pl/verify"
             variant="secondary"
@@ -47,8 +50,8 @@ export default function PolishDocsPage() {
         <article className="border border-surface-border p-5">
           <h2 className="font-semibold text-text-primary">Pomoc ekspercka</h2>
           <p className="mt-2 text-sm leading-6 text-text-muted">
-            Porównaj aktualne oferty, jasno określone rezultaty, potrzebne
-            informacje, ceny, terminy i wyłączenia.
+            Poznaj zakres przeglądu, jego cenę, potrzebne informacje oraz to,
+            czego przegląd nie obejmuje.
           </p>
         </article>
         <article className="border border-surface-border p-5">
@@ -56,7 +59,7 @@ export default function PolishDocsPage() {
             Dla osób sprawdzających
           </h2>
           <p className="mt-2 text-sm leading-6 text-text-muted">
-            Raport przedstawia obserwację. Migawki External Exposure nie są podpisane; pakiety Local Audit mają osobną ścieżkę sprawdzania podpisów. Publiczny weryfikator przyjmuje obsługiwany JSON zapisu, a nie pełne pakiety. Instrukcje pozostają po angielsku.
+            Raport przedstawia zarejestrowane obserwacje. Publiczny weryfikator przyjmuje obsługiwany zapis w formacie JSON, ale nie pełny pakiet. Instrukcje techniczne są dostępne po angielsku.
           </p>
         </article>
       </section>

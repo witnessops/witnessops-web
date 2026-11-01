@@ -126,7 +126,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
     assert.equal(Object.hasOwn(manifest, appPath), false);
     delete expectedManifest[appPath];
   }
-  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
+  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/api/sovereign-booking/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }

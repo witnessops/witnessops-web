@@ -104,7 +104,7 @@ test("media kit names the brand and the legal entity without withdrawn offers", 
     assert.match(
       html,
       locale === "pl"
-        ? /jednego istotnego działania agenta lub automatyzacji/
+        ? /jednego ważnego działania agenta lub automatyzacji/
         : /one consequential agent or automation action/,
     );
     assert.doesNotMatch(html, /External Attack Surface Review|witnessops-homepage-(desktop|mobile)\.png|id="screenshots"/);

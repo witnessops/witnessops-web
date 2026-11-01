@@ -9,7 +9,7 @@
   --rule: var(--color-surface-border);
   --rule-strong: var(--color-surface-border-strong);
   min-height: 100vh;
-  background: var(--paper);
+  background: transparent;
   color: var(--ink);
   display: flow-root;
 }
@@ -34,8 +34,65 @@
   border-bottom: 1px solid var(--rule);
 }
 
+/* Reveal the shared page grid beneath the hero's separate surface layer. */
+.page > .heroSection {
+  background-color: transparent;
+}
+
 .heroSection > header {
   padding-bottom: 2rem;
+}
+
+/* Share the EN hero's type, crop frame and split layout. */
+.compactHome .heroSection > header {
+  padding-bottom: 0;
+}
+
+.compactHome .frame {
+  width: min(1152px, calc(100% - 80px));
+}
+
+.compactHome .reviewSection {
+  padding-block: 4rem;
+}
+
+.compactHome .reviewGrid p,
+.limitColumns p {
+  color: var(--ink-soft);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+}
+
+.compactHome .reviewGrid h4 {
+  margin-top: 1.5rem;
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-lh);
+  font-weight: var(--type-h4-wt);
+}
+
+.limitColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.limitColumns h3,
+.homeEnquiry h2 {
+  margin-bottom: 1rem;
+}
+
+.homeEnquiry > div {
+  gap: 3rem;
+}
+
+@media (max-width: 800px) {
+  .compactHome .frame {
+    width: calc(100% - 40px);
+  }
+  .limitColumns {
+    grid-template-columns: 1fr;
+  }
 }
 
 .heroFrame {
@@ -267,12 +324,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.reviewGrid li {
+.reviewGrid > li {
   min-width: 0;
   padding: 1.35rem 1.1rem 1.5rem;
 }
 
-.reviewGrid li + li {
+.reviewGrid > li + li {
   border-left: 1px solid var(--rule);
 }
 
@@ -597,15 +654,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .reviewGrid li {
+  .reviewGrid > li {
     border-top: 1px solid var(--rule);
   }
 
-  .reviewGrid li:nth-child(-n + 2) {
+  .reviewGrid > li:nth-child(-n + 2) {
     border-top: 0;
   }
 
-  .reviewGrid li:nth-child(odd) {
+  .reviewGrid > li:nth-child(odd) {
     border-left: 0;
   }
 
@@ -705,13 +762,13 @@
     gap: 0.5rem;
   }
 
-  .reviewGrid li,
-  .reviewGrid li:nth-child(-n + 2) {
+  .reviewGrid > li,
+  .reviewGrid > li:nth-child(-n + 2) {
     border-top: 1px solid var(--rule);
     border-left: 0;
   }
 
-  .reviewGrid li:first-child {
+  .reviewGrid > li:first-child {
     border-top: 0;
   }
 
@@ -808,7 +865,31 @@
 .heroTitle[data-copy-length="long"] { max-width: 17ch; font-size: var(--type-display-size); }
 .reviewGrid h3 { font-size: var(--type-h3-size); }
 .reviewGrid p { font-size: var(--type-body-size); line-height: var(--type-body-lh); }
-.serviceGrid li { display: flex; flex-direction: column; padding: 1.75rem; }
+.serviceGrid { grid-template-columns: minmax(0, 1fr); }
+.serviceGrid > li {
+  display: grid;
+  max-width: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
+  column-gap: clamp(2rem, 6vw, 6rem);
+  align-content: start;
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+}
+.serviceGrid > li > h3,
+.serviceGrid > li > p:nth-of-type(-n + 4) { grid-column: 1; }
+.serviceGrid > li > ul {
+  grid-column: 2;
+  grid-row: 1 / span 5;
+  align-self: center;
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: var(--ink-soft);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+}
+.serviceGrid > li > ul > li + li { margin-top: .65rem; }
+.serviceGrid > li > p:nth-of-type(n + 5),
+.serviceGrid > li > a { grid-column: 1 / -1; }
 .serviceGrid h3 { margin-top: 0; }
 .serviceGrid p { margin-bottom: 1rem; }
 .serviceGrid .textLink { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-top: auto; font-family: var(--font-sans); font-size: var(--type-ui-size); }
@@ -820,7 +901,8 @@
 .evidenceNote a { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; color: var(--ink); text-decoration: underline; text-underline-offset: .3em; }
 @media (max-width: 700px) {
   .heroTitle[data-copy-length="long"] { max-width: none; font-size: var(--type-display-size); line-height: var(--type-display-lh); }
-  .serviceGrid li { padding: 1.35rem; }
+  .serviceGrid > li { display: flex; flex-direction: column; padding: 1.35rem; }
+  .serviceGrid > li > ul { align-self: auto; margin: 0 0 1rem; }
   .reviewGrid p { font-size: var(--type-body-size); }
 }
 

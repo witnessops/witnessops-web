@@ -22,9 +22,9 @@ export function PolishDocsFrame({ children }: { children: ReactNode }) {
   if (pathname.replace(/\/$/, "") === "/pl/docs/assistant") return <>{children}</>;
   return (
     <div className="min-h-screen">
-      <DocsNavbar docs={[]} utilityLinks={PL_DOCS_UTILITY_LINKS} />
+      <DocsNavbar docs={[]} locale="pl" utilityLinks={PL_DOCS_UTILITY_LINKS} />
       <div className="flex min-h-screen">
-        <DocsSidebar sections={POLISH_DOCS_SECTIONS} />
+        <DocsSidebar sections={POLISH_DOCS_SECTIONS} locale="pl" />
         <div className="min-w-0 flex-1 px-6 py-10 lg:px-12 lg:py-12">
           {children}
         </div>

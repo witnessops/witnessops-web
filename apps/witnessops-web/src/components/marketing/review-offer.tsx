@@ -20,14 +20,14 @@ const COPY = {
     example: "Inspect an example",
   },
   pl: {
-    all: "Przegląd",
+    all: "Wróć do oferty",
     reviews: "/pl/reviews",
     receive: "Co otrzymasz",
     limits: "Zakres i ograniczenia",
     start: "Jak zacząć",
     agentEyebrow: "Jedno działanie agenta",
-    fitNote: "Zacznij od niepoufnej oceny dopasowania. Zakres, upoważnienie i zasady obsługi dowodów uzgadniamy przed pracą.",
-    example: "Zobacz przykład",
+    fitNote: "Opisz działanie bez informacji poufnych. Sprawdzimy, czy przegląd odpowiada Twojej potrzebie. Przed pracą uzgodnimy zakres, upoważnienie i sposób przekazania materiałów.",
+    example: "Przykład i jego ograniczenia",
   },
 } as const;
 
@@ -45,14 +45,15 @@ export function ReviewOffer({ locale }: { locale: BuyerLocale }) {
         <p className={styles.back}><Link href={copy.reviews}>{copy.all}</Link></p>
         <header className={`${styles.content} ${styles.intro}`}>
           <p className={styles.eyebrow}>{copy.agentEyebrow}</p>
-          <h1>{current.name[locale]}</h1>
+          <h1>{locale === "pl" ? "Przegląd zabezpieczeń działania agenta AI" : current.name.en}</h1>
+          {locale === "pl" ? <p>{current.name.pl}</p> : null}
           <p className={styles.lead}>{landing.headline}</p>
           <p>{landing.whoFor}</p>
           <p>{landing.scopeNote}</p>
         </header>
         <aside className={styles.rail} aria-label={locale === "pl" ? "Cena i zgłoszenie przeglądu" : "Review price and enquiry"}>
           <p className={styles.price}><PriceText text={current.price[locale]} /></p>
-          <p>{current.timing[locale]}</p>
+          <p>{current.timing[locale]}{locale === "pl" ? ", czyli uzgodnionego zakresu prac." : null}</p>
           <Link className={styles.cta} href={requestHref}>{landing.primaryCta}</Link>
           <p className={styles.fitNote}>{copy.fitNote}</p>
         </aside>

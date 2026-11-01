@@ -179,7 +179,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
         <a href="#main-content" className="skip-link">
-          Skip to main content
+          {documentLanguage === "pl" ? "Przejdź do treści" : "Skip to main content"}
         </a>
         <Navbar
           signupUrl={getWorkspaceAppUrl("/signup")}

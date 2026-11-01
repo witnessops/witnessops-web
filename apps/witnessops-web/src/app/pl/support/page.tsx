@@ -13,7 +13,7 @@ const VULNERABILITY_MAILTO = publicContactMailto("Private vulnerability report")
 
 export const metadata: Metadata = {
   title: "Wsparcie",
-  description: "Wybierz właściwą drogę kontaktu z WitnessOps.",
+  description: "Pomoc dotycząca zgłoszeń, weryfikacji zapisów i kontaktu z WitnessOps.",
   alternates: languageAlternates("/pl/support", {
     en: "/support",
     pl: "/pl/support",
@@ -24,7 +24,7 @@ const routes = [
   [
     PUBLIC_AGENT_ACTION_OFFER.name.pl,
     "/pl/reviews/agent-action-security-review",
-    `Jedno nazwane istotne działanie. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
+    `Przegląd jednego istotnego działania agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
   ],
   [
     "Mam istniejące zgłoszenie",
@@ -32,14 +32,14 @@ const routes = [
     "Napisz z tego samego adresu służbowego i podaj identyfikator zgłoszenia.",
   ],
   [
-    "Potrzebuję pomocy ze sprawdzeniem dostawy",
+    "Chcę sprawdzić zapis WitnessOps",
     "/pl/verify",
-    "Prześlij lub wklej JSON zapisu i odczytaj wynik albo zadaj pytanie o ograniczenia.",
+    "Prześlij plik zapisu lub wklej jego JSON, aby poznać wynik kontroli i jej ograniczenia.",
   ],
   [
     "Otrzymałem nieoczekiwaną wiadomość od WitnessOps",
     "#contact",
-    "Nie otwieraj załączników. Prześlij wyłącznie niepoufne dane nagłówka wiadomości.",
+    "Nie otwieraj załączników ani nie klikaj linków. Napisz do nas, podając ogólny opis wiadomości bez danych poufnych.",
   ],
 ] as const;
 
@@ -58,8 +58,8 @@ export default function PolishSupportPage() {
           W czym możemy pomóc?
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
-          Wybierz sytuację. Nowy przegląd zawsze zaczyna się od ogólnego opisu
-          bez danych poufnych.
+          Wybierz temat, w którym potrzebujesz pomocy. Jeśli pytasz o nowy
+          przegląd, zacznij od ogólnego opisu bez danych poufnych.
         </p>
       </header>
 
@@ -78,17 +78,17 @@ export default function PolishSupportPage() {
 
       <section className="mt-8 border border-signal-red/30 p-5">
         <h2 className="font-semibold text-text-primary">
-          Znalazłem podatność bezpieczeństwa
+          Chcę zgłosić podatność
         </h2>
         <p className="mt-2 text-sm leading-6 text-text-muted">
-          Prywatne zgłoszenia podatności kieruj wyłącznie na{" "}
+          Aby zgłosić podatność, napisz na{" "}
           <a
             href={VULNERABILITY_MAILTO}
             className="[overflow-wrap:anywhere] text-brand-accent hover:underline"
           >
             {PUBLIC_CONTACT_EMAIL}
           </a>
-          . Ten adres nie służy do zwykłych zgłoszeń klientów.
+          . Link uzupełni temat wiadomości dotyczącej podatności.
         </p>
         <p className="mt-3 text-sm text-text-muted">
           {POLISH_NO_SECRETS_NOTE}
@@ -107,12 +107,13 @@ export default function PolishSupportPage() {
           id="polish-support-contact-title"
           className="mt-2 text-xl font-semibold text-text-primary"
         >
-          Napisz z właściwego adresu służbowego
+          Napisz do nas
         </h2>
         <p className="mt-3 text-sm leading-6 text-text-secondary">
-          W wiadomości podaj identyfikator istniejącego zgłoszenia lub krótki,
-          niepoufny opis problemu. Nie wysyłaj załączników, gdy wiadomość była
-          nieoczekiwana.
+          Jeśli sprawa dotyczy istniejącego zgłoszenia, napisz z tego samego
+          adresu służbowego i podaj jego identyfikator. W pozostałych sprawach
+          wystarczy krótki opis bez informacji poufnych. Jeśli otrzymana
+          wiadomość wzbudza podejrzenia, nie przesyłaj jej załączników.
         </p>
         <a
           href={SUPPORT_MAILTO}

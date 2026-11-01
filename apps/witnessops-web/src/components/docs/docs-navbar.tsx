@@ -17,6 +17,7 @@ interface DocEntry {
 
 interface DocsNavbarProps {
   docs: DocEntry[];
+  locale?: "en" | "pl";
   verifyFirstHref?: string;
   /** Override utility chrome (e.g. PL docs must not show EN /docs hubs). */
   utilityLinks?: { label: string; href: string }[];
@@ -38,6 +39,7 @@ function isUtilityLinkActive(pathname: string | null, href: string) {
 
 export function DocsNavbar({
   docs,
+  locale = "en",
   verifyFirstHref,
   utilityLinks: utilityLinksProp,
 }: DocsNavbarProps) {
@@ -77,7 +79,7 @@ export function DocsNavbar({
   return (
     <>
       <nav
-        aria-label="Documentation utility navigation"
+        aria-label={locale === "pl" ? "Skróty dokumentacji" : "Documentation utility navigation"}
         className={styles.toolbar}
         data-docs-nav-surface="utility-nav"
       >

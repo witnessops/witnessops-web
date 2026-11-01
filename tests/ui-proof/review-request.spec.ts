@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 const scenarios = [
+  { path: "/pl", locale: "pl", width: 1440, height: 900 },
+  { path: "/pl", locale: "pl", width: 390, height: 844 },
   { path: "/review/request", locale: "en", width: 1440, height: 1100 },
   { path: "/review/request", locale: "en", width: 768, height: 1024 },
   { path: "/review/request", locale: "en", width: 390, height: 844 },
@@ -203,6 +205,47 @@ test("historical one-action links do not select a new review", async ({ page }) 
   }
 });
 
+test("Polish enquiry explains an uncertain network failure without losing the form", async ({ page }) => {
+  await page.route("**/api/review/request", (route) => route.abort("failed"));
+  await page.goto("/pl/review/request", { waitUntil: "networkidle" });
+  const form = page.locator("main form");
+  await form.locator("#email").fill("buyer@example.org");
+  await form.locator("#workflow").fill("Przykładowy zwrot płatności");
+  await form.locator("#approvalBoundary").fill("System płatności");
+  await form.locator("#decisionTiming").fill("Przed wdrożeniem");
+  await form.locator('button[type="submit"]').click();
+  const alert = form.locator('[role="alert"][tabindex="-1"]');
+  await expect(alert).toContainText("Nie udało się potwierdzić wysłania zgłoszenia. Sprawdź skrzynkę e-mail i połączenie przed ponowną próbą.");
+  await expect(alert).not.toContainText("Failed to fetch");
+  await expect(alert).not.toContainText("Popraw je lub spróbuj ponownie.");
+  await expect(form.locator("#workflow")).toHaveValue("Przykładowy zwrot płatności");
+  await expect(form.locator("#email")).toHaveValue("buyer@example.org");
+});
+
+test("Polish enquiry treats server errors and incomplete success responses as uncertain", async ({ page }) => {
+  for (const response of [
+    { status: 500, body: JSON.stringify({ error: "Internal failure" }) },
+    { status: 201, body: JSON.stringify({ issuanceId: "iss_incomplete" }) },
+    { status: 201, body: "not-json" },
+  ]) {
+    await page.route("**/api/review/request", (route) => route.fulfill({ ...response, contentType: "application/json" }));
+    await page.goto("/pl/review/request", { waitUntil: "networkidle" });
+    const form = page.locator("main form");
+    await form.locator("#email").fill("buyer@example.org");
+    await form.locator("#workflow").fill("Przykładowy zwrot płatności");
+    await form.locator("#approvalBoundary").fill("System płatności");
+    await form.locator("#decisionTiming").fill("Przed wdrożeniem");
+    await form.locator('button[type="submit"]').click();
+    const alert = form.locator('[role="alert"][tabindex="-1"]');
+    await expect(alert).toContainText("Nie udało się potwierdzić wysłania zgłoszenia. Sprawdź skrzynkę e-mail i połączenie przed ponowną próbą.");
+    await expect(alert).not.toContainText("Weryfikacja została rozpoczęta");
+    await expect(alert).not.toContainText("Popraw je lub spróbuj ponownie.");
+    await expect(form.locator("#workflow")).toHaveValue("Przykładowy zwrot płatności");
+    await expect(form.locator("#email")).toHaveValue("buyer@example.org");
+    await page.unroute("**/api/review/request");
+  }
+});
+
 test("the agent enquiry recovers from request and code errors and confirms through controlled doubles", async ({ browser }) => {
   for (const locale of ["en", "pl"] as const) {
     const context = await browser.newContext({ viewport: { width: 320, height: 740 } });
@@ -297,7 +340,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     {
       locale: "pl",
       path: "/pl/review/request",
-      fitTitle: "Rozpocznij Agent Action Security Review.",
+      fitTitle: "Zapytaj o Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
         "€2\u00A0500\u00A0bez\u00A0VAT",
@@ -366,6 +409,11 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     for (const fieldName of requiredFields) {
       await expect(form.locator(`#${fieldName}`)).toHaveAttribute("required", "");
     }
+    if (scenario.locale === "pl") {
+      await expect(form.locator("label[for=workflow]")).toContainText("Co ma zrobić agent?");
+      await expect(form.locator("label[for=decisionTiming]")).toContainText("Do kiedy potrzebujesz decyzji?");
+      await expect(form.locator("#workflow-helper")).toContainText("jednego działania");
+    }
 
     const submit = form.locator('button[type="submit"]');
     await submit.click();
@@ -383,6 +431,15 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await form.locator("#decisionTiming").fill("Customer handover next Friday");
     await submit.click();
 
+    await expect(page.locator("#verification-code-help")).toContainText(
+      scenario.locale === "pl" ? "30 sierpnia 2026, 00:00:00 (czas w Polsce, UTC+02:00)" : "2026-08-29T22:00:00.000Z",
+    );
+    if (scenario.locale === "pl") {
+      const consent = page.locator('main form label').filter({ has: page.locator('input[type="checkbox"]') });
+      await expect(consent).toContainText("kod potwierdza tylko dostęp do mojego adresu e-mail i nie rozpoczyna przeglądu");
+      await expect(consent).toContainText("Nie prześlę haseł, danych dostępowych, kluczy prywatnych, kluczy API, tokenów, kodów MFA ani innych sekretów.");
+      await expect(consent).toContainText("nie prześlę przed uzgodnieniem zakresu i bezpiecznego sposobu ich przekazania i obsługi");
+    }
     expect(submittedPayload?.intent).toBe("agent-action-security-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
     expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
@@ -503,7 +560,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
       heading: "External Attack Surface Review nie jest już dostępny",
       intent: null,
       selectedOffer: null,
-      boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      boundary: "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
       authorizationBoundary: null,
     },
     {
@@ -519,7 +576,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
       heading: "Ten link nie rozpoczyna nowego przeglądu",
       intent: null,
       selectedOffer: null,
-      boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      boundary: "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
       authorizationBoundary: null,
     },
   ] as const;
@@ -650,7 +707,7 @@ test("confirmation routes render a bounded browser-held request record", async (
       availability: "/pl/reviews/external-attack-surface-review",
       availabilityLabel: "Sprawdź dostępność External Attack Surface Review",
       boundary:
-        "Nie wysyłaj sekretów ani materiałów źródłowych, dopóki nie uzgodnimy zakresu i sposobu ich obsługi.",
+        "Nie wysyłaj sekretów. Materiałów źródłowych nie wysyłaj, dopóki nie uzgodnimy zakresu i bezpiecznego sposobu ich obsługi.",
     },
   ] as const;
 

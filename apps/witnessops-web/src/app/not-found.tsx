@@ -1,12 +1,26 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: { absolute: "Page not found · WitnessOps" },
-  robots: { index: false, follow: true },
-};
+import { DOCUMENT_LANGUAGE_HEADER, parseDocumentLanguage } from "@/lib/request-language";
+import PolishNotFound from "./pl/not-found";
 
-export default function NotFound() {
+async function isPolishRequest() {
+  const requestHeaders = await headers();
+  return parseDocumentLanguage(requestHeaders.get(DOCUMENT_LANGUAGE_HEADER)) === "pl";
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const polish = await isPolishRequest();
+  return {
+    title: { absolute: polish ? "Nie znaleziono strony · WitnessOps" : "Page not found · WitnessOps" },
+    robots: { index: false, follow: true },
+  };
+}
+
+export default async function NotFound() {
+  if (await isPolishRequest()) return <PolishNotFound />;
+
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-24">
       <p className="text-sm font-medium uppercase tracking-wide text-text-muted">404</p>

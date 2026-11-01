@@ -107,7 +107,7 @@ const TRUST_COPY: Record<
     security: {
       title: "Granica zaufania",
       body: [
-        "WitnessOps zwiększa możliwość audytu przez nadzorowane wykonanie, podpisane zapisy i wiązania dowodowe odporne na manipulację.",
+        "WitnessOps ułatwia audyt dzięki nadzorowanemu wykonaniu, podpisanym zapisom i powiązaniom dowodowym umożliwiającym wykrycie manipulacji.",
         "Te mechanizmy nie usuwają zewnętrznych założeń zaufania, takich jak integralność hosta, poprawność narzędzi czy piecza nad kluczami.",
       ],
     },

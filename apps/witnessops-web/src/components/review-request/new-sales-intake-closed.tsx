@@ -23,12 +23,12 @@ const copy = {
   pl: {
     title: "Ten link nie rozpoczyna nowego przeglądu",
     parkedTitle: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny`,
-    body: `Nowe płatne zgłoszenia przyjmują wyłącznie ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Stary, nieznany albo sprzeczny identyfikator nie jest zgłoszeniem.`,
+    body: `Nowe zgłoszenia dotyczące płatnego przeglądu przyjmujemy wyłącznie dla ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Ten link zawiera nieaktualne, nieznane lub sprzeczne informacje o ofercie. Nie jest zgłoszeniem.`,
     parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. To nie jest ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`,
     records:
-      "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
+      "Istniejące zgłoszenia i dotychczasowe uzgodnienia zachowują pierwotne warunki.",
     agent: PUBLIC_AGENT_ACTION_OFFER.name.pl,
-    boundary: "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+    boundary: "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
   },
 } as const;
 

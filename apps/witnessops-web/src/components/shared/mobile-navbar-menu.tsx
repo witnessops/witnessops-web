@@ -223,6 +223,16 @@ export function MobileNavbarMenu({
               <span className="inline-block -translate-y-px">{utilityLink.label}</span>
             </Link>
           ) : null}
+          {!groups && loginUrl && isPolishPath(currentPath) ? (
+            <Link
+              href={loginUrl}
+              data-mobile-login
+              onClick={closeMenu}
+              className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-4 text-sm"
+            >
+              Zaloguj się
+            </Link>
+          ) : null}
           {!groups && cta && <CtaButton
             label={cta.label}
             href={cta.href}

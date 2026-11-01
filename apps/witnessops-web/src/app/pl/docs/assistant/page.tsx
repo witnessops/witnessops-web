@@ -7,7 +7,7 @@ import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 export function generateMetadata(): Metadata {
   if (!sovereignAssistantPublished()) {
     return {
-      title: { absolute: "Page not found · WitnessOps" },
+      title: { absolute: "Nie znaleziono strony · WitnessOps" },
       robots: { index: false, follow: false },
     };
   }
