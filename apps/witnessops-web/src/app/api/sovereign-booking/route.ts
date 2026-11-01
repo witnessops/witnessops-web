@@ -13,6 +13,7 @@ const actions = z.union([
   z.object({ action: z.literal("confirm"), token: string, holdId: string }).strict(),
   z.object({ action: z.literal("cancel"), token: string, reference: string }).strict(),
   z.object({ action: z.literal("voice-start"), token: string, sdp: z.string().min(10).max(60_000), locale: z.enum(["en", "pl"]) }).strict(),
+  z.object({ action: z.literal("voice-handoff"), token: string, revision: z.number().int().nonnegative() }).strict(),
 ]);
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "no-store", "Vary": "Origin" } });
 
@@ -77,6 +78,17 @@ export async function POST(request: Request) {
         const { sdp, locale } = parsed;
         if ([...sessions().values()].filter((value) => value.voice || value.voiceStarting).length >= 2) return reply({ error: "voice_busy_or_limit" }, 429);
         session.invalidate(); return reply(await connectBookingVoice(session, sdp, locale));
+      }
+      case "voice-handoff": {
+        // Claim the exact current proposal before ending voice. An earlier read
+        // response is not authority to discard a correction received since then.
+        if (session.revision !== parsed.revision || session.proposal?.revision !== parsed.revision) return reply({ accepted: false });
+        session.voiceGeneration++;
+        const view = session.view();
+        const finalized = await session.voice?.stop() ?? !session.voiceStarting;
+        if (session.revision !== parsed.revision) return reply({ accepted: false });
+        session.invalidate();
+        return reply({ accepted: true, view: { ...view, voice: "off" }, finalized });
       }
       case "voice-stop": case "end": {
         session.voiceGeneration++;

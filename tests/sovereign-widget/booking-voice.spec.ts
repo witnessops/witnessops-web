@@ -2,7 +2,7 @@ import { test, expect, type Page } from "./booking-fixtures";
 
 async function fixture(page: Page, permission: "allow" | "deny" | "pending", options: { proposal?: boolean; finalized?: boolean } = {}) {
   await page.addInitScript((mode) => {
-    const state = { stopped: 0, requested: 0, closed: 0, resolve: null as null | (() => void) };
+    const state = { stopped: 0, requested: 0, closed: 0, resolve: null as null | (() => void), emit: null as null | ((event: object) => void) };
     Object.assign(window, { voiceFixture: state });
     const stream = { getTracks: () => [{ kind: "audio", enabled: true, stop: () => { state.stopped++; } }] };
     Object.defineProperty(navigator, "mediaDevices", { value: { getUserMedia: async () => {
@@ -18,7 +18,7 @@ async function fixture(page: Page, permission: "allow" | "deny" | "pending", opt
       onconnectionstatechange = null;
       channel = { readyState: "open", onmessage: null as null | ((message: { data: string }) => void), onclose: null, send: () => {}, close: () => {} };
       addTrack() {}
-      createDataChannel() { return this.channel; }
+      createDataChannel() { state.emit = (event) => this.channel.onmessage?.({ data: JSON.stringify(event) }); return this.channel; }
       async createOffer() { return this.localDescription; }
       async setLocalDescription() {}
       async setRemoteDescription() { this.channel.onmessage?.({ data: JSON.stringify({ type: "session.started" }) }); }
@@ -39,6 +39,10 @@ async function fixture(page: Page, permission: "allow" | "deny" | "pending", opt
       live = true; await route.fulfill({ json: { sdp: "v=0-mocked-answer" } }); return;
     }
     if (["read", "heartbeat"].includes(body.action) && live) { await route.fulfill({ json: { revision: 4, proposal: options.proposal === false ? null : proposal, hold: null, booking: null, voice: "connected", search: [{ id: (proposal as { slotId: string }).slotId, label: "A fictional available time" }] } }); return; }
+    if (body.action === "voice-handoff" && live) {
+      await page.evaluate(() => (window as unknown as { voiceFixture: { emit: (event: object) => void } }).voiceFixture.emit({ type: "session.closed" }));
+      await route.fulfill({ json: { accepted: true, finalized: options.finalized !== false, view: { revision: 4, proposal, hold: null, booking: null, voice: "off", search: [{ id: (proposal as { slotId: string }).slotId, label: "A fictional available time" }] } } }); return;
+    }
     if (body.action === "voice-stop") { live = false; await route.fulfill({ json: { finalized: options.finalized !== false } }); return; }
     await route.continue();
   });
@@ -111,6 +115,39 @@ test("voice can still be muted or stopped before a complete proposal", async ({ 
   expect(actions).toContain("voice-stop");
   expect(actions).not.toContain("confirm");
 });
+
+for (const correction of ["browser transcript", "server revision"]) {
+  test(`a delayed proposal cannot end voice after a ${correction} correction`, async ({ page }) => {
+    const actions = await fixture(page, "allow", { proposal: false });
+    let reads = 0, handoffs = 0;
+    let releaseRead!: () => void;
+    let readStarted!: () => void;
+    const waiting = new Promise<void>((resolve) => { releaseRead = resolve; });
+    const started = new Promise<void>((resolve) => { readStarted = resolve; });
+    await page.route("**/api/sovereign-booking", async (route) => {
+      const body = route.request().postDataJSON();
+      if (body.action === "voice-handoff") { handoffs++; await route.fulfill({ json: { accepted: false } }); return; }
+      if (body.action !== "read") { await route.fallback(); return; }
+      const stale = ++reads === 1;
+      if (stale) { readStarted(); await waiting; }
+      await route.fulfill({ json: { revision: stale ? 4 : 5, proposal: stale ? { revision: 4, topic: "Obsolete voice preferences", stage: "planned", name: "Old Visitor", email: "old@example.test", timezone: "Europe/Warsaw", slotId: "old-slot" } : null, hold: null, booking: null, voice: "connected", search: [] } });
+    });
+    await page.getByRole("button", { name: "Start voice", exact: true }).click();
+    await started;
+    if (correction === "browser transcript") await page.evaluate(() => {
+      (window as unknown as { voiceFixture: { emit: (event: object) => void } }).voiceFixture.emit({ type: "session.input_transcript.delta", delta: "Actually, a different time." });
+    });
+    releaseRead();
+    await expect.poll(() => reads).toBeGreaterThan(1);
+    await expect(page.getByText("Listening — you can interrupt me", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Who is the call for?", exact: true })).toHaveCount(0);
+    await expect(page.getByLabel("One agent or automation action")).toHaveValue("");
+    expect(handoffs).toBe(correction === "server revision" ? 1 : 0);
+    expect(actions).not.toContain("voice-stop");
+    expect(actions).not.toContain("confirm");
+    await page.getByRole("button", { name: "Stop voice · use form", exact: true }).click();
+  });
+}
 
 test("unconfirmed voice shutdown keeps the proposal editable and reports the limitation", async ({ page }) => {
   const actions = await fixture(page, "allow", { finalized: false });
