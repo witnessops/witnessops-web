@@ -54,3 +54,6 @@ var/
 .pnpm-store/
 __pycache__/
 *.py[cod]
+
+# Local demos kept on disk (vault-heist, customer-vault labs). Not product source.
+/demos/
