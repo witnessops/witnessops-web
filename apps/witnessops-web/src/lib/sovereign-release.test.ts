@@ -45,6 +45,7 @@ test("production publishes real chat while preview flags cannot expose internal 
         const html = renderToStaticMarkup(createElement(AskSovereignPreview, { locale, connection: "preview" }));
         assert.match(html, /OpenAI/);
         assert.doesNotMatch(html, /Needs review|PL copy pending native review|Preview, sends nothing|Podgląd, nic nie wysyła|Simulated|Symulacja/);
+        assert.doesNotMatch(html, /Book a fit call|Book a call|Umów rozmowę|Rezerwacja|Demo calendar|Fikcyjny kalendarz|find a time to talk|znaleźć termin rozmowy/);
       }
     }
     const en = await import("../app/docs/assistant/page");

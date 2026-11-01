@@ -41,7 +41,7 @@ test("the default simulated preview keeps its disclosure and stores nothing but 
   assert.match(source, /ask\(text, true\)/);
   assert.doesNotMatch(source, /scrollIntoView/);
   assert.match(source, /scrollTurnToThreadStart/);
-  assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 2);
+  assert.equal(source.match(/composerRef\.current\?\.focus/g)?.length, 4);
   assert.equal(PROCESSING_SHOW_DELAY_MS, 150);
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
   assert.equal(SLOW_PENDING_MS, 6_000);
@@ -121,14 +121,14 @@ test("the connected widget discloses OpenAI, limits input and disables unavailab
     const html = renderToStaticMarkup(createElement(AskSovereignPreview, { connection: "api", locale, onClose: () => undefined }));
     assert.match(html, /OpenAI/);
     assert.match(html, /maxLength="2000"/);
-    assert.match(html, /type="checkbox"[^>]*disabled=""/);
+    assert.doesNotMatch(html, /type="checkbox"/);
     assert.doesNotMatch(html, /Preview, sends nothing|Podgląd, nic nie wysyła/);
     assert.doesNotMatch(html, /Include this transcript when I contact a person|Dołącz tę rozmowę, gdy napiszę do człowieka/);
     assert.match(html, locale === "en" ? /This conversation is not attached to contact/ : /Ta rozmowa nie jest dołączana do kontaktu/);
-    assert.match(html, locale === "en" ? /I’ll say when an answer is unavailable/ : /Powiem, jeśli odpowiedź będzie niedostępna/);
+    assert.match(html, locale === "en" ? /Hi, I’m Sovereign/ : /Cześć, jestem Sovereign/);
     assert.equal(html.match(/role="status"/g)?.length, 1);
   }
-  assert.equal(announcementText("en", "error", "", false), "AI is unavailable right now. Your question was not answered. Try again later or contact a person.");
+  assert.equal(announcementText("en", "error", "", false), "Sovereign couldn’t answer right now. Your question is still here.");
   assert.equal(announcementText("en", "answer", "Published scope.", false), "Sovereign: Published scope.");
 });
 
@@ -245,6 +245,9 @@ test("liveText is non-empty for every phase in English and Polish", () => {
   assert.match(html, /Ready/);
   const polish = renderToStaticMarkup(createElement(AskSovereignPreview, { locale: "pl" }));
   assert.match(polish, /Gotowy do pytań/);
+  assert.match(polish, /na podstawie opublikowanych informacji o przeglądzie/);
+  assert.match(polish, /W innych sprawach możesz skontaktować się z nami/);
+  assert.doesNotMatch(polish, /Wszystko inne trafia do człowieka/);
   assert.match(polish, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
   assert.match(polish, /Podgląd, nic nie wysyła/);
 });
@@ -266,7 +269,7 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.ok(hint);
   assert.doesNotMatch(status[0], /PL copy pending native review/);
   assert.doesNotMatch(hint[0], /PL copy pending native review/);
-  assert.match(html, /Rozmawiasz z asystentem AI/);
+  assert.match(html, /Asystent AI · Odpowiedzi z opublikowanych faktów WitnessOps/);
   assert.match(html, /Dołącz tę rozmowę, gdy napiszę do człowieka/);
   assert.match(html, /Podgląd, nic nie wysyła/);
   assert.doesNotMatch(html, /Nie zaznaczono\./);
@@ -280,7 +283,7 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
-  assert.match(html, /Pytania o przegląd WitnessOps/);
+  assert.match(html, /Odpowiadam na pytania o przegląd na podstawie opublikowanych informacji/);
   assert.doesNotMatch(html, /Jeden ukierunkowany retest/);
   assert.doesNotMatch(html, /One focused retest of reported findings/);
   assert.match(html, />Dokumentacja</);
@@ -319,8 +322,9 @@ test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t)
   const greetings = [...source.matchAll(/greeting:\s*"([^"]+)"/g)].map((match) => match[1]);
   assert.equal(suggestionLists.length, 2);
   assert.equal(greetings.length, 2);
-  assert.ok(suggestionLists[0]?.some((item) => item.startsWith("What does the Agent Action")));
-  assert.ok(suggestionLists[0]?.some((item) => item.startsWith("Is the external review")));
+  assert.ok(suggestionLists[0]?.some((item) => item === "What does the review cover?"));
+  assert.ok(suggestionLists[0]?.some((item) => item === "How do I start?"));
+  assert.ok(suggestionLists.every((items) => items.length === 2));
 
   const dir = mkdtempSync(join(tmpdir(), "ask-chip-overflow-"));
   for (const width of [320, 390]) {

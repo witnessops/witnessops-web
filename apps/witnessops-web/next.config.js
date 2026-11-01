@@ -5,6 +5,14 @@ const checkScriptSrc = process.env.NODE_ENV === "development"
   ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
   : "script-src 'self' 'unsafe-inline'";
 
+// Voice is limited to the explicitly enabled, non-production preview.
+const previewVoiceEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
+const previewHeaders = previewVoiceEnabled ? securityHeaders.map((header) => {
+  if (header.key === "Permissions-Policy") return { ...header, value: "camera=(), microphone=(self), geolocation=()" };
+  if (header.key === "Content-Security-Policy") return { ...header, value: `${header.value}; media-src 'self' blob:` };
+  return header;
+}) : securityHeaders;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Pin both flags into the bundle. An unset build becomes "0", so a later
@@ -24,7 +32,8 @@ const nextConfig = {
     "@witnessops/proof",
     "aegis-deterministic",
   ],
-  serverExternalPackages: ["blake3"],
+  // Keep ws native: bundling optional bufferutil can turn an absent addon into an empty module.
+  serverExternalPackages: ["blake3", "ws"],
   webpack: (config) => {
     // blake3 is an optional native binding used by packages/proof verify paths.
     // witnessops-web never calls it at runtime — externalize to suppress the warning.
@@ -49,13 +58,13 @@ const nextConfig = {
       },
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: previewHeaders,
       },
       // Permit the manual beacon only on public information pages. Local tools,
       // auth callbacks, admin, and private result routes retain the default CSP.
       ...["/", "/:section(pricing|privacy|terms|security|media-kit|why|support|review|docs|articles|research|services|catalog|library|why-witnessops)/:path*"].map((source) => ({
         source,
-        headers: securityHeaders.filter(({ key }) => key === "Content-Security-Policy").map(({ key, value }) => ({
+        headers: previewHeaders.filter(({ key }) => key === "Content-Security-Policy").map(({ key, value }) => ({
           key,
           value: value.replace("script-src 'self'", "script-src 'self' https://static.cloudflareinsights.com/beacon.min.js")
             .replace("connect-src 'self'", "connect-src 'self' https://cloudflareinsights.com/cdn-cgi/rum"),

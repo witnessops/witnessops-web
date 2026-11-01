@@ -31,5 +31,8 @@ test("simulated answers use the current review and park the external review", ()
   assert.match(polishExternal, /nie jest już dostępny/);
   assert.doesNotMatch(polishExternal, /€1\u00A0900/);
   assert.match(polishAgent, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(polishAgent, /Analizujemy dostępne materiały/);
+  assert.match(polishAgent, /w zakresie, który można ustalić/);
+  assert.match(polishAgent, /Nie wykonujemy działania ani nie zmieniamy systemu produkcyjnego/);
   assert.doesNotMatch(`${polishExternal}\n${polishAgent}`, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
 });

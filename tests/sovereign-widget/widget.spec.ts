@@ -38,13 +38,14 @@ test("dragging, keyboard movement, reset and conversation lifecycle", async ({ p
   const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
   await expect(dialog).toBeVisible();
   const before = await box(dialog);
+  await dialog.getByRole("button", { name: "Window options" }).click();
   await drag(page, dialog.getByRole("button", { name: "Move chat" }), -300, -100);
   expect((await box(dialog)).x).toBeCloseTo(before.x - 300, 0);
   expect((await box(dialog)).y).toBeCloseTo(before.y - 100, 0);
   await dialog.getByRole("button", { name: "Reset position" }).click();
   expect((await box(dialog)).x).toBeCloseTo(before.x, 0);
 
-  await dialog.getByRole("button", { name: "What does the Agent Action Security Review cover?", exact: true }).click();
+  await dialog.getByRole("button", { name: "What does WitnessOps do?", exact: true }).click();
   await expect(dialog.getByText("AI-generated answer", { exact: true })).toBeVisible();
   await expect(dialog.getByText("A mocked review answer for the widget lifecycle.", { exact: true })).toBeVisible();
   await expect(dialog.locator("[data-ask-thread] ol li")).toHaveCount(3);
@@ -56,7 +57,7 @@ test("dragging, keyboard movement, reset and conversation lifecycle", async ({ p
   await pet.click();
   await expect(draft).toHaveValue("Synthetic draft retained while minimized");
   await expect(dialog.locator("[data-ask-thread] ol li")).toHaveCount(3);
-  const first = dialog.getByRole("button", { name: "Move chat" });
+  const first = dialog.getByRole("button", { name: "Window options" });
   const last = dialog.getByRole("button", { name: "Send", exact: true });
   await last.press("Tab");
   await expect(first).toBeFocused();
@@ -66,7 +67,7 @@ test("dragging, keyboard movement, reset and conversation lifecycle", async ({ p
   await expect(dialog).not.toBeVisible();
   await expect(pet).toBeFocused();
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-  expect(requests).toEqual([{ question: "What does the Agent Action Security Review cover?", history: [], surface: "sovereign_widget" }]);
+  expect(requests).toEqual([{ question: "What does WitnessOps do?", history: [], surface: "sovereign_widget" }]);
 });
 
 test("resize keeps the pet reachable and Polish contact stays on the current site", async ({ page }) => {
@@ -119,7 +120,8 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   await touch.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
   expect((await box(pet)).x).toBeCloseTo(moved.x, 0);
   expect((await box(pet)).y).toBeCloseTo(moved.y, 0);
-  await page.getByRole("button", { name: "Reset position", exact: true }).click();
+  // The reset button is deliberately hidden without hover; Home still resets.
+  await pet.press("Home");
   expect((await box(pet)).x).toBeCloseTo(initial.x, 0);
   await pet.click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -152,7 +154,7 @@ test("clicking the dimmed page closes the chat and keeps the conversation", asyn
   const pet = page.getByRole("button", { name: "Ask Sovereign", exact: true });
   await pet.click();
   const dialog = page.getByRole("dialog", { name: "Ask Sovereign preview" });
-  await dialog.getByRole("button", { name: "What does the Agent Action Security Review cover?", exact: true }).click();
+  await dialog.getByRole("button", { name: "What does WitnessOps do?", exact: true }).click();
   await expect(dialog.getByText("A mocked review answer kept after click-away.", { exact: true })).toBeVisible();
   const draft = dialog.getByRole("textbox", { name: "Ask about the review" });
   await draft.fill("Kept after click-away");
@@ -192,6 +194,7 @@ test("a downward flick on the phone header closes the chat", async ({ page }) =>
 test("first opening does not later steal focus from a chosen control", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Ask Sovereign", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Window options" }).click();
   const reset = page.getByRole("dialog").getByRole("button", { name: "Reset position", exact: true });
   await reset.focus();
   // Deliberately span the preview's 260ms entrance-animation fallback.

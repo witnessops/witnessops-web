@@ -3,7 +3,7 @@ import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-w
 import { plainOfferPrice } from "../../apps/witnessops-web/src/lib/offer-price-unit";
 import { expect, generatedAnswer, test, type AskRequest } from "./fixtures";
 
-const unavailable = "AI is unavailable right now. Your question was not answered. Try again later or contact a person.";
+const unavailable = "Sovereign couldn’t answer right now. Your question is still here.";
 
 async function openWidget(page: Page, locale: "en" | "pl" = "en") {
   await page.goto(locale === "pl" ? "/pl" : "/");
@@ -125,9 +125,9 @@ for (const locale of ["en", "pl"] as const) {
     const external = sources.getByRole("link", { name: "External reference", exact: true });
     await expect(external).toHaveAttribute("href", "https://example.org/reference");
     await expect(dialog.locator(`a[href="${locale === "pl" ? "/pl" : ""}/support#support-request"]`)).toHaveCount(1);
-    await expect(dialog.getByRole("checkbox", { name: locale === "pl" ? "Ta rozmowa nie jest dołączana do kontaktu" : "This conversation is not attached to contact" })).toBeDisabled();
+    await expect(dialog.getByRole("checkbox")).toHaveCount(0);
     if (locale === "en") {
-      await expect(dialog.getByText("AI answers use your question and recent replies with OpenAI. Contact does not include this conversation.", { exact: true })).toBeVisible();
+      await expect(dialog.getByText("Your question and recent replies go to OpenAI. This conversation is not attached to contact.", { exact: true })).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath("connected-source-answer-en.png"), animations: "disabled" });
     }
   });
@@ -180,7 +180,7 @@ for (const failure of ["503", "429", "network"] as const) {
     await input.fill("Synthetic question to retry?");
     await dialog.getByRole("button", { name: "Send", exact: true }).click();
     await expect(dialog.locator("[data-retry]")).toBeVisible();
-    await expect(dialog).toContainText(unavailable);
+    await expect(dialog).toContainText(failure === "network" ? "Couldn’t connect to Sovereign. Your question is still here." : failure === "429" ? "Too many questions at once. Wait a moment, then retry." : unavailable);
     await expect(dialog).not.toContainText("Nothing was sent");
     await dialog.locator("[data-retry]").click();
     await expect(dialog.getByText("Recovered mock answer.", { exact: true })).toBeVisible();
@@ -295,6 +295,7 @@ test("the configured 20-second timeout aborts a pending request and permits retr
   await expect.poll(() => requests.length).toBe(1);
   await expect(page.locator("html")).toHaveAttribute("data-ask-timeout-milliseconds", "20000");
   await page.clock.fastForward(20_001);
+  await expect(dialog.locator("[data-connection-error]")).toContainText("took too long to respond");
   await expect(dialog.locator("[data-retry]")).toBeVisible();
   await expect(dialog).not.toContainText("Nothing was sent");
   release?.();
