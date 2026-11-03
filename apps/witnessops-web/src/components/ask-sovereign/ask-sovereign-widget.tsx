@@ -1,57 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { sovereignAssistantPublished } from "@/lib/sovereign-release";
 import { type SovereignLocale } from "./ask-sovereign-answers";
 import { AskSovereignPreview } from "./ask-sovereign-preview";
 import { useFloatingWidget } from "./use-floating-widget";
+import { ShellbitLauncher } from "./shellbit-launcher";
+import { clearRightPosition } from "./launcher-placement";
+import type { Point, Size, Viewport } from "./floating-position";
 import { pointOutsideBox, shouldDismissBackdrop } from "./widget-dismiss";
 import styles from "./ask-sovereign-widget.module.css";
 
-const WAVE_FRAMES = [0, 1, 2, 1, 2, 3] as const;
-const WAVE_MS = [120, 160, 200, 160, 200, 240] as const;
-
-function launcherRest(bounds: { width: number }): { x: number; y: number } {
-  if (bounds.width < 768) return { x: 8, y: 96 };
-  return { x: 56, y: 104 };
-}
-
-function useOnceWave(): { waving: boolean; frame: number; showLabel: boolean } {
-  const [waving, setWaving] = useState(false);
-  const [frame, setFrame] = useState(0);
+function useGreetingLabel(): boolean {
   const [showLabel, setShowLabel] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setWaving(true);
     setShowLabel(true);
-    let index = 0;
-    let timer = 0;
-    let cancelled = false;
-    const next = () => {
-      if (cancelled) return;
-      if (index >= WAVE_FRAMES.length) {
-        setWaving(false);
-        timer = window.setTimeout(() => {
-          if (!cancelled) setShowLabel(false);
-        }, 420);
-        return;
-      }
-      setFrame(WAVE_FRAMES[index] ?? 0);
-      const wait = WAVE_MS[index] ?? 0;
-      index += 1;
-      timer = window.setTimeout(next, wait);
-    };
-    next();
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
+    const timer = window.setTimeout(() => setShowLabel(false), 1500);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  return { waving, frame, showLabel };
+  return showLabel;
 }
 
 function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; routePrefix: "" | "/pl" }) {
@@ -59,8 +31,16 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [opened, setOpened] = useState(false);
   const [visible, setVisible] = useState(false);
-  const pet = useFloatingWidget(launcherRef, true, launcherRest);
-  const greet = useOnceWave();
+  const [jump, setJump] = useState(0);
+  const placementSeed = useRef<number | null>(null);
+  const automaticPosition = useRef<Point | null>(null);
+  const launcherHome = useCallback((element: HTMLElement, size: Size, bounds: Viewport) => {
+    placementSeed.current ??= Math.random();
+    automaticPosition.current = clearRightPosition(element, size, bounds, placementSeed.current, automaticPosition.current);
+    return automaticPosition.current;
+  }, []);
+  const pet = useFloatingWidget(launcherRef, !visible, launcherHome);
+  const showGreeting = useGreetingLabel();
   const panel = useFloatingWidget(dialogRef, visible);
   const dismissOutside = useRef(false);
   const close = useCallback(() => {
@@ -116,20 +96,18 @@ function HomepageAssistant({ locale, routePrefix }: { locale: SovereignLocale; r
           aria-controls="homepage-sovereign-dialog"
           aria-describedby="sovereign-move-help"
           {...pet.handlers}
+          onPointerEnter={(event) => {
+            if (event.pointerType === "mouse" && !pet.dragging && !visible) setJump((value) => value + 1);
+          }}
           onClick={(event) => {
             const dragged = pet.consumeDragClick();
             if (!dragged || event.detail === 0) open();
           }}
         >
-          {greet.showLabel ? (
+          {showGreeting ? (
             <span className={styles.label}>{locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign"}</span>
           ) : null}
-          <span
-            className={styles.character}
-            data-wave={greet.waving ? "" : undefined}
-            style={greet.waving ? ({ "--wave-frame": greet.frame } as CSSProperties) : undefined}
-            aria-hidden="true"
-          />
+          <ShellbitLauncher moving={pet.moving} jump={jump} active={!visible} />
           <span className={styles.hint}>{process.env.NODE_ENV === "production" ? (locale === "pl" ? "Przeciągnij" : "Drag me") : (locale === "pl" ? "Podgląd · Przeciągnij" : "Preview · Drag me")}</span>
           <span className={styles.talkLabel} data-sovereign-talk-label="" aria-hidden="true">{locale === "pl" ? "Porozmawiaj z Sovereign" : "Talk to Sovereign"}</span>
         </button>

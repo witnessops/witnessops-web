@@ -12,7 +12,7 @@ import styles from "./ask-sovereign-preview.module.css";
 import { previewChip, simErrorAtLoad, simFlag, sovereignPreviewCaption } from "./preview-triggers";
 import { stateDurationMs, type SovereignSpriteState } from "./sovereign-playback";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
-import { SovereignSprite } from "./sovereign-sprite";
+import { ShellbitChat } from "./shellbit-launcher";
 import { snapThreadClearOfFade, threadFadePx } from "./thread-fade";
 import { sovereignLinks } from "./floating-position";
 import { shouldDismissSwipe } from "./widget-dismiss";
@@ -712,7 +712,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
         window.clearTimeout(showTimer);
         controller.abort();
       };
-      void fetchAskWitnessOps(text, { history: history.current, signal: controller.signal, surface: "sovereign_widget" }).then((answer) => {
+      void fetchAskWitnessOps(text, { history: history.current, signal: controller.signal, surface: "sovereign_widget", locale }).then((answer) => {
         if (generation.current !== gen) return;
         const responseText = askWitnessOpsAnswerText(answer);
         if (!responseText.trim() || answer.fallback_reason === "ai_unavailable") {
@@ -886,7 +886,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
                 ? sovereignPreviewCaption(locale, copy.simulated, activeSim === "handoff", Boolean(turn.simulated))
                 : null;
               const retry = turn.role === "sovereign" && turn.simulatedError && index === turns.length - 1 && live === "error" ? <button type="button" className={styles.retry} data-retry="" onClick={retryFromError}>{copy.retry}</button> : null;
-              const sprite = <SovereignSprite state={phase} paused={paused} reduced={reduced} armed={armed} viewport={mobile ? "mobile" : "desktop"} />;
+              const sprite = <ShellbitChat state={phase} paused={paused} reduced={reduced} armed={armed} active={active} />;
               const latestAnswer = turn.role === "sovereign" && (turn.simulated || turn.answer) && !turn.simulatedError;
               if (showError && useApi) {
                 return <li key={`${turn.role}-${index}`} ref={(node) => { turnRefs.current[index] = node; }} className={`${styles.sovereign} ${styles.connectionError}`}>

@@ -224,6 +224,7 @@ export async function fetchAskWitnessOps(
     history?: readonly AskConversationMessage[];
     page_service_id?: BuyerService["id"];
     surface?: "sovereign_widget";
+    locale?: "en" | "pl";
     signal?: AbortSignal;
   } = {},
 ): Promise<AskWitnessOpsUiAnswer> {
@@ -234,7 +235,7 @@ export async function fetchAskWitnessOps(
     method: "POST",
     signal,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, history: context.history, page_service_id: context.page_service_id, surface: context.surface }),
+    body: JSON.stringify({ question, history: context.history, page_service_id: context.page_service_id, surface: context.surface, locale: context.locale }),
   });
 
   if (!res.ok) {

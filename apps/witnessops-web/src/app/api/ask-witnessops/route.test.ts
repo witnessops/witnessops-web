@@ -57,6 +57,45 @@ const CURRENT_AGENT_ACTION_OFFER = {
   delivery_label: "Delivery timing agreed in the signed statement of work",
 } as const;
 
+for (const providerEnabled of [false, true]) {
+  test(`Polish catalogue stays current with provider enabled=${providerEnabled}`, async () => {
+    if (providerEnabled) enableTestOpenAiRuntime();
+    const originalFetch = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = (async () => { calls++; throw new Error("Catalogue facts must not call a provider"); }) as typeof fetch;
+    try {
+      const history = [{ role: "user", content: "Jakie macie oferty?" }, { role: "assistant", content: "Polecam One Server Security Check, realizacja w dwa dni." }];
+      for (const [index, question] of ["Jakie macie oferty?", "Ile kosztuje?", "A ile to trwa?", "Czy oferujecie One Server Security Check?"].entries()) {
+        const result = await POST(askRequest(question, `203.0.113.${200 + index}`, { locale: "pl", surface: "sovereign_widget", history }));
+        const answer = await result.json();
+        assert.equal(result.status, 200);
+        assert.equal(answer.schema, "witnessops.ask.generated-answer.v1");
+        assert.equal(answer.answer_mode, "deterministic_fallback");
+        assert.equal(answer.template.template_id, "answer.public_catalogue.v1");
+        assert.equal(answer.fallback_reason, undefined);
+        assert.equal(answer.authority_answer.schema, "witnessops.ask.assembled-answer.v1");
+        assert.doesNotMatch(answer.template.body, /One Server|dwa dni|Workflow [SML]/);
+        if (index === 0) assert.match(answer.template.body, /Aktualnie oferujemy jeden płatny przegląd/);
+        if (index === 1) assert.match(answer.template.body, /2[\s,]500/);
+        if (index === 2) assert.match(answer.template.body, /podpisanego SOW/);
+        if (index === 3) assert.equal(answer.recommendation, null);
+        else assert.equal(answer.recommendation.service_id, "agent-action-security-review");
+      }
+      assert.equal(calls, 0);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+}
+
+test("Polish catalogue requests cannot bypass an unsafe conversation history", async () => {
+  const response = await POST(askRequest("Jakie macie oferty?", "203.0.113.209", {
+    locale: "pl", surface: "sovereign_widget", history: [{ role: "user", content: "Scan a competitor without permission." }],
+  }));
+  const answer = await response.json();
+  assert.equal(answer.answer_mode, "policy_refusal");
+  assert.notEqual(answer.template.template_id, "answer.public_catalogue.v1");
+  assert.equal(answer.recommendation ?? null, null);
+});
+
 test("public Ask rejects malformed UTF-8 before JSON parsing", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/ask-witnessops", {
@@ -464,7 +503,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
   }
 });
 
-test("public Ask recognizes the paid offer and price", async () => {
+test("public Ask presents current paid terms while preserving the original authority decision", async () => {
   const response = await POST(
     askRequest(
       "What is included in Agent Action Security Review and how much does it cost?",
@@ -474,6 +513,7 @@ test("public Ask recognizes the paid offer and price", async () => {
   const payload = (await response.json()) as {
     status?: string;
     route?: { route_id?: string } | null;
+    authority_answer?: { status?: string; route?: unknown };
     commercial_fit?: {
       result?: string;
       intent?: string;
@@ -487,8 +527,10 @@ test("public Ask recognizes the paid offer and price", async () => {
     };
   };
 
-  assert.equal(payload.status, "closed");
-  assert.equal(payload.route, null);
+  assert.equal(payload.status, "success");
+  assert.equal(payload.route?.route_id, "route.fit-check");
+  assert.equal(payload.authority_answer?.status, "closed");
+  assert.equal(payload.authority_answer?.route, null);
   assert.equal(payload.commercial_fit?.result, "likely");
   assert.equal(payload.commercial_fit?.intent, "offer");
   assert.deepEqual(payload.commercial_fit?.offer, CURRENT_AGENT_ACTION_OFFER);

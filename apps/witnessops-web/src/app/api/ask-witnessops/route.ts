@@ -226,8 +226,9 @@ export async function POST(request: Request) {
       );
     }
 
+    const catalogueAnswer = catalogueClarification(normalized.request);
     const config = readAskWitnessOpsOpenAiRuntimeConfig();
-    if (!config.enabled) {
+    if (!config.enabled && !catalogueAnswer) {
       return NextResponse.json(
         withCommercialFit(
           withAnswerMode(deterministicAnswer, "deterministic_fallback"),
@@ -237,11 +238,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const catalogueAnswer = catalogueClarification(normalized.request);
-    const generatedAnswer = catalogueAnswer ?? await runPublicAskRuntime({
+    const generatedAnswer = catalogueAnswer ?? (config.enabled ? await runPublicAskRuntime({
       ...normalized.request,
       config,
-    });
+    }) : null);
 
     if (!generatedAnswer) {
       return NextResponse.json(
@@ -261,7 +261,7 @@ export async function POST(request: Request) {
           schema: "witnessops.ask.generated-answer.v1",
           status: "success",
           answer_mode: catalogueAnswer ? "deterministic_fallback" : "ai_assisted",
-          model: catalogueAnswer ? undefined : config.model,
+          model: !catalogueAnswer && config.enabled ? config.model : undefined,
           authority_answer: deterministicAnswer,
           template: {
             template_id: catalogueAnswer ? "answer.public_catalogue.v1" : "answer.public_ai.v1",

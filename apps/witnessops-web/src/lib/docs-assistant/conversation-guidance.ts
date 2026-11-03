@@ -2,7 +2,12 @@ import type { AskConversationMessage } from "./conversation-contract";
 
 export type AskLanguage = "en" | "pl";
 export function askLanguage(text: string): AskLanguage {
-  return /[ąćęłńóśźż]|\b(czy|nasz|nasza|naszego|chcemy|potrzebujemy|klientowi|agenta|zwroty|dzisiaj)\b/i.test(text) ? "pl" : "en";
+  return /[ąćęłńóśźż]|\b(czy|nasz|nasza|naszego|chcemy|potrzebujemy|klientowi|agenta|zwroty|dzisiaj|jakie|jaka|jaki|ile|kosztuje|cena|oferta|oferty|oferujecie|uslugi)\b/i.test(text) ? "pl" : "en";
+}
+
+/** A Polish question remains Polish on the English site; short follow-ups use the page locale. */
+export function askResponseLanguage(text: string, locale?: AskLanguage): AskLanguage {
+  return askLanguage(text) === "pl" ? "pl" : locale ?? "en";
 }
 
 /** Context is visitor-reported, never independently established or model-authored. */
@@ -23,11 +28,11 @@ export function wasQuestionAsked(question: string, previous: readonly string[]):
     .some((asked) => questionKey(asked) === questionKey(question)));
 }
 
-export function conversationNextQuestion(question: string, history: readonly AskConversationMessage[] = []): string | null {
+export function conversationNextQuestion(question: string, history: readonly AskConversationMessage[] = [], locale?: AskLanguage): string | null {
   const previous = history.filter((message) => message.role === "assistant").map((message) => message.content);
   if (previous.reduce((count, text) => count + (text.match(/\?/g)?.length ?? 0), 0) >= 3) return null;
   const said = [...history.filter((m) => m.role === "user").map((m) => m.content), question].join("\n");
-  const pl = askLanguage(question) === "pl";
+  const pl = askResponseLanguage(question, locale) === "pl";
   let next: string | null = null;
   if (/\b(n8n|workflow)\b/i.test(said) && /hubspot/i.test(said) && !/\b(missing|delayed|wrong fields)\b/i.test(said)) {
     next = pl ? "Czy leadów brakuje, docierają z opóźnieniem, czy mają błędne pola?" : "Are leads missing entirely, arriving late, or arriving with the wrong fields?";

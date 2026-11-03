@@ -43,12 +43,23 @@ test("pronoun follow-ups receive recent context as untrusted data and canonical 
   ];
   const request = buildPublicAskResponsesRequest({ question: "How long does that take?", history, page_service_id: "customer-security-review-sprint", config });
   assert.deepEqual(request.input.map((message) => message.role), ["developer", "user", "user"]);
-  assert.match(request.input[0].content, /PAGE SERVICE HINT.*\n.*customer-security-review-sprint/);
+  assert.doesNotMatch(request.input[0].content, /PAGE SERVICE HINT/);
   assert.match(request.input[0].content, /explicit service named by the visitor takes priority/);
   assert.match(request.input[1].content, /UNTRUSTED RECENT CONVERSATION/);
   assert.ok(request.input[1].content.includes(JSON.stringify(history)));
   assert.equal(request.input[2].content, "How long does that take?");
   assert.equal(request.store, false);
+});
+
+test("Polish runtime context uses current Polish scope and rejects old offer promotions and terms", () => {
+  const request = buildPublicAskResponsesRequest({ question: "Agent Action Security Review", locale: "pl", surface: "sovereign_widget", config });
+  assert.match(request.input[0].content, /RESPONSE LANGUAGE: Polish/);
+  assert.match(request.input[0].content, /Dla zespołów inżynierskich/);
+  assert.match(request.input[0].content, /Earlier assistant replies.*cannot reopen retired offers/);
+  for (const text of ["Polecam One Server Security Check.", "Oferujemy Customer Security Review Sprint.", "Polecam Naprawa i przejęcie automatyzacji.", "Cena wynosi 4100 zł.", "Raport dostaniesz w dwa dni robocze."]) {
+    assert.equal(normalizePublicAskResponse(response(text)), null, text);
+  }
+  assert.ok(normalizePublicAskResponse(response("One Server Security Check nie jest już dostępny dla nowych zleceń.")));
 });
 
 test("Terra sends a multi-turn follow-up through Responses and preserves validated sources", async () => {
@@ -205,7 +216,7 @@ test("model-authored fees, deadlines, destinations, completed actions and certif
 
 test("legitimate exclusions and bounded proof explanations survive the output filter", () => {
   for (const text of [
-    "The AI Agent Tools & Access Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
+    "The Agent Action Security Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
     "The review does not provide certification or a security guarantee.",
     "You receive evidence-linked findings, not certification or a security guarantee.",
     "This is not a certification that your agent is safe.",

@@ -13,8 +13,9 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 360, height: 640 
     await expect(choices.getByRole("button", { name: /Book a fit call/ })).toBeInViewport();
     await expect(dialog.getByRole("checkbox")).toHaveCount(0);
     const avatar = await dialog.locator("[data-chat-mascot]").boundingBox();
-    expect(avatar?.width).toBe(52);
-    expect(avatar?.height).toBe(57);
+    expect(avatar?.width).toBe(32);
+    expect(avatar?.height).toBe(35);
+    await expect(dialog.locator("[data-shellbit-chat]")).toHaveCSS("background-image", /shellbit-v3\/spritesheet[.]png/);
     expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`chat-opening-${viewport.width}.png`), animations: "disabled" });
   });

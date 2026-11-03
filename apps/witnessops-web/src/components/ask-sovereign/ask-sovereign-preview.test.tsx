@@ -304,7 +304,7 @@ test("paused-on-load shows Ready and the idle sprite", () => {
   const source = readFileSync(resolve(__dirname, "ask-sovereign-preview.tsx"), "utf8");
   assert.match(source, /setPhase\(\(current\) => \(current === "GREETING" \? pausedLoadPhase\(true\) : current\)\)/);
   assert.match(source, /setPhase\(pausedLoadPhase\(true\)\)/);
-  assert.match(source, /<SovereignSprite state=\{phase\}/);
+  assert.match(source, /<ShellbitChat state=\{phase\}/);
 });
 
 test("Ask Sovereign suggestion chips stay inside the thread at 320 and 390", (t) => {

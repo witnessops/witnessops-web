@@ -25,7 +25,7 @@ test("the connected widget handles an unavailable real route without resending",
   await expect(dialog.locator("[data-retry]")).toBeVisible();
   await expect(dialog).toContainText(unavailable);
   await expect(dialog.locator("[data-answer-mode], [data-answer-sources]")).toHaveCount(0);
-  expect(requests).toEqual([{ question, history: [], surface: "sovereign_widget" }]);
+  expect(requests).toEqual([{ question, history: [], surface: "sovereign_widget", locale: "en" }]);
 
   const retryResponse = page.waitForResponse((response) => response.url().endsWith("/api/ask-witnessops") && response.request().method() === "POST");
   await dialog.locator("[data-retry]").click();
@@ -34,8 +34,8 @@ test("the connected widget handles an unavailable real route without resending",
   expect((await second.json()).fallback_reason).toBe("ai_unavailable");
   await expect(dialog.locator("[data-retry]")).toBeVisible();
   expect(requests).toEqual([
-    { question, history: [], surface: "sovereign_widget" },
-    { question, history: [], surface: "sovereign_widget" },
+    { question, history: [], surface: "sovereign_widget", locale: "en" },
+    { question, history: [], surface: "sovereign_widget", locale: "en" },
   ]);
   await expect(dialog.locator("[data-ask-thread] ol li").filter({ hasText: question })).toHaveCount(1);
 });
@@ -65,7 +65,7 @@ test("several real-route failures keep each question marked and retry only the l
     await expect(turns.nth(index * 2 + 1)).toContainText(question);
     await expect(turns.nth(index * 2 + 2)).toContainText(unavailable);
     await expect(dialog.locator("[data-retry]")).toHaveCount(1);
-    expect(requests).toEqual(questions.slice(0, index + 1).map((item) => ({ question: item, history: [], surface: "sovereign_widget" })));
+    expect(requests).toEqual(questions.slice(0, index + 1).map((item) => ({ question: item, history: [], surface: "sovereign_widget", locale: "en" })));
   }
   await expect(dialog.getByRole("checkbox")).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("three-failures.png"), animations: "disabled" });
@@ -78,6 +78,6 @@ test("several real-route failures keep each question marked and retry only the l
   await expect(turns).toHaveCount(7);
   await expect(turns.nth(6)).toContainText(unavailable);
   await expect(dialog.locator("[data-retry]")).toHaveCount(1);
-  expect(requests).toEqual([...questions, "hi"].map((question) => ({ question, history: [], surface: "sovereign_widget" })));
+  expect(requests).toEqual([...questions, "hi"].map((question) => ({ question, history: [], surface: "sovereign_widget", locale: "en" })));
   await expect(dialog.locator("[data-answer-mode], [data-answer-sources]")).toHaveCount(0);
 });

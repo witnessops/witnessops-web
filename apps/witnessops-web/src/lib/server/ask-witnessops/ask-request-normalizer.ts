@@ -13,6 +13,7 @@ export interface NormalizedAskRequest {
   readonly history?: readonly AskConversationMessage[];
   readonly page_service_id?: BuyerService["id"];
   readonly surface?: "sovereign_widget";
+  readonly locale?: "en" | "pl";
 }
 
 export interface NormalizeResult {
@@ -102,10 +103,13 @@ export function normalizeAskRequest(raw: unknown): NormalizeResult | NormalizeEr
   if (body.surface !== undefined && body.surface !== "sovereign_widget") {
     return malformed("surface must identify a supported Ask interface");
   }
+  if (body.locale !== undefined && body.locale !== "en" && body.locale !== "pl") {
+    return malformed("locale must be en or pl");
+  }
 
   return {
     ok: true,
-    request: { question, ...(history ? { history } : {}), ...(pageServiceId ? { page_service_id: pageServiceId } : {}), ...(body.surface === "sovereign_widget" ? { surface: body.surface } : {}) },
+    request: { question, ...(history ? { history } : {}), ...(pageServiceId ? { page_service_id: pageServiceId } : {}), ...(body.surface === "sovereign_widget" ? { surface: body.surface } : {}), ...(body.locale ? { locale: body.locale } : {}) },
   };
 }
 
