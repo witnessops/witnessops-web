@@ -27,15 +27,15 @@ test("follow-up requests contain only recent complete exchanges", async ({ page 
     await expect(dialog.getByText(`Mocked reply ${index + 1}.`, { exact: true })).toBeVisible();
   }
   expect(requests).toHaveLength(5);
-  expect(requests[0]).toEqual({ question: questions[0], history: [], surface: "sovereign_widget" });
+  expect(requests[0]).toEqual({ question: questions[0], history: [], surface: "sovereign_widget", locale: "en" });
   expect(requests[1]).toEqual({
     question: questions[1],
-    surface: "sovereign_widget",
+    surface: "sovereign_widget", locale: "en",
     history: [{ role: "user", content: questions[0] }, { role: "assistant", content: "Mocked reply 1." }],
   });
   expect(requests[4]).toEqual({
     question: questions[4],
-    surface: "sovereign_widget",
+    surface: "sovereign_widget", locale: "en",
     history: questions.slice(1, 4).flatMap((question, index) => [
       { role: "user", content: question },
       { role: "assistant", content: `Mocked reply ${index + 2}.` },
@@ -79,7 +79,7 @@ test("a refused exchange is labeled as boundary guidance and excluded from follo
   expect(requests).toHaveLength(3);
   expect(requests[2]).toEqual({
     question: "How should I describe that workflow?",
-    surface: "sovereign_widget",
+    surface: "sovereign_widget", locale: "en",
     history: [{ role: "user", content: firstQuestion }, { role: "assistant", content: firstAnswer }],
   });
 });
@@ -102,7 +102,7 @@ test("an answer with an unsafe source URL offers retry without rendering the sou
   await expect(dialog.getByText("Malformed source answer must not appear.", { exact: true })).toHaveCount(0);
   await expect(dialog.getByRole("link", { name: "Unsafe fixture source", exact: true })).toHaveCount(0);
   await expect(dialog.locator('[data-answer-sources] a, a[href^="javascript:"]')).toHaveCount(0);
-  expect(requests).toEqual([{ question: "Show a published source for this answer.", history: [], surface: "sovereign_widget" }]);
+  expect(requests).toEqual([{ question: "Show a published source for this answer.", history: [], surface: "sovereign_widget", locale: "en" }]);
 });
 
 for (const locale of ["en", "pl"] as const) {
@@ -188,7 +188,7 @@ for (const failure of ["503", "429", "network"] as const) {
     expect(requests[1]).toEqual(requests[2]);
     expect(requests[2]).toEqual({
       question: "Synthetic question to retry?",
-      surface: "sovereign_widget",
+      surface: "sovereign_widget", locale: "en",
       history: [{ role: "user", content: "First synthetic question?" }, { role: "assistant", content: "First completed mock answer." }],
     });
     await expect(dialog.locator("[data-ask-thread] ol li").filter({ hasText: "Synthetic question to retry?" })).toHaveCount(1);
@@ -232,8 +232,8 @@ test("a later successful answer retains the earlier marked failure", async ({ pa
   await expect(turns.nth(4)).toContainText("The published review covers one consequential agent action.");
   await expect(dialog.locator("[data-retry]")).toHaveCount(0);
   expect(requests).toEqual([
-    { question: firstQuestion, history: [], surface: "sovereign_widget" },
-    { question: secondQuestion, history: [], surface: "sovereign_widget" },
+    { question: firstQuestion, history: [], surface: "sovereign_widget", locale: "en" },
+    { question: secondQuestion, history: [], surface: "sovereign_widget", locale: "en" },
   ]);
 });
 
@@ -262,7 +262,7 @@ test("pending close/reopen and repeated submits preserve a single request and re
   await expect(dialog.getByText("The held mock answer is now complete.", { exact: true })).toBeVisible();
   await expect(dialog.getByRole("textbox")).toBeEnabled();
   await expect(dialog.locator("[data-ask-thread] ol li")).toHaveCount(3);
-  expect(requests).toEqual([{ question: "Synthetic pending question?", history: [], surface: "sovereign_widget" }]);
+  expect(requests).toEqual([{ question: "Synthetic pending question?", history: [], surface: "sovereign_widget", locale: "en" }]);
 });
 
 test("the configured 20-second timeout aborts a pending request and permits retry", async ({ page }) => {
@@ -304,8 +304,8 @@ test("the configured 20-second timeout aborts a pending request and permits retr
   await expect(dialog.getByRole("textbox")).toBeFocused();
   await expect(dialog.getByText("Late answer must not appear.", { exact: true })).toHaveCount(0);
   expect(requests).toEqual([
-    { question: "Synthetic timeout question?", history: [], surface: "sovereign_widget" },
-    { question: "Synthetic timeout question?", history: [], surface: "sovereign_widget" },
+    { question: "Synthetic timeout question?", history: [], surface: "sovereign_widget", locale: "en" },
+    { question: "Synthetic timeout question?", history: [], surface: "sovereign_widget", locale: "en" },
   ]);
   await expect(dialog.locator("[data-ask-thread] ol li")).toHaveCount(3);
 });

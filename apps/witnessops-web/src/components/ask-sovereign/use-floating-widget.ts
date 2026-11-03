@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
-import { constrainPosition, defaultPosition, type Point, type Viewport } from "./floating-position";
+import { constrainPosition, defaultPosition, type Point, type Size, type Viewport } from "./floating-position";
 
 function viewportBounds(): Viewport {
   const viewport = window.visualViewport;
@@ -13,20 +13,34 @@ function viewportBounds(): Viewport {
   };
 }
 
-const NO_INSET: Point = { x: 0, y: 0 };
-
 export function useFloatingWidget(
   ref: RefObject<HTMLElement | null>,
   active = true,
-  restInset: Point | ((bounds: Viewport) => Point) = NO_INSET,
+  homePosition?: (element: HTMLElement, size: Size, bounds: Viewport) => Point,
 ) {
   // A keyboard/rotation may temporarily clamp the rendered position. Only an
   // explicit move should replace the user's choice; null means bottom-right.
   const preferredPosition = useRef<Point | null>(null);
-  const gesture = useRef<{ id: number; start: Point; origin: Point; preferred: Point | null; moved: boolean } | null>(null);
+  const gesture = useRef<{ id: number; start: Point; last: Point; origin: Point; preferred: Point | null; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [point, setPoint] = useState<Point | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [moving, setMoving] = useState<"left" | "right" | null>(null);
+  const movementTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const direction = useRef<"left" | "right">("right");
+  const stopMoving = useCallback(() => {
+    if (movementTimer.current !== null) clearTimeout(movementTimer.current);
+    setMoving(null);
+  }, []);
+  function showMovement(dx: number) {
+    if (dx !== 0) direction.current = dx < 0 ? "left" : "right";
+    if (movementTimer.current !== null) clearTimeout(movementTimer.current);
+    setMoving(direction.current);
+    movementTimer.current = setTimeout(() => setMoving(null), 180);
+  }
+  useEffect(() => () => {
+    if (movementTimer.current !== null) clearTimeout(movementTimer.current);
+  }, []);
 
   const place = useCallback((requested?: Point) => {
     const element = ref.current;
@@ -34,37 +48,46 @@ export function useFloatingWidget(
     const size = element.getBoundingClientRect();
     if (!size.width || !size.height) return;
     const bounds = viewportBounds();
-    const inset = typeof restInset === "function" ? restInset(bounds) : restInset;
-    const rested = defaultPosition(size, bounds);
-    const home = { x: rested.x - inset.x, y: rested.y - inset.y };
-    const next = constrainPosition(requested ?? preferredPosition.current ?? home, size, bounds);
+    const target = requested ?? preferredPosition.current ?? homePosition?.(element, size, bounds) ?? defaultPosition(size, bounds);
+    const next = constrainPosition(target, size, bounds);
     if (requested) preferredPosition.current = next;
     setPoint((current) => current?.x === next.x && current.y === next.y ? current : next);
-  }, [ref, restInset]);
+  }, [ref, homePosition]);
 
   const reset = useCallback(() => {
+    stopMoving();
     preferredPosition.current = null;
     setPoint(null);
     place();
-  }, [place]);
+  }, [place, stopMoving]);
 
   useEffect(() => {
     if (!active) return;
     const sync = () => place();
+    let scrollTimer = 0;
+    const afterScroll = () => {
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        if (!gesture.current && !ref.current?.contains(document.activeElement) && !ref.current?.matches(":hover")) place();
+      }, 180);
+    };
     sync();
     const viewport = window.visualViewport;
     window.addEventListener("resize", sync);
+    if (homePosition) window.addEventListener("scroll", afterScroll, { passive: true, capture: true });
     viewport?.addEventListener("resize", sync);
     viewport?.addEventListener("scroll", sync);
     const observer = new ResizeObserver(sync);
     if (ref.current) observer.observe(ref.current);
     return () => {
       window.removeEventListener("resize", sync);
+      window.removeEventListener("scroll", afterScroll, true);
+      window.clearTimeout(scrollTimer);
       viewport?.removeEventListener("resize", sync);
       viewport?.removeEventListener("scroll", sync);
       observer.disconnect();
     };
-  }, [active, place, ref]);
+  }, [active, place, ref, homePosition]);
 
   function finish(event: PointerEvent<HTMLElement>, cancelled = false) {
     const current = gesture.current;
@@ -72,6 +95,7 @@ export function useFloatingWidget(
     gesture.current = null;
     suppressClick.current = current.moved || cancelled;
     setDragging(false);
+    stopMoving();
     if (cancelled) {
       preferredPosition.current = current.preferred;
       place();
@@ -82,6 +106,7 @@ export function useFloatingWidget(
   return {
     reset,
     dragging,
+    moving,
     style: point ? { left: point.x, top: point.y, right: "auto", bottom: "auto" } satisfies CSSProperties : undefined,
     consumeDragClick() {
       const suppressed = suppressClick.current;
@@ -93,7 +118,7 @@ export function useFloatingWidget(
         if (event.button !== 0 || !event.isPrimary || !ref.current) return;
         const rect = ref.current.getBoundingClientRect();
         suppressClick.current = false;
-        gesture.current = { id: event.pointerId, start: { x: event.clientX, y: event.clientY }, origin: { x: rect.x, y: rect.y }, preferred: preferredPosition.current, moved: false };
+        gesture.current = { id: event.pointerId, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY }, origin: { x: rect.x, y: rect.y }, preferred: preferredPosition.current, moved: false };
         event.currentTarget.setPointerCapture(event.pointerId);
       },
       onPointerMove(event: PointerEvent<HTMLElement>) {
@@ -103,6 +128,8 @@ export function useFloatingWidget(
         const dy = event.clientY - current.start.y;
         if (!current.moved && Math.hypot(dx, dy) < 6) return;
         current.moved = true;
+        if (event.clientX !== current.last.x || event.clientY !== current.last.y) showMovement(event.clientX - current.last.x);
+        current.last = { x: event.clientX, y: event.clientY };
         setDragging(true);
         place({ x: current.origin.x + dx, y: current.origin.y + dy });
       },
@@ -122,6 +149,7 @@ export function useFloatingWidget(
         event.preventDefault();
         const rect = ref.current.getBoundingClientRect();
         const step = event.shiftKey ? 64 : 16;
+        showMovement(delta[0]);
         place({ x: rect.x + delta[0] * step, y: rect.y + delta[1] * step });
       },
     },

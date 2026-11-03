@@ -11,7 +11,7 @@ test("hover reveals only Talk to Sovereign and clicking opens chat", async ({ pa
   await expect(page.getByRole("button", { name: "Reset position", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Quick questions", exact: true })).toHaveCount(0);
   await expect(page.getByRole("dialog")).toBeHidden();
-  expect((await launcher.locator("[data-wave], [class*=character]").boundingBox())?.width).toBe(68);
+  expect((await launcher.locator("[data-shellbit-state]").boundingBox())?.width).toBe(84);
   await page.screenshot({ path: testInfo.outputPath("talk-to-sovereign-hover.png"), animations: "disabled" });
   await page.mouse.move(0, 0);
   await expect(label).toHaveCSS("opacity", "0");

@@ -67,7 +67,7 @@ test("dragging, keyboard movement, reset and conversation lifecycle", async ({ p
   await expect(dialog).not.toBeVisible();
   await expect(pet).toBeFocused();
   await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-  expect(requests).toEqual([{ question: "What does WitnessOps do?", history: [], surface: "sovereign_widget" }]);
+  expect(requests).toEqual([{ question: "What does WitnessOps do?", history: [], surface: "sovereign_widget", locale: "en" }]);
 });
 
 test("resize keeps the pet reachable and Polish contact stays on the current site", async ({ page }) => {
@@ -111,7 +111,7 @@ test("touch dragging and cancellation do not open the chat or scroll the page", 
   await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect(pet).toHaveAttribute("aria-expanded", "false");
   expect((await box(pet)).x).toBeCloseTo(initial.x - 100, 0);
-  expect((await box(pet)).y).toBeCloseTo(initial.y - 250, 0);
+  expect((await box(pet)).y).toBeCloseTo(Math.max(16, initial.y - 250), 0);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const moved = await box(pet);
   const next = { x: moved.x + moved.width / 2, y: moved.y + moved.height / 2, id: 2 };

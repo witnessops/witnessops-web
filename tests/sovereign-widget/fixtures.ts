@@ -6,6 +6,7 @@ export type AskRequest = {
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   page_service_id?: string;
   surface?: "sovereign_widget";
+  locale?: "en" | "pl";
 };
 
 /** Same generated-answer envelope used by the existing docs-assistant fixtures. */

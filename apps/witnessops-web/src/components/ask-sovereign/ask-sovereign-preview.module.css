@@ -92,9 +92,9 @@
 }
 .mark {
   width: 32px;
-  height: 32px;
+  height: calc(32px * 208 / 192);
   flex: none;
-  background: url("/ask-sovereign/clean/sovereign-icon-32-dark@2x.png") center / 32px 32px no-repeat;
+  background: url("/ask-sovereign/shellbit-v3/spritesheet.png") 0 0 / 800% 1100% no-repeat;
   image-rendering: pixelated;
 }
 .name { min-width: 0; flex: none; margin: 0; overflow: visible; font-size: var(--type-h4-size); font-weight: var(--type-h4-wt); line-height: var(--type-h4-lh); letter-spacing: 0; white-space: nowrap; text-overflow: clip; }
@@ -169,7 +169,7 @@
 .withSprite > div { min-width: 0; max-width: 100%; }
 .errorStack {
   display: grid;
-  grid-template-columns: 94px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   column-gap: 12px;
   align-items: start;
   min-width: 0;
@@ -473,8 +473,7 @@
 .widget .optinHint { flex: none; margin: 8px 0 0; }
 
 /* The conversational avatar is deliberately smaller than the floating launcher. */
-.compactMascot { width: 52px; height: 57px; flex: 0 0 52px; }
-.compactMascot > .sprite { transform: scale(0.55); transform-origin: top left; }
+.compactMascot { width: 32px; height: 35px; flex: 0 0 32px; }
 .withSprite > div:last-child { flex: 1; }
 .openingChoices { display: grid; gap: 8px; padding: 0 16px 16px; }
 .openingChoices > p { margin: 0 0 2px; color: var(--color-text-secondary); font-size: var(--type-small-size); }
