@@ -132,6 +132,26 @@ test('actual checksum commands remain verifiable after artifact extraction and d
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 
+test('browser mirror adjustment changes only the slow Azure archive URL and fails on a missing list', () => {
+  const steps = workflow.jobs.browser.steps;
+  const mirror = steps.find(s => s.name === 'Use primary Ubuntu mirror for browser dependencies');
+  assert.ok(steps.indexOf(mirror) < steps.findIndex(s => s.id === 'browser_install'));
+  assert.match(mirror.run, /^sudo sed -i '[^']+' \/etc\/apt\/apt-mirrors\.txt$/);
+  const root = mkdtempSync(join(tmpdir(), 'app-mirror-test-'));
+  try {
+    const file = join(root, 'mirrors.txt');
+    const other = 'http://security.ubuntu.com/ubuntu priority:2\nhttp://azureXarchiveXubuntuXcom/ubuntu priority:3\n';
+    writeFileSync(file, 'http://azure.archive.ubuntu.com/ubuntu priority:1\n' + other);
+    const command = mirror.run.replace(/^sudo /, '').replace('/etc/apt/apt-mirrors.txt', '"$TEST_MIRROR_FILE"');
+    const run = path => spawnSync('bash', ['-e', '-o', 'pipefail', '-c', command], {
+      env: { PATH: process.env.PATH, TEST_MIRROR_FILE: path }, encoding: 'utf8',
+    });
+    assert.equal(run(file).status, 0);
+    assert.equal(readFileSync(file, 'utf8'), 'https://archive.ubuntu.com/ubuntu priority:1\n' + other);
+    assert.notEqual(run(join(root, 'missing.txt')).status, 0);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('parallel browser jobs preserve coverage and separate install time', () => {
   const steps = workflow.jobs.browser.steps;
   const install = steps.find(s => s.id === 'browser_install');
