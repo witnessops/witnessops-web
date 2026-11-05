@@ -19,6 +19,7 @@ const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
 const MEDIA_KIT_HREF = { en: "/media-kit", pl: "/pl/media-kit" } as const;
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
+const X_PROFILE_HREF = "https://x.com/witnessops";
 function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
   return [
     {
@@ -119,6 +120,9 @@ export function Footer({
   const searchParams = useSearchParams();
   const path = pathname || "/";
   const isPolishSurface = isPolishPath(path);
+  const xProfileLabel = isPolishSurface
+    ? "WitnessOps na X (@witnessops, otwiera nową kartę)"
+    : "WitnessOps on X (@witnessops, opens in a new tab)";
   const reviewRequestHref = reviewRequestHrefForLocation(
     isPolishSurface ? "pl" : "en", path, searchParams,
   );
@@ -249,6 +253,13 @@ export function Footer({
           <div className="flex flex-wrap items-center gap-x-2 text-xs leading-5 text-text-secondary">
             {isPublicBuildLabel(build_label) ? <span>{build_label}</span> : null}
             <span data-company-copyright="">{COMPANY_COPYRIGHT}</span>
+            <a href={X_PROFILE_HREF} target="_blank" rel="noopener noreferrer"
+              aria-label={xProfileLabel} title={xProfileLabel}
+              className={`${FOOTER_LEGAL_LINK_CLASS} min-w-11 justify-center`}>
+              <svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.64 7.584H.47l8.6-9.835L0 1.154h7.594l5.243 6.932zM17.61 20.644h2.039L6.486 3.24H4.298z" />
+              </svg>
+            </a>
           </div>
         </div>
       </div>
