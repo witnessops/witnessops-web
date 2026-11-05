@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {parseListenerEndpoints as parse,validateListenerEndpoints as validate,listenerAddress} from './listener-endpoints.mjs';
 // Expected identities from accepted producer normalize_listener_address, fce41c1.
 export const cases=[['127.0.0.53%lo','127.0.0.53'],['172.26.9.158%ens5','172.26.9.158'],['fe80::1%eth0','fe80::1%eth0'],['FE80:0::1%ETH0','fe80::1%ETH0'],['::ffff:192.0.2.1','::ffff:c000:201']];
@@ -22,4 +23,33 @@ test('percent characters are separators, never URL-decoded',()=>{
  // %25eth0 is a literal Linux zone named 25eth0, not encoded %eth0.
  assert.equal(listenerAddress('fe80::1%25eth0').identity,'fe80::1%25eth0');
  assert.throws(()=>parse('tcp://[fe80::1%25eth%30]:443'));
+});
+test('only ASCII spaces around entries are ignored',()=>{
+ assert.deepEqual(parse('  tcp://127.0.0.1:53  ,  udp://[fe80::1%eth0]:443  '),[
+  {transport:'tcp',address:'127.0.0.1',port:53},
+  {transport:'udp',address:'fe80::1%eth0',port:443},
+ ]);
+ assert.deepEqual(parse('none'),[]);
+ for(const input of ['', ' ', ' none ', 'tcp://127.0.0.1:53, ', 'tcp://127.0.0.1 :53'])assert.throws(()=>parse(input));
+ // String.trim() would silently admit Unicode whitespace outside endpoints.
+ for(const space of ['\t','\n','\r','\v','\f','\u00a0','\u1680','\u2000','\u2028','\u2029','\u202f','\u205f','\u3000','\ufeff']){
+  for(const input of [space+'tcp://127.0.0.1:53','tcp://127.0.0.1:53'+space,'tcp://127.0.0.1'+space+':53'])assert.throws(()=>parse(input));
+ }
+});
+test('large space runs cannot stall listener parsing',()=>{
+ // A child deadline also stops a synchronous regexp stall; a test timeout alone cannot.
+ const result=spawnSync(process.execPath,['--input-type=module','-e',`
+  import assert from 'node:assert/strict';
+  import {parseListenerEndpoints as parse} from ${JSON.stringify(new URL('./listener-endpoints.mjs',import.meta.url).href)};
+  const spaces=' '.repeat(250_000);
+  assert.throws(()=>parse('tcp://127.0.0.1:53'+spaces+'x'),/Use exact/);
+  assert.throws(()=>parse('tcp://127.0.0.1'+spaces+':53'),/Invalid listener address/);
+  assert.throws(()=>parse(spaces),/Use exact/);
+  assert.deepEqual(parse(spaces+'tcp://127.0.0.1:53'+spaces+','+spaces+'udp://[::1]:443'+spaces),[
+   {transport:'tcp',address:'127.0.0.1',port:53},
+   {transport:'udp',address:'::1',port:443},
+  ]);
+ `],{encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);
+ assert.equal(result.status,0,result.stderr);
 });
