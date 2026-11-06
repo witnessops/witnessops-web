@@ -1,8 +1,8 @@
-# AI Agent Tools & Access Review — current commercial contract
+# AI Agent Tools & Access Review — historical commercial contract
 
 > **Historical / superseded for new sales.** Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work. See the [commercial index](./README.md).
 
-- Status: **CURRENT SOURCE CONTRACT / CUSTOMER-SPECIFIC ACCEPTANCE REQUIRED**
+- Status: **HISTORICAL SOURCE CONTRACT / NOT FOR NEW SALES**
 - Effective in source: 2026-09-28
 - Commercial offer ID: `agent-tools-access-review`
 - Public route: `/catalog/workflows`
@@ -159,5 +159,6 @@ workflow-size SKU links resolve to the general catalogue, not directly to
 this distinct offer. The `ai-agent-action-proof-run` sample and receipt IDs
 remain sample identifiers, not new commercial IDs.
 
-The [External Attack Surface Review](./10-public-exposure-review-offer.md)
-remains separate at its own accepted scope and €1,900 excluding VAT price.
+The [External Attack Surface Review](./10-public-exposure-review-offer.md) is
+parked for new sales. Its historical €1,900 excluding VAT terms remain only
+for issued agreements and old lookups.
