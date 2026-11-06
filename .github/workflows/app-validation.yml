@@ -241,6 +241,8 @@ jobs:
         run: |
           umask 077
           printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+      - name: Use primary Ubuntu mirror for browser dependencies
+        run: sudo sed -i 's|http://azure\.archive\.ubuntu\.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
       - name: Install app browser binaries and system dependencies
         id: browser_install
         run: pnpm exec playwright install --with-deps "${{ matrix.project }}"

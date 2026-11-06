@@ -25,7 +25,11 @@ export function parseListenerEndpoints(input) {
  if(input==='none')return [];
  const items=input.split(',').map(token=>{
   // ASCII spaces around comma-separated entries are allowed, never within one.
-  const text=token.replace(/^ +| +$/g,''),m=/^(tcp|udp):\/\/(?:\[([^\[\]]+)\]|([^\[\]]+)):(\d+)$/.exec(text);
+  // Scan the edges once: an unanchored trailing-space regexp retries at every space.
+  let start=0,end=token.length;
+  while(start<end&&token[start]===' ')start++;
+  while(end>start&&token[end-1]===' ')end--;
+  const text=token.slice(start,end),m=/^(tcp|udp):\/\/(?:\[([^\[\]]+)\]|([^\[\]]+)):(\d+)$/.exec(text);
   if(!m)throw new Error('Use exact tcp://address:port or udp://[IPv6]:port endpoints, separated by commas; or none.');
   const address=m[2]??m[3],{family}=listenerAddress(address);
   if((m[2]!==undefined)!==(family===6))throw new Error('Bracket IPv6 addresses only.');
