@@ -63,23 +63,36 @@ jobs:
       lockfile_sha256: ${{ steps.result.outputs.lockfile_sha256 }}
       package_count: ${{ steps.result.outputs.package_count }}
     steps:
-      - name: Check out repository without persisted credentials
+      - name: Check out trusted gate implementation
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: trusted-supply-chain-gate
+          persist-credentials: false
+
+      - name: Check out repository to inspect without persisted credentials
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ inputs.checkout_ref }}
           fetch-depth: 0
+          path: inspected-repository
           persist-credentials: false
 
       - name: Show bounded runtime
         run: python3 --version
 
-      - name: Run inert Supply Chain Gate tests
-        run: python3 -m unittest discover -s tools/supply-chain-gate/tests -p 'test_*.py' -v
+      - name: Run trusted Supply Chain Gate tests
+        run: >-
+          python3 -m unittest discover
+          -s trusted-supply-chain-gate/tools/supply-chain-gate/tests
+          -p 'test_*.py' -v
 
       - name: Resolve dependency comparison base
         id: base
         env:
           EXPLICIT_BASE: ${{ inputs.base_ref }}
+          INSPECTED_REPOSITORY: inspected-repository
           PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
           PUSH_BEFORE: ${{ github.event.before }}
         run: |
@@ -93,8 +106,20 @@ jobs:
           if printf '%s' "${base_ref}" | grep -Eq '^0+$'; then
             base_ref=""
           fi
-          if [ -n "${base_ref}" ] && ! git cat-file -e "${base_ref}^{commit}" 2>/dev/null; then
-            echo "::error::comparison base ${base_ref} is unavailable; the gate will fail closed and record evidence"
+          if [[ "${base_ref}" == *$'\n'* || "${base_ref}" == *$'\r'* ]]; then
+            echo "::error::comparison base contains a line break"
+            exit 1
+          fi
+          if [ -n "${base_ref}" ]; then
+            if base_commit="$(git -C "${INSPECTED_REPOSITORY}" rev-parse --verify --end-of-options "${base_ref}^{commit}" 2>/dev/null)"; then
+              inspected_commit="$(git -C "${INSPECTED_REPOSITORY}" rev-parse --verify HEAD^{commit})"
+              if [ "${base_commit}" = "${inspected_commit}" ]; then
+                echo "::error::comparison base resolves to the inspected commit"
+                exit 1
+              fi
+            else
+              echo "::error::comparison base ${base_ref} is unavailable; the gate will fail closed and record evidence"
+            fi
           fi
           echo "base_ref=${base_ref}" >> "${GITHUB_OUTPUT}"
 
@@ -102,17 +127,19 @@ jobs:
         id: checker
         env:
           BASE_REF: ${{ steps.base.outputs.base_ref }}
+          GATE_OUTPUT_DIR: ${{ runner.temp }}/witnessops-supply-chain-gate
+          INSPECTED_REPOSITORY: inspected-repository
         run: |
           args=(
-            --repo-root .
+            --repo-root "${INSPECTED_REPOSITORY}"
             --lockfile pnpm-lock.yaml
-            --output-dir artifacts/supply-chain-gate
+            --output-dir "${GATE_OUTPUT_DIR}"
           )
           if [ -n "${BASE_REF}" ]; then
             args+=(--base-ref "${BASE_REF}")
           fi
           set +e
-          python3 tools/supply-chain-gate/supply_chain_gate.py "${args[@]}"
+          python3 trusted-supply-chain-gate/tools/supply-chain-gate/supply_chain_gate.py "${args[@]}"
           checker_exit=$?
           set -e
           echo "exit_code=${checker_exit}" >> "${GITHUB_OUTPUT}"
@@ -120,13 +147,16 @@ jobs:
       - name: Read and summarize gate evidence
         id: result
         if: always()
+        env:
+          GATE_OUTPUT_DIR: ${{ runner.temp }}/witnessops-supply-chain-gate
         run: |
           python3 - <<'PY'
           import json
           import os
+          from html import escape
           from pathlib import Path
 
-          path = Path("artifacts/supply-chain-gate/gate-result.json")
+          path = Path(os.environ["GATE_OUTPUT_DIR"]) / "gate-result.json"
           if not path.is_file():
               raise SystemExit("gate-result.json was not produced")
           result = json.loads(path.read_text(encoding="utf-8"))
@@ -143,12 +173,15 @@ jobs:
           }
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               for key, value in outputs.items():
+                  if "\n" in value or "\r" in value:
+                      raise SystemExit(f"invalid multi-line workflow output: {key}")
                   output.write(f"{key}={value}\n")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
               summary.write("## Supply Chain Gate\n\n")
               summary.write(f"- Status: `{result['status']}`\n")
               summary.write(f"- Commit: `{result['commit_sha']}`\n")
-              summary.write(f"- Package manager: `{result['package_manager']}`\n")
+              package_manager = escape(outputs["package_manager"], quote=True)
+              summary.write(f"- Package manager: <code>{package_manager}</code>\n")
               summary.write(f"- Packages: `{result['graph']['package_count']}`\n")
               summary.write(f"- Graph SHA-256: `{result['graph']['sha256']}`\n")
               summary.write(f"- Lockfile SHA-256: `{first_lock_sha}`\n")
@@ -187,8 +220,8 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           path: |
-            artifacts/supply-chain-gate/gate-result.json
-            artifacts/supply-chain-gate/package-graph.tsv
+            ${{ runner.temp }}/witnessops-supply-chain-gate/gate-result.json
+            ${{ runner.temp }}/witnessops-supply-chain-gate/package-graph.tsv
 
       - name: Enforce gate result
         if: always()
