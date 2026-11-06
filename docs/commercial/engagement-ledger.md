@@ -12,7 +12,11 @@ Log every real engagement. One row per deal. Do not put secrets or customer evid
 
 **status values:** `fit` · `scoped` · `in_work` · `delivered` · `closed` · `lost` · `not_fit` · `example`
 
-**product values:** `csr` · `one-server` · `launch` · `custody` · `incident` · `other`
+**Current new-sales product value:** `agent-action-security-review`
+
+**Historical ledger product values already in use:** `csr` · `one-server` · `launch` · `custody` · `incident`
+
+**Fallback value:** `other` for non-offer bookkeeping only; it does not create another new-sales offer.
 
 ---
 
