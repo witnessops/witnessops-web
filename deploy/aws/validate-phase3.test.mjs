@@ -224,6 +224,11 @@ test("AWS image packages must retain reviewed Alpine versions", () => {
   assert.throws(() => validatePhase3Sources(mutated), /curl=8\.23\.0-r0/);
 });
 
+test("AWS runtime must retain the patched zlib package version", () => {
+  const stale = changed("dockerfile", (value) => value.replace("zlib=1.4-r0", "zlib=1.3.2-r1"));
+  assert.throws(() => validatePhase3Sources(stale), /zlib=1\.4-r0/);
+});
+
 test("AWS runtime must retain the patched OpenSSL package versions", () => {
   const staleCrypto = changed("dockerfile", (value) =>
     value.replace("libcrypto3=3.5.9-r0", "libcrypto3=3.5.8-r0"),

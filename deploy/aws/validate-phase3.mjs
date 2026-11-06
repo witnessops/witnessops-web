@@ -517,6 +517,7 @@ export function validatePhase3Sources(sources) {
     "g++=15.2.0-r5",
     "libcrypto3=3.5.9-r0",
     "libssl3=3.5.9-r0",
+    "zlib=1.4-r0",
     "ca-certificates=20261020-r0",
     "curl=8.23.0-r0",
   ]) {
