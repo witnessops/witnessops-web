@@ -60,7 +60,7 @@ export default async function ChronicleChapterPage({ params }: PageProps) {
       <p className="wo-mono-caps mt-8 text-brand-accent">{chapter.kicker}</p>
       <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">{chapter.title}</h1>
       {chapter.subtitle ? <p className="wo-lead mt-4 text-text-secondary">{chapter.subtitle}</p> : null}
-      <p className="wo-mono-caps mt-4 text-text-secondary">{chapter.dateline}</p>
+      <p data-chronicle-dateline className="wo-small mt-4 text-text-secondary">{chapter.dateline}</p>
       <p className="wo-small mt-2 text-text-muted">{chapter.meta}</p>
       <p className="wo-small mt-6 rounded-md border border-brand-accent/40 bg-surface-inset px-4 py-3 text-text-primary">{CHRONICLE_FICTION_LABEL}</p>
       <ChronicleBody chapter={chapter} />
