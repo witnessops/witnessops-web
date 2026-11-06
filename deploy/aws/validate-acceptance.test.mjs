@@ -280,5 +280,12 @@ test("candidate helper is pre-DNS and contains no infrastructure mutation comman
   assert.match(script, /candidate admin OIDC Secret key names/);
   assert.match(script, /prod explicit environment/);
   assert.match(script, /308\|https:\/\/witnessops\.com\/docs\/aws-migration-doc-check/);
+  assert.match(script, /for profile in 'mcp witnessops-public-knowledge' 'mcp\/directory witnessops-public-directory'/);
+  assert.equal((script.match(/--resolve witnessops\.com:443:127\.0\.0\.1/g) ?? []).length, 2);
+  assert.equal((script.match(/--max-time 15 --max-redirs 0 --noproxy '\*'/g) ?? []).length, 2);
+  assert.doesNotMatch(script, /--insecure|curl[^\n]* -k\b/);
+  assert.match(script, /--header 'Accept: application\/json, text\/event-stream'/);
+  assert.match(script, /--header 'MCP-Protocol-Version: 2025-06-18'/);
+  assert.match(script, /candidate Caddy \/\$\{route\} returned an invalid initialization/);
   assert.match(script, /CANDIDATE_ACCEPTANCE_OK/);
 });

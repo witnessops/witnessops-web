@@ -145,6 +145,112 @@ class WorkflowContractTests(unittest.TestCase):
         )[0]
         self.assertNotIn("paths:", pull_request_trigger)
 
+    def test_gate_executes_only_trusted_python_against_isolated_source(self) -> None:
+        gate = job_section(self.gate, "gate")
+
+        trusted_checkout = gate.index("ref: ${{ job.workflow_sha }}")
+        binding_check = gate.index("REQUESTED_CHECKOUT_REF: ${{ inputs.checkout_ref }}")
+        trusted_tests = gate.index(
+            "-s trusted-supply-chain-gate/tools/supply-chain-gate/tests"
+        )
+        inspected_checkout = gate.index("ref: ${{ github.sha }}")
+        trusted_checker = gate.index(
+            "python3 -I trusted-supply-chain-gate/tools/supply-chain-gate/supply_chain_gate.py"
+        )
+
+        self.assertIn("repository: ${{ job.workflow_repository }}", gate)
+        self.assertIn("path: trusted-supply-chain-gate", gate)
+        self.assertIn("path: inspected-repository", gate)
+        self.assertEqual(gate.count("persist-credentials: false"), 2)
+        self.assertLess(trusted_checkout, binding_check)
+        self.assertLess(binding_check, trusted_tests)
+        self.assertLess(trusted_tests, inspected_checkout)
+        self.assertLess(inspected_checkout, trusted_checker)
+        self.assertNotIn("ref: ${{ inputs.checkout_ref }}", gate)
+        self.assertEqual(
+            gate.count("REQUESTED_CHECKOUT_REF: ${{ inputs.checkout_ref }}"),
+            1,
+        )
+        self.assertIn("EVENT_SHA: ${{ github.sha }}", gate)
+        self.assertIn('requested_ref="${REQUESTED_CHECKOUT_REF:-${EVENT_SHA}}"', gate)
+        self.assertIn('[[ ! "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]]', gate)
+        self.assertIn('[[ ! "${requested_ref}" =~ ^[0-9a-f]{40}$ ]]', gate)
+        self.assertIn('[[ "${requested_ref}" != "${EVENT_SHA}" ]]', gate)
+        self.assertIn(
+            "checkout_ref must be empty or the exact caller event SHA",
+            gate,
+        )
+        self.assertIn('--repo-root "${INSPECTED_REPOSITORY}"', gate)
+        self.assertIn(
+            'git -C "${INSPECTED_REPOSITORY}" rev-parse --verify --end-of-options "${base_ref}^{commit}"',
+            gate,
+        )
+        self.assertIn(
+            'git -C "${INSPECTED_REPOSITORY}" rev-parse --verify HEAD^{commit}',
+            gate,
+        )
+        self.assertIn('[ "${base_commit}" = "${inspected_commit}" ]', gate)
+        self.assertIn("comparison base resolves to the inspected commit", gate)
+        self.assertIn("comparison base contains a line break", gate)
+        self.assertIn("*$'\\n'*", gate)
+        self.assertIn("*$'\\r'*", gate)
+        self.assertEqual(
+            gate.count(
+                "GATE_OUTPUT_DIR: ${{ runner.temp }}/witnessops-supply-chain-gate"
+            ),
+            2,
+        )
+        self.assertIn(
+            'Path(os.environ["GATE_OUTPUT_DIR"]) / "gate-result.json"',
+            gate,
+        )
+        self.assertIn('if "\\n" in value or "\\r" in value:', gate)
+        self.assertIn(
+            'raise SystemExit(f"invalid multi-line workflow output: {key}")',
+            gate,
+        )
+        self.assertIn('escape(outputs["package_manager"], quote=True)', gate)
+        self.assertEqual(gate.count('${INSPECTED_REPOSITORY}'), 3)
+        self.assertEqual(
+            gate.count("INSPECTED_REPOSITORY: inspected-repository"),
+            2,
+        )
+        self.assertNotRegex(gate, r"(?m)^\s+(?:PATH|PYTHONPATH):")
+        self.assertNotIn("GITHUB_ENV", gate)
+        self.assertNotIn("GITHUB_PATH", gate)
+        self.assertNotIn("working-directory:", gate)
+        self.assertNotIn("uses: ./", gate)
+        self.assertNotIn("inspected-repository/", gate)
+        self.assertNotIn("${INSPECTED_REPOSITORY}/", gate)
+        self.assertEqual(
+            gate.count(
+                "${{ runner.temp }}/witnessops-supply-chain-gate/gate-result.json"
+            ),
+            1,
+        )
+        self.assertEqual(
+            gate.count(
+                "${{ runner.temp }}/witnessops-supply-chain-gate/package-graph.tsv"
+            ),
+            1,
+        )
+        python_commands = [
+            line.strip().removeprefix("run: ")
+            for line in gate.splitlines()
+            if line.strip().startswith(("run: python3", "python3 "))
+        ]
+        self.assertEqual(
+            python_commands,
+            [
+                "python3 --version",
+                "python3 -I -m unittest discover",
+                "python3 -I trusted-supply-chain-gate/tools/supply-chain-gate/supply_chain_gate.py \"${args[@]}\"",
+                "python3 -I - <<'PY'",
+            ],
+        )
+        self.assertNotIn("python3 tools/supply-chain-gate/", gate)
+        self.assertNotIn("artifacts/supply-chain-gate", gate)
+
     def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
         for workflow in (self.gate, self.build_image, self.release):
             for reference in re.findall(r"(?m)^\s*uses:\s+([^\s#]+)", workflow):
