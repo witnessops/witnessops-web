@@ -45,5 +45,7 @@ for pair in '/status https://status.vaultmesh.org/' '/catalog /reviews'; do
 done
 # Existing local public raster, without widening remote image sources.
 curl --fail --silent --show-error "${base}/_next/image?url=%2Fimages%2Fkarol-stefanski.jpg&w=64&q=75" >/dev/null
+# Exercise real tools in the exact built image before it can be published.
+node deploy/aws/public-mcp-smoke.mjs --base-url "${base}"
 [[ "$(docker image inspect "${image}" --format '{{.Id}}')" == "${image_id}" ]]
 printf 'RUNTIME_IMAGE_OK %s\n' "${image_id}"

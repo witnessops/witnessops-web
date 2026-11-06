@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { OPTIONS, POST } from "./route";
+import { DELETE, GET, OPTIONS, POST } from "./route";
 
 function mcpRequest(body: unknown, forwardedFor: string): Request {
   return new Request("http://127.0.0.1:3001/mcp", {
@@ -16,13 +16,142 @@ function mcpRequest(body: unknown, forwardedFor: string): Request {
 }
 
 test("MCP route answers CORS preflight", () => {
-  const response = OPTIONS();
+  const response = OPTIONS(
+    new Request("http://127.0.0.1:3001/mcp", { method: "OPTIONS" }),
+  );
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("access-control-allow-origin"), "*");
   assert.match(
     response.headers.get("access-control-allow-methods") ?? "",
     /POST/,
   );
+});
+
+function guardedRequest(
+  method: string,
+  headers: Record<string, string> = {},
+  url = "https://witnessops.com/mcp",
+): Request {
+  return new Request(url, {
+    method,
+    headers: {
+      accept: "application/json, text/event-stream",
+      "content-type": "application/json",
+      "x-forwarded-for": "192.0.2.35",
+      ...headers,
+    },
+    ...(method === "POST"
+      ? {
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 35,
+            method: "tools/list",
+            params: {},
+          }),
+        }
+      : {}),
+  });
+}
+
+test("MCP route allows public server clients without Origin and approved browser origins", async () => {
+  for (const origin of [undefined, "https://witnessops.com", "https://chatgpt.com"]) {
+    const response = await POST(
+      guardedRequest("POST", origin ? { origin } : {}),
+    );
+    assert.equal(response.status, 200, origin ?? "no Origin");
+    const payload = await response.json();
+    assert.equal(payload.error, undefined);
+    assert.equal(payload.result.tools.length, 4);
+  }
+});
+
+test("MCP route rejects invalid origins on every exported HTTP method", async () => {
+  const handlers = { GET, POST, DELETE, OPTIONS };
+  for (const origin of [
+    "https://untrusted.example",
+    "https://witnessops.com.evil.example",
+    "https://chatgpt.com.evil.example",
+    "http://witnessops.com",
+    "null",
+    "not-an-origin",
+    "https://user:password@witnessops.com",
+    "https://witnessops.com/path",
+    "https://witnessops.com?query=1",
+    "https://witnessops.com#fragment",
+    "https://witnessops.com https://chatgpt.com",
+  ]) {
+    for (const [method, handler] of Object.entries(handlers)) {
+      const response = await handler(guardedRequest(method, { origin }));
+      await response.body?.cancel();
+      assert.equal(response.status, 403, `${method}: ${origin}`);
+    }
+  }
+});
+
+test("MCP route validates the actual Host rather than forwarded host claims", async () => {
+  for (const host of [
+    "untrusted.example",
+    "witnessops.com.evil.example",
+    "witnessops.com, untrusted.example",
+    "user@witnessops.com",
+    "https://witnessops.com",
+    "witnessops.com/path",
+  ]) {
+    const response = await POST(
+      guardedRequest("POST", {
+        host,
+        "x-forwarded-host": "witnessops.com",
+      }),
+    );
+    await response.body?.cancel();
+    assert.equal(response.status, 403, host);
+  }
+  const response = await POST(
+    guardedRequest("POST", { host: "docs.witnessops.com" }),
+  );
+  assert.equal(response.status, 200);
+  await response.body?.cancel();
+
+  const untrustedUrl = await POST(
+    guardedRequest(
+      "POST",
+      { "x-forwarded-host": "witnessops.com" },
+      "https://untrusted.example/mcp",
+    ),
+  );
+  await untrustedUrl.body?.cancel();
+  assert.equal(untrustedUrl.status, 403);
+});
+
+test("MCP route permits loopback development clients but rejects them in production", async () => {
+  for (const origin of ["http://localhost:3001", "http://127.0.0.1:3019"]) {
+    const response = await POST(
+      guardedRequest("POST", { origin }, "http://127.0.0.1:3001/mcp"),
+    );
+    assert.equal(response.status, 200, origin);
+    await response.body?.cancel();
+  }
+
+  const previousNodeEnv = process.env.NODE_ENV;
+  Object.assign(process.env, { NODE_ENV: "production" });
+  try {
+    const localRequests: Record<string, string>[] = [
+      { host: "127.0.0.1:3001" },
+      { host: "localhost:3019" },
+      { origin: "http://127.0.0.1:3001" },
+      { origin: "http://localhost:3019" },
+    ];
+    for (const headers of localRequests) {
+      const response = await POST(guardedRequest("POST", headers));
+      await response.body?.cancel();
+      assert.equal(response.status, 403, JSON.stringify(headers));
+    }
+    const response = await POST(guardedRequest("POST"));
+    assert.equal(response.status, 200);
+    await response.body?.cancel();
+  } finally {
+    Object.assign(process.env, { NODE_ENV: previousNodeEnv });
+  }
 });
 
 test("MCP route completes initialization over Streamable HTTP", async () => {
