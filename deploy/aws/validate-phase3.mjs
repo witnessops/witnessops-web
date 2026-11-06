@@ -523,6 +523,17 @@ export function validatePhase3Sources(sources) {
     assert(dockerfile.includes(required), `AWS Dockerfile is missing ${required}`);
   }
   assert(!dockerfile.includes(":latest"), "AWS Dockerfile uses a mutable latest reference");
+  for (const stage of ["builder", "runtime"]) {
+    const stageSource = dockerfile.match(
+      new RegExp(`^FROM [^\\n]+ AS ${stage}\\n([\\s\\S]*?)(?=^FROM |$(?![\\s\\S]))`, "m"),
+    )?.[1];
+    for (const name of ["musl", "musl-utils"]) {
+      assert(
+        stageSource?.includes(`\n  ${name}=1.2.6-r3 \\\n`),
+        `AWS ${stage} must install ${name}=1.2.6-r3`,
+      );
+    }
+  }
 
   assert(caller.includes("\n  workflow_dispatch:"), "caller is not manual-dispatch only");
   assert(caller.includes("          - status-production"), "caller lacks the bounded status operation");

@@ -9,6 +9,8 @@ image_id="$(docker image inspect "${image}" --format '{{.Id}}')"
 [[ "$(docker image inspect "${image_id}" --format '{{.Config.User}}')" == nextjs ]]
 docker run --rm --network none --entrypoint /bin/sh "${image_id}" -eu -c '
   test "$(id -u)" = 1001
+  # Inspect installed packages, without repository access or severity filtering.
+  apk info --exists musl=1.2.6-r3 musl-utils=1.2.6-r3
   for tool in npm npx pnpm pnpx corepack yarn yarnpkg; do
     if command -v "$tool"; then exit 1; fi
   done
