@@ -9,3 +9,12 @@ test("synthetic AASR page and API are absent with the fixture flag off", async (
   expect(response.headers()["cache-control"]).toContain("no-store");
   expect(await response.text()).not.toContain("SYN-AASR-001");
 });
+
+test("unknown API paths never fall through to the product shell", async ({ request }) => {
+  const response = await request.get("/api/wops-route-does-not-exist");
+
+  expect(response.status()).toBe(404);
+  const body = await response.text();
+  expect(body).not.toContain("Opening your workspace");
+  expect(body).not.toContain('class="product-app"');
+});
