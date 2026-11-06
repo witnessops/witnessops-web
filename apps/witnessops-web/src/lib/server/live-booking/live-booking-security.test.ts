@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, readdir, rm, stat, symlink, utimes } from "node:fs/promises";
+import { chmod, lstat, mkdtemp, readFile, readdir, rm, stat, symlink, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -21,7 +21,7 @@ import {
   startLiveSession,
   type LiveBookingDeps,
 } from "./service";
-import { withStoreLock } from "./store";
+import { LiveBookingStoreError, withStoreLock } from "./store";
 
 const draft: BookingDraft = {
   topic: "Synthetic agent refunds",
@@ -332,6 +332,416 @@ test("finding 10: the same idempotency key does not report acceptance for a diff
     );
     assert.equal(sends, 1);
     assert.equal((await checkLiveCode(bookingDeps, { token, email: "other@example.test", code: "102030" })).code, "expired");
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+type ProviderState = "none" | "active" | "cancelled";
+
+function acceptedMail(roles: string[]) {
+  return {
+    async send(message: { role: string }) {
+      roles.push(message.role);
+      return { kind: "accepted" as const, id: `synthetic-${message.role}` };
+    },
+  };
+}
+
+function providerDouble(cancelResult: "ok" | "unknown" = "ok") {
+  let state: ProviderState = "none";
+  let release = () => undefined as void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let entered = 0;
+  let inserts = 0;
+  let cancelEvents = 0;
+  const trace: string[] = [];
+  const calendar = quietCalendar();
+  calendar.getEvent = async () => {
+    trace.push(`get:${state}`);
+    if (state === "none") return { kind: "absent" };
+    return { kind: "ok", iCalUid: "synthetic-uid@example.test", status: state === "cancelled" ? "cancelled" as const : "confirmed" as const };
+  };
+  calendar.insertEvent = async () => {
+    entered += 1;
+    trace.push(`insert:entered:${entered}`);
+    await gate;
+    state = "active";
+    inserts += 1;
+    trace.push("insert:active");
+    return { kind: "ok", iCalUid: "synthetic-uid@example.test" };
+  };
+  calendar.cancelEvent = async () => {
+    cancelEvents += 1;
+    if (cancelResult === "unknown") {
+      trace.push(`cancelEvent:unknown:${state}`);
+      return { kind: "unknown" as const };
+    }
+    if (state === "none") {
+      trace.push("cancelEvent:absent");
+      return { kind: "absent" as const };
+    }
+    state = "cancelled";
+    trace.push("cancelEvent:cancelled");
+    return { kind: "ok" as const };
+  };
+  return {
+    calendar,
+    release: () => release(),
+    entered: () => entered,
+    inserts: () => inserts,
+    cancelEvents: () => cancelEvents,
+    state: () => state,
+    trace,
+  };
+}
+
+async function until(ready: () => boolean): Promise<void> {
+  const deadline = Date.now() + 3_000;
+  while (!ready()) {
+    if (Date.now() > deadline) throw new Error("interleave timed out");
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
+
+async function storedBooking(storeDir: string): Promise<{ id: string; status: string; mail: { confirmation: string; invite: string } }> {
+  const names = await readdir(path.join(storeDir, "bookings"));
+  return JSON.parse(await readFile(path.join(storeDir, "bookings", names[0]), "utf8")) as { id: string; status: string; mail: { confirmation: string; invite: string } };
+}
+
+async function holdFor(bookingDeps: LiveBookingDeps, ip = "ip-hold", email = draft.email) {
+  const token = (await startLiveSession(bookingDeps, sha256(ip))).token;
+  const slot = (await liveAvailability(bookingDeps, token)).slots[0];
+  await requestLiveCode(bookingDeps, { token, email, idempotencyKey: `code-${ip}`, emailHash: sha256(email) });
+  await checkLiveCode(bookingDeps, { token, email, code: "102030" });
+  const hold = await prepareLiveHold(bookingDeps, { token, slotId: slot.id, draft: { ...draft, email } });
+  return { token, hold };
+}
+
+test("finding A: a paused insert does not overwrite a completed cancel and cancels the created event", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  const provider = providerDouble();
+  const roles: string[] = [];
+  const bookingDeps = deps(storeDir, now, provider.calendar, acceptedMail(roles));
+  try {
+    const { token, hold } = await holdFor(bookingDeps);
+    const confirming = confirmLiveBooking(bookingDeps, { token, holdId: hold.hold.id, idempotencyKey: "confirm-a-pause" });
+    await until(() => provider.entered() === 1);
+    const pending = await storedBooking(storeDir);
+    const cancelled = await cancelLiveBooking(bookingDeps, { token, reference: pending.id });
+    assert.equal(cancelled.booking.status, "cancelled");
+    assert.equal(provider.state(), "none");
+    assert.equal(provider.inserts(), 0);
+    provider.release();
+    const confirmed = await confirming;
+    assert.equal(confirmed.booking.status, "cancelled");
+    assert.equal(confirmed.booking.mail.confirmation, "not_sent");
+    assert.equal(confirmed.booking.mail.invite, "not_sent");
+    assert.equal(provider.state(), "cancelled");
+    assert.equal(provider.inserts(), 1);
+    assert.equal(provider.cancelEvents(), 1);
+    const stored = await storedBooking(storeDir);
+    assert.equal(stored.status, "cancelled");
+    assert.equal(stored.mail.confirmation, "not_sent");
+    assert.equal(stored.mail.invite, "not_sent");
+    assert.equal(roles.includes("confirmation"), false);
+    assert.equal(roles.includes("invite"), false);
+    assert.equal(roles.includes("cancellation_notice"), true);
+    assert.equal(roles.includes("cancellation_invite"), true);
+    assert.deepEqual(provider.trace.filter((step) => step.startsWith("insert") || step.startsWith("cancelEvent")), ["insert:entered:1", "insert:active", "cancelEvent:cancelled"]);
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+test("finding A: overlapping confirm retries observe the cancel and do not send an invite", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  const provider = providerDouble();
+  const roles: string[] = [];
+  const bookingDeps = deps(storeDir, now, provider.calendar, acceptedMail(roles));
+  try {
+    const { token, hold } = await holdFor(bookingDeps, "ip-overlap");
+    const first = confirmLiveBooking(bookingDeps, { token, holdId: hold.hold.id, idempotencyKey: "confirm-a-overlap" });
+    await until(() => provider.entered() === 1);
+    const second = confirmLiveBooking(bookingDeps, { token, holdId: hold.hold.id, idempotencyKey: "confirm-a-overlap" });
+    await until(() => provider.entered() === 2);
+    const pending = await storedBooking(storeDir);
+    const cancelled = await cancelLiveBooking(bookingDeps, { token, reference: pending.id });
+    assert.equal(cancelled.booking.status, "cancelled");
+    provider.release();
+    const results = await Promise.all([first, second]);
+    assert.equal(results[0].booking.status, "cancelled");
+    assert.equal(results[1].booking.status, "cancelled");
+    assert.equal(results[0].booking.mail.invite, "not_sent");
+    assert.equal(results[1].booking.mail.invite, "not_sent");
+    assert.equal(provider.inserts(), 2);
+    assert.ok(provider.cancelEvents() >= 1);
+    assert.equal(provider.state(), "cancelled");
+    const stored = await storedBooking(storeDir);
+    assert.equal(stored.status, "cancelled");
+    assert.equal(stored.mail.confirmation, "not_sent");
+    assert.equal(stored.mail.invite, "not_sent");
+    assert.equal(roles.includes("confirmation"), false);
+    assert.equal(roles.includes("invite"), false);
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+test("finding A: a confirmation already in flight after cancel is not a successful confirm or invite", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  let state: ProviderState = "none";
+  let cancelEvents = 0;
+  const roles: string[] = [];
+  let releaseMail = () => undefined as void;
+  const mailGate = new Promise<void>((resolve) => { releaseMail = resolve; });
+  let confirmationStarted = false;
+  const calendar = quietCalendar();
+  calendar.insertEvent = async () => {
+    state = "active";
+    return { kind: "ok", iCalUid: "synthetic-uid@example.test" };
+  };
+  calendar.getEvent = async () => {
+    if (state === "none") return { kind: "absent" };
+    return { kind: "ok", iCalUid: "synthetic-uid@example.test", status: state === "cancelled" ? "cancelled" as const : "confirmed" as const };
+  };
+  calendar.cancelEvent = async () => {
+    cancelEvents += 1;
+    if (state === "none") return { kind: "absent" as const };
+    state = "cancelled";
+    return { kind: "ok" as const };
+  };
+  const mail = {
+    async send(message: { role: string }) {
+      roles.push(message.role);
+      if (message.role === "confirmation") {
+        confirmationStarted = true;
+        await mailGate;
+      }
+      return { kind: "accepted" as const, id: `synthetic-${message.role}` };
+    },
+  };
+  const bookingDeps = deps(storeDir, now, calendar, mail);
+  try {
+    const { token, hold } = await holdFor(bookingDeps, "ip-mail");
+    const confirming = confirmLiveBooking(bookingDeps, { token, holdId: hold.hold.id, idempotencyKey: "confirm-a-mail" });
+    await until(() => confirmationStarted);
+    const pending = await storedBooking(storeDir);
+    assert.equal(pending.status, "event_recorded");
+    const cancelled = await cancelLiveBooking(bookingDeps, { token, reference: pending.id });
+    assert.equal(cancelled.booking.status, "cancelled");
+    assert.equal(state, "cancelled");
+    releaseMail();
+    const confirmed = await confirming;
+    assert.equal(confirmed.booking.status, "cancelled");
+    assert.equal(confirmed.booking.mail.confirmation, "unknown");
+    assert.equal(confirmed.booking.mail.invite, "not_sent");
+    assert.equal(roles.includes("invite"), false);
+    assert.equal(roles.filter((role) => role === "confirmation").length, 1);
+    assert.equal(cancelEvents, 1);
+    assert.equal(state, "cancelled");
+    const stored = await storedBooking(storeDir);
+    assert.equal(stored.status, "cancelled");
+    assert.equal(stored.mail.confirmation, "unknown");
+    assert.equal(stored.mail.invite, "not_sent");
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+test("finding A: an unknown provider cancel after insert stays unknown and leaves the event active", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  const provider = providerDouble("unknown");
+  const roles: string[] = [];
+  const bookingDeps = deps(storeDir, now, provider.calendar, acceptedMail(roles));
+  try {
+    const { token, hold } = await holdFor(bookingDeps, "ip-unknown");
+    const confirming = confirmLiveBooking(bookingDeps, { token, holdId: hold.hold.id, idempotencyKey: "confirm-a-unknown" });
+    await until(() => provider.entered() === 1);
+    const pending = await storedBooking(storeDir);
+    const cancelled = await cancelLiveBooking(bookingDeps, { token, reference: pending.id });
+    assert.equal(cancelled.booking.status, "cancelled");
+    provider.release();
+    const confirmed = await confirming;
+    assert.equal(confirmed.booking.status, "cancel_unknown");
+    assert.equal(confirmed.booking.calendarEvent, "unknown");
+    assert.equal(confirmed.booking.mail.confirmation, "not_sent");
+    assert.equal(confirmed.booking.mail.invite, "not_sent");
+    assert.equal(provider.state(), "active");
+    assert.equal(provider.inserts(), 1);
+    assert.equal(provider.cancelEvents(), 1);
+    assert.equal(provider.trace.includes("cancelEvent:unknown:active"), true);
+    const stored = await storedBooking(storeDir);
+    assert.equal(stored.status, "cancel_unknown");
+    assert.equal(stored.mail.confirmation, "not_sent");
+    assert.equal(stored.mail.invite, "not_sent");
+    assert.equal(roles.includes("confirmation"), false);
+    assert.equal(roles.includes("invite"), false);
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+test("finding B: an interior symlink in a mode 0700 store does not receive writes", async () => {
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  const mail = { async send() { return { kind: "accepted" as const, id: "synthetic" }; } };
+  const folders = ["sessions", "holds", "bookings", "verifications", "cancellations", "abuse", "locks"] as const;
+  for (const folder of folders) {
+    const storeDir = await tempStore();
+    const external = await tempStore();
+    await chmod(storeDir, 0o700);
+    await writeFile(path.join(external, "keep.txt"), "unchanged");
+    const bookingDeps = deps(storeDir, now, quietCalendar(), mail);
+    try {
+      const root = await lstat(storeDir);
+      assert.equal(root.isSymbolicLink(), false);
+      assert.equal(root.isDirectory(), true);
+      assert.equal(root.mode & 0o777, 0o700);
+      const refuses = async (run: () => Promise<unknown>) => {
+        await assert.rejects(run, (error: unknown) => error instanceof LiveBookingStoreError && error.message === "store_alias");
+      };
+      if (folder === "sessions" || folder === "abuse" || folder === "locks") {
+        await symlink(external, path.join(storeDir, folder));
+        await refuses(() => startLiveSession(bookingDeps, sha256(`ip-${folder}`)));
+      } else if (folder === "verifications") {
+        const token = (await startLiveSession(bookingDeps, sha256("ip-verify"))).token;
+        await symlink(external, path.join(storeDir, folder));
+        await refuses(() => requestLiveCode(bookingDeps, { token, email: draft.email, idempotencyKey: "code-b-verify", emailHash: sha256(draft.email) }));
+      } else if (folder === "holds") {
+        const token = (await startLiveSession(bookingDeps, sha256("ip-holds"))).token;
+        const slot = (await liveAvailability(bookingDeps, token)).slots[0];
+        await requestLiveCode(bookingDeps, { token, email: draft.email, idempotencyKey: "code-b-holds", emailHash: sha256(draft.email) });
+        await checkLiveCode(bookingDeps, { token, email: draft.email, code: "102030" });
+        await symlink(external, path.join(storeDir, folder));
+        await refuses(() => prepareLiveHold(bookingDeps, { token, slotId: slot.id, draft }));
+      } else {
+        const prepared = await holdFor(bookingDeps, `ip-${folder}`);
+        await symlink(external, path.join(storeDir, folder));
+        await refuses(() => confirmLiveBooking(bookingDeps, { token: prepared.token, holdId: prepared.hold.hold.id, idempotencyKey: `confirm-b-${folder}` }));
+      }
+      assert.deepEqual(await readdir(external), ["keep.txt"]);
+      assert.equal(await readFile(path.join(external, "keep.txt"), "utf8"), "unchanged");
+    } finally {
+      await rm(storeDir, { recursive: true, force: true });
+      await rm(external, { recursive: true, force: true });
+    }
+  }
+
+  const storeDir = await tempStore();
+  const external = await tempStore();
+  const target = path.join(external, "session.json");
+  await writeFile(target, "unchanged");
+  const bookingDeps = deps(storeDir, now, quietCalendar(), mail);
+  try {
+    const token = (await startLiveSession(bookingDeps, sha256("ip-file"))).token;
+    const sessionPath = path.join(storeDir, "sessions", `${sha256(token)}.json`);
+    await rm(sessionPath);
+    await symlink(target, sessionPath);
+    await assert.rejects(
+      () => readLiveSession(bookingDeps, token),
+      (error: unknown) => error instanceof LiveBookingStoreError && error.message === "store_alias",
+    );
+    assert.equal(await readFile(target, "utf8"), "unchanged");
+    const lockTarget = path.join(external, "lock");
+    await writeFile(lockTarget, "unchanged");
+    await symlink(lockTarget, path.join(storeDir, "locks", "mutation.lock"));
+    await assert.rejects(
+      () => startLiveSession(bookingDeps, sha256("ip-lock-file")),
+      (error: unknown) => error instanceof LiveBookingStoreError && error.message === "store_alias",
+    );
+    assert.equal(await readFile(lockTarget, "utf8"), "unchanged");
+    assert.deepEqual((await readdir(external)).sort(), ["lock", "session.json"]);
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+    await rm(external, { recursive: true, force: true });
+  }
+});
+
+async function budgetCount(storeDir: string, key: string): Promise<number> {
+  const raw = await readFile(path.join(storeDir, "abuse", `${key}.json`), "utf8");
+  return (JSON.parse(raw) as { count: number }).count;
+}
+
+test("finding 6: rejected mailbox repeats do not consume the global send ceiling", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  let sends = 0;
+  const mailbox = "limited@example.test";
+  const bookingDeps = deps(storeDir, now, quietCalendar(), { async send() { sends += 1; return { kind: "accepted", id: "synthetic" }; } });
+  try {
+    for (let index = 0; index < 8; index += 1) {
+      const token = (await startLiveSession(bookingDeps, sha256(`ip-${index % 2}`))).token;
+      const sent = await requestLiveCode(bookingDeps, { token, email: mailbox, idempotencyKey: `code-6-ok-${index}`, emailHash: sha256(mailbox) });
+      assert.equal(sent.acceptance, "accepted");
+      if (index === 0) {
+        const replay = await requestLiveCode(bookingDeps, { token, email: mailbox, idempotencyKey: "code-6-ok-0", emailHash: sha256(mailbox) });
+        assert.equal(replay.acceptance, "accepted");
+        assert.equal(sends, 1);
+      }
+    }
+    assert.equal(sends, 8);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 8);
+    assert.equal(await budgetCount(storeDir, sha256(mailbox)), 8);
+    for (let index = 0; index < 22; index += 1) {
+      const token = (await startLiveSession(bookingDeps, sha256(`ip-${index % 2}`))).token;
+      await assert.rejects(
+        () => requestLiveCode(bookingDeps, { token, email: mailbox, idempotencyKey: `code-6-no-${index}`, emailHash: sha256(mailbox) }),
+        (error: unknown) => error instanceof LiveBookingFailure && error.code === "rate_limited",
+      );
+    }
+    assert.equal(sends, 8);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 8);
+    assert.equal(await budgetCount(storeDir, sha256(mailbox)), 8);
+    const fresh = (await startLiveSession(bookingDeps, sha256("ip-new-mailbox"))).token;
+    const next = await requestLiveCode(bookingDeps, { token: fresh, email: "other@example.test", idempotencyKey: "code-6-other", emailHash: sha256("other@example.test") });
+    assert.equal(next.acceptance, "accepted");
+    assert.equal(sends, 9);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 9);
+  } finally {
+    await rm(storeDir, { recursive: true, force: true });
+  }
+});
+
+test("finding 6: a provider rejection still consumes a reserved send, and the last global slot is reserved once", async () => {
+  const storeDir = await tempStore();
+  const now = { value: Date.parse("2026-11-06T08:00:00.000Z") };
+  let attempted = 0;
+  const bookingDeps = deps(storeDir, now, quietCalendar(), {
+    async send(message: { to: string }) {
+      attempted += 1;
+      return message.to === "bounce@example.test" ? { kind: "rejected" as const } : { kind: "accepted" as const, id: "synthetic" };
+    },
+  });
+  try {
+    const bounced = (await startLiveSession(bookingDeps, sha256("ip-bounce"))).token;
+    const rejected = await requestLiveCode(bookingDeps, { token: bounced, email: "bounce@example.test", idempotencyKey: "code-6-bounce", emailHash: sha256("bounce@example.test") });
+    assert.equal(rejected.acceptance, "rejected");
+    assert.equal(attempted, 1);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 1);
+    for (let index = 0; index < 28; index += 1) {
+      const token = (await startLiveSession(bookingDeps, sha256(`ip-fill-${index % 2}`))).token;
+      const email = `fill${index}@example.test`;
+      const sent = await requestLiveCode(bookingDeps, { token, email, idempotencyKey: `code-6-fill-${index}`, emailHash: sha256(email) });
+      assert.equal(sent.acceptance, "accepted");
+    }
+    assert.equal(attempted, 29);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 29);
+    const race = [0, 1].map((index) => (async () => {
+      const token = (await startLiveSession(bookingDeps, sha256(`ip-race-${index}`))).token;
+      const email = `race${index}@example.test`;
+      return requestLiveCode(bookingDeps, { token, email, idempotencyKey: `code-6-race-${index}`, emailHash: sha256(email) });
+    })());
+    const results = await Promise.allSettled(race);
+    const accepted = results.filter((result) => result.status === "fulfilled" && result.value.acceptance === "accepted");
+    const limited = results.filter((result) => result.status === "rejected" && result.reason instanceof LiveBookingFailure && result.reason.code === "rate_limited");
+    assert.equal(accepted.length, 1);
+    assert.equal(limited.length, 1);
+    assert.equal(attempted, 30);
+    assert.equal(await budgetCount(storeDir, "globalmail"), 30);
   } finally {
     await rm(storeDir, { recursive: true, force: true });
   }

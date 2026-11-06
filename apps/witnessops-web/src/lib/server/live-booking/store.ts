@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes, randomUUID } from "node:crypto";
-import { chmod, mkdir, open, readFile, readdir, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
+import { chmod, lstat, mkdir, open, readFile, readdir, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { storeIsIsolated } from "./mode";
 import type { BookingRecord, HoldRecord, SessionRecord, VerificationRecord } from "./records";
@@ -18,7 +18,20 @@ export class LiveBookingStoreError extends Error {
 }
 
 async function ensurePrivateDir(dir: string): Promise<void> {
-  await mkdir(dir, { recursive: true, mode: 0o700 });
+  try {
+    const info = await lstat(dir);
+    if (info.isSymbolicLink() || !info.isDirectory()) throw new LiveBookingStoreError("store_alias");
+  } catch (error) {
+    if (error instanceof LiveBookingStoreError) throw error;
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw new LiveBookingStoreError();
+    try {
+      await mkdir(dir, { mode: 0o700 });
+    } catch (mkdirError) {
+      if ((mkdirError as NodeJS.ErrnoException).code !== "EEXIST") throw new LiveBookingStoreError();
+    }
+  }
+  const info = await lstat(dir);
+  if (info.isSymbolicLink() || !info.isDirectory()) throw new LiveBookingStoreError("store_alias");
   await chmod(dir, 0o700);
 }
 
@@ -58,15 +71,46 @@ function recordPath(store: string, folder: Folder, id: string): string {
 
 async function readRecord<T>(file: string): Promise<T | null> {
   try {
+    const info = await lstat(file);
+    if (info.isSymbolicLink()) throw new LiveBookingStoreError("store_alias");
     return JSON.parse(await readFile(file, "utf8")) as T;
   } catch (error) {
+    if (error instanceof LiveBookingStoreError) throw error;
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw new LiveBookingStoreError();
   }
 }
 
+async function removeRecord(file: string): Promise<void> {
+  const dir = path.dirname(file);
+  let directory: Awaited<ReturnType<typeof lstat>>;
+  try {
+    directory = await lstat(dir);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+    throw new LiveBookingStoreError();
+  }
+  if (directory.isSymbolicLink() || !directory.isDirectory()) throw new LiveBookingStoreError("store_alias");
+  try {
+    const existing = await lstat(file);
+    if (existing.isSymbolicLink()) throw new LiveBookingStoreError("store_alias");
+  } catch (error) {
+    if (error instanceof LiveBookingStoreError) throw error;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+    throw new LiveBookingStoreError();
+  }
+  await rm(file, { force: true });
+}
+
 async function writeRecord(file: string, value: unknown): Promise<void> {
   await ensurePrivateDir(path.dirname(file));
+  try {
+    const existing = await lstat(file);
+    if (existing.isSymbolicLink()) throw new LiveBookingStoreError("store_alias");
+  } catch (error) {
+    if (error instanceof LiveBookingStoreError) throw error;
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw new LiveBookingStoreError();
+  }
   const temp = `${file}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`;
   const handle = await open(temp, "w", 0o600);
   try {
@@ -99,6 +143,13 @@ export async function withStoreLock<T>(dir: string, action: (store: string) => P
   const deadline = Date.now() + 20_000;
   await ensurePrivateDir(path.dirname(lockPath));
   while (true) {
+    try {
+      const existing = await lstat(lockPath);
+      if (existing.isSymbolicLink()) throw new LiveBookingStoreError("store_alias");
+    } catch (error) {
+      if (error instanceof LiveBookingStoreError) throw error;
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw new LiveBookingStoreError();
+    }
     try {
       await writeFile(lockPath, token, { encoding: "utf8", flag: "wx", mode: 0o600 });
       break;
@@ -147,7 +198,7 @@ export function writeHold(store: string, record: HoldRecord): Promise<void> {
   return writeRecord(recordPath(store, "holds", record.slotId), record);
 }
 export function deleteHold(store: string, slotId: string): Promise<void> {
-  return rm(recordPath(store, "holds", slotId), { force: true });
+  return removeRecord(recordPath(store, "holds", slotId));
 }
 export function readBooking(store: string, id: string): Promise<BookingRecord | null> {
   return readRecord(recordPath(store, "bookings", id));
@@ -159,10 +210,10 @@ export function readVerification(store: string, id: string): Promise<Verificatio
   return readRecord(recordPath(store, "verifications", id));
 }
 export function deleteVerification(store: string, id: string): Promise<void> {
-  return rm(recordPath(store, "verifications", id), { force: true });
+  return removeRecord(recordPath(store, "verifications", id));
 }
 export function deleteSession(store: string, tokenHash: string): Promise<void> {
-  return rm(recordPath(store, "sessions", tokenHash), { force: true });
+  return removeRecord(recordPath(store, "sessions", tokenHash));
 }
 export function writeVerification(store: string, record: VerificationRecord): Promise<void> {
   return writeRecord(recordPath(store, "verifications", record.id), record);
@@ -188,7 +239,7 @@ export async function sweepExpired(store: string, now: number): Promise<void> {
   const verifications = await listFolder<VerificationRecord>(store, "verifications", (verification) => verification.consumed || verification.expiresAt <= now);
   await Promise.all(verifications.map((verification) => deleteVerification(store, verification.id)));
   const holds = await listFolder<HoldRecord>(store, "holds", (hold) => hold.expiresAt <= now);
-  await Promise.all(holds.map((hold) => rm(recordPath(store, "holds", hold.slotId), { force: true })));
+  await Promise.all(holds.map((hold) => removeRecord(recordPath(store, "holds", hold.slotId))));
 }
 
 export async function countOpenSessions(store: string, now: number): Promise<number> {
@@ -198,6 +249,14 @@ export async function countOpenSessions(store: string, now: number): Promise<num
 
 async function listFolder<T>(store: string, folder: Folder, keep: (value: T) => boolean): Promise<T[]> {
   const base = path.join(store, folder);
+  try {
+    const info = await lstat(base);
+    if (info.isSymbolicLink()) throw new LiveBookingStoreError("store_alias");
+  } catch (error) {
+    if (error instanceof LiveBookingStoreError) throw error;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw new LiveBookingStoreError();
+  }
   let names: string[];
   try {
     names = await readdir(base);
@@ -212,6 +271,22 @@ async function listFolder<T>(store: string, folder: Folder, keep: (value: T) => 
     if (record && keep(record)) records.push(record);
   }
   return records;
+}
+
+export async function reserveBudgets(store: string, budgets: Array<{ key: string; limit: number; windowMs: number }>, now: number): Promise<boolean> {
+  const planned: Array<{ file: string; count: number; windowStart: number }> = [];
+  for (const budget of budgets) {
+    const file = recordPath(store, "abuse", budget.key);
+    const current = await readRecord<{ count: number; windowStart: number }>(file);
+    const fresh = !current || now - current.windowStart >= budget.windowMs;
+    const count = fresh ? 0 : current.count;
+    if (count >= budget.limit) return false;
+    planned.push({ file, count: count + 1, windowStart: fresh ? now : current.windowStart });
+  }
+  for (const item of planned) {
+    await writeRecord(item.file, { count: item.count, windowStart: item.windowStart });
+  }
+  return true;
 }
 
 export async function consumeBudget(store: string, key: string, limit: number, windowMs: number, now: number): Promise<boolean> {

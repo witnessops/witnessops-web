@@ -71,6 +71,7 @@ export type BookingRecord = {
     cancellationInvite: MailAcceptance;
   };
   idempotencyKey: string;
+  revision: number;
   createdAt: number;
   updatedAt: number;
 };

@@ -42,6 +42,7 @@ import {
   readHold,
   readSession,
   readVerification,
+  reserveBudgets,
   withStoreLock,
   writeBooking,
   writeCancellation,
@@ -175,27 +176,100 @@ async function calendarClear(calendar: CalendarTransport, slot: WarsawSlot): Pro
   return !busy.busy.some((interval) => overlaps(slot.start, slot.end, interval.start, interval.end));
 }
 
-async function persistBooking(deps: LiveBookingDeps, booking: BookingRecord): Promise<void> {
-  booking.updatedAt = deps.now();
-  await locked(deps, async (store) => {
+function cancellationOwns(status: BookingStatus): boolean {
+  return status === "cancelled" || status === "released_external_overlap" || status === "cancel_unknown";
+}
+
+function successStatus(status: BookingStatus): boolean {
+  return status === "event_recorded" || status === "insert_started" || status === "overlap_unknown";
+}
+
+async function reloadBooking(deps: LiveBookingDeps, id: string): Promise<BookingRecord> {
+  return locked(deps, async (store) => {
+    const current = await readBooking(store, id);
+    if (!current) fail(503, "store_unavailable");
+    return current;
+  });
+}
+
+async function persistBooking(deps: LiveBookingDeps, booking: BookingRecord): Promise<BookingRecord> {
+  return locked(deps, async (store) => {
     const current = await readBooking(store, booking.id);
-    if (current) {
+    if (current && cancellationOwns(current.status) && !cancellationOwns(booking.status)) {
+      Object.assign(booking, current);
+      return current;
+    }
+    if (current?.status === "released_external_overlap" && booking.status !== current.status) {
+      Object.assign(booking, current);
+      return current;
+    }
+    if (current && cancellationOwns(booking.status)) {
+      booking.mail.confirmation = current.mail.confirmation;
+      booking.mail.invite = current.mail.invite;
+      if (current.mail.cancellationNotice === "accepted") booking.mail.cancellationNotice = "accepted";
+      if (current.mail.cancellationInvite === "accepted") booking.mail.cancellationInvite = "accepted";
+    } else if (current) {
       for (const field of ["confirmation", "invite", "cancellationNotice", "cancellationInvite"] as const) {
         if (current.mail[field] === "accepted") booking.mail[field] = "accepted";
       }
     }
+    booking.revision = (current?.revision ?? 0) + 1;
+    booking.updatedAt = deps.now();
     await writeBooking(store, booking);
-    if (booking.status !== "insert_started" && booking.status !== "overlap_unknown" && booking.status !== "cancel_unknown") {
-      await deleteHold(store, booking.slotId);
-    }
+    if (!successStatus(booking.status) && booking.status !== "cancel_unknown") await deleteHold(store, booking.slotId);
+    return booking;
   });
 }
 
 async function deliverMail(deps: LiveBookingDeps, booking: BookingRecord, mail: Parameters<MailTransport["send"]>[0], field: keyof BookingRecord["mail"]): Promise<void> {
-  if (booking.mail[field] === "accepted") return;
+  const before = await reloadBooking(deps, booking.id);
+  if ((field === "confirmation" || field === "invite") && cancellationOwns(before.status)) {
+    Object.assign(booking, before);
+    return;
+  }
+  if (before.mail[field] === "accepted") {
+    Object.assign(booking, before);
+    return;
+  }
   const result = await deps.mail.send(mail);
-  booking.mail[field] = result.kind === "accepted" ? "accepted" : result.kind === "rejected" ? "rejected" : "unknown";
-  await persistBooking(deps, booking);
+  const acceptance: MailAcceptance = result.kind === "accepted" ? "accepted" : result.kind === "rejected" ? "rejected" : "unknown";
+  const saved = await locked(deps, async (store) => {
+    const latest = await readBooking(store, booking.id);
+    if (!latest) fail(503, "store_unavailable");
+    if ((field === "confirmation" || field === "invite") && cancellationOwns(latest.status)) {
+      if (latest.mail[field] !== "accepted") latest.mail[field] = "unknown";
+      latest.revision += 1;
+      latest.updatedAt = deps.now();
+      await writeBooking(store, latest);
+      return latest;
+    }
+    latest.mail[field] = acceptance;
+    latest.revision += 1;
+    latest.updatedAt = deps.now();
+    await writeBooking(store, latest);
+    return latest;
+  });
+  Object.assign(booking, saved);
+}
+
+async function recoverIfCancellationWon(deps: LiveBookingDeps, booking: BookingRecord, created: "created" | "maybe" | "no"): Promise<BookingRecord | null> {
+  const current = await reloadBooking(deps, booking.id);
+  if (!cancellationOwns(current.status)) return null;
+  if (created === "no") {
+    Object.assign(booking, current);
+    return current;
+  }
+  const recovered = await deps.calendar.cancelEvent(booking.eventId);
+  if (recovered.kind === "ok" || recovered.kind === "absent") {
+    current.status = "cancelled";
+    const saved = await persistBooking(deps, current);
+    Object.assign(booking, saved);
+    return saved;
+  }
+  current.status = "cancel_unknown";
+  const saved = await persistBooking(deps, current);
+  Object.assign(booking, saved);
+  return saved;
 }
 
 function uidFor(booking: BookingRecord): string {
@@ -267,8 +341,11 @@ export async function requestLiveCode(deps: LiveBookingDeps, input: { token: str
       return { replay: session.lastCodeResult };
     }
     if (session.codeSends >= CODE_MAX_SENDS) fail(429, "rate_limited");
-    if (!await consumeBudget(store, GLOBAL_MAIL_BUDGET_KEY, GLOBAL_VERIFICATION_PER_HOUR, HOUR_MS, now)) fail(429, "rate_limited");
-    if (!await consumeBudget(store, input.emailHash, CODES_PER_EMAIL_HOUR, HOUR_MS, now)) fail(429, "rate_limited");
+    const reserved = await reserveBudgets(store, [
+      { key: input.emailHash, limit: CODES_PER_EMAIL_HOUR, windowMs: HOUR_MS },
+      { key: GLOBAL_MAIL_BUDGET_KEY, limit: GLOBAL_VERIFICATION_PER_HOUR, windowMs: HOUR_MS },
+    ], now);
+    if (!reserved) fail(429, "rate_limited");
     const verificationId = newId("vf");
     const code = deps.newCode?.() ?? defaultCode();
     if (code === DEMO_CODE_FORBIDDEN) fail(500, "unavailable");
@@ -403,6 +480,7 @@ export async function confirmLiveBooking(deps: LiveBookingDeps, input: { token: 
       status: "insert_started",
       mail: { ...emptyMail },
       idempotencyKey: input.idempotencyKey,
+      revision: 1,
       createdAt: now,
       updatedAt: now,
     };
@@ -440,21 +518,36 @@ async function sendCancelMails(deps: LiveBookingDeps, booking: BookingRecord): P
 }
 
 async function settleOutside(deps: LiveBookingDeps, booking: BookingRecord): Promise<BookingRecord> {
-  if (booking.status === "cancelled") {
-    await sendCancelMails(deps, booking);
+  const initial = await reloadBooking(deps, booking.id);
+  Object.assign(booking, initial);
+  if (cancellationOwns(booking.status)) {
+    if (booking.status === "cancelled") await sendCancelMails(deps, booking);
     return booking;
   }
   if (booking.status === "insert_rejected" || booking.status === "released_external_overlap") return booking;
   if (booking.status === "insert_started") {
+    const stoppedBefore = await recoverIfCancellationWon(deps, booking, "no");
+    if (stoppedBefore) return stoppedBefore;
     const existing = await deps.calendar.getEvent(booking.eventId);
-    if (existing.kind === "unknown" || existing.kind === "rejected") {
-      await persistBooking(deps, booking);
+    if (existing.kind === "ok") {
+      booking.iCalUid = existing.iCalUid;
+      booking.status = existing.status === "cancelled" ? "cancelled" : "event_recorded";
+      const stopped = await recoverIfCancellationWon(deps, booking, existing.status === "cancelled" ? "no" : "created");
+      if (stopped) return stopped;
+      Object.assign(booking, await persistBooking(deps, booking));
+    } else if (existing.kind === "unknown" || existing.kind === "rejected") {
+      const stopped = await recoverIfCancellationWon(deps, booking, "maybe");
+      if (stopped) return stopped;
+      Object.assign(booking, await persistBooking(deps, booking));
       return booking;
-    }
-    if (existing.kind === "absent") {
+    } else {
+      const stoppedBeforeInsert = await recoverIfCancellationWon(deps, booking, "no");
+      if (stoppedBeforeInsert) return stoppedBeforeInsert;
       if (!await calendarClear(deps.calendar, slotTimes(booking))) {
+        const stopped = await recoverIfCancellationWon(deps, booking, "no");
+        if (stopped) return stopped;
         booking.status = "insert_rejected";
-        await persistBooking(deps, booking);
+        Object.assign(booking, await persistBooking(deps, booking));
         return booking;
       }
       const inserted = await deps.calendar.insertEvent({
@@ -467,43 +560,60 @@ async function settleOutside(deps: LiveBookingDeps, booking: BookingRecord): Pro
         attendeeEmail: booking.draft.email,
         attendeeName: booking.draft.name,
       });
-      if (inserted.kind === "conflict") {
-        const again = await deps.calendar.getEvent(booking.eventId);
-        if (again.kind !== "ok") {
-          await persistBooking(deps, booking);
-          return booking;
-        }
-        booking.iCalUid = again.iCalUid;
-        booking.status = again.status === "cancelled" ? "cancelled" : "event_recorded";
-      } else if (inserted.kind !== "ok") {
-        if (inserted.kind === "rejected") booking.status = "insert_rejected";
-        await persistBooking(deps, booking);
-        return booking;
-      } else {
+      if (inserted.kind === "ok") {
         booking.iCalUid = inserted.iCalUid;
         booking.status = "event_recorded";
+        const stopped = await recoverIfCancellationWon(deps, booking, "created");
+        if (stopped) return stopped;
+      } else if (inserted.kind === "conflict") {
+        const again = await deps.calendar.getEvent(booking.eventId);
+        if (again.kind === "ok") {
+          booking.iCalUid = again.iCalUid;
+          booking.status = again.status === "cancelled" ? "cancelled" : "event_recorded";
+          const stopped = await recoverIfCancellationWon(deps, booking, again.status === "cancelled" ? "no" : "created");
+          if (stopped) return stopped;
+        } else {
+          const stopped = await recoverIfCancellationWon(deps, booking, "maybe");
+          if (stopped) return stopped;
+          Object.assign(booking, await persistBooking(deps, booking));
+          return booking;
+        }
+      } else if (inserted.kind === "rejected") {
+        booking.status = "insert_rejected";
+        const stopped = await recoverIfCancellationWon(deps, booking, "no");
+        if (stopped) return stopped;
+        Object.assign(booking, await persistBooking(deps, booking));
+        return booking;
+      } else {
+        const stopped = await recoverIfCancellationWon(deps, booking, "maybe");
+        if (stopped) return stopped;
+        Object.assign(booking, await persistBooking(deps, booking));
+        return booking;
       }
-      await persistBooking(deps, booking);
-    } else {
-      booking.iCalUid = existing.iCalUid;
-      booking.status = existing.status === "cancelled" ? "cancelled" : "event_recorded";
-      await persistBooking(deps, booking);
+      Object.assign(booking, await persistBooking(deps, booking));
     }
   }
+  const beforeOverlap = await reloadBooking(deps, booking.id);
+  Object.assign(booking, beforeOverlap);
+  if (cancellationOwns(booking.status)) return booking;
   if (booking.status === "event_recorded" || booking.status === "overlap_unknown") {
     const overlap = await deps.calendar.listBlocking(booking.start, booking.end, booking.eventId);
+    const afterOverlap = await recoverIfCancellationWon(deps, booking, "no");
+    if (afterOverlap) return afterOverlap;
     if (overlap.kind !== "ok") {
       booking.status = "overlap_unknown";
-      await persistBooking(deps, booking);
+      Object.assign(booking, await persistBooking(deps, booking));
       return booking;
     }
     if (overlap.overlaps) {
       const cancelled = await deps.calendar.cancelEvent(booking.eventId);
       booking.status = cancelled.kind === "ok" || cancelled.kind === "absent" ? "released_external_overlap" : "cancel_unknown";
-      await persistBooking(deps, booking);
+      Object.assign(booking, await persistBooking(deps, booking));
       return booking;
     }
     booking.status = "event_recorded";
+    const beforeMail = await recoverIfCancellationWon(deps, booking, "no");
+    if (beforeMail) return beforeMail;
     await deliverMail(deps, booking, confirmationMail({
       to: booking.draft.email,
       bookingId: booking.id,
@@ -511,6 +621,7 @@ async function settleOutside(deps: LiveBookingDeps, booking: BookingRecord): Pro
       start: booking.start,
       end: booking.end,
     }), "confirmation");
+    if (cancellationOwns(booking.status)) return booking;
     if (booking.mail.confirmation === "accepted") {
       await deliverMail(deps, booking, inviteMail({
         to: booking.draft.email,
@@ -521,9 +632,10 @@ async function settleOutside(deps: LiveBookingDeps, booking: BookingRecord): Pro
         uid: uidFor(booking),
       }), "invite");
     }
-    await locked(deps, async (store) => { await deleteHold(store, booking.slotId); });
+    if (!cancellationOwns(booking.status)) {
+      await locked(deps, async (store) => { await deleteHold(store, booking.slotId); });
+    }
   }
-  if (booking.status === "cancelled") await sendCancelMails(deps, booking);
   return booking;
 }
 
