@@ -81,6 +81,7 @@
       "postcss": ">=8.5.18",
       "flatted": ">=3.4.2",
       "hono": "4.13.7",
+      "body-parser": "2.4.0",
       "express-rate-limit": "8.2.2",
       "proxy-addr": "2.0.8",
       "ip-address": "10.7.1",
