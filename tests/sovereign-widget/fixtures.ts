@@ -56,6 +56,13 @@ export const test = base.extend<{ apiIsolation: void }>({
       }
       return route.continue();
     });
+    await context.route("**/api/live-booking", async (route) => {
+      if (new URL(route.request().url()).hostname !== "127.0.0.1") return route.abort();
+      if (route.request().method() !== "GET") {
+        return route.fulfill({ status: 405, json: { error: "live_booking_post_not_expected", mode: "disabled" } });
+      }
+      return route.fulfill({ status: 200, json: { mode: "disabled", timeZone: null, delivery: "not_observed" } });
+    });
     await use();
     expect(unmockedApiCalls, "Every API request must be explicitly mocked in this suite").toEqual([]);
   }, { auto: true }],

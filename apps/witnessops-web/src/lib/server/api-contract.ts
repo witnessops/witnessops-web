@@ -84,7 +84,14 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     methods: ["POST"],
     category: "public-utility",
     summary: "Local fictional booking and opt-in GPT-Live preview",
-    note: "Always returns 410 in production. Non-production additionally requires the preview flag, loopback host, same-origin JSON requests and an opaque per-preview capability. Calendar writes require an explicit reviewed confirmation; voice tools cannot confirm. No real calendar or email integration.",
+    note: "Always returns 410 in production. Non-production additionally requires the preview flag, loopback host, same-origin JSON requests and an opaque per-preview capability. Calendar writes require an explicit reviewed confirmation; voice tools cannot confirm. No real calendar or email integration. The fictional preview is not a fallback for live scheduling.",
+  },
+  {
+    path: "/api/live-booking",
+    methods: ["GET", "POST"],
+    category: "public-utility",
+    summary: "Disabled-by-default live fit-call scheduling",
+    note: "Separate from the fictional preview. Returns not_enabled unless WITNESSOPS_LIVE_BOOKING_ENABLED is exactly 1, and unavailable unless calendar, Resend, origin, and durable-store configuration are complete. It does not call providers or the demo calendar when disabled or incomplete. Google sendUpdates stays none. Resend sends verification, confirmation, and invitation as separate roles. Inbox delivery is not observed. No Cloudflare webhook and no background worker are added.",
   },
   {
     path: "/api/ask-witnessops",

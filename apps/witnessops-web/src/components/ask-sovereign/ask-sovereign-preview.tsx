@@ -21,6 +21,7 @@ import { askWitnessOpsAnswerText, askWitnessOpsRouteHref, askWitnessOpsRouteLabe
 
 import { sovereignRequestError } from "./sovereign-request-error";
 import { SovereignBookingPreview } from "./sovereign-booking-preview";
+import { LiveBookingOffer, SovereignLiveBooking } from "./sovereign-live-booking";
 import { AnswerActions, useAnswerReader } from "./answer-actions";
 
 const PAUSE_KEY = "wo-sovereign-paused";
@@ -345,6 +346,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   }
   const embedded = Boolean(onClose);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [liveOpen, setLiveOpen] = useState(false);
   const reader = useAnswerReader(active && !bookingOpen, locale);
   const [dismissedBookingTurn, setDismissedBookingTurn] = useState<number | null>(null);
   const bookingEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_WO_PREVIEW === "1";
@@ -361,7 +363,15 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
   const chatScroll = useRef(0);
   function changeBookingOpen(open: boolean) {
     if (open && !bookingOpen) chatScroll.current = threadRef.current?.scrollTop ?? 0;
+    if (open) setLiveOpen(false);
     setBookingOpen(open);
+  }
+  function changeLiveOpen(open: boolean) {
+    if (open) {
+      chatScroll.current = threadRef.current?.scrollTop ?? 0;
+      setBookingOpen(false);
+    }
+    setLiveOpen(open);
   }
   useLayoutEffect(() => {
     if (!bookingOpen && threadRef.current) {
@@ -805,6 +815,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
         {bookingEnabled ? <button type="button" className={styles.bookingChoice} onClick={() => changeBookingOpen(true)} disabled={pending}>
           <span>{copy.bookChoice}<small>{copy.bookingHint}</small></span><InlineArrow />
         </button> : null}
+        <LiveBookingOffer locale={locale} pending={pending} onOpen={() => changeLiveOpen(true)} />
       </div> : <div className={styles.chips} data-ask-chips="">
         {suggestions.map((suggestion) => (
           <button key={suggestion.id} type="button" data-suggestion={suggestion.id} disabled={pending} onClick={() => ask(suggestion.text)}>{suggestion.text}</button>
@@ -873,7 +884,8 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
           </nav> : null}
           {locale === "pl" && process.env.NODE_ENV !== "production" ? <p className={styles.sheetNotice} data-sheet-notice="">PL copy pending native review</p> : null}
           {bookingEnabled ? <SovereignBookingPreview locale={locale} open={bookingOpen} /> : null}
-          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title" hidden={bookingOpen}>
+          {liveOpen ? <SovereignLiveBooking locale={locale} onClose={() => changeLiveOpen(false)} /> : null}
+          <div className={styles.thread} data-ask-thread="" ref={threadRef} tabIndex={0} aria-labelledby="ask-sovereign-title" hidden={bookingOpen || liveOpen}>
           <div>
           <p className={styles.disclaimer}>{copy.disclaimer}</p>
           <p className={styles.status} data-live={live} data-ask-status=""><span className={styles.dot} aria-hidden="true" /><span className={styles.statusRow}>{live === "processing" && (activeSim === "slow" || activeSim === "timeout") ? <span className={styles.turnChip}>{copy.simulatedChip}</span> : null}<span className={styles.statusText}>{visibleStatus}</span></span></p>
