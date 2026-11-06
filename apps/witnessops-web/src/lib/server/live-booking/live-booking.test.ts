@@ -182,10 +182,11 @@ test("mail roles stay separate and Google writes request sendUpdates=none", asyn
 
   const seen: CalendarCall[] = [];
   const fetchImpl: typeof fetch = async (input, init) => {
-    const url = String(input);
-    seen.push({ url, method: init?.method, body: typeof init?.body === "string" ? init.body : undefined });
-    if (url.includes("oauth2.googleapis.com")) return Response.json({ access_token: "synthetic-access", expires_in: 3600 });
-    if (url.includes("/events?") && init?.method === "POST") return Response.json({ id: "abcdefghij0123456789", iCalUID: "synthetic-uid@example.test" });
+    const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const url = new URL(raw);
+    seen.push({ url: url.href, method: init?.method, body: typeof init?.body === "string" ? init.body : undefined });
+    if (url.hostname === "oauth2.googleapis.com") return Response.json({ access_token: "synthetic-access", expires_in: 3600 });
+    if (url.hostname === "www.googleapis.com" && url.pathname.endsWith("/events") && init?.method === "POST") return Response.json({ id: "abcdefghij0123456789", iCalUID: "synthetic-uid@example.test" });
     return Response.json({});
   };
   const transport = createGoogleCalendarTransport({
@@ -207,7 +208,11 @@ test("mail roles stay separate and Google writes request sendUpdates=none", asyn
     attendeeName: draft.name,
   });
   assert.equal(inserted.kind, "ok");
-  const insert = seen.find((call) => call.method === "POST" && call.url?.includes("/events?"));
+  const insert = seen.find((call) => {
+    if (call.method !== "POST" || !call.url) return false;
+    const url = new URL(call.url);
+    return url.hostname === "www.googleapis.com" && url.pathname.endsWith("/events");
+  });
   assert.match(insert?.url ?? "", /sendUpdates=none/);
   assert.doesNotMatch(insert?.body ?? "", /conferenceData|sendUpdates":"all"/);
   const mailCalls: Array<{ body: string; key: string | null }> = [];

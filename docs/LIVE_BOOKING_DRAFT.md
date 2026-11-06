@@ -14,12 +14,12 @@ The fictional preview from the Sovereign booking work stays on `POST /api/sovere
 
 `GET` and `POST /api/live-booking` are a separate server path.
 
-- `WITNESSOPS_LIVE_BOOKING_ENABLED` must be the exact value `1`. Any other value, including unset, is not enabled and returns `410` with `not_enabled`.
+- `WITNESSOPS_LIVE_BOOKING_ENABLED` must be the raw value `1`. Any other value, including whitespace around `1`, is not enabled and returns `410` with `not_enabled`. The flag is not trimmed.
 - When the flag is `1` but configuration is incomplete, the route returns `503` with `unavailable`.
 - Neither state calls Google, Resend, or the demo calendar.
 - A ready route still refuses a request whose `Origin` and `Host` do not match `WITNESSOPS_LIVE_BOOKING_PUBLIC_ORIGIN`.
 
-The assistant shows a scheduling control only after the browser reads `GET /api/live-booking`. Static HTML does not advertise a booking. Disabled and unavailable states say that no time is held and no message is sent. A recorded calendar event, mail-provider acceptance, and inbox delivery are separate sentences. Inbox delivery is always `not_observed`.
+The public chat may read `GET /api/live-booking` after it opens. While the mode is not `ready`, that response is `disabled` or `unavailable` and the chat does not show a scheduling button. Static HTML does not advertise a booking. A ready mode is the only state that shows the scheduling control. A recorded calendar event, mail-provider acceptance, and inbox delivery are separate sentences. Inbox delivery is always `not_observed`.
 
 ## Calendar adapter
 
@@ -73,7 +73,9 @@ The invite is sent only after the confirmation send is accepted. A retry uses th
 
 ## Store, concurrency, and ambiguous results
 
-The store is a directory of JSON files plus the existing filesystem lock, the same durability style as the public site's admission store. It is not the admission store: the configured directory must already exist, must be absolute, and must not be the token or intake store. The process creates subfolders inside that directory and writes files mode `0600` with a file sync and a directory sync. It does not create the directory, allocate cloud storage, or run a migration.
+The store is a directory of JSON files plus a booking lock. It is not the admission store. The configured path must already exist, must be a real directory rather than a symlink, and its real path must not be the token store, the intake store, or a directory inside either. The process creates subfolders mode `0700` and writes files mode `0600`. It does not create the parent directory, allocate cloud storage, or run a migration.
+
+The lock is held only around file changes. Calendar and Resend calls stay outside it. A live process is not removed from the lock because its file time was moved backward. Same-host process-id checks are not proof that a lock is safe on shared storage used by more than one machine.
 
 All mutations take one store lock. A hold is one file per slot. A second active hold for that slot is refused. Tests cover two callers in one process and two operating-system processes on a local temporary directory. That is not proof of a production volume. The lock is safe only on a shared POSIX filesystem with atomic exclusive create. NFS without that behavior, or object storage, is not an acceptable store. Multi-instance scheduling stays disabled until that shared directory is an accepted prerequisite.
 
@@ -85,10 +87,10 @@ Remaining limits, which keep this from being a claim of no double booking:
 - An external edit can land after the free/busy read and before insert. The follow-up list reduces that window and does not remove it.
 - The Calendar API says an event-id collision might not be detected at insert time. Ids are random 20-character base32hex values. A collision is unlikely and still possible.
 - A crash can leave `insert_started` or unsent mail until the same browser session retries. After the session ends, nobody retries automatically.
-- The cancellation code is stored in the booking file so a later mail retry and the session holder can use it. A leaked store exposes mailbox addresses, topics, names, and that code. The directory has to be access-controlled. Session tokens are stored only as hashes.
-- Rate limits use a hashed IP from the existing proxy-header helper and a hashed mailbox. They are not a proof of client identity. Code entry allows 5 attempts, then the code is spent. A session can request 3 codes. The fictional code `314159` is always rejected.
+- The cancellation code is returned once in the confirm response and stored only as a hash. It is not written into the booking file and it is not repeated by a later read. Mail templates do not include it. A leaked store still exposes the mailbox, name, and topic on the booking record, which the mail path needs. Verification files are removed when the code is accepted, rejected, or expired. Expired session files are removed on the next locked store operation. There is no background sweeper, so a quiet directory can keep an expired session until that next operation. An `insert_started` booking can still occupy its slot after the session ends when the provider result was lost and no event was found. That remains an operator cleanup, not an automatic success.
+- Rate limits still record a hashed IP from the proxy header and a hashed mailbox. Those are not client identity. Verification sends also stop at a store-wide ceiling of 30 per hour, which does not change when the forwarding header changes. Code entry allows 5 attempts, then the code is spent. A session can request 3 codes. The fictional code `314159` is always rejected. Availability calls require a live session and stop at 12 per session per hour.
 - Holds last 5 minutes and are ignored after expiry without a sweeper. Sessions slide for 20 minutes and end 45 minutes after creation.
-- The store lock's stale recovery is 60 seconds. A crash can block mutations for that long instead of granting a second hold.
+- Stale lock recovery waits 30 minutes and also requires the recorded process id to be dead on this host. That is not a multi-machine lease. A crash can leave the lock until that window, or until an operator removes the lock file.
 - Resend idempotency expires. A retry after that window can send another message if the local mail state was never marked accepted.
 
 ## Safe enable checklist
@@ -133,8 +135,9 @@ From `apps/witnessops-web`:
 
 ```bash
 NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test \
-  src/lib/server/live-booking/warsaw-time.test.ts \
-  src/lib/server/live-booking/live-booking.test.ts \
+      src/lib/server/live-booking/warsaw-time.test.ts \
+      src/lib/server/live-booking/live-booking.test.ts \
+      src/lib/server/live-booking/live-booking-security.test.ts \
   src/components/ask-sovereign/sovereign-live-booking.test.tsx \
   src/app/api/sovereign-booking/route.test.ts \
   src/lib/sovereign-booking-session.test.ts \
@@ -144,4 +147,4 @@ NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/regis
   src/lib/server/api-contract.test.ts
 ```
 
-Also run `pnpm --filter witnessops-web lint`, `pnpm --filter witnessops-web typecheck`, `pnpm --filter witnessops-web build`, and from the repo root `pnpm route-parity` after that build. A local `next start` without the enable flag should return `GET /api/live-booking` `mode: disabled`, `POST /api/live-booking` `410 not_enabled`, and `POST /api/sovereign-booking` `410 preview_closed`.
+Also run `pnpm --filter witnessops-web lint`, `pnpm --filter witnessops-web typecheck`, `pnpm --filter witnessops-web build`, and from the repo root `pnpm route-parity` after that build. Disabled behavior is covered by calling the handler with the flag unset. A local site smoke is not evidence that the route is safe to enable.

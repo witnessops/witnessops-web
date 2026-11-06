@@ -29,6 +29,20 @@ function calendarUrl(calendarId: string, suffix: string, params: Record<string, 
   return url.toString();
 }
 
+function warsawDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: LIVE_BOOKING_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+}
+
+function eventCoversSlot(item: { start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string } }, start: string, end: string): boolean | null {
+  if (item.start?.dateTime && item.end?.dateTime) return overlaps(start, end, item.start.dateTime, item.end.dateTime);
+  if (item.start?.date && item.end?.date && /^\d{4}-\d{2}-\d{2}$/.test(item.start.date) && /^\d{4}-\d{2}-\d{2}$/.test(item.end.date)) {
+    const first = warsawDay(start);
+    const last = warsawDay(new Date(Date.parse(end) - 1).toISOString());
+    return first < item.end.date && last >= item.start.date;
+  }
+  return null;
+}
+
 function classify(status: number): "absent" | "conflict" | "rejected" | "unknown" | "ok" {
   if (status >= 200 && status < 300) return "ok";
   if (status === 404) return "absent";
@@ -186,15 +200,17 @@ export function createGoogleCalendarTransport(options: {
       }
       const body = await response.json() as {
         nextPageToken?: string;
-        items?: Array<{ id?: string; status?: string; transparency?: string; start?: { dateTime?: string }; end?: { dateTime?: string } }>;
+        items?: Array<{ id?: string; status?: string; transparency?: string; start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string } }>;
       };
       if (body.nextPageToken) return { kind: "unknown" };
-      const blocking = (body.items ?? []).some((item) => item.id !== ignoreEventId
-        && item.status !== "cancelled"
-        && item.transparency !== "transparent"
-        && item.start?.dateTime
-        && item.end?.dateTime
-        && overlaps(start, end, item.start.dateTime, item.end.dateTime));
+      let unreadable = false;
+      const blocking = (body.items ?? []).some((item) => {
+        if (item.id === ignoreEventId || item.status === "cancelled" || item.transparency === "transparent") return false;
+        const covered = eventCoversSlot(item, start, end);
+        if (covered === null) unreadable = true;
+        return covered === true;
+      });
+      if (unreadable) return { kind: "unknown" };
       return { kind: "ok", overlaps: blocking };
     },
     async cancelEvent(eventId) {

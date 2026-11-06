@@ -1,11 +1,16 @@
 import "server-only";
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import {
+  AVAILABILITY_PER_SESSION_HOUR,
   CODE_MAX_ATTEMPTS,
   CODE_MAX_SENDS,
   CODE_TTL_MS,
   CODES_PER_EMAIL_HOUR,
   DEMO_CODE_FORBIDDEN,
+  GLOBAL_AVAILABILITY_BUDGET_KEY,
+  GLOBAL_AVAILABILITY_PER_HOUR,
+  GLOBAL_MAIL_BUDGET_KEY,
+  GLOBAL_VERIFICATION_PER_HOUR,
   HOLD_MS,
   HOUR_MS,
   MAX_OPEN_SESSIONS,
@@ -27,6 +32,7 @@ import {
   consumeBudget,
   countOpenSessions,
   deleteHold,
+  deleteVerification,
   holdIsActive,
   listActiveHolds,
   listBookings,
@@ -135,8 +141,12 @@ function toPublic(booking: BookingRecord, verification: MailAcceptance = "not_se
   };
 }
 
-function withCancel(booking: BookingRecord, verification?: MailAcceptance): PublicBooking & { cancelToken: string } {
-  return { ...toPublic(booking, verification), cancelToken: booking.cancelToken };
+function locked<T>(deps: LiveBookingDeps, action: (store: string) => Promise<T>): Promise<T> {
+  return withStoreLock(deps.storeDir, action, deps.now());
+}
+
+function publicBooking(booking: BookingRecord, cancelToken?: string | null): PublicBooking & { cancelToken?: string } {
+  return cancelToken ? { ...toPublic(booking), cancelToken } : toPublic(booking);
 }
 
 function occupies(status: BookingStatus): boolean {
@@ -165,12 +175,27 @@ async function calendarClear(calendar: CalendarTransport, slot: WarsawSlot): Pro
   return !busy.busy.some((interval) => overlaps(slot.start, slot.end, interval.start, interval.end));
 }
 
-async function applyMail(deps: LiveBookingDeps, store: string, booking: BookingRecord, mail: Parameters<MailTransport["send"]>[0], field: keyof BookingRecord["mail"]): Promise<void> {
+async function persistBooking(deps: LiveBookingDeps, booking: BookingRecord): Promise<void> {
+  booking.updatedAt = deps.now();
+  await locked(deps, async (store) => {
+    const current = await readBooking(store, booking.id);
+    if (current) {
+      for (const field of ["confirmation", "invite", "cancellationNotice", "cancellationInvite"] as const) {
+        if (current.mail[field] === "accepted") booking.mail[field] = "accepted";
+      }
+    }
+    await writeBooking(store, booking);
+    if (booking.status !== "insert_started" && booking.status !== "overlap_unknown" && booking.status !== "cancel_unknown") {
+      await deleteHold(store, booking.slotId);
+    }
+  });
+}
+
+async function deliverMail(deps: LiveBookingDeps, booking: BookingRecord, mail: Parameters<MailTransport["send"]>[0], field: keyof BookingRecord["mail"]): Promise<void> {
   if (booking.mail[field] === "accepted") return;
   const result = await deps.mail.send(mail);
   booking.mail[field] = result.kind === "accepted" ? "accepted" : result.kind === "rejected" ? "rejected" : "unknown";
-  booking.updatedAt = deps.now();
-  await writeBooking(store, booking);
+  await persistBooking(deps, booking);
 }
 
 function uidFor(booking: BookingRecord): string {
@@ -180,7 +205,7 @@ function uidFor(booking: BookingRecord): string {
 export async function startLiveSession(deps: LiveBookingDeps, ipHash: string): Promise<{ token: string }> {
   const token = randomBytes(32).toString("hex");
   const now = deps.now();
-  await withStoreLock(deps.storeDir, async (store) => {
+  await locked(deps, async (store) => {
     const allowed = await consumeBudget(store, ipHash, STARTS_PER_IP_HOUR, HOUR_MS, now);
     if (!allowed) fail(429, "rate_limited");
     if (await countOpenSessions(store, now) >= MAX_OPEN_SESSIONS) fail(429, "busy");
@@ -195,6 +220,7 @@ export async function startLiveSession(deps: LiveBookingDeps, ipHash: string): P
       bookingId: null,
       codeSends: 0,
       lastCodeKey: null,
+      lastCodeEmail: null,
       lastCodeResult: null,
       lastVerificationId: null,
     };
@@ -205,14 +231,18 @@ export async function startLiveSession(deps: LiveBookingDeps, ipHash: string): P
 
 export async function liveAvailability(deps: LiveBookingDeps, token: string): Promise<{ slots: WarsawSlot[]; timeZone: "Europe/Warsaw" }> {
   const now = deps.now();
+  await locked(deps, async (store) => {
+    const { session } = await loadSession(store, token, now);
+    const sessionBudget = await consumeBudget(store, `a${session.tokenHash.slice(0, 40)}`, AVAILABILITY_PER_SESSION_HOUR, HOUR_MS, now);
+    const globalBudget = await consumeBudget(store, GLOBAL_AVAILABILITY_BUDGET_KEY, GLOBAL_AVAILABILITY_PER_HOUR, HOUR_MS, now);
+    if (!sessionBudget || !globalBudget) fail(429, "rate_limited");
+    await writeSession(store, session);
+  });
   const slots = warsawSlots(now);
-  if (slots.length === 0) {
-    await withStoreLock(deps.storeDir, async (store) => { await loadSession(store, token, now); });
-    return { slots: [], timeZone: "Europe/Warsaw" };
-  }
+  if (slots.length === 0) return { slots: [], timeZone: "Europe/Warsaw" };
   const busy = await deps.calendar.freeBusy(slots[0].start, slots[slots.length - 1].end);
   if (busy.kind !== "ok") fail(503, "calendar_unavailable");
-  return withStoreLock(deps.storeDir, async (store) => {
+  return locked(deps, async (store) => {
     const { session } = await loadSession(store, token, now);
     await writeSession(store, session);
     const holds = await listActiveHolds(store, now);
@@ -229,15 +259,16 @@ export async function liveAvailability(deps: LiveBookingDeps, token: string): Pr
 export async function requestLiveCode(deps: LiveBookingDeps, input: { token: string; email: string; idempotencyKey: string; emailHash: string }): Promise<{ acceptance: MailAcceptance; delivery: "not_observed" }> {
   const now = deps.now();
   const email = input.email.trim().toLowerCase();
-  return withStoreLock(deps.storeDir, async (store) => {
+  const prepared = await locked(deps, async (store) => {
     const { session } = await loadSession(store, input.token, now);
     if (session.lastCodeKey === input.idempotencyKey && session.lastCodeResult) {
+      if (session.lastCodeEmail !== email) fail(409, "idempotency_mismatch");
       await writeSession(store, session);
-      return { acceptance: session.lastCodeResult, delivery: "not_observed" as const };
+      return { replay: session.lastCodeResult };
     }
     if (session.codeSends >= CODE_MAX_SENDS) fail(429, "rate_limited");
-    const allowed = await consumeBudget(store, input.emailHash, CODES_PER_EMAIL_HOUR, HOUR_MS, now);
-    if (!allowed) fail(429, "rate_limited");
+    if (!await consumeBudget(store, GLOBAL_MAIL_BUDGET_KEY, GLOBAL_VERIFICATION_PER_HOUR, HOUR_MS, now)) fail(429, "rate_limited");
+    if (!await consumeBudget(store, input.emailHash, CODES_PER_EMAIL_HOUR, HOUR_MS, now)) fail(429, "rate_limited");
     const verificationId = newId("vf");
     const code = deps.newCode?.() ?? defaultCode();
     if (code === DEMO_CODE_FORBIDDEN) fail(500, "unavailable");
@@ -252,28 +283,32 @@ export async function requestLiveCode(deps: LiveBookingDeps, input: { token: str
     };
     session.codeSends += 1;
     session.lastCodeKey = input.idempotencyKey;
+    session.lastCodeEmail = email;
     session.lastVerificationId = verificationId;
     session.verifiedEmail = null;
     session.verificationExpiresAt = null;
     session.lastCodeResult = "unknown";
     await writeVerification(store, verification);
     await writeSession(store, session);
-    const result = await deps.mail.send(verificationMail({ to: email, verificationId, code }));
-    const acceptance: MailAcceptance = result.kind === "accepted" ? "accepted" : result.kind === "rejected" ? "rejected" : "unknown";
-    const saved = await readVerification(store, verificationId);
-    if (!saved) fail(503, "store_unavailable");
-    if (acceptance === "rejected") saved.consumed = true;
-    await writeVerification(store, saved);
-    session.lastCodeResult = acceptance;
-    await writeSession(store, session);
-    return { acceptance: session.lastCodeResult, delivery: "not_observed" as const };
+    return { verificationId, code };
   });
+  if ("replay" in prepared && prepared.replay) return { acceptance: prepared.replay, delivery: "not_observed" };
+  const result = await deps.mail.send(verificationMail({ to: email, verificationId: prepared.verificationId, code: prepared.code }));
+  const acceptance: MailAcceptance = result.kind === "accepted" ? "accepted" : result.kind === "rejected" ? "rejected" : "unknown";
+  await locked(deps, async (store) => {
+    const { session } = await loadSession(store, input.token, now);
+    if (acceptance === "rejected") await deleteVerification(store, prepared.verificationId);
+    session.lastCodeResult = acceptance;
+    session.lastCodeEmail = email;
+    await writeSession(store, session);
+  });
+  return { acceptance, delivery: "not_observed" };
 }
 
 export async function checkLiveCode(deps: LiveBookingDeps, input: { token: string; email: string; code: string }): Promise<{ code: "matched" | "rejected" | "expired" | "too_many_attempts" }> {
   const now = deps.now();
   const email = input.email.trim().toLowerCase();
-  return withStoreLock(deps.storeDir, async (store) => {
+  return locked(deps, async (store) => {
     const { session } = await loadSession(store, input.token, now);
     const verification = session.lastVerificationId ? await readVerification(store, session.lastVerificationId) : null;
     if (!verification || verification.consumed || verification.email !== email || verification.expiresAt <= now) {
@@ -282,8 +317,8 @@ export async function checkLiveCode(deps: LiveBookingDeps, input: { token: strin
     }
     verification.attempts += 1;
     if (verification.attempts > CODE_MAX_ATTEMPTS) {
-      verification.consumed = true;
-      await writeVerification(store, verification);
+      await deleteVerification(store, verification.id);
+      session.lastVerificationId = null;
       await writeSession(store, session);
       return { code: "too_many_attempts" as const };
     }
@@ -293,10 +328,10 @@ export async function checkLiveCode(deps: LiveBookingDeps, input: { token: strin
       await writeSession(store, session);
       return { code: "rejected" as const };
     }
-    verification.consumed = true;
     session.verifiedEmail = email;
     session.verificationExpiresAt = verification.expiresAt;
-    await writeVerification(store, verification);
+    session.lastVerificationId = null;
+    await deleteVerification(store, verification.id);
     await writeSession(store, session);
     return { code: "matched" as const };
   });
@@ -308,10 +343,17 @@ export async function prepareLiveHold(deps: LiveBookingDeps, input: { token: str
   if (!slot) fail(409, "slot_unavailable");
   const email = input.draft.email.trim().toLowerCase();
   const draft = { ...input.draft, email, topic: input.draft.topic.trim(), name: input.draft.name.trim() };
-  return withStoreLock(deps.storeDir, async (store) => {
+  await locked(deps, async (store) => {
     const { session, hash } = await loadSession(store, input.token, now);
     if (session.verifiedEmail !== email || !session.verificationExpiresAt || session.verificationExpiresAt <= now) fail(409, "code_required");
-    if (!await calendarClear(deps.calendar, slot) || !await slotFree(store, slot, now, hash)) fail(409, "slot_unavailable");
+    if (!await slotFree(store, slot, now, hash)) fail(409, "slot_unavailable");
+    await writeSession(store, session);
+  });
+  if (!await calendarClear(deps.calendar, slot)) fail(409, "slot_unavailable");
+  return locked(deps, async (store) => {
+    const { session, hash } = await loadSession(store, input.token, now);
+    if (session.verifiedEmail !== email || !session.verificationExpiresAt || session.verificationExpiresAt <= now) fail(409, "code_required");
+    if (!await slotFree(store, slot, now, hash)) fail(409, "slot_unavailable");
     const existing = await readHold(store, slot.id);
     const hold: HoldRecord = {
       id: holdIsActive(existing, now) && existing.sessionHash === hash ? existing.id : newId("hld"),
@@ -329,15 +371,15 @@ export async function prepareLiveHold(deps: LiveBookingDeps, input: { token: str
   });
 }
 
-export async function confirmLiveBooking(deps: LiveBookingDeps, input: { token: string; holdId: string; idempotencyKey: string }): Promise<{ booking: PublicBooking & { cancelToken: string } }> {
+export async function confirmLiveBooking(deps: LiveBookingDeps, input: { token: string; holdId: string; idempotencyKey: string }): Promise<{ booking: PublicBooking & { cancelToken?: string } }> {
   const now = deps.now();
-  return withStoreLock(deps.storeDir, async (store) => {
+  const created = await locked(deps, async (store) => {
     const { session, hash } = await loadSession(store, input.token, now);
     const existingBooking = session.bookingId ? await readBooking(store, session.bookingId) : null;
     if (existingBooking) {
       if (existingBooking.idempotencyKey !== input.idempotencyKey) fail(409, "invalid");
       await writeSession(store, session);
-      return { booking: await settle(deps, store, existingBooking) };
+      return { booking: existingBooking, cancelToken: null as string | null };
     }
     const holds = await listActiveHolds(store, 0);
     const hold = holds.find((item) => item.id === input.holdId && item.sessionHash === hash);
@@ -352,7 +394,6 @@ export async function confirmLiveBooking(deps: LiveBookingDeps, input: { token: 
       id: `bk_${eventId}`,
       sessionHash: hash,
       cancelTokenHash: sha256(`${deps.pepper}\0${cancelToken}`),
-      cancelToken,
       slotId: hold.slotId,
       start: hold.start,
       end: hold.end,
@@ -369,34 +410,52 @@ export async function confirmLiveBooking(deps: LiveBookingDeps, input: { token: 
     await writeCancellation(store, booking.cancelTokenHash, booking.id);
     session.bookingId = booking.id;
     await writeSession(store, session);
-    return { booking: await settle(deps, store, booking) };
+    return { booking, cancelToken };
   });
+  const settled = await settleOutside(deps, created.booking);
+  return { booking: publicBooking(settled, created.cancelToken) };
 }
 
 function slotTimes(booking: BookingRecord): WarsawSlot {
   return { id: booking.slotId, start: booking.start, end: booking.end };
 }
 
-async function settle(deps: LiveBookingDeps, store: string, booking: BookingRecord): Promise<PublicBooking & { cancelToken: string }> {
-  const now = deps.now();
-  if (booking.status === "insert_rejected" || booking.status === "released_external_overlap" || booking.status === "cancelled") {
-    return withCancel(booking);
+async function sendCancelMails(deps: LiveBookingDeps, booking: BookingRecord): Promise<void> {
+  await deliverMail(deps, booking, cancellationNoticeMail({
+    to: booking.draft.email,
+    bookingId: booking.id,
+    draft: booking.draft,
+    start: booking.start,
+  }), "cancellationNotice");
+  if (booking.mail.cancellationNotice === "accepted") {
+    await deliverMail(deps, booking, cancellationInviteMail({
+      to: booking.draft.email,
+      bookingId: booking.id,
+      draft: booking.draft,
+      start: booking.start,
+      end: booking.end,
+      uid: uidFor(booking),
+    }), "cancellationInvite");
   }
+}
+
+async function settleOutside(deps: LiveBookingDeps, booking: BookingRecord): Promise<BookingRecord> {
+  if (booking.status === "cancelled") {
+    await sendCancelMails(deps, booking);
+    return booking;
+  }
+  if (booking.status === "insert_rejected" || booking.status === "released_external_overlap") return booking;
   if (booking.status === "insert_started") {
     const existing = await deps.calendar.getEvent(booking.eventId);
     if (existing.kind === "unknown" || existing.kind === "rejected") {
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
-      return withCancel(booking);
+      await persistBooking(deps, booking);
+      return booking;
     }
     if (existing.kind === "absent") {
-      const slot = slotTimes(booking);
-      if (!await calendarClear(deps.calendar, slot)) {
+      if (!await calendarClear(deps.calendar, slotTimes(booking))) {
         booking.status = "insert_rejected";
-        booking.updatedAt = now;
-        await writeBooking(store, booking);
-        await deleteHold(store, booking.slotId);
-        return withCancel(booking);
+        await persistBooking(deps, booking);
+        return booking;
       }
       const inserted = await deps.calendar.insertEvent({
         eventId: booking.eventId,
@@ -411,51 +470,41 @@ async function settle(deps: LiveBookingDeps, store: string, booking: BookingReco
       if (inserted.kind === "conflict") {
         const again = await deps.calendar.getEvent(booking.eventId);
         if (again.kind !== "ok") {
-          booking.updatedAt = now;
-          await writeBooking(store, booking);
-          return withCancel(booking);
+          await persistBooking(deps, booking);
+          return booking;
         }
         booking.iCalUid = again.iCalUid;
         booking.status = again.status === "cancelled" ? "cancelled" : "event_recorded";
       } else if (inserted.kind !== "ok") {
-        if (inserted.kind === "rejected") {
-          booking.status = "insert_rejected";
-          await deleteHold(store, booking.slotId);
-        }
-        booking.updatedAt = now;
-        await writeBooking(store, booking);
-        return withCancel(booking);
+        if (inserted.kind === "rejected") booking.status = "insert_rejected";
+        await persistBooking(deps, booking);
+        return booking;
       } else {
         booking.iCalUid = inserted.iCalUid;
         booking.status = "event_recorded";
       }
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
+      await persistBooking(deps, booking);
     } else {
       booking.iCalUid = existing.iCalUid;
       booking.status = existing.status === "cancelled" ? "cancelled" : "event_recorded";
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
+      await persistBooking(deps, booking);
     }
   }
   if (booking.status === "event_recorded" || booking.status === "overlap_unknown") {
     const overlap = await deps.calendar.listBlocking(booking.start, booking.end, booking.eventId);
     if (overlap.kind !== "ok") {
       booking.status = "overlap_unknown";
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
-      return withCancel(booking);
+      await persistBooking(deps, booking);
+      return booking;
     }
     if (overlap.overlaps) {
       const cancelled = await deps.calendar.cancelEvent(booking.eventId);
       booking.status = cancelled.kind === "ok" || cancelled.kind === "absent" ? "released_external_overlap" : "cancel_unknown";
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
-      if (booking.status === "released_external_overlap") await deleteHold(store, booking.slotId);
-      return withCancel(booking);
+      await persistBooking(deps, booking);
+      return booking;
     }
     booking.status = "event_recorded";
-    await applyMail(deps, store, booking, confirmationMail({
+    await deliverMail(deps, booking, confirmationMail({
       to: booking.draft.email,
       bookingId: booking.id,
       draft: booking.draft,
@@ -463,7 +512,7 @@ async function settle(deps: LiveBookingDeps, store: string, booking: BookingReco
       end: booking.end,
     }), "confirmation");
     if (booking.mail.confirmation === "accepted") {
-      await applyMail(deps, store, booking, inviteMail({
+      await deliverMail(deps, booking, inviteMail({
         to: booking.draft.email,
         bookingId: booking.id,
         draft: booking.draft,
@@ -472,87 +521,67 @@ async function settle(deps: LiveBookingDeps, store: string, booking: BookingReco
         uid: uidFor(booking),
       }), "invite");
     }
-    await deleteHold(store, booking.slotId);
-    return withCancel(booking);
+    await locked(deps, async (store) => { await deleteHold(store, booking.slotId); });
   }
-  return withCancel(booking);
+  if (booking.status === "cancelled") await sendCancelMails(deps, booking);
+  return booking;
 }
 
 export async function cancelLiveBooking(deps: LiveBookingDeps, input: { token?: string; cancelToken?: string; reference: string }): Promise<{ booking: PublicBooking }> {
   const now = deps.now();
-  return withStoreLock(deps.storeDir, async (store) => {
-    let booking: BookingRecord | null = null;
+  const booking = await locked(deps, async (store) => {
+    let found: BookingRecord | null = null;
     if (input.token) {
       const { session } = await loadSession(store, input.token, now);
       if (session.bookingId !== input.reference) fail(404, "not_found");
-      booking = await readBooking(store, input.reference);
+      found = await readBooking(store, input.reference);
       await writeSession(store, session);
     } else if (input.cancelToken) {
       const cancelHash = sha256(`${deps.pepper}\0${input.cancelToken}`);
       const index = await readCancellation(store, cancelHash);
       if (!index || index.bookingId !== input.reference) fail(404, "not_found");
-      booking = await readBooking(store, input.reference);
-      if (!booking || !hashesEqual(booking.cancelTokenHash, cancelHash)) fail(404, "not_found");
+      found = await readBooking(store, input.reference);
+      if (!found || !hashesEqual(found.cancelTokenHash, cancelHash)) fail(404, "not_found");
     } else fail(400, "invalid");
-    if (!booking) fail(404, "not_found");
-    if (booking.status === "cancelled" || booking.status === "released_external_overlap" || booking.status === "insert_rejected") {
-      if (booking.status !== "cancelled") {
-        booking.status = "cancelled";
-        booking.updatedAt = now;
-        await writeBooking(store, booking);
-      }
-      return { booking: toPublic(booking) };
-    }
-    if (booking.status === "insert_started") {
-      const existing = await deps.calendar.getEvent(booking.eventId);
-      if (existing.kind === "unknown" || existing.kind === "rejected") {
-        booking.status = "cancel_unknown";
-        booking.updatedAt = now;
-        await writeBooking(store, booking);
-        return { booking: toPublic(booking) };
-      }
-      if (existing.kind === "absent") {
-        booking.status = "cancelled";
-        booking.updatedAt = now;
-        await writeBooking(store, booking);
-        await deleteHold(store, booking.slotId);
-        return { booking: toPublic(booking) };
-      }
-    }
-    const cancelled = await deps.calendar.cancelEvent(booking.eventId);
-    if (cancelled.kind === "unknown" || cancelled.kind === "rejected") {
-      booking.status = "cancel_unknown";
-      booking.updatedAt = now;
-      await writeBooking(store, booking);
-      return { booking: toPublic(booking) };
-    }
-    booking.status = "cancelled";
-    booking.updatedAt = now;
-    await writeBooking(store, booking);
-    await deleteHold(store, booking.slotId);
-    await applyMail(deps, store, booking, cancellationNoticeMail({
-      to: booking.draft.email,
-      bookingId: booking.id,
-      draft: booking.draft,
-      start: booking.start,
-    }), "cancellationNotice");
-    if (booking.mail.cancellationNotice === "accepted") {
-      await applyMail(deps, store, booking, cancellationInviteMail({
-        to: booking.draft.email,
-        bookingId: booking.id,
-        draft: booking.draft,
-        start: booking.start,
-        end: booking.end,
-        uid: uidFor(booking),
-      }), "cancellationInvite");
-    }
-    return { booking: toPublic(booking) };
+    if (!found) fail(404, "not_found");
+    return found;
   });
+  if (booking.status === "cancelled") {
+    await sendCancelMails(deps, booking);
+    return { booking: toPublic(booking) };
+  }
+  if (booking.status === "released_external_overlap" || booking.status === "insert_rejected") {
+    return { booking: toPublic(booking) };
+  }
+  if (booking.status === "insert_started") {
+    const existing = await deps.calendar.getEvent(booking.eventId);
+    if (existing.kind === "unknown" || existing.kind === "rejected") {
+      booking.status = "cancel_unknown";
+      await persistBooking(deps, booking);
+      return { booking: toPublic(booking) };
+    }
+    if (existing.kind === "absent") {
+      booking.status = "cancelled";
+      await persistBooking(deps, booking);
+      await sendCancelMails(deps, booking);
+      return { booking: toPublic(booking) };
+    }
+  }
+  const cancelled = await deps.calendar.cancelEvent(booking.eventId);
+  if (cancelled.kind === "unknown" || cancelled.kind === "rejected") {
+    booking.status = "cancel_unknown";
+    await persistBooking(deps, booking);
+    return { booking: toPublic(booking) };
+  }
+  booking.status = "cancelled";
+  await persistBooking(deps, booking);
+  await sendCancelMails(deps, booking);
+  return { booking: toPublic(booking) };
 }
 
 export async function readLiveSession(deps: LiveBookingDeps, token: string): Promise<SessionView> {
   const now = deps.now();
-  return withStoreLock(deps.storeDir, async (store) => {
+  return locked(deps, async (store) => {
     const { session } = await loadSession(store, token, now);
     await writeSession(store, session);
     const holds = await listActiveHolds(store, now);
@@ -566,7 +595,7 @@ export async function readLiveSession(deps: LiveBookingDeps, token: string): Pro
         draft: hold.draft,
         slot: { id: hold.slotId, start: hold.start, end: hold.end },
       } : null,
-      booking: booking ? withCancel(booking) : null,
+      booking: booking ? toPublic(booking) : null,
     };
   });
 }

@@ -5,6 +5,14 @@ for (const locale of ["en", "pl"] as const) {
     test(`production ${locale} widget uses the API and ignores simulation flags at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 844 });
       const sent: unknown[] = [];
+      const liveMethods: string[] = [];
+      await page.route("**/api/live-booking", async (route) => {
+        const url = new URL(route.request().url());
+        expect(url.hostname).toBe("127.0.0.1");
+        liveMethods.push(route.request().method());
+        expect(route.request().method()).toBe("GET");
+        await route.fulfill({ json: { mode: "disabled", timeZone: null, delivery: "not_observed" } });
+      });
       await page.route("**/api/ask-witnessops", async route => {
         sent.push(route.request().postDataJSON());
         await route.fulfill({ json: generatedAnswer("Synthetic production-browser answer.") });
@@ -23,6 +31,9 @@ for (const locale of ["en", "pl"] as const) {
       await expect(dialog.getByText("Synthetic production-browser answer.", { exact: true })).toBeVisible();
       await expect(dialog.locator('[data-answer-mode="ai_assisted"]')).toBeVisible();
       expect(sent).toEqual([{ question: "What does WitnessOps do?", history: [], surface: "sovereign_widget", locale }]);
+      await expect.poll(() => liveMethods.length).toBeGreaterThan(0);
+      expect(liveMethods.every((method) => method === "GET")).toBe(true);
+      await expect(dialog.getByRole("button", { name: /Scheduling|Book a fit call|Record this time|Umów|Rezerw/i })).toHaveCount(0);
       await expect(dialog.getByRole("button", { name: /book|voice|microphone|rezerwuj|mikrofon/i })).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       await page.screenshot({ path: `artifacts/ui-proof/production-chat/${locale}-${width}.png` });

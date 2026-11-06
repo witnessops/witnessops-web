@@ -815,7 +815,7 @@ export function AskSovereignPreview({ locale = "en", routePrefix, onClose, conne
         {bookingEnabled ? <button type="button" className={styles.bookingChoice} onClick={() => changeBookingOpen(true)} disabled={pending}>
           <span>{copy.bookChoice}<small>{copy.bookingHint}</small></span><InlineArrow />
         </button> : null}
-        <LiveBookingOffer locale={locale} pending={pending} demoPreview={bookingEnabled} onOpen={() => changeLiveOpen(true)} />
+        <LiveBookingOffer locale={locale} pending={pending} onOpen={() => changeLiveOpen(true)} />
       </div> : <div className={styles.chips} data-ask-chips="">
         {suggestions.map((suggestion) => (
           <button key={suggestion.id} type="button" data-suggestion={suggestion.id} disabled={pending} onClick={() => ask(suggestion.text)}>{suggestion.text}</button>

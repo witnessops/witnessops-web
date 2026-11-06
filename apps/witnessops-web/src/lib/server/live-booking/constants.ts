@@ -14,7 +14,13 @@ export const CODE_MAX_ATTEMPTS = 5;
 export const CODE_MAX_SENDS = 3;
 export const STARTS_PER_IP_HOUR = 20;
 export const CODES_PER_EMAIL_HOUR = 8;
+/** Store-wide verification ceiling. Not derived from a forwarding header. */
+export const GLOBAL_VERIFICATION_PER_HOUR = 30;
+export const AVAILABILITY_PER_SESSION_HOUR = 12;
+export const GLOBAL_AVAILABILITY_PER_HOUR = 60;
 export const HOUR_MS = 60 * 60 * 1000;
+export const GLOBAL_MAIL_BUDGET_KEY = "globalmail";
+export const GLOBAL_AVAILABILITY_BUDGET_KEY = "globalavail";
 export const MAX_OPEN_SESSIONS = 200;
 export const DEMO_CODE_FORBIDDEN = "314159";
 

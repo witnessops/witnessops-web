@@ -147,7 +147,7 @@ async function postJson(body: unknown): Promise<Record<string, unknown>> {
   return data;
 }
 
-export function LiveBookingOffer({ locale, pending, demoPreview, onOpen }: { locale: "en" | "pl"; pending: boolean; demoPreview: boolean; onOpen: (mode: Mode) => void }) {
+export function LiveBookingOffer({ locale, pending, onOpen }: { locale: "en" | "pl"; pending: boolean; onOpen: (mode: Mode) => void }) {
   const [mode, setMode] = useState<Mode | null>(null);
   const copy = COPY[locale];
   useEffect(() => {
@@ -161,9 +161,8 @@ export function LiveBookingOffer({ locale, pending, demoPreview, onOpen }: { loc
       .catch(() => { if (active) setMode("unavailable"); });
     return () => { active = false; };
   }, []);
-  if (!mode || (demoPreview && mode !== "ready")) return null;
-  const hint = mode === "ready" ? copy.readyHint : mode === "disabled" ? copy.disabledHint : copy.unavailableHint;
-  return <button type="button" onClick={() => onOpen(mode)} disabled={pending}>{copy.button}<small>{hint}</small></button>;
+  if (mode !== "ready") return null;
+  return <button type="button" onClick={() => onOpen(mode)} disabled={pending}>{copy.button}<small>{copy.readyHint}</small></button>;
 }
 
 export function LiveBookingResult({ locale, booking }: { locale: "en" | "pl"; booking: LiveBookingView }) {

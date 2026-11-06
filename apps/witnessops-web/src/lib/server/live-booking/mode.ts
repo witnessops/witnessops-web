@@ -1,4 +1,5 @@
 import "server-only";
+import { lstatSync, realpathSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
@@ -48,8 +49,47 @@ function httpsOrigin(value: string): boolean {
   }
 }
 
+function sameOrInside(left: string, right: string): boolean {
+  return left === right || left.startsWith(right + path.sep) || right.startsWith(left + path.sep);
+}
+
+function existingRealPath(candidate: string): string {
+  const resolved = path.resolve(candidate);
+  try {
+    return realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
+}
+
+/** Reject symlink aliases and any path that resolves into the token or intake store. */
+export function storeIsIsolated(storeDir: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!path.isAbsolute(storeDir)) return false;
+  const resolved = path.resolve(storeDir);
+  if (resolved !== storeDir && resolved !== storeDir.replace(/\/+$/, "")) return false;
+  let info;
+  try {
+    info = lstatSync(resolved);
+  } catch {
+    return false;
+  }
+  if (info.isSymbolicLink() || !info.isDirectory()) return false;
+  let real: string;
+  try {
+    real = realpathSync(resolved);
+  } catch {
+    return false;
+  }
+  const forbidden = [
+    env.WITNESSOPS_TOKEN_STORE_DIR,
+    env.WITNESSOPS_INTAKE_STORE_DIR,
+    path.join(process.cwd(), ".witnessops-token-store"),
+  ].filter((value): value is string => Boolean(value && value.trim()));
+  return forbidden.every((candidate) => !sameOrInside(real, existingRealPath(candidate)));
+}
+
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedLiveBookingMode {
-  if (clean(env.WITNESSOPS_LIVE_BOOKING_ENABLED) !== "1") return { mode: "disabled" };
+  if (env.WITNESSOPS_LIVE_BOOKING_ENABLED !== "1") return { mode: "disabled" };
   const storeDir = clean(env.WITNESSOPS_LIVE_BOOKING_STORE_DIR);
   const publicOrigin = clean(env.WITNESSOPS_LIVE_BOOKING_PUBLIC_ORIGIN);
   const fromEmail = clean(env.WITNESSOPS_LIVE_BOOKING_FROM_EMAIL);
@@ -67,6 +107,7 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): ResolvedLiv
   const complete = mailProvider === "resend"
     && path.isAbsolute(storeDir)
     && storeResolved === storeDir
+    && storeIsIsolated(storeDir, env)
     && !storeResolved.startsWith(tokenStore + path.sep)
     && storeResolved !== tokenStore
     && httpsOrigin(publicOrigin)

@@ -1,5 +1,10 @@
 function escapeText(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\r\n|\n|\r/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r\n|\n|\r|\u2028|\u2029|\u0085/g, "\\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
 }
 
 function fold(line: string): string {
@@ -48,8 +53,8 @@ export function buildBookingIcs(input: {
     `DTEND:${utcBasic(input.end)}`,
     `SUMMARY:${escapeText(input.summary)}`,
     `DESCRIPTION:${escapeText(input.description)}`,
-    `ORGANIZER;CN=WitnessOps:mailto:${input.organizer}`,
-    `ATTENDEE;CN=${escapeText(input.attendeeName)};RSVP=TRUE:mailto:${input.attendee}`,
+    `ORGANIZER;CN=WitnessOps:mailto:${escapeText(input.organizer)}`,
+    `ATTENDEE;CN=${escapeText(input.attendeeName)};RSVP=TRUE:mailto:${escapeText(input.attendee)}`,
     `SEQUENCE:${input.sequence}`,
     `STATUS:${input.method === "CANCEL" ? "CANCELLED" : "CONFIRMED"}`,
     "TRANSP:OPAQUE",

@@ -19,6 +19,7 @@ export type SessionRecord = {
   bookingId: string | null;
   codeSends: number;
   lastCodeKey: string | null;
+  lastCodeEmail: string | null;
   lastCodeResult: Exclude<MailAcceptance, "not_sent"> | null;
   lastVerificationId: string | null;
 };
@@ -70,7 +71,6 @@ export type BookingRecord = {
     cancellationInvite: MailAcceptance;
   };
   idempotencyKey: string;
-  cancelToken: string;
   createdAt: number;
   updatedAt: number;
 };

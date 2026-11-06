@@ -1,9 +1,11 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
-import { mkdir, open, readFile, readdir, realpath, rename, rm, stat } from "node:fs/promises";
+import { randomBytes, randomUUID } from "node:crypto";
+import { chmod, mkdir, open, readFile, readdir, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { withFilesystemLock } from "../filesystem-lock";
+import { storeIsIsolated } from "./mode";
 import type { BookingRecord, HoldRecord, SessionRecord, VerificationRecord } from "./records";
+
+const LOCK_STALE_MS = 30 * 60 * 1000;
 
 const ID_RE = /^[A-Za-z0-9_-]{8,80}$/;
 type Folder = "sessions" | "holds" | "bookings" | "verifications" | "cancellations" | "abuse";
@@ -15,16 +17,28 @@ export class LiveBookingStoreError extends Error {
   }
 }
 
-export async function openStore(dir: string): Promise<string> {
-  const resolved = path.resolve(dir);
-  if (!path.isAbsolute(dir) || resolved !== dir.replace(/\/+$/, "") && resolved !== dir) {
-    throw new LiveBookingStoreError();
-  }
+async function ensurePrivateDir(dir: string): Promise<void> {
+  await mkdir(dir, { recursive: true, mode: 0o700 });
+  await chmod(dir, 0o700);
+}
+
+function pidAlive(pid: number): boolean {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
-    const real = await realpath(resolved);
-    const info = await stat(real);
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+}
+
+export async function openStore(dir: string, env: NodeJS.ProcessEnv = process.env): Promise<string> {
+  if (!storeIsIsolated(dir, env)) throw new LiveBookingStoreError("store_alias");
+  try {
+    const info = await stat(dir);
     if (!info.isDirectory()) throw new LiveBookingStoreError();
-    return real;
+    await chmod(dir, 0o700);
+    return dir;
   } catch (error) {
     if (error instanceof LiveBookingStoreError) throw error;
     throw new LiveBookingStoreError();
@@ -52,7 +66,7 @@ async function readRecord<T>(file: string): Promise<T | null> {
 }
 
 async function writeRecord(file: string, value: unknown): Promise<void> {
-  await mkdir(path.dirname(file), { recursive: true });
+  await ensurePrivateDir(path.dirname(file));
   const temp = `${file}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`;
   const handle = await open(temp, "w", 0o600);
   try {
@@ -70,26 +84,53 @@ async function writeRecord(file: string, value: unknown): Promise<void> {
   }
 }
 
-export async function withStoreLock<T>(dir: string, action: (store: string) => Promise<T>): Promise<T> {
-  const store = await openStore(dir);
+async function releaseOwnedLock(lockPath: string, token: string): Promise<void> {
   try {
-    return await withFilesystemLock(
-      {
-        lockPath: path.join(store, "locks", "mutation.lock"),
-        description: "live booking store",
-        waitMs: 15,
-        timeoutMs: 20_000,
-        staleMs: 60_000,
-      },
-      () => action(store),
-    );
+    if (await readFile(lockPath, "utf8") === token) await rm(lockPath, { force: true });
+  } catch {
+    // A missing lock was already released. A different owner token is left in place.
+  }
+}
+
+export async function withStoreLock<T>(dir: string, action: (store: string) => Promise<T>, now = Date.now()): Promise<T> {
+  const store = await openStore(dir);
+  const lockPath = path.join(store, "locks", "mutation.lock");
+  const token = `${process.pid}:${randomUUID()}`;
+  const deadline = Date.now() + 20_000;
+  await ensurePrivateDir(path.dirname(lockPath));
+  while (true) {
+    try {
+      await writeFile(lockPath, token, { encoding: "utf8", flag: "wx", mode: 0o600 });
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw new LiveBookingStoreError();
+      const observed = await readFile(lockPath, "utf8").catch(() => "");
+      const pid = Number(observed.split(":")[0]);
+      const info = await stat(lockPath).catch(() => null);
+      const stale = Boolean(info && Date.now() - info.mtimeMs > LOCK_STALE_MS);
+      if (observed && stale && !pidAlive(pid)) {
+        const again = await readFile(lockPath, "utf8").catch(() => "");
+        if (again === observed) await rm(lockPath, { force: true });
+        continue;
+      }
+      if (Date.now() >= deadline) throw new LiveBookingStoreError("busy");
+      await new Promise((resolve) => setTimeout(resolve, 15));
+    }
+  }
+  const beat = setInterval(() => {
+    void utimes(lockPath, new Date(), new Date()).catch(() => undefined);
+  }, 1_000);
+  beat.unref();
+  try {
+    await sweepExpired(store, now);
+    return await action(store);
   } catch (error) {
     if (error instanceof LiveBookingStoreError) throw error;
     if (error instanceof Error && error.name === "LiveBookingFailure") throw error;
-    if (error instanceof Error && error.message.startsWith("Timed out waiting")) {
-      throw new LiveBookingStoreError("busy");
-    }
     throw new LiveBookingStoreError();
+  } finally {
+    clearInterval(beat);
+    await releaseOwnedLock(lockPath, token);
   }
 }
 
@@ -117,6 +158,12 @@ export function writeBooking(store: string, record: BookingRecord): Promise<void
 export function readVerification(store: string, id: string): Promise<VerificationRecord | null> {
   return readRecord(recordPath(store, "verifications", id));
 }
+export function deleteVerification(store: string, id: string): Promise<void> {
+  return rm(recordPath(store, "verifications", id), { force: true });
+}
+export function deleteSession(store: string, tokenHash: string): Promise<void> {
+  return rm(recordPath(store, "sessions", tokenHash), { force: true });
+}
 export function writeVerification(store: string, record: VerificationRecord): Promise<void> {
   return writeRecord(recordPath(store, "verifications", record.id), record);
 }
@@ -133,6 +180,15 @@ export async function listActiveHolds(store: string, now: number): Promise<HoldR
 
 export async function listBookings(store: string): Promise<BookingRecord[]> {
   return listFolder<BookingRecord>(store, "bookings", () => true);
+}
+
+export async function sweepExpired(store: string, now: number): Promise<void> {
+  const sessions = await listFolder<SessionRecord>(store, "sessions", (session) => session.expiresAt <= now);
+  await Promise.all(sessions.map((session) => deleteSession(store, session.tokenHash)));
+  const verifications = await listFolder<VerificationRecord>(store, "verifications", (verification) => verification.consumed || verification.expiresAt <= now);
+  await Promise.all(verifications.map((verification) => deleteVerification(store, verification.id)));
+  const holds = await listFolder<HoldRecord>(store, "holds", (hold) => hold.expiresAt <= now);
+  await Promise.all(holds.map((hold) => rm(recordPath(store, "holds", hold.slotId), { force: true })));
 }
 
 export async function countOpenSessions(store: string, now: number): Promise<number> {
@@ -189,5 +245,5 @@ export async function claimSlotRace(dir: string, slotId: string, owner: string, 
       expiresAt: now + 60_000,
     });
     return "held";
-  });
+  }, now);
 }
