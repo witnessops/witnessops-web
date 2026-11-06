@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { OPTIONS, POST } from "./route";
+import { DELETE, GET, OPTIONS, POST } from "./route";
 
 function mcpRequest(body: unknown, forwardedFor: string): Request {
   return new Request("http://127.0.0.1:3001/mcp/directory", {
@@ -16,7 +16,9 @@ function mcpRequest(body: unknown, forwardedFor: string): Request {
 }
 
 test("directory MCP route answers CORS preflight", () => {
-  const response = OPTIONS();
+  const response = OPTIONS(
+    new Request("http://127.0.0.1:3001/mcp/directory", { method: "OPTIONS" }),
+  );
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("access-control-allow-origin"), "*");
   assert.equal(response.headers.get("cache-control"), "no-store");
@@ -28,6 +30,65 @@ test("directory MCP route answers CORS preflight", () => {
     response.headers.get("access-control-allow-headers") ?? "",
     /mcp-protocol-version/,
   );
+});
+
+test("directory MCP route applies Host and Origin policy to all methods", async () => {
+  const deniedCases: Record<string, string>[] = [
+    { host: "untrusted.example", "x-forwarded-host": "witnessops.com" },
+    { origin: "https://untrusted.example" },
+    { origin: "null" },
+    { origin: "https://user:password@witnessops.com" },
+  ];
+  for (const [method, handler] of Object.entries({ GET, POST, DELETE, OPTIONS })) {
+    for (const deniedHeaders of deniedCases) {
+      const response = await handler(
+        new Request("https://witnessops.com/mcp/directory", {
+          method,
+          headers: {
+            accept: "application/json, text/event-stream",
+            "content-type": "application/json",
+            ...deniedHeaders,
+          },
+          ...(method === "POST"
+            ? { body: JSON.stringify({ jsonrpc: "2.0", id: 25, method: "tools/list" }) }
+            : {}),
+        }),
+      );
+      await response.body?.cancel();
+      assert.equal(response.status, 403, `${method}: ${JSON.stringify(deniedHeaders)}`);
+    }
+  }
+});
+
+test("directory MCP route accepts public no-Origin clients and approved preflights", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/mcp/directory", {
+      method: "POST",
+      headers: {
+        accept: "application/json, text/event-stream",
+        "content-type": "application/json",
+        host: "witnessops.com",
+        "x-forwarded-for": "192.0.2.26",
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 26, method: "tools/list" }),
+    }),
+  );
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.deepEqual(payload.result.tools.map((tool: { name: string }) => tool.name).sort(), [
+    "fetch",
+    "search",
+  ]);
+
+  for (const origin of ["https://witnessops.com", "https://chatgpt.com"]) {
+    const preflight = OPTIONS(
+      new Request("https://witnessops.com/mcp/directory", {
+        method: "OPTIONS",
+        headers: { origin },
+      }),
+    );
+    assert.equal(preflight.status, 204, origin);
+  }
 });
 
 test("directory MCP route completes initialization over Streamable HTTP", async () => {

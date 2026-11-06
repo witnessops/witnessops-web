@@ -250,6 +250,28 @@ Lane smoke checks permit direct HTTP 200 responses and same-authority redirects,
 but reject a cross-authority redirect before the redirected network request is
 sent.
 
+Public MCP acceptance uses `node deploy/aws/public-mcp-smoke.mjs --base-url ORIGIN`
+with an explicit HTTPS origin (HTTP is allowed only for loopback tests). Loopback
+targets send the fixed `Host: witnessops.com` header so the built production app's
+host allowlist remains unchanged; other targets retain their natural Host. It checks
+both public MCP profiles, initialization, exact read-only tool inventories,
+search-to-fetch, Ask Sovereign alias parity, unknown-tool rejection, and the
+disabled private MCP route. Redirects, HTML, malformed responses, tool errors,
+oversized responses and request timeouts fail acceptance. The exact built-image
+check invokes this probe before publication. After an already authorized
+`deploy-production` command succeeds, a separate credential-free job invokes it
+through `https://witnessops.com`, so a Caddy denial cannot pass merely because the
+app responds locally. A failure makes that workflow fail; it neither rolls back
+nor changes the host. The bounded observation records public behavior only and
+does not replace the protected digest-bound production-status receipt. No probe
+runs against production on merge, during local health checks, or for `status-production`.
+
+The pre-DNS candidate helper also tests HTTPS OPTIONS and initialization through
+the candidate's own Caddy, pinning `witnessops.com:443` to that host's loopback
+address with `curl --resolve`. TLS verification remains enabled; provisioned
+candidate certificate readiness is required. It neither resolves public DNS nor
+changes the candidate's routing or certificates.
+
 The existing production hybrid node is not a staging target. Leave
 `AWS_SSM_MANAGED_NODE_ID` unset in `aws-staging` until a distinct managed node
 has the reviewed staging tags. Production stores only its managed-node ID as a
