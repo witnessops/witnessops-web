@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       checkout_ref:
-        description: Optional ref or tag to inspect instead of the caller ref
+        description: Optional expected commit SHA; when supplied it must equal the caller SHA
         required: false
         type: string
         default: ""
@@ -71,22 +71,35 @@ jobs:
           path: trusted-supply-chain-gate
           persist-credentials: false
 
-      - name: Check out repository to inspect without persisted credentials
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          ref: ${{ inputs.checkout_ref }}
-          fetch-depth: 0
-          path: inspected-repository
-          persist-credentials: false
+      - name: Bind the inspected commit to the caller event
+        env:
+          REQUESTED_CHECKOUT_REF: ${{ inputs.checkout_ref }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          requested_ref="${REQUESTED_CHECKOUT_REF:-${EVENT_SHA}}"
+          if [[ ! "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ ! "${requested_ref}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${requested_ref}" != "${EVENT_SHA}" ]]; then
+            echo "::error::checkout_ref must be empty or the exact caller event SHA"
+            exit 1
+          fi
 
       - name: Show bounded runtime
         run: python3 --version
 
       - name: Run trusted Supply Chain Gate tests
         run: >-
-          python3 -m unittest discover
+          python3 -I -m unittest discover
           -s trusted-supply-chain-gate/tools/supply-chain-gate/tests
           -p 'test_*.py' -v
+
+      - name: Check out caller event commit without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          path: inspected-repository
+          persist-credentials: false
 
       - name: Resolve dependency comparison base
         id: base
@@ -139,7 +152,7 @@ jobs:
             args+=(--base-ref "${BASE_REF}")
           fi
           set +e
-          python3 trusted-supply-chain-gate/tools/supply-chain-gate/supply_chain_gate.py "${args[@]}"
+          python3 -I trusted-supply-chain-gate/tools/supply-chain-gate/supply_chain_gate.py "${args[@]}"
           checker_exit=$?
           set -e
           echo "exit_code=${checker_exit}" >> "${GITHUB_OUTPUT}"
@@ -150,7 +163,7 @@ jobs:
         env:
           GATE_OUTPUT_DIR: ${{ runner.temp }}/witnessops-supply-chain-gate
         run: |
-          python3 - <<'PY'
+          python3 -I - <<'PY'
           import json
           import os
           from html import escape
