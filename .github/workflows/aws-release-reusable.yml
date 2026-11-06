@@ -647,6 +647,40 @@ jobs:
           printf '### Staging command\n\n- Status: \`Success\`\n- Command ID: \`%s\`\n' \
             "${command_id}" >> "${GITHUB_STEP_SUMMARY}"
 
+  verify_production_mcp:
+    name: Verify public MCP through the production edge
+    if: needs.validate.outputs.operation == 'deploy-production'
+    needs: [validate, deploy_production]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the exact public acceptance probe
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up the acceptance runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Require public MCP semantic acceptance
+        run: |
+          set -euo pipefail
+          node deploy/aws/public-mcp-smoke.mjs --base-url https://witnessops.com > "${RUNNER_TEMP}/public-mcp-acceptance.json"
+          printf '### Public MCP acceptance\n\nPassed through the public HTTPS edge. This checks public behavior, not image identity or protected production status.\n' >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Retain the bounded public acceptance observation
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: public-mcp-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 30
+          if-no-files-found: error
+          path: ${{ runner.temp }}/public-mcp-acceptance.json
+
   deploy_production:
     name: Deploy exact digest to production
     if: needs.validate.outputs.operation == 'deploy-production'
