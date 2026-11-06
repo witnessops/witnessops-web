@@ -11,8 +11,10 @@
 > **Commercial target superseded (updated 2026-09-02).** Keep the body below as the immutable
 > 2026-08-19 experiment record; it is not current Company Page instruction. No LinkedIn field was
 > changed by this repository patch. Any manual replacement now requires explicit founder approval
-> and must use Agent Action Security Review as the primary paid entry point while retaining External
-> Attack Surface Review as secondary catalogue work. Historical names below remain part of the dated baseline.
+> and must follow the current rule: Agent Action Security Review at €2,500 excluding VAT is the
+> only new-sales review.
+> External Attack Surface Review is parked and unavailable for new engagements. Historical names
+> below remain part of the dated baseline.
 
 ## Commercial authority and boundary
 
