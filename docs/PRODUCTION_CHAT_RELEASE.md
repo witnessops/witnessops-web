@@ -14,9 +14,13 @@ are rejected before a provider call, including when they appear in history.
 
 Development simulations remain available only in development. Production
 ignores `?sim=` parameters and keeps the internal review panel and draft-copy
-notice hidden. Booking, voice, mailbox/calendar access and email delivery are
-outside this release. The assistant pages remain `noindex`; the existing
-analytics exclusion and conversation disclosure remain in place.
+notice hidden. Voice, mailbox access, and email delivery for the assistant
+remain outside this release. A separate live fit-call scheduling route exists
+in source and stays disabled unless its own server flag and configuration are
+complete; that route is not part of this chat release, and the fictional
+booking preview is not its fallback. See `docs/LIVE_BOOKING_DRAFT.md`. The
+assistant pages remain `noindex`; the existing analytics exclusion and
+conversation disclosure remain in place.
 
 ## Acceptance and deployment
 
