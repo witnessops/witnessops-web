@@ -552,3 +552,30 @@ test("Resources footer keeps the supported links without Research in both langua
     await expect(resources.locator(`a[href="${verifyHref}"]`)).toBeVisible();
   }
 });
+for (const width of [320, 390, 1440]) {
+  test(`Chronicles headings and records fit at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/chronicles/003-the-meeting-nobody-authorized");
+    await page.evaluate(() => document.fonts.ready);
+
+    await expect(page.locator("[data-chronicle-dateline]")).toHaveCSS("text-transform", "none");
+    const prose = page.locator(".chronicle-prose");
+    const bounds = await prose.boundingBox();
+    expect(bounds).not.toBeNull();
+    const headings = prose.locator("h2");
+    expect(await headings.count()).toBeGreaterThan(0);
+    for (const heading of await headings.all()) {
+      const box = await heading.boundingBox();
+      expect(box).not.toBeNull();
+      expect(Math.abs(box!.x + box!.width / 2 - (bounds!.x + bounds!.width / 2))).toBeLessThan(1);
+    }
+
+    expect(await prose.locator(".chronicle-record-divider").count()).toBeGreaterThan(0);
+    const records = prose.locator("pre");
+    for (const record of await records.all()) {
+      expect(await record.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+      await expect(record).not.toContainText("────────");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}

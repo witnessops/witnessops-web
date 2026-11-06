@@ -179,7 +179,8 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .wo-price { font-s
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose :is(p, li, blockquote):not(.wo-mono-caps):not(.wo-small) { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; max-width: var(--measure-prose); }
-body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; margin-inline: auto; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose pre { overflow-wrap: anywhere; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-prose-stack > * + * { margin-top: var(--type-prose-gap); }
 
 /* CSS-module roles lose to the element rules above. These selectors outrank them. */

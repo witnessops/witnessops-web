@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 
 import {
   PUBLISHED_CHAPTERS,
@@ -35,13 +36,20 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
         if (index % 2 === 1) {
           record += 1;
           const id = `R-${String(record).padStart(2, "0")}`;
+          const lines = chunk.trim().split("\n");
           return (
             <figure key={id} role="group" aria-label={`Evidence record ${id} (fiction)`} className="rounded-lg border border-surface-border bg-surface-inset p-6">
               <figcaption className="wo-mono-caps mb-3 flex justify-between text-brand-accent">
                 <span>Evidence record · {id}</span>
                 <span>Fiction</span>
               </figcaption>
-              <pre className="wo-mono overflow-x-hidden whitespace-pre-wrap text-text-secondary">{chunk.trim()}</pre>
+              <pre className="wo-mono whitespace-pre-wrap text-text-secondary">
+                {lines.map((line, lineIndex) => /^─{3,}$/.test(line.trim()) ? (
+                  <span key={lineIndex} aria-hidden="true" className="chronicle-record-divider block border-t border-surface-border" />
+                ) : (
+                  <Fragment key={lineIndex}>{line}{lineIndex < lines.length - 1 ? "\n" : null}</Fragment>
+                ))}
+              </pre>
             </figure>
           );
         }
