@@ -102,6 +102,21 @@ endpoint. A successful source test does not establish that the hosted endpoint
 is reachable. A connection error must remain an unavailable result, not a
 fabricated answer or a reason to bypass the website assistant's release gate.
 
+Both `/mcp` and the narrower `/mcp/directory` share an HTTP policy. Production
+accepts the canonical and legacy docs Hosts; browser Origins are restricted to
+`https://witnessops.com` and `https://chatgpt.com`. Server clients may omit
+Origin. Loopback Hosts and browser Origins are allowed only in development or
+tests; built-image probes send the canonical Host explicitly.
+
+Each profile limits requests to 128 KiB, responses to 1 MiB, request handling to
+15 seconds, and SSE connections to 60 seconds. It permits 32 active requests,
+including at most eight streams, per application process. The existing limit
+of 120 requests per client per minute is also process-local; these limits do
+not establish distributed or edge quotas. JSON completion, cancellation and
+timeouts release the SDK server and transport. SSE clients must reconnect after
+the bounded lifetime. The explicit-target release probe and its deployment
+boundary are documented in [AWS acceptance](./deploy/aws/README.md).
+
 ## Public proof-surface contract
 
 The AI Agent Action Proof Run sample lives at:

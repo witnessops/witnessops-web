@@ -236,6 +236,23 @@ test("AWS runtime must retain the patched OpenSSL package versions", () => {
   assert.throws(() => validatePhase3Sources(staleSsl), /libssl3=3\.5\.9-r0/);
 });
 
+test("AWS builder and runtime must each install the patched musl packages", () => {
+  for (const stage of ["builder", "runtime"]) {
+    for (const name of ["musl", "musl-utils"]) {
+      for (const replacement of [`  ${name}=1.2.6-r2 \\\n`, ""]) {
+        const mutated = changed("dockerfile", (value) => value.replace(
+          new RegExp(`(^FROM [^\\n]+ AS ${stage}\\n)([\\s\\S]*?)(?=^FROM |$(?![\\s\\S]))`, "m"),
+          (_, from, body) => from + body.replace(`  ${name}=1.2.6-r3 \\\n`, replacement),
+        ));
+        assert.throws(
+          () => validatePhase3Sources(mutated),
+          new RegExp(`AWS ${stage} must install ${name}=1\\.2\\.6-r3`),
+        );
+      }
+    }
+  }
+});
+
 test("PR validation must build without image publication authority", () => {
   const missingBuildInputTrigger = changed("validation", (value) =>
     value.replace('      - "apps/witnessops-web/**"\n', ""),

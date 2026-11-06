@@ -1,5 +1,7 @@
 # Worked example — Acme · One Server Security Check
 
+> **Historical / superseded.** This worked example is not a current offer. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
+
 Fictional. Use as a model when a real host engagement arrives.
 
 ---

@@ -263,6 +263,38 @@ assert_local_disposition \
   http://127.0.0.1:3000/aws-migration-doc-check?source=aws-candidate \
   "308|https://witnessops.com/docs/aws-migration-doc-check?source=aws-candidate"
 
+# Traverse the candidate's HTTPS Caddy route without public DNS or relaxed TLS.
+# Application loopback success alone cannot detect a proxy denying /mcp.
+for profile in 'mcp witnessops-public-knowledge' 'mcp/directory witnessops-public-directory'; do
+  read -r route server_name <<< "${profile}"
+  status="$(remote "curl --silent --show-error --output /dev/null \
+    --write-out '%{http_code}' --max-time 15 --max-redirs 0 --noproxy '*' \
+    --resolve witnessops.com:443:127.0.0.1 --request OPTIONS \
+    'https://witnessops.com/${route}'")"
+  [[ "${status}" == "204" ]] || die "candidate Caddy /${route} OPTIONS returned ${status:-000}"
+  initialized="$(remote "curl --silent --show-error --fail-with-body \
+    --write-out '\\n%{http_code}' --max-time 15 --max-redirs 0 --noproxy '*' \
+    --resolve witnessops.com:443:127.0.0.1 \
+    --header 'Content-Type: application/json' \
+    --header 'Accept: application/json, text/event-stream' \
+    --header 'MCP-Protocol-Version: 2025-06-18' \
+    --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"candidate-acceptance\",\"version\":\"1.0.0\"}}}' \
+    'https://witnessops.com/${route}'")" \
+    || die "candidate Caddy /${route} initialization failed"
+  printf '%s' "${initialized}" | node -e '
+    const assert = require("node:assert/strict");
+    const raw = require("node:fs").readFileSync(0, "utf8");
+    const boundary = raw.lastIndexOf("\n");
+    assert.equal(raw.slice(boundary + 1), "200");
+    const payload = JSON.parse(raw.slice(0, boundary));
+    assert.equal(payload.jsonrpc, "2.0");
+    assert.equal(payload.id, 1);
+    assert.equal(payload.error, undefined);
+    assert.equal(payload.result.protocolVersion, "2025-06-18");
+    assert.equal(payload.result.serverInfo.name, process.argv[1]);
+  ' "${server_name}" || die "candidate Caddy /${route} returned an invalid initialization"
+done
+
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-aws-candidate.XXXXXX")"
 trap 'rm -rf -- "${tmp_dir}"' EXIT
 valid_payload="${tmp_dir}/per-valid.json"

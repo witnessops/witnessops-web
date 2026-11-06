@@ -1,10 +1,12 @@
 # Offer naming — sampled market comparison
 
-> **Superseded commercial instruction (updated 2026-09-02).** This remains a dated market-research
-> record. Its Agent Risk & Control Review and Public Exposure Review naming recommendations are no
-> longer current. [`16-agent-workflow-reconstruction-offer.md`](./16-agent-workflow-reconstruction-offer.md)
-> now governs Agent Action Security Review, while [`10-public-exposure-review-offer.md`](./10-public-exposure-review-offer.md)
-> governs External Attack Surface Review. The historical analysis below is intentionally retained.
+> **Historical / superseded commercial instruction.** This remains a dated market-research record;
+> its Agent Risk & Control Review and Public Exposure Review naming recommendations are no longer
+> current. The [commercial index](./README.md) governs current new-sales direction: Agent Action
+> Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface
+> Review is parked. The [external offer](./10-public-exposure-review-offer.md) and
+> [fit check](./11-public-exposure-review-fit-check.md) are historical records for issued agreements
+> and old lookups, not current sales authority. The analysis below is intentionally retained.
 
 **Research snapshot:** 2026-08-13 03:30 UTC. Public English and Polish pages sampled; no paid keyword-volume or backlink dataset was available.
 

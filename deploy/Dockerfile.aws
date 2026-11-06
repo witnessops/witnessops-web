@@ -11,6 +11,8 @@ FROM ${NODE22_BUILDER_IMAGE} AS builder
 ARG SOURCE_COMMIT
 WORKDIR /app
 RUN apk add --no-cache \
+  musl=1.2.6-r3 \
+  musl-utils=1.2.6-r3 \
   gcompat=1.1.0-r4 \
   python3=3.14.10-r1 \
   make=4.4.1-r4 \
@@ -29,6 +31,8 @@ ARG GWS_SHA256
 LABEL org.opencontainers.image.source="https://github.com/witnessops/witnessops-web"
 LABEL org.opencontainers.image.revision="${SOURCE_COMMIT}"
 RUN apk add --no-cache \
+  musl=1.2.6-r3 \
+  musl-utils=1.2.6-r3 \
   gcompat=1.1.0-r4 \
   libcrypto3=3.5.9-r0 \
   libssl3=3.5.9-r0 \
