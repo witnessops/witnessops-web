@@ -1,5 +1,7 @@
 # Claim blurbs (paste into scope + package + email)
 
+> **Historical / superseded.** These CSR and One Server blurbs are not current sales instruction. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
+
 Short blocks only. Prefer these exact limits over improvised wording.
 
 ---

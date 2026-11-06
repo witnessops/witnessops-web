@@ -9,6 +9,8 @@ image_id="$(docker image inspect "${image}" --format '{{.Id}}')"
 [[ "$(docker image inspect "${image_id}" --format '{{.Config.User}}')" == nextjs ]]
 docker run --rm --network none --entrypoint /bin/sh "${image_id}" -eu -c '
   test "$(id -u)" = 1001
+  # Inspect installed packages, without repository access or severity filtering.
+  apk info --exists musl=1.2.6-r3 musl-utils=1.2.6-r3
   for tool in npm npx pnpm pnpx corepack yarn yarnpkg; do
     if command -v "$tool"; then exit 1; fi
   done
@@ -43,5 +45,7 @@ for pair in '/status https://status.vaultmesh.org/' '/catalog /reviews'; do
 done
 # Existing local public raster, without widening remote image sources.
 curl --fail --silent --show-error "${base}/_next/image?url=%2Fimages%2Fkarol-stefanski.jpg&w=64&q=75" >/dev/null
+# Exercise real tools in the exact built image before it can be published.
+node deploy/aws/public-mcp-smoke.mjs --base-url "${base}"
 [[ "$(docker image inspect "${image}" --format '{{.Id}}')" == "${image_id}" ]]
 printf 'RUNTIME_IMAGE_OK %s\n' "${image_id}"

@@ -52,7 +52,7 @@
     "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh",
     "deploy:k3s:test-parity": "bash deploy/scripts/test-k3s-parity.sh",
     "deploy:k3s:hygiene": "bash deploy/scripts/k3s-disk-hygiene.sh",
-    "deploy:aws:test": "node --import tsx --test tests/publication/browser-timing.test.ts && node --test deploy/aws/validate-github-deployment.test.mjs deploy/aws/validate-production-status.test.mjs deploy/aws/validate-acceptance.test.mjs deploy/scripts/no-automatic-image-publication.test.mjs deploy/scripts/retired-production-deploy.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
+    "deploy:aws:test": "node --import tsx --test tests/publication/browser-timing.test.ts && node --test deploy/aws/validate-github-deployment.test.mjs deploy/aws/validate-production-status.test.mjs deploy/aws/validate-acceptance.test.mjs deploy/aws/public-mcp-smoke.test.mjs deploy/scripts/no-automatic-image-publication.test.mjs deploy/scripts/retired-production-deploy.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
     "deploy:aws:validate": "node deploy/aws/validate-acceptance.mjs",
     "deploy:aws:validate-github": "node deploy/aws/validate-github-deployment.mjs",
     "deploy:aws:candidate": "bash deploy/aws/candidate-acceptance.sh",
@@ -80,7 +80,8 @@
       "next": "15.5.28",
       "postcss": ">=8.5.18",
       "flatted": ">=3.4.2",
-      "hono": "4.13.7",
+      "@hono/node-server": "2.1.6",
+      "hono": "4.13.16",
       "express-rate-limit": "8.2.2",
       "proxy-addr": "2.0.8",
       "ip-address": "10.7.1",
@@ -90,8 +91,8 @@
       "nanoid": "3.3.18",
       "sharp": "0.35.5",
       "source-map-js": "1.2.2",
-      "fast-uri": "3.1.8",
-      "qs": "6.16.0",
+      "fast-uri": "3.1.9",
+      "qs": "6.16.1",
       "@humanfs/node": "0.16.8"
     }
   }

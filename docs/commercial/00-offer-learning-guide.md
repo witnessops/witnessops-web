@@ -1,6 +1,6 @@
 # Offer learning guide (read this first)
 
-> **Historical / superseded.** This guide is not current commercial authority. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+> **Historical / superseded.** This guide is not current commercial authority. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
 
 Plain-language map of what WitnessOps sells, what is only a method, and where every real sample lives on this machine and on the public site.
 

@@ -304,3 +304,100 @@ test("remaining held-term hits are historical records, held marks, or test fixtu
     /superseded historical row/,
   );
 });
+
+test("operator commercial records cannot reopen parked or historical offers", () => {
+  const onlyNewSalesReview =
+    /Agent Action Security Review at €2,500 excluding VAT is the only new-sales review/;
+  const externalIsParked = /External Attack Surface Review is parked/;
+  const readCommercialCopy = (file: string) =>
+    readFileSync(resolve(repoRoot, file), "utf8")
+      .replace(/^>\s?/gm, "")
+      .replace(/\s+/g, " ");
+
+  for (const file of [
+    "docs/commercial/02-delivery-email.md",
+    "docs/commercial/03-claim-blurb.md",
+    "docs/commercial/worked-examples/acme-one-server-full.md",
+  ]) {
+    const source = readCommercialCopy(file);
+    assert.match(source, /Historical \/ superseded/, file);
+    assert.match(source, onlyNewSalesReview, file);
+    assert.match(source, externalIsParked, file);
+  }
+
+  for (const file of [
+    "docs/commercial/10-public-exposure-review-offer.md",
+    "docs/commercial/11-public-exposure-review-fit-check.md",
+  ]) {
+    const source = readCommercialCopy(file);
+    assert.match(source, /Historical \/ parked for new sales/, file);
+    assert.match(source, onlyNewSalesReview, file);
+    assert.match(source, externalIsParked, file);
+  }
+
+  for (const file of [
+    "docs/commercial/12-offer-naming-market-note.md",
+    "docs/commercial/14-linkedin-premium-experiment.md",
+    "docs/commercial/15-agent-risk-control-review-offer.md",
+    "docs/commercial/17-ai-agent-tools-access-review-offer.md",
+  ]) {
+    const source = readCommercialCopy(file);
+    assert.match(source, onlyNewSalesReview, file);
+    assert.match(source, externalIsParked, file);
+  }
+
+  const corrected = [
+    "docs/commercial/10-public-exposure-review-offer.md",
+    "docs/commercial/11-public-exposure-review-fit-check.md",
+    "docs/commercial/12-offer-naming-market-note.md",
+    "docs/commercial/14-linkedin-premium-experiment.md",
+    "docs/commercial/15-agent-risk-control-review-offer.md",
+    "docs/commercial/17-ai-agent-tools-access-review-offer.md",
+  ]
+    .map(readCommercialCopy)
+    .join("\n");
+  for (const stalePhrase of [
+    "Secondary catalogue offer",
+    "External Attack Surface Review is current as of",
+    "retaining External Attack Surface Review as secondary catalogue work",
+    "canonical current contract",
+    "separate current catalog offer",
+    "CURRENT SOURCE CONTRACT",
+    "current commercial contract",
+    "governs External Attack Surface Review",
+    "remains separate at its own accepted scope and €1,900 excluding VAT price",
+  ]) {
+    assert.equal(corrected.includes(stalePhrase), false, stalePhrase);
+  }
+
+  const historicalAgentToolsContract = readCommercialCopy(
+    "docs/commercial/17-ai-agent-tools-access-review-offer.md",
+  );
+  assert.match(
+    historicalAgentToolsContract,
+    /AI Agent Tools & Access Review — historical commercial contract/,
+  );
+  assert.match(
+    historicalAgentToolsContract,
+    /HISTORICAL SOURCE CONTRACT \/ NOT FOR NEW SALES/,
+  );
+  assert.match(
+    historicalAgentToolsContract,
+    /historical €1,900 excluding VAT terms remain only for issued agreements and old lookups/,
+  );
+
+  const ledger = readFileSync(
+    resolve(repoRoot, "docs/commercial/engagement-ledger.md"),
+    "utf8",
+  );
+  assert.match(
+    ledger,
+    /Current new-sales product value:\*\* `agent-action-security-review`/,
+  );
+  assert.match(
+    ledger,
+    /Historical ledger product values already in use:\*\* `csr` · `one-server` · `launch` · `custody` · `incident`/,
+  );
+  assert.match(ledger, /`other` for non-offer bookkeeping only/);
+  assert.doesNotMatch(ledger, /\*\*product values:\*\* `csr`/);
+});

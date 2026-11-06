@@ -1,6 +1,8 @@
 # External Attack Surface Review
 
-**Status:** Secondary catalogue offer under the stable `OFFSEC-EXTERNAL-EXPOSURE` SKU. Acceptance remains subject to scope, authority, and operator capacity.
+> **Historical / parked for new sales.** External Attack Surface Review is parked and no longer available for new engagements. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. Delivery timing is agreed in the signed statement of work. Keep this record only for issued agreements and old lookups.
+
+**Status:** Historical parked-offer record under the stable `OFFSEC-EXTERNAL-EXPOSURE` SKU. It is not for new sales or booking.
 
 **Public name as of 2026-09-02:** External Attack Surface Review.
 

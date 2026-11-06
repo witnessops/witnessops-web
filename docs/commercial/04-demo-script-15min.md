@@ -1,6 +1,6 @@
 # 15-minute flagship demo script
 
-> **Historical / superseded.** Do not use the path below as a current demo. Current terms are Agent Action Security Review at €2,500 excluding VAT and External Attack Surface Review at €1,900 excluding VAT. Delivery timing agreed in the signed statement of work.
+> **Historical / superseded.** Do not use the path below as a current demo. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
 
 > **Superseded demo sequence (2026-09-01).** The current primary demo path is Agent Workflow
 > Reconstruction: one named agentic or automated workflow, €2,500 fixed, beginning with a non-secret
