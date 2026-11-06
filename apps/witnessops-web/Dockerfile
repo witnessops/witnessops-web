@@ -6,9 +6,9 @@ FROM ${NODE22_RUNTIME_IMAGE} AS runtime
 ARG GWS_VERSION
 ARG GWS_TARGET
 ARG GWS_SHA256
-# The pinned Node base still carries OpenSSL 3.5.7. Exact package constraints
-# fail closed if these patched versions are unavailable; never use apk upgrade.
-RUN apk add --no-cache libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 zlib=1.3.2-r1 libc6-compat ca-certificates curl \
+# The pinned Node base still carries OpenSSL 3.5.7 and musl 1.2.6-r2.
+# Exact package constraints fail closed if these patched versions are unavailable; never use apk upgrade.
+RUN apk add --no-cache libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 zlib=1.4-r0 musl=1.2.6-r3 musl-utils=1.2.6-r3 libc6-compat ca-certificates curl \
   && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-${GWS_TARGET}.tar.gz" \
     --output /tmp/gws.tar.gz \
