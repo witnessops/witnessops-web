@@ -11,10 +11,18 @@ test("synthetic AASR page and API are absent with the fixture flag off", async (
 });
 
 test("unknown API paths never fall through to the product shell", async ({ request }) => {
-  const response = await request.get("/api/wops-route-does-not-exist");
+  const paths = [
+    "/api/wops-route-does-not-exist",
+    "/API/wops-route-does-not-exist",
+    "/Api/wops-route-does-not-exist",
+  ];
 
-  expect(response.status()).toBe(404);
-  const body = await response.text();
-  expect(body).not.toContain("Opening your workspace");
-  expect(body).not.toContain('class="product-app"');
+  for (const path of paths) {
+    const response = await request.get(path);
+
+    expect(response.status(), path).toBe(404);
+    const body = await response.text();
+    expect(body, path).not.toContain("Opening your workspace");
+    expect(body, path).not.toContain('class="product-app"');
+  }
 });

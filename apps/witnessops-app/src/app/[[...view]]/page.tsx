@@ -11,7 +11,7 @@ type PageProps = {
 
 export default async function Page({ params }: PageProps) {
   const { view = [] } = await params;
-  if (view[0] === "api") notFound();
+  if (view[0]?.toLowerCase() === "api") notFound();
 
   if (isAasrStagingBuild()) {
     const { AasrStagingEntry } = await import("../../components/aasr-staging-entry");
