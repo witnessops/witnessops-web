@@ -1,6 +1,6 @@
 ---
 title: "Commands"
-description: "Current app CLI authentication commands, followed by separate operator runbook reference."
+description: "Source-backed app CLI tools for authentication, agent observation, review requests, and assisted server checks, followed by a separate runbook reference."
 section: "docs"
 order: 10
 nav_label: "Commands"
@@ -9,9 +9,25 @@ draft: false
 
 # Commands
 
-## App CLI commands
+This page separates the `@witnessops/cli` command-line client from the `witnessops-offsec` runbook helpers below. They are different toolchains with different authority and outputs.
 
-Start with [CLI setup and authentication](/docs/getting-started/cli). The package is private source, not a published npm installer. From the approved repository checkout with Node.js 22:
+## `@witnessops/cli` tools
+
+The package is private source distributed as an operator-supplied assisted-pilot archive; it has no public npm installer. In an approved repository checkout with Node.js 22, use `node packages/wops-cli/src/main.mjs` in place of the installed `wops` command shown below. Check that an installed `wops` belongs to `@witnessops/cli` before using it; the name alone does not identify a package. Source availability does not establish that an app service or pilot runtime is deployed.
+
+| Command | Actual action | Boundary |
+| --- | --- | --- |
+| `wops auth login` | Opens app authorization and waits for a CLI session. | Sign-in is not collection or signing authority. |
+| `wops auth status` | Checks the saved session with the app server. | A local credential alone does not confirm access. |
+| `wops auth logout` | Removes the local credential and attempts server revocation. | Failed revocation is reported as unconfirmed. |
+| `wops agent inspect` | Writes a private local agent/MCP observation record. | No sign-in, network, execution, upload, or security verdict. |
+| `wops review request` | Prompts for and, after confirmation, sends one non-secret fit check. | No booking, collection, evidence upload, or review start. |
+| `sudo wops server check` | Runs an authorized Linux Local Audit server check in the assisted pilot. | Requires separate collection authority, approved scope/window, and root-owned runtime. |
+| `sudo wops server check retire` | Retires an eligible check and archives retained request evidence. | Separate explicit confirmation; unavailable after capture upload or finalization. |
+
+### Authentication
+
+Start with [CLI setup and authentication](/docs/getting-started/cli). From the source checkout:
 
 ```bash
 node packages/wops-cli/src/main.mjs auth login
@@ -19,39 +35,39 @@ node packages/wops-cli/src/main.mjs auth status
 node packages/wops-cli/src/main.mjs auth logout
 ```
 
-Login authorizes a CLI session, not collection or signing. Use [Account and CLI help](/docs/getting-started/access-help) for expired sessions, role restrictions or access problems.
+Login targets `https://app.witnessops.com` by default, accepts `--server URL` for an approved app endpoint, and binds the selected workspace. Status checks current server access; logout removes the local credential and attempts revocation. Login authorizes a CLI session, not collection or signing. Use [Account and CLI help](/docs/getting-started/access-help) for expired sessions, role restrictions or access problems.
 
-## Separate operator runbook reference
+### Local agent and MCP observation
 
-The remainder describes the `witnessops-offsec` engagement toolchain, not the app CLI. Its helper scripts are not supplied by this web repository. Use it only with the separately supplied toolchain and its matching contract. These commands do not install the app or grant workspace access.
+```bash
+node packages/wops-cli/src/main.mjs agent inspect --help
+node packages/wops-cli/src/main.mjs agent inspect --output ./agent-observation.json
+```
 
-## Quick reference links
+`agent inspect` checks fixed agent executable names in bounded `PATH` locations using file metadata. It reads MCP declarations only from up to four explicitly selected JSON files passed with `--mcp-config FILE`; do not select credential files. It writes a new, private `agent-observation.json` by default, or a new file at `--output FILE`, and refuses to overwrite an existing file. Review the record's scope, unknowns, failures and retained source paths before sharing it. Exit `0` means the selected checks completed, `2` means partial or unsupported with a record, and `1` means invalid invocation or output failure. None is a security verdict.
 
-- [Reference](/docs/reference)
-- [Commands](/docs/reference/commands) (current page)
-- [Proof Artifact Classes](/docs/reference/proof-artifact-classes)
-- [Glossary](/docs/glossary)
-- man witnessops(7) — draft; not published as a primary public page
+### Agent Action Security Review fit check
 
-## 1. Problem this page solves
+```bash
+node packages/wops-cli/src/main.mjs review request --help
+node packages/wops-cli/src/main.mjs review request
+```
 
-Command names are easy to remember. Command semantics are where drift happens.
+`review request` targets `https://witnessops.com` by default and accepts `--server URL` for an approved public-site endpoint. It prompts in a terminal for name, business email, optional organisation, locale and a short description of one consequential action. It displays the request and sends it only after an explicit `y` confirmation. The request is a non-secret fit check: do not enter credentials, logs, customer evidence or production data. A successful response reports that mailbox verification was issued; delivery and verification remain separate. It is not a booking or permission to start a review. The command does not read or upload the local observation record. See the [Buyer path](/docs/getting-started/proof-run-buyer-path) for the subsequent boundary.
 
-This page fixes that by defining:
+### Assisted Linux server check
 
-- exact command entry points
-- usage boundaries for governed vs exception paths
-- expected artifacts and observable outputs for review
+```bash
+node packages/wops-cli/src/main.mjs server check --help
+```
 
-## 2. What you should understand after reading
+The installed pilot's `sudo wops server check` uses a separate root-owned launcher and Local Audit runtime. A real check requires current app authorization with the server-check scope plus separately approved asset, collection scope and a time window of at most 30 minutes. It accepts `--starts-at UTC --ends-at UTC` for an approved window. It performs read-only collection and an upload; signing, remediation and arbitrary scanning are outside this command. The `retire` subcommand is a separate guarded action for an eligible retained check before capture upload or finalization. The source checkout and CLI login alone do not enable either operation. Read the [pilot CLI contract](https://github.com/witnessops/witnessops-web/blob/main/packages/wops-cli/README.md) and `wops server check --help` before an authorized pilot action.
 
-After this page:
+## Separate `witnessops-offsec` runbook helpers
 
-- operators can run the five-command lifecycle without guessing side effects
-- approvers and reviewers can map command actions to `state.json`, `receipt.json`, and run artifacts
-- both lanes can separate command guarantees from broader policy or verification claims
+The remainder describes the `witnessops-offsec` engagement toolchain, not `@witnessops/cli`. Its helper scripts are not supplied by this web repository. Use them only with that separate toolchain, its current contract and approved scope. These are shell helpers, not `wops` subcommands; they do not install the app or grant workspace access. Their `state.json`, `receipt.json` and run artifacts belong to that runbook toolchain, not to the app CLI commands above.
 
-## Fleet and mesh operators (not this public site)
+### Fleet and mesh operators (not this public site)
 
 Public buyer docs describe the proof-package path only. **Fleet / mesh operators**
 use internal OffSec mesh documentation and tooling that is **not published on this
@@ -61,7 +77,7 @@ The **runbook helper commands below** apply to the `witnessops-offsec` engagemen
 layout (`ops/engagements/`) when that layout is in use. They are not a public
 hunt loop and do not replace the buyer proof path on `/verify`.
 
-## 3. Command surface and lifecycle order (runbook helpers)
+### Helper lifecycle order
 
 The runbook helper surface is intentionally narrow:
 
@@ -73,9 +89,9 @@ The runbook helper surface is intentionally narrow:
 
 Use this order for normal governed execution. Repeated `runbook-state` checks are expected. Repeated `runbook-resume` is safe for interrupted runs.
 
-## 4. Command semantics, boundaries, and outputs
+### Helper semantics, boundaries, and outputs
 
-### `new-engagement`
+#### `new-engagement`
 
 ```bash
 bash automation/helpers/new-engagement.sh <engagement-name>
@@ -97,7 +113,7 @@ ops/engagements/<engagement-name>/
 
 **Usage boundary:** this command does not set scope or execute runbooks. Populate `scope/in-scope.txt` before `runbook-exec`.
 
-### `runbook-exec`
+#### `runbook-exec`
 
 ```bash
 bash automation/helpers/runbook-exec.sh <runbook-id> \
@@ -120,7 +136,7 @@ bash automation/helpers/runbook-exec.sh <runbook-id> \
 
 **Usage boundary:** `--no-scope` and `--lab` are not normal production-governed paths. Review [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) before use.
 
-### `runbook-state`
+#### `runbook-state`
 
 ```bash
 bash automation/helpers/runbook-state.sh <engagement-name> <run-id>
@@ -136,7 +152,7 @@ bash automation/helpers/runbook-state.sh <engagement-name> <run-id>
 
 **Usage boundary:** this command does not mutate run state, approve gates, or resume execution.
 
-### `runbook-approve`
+#### `runbook-approve`
 
 ```bash
 bash automation/helpers/runbook-approve.sh <engagement-name> <run-id> --approve
@@ -153,7 +169,7 @@ bash automation/helpers/runbook-approve.sh <engagement-name> <run-id> --approve
 
 **Usage boundary:** approval records permission. They do not execute the gated step. Use `runbook-resume` to continue.
 
-### `runbook-resume`
+#### `runbook-resume`
 
 ```bash
 bash automation/helpers/runbook-resume.sh <engagement-name> <run-id>
@@ -165,7 +181,7 @@ bash automation/helpers/runbook-resume.sh <engagement-name> <run-id>
 
 **Usage boundary:** resume does not bypass future gates or scope checks. It re-enters governed step flow.
 
-## 5. Explicit scope limits and non-claims
+### Explicit scope limits and non-claims
 
 This page defines command behavior only. It does not:
 
@@ -174,9 +190,9 @@ This page defines command behavior only. It does not:
 - prove tool correctness, operator or approver judgment quality, or business-impact conclusions
 - expose internal-only proof implementation detail beyond operator and reviewer-visible artifacts
 
-## 6. Operator and reviewer crosslinks
+### Operator and reviewer crosslinks
 
-### Operator lane
+#### Operator lane
 
 1. [New Operator](/docs/audiences/new-operator)
 2. [Runbooks](/docs/operations/runbooks)
@@ -184,7 +200,7 @@ This page defines command behavior only. It does not:
 4. [What Evidence Is Required?](/docs/decisions/evidence-required)
 5. [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
 
-### Approver and reviewer lane
+#### Approver and reviewer lane
 
 1. [Manager / Approver](/docs/audiences/manager-approver)
 2. [Receipts](/docs/evidence/receipts)
@@ -192,6 +208,6 @@ This page defines command behavior only. It does not:
 4. [Receipt Spec](/docs/evidence/receipt-spec)
 5. [Threat Model](/docs/security-systems/threat-model)
 
-## 7. Next-page handoff
+## Next-page handoff
 
-Next, read [Proof Artifact Classes](/docs/reference/proof-artifact-classes) to align command outputs with current artifact names, ownership lanes, and status boundaries.
+For the separate runbook and receipt artifacts, read [Proof Artifact Classes](/docs/reference/proof-artifact-classes). For the app CLI's sign-in path, return to [CLI setup and authentication](/docs/getting-started/cli).
