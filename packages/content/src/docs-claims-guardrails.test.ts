@@ -46,12 +46,14 @@ test("buyer-path offer section matches the live catalogue", () => {
     "utf-8",
   );
   assert.match(buyer, /External Attack Surface Review/);
-  assert.match(buyer, /former Public Exposure Review title as historical artifact identity/);
   assert.match(buyer, /Agent Action Security Review/);
   assert.match(buyer, /offerId=agent-action-security-review/);
+  assert.match(buyer, /\[Agent Action Security Review\]\(\/reviews\/agent-action-security-review\)/);
+  assert.match(buyer, /## \d+\. Minimal buyer reading order\n\n1\. \[Agent Action Security Review\]\(\/reviews\/agent-action-security-review\)/);
+  assert.doesNotMatch(buyer, /href: "\/reviews\/external-attack-surface-review"/);
   assert.match(buyer, /pinned AI-agent public sample only/i);
-  assert.match(buyer, /does not duplicate its inventory or commercial status/i);
-  assert.match(buyer, /intentionally contains no receipt/i);
+  assert.match(buyer, /Treat \[View services\]\(\/catalog\) as the live offer list/);
+  assert.match(buyer, /A receipt and verifier are not standard deliverables of the current review/);
   assert.doesNotMatch(buyer, /six active services/);
   assert.doesNotMatch(buyer, /not yet admitted/);
   assert.doesNotMatch(buyer, /Proof-Backed Security Workflow/);
