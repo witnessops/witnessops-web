@@ -23,6 +23,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-two-offer-copy.ts",
   "src/components/marketing/homepage-cut-copy.ts",
+  "src/components/marketing/hero-action-visual.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -73,6 +74,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "no real provider",
   "not verified",
   "not customer evidence",
+  "not a customer test result",
   "not a live customer artifact",
   "not a live customer report",
   "not a live customer audit",
@@ -125,6 +127,7 @@ const POLISH_HOMEPAGE_BOUNDARY_MARKERS = [
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
+  "src/components/marketing/hero-action-visual.tsx",
   "src/components/marketing/why-witnessops.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",

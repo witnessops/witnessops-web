@@ -22,6 +22,13 @@ for (const viewport of [
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectMenusOmitRetiredEntries(page);
     await expect(page.locator("[data-agent-action-specimen]")).toHaveCount(0);
+    const illustration = page.locator("[data-home-hero-illustration]");
+    if (viewport.width >= 1200) {
+      await expect(illustration).toBeVisible();
+      await expect(illustration).toContainText("Not a customer test result.");
+    } else {
+      await expect(illustration).toBeHidden();
+    }
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ask Sovereign", exact: true })).toHaveCount(0);
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
@@ -51,6 +58,8 @@ for (const viewport of [
 test("Polish homepage carries the same five sections and keeps docs reachable by URL", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
+  await expect(page.locator(".pl-copy-review")).toHaveCount(0);
+  await expect(page.locator("[data-home-hero-illustration]")).toBeHidden();
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
     await expect(page.locator(selector)).toHaveAttribute("content", /Próbujemy przełamać Twojego agenta AI/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
@@ -68,4 +77,10 @@ test("Polish homepage carries the same five sections and keeps docs reachable by
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true })).toHaveAttribute("href", "/pl/docs");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   expect((await page.request.get("/pl/docs")).status()).toBe(200);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const illustration = page.locator("[data-home-hero-illustration]");
+  await expect(illustration).toBeVisible();
+  await expect(illustration).toContainText("Przykład poglądowy");
+  await expect(illustration).toContainText("To nie jest wynik testu u klienta.");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });

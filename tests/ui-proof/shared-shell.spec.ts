@@ -246,7 +246,10 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       expect(shell.navHeight, `${route} ${viewport.name} header height`).toBe(
         expectedNavHeight,
       );
-      if (route.startsWith("/pl")) {
+      if (route === "/pl") {
+        await expect(page.locator(".pl-copy-review")).toHaveCount(0);
+        expect(shell.reviewTagHeight, `${route} omits the homepage review tag`).toBe(0);
+      } else if (route.startsWith("/pl/")) {
         expect(shell.reviewTagHeight, `${route} PL copy review tag`).toBeGreaterThan(0);
       }
       if (!routesWithSecondaryNavigation.has(route)) {
