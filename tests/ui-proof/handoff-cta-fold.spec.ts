@@ -41,10 +41,7 @@ for (const viewport of viewports) {
       );
       console.log(JSON.stringify(measurement));
       expect(top, JSON.stringify(measurement)).toBeGreaterThanOrEqual(0);
-      expect(bottom, JSON.stringify(measurement)).toBeLessThanOrEqual(viewport.height);
-      if (target.label === "pl-aasr" && viewport.width === 390) {
-        expect(clearance, JSON.stringify(measurement)).toBeGreaterThanOrEqual(16);
-      }
+      expect(clearance, JSON.stringify(measurement)).toBeGreaterThanOrEqual(16);
     });
   }
 }

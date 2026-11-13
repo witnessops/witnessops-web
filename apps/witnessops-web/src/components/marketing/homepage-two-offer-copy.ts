@@ -110,7 +110,7 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
     support: PL_SUPPORT,
     supportCompact: PL_SUPPORT_COMPACT,
     supportShort:
-      "Wskazujesz jedno działanie. Próbujemy sprawić, by agent je wykonał, gdy nie powinien. Możemy nie przejść.",
+      "Wskazujesz działanie. Próbujemy, by agent je wykonał, gdy nie powinien. Możemy nie przejść.",
     aiHeadline: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
     aiWhoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     aiScopeNote:
