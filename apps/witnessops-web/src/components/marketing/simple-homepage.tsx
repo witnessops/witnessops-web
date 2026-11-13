@@ -24,7 +24,7 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
           <img src="/brand/witnessops-logo-system-v1/svg/witnessops-mark-white.svg" alt="" className="wo-watermark wo-watermark--white" />
         </div>
       ) : null}
-      <div className={`${styles.frame} ${styles.heroFrame} crop-frame`}>
+      <div className={`${styles.frame} ${styles.heroFrame}`}>
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>{text.offerName}</p>
@@ -40,13 +40,13 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
             <p className={`${styles.lead} ${styles.supportCompact}`} data-ui-proof-id="homepage-hero-mobile-body">{text.subCompact}</p>
           </div>
           <div>
-            <p className={styles.heroPrice} data-home-fee><PriceText text={text.fee} /></p>
             <div className={styles.actions}>
               {services.map((service) => (
                 <Link key={service.id} className={styles.primary} href={buyerServiceRequestHref(locale, service)} data-ui-proof-id="homepage-hero-primary-cta">{text.cta}</Link>
               ))}
             </div>
             <Link className={styles.exampleLink} href={text.exampleHref} data-ui-proof-id="homepage-sample-review-cta">{text.exampleLabel}</Link>
+            <p className={styles.heroPrice} data-home-fee><PriceText text={text.fee} /></p>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
         <h2 id="home-four-ways-heading">{text.fourWaysTitle}</h2>
         <div className={styles.limits}>
           {text.fourWays.map(([title, body]) => (
-            <article key={title} className="crop">
+            <article key={title}>
               <h3>{title}</h3>
               <p>{body}</p>
             </article>
@@ -86,7 +86,7 @@ export function SimpleHomepage({ locale = "en" }: { locale?: BuyerLocale }) {
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
       <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>{text.enquiryEyebrow}</p><h2 id="home-enquiry-heading">{text.enquiryTitle}</h2><p>{text.enquiryLead}</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a className={styles.inlineTarget} href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p></div>
-      <div className={`${styles.enquiryForm} crop`}><ContactForm locale={locale} compact landing /></div>
+      <div className={styles.enquiryForm}><ContactForm locale={locale} compact landing /></div>
     </div></section>
   </main>;
 }
