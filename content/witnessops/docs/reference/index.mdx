@@ -39,7 +39,7 @@ After this page, you should know:
 
 | Surface | Truth defined here | Use when |
 | --- | --- | --- |
-| [Commands](/docs/reference/commands) | operator command entry points, flags, produced artifacts, and lifecycle sequencing | you need exact command behavior and invocation shape |
+| [Commands](/docs/reference/commands) | source-backed app CLI tools, plus separately labeled OffSec helper commands and their boundaries | you need exact invocation shape and to know which toolchain owns an action |
 | man witnessops(7) | draft operator-manual rendering; **not published** while `draft: true` | use [Commands](/docs/reference/commands) instead |
 | [Proof Artifact Classes](/docs/reference/proof-artifact-classes) | current artifact classes, ownership lanes, and status labels (`live / public`, `retained-reference / corpus class`, `planned, not live`) | you need class-naming discipline across docs, app, and review |
 | [Glossary](/docs/glossary) | shared term definitions used across governance, operations, and evidence docs | you need precise meaning of recurring terms before interpreting workflow pages |
@@ -52,7 +52,7 @@ This section is intentionally narrow.
 
 - It defines reference routing and terminology boundaries; it does not authorize actions.
 - It does not replace [Governance](/docs/governance), [Authorization Model](/docs/governance/authorization-model), or escalation policy pages.
-- It does not widen this reference surface beyond the current receipt-oriented public lane.
+- It does not widen receipt-only `/verify` into agent observation, review intake, server collection, or runbook execution. Those are separate actions with their own authority and limits.
 - It does not freeze canonical bundle-verification or corpus-only vocabularies as universal live-web guarantees.
 - It does not promote the draft man page as a public primary-flow entry; command contracts live under [Commands](/docs/reference/commands).
 - It does not prove conclusion correctness; receipts and verification prove bounded artifact-integrity claims, not perfect operational judgment.
@@ -77,4 +77,4 @@ This section is intentionally narrow.
 
 ## 6. Next-page handoff
 
-Next, read [Commands](/docs/reference/commands) for the exact operational entry points and command-by-command artifact outputs.
+Next, read [Commands](/docs/reference/commands) for the app CLI tools and the separately labeled operator helper reference.
