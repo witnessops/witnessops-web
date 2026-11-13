@@ -199,13 +199,22 @@
 .page[data-home-cut] .enquiry { background: var(--color-surface-bg-alt); }
 .page[data-home-cut] .enquiry > .frame { gap: 64px; align-items: start; }
 .heroWords { min-width: 0; }
-.heroArt { display: none; color: var(--color-brand-accent); pointer-events: none; }
+.heroArt { display: none; margin: 0; color: var(--color-brand-accent); pointer-events: none; }
 .heroArt svg { display: block; width: 100%; height: auto; }
-.heroArtGrid { stroke: var(--color-brand-accent); opacity: .16; }
-.heroArtRoutes { stroke: var(--color-text-muted); opacity: .65; }
-.heroArtCore { fill: var(--color-surface-bg); stroke: var(--color-brand-accent); }
-.heroArtNodes { fill: var(--color-surface-bg); stroke: var(--color-surface-border-strong); }
-.heroArtSymbol { stroke: var(--color-text-primary); }
+.heroArtFrame, .heroArtActiveLine { stroke: var(--color-brand-accent); }
+.heroArtMutedLine, .heroArtStopped { stroke: var(--color-surface-border-strong); }
+.heroArtStoppedNode { fill: var(--color-surface-bg); stroke: var(--color-text-muted); }
+.heroArtActiveNode, .heroArtArrow { fill: var(--color-brand-accent); }
+.heroArtCard { fill: var(--color-surface-bg-alt); stroke: var(--color-surface-border-strong); }
+.heroArtResult { fill: var(--color-brand-accent); fill-opacity: .08; }
+.heroArtResultBorder { stroke: var(--color-brand-accent); stroke-opacity: .4; }
+.heroArtEyebrow, .heroArtNumberActive, .heroArtOutcomeLabel { fill: var(--color-brand-accent); }
+.heroArtEyebrow, .heroArtNumber, .heroArtNumberActive, .heroArtRouteLabel, .heroArtOutcomeLabel { font-family: var(--font-mono); font-size: var(--type-caption-size); }
+.heroArtNumber, .heroArtRouteLabel { fill: var(--color-text-muted); }
+.heroArtTitle { fill: var(--color-text-primary); font-family: var(--font-sans); font-size: var(--type-h4-size); font-weight: 400; }
+.heroArtBody { fill: var(--color-text-primary); font-family: var(--font-sans); font-size: var(--type-small-size); }
+.heroArtCaption { display: grid; gap: 5px; margin: 6px 12px 0; font-size: var(--type-small-size); line-height: var(--type-small-lh); color: var(--color-text-muted); }
+.heroArtCaption strong { color: var(--color-text-secondary); font-weight: 500; }
 @media (min-width: 1200px) {
   .page[data-home-cut] .heroFrame { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 56px; align-items: center; }
   .page[data-home-cut] .heroWords { --type-hero-size: 4rem; }

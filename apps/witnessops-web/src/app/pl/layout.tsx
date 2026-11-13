@@ -7,7 +7,8 @@ import { PlCopyReviewBar } from "./pl-copy-review-bar";
  * Zaloguj się, Przykłady, Zobacz przykłady, Narzędzie, nie przegląd,
  * Nic nie zostało wysłane. Spróbować ponownie?,
  * Podgląd · symulowane przekazanie, Podgląd · symulowany błąd.
- * Home and the agent-action offer use a shorter bar. Other PL routes keep the full bar.
+ * The homepage hides the public bar; native review remains pending.
+ * The agent-action offer uses a shorter bar. Other PL routes keep the full bar.
  */
 export default function PolishLayout({ children }: { children: React.ReactNode }) {
   return (
