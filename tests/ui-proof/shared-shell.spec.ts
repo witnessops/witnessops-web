@@ -55,19 +55,20 @@ const withdrawnShellRoutes = new Set<string>([
   "/pl/customer-security-review",
 ]);
 
+// Dark only (footer bundle B, Design 2026-11-13): the shared shell always renders the dark palette.
 const canonicalChrome = {
-  background: "rgb(245, 241, 232)",
-  header: "color(srgb 0.960784 0.945098 0.909804 / 0.92)",
-  footer: "rgb(237, 231, 215)",
-  primary: "rgb(11, 12, 11)",
-  accent: "rgb(108, 86, 49)",
-  actionFill: "rgb(108, 86, 49)",
-  inverse: "rgb(245, 241, 232)",
+  background: "rgb(11, 12, 11)",
+  header: "color(srgb 0.0431373 0.0470588 0.0431373 / 0.92)",
+  footer: "rgb(11, 12, 11)",
+  primary: "rgb(245, 241, 232)",
+  accent: "rgb(184, 155, 98)",
+  actionFill: "rgb(184, 155, 98)",
+  inverse: "rgb(11, 12, 11)",
   tokens: {
-    background: "#f5f1e8",
-    primary: "#0b0c0b",
-    accent: "#6c5631",
-    inverse: "#f5f1e8",
+    background: "#0b0c0b",
+    primary: "#f5f1e8",
+    accent: "#b89b62",
+    inverse: "#0b0c0b",
   },
 } as const;
 
@@ -75,6 +76,7 @@ const canonicalChrome = {
 // Docs and the Polish services index are no longer header items.
 const activeNavigationHref = new Map<string, string>([
   ["/catalog", "/reviews/agent-action-security-review"],
+  ["/docs", "/docs"], // Docs is a header item again (footer bundle B, Design 2026-11-13).
   ["/review/request", "/review/request"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
   ["/pl/review/request", "/pl/review/request"],

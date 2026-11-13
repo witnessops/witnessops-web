@@ -313,13 +313,14 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.goto("/reviews/agent-action-security-review", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  // Flat menu (Design 2026-11-13): theme, request + login, links, then the language switch last.
+  // Flat menu (Design 2026-11-13, bundle B): request + login, links, then the language switch last. Dark only: no theme control.
   const cta = menu.getByRole("link", { name: "Request a break test", exact: true });
   const lastLink = menu.locator("[data-mobile-language-link]");
   await expect(menu).toHaveAttribute("aria-hidden", "false");
   await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeHidden();
   await expect(cta).toBeInViewport();
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
+  await expect(menu.locator("[data-theme-toggle], [data-theme-choice]")).toHaveCount(0);
 
   await menu.hover();
   await page.mouse.wheel(0, 1000);
@@ -484,15 +485,15 @@ test("flat desktop navigation lists the four links and opens each page", async (
     ["The review", "/reviews/agent-action-security-review"],
     ["How it works", "/how-it-works"],
     ["Examples", "/review/sample-cases"],
-    ["About", "/about"],
+    ["Docs", "/docs"],
   ] as const;
   for (const [name, href] of expected) {
     await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   }
-  for (const href of ["/check", "/early-access", "/docs", "/pricing", "/research", "/chronicles"]) {
+  for (const href of ["/check", "/early-access", "/about", "/pricing", "/research", "/chronicles"]) {
     await expect(nav.locator(`a[href="${href}"]`)).toHaveCount(0);
   }
-  // Theme lives in the footer and mobile menu only.
+  // Dark only (bundle B): no theme control anywhere.
   await expect(nav.getByRole("button", { name: /theme|motyw|dark|light/i })).toHaveCount(0);
   await nav.getByRole("link", { name: "Examples", exact: true }).focus();
   await page.keyboard.press("Enter");
@@ -503,7 +504,7 @@ test("flat desktop navigation fits a short window", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 400 });
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
-  for (const name of ["The review", "How it works", "Examples", "About"]) {
+  for (const name of ["The review", "How it works", "Examples", "Docs"]) {
     await expect(nav.getByRole("link", { name, exact: true })).toBeInViewport({ ratio: 1 });
   }
   const cta = nav.getByRole("link", { name: "Request a break test", exact: true }).first();
@@ -519,10 +520,10 @@ test("flat mobile navigation keeps every link reachable", async ({ page }) => {
   await expect(menu.getByRole("heading")).toHaveCount(0);
   if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Log in", exact: true })).toBeInViewport();
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("link", { name: "Docs", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("button", { name: /theme|motyw|dark|light|ciemny|jasny/i })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Request a break test", exact: true })).toBeInViewport();
-  for (const name of ["The review", "How it works", "Examples", "About", "Polski (PL)"]) {
+  for (const name of ["The review", "How it works", "Examples", "Docs", "Polski (PL)"]) {
     await expect(menu.getByRole("link", { name, exact: true })).toBeInViewport();
   }
   await menu.getByRole("link", { name: "How it works", exact: true }).click();
@@ -544,8 +545,10 @@ test("footer keeps the review and company links without Research in both languag
     await expect(company).toBeVisible();
     await expect(footer.locator('a[href="/research"]')).toHaveCount(0);
     await expect(review.locator('a[href="/review/sample-cases"]')).toBeVisible();
-    await expect(company.locator('a[href="/about"]')).toBeVisible();
-    for (const href of ["/verify", "/pl/verify", "/pricing", "/docs", "/pl/docs", "/docs/assistant", "/media-kit", "/check", "/early-access"]) {
+    await expect(company.locator('a[href="/docs"]')).toBeVisible();
+    await expect(footer.locator('a[href*="x.com"], a[href*="twitter.com"]')).toHaveCount(0);
+    await expect(footer.locator("[data-theme-choice], [data-theme-toggle]")).toHaveCount(0);
+    for (const href of ["/verify", "/pl/verify", "/pricing", "/about", "/pl/docs", "/docs/assistant", "/media-kit", "/check", "/early-access"]) {
       await expect(footer.locator(`a[href="${href}"]`)).toHaveCount(0);
     }
   }
