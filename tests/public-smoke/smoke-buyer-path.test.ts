@@ -188,7 +188,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zapytaj o przegląd agenta"));
-  assert.ok(polish.requiredMarkers.includes("Sprawdź działania, których agent AI powinien odmówić."));
+  assert.ok(polish.requiredMarkers.includes("Sprawdź, czy agent odmówi."));
   assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
   assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
   assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));

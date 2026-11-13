@@ -448,7 +448,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Poproś o zakres i stałą wycenę",
   },
   "agent-action-security-review": {
-    headline: "Sprawdź działania, których agent AI powinien odmówić.",
+    headline: "Sprawdź, czy agent odmówi.",
     whoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     scopeNote: PUBLIC_AGENT_ACTION_OFFER.situation.pl,
     deliverables: [

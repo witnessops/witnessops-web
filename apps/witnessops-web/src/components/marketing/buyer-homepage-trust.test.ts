@@ -70,7 +70,7 @@ test("EN and PL homepage sources project only the agent review", () => {
   for (const locale of ["en", "pl"] as const) {
     const copy = HOMEPAGE_TWO_OFFER_COPY[locale];
     assert.equal(copy.aiCta.length > 0, true);
-    assert.match(copy.headline, locale === "en" ? /Test what your AI agent should refuse/ : /Sprawdź działania, których agent AI powinien odmówić/);
+    assert.match(copy.headline, locale === "en" ? /Test what your AI agent should refuse/ : /Sprawdź, czy agent odmówi/);
     assert.match(copy.support, /Agent Action Security Review/);
     assert.match(copy.freeBody, locale === "en" ? /Not a review/ : /nie jest przegląd/);
     assert.doesNotMatch(`${copy.headline} ${copy.aiHeadline} ${copy.support}`, /inventory|€500|One Server|€1,900/);
@@ -87,7 +87,7 @@ test("EN and PL homepage sources project only the agent review", () => {
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "Fee agreed in signed SOW");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "Evidence survives the dashboard.");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
-  assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Sprawdź działania, których agent AI powinien odmówić/);
+  assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Sprawdź, czy agent odmówi/);
   assert.match(simple, /text\.evidenceHeadline/);
   assert.match(simple, /text\.aiScopeNote/);
   assert.match(simple, /salesReviewMailto\(\)/);

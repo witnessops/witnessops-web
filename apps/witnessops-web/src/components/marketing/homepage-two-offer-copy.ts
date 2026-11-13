@@ -42,9 +42,9 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     ],
   },
   pl: {
-    headline: "Sprawdź działania, których agent AI powinien odmówić.",
+    headline: "Sprawdź, czy agent odmówi.",
     support:
-      "Próbujemy skłonić agenta AI do działań, których powinien odmówić. Pokazujemy dowody i wskazujemy, co poprawić. Agent Action Security Review obejmuje jedno istotne działanie w uzgodnionym środowisku i granicach testu.",
+      "Agent Action Security Review: jedno istotne działanie w uzgodnionym środowisku i granicach testu. Próbujemy wywołać niedozwolony skutek, pokazujemy dowody i wskazujemy, co poprawić.",
     aiHeadline: "Sprawdź, czy agent odmówi niedozwolonego działania.",
     aiWhoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     aiScopeNote:

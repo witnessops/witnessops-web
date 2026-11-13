@@ -418,7 +418,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Sprawdź działania, których agent AI powinien odmówić.", "Zapytaj o przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
+    requiredMarkers: ["Sprawdź, czy agent odmówi.", "Zapytaj o przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
     prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {

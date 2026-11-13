@@ -49,7 +49,7 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Sprawdź działania, których agent AI powinien odmówić/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Sprawdź, czy agent odmówi/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("jedno istotne działanie w uzgodnionym środowisku");
