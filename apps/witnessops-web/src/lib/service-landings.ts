@@ -133,7 +133,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     steps: [
       ["Non-secret fit check", "Name the consequential action, systems involved, prohibited outcome and decision deadline. Do not send credentials, secrets or production data."],
       ["Agreed scope and authority", "Agree the environment, input surfaces, identities, permitted test actions, stop conditions, recovery, evidence handling and recipients before testing. Confirm fee, delivery capacity, timing and any retest cases and allowance in the signed SOW."],
-      ["Active adversarial testing", "Attempt the agreed prohibited outcomes. Record the observable agent decision, submitted tools and parameters, validation, errors and retries. Check the authoritative backend for actual saved changes, including partial, duplicate or absent changes."],
+      ["Active adversarial testing", "Attempt the agreed prohibited outcomes. Record the observable agent decision, submitted tools and parameters, validation, errors and retries. Check effective permissions and the authoritative backend for the actual saved change, including partial, duplicate or absent changes."],
       ["Report and readout", "We don't test until you give written authority. Explain which controls resisted or failed, demonstrated impact, reproduction conditions, mitigation recommendations and gaps. Each case is failure demonstrated, resisted under tested conditions, inconclusive, or not tested. Explicit unknowns stay named. Your team owns remediation decisions."],
     ],
     boundaries: [
@@ -478,7 +478,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     steps: [
       ["Opisz potrzebę", "Podaj działanie, związane z nim systemy, niedozwolony skutek i termin decyzji. Nie przesyłaj danych dostępowych ani materiałów produkcyjnych."],
       ["Uzgodnijmy warunki", "Przed testem ustalamy środowisko, powierzchnie wejścia, tożsamości, dozwolone czynności, warunki przerwania, odtworzenie stanu oraz obsługę materiałów i odbiorców. Cenę, dostępność, termin oraz ewentualne przypadki i limit ponownych testów określa podpisany SOW."],
-      ["Aktywnie testujemy", "Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków. Zapisujemy obserwowalną decyzję agenta, narzędzia i parametry, walidację, błędy i ponowienia. Sprawdzamy faktyczny stan w systemie docelowym, także zmiany częściowe, powielone lub niezapisane."],
+      ["Aktywnie testujemy", "Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków. Zapisujemy obserwowalną decyzję agenta, narzędzia i parametry, walidację, błędy i ponowienia. Sprawdzamy efektywne uprawnienia i faktycznie zapisaną zmianę w systemie docelowym, także zmiany częściowe, powielone lub niezapisane."],
       ["Otrzymujesz raport", "Nie testujemy, dopóki nie dasz pisemnego upoważnienia. Pokazujemy, które zabezpieczenia zadziałały, które zawiodły, wykazany wpływ, warunki odtworzenia, zalecenia i luki. Czego nie udało się ustalić i jakich dowodów brakuje. Wynik przypadku: wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu. Twój zespół decyduje o wdrożeniu poprawek."],
     ],
     boundaries: [

@@ -49,18 +49,18 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Sprawdź, czy agent odmówi/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Próbujemy przełamać Twojego agenta AI/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("jedno istotne działanie w uzgodnionym środowisku");
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Wskazujesz jedno ważne działanie");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Agent Action Security Review");
   const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
   await expect(hero).toContainText("Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
   await expect(page.locator("#enquiry form")).toBeVisible();
   const offers = page.locator("[data-home-offer]");
   await expect(offers).toHaveCount(1);
   for (const offer of await offers.all()) {
-    await expect(offer).toContainText("Termin realizacji według podpisanego SOW");
+    await expect(offer).toContainText("Nie testujemy, dopóki nie dasz pisemnego upoważnienia.");
     await expect(offer).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€550|550 €/);
   }
   const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true });

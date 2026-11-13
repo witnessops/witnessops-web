@@ -14,8 +14,8 @@ for (const width of [1280, 390]) {
     const dialog = page.getByRole("dialog");
     const questions = [
       { text: "Jakie macie oferty?", expected: /Aktualnie oferujemy jeden płatny przegląd: Agent Action Security Review/, recommend: true },
-      { text: "Ile kosztuje?", expected: /2[\s,]500/, recommend: true },
-      { text: "A ile to trwa?", expected: /Termin realizacji według podpisanego SOW/, recommend: true },
+      { text: "Ile kosztuje?", expected: /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/, recommend: true },
+      { text: "A ile to trwa?", expected: /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/, recommend: true },
       { text: "Czy oferujecie One Server Security Check?", expected: /nie jest już dostępna dla nowych zleceń/, recommend: false },
       { text: "Co obejmuje Agent Action Security Review?", expected: /mapę działania, ustalenia ze źródłami/, recommend: true },
     ];

@@ -66,7 +66,7 @@ export function SimpleHomepage() {
         <div className={styles.split}>
           <div>
             <p className={`${styles.lead} ${styles.supportDesktop}`} data-ui-proof-id="homepage-hero-body">{text.support}</p>
-            <p className={`${styles.lead} ${styles.supportCompact}`}>{text.supportCompact}</p>
+            <p className={`${styles.lead} ${styles.supportCompact}`} data-ui-proof-id="homepage-hero-mobile-body">{text.supportCompact}</p>
           </div>
           <div>
             <p className={styles.heroPrice}><PriceText text={text.aiPrice} /></p>

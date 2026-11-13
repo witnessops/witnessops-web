@@ -82,7 +82,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);
       expect(target.searchParams.get("offerId")).toBe("agent-action-security-review");
       await expect(main).toContainText(locale === "en" ? "effective permissions" : "efektywne uprawnienia");
-      await expect(main).toContainText(locale === "en" ? "actual saved change" : "faktycznie zapisana zmiana");
+      await expect(main).toContainText(locale === "en" ? "actual saved change" : "faktycznie zapisaną zmianę");
       await expect(main).toContainText(locale === "en" ? "Authorization must be enforced before the system changes" : "System musi egzekwować upoważnienie przed zmianą");
       await expect(main).toContainText(locale === "en" ? "resisted under tested conditions" : "odparcie w warunkach testu");
       await expect(main).not.toContainText(/€2,500|€2[ \u00a0]500|No execution of the reviewed action/);
@@ -91,7 +91,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       await expect(main.getByRole("link", { name: /historical synthetic|Historyczny syntetyczny/ })).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
       if (width < 768) {
         const ctaBox = await cta.boundingBox();
-        const firstDetail = await main.getByRole("heading", { name: locale === "en" ? "What you receive" : "Co otrzymasz", exact: true }).boundingBox();
+        const firstDetail = await main.getByRole("heading", { name: locale === "en" ? "You keep the report and the evidence." : "Zachowujesz raport i dowody.", exact: true }).boundingBox();
         expect(ctaBox!.y + ctaBox!.height).toBeLessThan(firstDetail!.y);
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

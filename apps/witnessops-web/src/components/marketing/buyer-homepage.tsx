@@ -53,8 +53,8 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
           {hero?.body ? <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p> : (
             <div className={text.supportShort ? heroStyles.supportStack : undefined}>
               <p data-ui-proof-id="homepage-hero-body" className={`${heroStyles.lead} ${heroStyles.supportDesktop}`}>{text.support}</p>
-              <p className={`${heroStyles.lead} ${heroStyles.supportCompact}`}>{text.supportCompact}</p>
-              {text.supportShort ? <p className={`${heroStyles.lead} ${heroStyles.supportShort}`}>{text.supportShort}</p> : null}
+              <p data-ui-proof-id="homepage-hero-mobile-body" className={`${heroStyles.lead} ${heroStyles.supportCompact}`}>{text.supportCompact}</p>
+              {text.supportShort ? <p data-ui-proof-id="homepage-hero-narrow-body" className={`${heroStyles.lead} ${heroStyles.supportShort}`}>{text.supportShort}</p> : null}
             </div>
           )}
           <div>
