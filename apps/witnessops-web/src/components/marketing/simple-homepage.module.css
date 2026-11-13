@@ -198,6 +198,19 @@
 .page[data-home-cut] .steps p { margin: 0; }
 .page[data-home-cut] .enquiry { background: var(--color-surface-bg-alt); }
 .page[data-home-cut] .enquiry > .frame { gap: 64px; align-items: start; }
+.heroWords { min-width: 0; }
+.heroArt { display: none; color: var(--color-brand-accent); pointer-events: none; }
+.heroArt svg { display: block; width: 100%; height: auto; }
+.heroArtGrid { stroke: var(--color-brand-accent); opacity: .16; }
+.heroArtRoutes { stroke: var(--color-text-muted); opacity: .65; }
+.heroArtCore { fill: var(--color-surface-bg); stroke: var(--color-brand-accent); }
+.heroArtNodes { fill: var(--color-surface-bg); stroke: var(--color-surface-border-strong); }
+.heroArtSymbol { stroke: var(--color-text-primary); }
+@media (min-width: 1200px) {
+  .page[data-home-cut] .heroFrame { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 56px; align-items: center; }
+  .page[data-home-cut] .heroWords { --type-hero-size: 4rem; }
+  .page[data-home-cut] .heroArt { display: block; }
+}
 @media (max-width: 900px) {
   .page[data-home-cut] .steps, .page[data-home-cut] .enquiry > .frame { grid-template-columns: 1fr; gap: 32px; }
 }
