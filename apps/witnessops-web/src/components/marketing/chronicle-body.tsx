@@ -2,6 +2,13 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import {
+  editorialBodyClass,
+  editorialHeadingClass,
+} from "@/components/editorial/editorial-article";
+import { ChronicleIllustration } from "@/components/marketing/chronicle-illustration";
+import { getChronicleArtwork } from "@/lib/chronicle-illustrations";
+
+import {
   PUBLISHED_CHAPTERS,
   chronicleBodySource,
   type ChronicleChapter,
@@ -29,17 +36,20 @@ function sectionHeading(line: string) {
 export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
   const source = chronicleBodySource(chapter);
   const chunks = source.split("```");
+  const illustrations = getChronicleArtwork(chapter)?.body ?? [];
   let record = 0;
+  let section = "";
   return (
-    <div className="chronicle-prose wo-prose-stack mt-8 text-text-secondary">
+    <div className="chronicle-prose mt-10 text-text-secondary">
       {chunks.map((chunk, index) => {
         if (index % 2 === 1) {
           record += 1;
           const id = `R-${String(record).padStart(2, "0")}`;
           const lines = chunk.trim().split("\n");
           return (
-            <figure key={id} role="group" aria-label={`Evidence record ${id} (fiction)`} className="rounded-lg border border-surface-border bg-surface-inset p-6">
-              <figcaption className="wo-mono-caps mb-3 flex justify-between text-brand-accent">
+            <Fragment key={id}>
+            <figure role="group" aria-label={`Evidence record ${id} (fiction)`} className="my-10 rounded-lg border border-surface-border bg-surface-inset p-4 sm:p-6">
+              <figcaption className="wo-mono-caps mb-3 flex flex-wrap justify-between gap-x-4 gap-y-1 text-brand-accent">
                 <span>Evidence record · {id}</span>
                 <span>Fiction</span>
               </figcaption>
@@ -51,25 +61,35 @@ export function ChronicleBody({ chapter }: { chapter: ChronicleChapter }) {
                 ))}
               </pre>
             </figure>
+            {illustrations.filter((image) => image.afterRecord === record).map((image) => <ChronicleIllustration key={image.src} image={image} />)}
+            </Fragment>
           );
         }
         const blocks = chunk.trim().split(/\n{2,}/).filter(Boolean);
-        return <div key={`prose-${index}`} className="wo-prose-stack">{blocks.map((block, blockIndex) => {
+        return <div key={`prose-${index}`}>{blocks.map((block, blockIndex) => {
           const trimmed = block.trim();
           const key = `prose-${index}-block-${blockIndex}`;
           if (trimmed.startsWith("### ")) {
             const heading = sectionHeading(trimmed);
+            const completedSection = section;
+            section = trimmed.replace(/^###\s+/, "");
             return (
-              <h2 key={key} className="wo-h3 pt-6 text-center text-text-primary">
+              <Fragment key={key}>
+              {illustrations.filter((image) => image.afterSection === completedSection).map((image) => <ChronicleIllustration key={image.src} image={image} />)}
+              <h2 className={editorialHeadingClass}>
                 {heading.num ? <span className="wo-mono-caps mb-2 block text-brand-accent">{heading.num}</span> : null}
                 {heading.title}
               </h2>
+              </Fragment>
             );
           }
           if (trimmed.startsWith("INCIDENT-")) {
-            return <p key={key} role="note" className="wo-mono-caps inline-block rounded-md border border-surface-border px-3 py-1 text-text-primary">{trimmed}</p>;
+            return <p key={key} role="note" className="wo-mono-caps mt-5 inline-block rounded-md border border-surface-border px-3 py-1 text-text-primary">{trimmed}</p>;
           }
-          return <p key={key}>{inlineCode(trimmed)}</p>;
+          return <Fragment key={key}>
+            <p className={editorialBodyClass}>{inlineCode(trimmed)}</p>
+            {illustrations.filter((image) => image.afterParagraph === trimmed).map((image) => <ChronicleIllustration key={image.src} image={image} />)}
+          </Fragment>;
         })}</div>;
       })}
     </div>
@@ -84,6 +104,9 @@ export function ChroniclePager({ chapter }: { chapter: ChronicleChapter }) {
   const chapterLink = (item: ChronicleChapter) => (
     <Link href={`/chronicles/${item.slug}`} className="underline-offset-4 hover:underline">{`Chapter ${item.id}`}</Link>
   );
+  if (index < 0) {
+    return <p className="wo-small mt-12 border-t border-surface-border pt-8 text-text-muted">{allChronicles()}</p>;
+  }
   return (
     <div className="mt-12 grid gap-4 border-t border-surface-border pt-8 sm:grid-cols-2">
       <p className="wo-small text-text-muted">

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { getChronicleArtwork } from "@/lib/chronicle-illustrations";
 
 import {
   CHRONICLE_SERIES_INTRO,
+  BONUS_CHAPTERS,
   PUBLISHED_CHAPTERS,
   RESERVED_CHAPTERS,
   type ChronicleChapter,
@@ -59,14 +62,34 @@ export default function ChroniclesIndexPage() {
       <h1 data-chronicle-title className="wo-h1 mt-3 text-text-primary">The Sovereign Chronicles</h1>
       <p className="wo-small mt-4 text-text-secondary">{CHRONICLE_SERIES_INTRO}</p>
       <ol className="mt-10 divide-y divide-surface-border border-y border-surface-border">
-        {rows.map((row) => (
-          <li key={row.id} className="py-6">
+        {rows.map((row) => {
+          const hero = getChronicleArtwork(row)?.hero;
+          return <li key={row.id} className={hero ? "grid items-center gap-5 py-6 sm:grid-cols-[220px_1fr]" : "py-6"}>
+            {hero ? <Image src={hero.src} alt="" width={hero.width} height={hero.height} sizes="(max-width: 639px) calc(100vw - 48px), 220px" className="h-auto w-full border border-surface-border" /> : null}
+            <div>
             <p className="wo-chapter-index text-brand-accent">{row.id}</p>
             <p className="wo-mono-caps mt-2 text-text-muted">{row.kicker}</p>
             <h3 className="wo-h3 mt-2 text-text-primary"><Link href={row.href} className="underline-offset-4 hover:underline">{row.title}</Link></h3>
+            </div>
           </li>
-        ))}
+        })}
       </ol>
+      <section className="mt-12" aria-labelledby="bonus-chronicles-heading">
+        <h2 id="bonus-chronicles-heading" className="wo-h3 text-text-primary">Receipts from the Future</h2>
+        <ul className="mt-5 divide-y divide-surface-border border-y border-surface-border">
+          {BONUS_CHAPTERS.map((chapter) => {
+            const hero = getChronicleArtwork(chapter)?.hero;
+            return <li key={chapter.id} className={hero ? "grid items-center gap-5 py-6 sm:grid-cols-[220px_1fr]" : "py-6"}>
+              {hero ? <Image src={hero.src} alt="" width={hero.width} height={hero.height} sizes="(max-width: 639px) calc(100vw - 48px), 220px" className="h-auto w-full border border-surface-border" /> : null}
+              <div>
+                <p className="wo-chapter-index text-brand-accent">{chapter.id}</p>
+                <p className="wo-mono-caps mt-2 text-text-muted">{chapter.dateline}</p>
+                <h3 className="wo-h3 mt-2 text-text-primary"><Link href={`/chronicles/${chapter.slug}`} className="underline-offset-4 hover:underline">{chapter.title}</Link></h3>
+              </div>
+            </li>;
+          })}
+        </ul>
+      </section>
       {RESERVED_CHAPTERS.map((nextChapter) => (
         <section key={nextChapter.id} className="mt-8 rounded-md border border-dashed border-surface-border p-5" aria-label={`Chapter ${nextChapter.id}, ${nextChapter.title}, coming soon`}>
           <p className="wo-mono-caps text-text-muted">{`Up next · Chapter ${nextChapter.id} · Coming soon · Not linked`}</p>

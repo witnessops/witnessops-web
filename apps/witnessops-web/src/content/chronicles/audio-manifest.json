@@ -1,0 +1,50 @@
+{
+  "2040": {
+    "src": "/audio/chronicles/chapter-2040-d9ced31a4ab7.mp3",
+    "voice": "orion",
+    "inputSha256": "d9ced31a4ab726a7c05d84104a92b38edb3fd16bbcff707e4125b95721023ec3",
+    "audioSha256": "6cb4d099ba69c7b78dfde1e97eb8d199e7606b6cc20c13650ff3bb30ffe9db24",
+    "durationSeconds": 561,
+    "generatedAt": "2026-11-13T20:04:20.613Z"
+  },
+  "001": {
+    "src": "/audio/chronicles/chapter-001-f6ec76a8f895.mp3",
+    "voice": "orion",
+    "inputSha256": "f6ec76a8f895bb9858005e6b65cad62deda8dabcbfccbc08573b99db8ae5b6f9",
+    "audioSha256": "93633a59048f4e305bb4f7f52506ccbd64769516591af44932f634ff8874d6c6",
+    "durationSeconds": 294.768,
+    "generatedAt": "2026-11-13T18:56:58.937Z"
+  },
+  "002": {
+    "src": "/audio/chronicles/chapter-002-a6bdf93d8b66.mp3",
+    "voice": "orion",
+    "inputSha256": "a6bdf93d8b66b412066bb661a4d84c7c0f017fe16b85b4e3f53bb6d3d969ce49",
+    "audioSha256": "1640d9107d98e74ac0dc135f173437d76399569e1a94eb9aa4585dfcb0e8aa4c",
+    "durationSeconds": 374.448,
+    "generatedAt": "2026-11-13T18:57:22.813Z"
+  },
+  "003": {
+    "src": "/audio/chronicles/chapter-003-c362fedfe577.mp3",
+    "voice": "orion",
+    "inputSha256": "c362fedfe577d494f84c66ddfe0a22ddb1aafc82841610dd00712909ebf02693",
+    "audioSha256": "66634a556e3204e1abc198ed2cd088b947ad08fac5882a45191bbccee2fb628e",
+    "durationSeconds": 820.2,
+    "generatedAt": "2026-11-13T18:58:23.517Z"
+  },
+  "004": {
+    "src": "/audio/chronicles/chapter-004-a9511aff80d6.mp3",
+    "voice": "orion",
+    "inputSha256": "a9511aff80d63015bd6fd7dd12a93e551a126bf6a9c8f07e33018127e8e4741b",
+    "audioSha256": "9a1ba638d023be85f68d38f4ff4e9f15d02cc7afdd62d1032f7a6554323c7039",
+    "durationSeconds": 1004.208,
+    "generatedAt": "2026-11-13T18:59:39.328Z"
+  },
+  "005": {
+    "src": "/audio/chronicles/chapter-005-828eb1f4a9ba.mp3",
+    "voice": "orion",
+    "inputSha256": "828eb1f4a9ba5bebc36f1a73163e9efa18b4388b3cb227cd98e997b7f910fcd5",
+    "audioSha256": "32db454ed6f36d275c261372d24ba365ce2565a5debe8f106fe4e13dd599655c",
+    "durationSeconds": 789.816,
+    "generatedAt": "2026-11-13T19:00:44.205Z"
+  }
+}

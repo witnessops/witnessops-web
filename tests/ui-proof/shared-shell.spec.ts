@@ -72,8 +72,7 @@ const canonicalChrome = {
   },
 } as const;
 
-// Flat header (Design 2026-11-13): /catalog lands on the agent review, and
-// Docs and the Polish services index are no longer header items.
+// Direct links and grouped destinations preserve the current route highlight.
 const activeNavigationHref = new Map<string, string>([
   ["/catalog", "/reviews/agent-action-security-review"],
   ["/docs", "/docs"], // Docs is a header item again (footer bundle B, Design 2026-11-13).
@@ -321,8 +320,12 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       );
       if (activeHref) {
         if (viewport.width < 1024) await openMobileMenu(page);
-        await expect(visibleActive, `${route} active route`).toHaveCount(1);
-        await expect(visibleActive).toHaveAttribute("href", activeHref);
+        if (activeHref !== "/docs" && activeHref !== "/pl/docs") {
+          const group = page.locator(viewport.width < 1024 ? "#witnessops-mobile-menu" : "nav.public-shell");
+          await group.getByRole("button", { name: route.startsWith("/pl") ? "Przegląd" : "The review", exact: true }).click();
+        }
+        expect(await visibleActive.count(), `${route} active route`).toBeGreaterThan(0);
+        for (const link of await visibleActive.all()) await expect(link).toHaveAttribute("href", activeHref);
       } else {
         await expect(visibleActive, `${route} has no represented primary nav item`).toHaveCount(0);
       }
@@ -345,8 +348,8 @@ test("public header keeps language controls out of the primary navigation", asyn
 
   for (const englishPath of languagePairs.map(([path]) => path)) {
     await page.goto(englishPath, { waitUntil: "networkidle" });
-    await expect(page.getByRole("link", { name: "PL", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "EN", exact: true })).toHaveCount(0);
+    await expect(page.locator("nav.public-shell").getByRole("link", { name: "PL", exact: true })).toHaveCount(0);
+    await expect(page.locator("nav.public-shell").getByRole("link", { name: "EN", exact: true })).toHaveCount(0);
   }
 });
 
@@ -377,6 +380,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   await expect(
     page.locator("#witnessops-mobile-menu").locator("a[href], button:not([disabled])").first(),
   ).toBeFocused();
+  await page.locator("#witnessops-mobile-menu").getByRole("button", { name: "Przegląd", exact: true }).click();
   await expect(page.locator('#witnessops-mobile-menu a[aria-current="page"]')).toHaveAttribute("href", "/pl/why-witnessops");
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
@@ -431,6 +435,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
 
   await openMobileMenu(page);
+  await page.locator("#witnessops-mobile-menu").getByRole("button", { name: "Przegląd", exact: true }).click();
   const nextPolishPage = page.locator('#witnessops-mobile-menu a[href="/pl/reviews/agent-action-security-review"]');
   await nextPolishPage.click();
   await expect(page).toHaveURL(/\/pl\/reviews\/agent-action-security-review$/);

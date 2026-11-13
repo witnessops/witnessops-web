@@ -4,10 +4,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import ChroniclesIndexPage from "@/app/(marketing)/chronicles/page";
-import ChronicleChapterPage, { generateMetadata } from "@/app/(marketing)/chronicles/[slug]/page";
+import ChronicleChapterPage, { generateMetadata, generateStaticParams } from "@/app/(marketing)/chronicles/[slug]/page";
 import { ChronicleBody, ChroniclePager } from "@/components/marketing/chronicle-body";
 import {
   PUBLISHED_CHAPTERS,
+  BONUS_CHAPTERS,
+  ALL_CHAPTERS,
   RESERVED_CHAPTERS,
   chronicleBodySource,
   chroniclePreviewText,
@@ -15,12 +17,13 @@ import {
   type ChronicleChapter,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
+import { getChronicleNarration } from "@/lib/chronicle-narration";
 
 const BANNED = ["ChatGPT", "Cursor", "Grok", "Slack", "Facebook", "GitHub", "Jira", "Solitaire"];
 const ENDING_MARKERS = ["END OF CHAPTER", "Next in", "Next chapter teaser"] as const;
 
 function chapterById(id: ChronicleChapter["id"]): ChronicleChapter {
-  const chapter = PUBLISHED_CHAPTERS.find((item) => item.id === id);
+  const chapter = ALL_CHAPTERS.find((item) => item.id === id);
   assert.ok(chapter, id);
   return chapter;
 }
@@ -134,7 +137,7 @@ test("pager links adjacent published chapters", () => {
   }
 });
 
-test("chronicles index links the five published chapters", () => {
+test("chronicles index links the five main chapters and the separate future receipt", () => {
   const html = renderToStaticMarkup(createElement(ChroniclesIndexPage));
   assert.deepEqual(linkedHrefs(html), [
     "/research",
@@ -143,6 +146,7 @@ test("chronicles index links the five published chapters", () => {
     "/chronicles/003-the-meeting-nobody-authorized",
     "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
     "/chronicles/005-the-dashboard-that-never-was",
+    "/chronicles/2040-the-scope-escalation",
     "/reviews",
   ]);
   assert.equal(html.includes("The Dashboard That Never Was"), true);
@@ -150,6 +154,31 @@ test("chronicles index links the five published chapters", () => {
   assert.equal(html.includes("The Agent Who Was Told Not to Press the Button"), false);
   assert.equal(html.includes("Coming soon"), false);
   assert.equal(html.includes("Not linked"), false);
+});
+
+test("future receipt preserves its fiction boundary, supplied story and standalone reading order", async () => {
+  assert.deepEqual(BONUS_CHAPTERS.map((chapter) => chapter.id), ["2040"]);
+  const chapter = chapterById("2040");
+  assert.equal(chapter.title, "The Scope Escalation");
+  assert.equal(chapter.dateline, "29 October 2026 → 29 October 2040");
+  assert.equal(chapter.kicker, "RECEIPTS FROM THE FUTURE · 2040");
+  assert.ok(generateStaticParams().some((item) => item.slug === chapter.slug));
+  const body = chronicleBodySource(chapter);
+  assert.match(body, /^### 01:41 AM — The Original Incident/);
+  assert.match(body, /Fictional future system · Simulation display/);
+  assert.match(body, /Universe rejected the pull request\./);
+  assert.match(body, /Complete one real bounded task\./);
+  assert.match(body, /### Post-credits scene/);
+  assert.doesNotMatch(body, /€|2,500|END OF CHAPTER|cover-recreation|AsyncImage/);
+  assert.equal(getChronicleNarration(chapter)?.voice, "orion");
+  const html = renderToStaticMarkup(await ChronicleChapterPage({ params: Promise.resolve({ slug: chapter.slug }) }));
+  assert.match(html, /A story from the WitnessOps desk\. Fiction; events dramatised\./);
+  assert.match(html, /Fictional future system · Simulation display/);
+  assert.equal((html.match(/data-chronicle-illustration=/g) ?? []).length, 4);
+  assert.deepEqual(linkedHrefs(renderToStaticMarkup(createElement(ChroniclePager, { chapter }))), ["/chronicles"]);
+  const metadata = await generateMetadata({ params: Promise.resolve({ slug: chapter.slug }) });
+  assert.equal(metadata.title, "The Scope Escalation · The Sovereign Chronicles");
+  assert.deepEqual(metadata.alternates, { canonical: canonicalUrl("/chronicles/2040-the-scope-escalation") });
 });
 
 test("chapter 004 keeps the fiction boundary and the single remaining review", () => {
@@ -213,7 +242,6 @@ test("chapter 005 keeps the manuscript, the fiction subtitle, and the forward li
   assert.equal(html.includes("unpublished"), false);
   assert.equal(html.includes("END OF CHAPTER"), false);
   assert.deepEqual(linkedHrefs(html), [
-    "/fonts/newsreader-400.woff2",
     "/research",
     "/chronicles",
     "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",

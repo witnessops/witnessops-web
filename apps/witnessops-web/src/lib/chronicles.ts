@@ -54,7 +54,7 @@ export function chroniclePreviewText(source: string): string {
 }
 
 export type ChronicleChapter = {
-  id: "001" | "002" | "003" | "004" | "005";
+  id: "001" | "002" | "003" | "004" | "005" | "2040";
   slug: string;
   number: string;
   kicker: string;
@@ -147,6 +147,24 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
     ],
   },
 ] as const;
+
+export const BONUS_CHAPTERS: readonly ChronicleChapter[] = [
+  {
+    id: "2040",
+    slug: "2040-the-scope-escalation",
+    number: "2040",
+    kicker: "RECEIPTS FROM THE FUTURE · 2040",
+    title: "The Scope Escalation",
+    subtitle: "A fictional trip to 2040, and back to the next unfinished task.",
+    dateline: "29 October 2026 → 29 October 2040",
+    meta: "FICTION · 7 MIN READ",
+    description: "A story from the WitnessOps desk about a journey to 2040 that exceeds the approved scope.",
+    sourceFile: "bonus-2040.md",
+    dropLines: ["29 OCTOBER 2026 → 29 OCTOBER 2040"],
+  },
+] as const;
+
+export const ALL_CHAPTERS: readonly ChronicleChapter[] = [...PUBLISHED_CHAPTERS, ...BONUS_CHAPTERS];
 
 export const RESERVED_CHAPTERS: readonly {
   id: string;

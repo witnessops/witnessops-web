@@ -102,8 +102,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content h4 {
   max-width: var(--measure-body);
 }
 
-body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2,
-body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 {
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2 {
   margin: var(--type-h2-gap) 0 8px;
   font-size: var(--type-h3-size);
   line-height: var(--type-h3-lh);
@@ -178,8 +177,7 @@ body:has(nav[data-public-presentation="quiet"]) #main-content .wo-ui { font-fami
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-price { font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono { font-family: var(--font-mono); font-size: var(--type-mono-size); line-height: var(--type-mono-lh); letter-spacing: 0; font-weight: 400; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-mono-caps { font-family: var(--font-mono); font-size: var(--type-mono-caps-size); line-height: var(--type-mono-caps-lh); letter-spacing: var(--type-mono-caps-ls); font-weight: var(--type-mono-caps-wt); text-transform: uppercase; }
-body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose :is(p, li, blockquote):not(.wo-mono-caps):not(.wo-small) { font-family: var(--font-serif); font-size: var(--type-prose-size); line-height: var(--type-prose-lh); letter-spacing: 0; font-weight: 400; max-width: var(--measure-prose); }
-body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose h2 { font-family: var(--font-sans); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); letter-spacing: var(--type-h3-ls); font-weight: var(--type-h3-wt); text-align: center; margin-inline: auto; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose > div:first-child > h2:first-child { margin-top: 0; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .chronicle-prose pre { overflow-wrap: anywhere; }
 body:has(nav[data-public-presentation="quiet"]) #main-content .wo-prose-stack > * + * { margin-top: var(--type-prose-gap); }
 

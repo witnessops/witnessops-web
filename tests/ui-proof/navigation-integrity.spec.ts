@@ -28,6 +28,44 @@ async function saveEvidence(page: Page, filename: string) {
   });
 }
 
+async function editorialReadingStyle(page: Page) {
+  await page.goto("/articles/when-civilization-can-no-longer-understand-itself");
+  await page.evaluate(() => document.fonts.ready);
+  return page.locator("[data-editorial-article]").evaluate((article) => {
+    const paragraph = article.querySelector("section p")!;
+    const heading = article.querySelector("h2")!;
+    const bodyStyle = getComputedStyle(paragraph);
+    const headingStyle = getComputedStyle(heading);
+    return {
+      width: article.getBoundingClientRect().width,
+      paragraphWidth: paragraph.getBoundingClientRect().width,
+      font: bodyStyle.fontFamily,
+      fontSize: bodyStyle.fontSize,
+      lineHeight: bodyStyle.lineHeight,
+      paragraphGap: bodyStyle.marginTop,
+      headingSize: headingStyle.fontSize,
+      headingLineHeight: headingStyle.lineHeight,
+      headingAlign: headingStyle.textAlign,
+    };
+  });
+}
+
+async function expectChronicleReadingStyle(page: Page, reference: Awaited<ReturnType<typeof editorialReadingStyle>>) {
+  const article = page.locator("[data-chronicle-article]");
+  const paragraph = article.locator(".chronicle-prose p:not(.wo-mono-caps)").first();
+  expect((await article.boundingBox())!.width).toBeCloseTo(reference.width, 1);
+  expect((await paragraph.boundingBox())!.width).toBeCloseTo(reference.paragraphWidth, 1);
+  await expect(paragraph).toHaveCSS("font-family", reference.font);
+  await expect(paragraph).toHaveCSS("font-size", reference.fontSize);
+  await expect(paragraph).toHaveCSS("line-height", reference.lineHeight);
+  await expect(paragraph).toHaveCSS("margin-top", reference.paragraphGap);
+  for (const heading of await article.locator(".chronicle-prose h2").all()) {
+    await expect(heading).toHaveCSS("font-size", reference.headingSize);
+    await expect(heading).toHaveCSS("line-height", reference.headingLineHeight);
+    await expect(heading).toHaveCSS("text-align", reference.headingAlign);
+  }
+}
+
 async function expectPath(page: Page, expectedPath: string) {
   await expect
     .poll(() => new URL(page.url()).pathname)
@@ -78,10 +116,8 @@ test("the homepage example link opens the example record and the header opens th
   await expect(page).toHaveURL(/\/reviews\/agent-action-security-review#example-record$/);
   await expect(page.locator("#example-record")).toBeInViewport();
 
-  await page
-    .getByRole("navigation", { name: "Primary navigation", exact: true })
-    .getByRole("link", { name: "Examples", exact: true })
-    .click();
+  await page.getByRole("button", { name: "The review", exact: true }).click();
+  await page.locator("#public-nav-group-review").getByRole("link", { name: /Examples/ }).click();
   await expect(page).toHaveURL(/\/review\/sample-cases$/);
   await expect(page.getByRole("heading", { name: "Examples", exact: true })).toBeVisible();
   await saveEvidence(page, "01-desktop-sample-cases.png");
@@ -475,58 +511,53 @@ for (const width of [1440, 390]) {
   });
 }
 
-test("flat desktop navigation lists the four links and opens each page", async ({ page }) => {
+test("grouped desktop navigation opens current destinations", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
-  await expect(nav.getByRole("button", { name: "Resources", exact: true })).toHaveCount(0);
-  await expect(nav.locator('[role="menu"], [id^="public-nav-group-"]')).toHaveCount(0);
-  const expected = [
-    ["The review", "/reviews/agent-action-security-review"],
+  await expect(nav.getByRole("link", { name: "Docs", exact: true }).filter({ visible: true })).toHaveAttribute("href", "/docs");
+  await nav.getByRole("button", { name: "The review", exact: true }).click();
+  const panel = page.locator("#public-nav-group-review");
+  for (const [name, href] of [
+    ["Agent Action Security Review", "/reviews/agent-action-security-review"],
     ["How it works", "/how-it-works"],
     ["Examples", "/review/sample-cases"],
-    ["Docs", "/docs"],
-  ] as const;
-  for (const [name, href] of expected) {
-    await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
+    ["Request a break test", "/review/request"],
+  ]) {
+    await expect(panel.getByRole("link", { name: new RegExp(name) })).toHaveAttribute("href", href);
   }
-  for (const href of ["/check", "/early-access", "/about", "/pricing", "/research", "/chronicles"]) {
+  for (const href of ["/check", "/early-access", "/about", "/pricing", "/verify"]) {
     await expect(nav.locator(`a[href="${href}"]`)).toHaveCount(0);
   }
-  // Dark only (bundle B): no theme control anywhere.
-  await expect(nav.getByRole("button", { name: /theme|motyw|dark|light/i })).toHaveCount(0);
-  await nav.getByRole("link", { name: "Examples", exact: true }).focus();
+  await panel.getByRole("link", { name: /Examples/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/review\/sample-cases$/);
 });
 
-test("flat desktop navigation fits a short window", async ({ page }) => {
+test("grouped desktop navigation fits a short window", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 400 });
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
-  for (const name of ["The review", "How it works", "Examples", "Docs"]) {
-    await expect(nav.getByRole("link", { name, exact: true })).toBeInViewport({ ratio: 1 });
+  for (const name of ["The review", "Explore"]) {
+    await expect(nav.getByRole("button", { name, exact: true })).toBeInViewport({ ratio: 1 });
   }
-  const cta = nav.getByRole("link", { name: "Request a break test", exact: true }).first();
-  await expect(cta).toBeInViewport({ ratio: 1 });
+  await expect(nav.getByRole("link", { name: "Docs", exact: true }).filter({ visible: true })).toBeInViewport({ ratio: 1 });
+  await expect(nav.locator("[data-public-primary-cta]")).toBeInViewport({ ratio: 1 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("flat mobile navigation keeps every link reachable", async ({ page }) => {
+test("grouped mobile navigation keeps every destination reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  await expect(menu.getByRole("heading")).toHaveCount(0);
-  if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Log in", exact: true })).toBeInViewport();
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("button", { name: /theme|motyw|dark|light|ciemny|jasny/i })).toHaveCount(0);
-  await expect(menu.getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("link", { name: "Request a break test", exact: true })).toBeInViewport();
-  for (const name of ["The review", "How it works", "Examples", "Docs", "Polski (PL)"]) {
-    await expect(menu.getByRole("link", { name, exact: true })).toBeInViewport();
+  await expect(menu.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
+  await menu.getByRole("button", { name: "The review", exact: true }).click();
+  for (const name of ["Agent Action Security Review", "How it works", "Examples"]) {
+    await expect(menu.getByRole("link", { name: new RegExp(name) })).toBeVisible();
   }
-  await menu.getByRole("link", { name: "How it works", exact: true }).click();
+  await menu.getByRole("link", { name: /How it works/ }).click();
   await expect(page).toHaveURL(/\/how-it-works$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -557,8 +588,10 @@ test("footer keeps the review and company links without Research in both languag
 for (const width of [320, 390, 1440]) {
   test(`Chronicles headings and records fit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    const reference = await editorialReadingStyle(page);
     await page.goto("/chronicles/003-the-meeting-nobody-authorized");
     await page.evaluate(() => document.fonts.ready);
+    await expectChronicleReadingStyle(page, reference);
 
     await expect(page.locator("[data-chronicle-dateline]")).toHaveCSS("text-transform", "none");
     const prose = page.locator(".chronicle-prose");
@@ -569,7 +602,7 @@ for (const width of [320, 390, 1440]) {
     for (const heading of await headings.all()) {
       const box = await heading.boundingBox();
       expect(box).not.toBeNull();
-      expect(Math.abs(box!.x + box!.width / 2 - (bounds!.x + bounds!.width / 2))).toBeLessThan(1);
+      expect(Math.abs(box!.x - bounds!.x)).toBeLessThan(1);
     }
 
     expect(await prose.locator(".chronicle-record-divider").count()).toBeGreaterThan(0);
@@ -593,8 +626,10 @@ test("chronicles index links chapter 005", async ({ page }) => {
 for (const width of [320, 390, 1440]) {
   test(`Chapter 005 fits at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    const reference = await editorialReadingStyle(page);
     await page.goto("/chronicles/005-the-dashboard-that-never-was");
     await page.evaluate(() => document.fonts.ready);
+    await expectChronicleReadingStyle(page, reference);
 
     await expect(page.locator("[data-chronicle-dateline]")).toHaveText("13 November 2026");
     await expect(page.locator("[data-chronicle-dateline]")).toHaveCSS("text-transform", "none");
@@ -613,7 +648,7 @@ for (const width of [320, 390, 1440]) {
     for (const heading of await headings.all()) {
       const box = await heading.boundingBox();
       expect(box).not.toBeNull();
-      expect(Math.abs(box!.x + box!.width / 2 - (bounds!.x + bounds!.width / 2))).toBeLessThan(1);
+      expect(Math.abs(box!.x - bounds!.x)).toBeLessThan(1);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });

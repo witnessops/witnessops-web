@@ -4,7 +4,8 @@ import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
-import { PUBLIC_NAV_LINKS } from "./public-nav-groups";
+import { PUBLIC_NAV_LINKS, PUBLIC_NAV_GROUPS, POLISH_NAV_LINKS, POLISH_NAV_GROUPS } from "./public-nav-groups";
+import { DesktopNavbarMenu } from "./desktop-navbar-menu";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import {
   isPolishPath,
@@ -28,7 +29,8 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
   const currentPath = pathname || "/";
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
-  const effectiveLinks: { label: string; href: string }[] = polish ? [...POLISH_PUBLIC_NAV.links] : [...PUBLIC_NAV_LINKS];
+  const effectiveLinks = polish ? [...POLISH_NAV_LINKS] : [...PUBLIC_NAV_LINKS];
+  const effectiveGroups = polish ? POLISH_NAV_GROUPS : PUBLIC_NAV_GROUPS;
   // Keep the query on paired pages (e.g. a selected-offer or fit-call request).
   const search = searchParams?.toString() ?? "";
   const languageLink = polish
@@ -145,6 +147,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-1 xl:gap-5"}>
+              <DesktopNavbarMenu groups={effectiveGroups} currentPath={currentPath} />
               {effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
@@ -171,7 +174,6 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   </Link>
                 ),
               )}
-              {/* Theme lives in the footer and the mobile menu only (2026-11-13 cleanup). */}
               {loginHref ? <a href={loginHref} className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm text-text-secondary lg:inline-flex xl:px-3">{polish ? "Zaloguj się" : "Log in"}</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
@@ -200,6 +202,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
             <MobileNavbarMenu
               loginUrl={appUrl ? new URL("/login", appUrl).href : null}
               links={effectiveLinks}
+              groups={effectiveGroups}
               languageLink={languageLink}
               cta={effectiveCta}
               currentPath={currentPath}

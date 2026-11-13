@@ -1,0 +1,26 @@
+.group { border-bottom: 1px solid var(--color-surface-border); }
+.group .groupTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 64px;
+  padding: 16px 12px;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+.groupTrigger svg { color: var(--color-brand-accent); transition: transform 160ms ease; }
+.groupTrigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.groupPanel { display: grid; gap: 4px; padding-bottom: 12px; }
+.groupPanel[hidden] { display: none; }
+.group .groupLink { display: flex; flex-direction: column; gap: 5px; min-height: 64px; padding: 12px; border-left-width: 2px; }
+.linkTitle { color: var(--color-text-primary); font-size: 15px; line-height: 1.4; }
+.linkDescription { color: var(--color-text-muted); font-size: 12px; line-height: 1.6; }
+.groupLink:hover { background: var(--color-surface-card); }
+.group :is(a, button):focus-visible { outline: 2px solid var(--color-brand-accent); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .groupTrigger svg { transition: none; } }
