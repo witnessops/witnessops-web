@@ -22,7 +22,7 @@ for (const width of [390, 1440]) {
     await expect(page.locator("[data-home-offer]")).toHaveCount(1);
     const agent = page.locator(`[data-home-offer="${PUBLIC_AGENT_ACTION_REVIEW_ID}"]`);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
-    await expect(agent).toContainText("Inspect the trigger, executing identity, permissions, approvals and available execution evidence.");
+    await expect(agent).toContainText("Test attacker-controlled input, the agent decision, tool or API execution, effective permissions and the actual saved change against the supporting evidence.");
     await expect(agent).toContainText("Fixed fee, agreed in a signed SOW before we start.");
     await expect(agent.getByRole("link", { name: "Request a break test" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(agent).not.toContainText(/10 working days|3 working days|€550|550 €|€1,900/);

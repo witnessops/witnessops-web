@@ -87,7 +87,7 @@ export function SampleCasesHeaderAnimation() {
           if (video.paused) void video.play().catch(() => setPlaying(false));
           else video.pause();
         }}
-        className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center border border-white/30 bg-black/70 text-white transition-colors hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center border border-white/30 bg-black/70 text-white transition-colors hover:bg-[#0B0C0B]/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         {motionActive ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
       </button>
