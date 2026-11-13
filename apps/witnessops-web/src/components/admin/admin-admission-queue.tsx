@@ -21,6 +21,7 @@ import { AdminReconcileIntakeForm } from "./admin-reconcile-intake-form";
 import { AdminRespondIntakeForm } from "./admin-respond-intake-form";
 import { AdminQueueActionRail } from "./admin-queue-action-rail";
 import { AdminQueueVerifyProjection } from "./admin-queue-verify-projection";
+import { OfferRevisionDetails } from "./offer-revision-details";
 import styles from "./admin.module.css";
 
 function formatTimestamp(value: string): string {
@@ -761,6 +762,14 @@ function renderDetailPanel(
 
       {rowDetail(row) ? (
         <div className={styles.queueDetail}>{rowDetail(row)}</div>
+      ) : null}
+
+      {row.channel === "engage" ? (
+        <OfferRevisionDetails
+          submission={row.submission}
+          className={styles.queueMeta}
+          labelClassName={styles.queueMetaLabel}
+        />
       ) : null}
 
       {row.responseEvidenceSubcase ? (

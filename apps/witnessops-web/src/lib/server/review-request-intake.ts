@@ -256,6 +256,8 @@ export async function handleReviewRequestIntake(
     );
     if (recipientRateLimitResponse) return recipientRateLimitResponse;
 
+    // Issuance captures the server-owned offer revision from this validated
+    // intent. Raw client snapshot/revision fields are never forwarded.
     const issuance = await createVerificationIssuance({
       channel: "engage",
       email,

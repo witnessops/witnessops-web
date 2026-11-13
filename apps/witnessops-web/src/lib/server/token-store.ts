@@ -10,6 +10,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 
 import type { ChannelName } from "@/lib/channel-policy";
+import type { OfferRevisionSnapshot } from "@/lib/offer-revision-snapshot";
 import type {
   AdmissionState,
   AdminActorAuthSource,
@@ -63,6 +64,8 @@ export interface IntakeSubmissionRecord {
   intent?: string | null;
   locale?: "en" | "pl" | null;
   scope?: string | null;
+  /** Server-captured enquiry context; absent on older records. No SOW authority. */
+  offerSnapshot?: OfferRevisionSnapshot;
   requestMode?: "fit-call" | null;
   fitCall?: {
     topic: string;
