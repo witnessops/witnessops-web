@@ -16,6 +16,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/chronicles/002-sir-whiskers-opens-a-pull-request",
   "/chronicles/003-the-meeting-nobody-authorized",
   "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+  "/chronicles/005-the-dashboard-that-never-was",
   "/contact",
   "/pl/contact",
   "/library",
