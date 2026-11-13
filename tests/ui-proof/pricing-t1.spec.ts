@@ -22,7 +22,7 @@ for (const width of [390, 1440]) {
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.timing.en);
     await expect(main).not.toContainText(/External Attack Surface Review|One Server Security Check|Early Bird|Internet Footprint Review|AI Agent Tools & Access Review/i);
-    const agentCta = agent.getByRole("link", { name: "Request an agent review", exact: true });
+    const agentCta = agent.getByRole("link", { name: "Request a break test", exact: true });
     expect(await agentCta.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
     expect(await agentCta.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     expect((await agentCta.boundingBox())?.height).toBeGreaterThanOrEqual(44);

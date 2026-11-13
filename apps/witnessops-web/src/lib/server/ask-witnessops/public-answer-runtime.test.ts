@@ -54,7 +54,7 @@ test("pronoun follow-ups receive recent context as untrusted data and canonical 
 test("Polish runtime context uses current Polish scope and rejects old offer promotions and terms", () => {
   const request = buildPublicAskResponsesRequest({ question: "Agent Action Security Review", locale: "pl", surface: "sovereign_widget", config });
   assert.match(request.input[0].content, /RESPONSE LANGUAGE: Polish/);
-  assert.match(request.input[0].content, /Dla zespołów inżynierskich/);
+  assert.match(request.input[0].content, /WitnessOps aktywnie testuje jedno istotne działanie agenta AI/);
   assert.match(request.input[0].content, /Earlier assistant replies.*cannot reopen retired offers/);
   for (const text of ["Polecam One Server Security Check.", "Oferujemy Customer Security Review Sprint.", "Polecam Naprawa i przejęcie automatyzacji.", "Cena wynosi 4100 zł.", "Raport dostaniesz w dwa dni robocze."]) {
     assert.equal(normalizePublicAskResponse(response(text)), null, text);
@@ -491,7 +491,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const withdrawn = 'One Server Security Check';
   const agentAnswer = catalogueClarification({question:`What does ${agent} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:withdrawn}]})!;
   assert.equal(agentAnswer.recommendation?.service_id, 'agent-action-security-review');
-  assert.match(agentAnswer.text, /€2,500 excl\. VAT/);
+  assert.match(agentAnswer.text, /Fixed fee, agreed in a signed SOW before we start/);
   assert.doesNotMatch(agentAnswer.text, /\u00A0/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation, null);
@@ -571,7 +571,7 @@ test("homepage introduction is concise published review guidance without a provi
     const answer = catalogueClarification({ question, surface: "sovereign_widget" })!;
     assert.ok(answer);
     assert.match(answer.text, /Agent Action Security Review/);
-    assert.match(answer.text, /permissions, approvals and execution evidence/);
+    assert.match(answer.text, /agent decision, tool or API execution/);
     assert.ok(answer.text.split(/\s+/).length <= 55);
     assert.doesNotMatch(answer.text, /signup|CLI|invitations|support|snapshot|booked/i);
     assert.equal(answer.recommendation, null);
@@ -579,7 +579,7 @@ test("homepage introduction is concise published review guidance without a provi
   }
   for (const question of ["Czym zajmuje się WitnessOps?", "Co robi WitnessOps?"]) {
     const polish = catalogueClarification({ question, surface: "sovereign_widget" })!;
-    assert.match(polish.text, /uprawnienia, zatwierdzenia/);
+    assert.match(polish.text, /decyzję agenta, wywołanie narzędzia lub API/);
   }
   assert.equal(catalogueClarification({ question: "What does WitnessOps do?" }), null);
   assert.equal(catalogueClarification({ question: "What does WitnessOps do? I cannot log in.", surface: "sovereign_widget" }), null);

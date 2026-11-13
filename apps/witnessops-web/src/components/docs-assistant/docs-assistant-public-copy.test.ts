@@ -102,7 +102,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fixed fee, agreed in a signed SOW before we start.");
   assert.equal(
     PUBLIC_AGENT_ACTION_OFFER.unit.en,
     "One consequential agent or automation action",
@@ -110,7 +110,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
     PUBLIC_AGENT_ACTION_OFFER.timing.en,
-    "Delivery timing agreed in the signed statement of work",
+    "We don't test until you give written authority.",
   );
 });
 

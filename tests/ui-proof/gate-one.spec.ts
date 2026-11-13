@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 
 import { expect, test, type Page } from "@playwright/test";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 
 // Reuse the app's pinned accessibility engine; this gate adds no dependency.
 const axe = createRequire(path.resolve(__dirname, "../../apps/witnessops-web/package.json"))("axe-core") as { source: string };
@@ -75,7 +76,8 @@ for (const width of [1440, 390, 320]) {
       const main = page.getByRole("main");
       await expect(main.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(main).toContainText("Agent Action Security Review");
-      await expect(main).toContainText(/2[,\s\u00a0]?500/);
+      await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.price[route.startsWith("/pl") ? "pl" : "en"]);
+      await expect(main).not.toContainText(/€2[, \u00a0]500/);
       await expect(main).not.toContainText(/External Attack Surface Review|€1[,\s]?900|€950|€550|10 working days|3 working days/);
       await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
       await expect(main.locator('a[href*="/review/request"]:visible, form:visible').first()).toBeVisible();
@@ -117,11 +119,12 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
     }
     if (route === "/") {
       const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
-      const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { price: string | number; priceCurrency: string; valueAddedTaxIncluded: boolean } } }> }).find(value => value["@type"] === "ItemList");
+      const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { description: string; price?: string | number } } }> }).find(value => value["@type"] === "ItemList");
       expect(services?.itemListElement).toHaveLength(1);
       expect(services?.itemListElement?.[0].item.name).toBe("Agent Action Security Review");
-      expect(Number(services?.itemListElement?.[0].item.offers.price)).toBe(2500);
-      expect(services?.itemListElement?.[0].item.offers).toMatchObject({ priceCurrency: "EUR", valueAddedTaxIncluded: false });
+      expect(services?.itemListElement?.[0].item.offers.description).toBe("Fixed fee, agreed in a signed SOW before we start.");
+      expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("price");
+      expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("priceCurrency");
     }
   }
   for (const href of localLinks) {

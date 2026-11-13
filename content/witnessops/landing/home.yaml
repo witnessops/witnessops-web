@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Agent Action Security Review | WitnessOps"
-  description: "Understand the controls before your AI agent acts. One consequential action, €2,500 excl. VAT. Request an agent review."
+  description: "We try to break your AI agent before someone else does. Fixed fee, agreed in a signed SOW before we start."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/witnessops-home-editorial-a-2026-10.png"
-  og_title: "Understand the controls before your AI agent acts. | WitnessOps"
-  og_description: "Agent Action Security Review for engineering teams and AI implementation partners. One consequential action. €2,500 excl. VAT."
+  og_title: "We try to break your AI agent before someone else does. | WitnessOps"
+  og_description: "Agent Action Security Review. We try to break your AI agent before someone else does. Fixed fee, agreed in a signed SOW before we start."
   twitter_card: "summary_large_image"
 
 theme:

@@ -133,7 +133,6 @@ export function homepageReviewsJsonLd() {
   const reviews = [
     {
       name: PUBLIC_AGENT_ACTION_OFFER.name.en,
-      price: PUBLIC_AGENT_ACTION_OFFER.price.amount,
       url: canonicalUrl("/reviews/agent-action-security-review"),
     },
   ] as const;
@@ -152,9 +151,7 @@ export function homepageReviewsJsonLd() {
         provider: { "@id": organizationJsonLd["@id"] },
         offers: {
           "@type": "Offer",
-          price: review.price,
-          priceCurrency: "EUR",
-          valueAddedTaxIncluded: false,
+          description: PUBLIC_AGENT_ACTION_OFFER.price.en,
         },
       },
     })),
@@ -172,17 +169,14 @@ export function agentActionServiceJsonLd(locale: "en" | "pl") {
     "@type": "Service",
     "@id": `${url}#service`,
     name: offer.name[locale],
-    description: `${offer.unit[locale]}. ${offer.timing[locale]}.`,
+    description: `${offer.situation[locale]} ${offer.timing[locale]}`,
     serviceType: "Agent action security review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {
       "@type": "Offer",
       url,
-      price: offer.price.amount,
-      priceCurrency: offer.price.currency,
-      valueAddedTaxIncluded: false,
-      description: `${plainOfferPrice(offer.price[locale])}. ${offer.timing[locale]}.`,
+      description: `${plainOfferPrice(offer.price[locale])} ${offer.timing[locale]}`,
     },
   } as const;
 }

@@ -15,23 +15,23 @@ function TextLink({ href, children, uiProofId }: { href: string; children: React
 }
 
 const IS = [
-  ["One bounded review", "One named consequential agent or automation action."],
+  ["One bounded test", "Active adversarial testing of one named consequential agent action in an agreed environment."],
   ["Written findings tied to evidence", "Each finding sits beside the evidence that supports it."],
   ["Explicit unknowns", "What the evidence did not establish is named in writing."],
   ["A report you keep", "The written report and evidence are handed over at readout."],
 ] as const;
 
 const ISNT = [
-  ["Not execution", "The review does not perform the agent action."],
-  ["Not a production change", "We read, inspect, reconstruct and report."],
+  ["Agreed test actions only", "We attempt prohibited outcomes only within the written test boundary."],
+  ["Production needs separate authority", "No production changes without separate explicit authorization."],
   ["Not certification", "No badge, seal or claim that an agent is safe is issued."],
   ["Not remediation or monitoring", "Recommendations are prioritised; fixing and continuous monitoring stay outside this review."],
 ] as const;
 
 const STEPS = [
   ["01", "Start without secrets", "Describe one action and the decision you need to make. Do not send credentials or production evidence."],
-  ["02", "Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts. Delivery timing is agreed in the signed statement of work."],
-  ["03", "Review the findings", "Receive the action map, sourced findings and prioritised recommendations in a written report and readout. Unavailable evidence and unanswered questions stay explicit."],
+  ["02", "Agree the boundary", "Environment, test cases, stop conditions, recovery, fee, authority, evidence handling and any retest allowance are agreed before testing. We don't test until you give written authority."],
+  ["03", "Review the findings", "Receive the action map, test results, demonstrated impact, reproduction conditions and prioritised recommendations in a written report and readout. Unavailable evidence and unanswered questions stay explicit."],
 ] as const;
 
 const PRINCIPLES = [
@@ -57,10 +57,17 @@ export function SimpleHomepage() {
         <div className={styles.heroCopy}>
           <span className={styles.rule} aria-hidden="true" />
           <p className={styles.eyebrow}>{text.offerName}</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">{text.headline}</h1>
+          <h1 data-ui-proof-id="homepage-hero-headline">
+            <span className="sr-only">{text.headline}</span>
+            <span aria-hidden="true" className={styles.heroVisualDesktop}>{text.headlineDesktopVisual ?? text.headline}</span>
+            <span aria-hidden="true" className={styles.heroVisualMobile}>{text.headlineMobile}</span>
+          </h1>
         </div>
         <div className={styles.split}>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+          <div>
+            <p className={`${styles.lead} ${styles.supportDesktop}`} data-ui-proof-id="homepage-hero-body">{text.support}</p>
+            <p className={`${styles.lead} ${styles.supportCompact}`} data-ui-proof-id="homepage-hero-mobile-body">{text.supportCompact}</p>
+          </div>
           <div>
             <p className={styles.heroPrice}><PriceText text={text.aiPrice} /></p>
             <p className={styles.subline}>{text.timing}</p>
@@ -77,11 +84,28 @@ export function SimpleHomepage() {
       <div className={styles.frame}>
         <div className={styles.sectionLinks}>
           <TextLink href="/reviews">See the review</TextLink>
-          <TextLink href="/pricing">See the price</TextLink>
-          <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">Explore examples</TextLink>
+          <TextLink href="#home-process-heading">See how it works</TextLink>
+          <TextLink href="/review/sample-cases" uiProofId="homepage-sample-review-cta">See an example record</TextLink>
         </div>
       </div>
     </nav>
+    <section className={styles.section} aria-labelledby="home-four-ways-heading">
+      <div className={styles.frame}>
+        <span className={styles.rule} aria-hidden="true" />
+        <p className={styles.eyebrow}>{text.fourWaysEyebrow}</p>
+        <h2 id="home-four-ways-heading">{text.fourWaysTitle}</h2>
+        <p>{text.fourWaysIntro}</p>
+        <div className={styles.limits}>
+          {text.fourWays.map(([title, body]) => (
+            <article key={title} className="crop">
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+        <p className={styles.note}>{text.fourWaysNote}</p>
+      </div>
+    </section>
     <section className={`${styles.section} ${styles.offers}`} aria-label="Public reviews"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>{text.reviewsEyebrow}</p>
@@ -89,7 +113,7 @@ export function SimpleHomepage() {
       <div className={styles.offerIntro}>
         <h2>{text.reviewsTitle}</h2>
         <p>{text.aiWhoFor}</p>
-        <p>Issuing a refund, changing a record or granting access: understand the path from trigger to action, where approval is required and what the available evidence supports.</p>
+        <p>Issuing a refund, changing a record or granting access: test the complete path from attacker-controlled input to the actual saved change and its evidence. Authorization must be enforced before the system changes.</p>
         <p className={styles.note}>{text.reviewsBody}</p>
       </div>
       <div className={styles.cards}>
@@ -107,7 +131,7 @@ export function SimpleHomepage() {
         ))}
       </div>
       </div>
-      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
+      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, test results, demonstrated impact, reproduction conditions, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>
@@ -129,7 +153,7 @@ export function SimpleHomepage() {
     <section className={styles.section} aria-labelledby="home-process-heading"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>How a review works</p>
-      <h2 id="home-process-heading">Scope before work. Evidence beside findings.</h2>
+      <h2 id="home-process-heading">We agree the scope first. The findings come with the evidence.</h2>
       <ol className={styles.steps}>
         {STEPS.map(([index, title, body]) => <li key={index}><span>{index}</span><h3>{title}</h3><p>{body}</p></li>)}
       </ol>
@@ -138,7 +162,7 @@ export function SimpleHomepage() {
     <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
       <span className={styles.rule} aria-hidden="true" />
       <p className={styles.eyebrow}>What this is · what this isn’t</p>
-      <h2 id="home-limits-heading">Useful evidence. Explicit limits.</h2>
+      <h2 id="home-limits-heading">{"What this isn't."}</h2>
       <div className={styles.limits}>
         <div><h3>What this is</h3><ul>{IS.map(([title, body]) => <li key={title}><strong>{title}</strong> {body}</li>)}</ul></div>
         <div><h3>What this isn’t</h3><ul>{ISNT.map(([title, body]) => <li key={title}><strong>{title}</strong> {body}</li>)}</ul></div>
@@ -150,7 +174,7 @@ export function SimpleHomepage() {
       <ul className={styles.principles}>{PRINCIPLES.map(([title, body]) => <li key={title}><h3>{title}</h3><p>{body}</p></li>)}</ul>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Request the review</p><h2 id="home-enquiry-heading">Start with a non-secret fit check.</h2><p>Name the consequential action, the systems involved and the decision deadline. Do not include secrets or production evidence.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
+      <div><span className={styles.rule} aria-hidden="true" /><p className={styles.eyebrow}>Request the review</p><h2 id="home-enquiry-heading">{"Start with a fit check. Don't send secrets."}</h2><p>Tell us one action, which systems it touches, and when you need to decide.</p><p className={styles.contactLine} data-homepage-contact>{text.contactLead} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
       <div className={`${styles.enquiryForm} crop`}><ContactForm compact landing /></div>
     </div></section>
   </main>;

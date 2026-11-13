@@ -6,7 +6,7 @@ import PolishDocsPage, { generateMetadata } from "./[...slug]/page";
 import { POLISH_DOCS_SECTIONS } from "./docs-navigation";
 
 const guidance = {
-  "understand-the-service": /jednego ważnego działania/i,
+  "understand-the-service": /jedno istotne działanie/i,
   "how-witnessops-works": /nie daje upoważnienia/i,
   "what-you-receive": /pisemny raport/i,
   faq: /Ile działań obejmuje przegląd/i,
@@ -29,6 +29,7 @@ test("the Polish buyer guides provide topic-specific answers and retain English 
     assert.match(html, expected, slug);
     assert.doesNotMatch(html, /Szczegółowa dokumentacja techniczna jest dostępna po angielsku/, slug);
     assert.match(html, /Otwórz dokumentację techniczną \(EN\)/, slug);
+    assert.doesNotMatch(html, /Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go|wyłącznie.*odczyt/);
     assert.deepEqual((await generateMetadata(props(slug))).robots, { index: false, follow: true });
   }
 });
@@ -46,11 +47,13 @@ test("buyer guides keep the one-action boundary and do not treat an enquiry as a
   assert.match(scope, /jednego wybranego działania/);
   assert.match(scope, /Przykład: zwrot płatności/);
   assert.match(scope, /To przykład, a nie opis rzeczywistego klienta/);
-  assert.match(scope, /Nie wykonujemy badanego działania/);
+  assert.match(scope, /aktywnie testuje jedno istotne działanie/);
+  assert.match(scope, /upoważnienie przed zmianą/);
   assert.match(scope, /Nie jest to test penetracyjny/);
   const workflow = renderToStaticMarkup(await PolishDocsPage(props("how-witnessops-works")));
   assert.match(workflow, /nie rozpoczyna przeglądu i nie daje upoważnienia/);
-  assert.match(workflow, /na ich podstawie opisujemy przebieg działania w zakresie, który można ustalić/);
+  assert.match(workflow, /Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków/);
   const report = renderToStaticMarkup(await PolishDocsPage(props("what-you-receive")));
-  assert.match(report, /Mapę działania na podstawie dostępnych materiałów/);
+  assert.match(report, /warunki odtworzenia/);
+  assert.match(report, /wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu/);
 });

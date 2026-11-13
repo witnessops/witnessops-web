@@ -5,7 +5,7 @@ export const PUBLIC_NAV_GROUPS = [
   ] },
   { label: "Reviews", description: "One agreed scope. Clear findings.", links: [
     { label: "Agent Action Security Review", href: "/reviews/agent-action-security-review", description: "Review the controls around one agent action." },
-    { label: "The review", href: "/reviews", description: "Scope, price and deliverables." },
+    { label: "The review", href: "/reviews", description: "Scope, fee and deliverables." },
   ] },
   { label: "Resources", description: "Understand the product and its limits.", links: [
     { label: "Docs", href: "/docs", description: "App guides, CLI setup and reference." },

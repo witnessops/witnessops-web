@@ -157,9 +157,10 @@ const appRouter = {
 };
 
 const HOMEPAGE_COPY_EVIDENCE_BOUNDARIES = [
-  "this is not a penetration test.",
+  "this is not a penetration test of the whole environment.",
   "the free hostname check stays a separate tool, not a second review.",
-  "we do not execute the action, change production, remediate, monitor continuously or certify that an agent is safe.",
+  "authorization must be enforced before the system changes.",
+  "no production changes without separate explicit authorization, remediation implementation, continuous monitoring or safety certification.",
 ] as const;
 
 const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
@@ -171,7 +172,7 @@ const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
   "no evidence was collected for this illustration.",
   "no customer, execution, verification, authorisation failure or result is shown.",
   "an enquiry does not authorise collection or start a review.",
-  "evidence survives the dashboard.",
+  "what the record looks like.",
 ] as const;
 
 function normalize(value: string): string {
@@ -329,8 +330,8 @@ test("prohibited homepage copy fails validation", () => {
   const rendered = renderHomepage();
   const dummyBoundary = "not a legal compliance claim";
   const prohibitedCopy = `${copy.replace(
-    "Understand the controls before your AI agent acts.",
-    "Understand the controls before your AI agent acts. Verified compliance.",
+    "We try to break your AI agent before someone else does.",
+    "We try to break your AI agent before someone else does. Verified compliance.",
   )}\n${dummyBoundary}`;
 
   const prohibited = assessHomepageClaims(prohibitedCopy, rendered);
@@ -345,22 +346,22 @@ test("prohibited homepage copy fails validation", () => {
   ]);
 
   const strippedCopy = `${copy.replace(
-    "This is not a penetration test.",
-    "This is a penetration test.",
+    "This is not a penetration test of the whole environment.",
+    "This is a penetration test of the whole environment.",
   )}\n${dummyBoundary}`;
   const strippedRender = `${rendered.replaceAll(
-    "This is not a penetration test.",
-    "This is a penetration test.",
+    "This is not a penetration test of the whole environment.",
+    "This is a penetration test of the whole environment.",
   )}\n${dummyBoundary}`;
   const stripped = assessHomepageClaims(strippedCopy, strippedRender);
   assert.ok(
     stripped.includes(
-      "homepage copy missing boundary: this is not a penetration test.",
+      "homepage copy missing boundary: this is not a penetration test of the whole environment.",
     ),
   );
   assert.ok(
     stripped.includes(
-      "rendered homepage missing boundary: this is not a penetration test.",
+      "rendered homepage missing boundary: this is not a penetration test of the whole environment.",
     ),
   );
   assert.equal(stripped.some((failure) => failure.includes(dummyBoundary)), false);

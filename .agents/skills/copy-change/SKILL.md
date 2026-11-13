@@ -18,7 +18,7 @@ Public website and content edits stay inside the current paid offer and the clai
 
 ## Write
 
-- The public new-sales offer is Agent Action Security Review at €2,500 excluding VAT. External Attack Surface Review is parked and is not a new-sales offer.
+- The public new-sales offer is Agent Action Security Review: active adversarial testing of one consequential action in an agreed environment. Use `docs/commercial/19-agent-action-adversarial-testing-offer.md`. Fee, capacity and any retest cases, window and allowance require agreement in the signed SOW; no expanded fixed price is approved. Earlier €2,500 read-only agreements retain their accepted terms. External Attack Surface Review is parked and is not a new-sales offer.
 - Public contact is `engage@mail.witnessops.com` only.
 - Timing copy is `Delivery timing per signed SOW`.
 - Do not reintroduce held or historical prices and terms tracked in the commercial registry. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`, and keep them off public surfaces and new-sales selection.

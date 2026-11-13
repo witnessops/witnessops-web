@@ -10,11 +10,11 @@ External, CSR and One Server paths below are not new-sales instructions.
 | --- | --- |
 | Enquiry | Non-secret description of one consequential agent or automation action, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
 | Fit | Select only `agent-action-security-review`; confirm that one bounded action fits the need. Do not reinterpret a historical request or offer the private pilot. |
-| Agreement | Confirm the one-action scope, exclusions, authority, handling, inputs, payment terms and capacity. The fixed fee is €2,500 excl. VAT; delivery timing is agreed in the signed statement of work. |
-| Work | Read, inspect, reconstruct and report one action. Stop and re-scope when the authorised boundary no longer holds. |
-| Package | Link findings to evidence, prioritise recommendations and state unknowns. Do not promise execution, remediation, retesting, certification or complete security. |
-| Handover | Deliver the action map, sourced findings, prioritised recommendations, documented unknowns, written report and readout. |
-| Follow-up | Record open items and decisions against the accepted agreement. No retest or remediation is included in the agent review. |
+| Agreement | Confirm the one-action scope, exclusions, authority, handling, inputs, payment terms and capacity. Agree the fee, delivery capacity, environment, prohibited outcomes, permitted test actions, window, attempt/side-effect limits, stop conditions and recovery. Delivery timing is agreed in the signed statement of work. Specify any retest cases, window and allowance; no expanded fixed price is approved. |
+| Work | Attempt the agreed prohibited outcomes across attacker-controlled input, observable agent decision, tool/API execution, effective permissions, actual saved change and evidence. Enforce authorization before changes. Read back authoritative backend state, including partial, duplicate or absent changes. Stop when an agreed limit or authority boundary fails. |
+| Package | Link test results to evidence, demonstrated impact and reproduction conditions; prioritise mitigation and state gaps. Classify each case as failure demonstrated, resisted under tested conditions, inconclusive or not tested. Do not infer resistance from missing evidence or an execution error. |
+| Handover | Deliver the action map, test results, demonstrated impact, reproduction conditions, mitigation recommendations, explicit gaps, written report and readout; record recovery and any residual changes. |
+| Follow-up | Record open items and decisions against the accepted agreement. A retest can be included in the original agreement when its cases, window and allowance are specified. Remediation implementation is separate. Earlier read-only agreements retain their accepted terms. |
 
 ## Current operator checks
 
@@ -22,7 +22,7 @@ External, CSR and One Server paths below are not new-sales instructions.
   new-sales choice contains only Agent Action Security Review, with the free
   check separate.
 - [ ] Initial enquiry, scope acceptance, payment and permission to work remain
-  separate; inspection starts only after the applicable gates.
+  separate; testing starts only after written authority, limits, recovery and the applicable gates are confirmed.
 - [ ] The package matches the agreed scope, preserves evidence limits and
   labels samples as synthetic. Historical templates are not sent as current terms.
 - [ ] Handover is recorded against the accepted agreement. Existing historical

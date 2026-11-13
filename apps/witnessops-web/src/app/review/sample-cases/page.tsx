@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { InlineArrow } from "@/components/marketing/inline-arrow";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { SampleCasesHeaderAnimation } from "@/components/marketing/sample-cases-header-animation";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
@@ -83,36 +84,39 @@ const nextSteps = [
   {
     title: "Start a review",
     description:
-      "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
+      "Describe one situation without secrets. We confirm fit, scope, fee and evidence handling before work starts.",
     href: "/review/request",
-    label: "Start a review",
+    label: "Request a break test",
   },
 ] as const;
 
 export default function SampleCasesIndexPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="buyer-page" data-page="sample-cases-index">
-      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
-        <header className="max-w-4xl border-b border-surface-border pb-6">
-          <h1 className="text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            Examples
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            Agent actions, approvals and supporting evidence.
-          </p>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
-            Explore four examples relevant to Agent Action Security Review.
-            Published sample, not live customer evidence. No production verification or certification.
-          </p>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
-            Start with the historical agent-action specimen below. For the current
-            scope of {PUBLIC_AGENT_ACTION_OFFER.name.en}, {" "}
-            <Link href="/reviews" className="text-brand-accent underline underline-offset-4">
-              see the current review
-            </Link>
-            . These examples illustrate individual actions and evidence limits;
-            they are not complete deliverables from the current paid review.
-          </p>
+    <main id="main-content" tabIndex={-1} className="buyer-page relative isolate" data-page="sample-cases-index">
+      <SampleCasesHeaderAnimation />
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-12 lg:py-20">
+        <header className="border-b border-surface-border pb-6">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+              Examples
+            </h1>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+              Agent actions, approvals and supporting evidence.
+            </p>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
+              Explore four examples relevant to Agent Action Security Review.
+              Published sample, not live customer evidence. No production verification or certification.
+            </p>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
+              Start with the historical agent-action specimen below. For the current
+              scope of {PUBLIC_AGENT_ACTION_OFFER.name.en}, {" "}
+              <Link href="/reviews" className="text-brand-accent underline underline-offset-4">
+                see the current review
+              </Link>
+              . These examples illustrate individual actions and evidence limits;
+              they are not complete deliverables from the current paid review.
+            </p>
+          </div>
         </header>
 
         <section className="border-b border-surface-border py-6" aria-labelledby="sample-cases-list-heading">

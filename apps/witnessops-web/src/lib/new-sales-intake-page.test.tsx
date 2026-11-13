@@ -35,7 +35,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const agentHtml = render(agent);
   assert.match(agentHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(agentHtml, /€2,500\u00A0excl.\u00A0VAT/);
+  assert.match(agentHtml, /Fixed fee, agreed in a signed SOW before we start/);
   assert.match(agentHtml, /One consequential agent or automation action/);
   assert.doesNotMatch(agentHtml, /Starting at €2,500/);
   assert.doesNotMatch(agentHtml, /offerId=agent-tools-access-review/);
@@ -56,10 +56,10 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const polishHtml = render(polishAgent);
   assert.match(polishHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(polishHtml, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(polishHtml, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
   assert.doesNotMatch(polishHtml, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.doesNotMatch(polishHtml, /cena stała/);
-  assert.match(polishHtml, /Jedno istotne działanie agenta lub automatyzacji/);
+  assert.match(polishHtml, /Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji/);
   assert.doesNotMatch(polishHtml, /Od €2 500 · bez VAT/);
 });
 
@@ -103,9 +103,9 @@ test("the unselected enquiry is the agent review and has no offer selector", asy
   const html = render(await ReviewRequestPage({ searchParams: Promise.resolve({}) }));
   assert.doesNotMatch(html, /Which review\?/);
   assert.match(html, /value="agent-action-security-review"/);
-  assert.match(html, /Consequential action/);
+  assert.match(html, /The action/);
   assert.match(html, /Systems involved/);
-  assert.match(html, /Decision deadline/);
+  assert.match(html, /When you need to decide/);
   assert.doesNotMatch(html, /value="OFFSEC-EXTERNAL-EXPOSURE"/);
   assert.doesNotMatch(html, /One Server Security Check|Free check|Not sure|Internet Footprint Review/);
 
@@ -114,7 +114,7 @@ test("the unselected enquiry is the agent review and has no offer selector", asy
       searchParams: Promise.resolve({ enquiryPath: "early-bird" }),
     }),
   );
-  assert.match(earlyBird, /Consequential action/);
+  assert.match(earlyBird, /The action/);
   assert.doesNotMatch(earlyBird, /Internet Footprint Review/);
 
   const polish = render(await PolishReviewRequestPage({ searchParams: Promise.resolve({}) }));

@@ -1,0 +1,14 @@
+.compact {
+  padding-block: 4px;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .compact {
+    padding-block: 0;
+    font-size: 12px;
+    line-height: 1;
+    border-bottom-width: 0;
+  }
+}

@@ -61,12 +61,12 @@ const copy = {
     ],
     agentActionNextSteps: [
       `We assess one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} No secrets yet.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.price.en}. Authority, the executing identity, the approval boundary, and the evidence path are agreed before work.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. The request and mailbox confirmation do not start work.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.en} Before active testing, agree the environment, permitted actions, authority, executing identity, approval boundary, stop conditions, recovery and evidence handling.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.en} The request and mailbox confirmation do not start work.`,
     ],
     primaryOfferNextSteps: [
       "This recorded request stays agent-tools-access-review. It is not reassigned to Agent Action Security Review.",
-      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")}. External Attack Surface Review is no longer available for new engagements.`,
+      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")} External Attack Surface Review is no longer available for new engagements.`,
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
@@ -83,7 +83,7 @@ const copy = {
     missingTitle: "No request record in this browser.",
     missingBody:
       "No confirmed request record is present in this browser session. Open this page through the mailbox-verification flow; a direct visit does not establish that a mailbox or request was verified.",
-    restart: "Start a scoped request",
+    restart: "Request a break test",
   },
   pl: {
     loading: "Wczytywanie zapisu zgłoszenia przechowywanego w przeglądarce…",
@@ -110,12 +110,12 @@ const copy = {
     ],
     agentActionNextSteps: [
       "Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu. Nie wysyłaj jeszcze danych poufnych.",
-      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed rozpoczęciem pracy uzgadniamy zakres, upoważnienie i sposób postępowania z materiałami i dowodami. Na ich podstawie analizujemy tożsamość wykonującą działanie oraz zasady jego zatwierdzania.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} (uzgodniony zakres prac). Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.pl} Przed aktywnym testem uzgadniamy środowisko, dozwolone działania, upoważnienie, tożsamość wykonującą działanie, granice zatwierdzania, warunki przerwania, odtworzenie stanu i obsługę dowodów.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
       "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
-      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
+      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
@@ -132,7 +132,7 @@ const copy = {
     missingTitle: "Brak zapisu zgłoszenia w tej przeglądarce.",
     missingBody:
       "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia. Otwórz tę stronę przez proces weryfikacji skrzynki; bezpośrednia wizyta nie potwierdza skrzynki ani zgłoszenia.",
-    restart: "Przejdź do zgłoszenia",
+    restart: "Poproś o test przełamania",
   },
 } as const;
 
@@ -188,7 +188,7 @@ export function ReviewRequestConfirmed({
         </p>
         <Link
           href={locale === "pl" ? "/pl/review/request" : "/review/request"}
-          className="mt-7 inline-flex min-h-12 items-center border border-[#b94716] bg-[#b94716] px-5 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#111111] "
+          className="mt-7 inline-flex min-h-12 items-center rounded-[4px] border border-[var(--color-action-fill)] bg-[var(--color-action-fill)] px-5 text-sm font-medium text-[var(--color-action-on-fill)] transition hover:border-[var(--color-action-fill-hover)] hover:bg-[var(--color-action-fill-hover)]"
         >
           {text.restart}
         </Link>
@@ -298,7 +298,7 @@ export function ReviewRequestConfirmed({
             <div className="space-y-2 text-sm">
               <Link
                 href={proofResource?.href ?? selectedServiceResource.href}
-                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] ${verificationLight.title}`}
+                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[var(--color-surface-border-strong)] ${verificationLight.title}`}
               >
                 {proofResource?.label ?? selectedServiceResource.label}
               </Link>
@@ -309,7 +309,7 @@ export function ReviewRequestConfirmed({
                     ? "/pl/docs/how-receipts-work"
                     : "/docs/how-it-works/proof-model"
                 }
-                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] ${verificationLight.title}`}
+                className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[var(--color-surface-border-strong)] ${verificationLight.title}`}
               >
                 {text.proofModel}
               </Link>

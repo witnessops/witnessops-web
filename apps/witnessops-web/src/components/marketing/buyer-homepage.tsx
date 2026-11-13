@@ -26,11 +26,11 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
   const agentHref = agent ? buyerServiceRequestHref(locale, agent) : requestHref;
   const stages = pl ? [
     ["Ustalamy zakres", "Opisz działanie, związane z nim systemy i termin decyzji. Przed rozpoczęciem pracy uzgadniamy zakres, upoważnienie i sposób obchodzenia się z materiałami."],
-    ["Analizujemy działanie", "Sprawdzamy, co uruchamia działanie i jaka tożsamość je wykonuje. W dostępnych materiałach szukamy informacji o jej uprawnieniach, zatwierdzaniu działania i zapisach wykonania. Nie wykonujemy tego działania."],
+    ["Aktywnie testujemy działanie", "Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków. Badamy treść wejściową, decyzję agenta, wywołanie narzędzia lub API, efektywne uprawnienia, faktycznie zapisaną zmianę i dowody."],
     ["Przekazujemy i omawiamy raport", "Otrzymasz mapę działania, ustalenia powiązane z dowodami, uporządkowane zalecenia i opis tego, czego nie udało się ustalić."],
   ] : [
     ["Agree the boundary", "Name the consequential action, the systems involved and the decision deadline. Agree scope, authority and evidence handling before work begins."],
-    ["Read and reconstruct", "Inspect the trigger, executing identity, permissions, approvals and available execution evidence. The review does not execute the action."],
+    ["Actively test the action", "Attempt the agreed prohibited outcomes across attacker-controlled input, the agent decision, tool or API execution, effective permissions, actual saved change and evidence."],
     ["Deliver the report", "Receive an action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout."],
   ];
   return <main id="main-content" tabIndex={-1} className={`${styles.page} ${styles.compactHome}`} data-page="home" data-home-direction="security-verification">
@@ -39,10 +39,24 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         <div className={heroStyles.heroCopy}>
           <span className={heroStyles.rule} aria-hidden="true" />
           <p className={heroStyles.eyebrow}>{hero?.eyebrow ?? text.offerName}</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">{title}</h1>
+          <h1 data-ui-proof-id="homepage-hero-headline">
+            {hero?.title ? title : (
+              <>
+                <span className="sr-only">{text.headline}</span>
+                <span aria-hidden="true" className={heroStyles.heroVisualDesktop}>{text.headlineDesktopVisual ?? text.headline}</span>
+                <span aria-hidden="true" className={heroStyles.heroVisualMobile}>{text.headlineMobile}</span>
+              </>
+            )}
+          </h1>
         </div>
         <div className={heroStyles.split}>
-          <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p>
+          {hero?.body ? <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p> : (
+            <div className={text.supportShort ? heroStyles.supportStack : undefined}>
+              <p data-ui-proof-id="homepage-hero-body" className={`${heroStyles.lead} ${heroStyles.supportDesktop}`}>{text.support}</p>
+              <p data-ui-proof-id="homepage-hero-mobile-body" className={`${heroStyles.lead} ${heroStyles.supportCompact}`}>{text.supportCompact}</p>
+              {text.supportShort ? <p data-ui-proof-id="homepage-hero-narrow-body" className={`${heroStyles.lead} ${heroStyles.supportShort}`}>{text.supportShort}</p> : null}
+            </div>
+          )}
           <div>
             <p className={heroStyles.heroPrice}><PriceText text={text.aiPrice} /></p>
             <p className={heroStyles.subline}>{text.timing}</p>
@@ -58,6 +72,23 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <Link className={heroStyles.textLink} href="#how-it-works">{pl ? "Jak pracujemy" : "How it works"}</Link>
       <Link data-ui-proof-id="homepage-sample-review-cta" className={heroStyles.textLink} href={sampleHref}>{pl ? "Historyczny przykład (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
     </div></div></nav>
+    <section className={`${heroStyles.page} ${heroStyles.section}`} aria-labelledby="home-four-ways-heading">
+      <div className={heroStyles.frame}>
+        <span className={heroStyles.rule} aria-hidden="true" />
+        <p className={heroStyles.eyebrow}>{text.fourWaysEyebrow}</p>
+        <h2 id="home-four-ways-heading">{text.fourWaysTitle}</h2>
+        <p>{text.fourWaysIntro}</p>
+        <div className={heroStyles.limits}>
+          {text.fourWays.map(([wayTitle, wayBody]) => (
+            <article key={wayTitle} className="crop">
+              <h3>{wayTitle}</h3>
+              <p>{wayBody}</p>
+            </article>
+          ))}
+        </div>
+        <p className={heroStyles.note}>{text.fourWaysNote}</p>
+      </div>
+    </section>
     <section className={styles.reviewSection} aria-labelledby="home-services-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{text.reviewsEyebrow}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{text.reviewsTitle}</h2><p className={styles.sectionBody}>{text.reviewsBody}</p></div>
       <ul className={`${styles.reviewGrid} ${styles.serviceGrid}`}>{services.map((service) => (
@@ -77,14 +108,14 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <ol className={styles.reviewGrid}>{stages.map(([heading, detail], i) => <li key={heading}><span>{String(i + 1).padStart(2, "0")}</span><h3>{heading}</h3><p>{detail}</p></li>)}</ol>
     </div></section>
     <section className={styles.reviewSection} aria-labelledby="home-limits-heading"><div className={styles.frame}>
-      <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Granice przeglądu" : "Review limits"}</p><h2 id="home-limits-heading" className={styles.sectionTitle}>{pl ? "Wiesz, co sprawdzamy." : "Useful evidence. Explicit limits."}</h2><p className={styles.sectionBody}>{pl ? "Analizujemy materiały i opisujemy przebieg jednego działania w zakresie, który można na ich podstawie ustalić. Brakujące dowody i pytania bez odpowiedzi wskazujemy w raporcie." : "We read, inspect, reconstruct and report. Missing evidence and unanswered questions remain explicit."}</p></div>
+      <div className={styles.sectionIntro}><p className={styles.eyebrow}>{pl ? "Granice przeglądu" : "Review limits"}</p><h2 id="home-limits-heading" className={styles.sectionTitle}>{pl ? "Wiesz, co sprawdzamy." : "Useful evidence. Explicit limits."}</h2><p className={styles.sectionBody}>{pl ? "Aktywnie testujemy jedno działanie w uzgodnionym środowisku. Upoważnienie musi być egzekwowane przed zmianą systemu. Raport wskazuje wyniki, wykazany wpływ, warunki odtworzenia i jawne luki." : "We actively test one action within the agreed environment. Authorization must be enforced before the system changes. Test results, demonstrated impact, reproduction conditions and gaps remain explicit."}</p></div>
       <div className={styles.limitColumns}>
-        <div><h3>{pl ? "Co pozostaje poza zakresem" : "Outside the scope"}</h3><p>{pl ? "Nie wykonujemy działania, nie zmieniamy produkcji i nie wdrażamy poprawek. Nie prowadzimy ciągłego monitoringu. To nie jest test penetracyjny ani certyfikat bezpieczeństwa agenta." : text.aiScopeNote}</p></div>
-        <div><h3>{pl ? "Co ustalamy przed pracą" : "Before work starts"}</h3><p>{pl ? "Zakres, wyłączenia, upoważnienie i sposób przekazania materiałów uzgadniamy pisemnie. Termin realizacji określa podpisany zakres prac (SOW). Jeśli zgłoszenie obejmuje więcej działań, zaproponujemy ograniczenie zakresu do jednego albo odmówimy przeglądu." : "Scope, exclusions, authority and evidence handling are agreed in writing. Delivery timing per signed SOW."}</p></div>
+        <div><h3>{pl ? "Co pozostaje poza zakresem" : "Outside the scope"}</h3><p>{pl ? "Zmiany produkcyjne wymagają osobnego wyraźnego upoważnienia. Nie wdrażamy poprawek ani nie prowadzimy ciągłego monitoringu. To nie jest test penetracyjny całego środowiska ani certyfikat bezpieczeństwa agenta." : text.aiScopeNote}</p></div>
+        <div><h3>{pl ? "Co ustalamy przed pracą" : "Before work starts"}</h3><p>{pl ? "Środowisko, dozwolone testy, wyłączenia, upoważnienie, warunki przerwania i odtworzenie stanu uzgadniamy pisemnie. Cenę, dostępność i limit ponownych testów ustalamy przed pracą. Termin realizacji określa podpisany zakres prac (SOW). Jeśli zgłoszenie obejmuje więcej działań, zaproponujemy ograniczenie zakresu do jednego albo odmówimy przeglądu." : "Environment, permitted tests, exclusions, authority, stop conditions, recovery and evidence handling are agreed in writing. Fee, delivery capacity and retest cases and allowance must be agreed before testing. Delivery timing per signed SOW."}</p></div>
       </div>
     </div></section>
     <section id="enquiry" className={`${heroStyles.section} ${heroStyles.enquiry} ${styles.homeEnquiry}`} aria-labelledby="home-close-heading"><div className={heroStyles.frame}>
-      <div><p className={styles.eyebrow}>{pl ? "Zapytaj o przegląd" : "Request the review"}</p><h2 id="home-close-heading">{pl ? "Jakie działanie ma wykonać agent?" : "What consequential action can the agent take?"}</h2><p>{pl ? "Opisz działanie, systemy i termin decyzji. Sprawdzimy, czy przegląd odpowiada Twoim potrzebom. Bez haseł, kluczy API i materiałów produkcyjnych." : "Name the action, systems and decision deadline. Leave out secrets and production evidence."}</p><p className={heroStyles.contactLine}>{pl ? "Lub napisz:" : "Discuss a review:"} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p></div>
+      <div><p className={styles.eyebrow}>{pl ? "Zapytaj o przegląd" : "Request the review"}</p><h2 id="home-close-heading">{pl ? "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów." : "What consequential action can the agent take?"}</h2><p>{pl ? "Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji." : "Name the action, systems and decision deadline. Leave out secrets and production evidence."}</p><p className={heroStyles.contactLine}>{pl ? "Lub napisz:" : "Discuss a review:"} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p></div>
       <div className={heroStyles.enquiryForm}><ContactForm locale={locale} compact landing /></div>
     </div></section>
   </main>;

@@ -5,7 +5,7 @@ import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { languageAlternates } from "@/lib/public-seo";
 import { pageSocialMetadata } from "@/lib/social-metadata";
 
-const description = `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
+const description = `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en} ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`;
 
 export const metadata: Metadata = {
   title: PUBLIC_AGENT_ACTION_OFFER.name.en,

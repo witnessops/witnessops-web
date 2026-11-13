@@ -10,7 +10,7 @@ const uiProofSelector = (id: string) => `[data-ui-proof-id="${id}"]`;
 // Keep this locator strict: zero or two visible paragraphs must fail the proof.
 export function activeHeroSupport(page: Page) {
   return page.locator(
-    ["homepage-hero-body", "homepage-hero-mobile-body"]
+    ["homepage-hero-body", "homepage-hero-mobile-body", "homepage-hero-narrow-body"]
       .map(id => `${uiProofSelector(id)}:visible`)
       .join(", "),
   );

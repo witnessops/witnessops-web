@@ -170,15 +170,15 @@ test("specimen review CTA selects the current one-action review without expandin
   assert.match(page, /not a complete sample of the current paid review/);
   assert.match(page, /signed artifacts and verification tools do not become standard review deliverables/);
   assert.match(page, /Non-secret fit and scoping request first\./);
-  assert.match(page, /<Link href=\{reviewRequestHref\}>Request an agent review<\/Link>/);
+  assert.match(page, /<Link href=\{reviewRequestHref\}>Request a break test<\/Link>/);
   assert.doesNotMatch(page, /PRIMARY_OFFER|current review adds a dated/);
   assert.equal(
     buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id),
     "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review",
   );
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fixed fee, agreed in a signed SOW before we start.");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "We don't test until you give written authority.");
 });
 
 test("historical inventory-review identity and commercial terms remain unchanged", () => {

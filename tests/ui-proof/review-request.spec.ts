@@ -417,10 +417,10 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2,500\u00A0excl.\u00A0VAT",
+        "Fixed fee, agreed in a signed SOW before we start.",
         "One consequential agent or automation action",
         "Submitting this form opens fit review only",
-        "Delivery timing agreed in the signed statement of work",
+        "We don't test until you give written authority.",
       ],
     },
     {
@@ -429,10 +429,10 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Zapytaj o Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2\u00A0500\u00A0bez\u00A0VAT",
-        "Jedno istotne działanie agenta lub automatyzacji",
-        "Na razie bez sekretów i materiałów",
-        "Termin realizacji według podpisanego SOW",
+        "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.",
+        "Nie wysyłaj sekretów.",
+        "Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji.",
+        "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
       ],
     },
   ] as const) {
@@ -532,6 +532,11 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     expect(submittedPayload?.scope).toContain("Consequential action:");
     expect(submittedPayload?.scope).toContain("Systems involved:");
     expect(submittedPayload?.scope).toContain("Decision deadline:");
+    expect(submittedPayload?.scope).toContain("permitted actions");
+    expect(submittedPayload?.scope).toContain("stop conditions, recovery");
+    expect(submittedPayload?.scope).toContain("any retest cases, window and allowance");
+    expect(submittedPayload?.scope).toContain("Fixed fee, agreed in a signed SOW before we start.");
+    expect(submittedPayload?.scope).not.toMatch(/€2[, \u00a0]500|€1[, \u00a0]900/);
     expect(submittedPayload?.scope).not.toContain("Unintended effect:");
     expect(submittedPayload?.scope).not.toContain("dated system-level inventory");
 

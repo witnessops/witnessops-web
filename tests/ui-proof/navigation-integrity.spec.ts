@@ -412,6 +412,9 @@ test("Polish docs landing makes the service guide easy to find", async ({ page }
     await expect(guide).toHaveAttribute("href", "/pl/docs/understand-the-service");
     await guide.click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Zrozum usługę");
+    await expect(page.locator("main")).toContainText("aktywnie testuje jedno istotne działanie");
+    await expect(page.locator("main")).toContainText("upoważnienie przed zmianą");
+    await expect(page.locator("main")).not.toContainText(/Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });

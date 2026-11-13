@@ -4,7 +4,7 @@
   --record-ink: #111111;
   --record-muted: #65615a;
   --record-rule: #c9c3b8;
-  --record-accent: #b94716;
+  --record-accent: var(--color-action-fill);
   width: 100%;
   overflow: hidden;
   border: 1px solid var(--record-rule);

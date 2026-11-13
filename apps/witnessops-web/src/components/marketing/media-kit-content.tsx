@@ -451,8 +451,8 @@ export function MediaKitContent({
           <p className="mt-7 text-lg leading-8 text-text-secondary">
             {tx(
               locale,
-              "WitnessOps delivers Agent Action Security Review: a bounded, read-only review of one consequential agent or automation action, with sourced findings, explicit unknowns, a written report and a readout.",
-              "WitnessOps oferuje Agent Action Security Review: przegląd jednego ważnego działania agenta lub automatyzacji, bez wykonywania go ani zmieniania systemu. Klient otrzymuje raport ze źródłami ustaleń, zaleceniami oraz opisem tego, czego nie udało się ustalić, a następnie omawiamy go wspólnie.",
+              "WitnessOps delivers Agent Action Security Review: active adversarial testing of one consequential AI-agent action in an agreed environment, from attacker-controlled input to the actual saved change and evidence, with test results, demonstrated impact, reproduction conditions, mitigation recommendations and explicit gaps.",
+              "WitnessOps oferuje Agent Action Security Review: aktywne testy jednego istotnego działania agenta AI w uzgodnionym środowisku, od treści kontrolowanej przez atakującego po zapisaną zmianę i dowody. Raport obejmuje wyniki testów, wykazany wpływ, warunki odtworzenia, zalecenia naprawcze i jawne luki.",
             )}
           </p>
         </div>

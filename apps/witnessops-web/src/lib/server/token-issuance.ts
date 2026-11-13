@@ -14,6 +14,7 @@ import {
   isOperatorHandledCommercialRequestIntent,
 } from "@/lib/commercial-request-intents";
 import { NEW_SALES_AGENT_ACTION_OFFER_ID } from "@/lib/new-review-request-policy";
+import { offerRevisionFields } from "@/lib/offer-revision-snapshot";
 import type {
   EngageResponse,
   SupportResponse,
@@ -57,6 +58,7 @@ import { operatorRejectionBlocksApproval } from "./operator-actions";
 import { appendIntakeEvent } from "./intake-event-ledger";
 import { hasAssessmentLifecycleState } from "./assessment-lifecycle-routing";
 import { reservePublicIssuanceAdmission } from "./public-issuance-admission";
+import { captureOfferRevisionSnapshot } from "./offer-revision-snapshot";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
 type VerificationIssuanceResponse = EngageResponse | SupportResponse;
@@ -181,6 +183,7 @@ function renderOperatorNotificationText(args: {
     renderTextField("Company or team", args.intake.submission.org),
     renderTextField("Intent", args.intake.submission.intent),
     renderTextField("Locale", args.intake.submission.locale),
+    ...offerRevisionFields(args.intake.submission).map(({ label, value }) => renderTextField(label, value)),
     `Intake ID: ${args.intake.intakeId}`,
     `Issuance ID: ${args.issuance.issuanceId}`,
     `Thread ID: ${args.intake.threadId ?? "not assigned"}`,
@@ -274,6 +277,7 @@ function renderOperatorNotificationHtml(args: {
     renderHtmlField("Company or team", args.intake.submission.org),
     renderHtmlField("Intent", args.intake.submission.intent),
     renderHtmlField("Locale", args.intake.submission.locale),
+    ...offerRevisionFields(args.intake.submission).map(({ label, value }) => renderHtmlField(label, value)),
     renderHtmlField("Intake ID", args.intake.intakeId),
     renderHtmlField("Issuance ID", args.issuance.issuanceId),
     renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
@@ -303,11 +307,18 @@ function renderOperatorNotificationHtml(args: {
 
 function normalizeSubmission(
   submission?: IntakeSubmissionRecord,
+  context?: { channel: VerificationChannel; createdAt: string },
 ): IntakeSubmissionRecord {
+  const intent = normalizeText(submission?.intent);
+  // Ignore supplied snapshot fields. Only a new server-side issuance captures
+  // the current offer; reading or verifying an older record never backfills it.
+  const offerSnapshot = context?.channel === "engage"
+    ? captureOfferRevisionSnapshot(intent, context.createdAt)
+    : undefined;
   return {
     name: normalizeText(submission?.name),
     org: normalizeText(submission?.org),
-    intent: normalizeText(submission?.intent),
+    intent,
     locale:
       submission?.locale === "pl"
         ? "pl"
@@ -315,6 +326,7 @@ function normalizeSubmission(
           ? "en"
           : null,
     scope: normalizeText(submission?.scope),
+    ...(offerSnapshot ? { offerSnapshot } : {}),
     requestMode:
       submission?.requestMode === "fit-call" && submission.fitCall
         ? "fit-call"
@@ -793,7 +805,10 @@ async function createReservedVerificationIssuance(
   const verificationContext = generateVerificationContext();
   const createdAt = nowIso();
   const expiresAt = computeExpiresAt(createdAt);
-  const normalizedSubmission = normalizeSubmission(input.submission);
+  const normalizedSubmission = normalizeSubmission(input.submission, {
+    channel: input.channel,
+    createdAt,
+  });
   const verifyUrl = new URL("/verify-token", readVerifyBaseUrl());
   verifyUrl.searchParams.set("context", verificationContext);
 
@@ -822,6 +837,9 @@ async function createReservedVerificationIssuance(
     source: input.source,
     payload: {
       email: input.email,
+      ...(normalizedSubmission.offerSnapshot
+        ? { offerSnapshot: normalizedSubmission.offerSnapshot }
+        : {}),
     },
   });
 

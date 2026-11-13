@@ -179,17 +179,17 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
 test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
   assert.ok(english.requiredMarkers.includes("Tool · not a review"));
-  assert.ok(english.requiredMarkers.includes("Understand the controls before your AI agent acts."));
-  assert.ok(english.requiredMarkers.includes("Scope before work. Evidence beside findings."));
+  assert.ok(english.requiredMarkers.includes("We try to break your AI agent before someone else does."));
+  assert.ok(english.requiredMarkers.includes("We agree the scope first. The findings come with the evidence."));
   assert.equal(english.requiredMarkers.includes("Start a free check"), false);
   assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);
   assert.ok(english.prohibitedMarkers?.includes("10 working days"));
   assert.ok(english.prohibitedMarkers?.includes("3 working days"));
   assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Zapytaj o przegląd agenta"));
-  assert.ok(polish.requiredMarkers.includes("Poznaj mechanizmy kontroli, zanim agent AI wykona działanie."));
-  assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
+  assert.ok(polish.requiredMarkers.includes("Poproś o test przełamania"));
+  assert.ok(polish.requiredMarkers.includes("Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny."));
+  assert.ok(polish.requiredMarkers.includes("Nie testujemy, dopóki nie dasz pisemnego upoważnienia."));
   assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
   assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
   assert.ok(polish.prohibitedMarkers?.includes("€550"));
@@ -233,9 +233,9 @@ test("catalogue smoke preserves the single public review request path", () => {
   const catalogue = routeContract("/catalog");
   for (const marker of [
     "Agent Action Security Review",
-    "€2,500\u00A0excl.\u00A0VAT",
-    "Delivery timing agreed in the signed statement of work",
-    "Request an agent review",
+    "Fixed fee, agreed in a signed SOW before we start.",
+    "We don't test until you give written authority.",
+    "Request a break test",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -291,7 +291,7 @@ test("intake probes reject withdrawn identities before issuance and keep the two
 
 test("request smoke markers use the current fit and start-work boundaries", () => {
   const generic = routeContract("/review/request");
-  assert.ok(generic.requiredMarkers.includes("Request an agent review"));
+  assert.ok(generic.requiredMarkers.includes("Request a break test"));
   assert.ok(generic.requiredMarkers.includes("Next, confirm your email with a code."));
   assert.ok(
     generic.requiredMarkers.includes(
@@ -337,7 +337,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const englishOpen = routeContract(
     "/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(englishOpen.requiredMarkers.includes("€2,500\u00A0excl.\u00A0VAT"));
+  assert.ok(englishOpen.requiredMarkers.includes("Fixed fee, agreed in a signed SOW before we start."));
   assert.ok(
     englishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
@@ -360,7 +360,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const polishOpen = routeContract(
     "/pl/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(polishOpen.requiredMarkers.includes("€2\u00A0500\u00A0bez\u00A0VAT"));
+  assert.ok(polishOpen.requiredMarkers.includes("Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem."));
   assert.ok(
     polishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
@@ -429,11 +429,12 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
 });
 
 
-test("the limits section cannot satisfy the positive capabilities check", () => {
+test("the limits heading is a required homepage marker", () => {
   const route = routeContract("/");
-  const body = route.requiredMarkers.filter(marker => marker !== "Useful evidence.").join("\n");
-  assert.ok(body.includes("Explicit limits."));
+  const marker = "What this isn't.";
+  const body = route.requiredMarkers.filter((value) => value !== marker).join("\n");
+  assert.equal(body.includes(marker), false);
   const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
   assert.equal(result.ok, false);
-  assert.deepEqual(result.missingMarkers, ["Useful evidence."]);
+  assert.deepEqual(result.missingMarkers, [marker]);
 });

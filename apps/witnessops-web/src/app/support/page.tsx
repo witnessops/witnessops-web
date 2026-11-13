@@ -51,7 +51,7 @@ const situationLanes = [
   {
     href: "/reviews/agent-action-security-review",
     title: PUBLIC_AGENT_ACTION_OFFER.name.en,
-    body: `One named consequential action. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. Describe the action without secrets.`,
+    body: `One named consequential action. ${PUBLIC_AGENT_ACTION_OFFER.price.en} Describe the action without secrets.`,
     emphasize: true,
   },
   {

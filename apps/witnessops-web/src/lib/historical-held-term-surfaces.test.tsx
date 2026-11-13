@@ -103,10 +103,10 @@ test("buyer docs and historical request copy use the signed-statement timing lin
   );
   for (const source of [reviewWorkflow, buyerPath]) {
     assert.match(source, /Agent Action Security Review/);
-    assert.match(source, /€2,500 excluding VAT/);
+    assert.match(source, /fixed fee, agreed in a signed SOW before we start/);
     assert.match(source, /External Attack Surface Review is no longer available for new engagements/);
     assert.doesNotMatch(source, /€1,900 excluding VAT/);
-    assert.ok(source.includes(CURRENT_TIMING));
+    assert.ok(source.includes("We don't test until you give written authority."));
     assert.doesNotMatch(source, HELD_TERM);
   }
   for (const file of [
@@ -134,19 +134,20 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     assert.match(html, /agent-tools-access-review/);
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
     if (locale === "en") {
-      assert.match(html, /€2,500/);
+      assert.match(html, /Fixed fee, agreed in a signed SOW before we start/);
+      assert.doesNotMatch(html, /€2,500/);
       assert.match(html, /no longer available for new engagements/);
       assert.doesNotMatch(html, /€1,900/);
     }
     if (locale === "pl") {
-      assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.match(html, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
       assert.match(html, /nie jest już dostępny/);
       assert.doesNotMatch(html, /€1\u00A0900/);
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     }
     assert.doesNotMatch(html, HELD_TERM);
-    if (locale === "en") assert.match(html, /Delivery timing agreed in the signed statement of work/);
-    if (locale === "pl") assert.match(html, /Termin realizacji według podpisanego SOW/);
+    if (locale === "en") assert.match(html, /We don(?:'|&#x27;|&#39;)t test until you give written authority/);
+    if (locale === "pl") assert.match(html, /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
   }
   const confirmation = readFileSync(
     resolve(__dirname, "../components/review-request/review-request-confirmed.tsx"),

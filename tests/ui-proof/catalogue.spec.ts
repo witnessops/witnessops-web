@@ -28,6 +28,8 @@ test("single-review catalogue routes remain responsive and usable", async ({ bro
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
+    await expect(page.locator("main")).not.toContainText(/Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go/);
+    await expect(page.locator("main")).toContainText(scenario.path.startsWith("/pl") ? "Aktywnie testujemy jedno istotne działanie" : "Active adversarial testing of one consequential action");
     if (scenario.path.startsWith("/pl")) {
       await expect(page.locator("main h1")).toHaveText("Przegląd zabezpieczeń działania agenta AI");
       await expect(page.locator("main header")).toContainText("Agent Action Security Review");
@@ -90,7 +92,7 @@ test("single-review catalogue routes remain responsive and usable", async ({ bro
       expect(request.searchParams.get("offerId")).toBe(id);
       expect(request.searchParams.has("productId")).toBe(false);
       expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
-      await expect(primary).toHaveText(polish ? "Zapytaj o przegląd agenta" : "Request an agent review");
+      await expect(primary).toHaveText(polish ? "Poproś o test przełamania" : "Request a break test");
       await expect(links).toHaveCount(2);
       await expect(links.nth(1)).toHaveAttribute("href", `${polish ? "/pl" : ""}/reviews/agent-action-security-review`);
       await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
@@ -139,7 +141,7 @@ test("pricing opens the agent review and the external review URL stays parked", 
   await expect(detail).toHaveAttribute("data-offer-status", "parked");
   await expect(detail.locator("h1")).toHaveText("External Attack Surface Review is no longer available");
   await expect(detail).toContainText("This is not the Agent Action Security Review.");
-  await expect(detail).toContainText("€2,500\u00A0excl.\u00A0VAT");
+  await expect(detail).toContainText("Fixed fee, agreed in a signed SOW before we start.");
   await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
   const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });
