@@ -114,8 +114,8 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.ok(enHrefs.some((href) => href === "https://github.com/witnessops"));
   assert.ok(plHrefs.some((href) => href === "https://github.com/witnessops"));
   for (const hrefs of [enHrefs, plHrefs]) {
-    assert.ok(hrefs.includes("https://x.ai"), "footer links the xAI mark");
-    assert.ok(hrefs.includes("https://openai.com/codex/"), "footer links the Codex mark");
+    assert.ok(hrefs.some((href) => href === "https://x.ai"), "footer links the xAI mark");
+    assert.ok(hrefs.some((href) => href === "https://openai.com/codex/"), "footer links the Codex mark");
     assert.equal(hrefs.some((href) => /x\.com|twitter/i.test(href)), false, "no X profile link");
   }
   assert.match(en, /engage@mail\.witnessops\.com/);
