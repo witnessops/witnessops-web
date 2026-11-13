@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isBusinessEmail } from "@/lib/freemail-policy";
+import { isFitCallTimeZone } from "@/lib/fit-call-timezone";
 import {
   engageRequestSchema,
   engageResponseSchema,
@@ -80,12 +81,7 @@ function oneInstantForLocalMinute(
 }
 
 export function fitCallPreferencesAreValid(fitCall: FitCallRequest, nowMs: number): boolean {
-  if (
-    fitCall.timezone !== "UTC" &&
-    !/^[A-Za-z_]+(?:\/[A-Za-z0-9_+\-]+)+$/.test(fitCall.timezone)
-  ) {
-    return false;
-  }
+  if (!isFitCallTimeZone(fitCall.timezone)) return false;
 
   let formatter: Intl.DateTimeFormat;
   try {
