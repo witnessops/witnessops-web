@@ -54,7 +54,10 @@ function optionsFrom(args: string[]): Options {
     else throw new SafeError("Unknown argument. Use --generate, --dry-run, --voice=orion|eve|rex|sal, --chapter=<chapter-id> or --max-cost-usd=1.");
   }
   if (!(voices as readonly string[]).includes(options.voice)) throw new SafeError("Unsupported voice. Use orion, eve, rex or sal.");
-  if (options.chapter && !ALL_CHAPTERS.some((chapter) => chapter.id === options.chapter)) throw new SafeError("Unknown published chapter.");
+  if (options.chapter !== undefined) {
+    if (!options.chapter.trim()) throw new SafeError("The chapter selector must not be empty.");
+    if (!ALL_CHAPTERS.some((chapter) => chapter.id === options.chapter)) throw new SafeError("Unknown published chapter.");
+  }
   if (!Number.isFinite(options.maxCostUsd) || options.maxCostUsd <= 0) throw new SafeError("The cost limit must be a positive USD amount.");
   return options;
 }
@@ -94,7 +97,7 @@ function audioDuration(filePath: string): number {
 }
 
 function plan(options: Options, manifest: Manifest): PlannedChapter[] {
-  return ALL_CHAPTERS.filter((chapter) => !options.chapter || chapter.id === options.chapter).map((chapter) => {
+  return ALL_CHAPTERS.filter((chapter) => options.chapter === undefined || chapter.id === options.chapter).map((chapter) => {
     const text = chronicleNarrationText(chapter);
     if (!text.length || text.length > maximumCharacters) throw new SafeError(`Chapter ${chapter.id} is outside the 1–60,000 character request limit.`);
     const inputSha256 = chronicleNarrationInputHash(chapter, options.voice);
