@@ -403,12 +403,37 @@ test("fit-call preferences stay private until verification and trigger one manua
   assert.equal((await readdir(outbox)).length, 2);
 });
 
+for (const timezone of ["CET", "EET", "EST5EDT"]) {
+  test(`fit-call route accepts the named time-zone alias ${timezone}`, async () => {
+    const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-fit-call-zone-"));
+    applyTestEnv(baseDir);
+    const body = fitCallBody();
+    body.fitCall.timezone = timezone;
+    body.fitCall.preferredStarts = [3, 4].map((days) => {
+      const date = new Date(Date.now() + days * 86_400_000);
+      date.setUTCHours(12, 0, 0, 0);
+      return date.toISOString().slice(0, 16);
+    });
+    const response = await POST(new Request("http://localhost/api/review/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }));
+    assert.equal(response.status, 201);
+    const issued = await response.json() as { intakeId: string };
+    const intake = await getIntakeById(issued.intakeId);
+    assert.equal(intake?.submission.fitCall?.timezone, timezone);
+  });
+}
+
 test("fit-call route rejects invalid zone, past, horizon, duplicate, and overlapping preferences before issuance", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-fit-call-invalid-"));
   applyTestEnv(baseDir);
   const [first, later] = [utcLocalStart(3), utcLocalStart(3, 60)];
   const cases = [
     { timezone: "Mars/Olympus", preferredStarts: [first, later] },
+    { timezone: "+01:00", preferredStarts: [first, later] },
+    { timezone: "-0330", preferredStarts: [first, later] },
     { timezone: "UTC", preferredStarts: [utcLocalStart(-1), later] },
     { timezone: "UTC", preferredStarts: [utcLocalStart(91), later] },
     { timezone: "UTC", preferredStarts: [first, first] },

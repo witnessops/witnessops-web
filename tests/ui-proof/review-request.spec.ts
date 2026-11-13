@@ -331,6 +331,7 @@ test("expert footer CTA requests a time through email verification without claim
     const cta = locale === "pl" ? "Porozmawiaj z ekspertem" : "Talk to an expert";
     const title = locale === "pl" ? "Poproszono o termin, bez rezerwacji." : "Time requested, not booked.";
     const topic = locale === "pl" ? "Przegląd jednego działania agenta" : "Review one agent action";
+    const timezone = locale === "pl" ? "CET" : "EST5EDT";
     const preferredStarts = [14, 15].map((days) => {
       const start = new Date(Date.now() + days * 86_400_000);
       start.setUTCHours(12, 0, 0, 0);
@@ -369,15 +370,21 @@ test("expert footer CTA requests a time through email verification without claim
     await expect(form.locator("#timezone")).not.toHaveValue("");
     await form.locator("#email").fill("buyer@example.org");
     await form.locator("#topic").fill(topic);
-    await form.locator("#timezone").fill("Europe/Warsaw");
     await form.locator("#preferredStart1").fill(preferredStarts[0]);
     await form.locator("#preferredStart2").fill(preferredStarts[1]);
+    for (const invalidZone of ["Mars/Olympus", "+01:00", "-0330"]) {
+      await form.locator("#timezone").fill(invalidZone);
+      await form.locator('button[type="submit"]').click();
+      await expect(form.locator("#timezone-error")).toBeVisible();
+      expect(requestBody).toBeNull();
+    }
+    await form.locator("#timezone").fill(timezone);
     await form.locator('button[type="submit"]').click();
     await expect(page.locator("#verification-code")).toBeVisible();
     await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
     expect(requestBody).toMatchObject({
       email: "buyer@example.org", intent: "agent-action-security-review", locale,
-      fitCall: { topic, timezone: "Europe/Warsaw", preferredStarts },
+      fitCall: { topic, timezone, preferredStarts },
     });
     expect(JSON.stringify(requestBody?.scope)).not.toContain(topic);
     expect(JSON.stringify(requestBody?.scope)).not.toContain(preferredStarts[0]);

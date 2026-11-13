@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { verificationLight } from "@/components/shared/verification-light-shell";
+import { isFitCallTimeZone } from "@/lib/fit-call-timezone";
 import {
   buildReviewRequestConfirmation,
   resolveReviewRequestKind,
@@ -579,9 +580,7 @@ export function ContactForm({
           updateFieldError("preferredStart2", fitCallCopy.duplicate);
           throw new Error(fitCallCopy.duplicate);
         }
-        try {
-          new Intl.DateTimeFormat("en", { timeZone: timezone });
-        } catch {
+        if (!isFitCallTimeZone(timezone)) {
           updateFieldError("timezone", fitCallCopy.timezoneError);
           throw new Error(fitCallCopy.timezoneError);
         }
