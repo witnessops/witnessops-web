@@ -46,7 +46,7 @@ test("footer shows one review, two columns and no retired or second-product link
   for (const locale of ["en", "pl"] as const) {
     const hrefs = footerGroups(locale).flatMap((group) => group.links.map((link) => link.href));
     assert.equal(footerGroups(locale).length, 2);
-    for (const banned of ["/pricing", "/reviews", "/pl/reviews", "/docs/assistant", "/about", "/pl/docs", "/early-access", "/check", "/verify", "/pl/verify", "/media-kit", "/pl/media-kit"]) {
+    for (const banned of ["/pricing", "/reviews", "/pl/reviews", "/docs/assistant", "/about", "/early-access", "/check", "/verify", "/pl/verify", "/media-kit", "/pl/media-kit"]) {
       assert.equal(hrefs.includes(banned), false, `${locale} footer must not link ${banned}`);
     }
     assert.equal(hrefs.some(isFooterRequestHref), false, "The request action is the single brand CTA, not a column link.");
@@ -57,7 +57,7 @@ test("footer shows one review, two columns and no retired or second-product link
   ]);
   assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [
     ["Przegląd", ["/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases"]],
-    ["Firma", ["/docs", "/pl/security", "/pl/company"]],
+    ["Firma", ["/pl/docs", "/pl/security", "/pl/company"]],
   ]);
   const footer = source();
   assert.doesNotMatch(footer, /Ask Sovereign|sovereignAssistantPublished|label: "Pricing"|Talk to an expert|Media kit/);

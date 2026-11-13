@@ -83,7 +83,7 @@ const FOOTER_COPY = {
         { label: "Przykłady (EN)", href: "/review/sample-cases" },
       ] },
       { id: "footer-company-heading", label: "Firma", links: [
-        { label: "Dokumentacja", href: "/docs" },
+        { label: "Dokumentacja", href: "/pl/docs" },
         { label: "Bezpieczeństwo", href: "/pl/security" },
         { label: COMPANY_DETAILS.pl.heading, href: COMPANY_DETAILS_HREF.pl },
       ] },

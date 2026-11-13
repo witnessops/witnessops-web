@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 const DESKTOP_NAV_MIN_WIDTH = 1024;
-const RETIRED_MENU_HREFS = ["/check", "/pl/check", "/early-access", "/about", "/pl/docs", "/pricing", "/docs/assistant"] as const;
+const RETIRED_MENU_HREFS = ["/check", "/pl/check", "/early-access", "/about", "/pricing", "/docs/assistant"] as const;
 
 // Design 2026-11-13: the header is a flat list (review, how it works, examples,
 // docs; About became Docs in footer bundle B). The free check, Early access, About

@@ -17,7 +17,7 @@ export const POLISH_PUBLIC_NAV = {
     { label: "Przegląd", href: "/pl/reviews/agent-action-security-review" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
-    { label: "Dokumentacja", href: "/docs" },
+    { label: "Dokumentacja", href: "/pl/docs" },
   ],
   cta: { label: "Poproś o test przełamania", href: "/pl/review/request", variant: "primary" },
 } as const;

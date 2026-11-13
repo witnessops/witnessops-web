@@ -533,9 +533,9 @@ test("flat mobile navigation keeps every link reachable", async ({ page }) => {
 });
 
 test("footer keeps the review and company links without Research in both languages", async ({ page }) => {
-  for (const [pathname, reviewLabel, companyLabel] of [
-    ["/", "The review", "Company"],
-    ["/pl", "Przegląd", "Firma"],
+  for (const [pathname, reviewLabel, companyLabel, docsHref, otherDocsHref] of [
+    ["/", "The review", "Company", "/docs", "/pl/docs"],
+    ["/pl", "Przegląd", "Firma", "/pl/docs", "/docs"],
   ]) {
     await page.goto(pathname);
     const footer = page.locator("#site-footer");
@@ -545,10 +545,11 @@ test("footer keeps the review and company links without Research in both languag
     await expect(company).toBeVisible();
     await expect(footer.locator('a[href="/research"]')).toHaveCount(0);
     await expect(review.locator('a[href="/review/sample-cases"]')).toBeVisible();
-    await expect(company.locator('a[href="/docs"]')).toBeVisible();
+    await expect(company.locator(`a[href="${docsHref}"]`)).toBeVisible();
+    await expect(footer.locator(`a[href="${otherDocsHref}"]`)).toHaveCount(0);
     await expect(footer.locator('a[href*="x.com"], a[href*="twitter.com"]')).toHaveCount(0);
     await expect(footer.locator("[data-theme-choice], [data-theme-toggle]")).toHaveCount(0);
-    for (const href of ["/verify", "/pl/verify", "/pricing", "/about", "/pl/docs", "/docs/assistant", "/media-kit", "/check", "/early-access"]) {
+    for (const href of ["/verify", "/pl/verify", "/pricing", "/about", "/docs/assistant", "/media-kit", "/check", "/early-access"]) {
       await expect(footer.locator(`a[href="${href}"]`)).toHaveCount(0);
     }
   }

@@ -77,6 +77,7 @@ const canonicalChrome = {
 const activeNavigationHref = new Map<string, string>([
   ["/catalog", "/reviews/agent-action-security-review"],
   ["/docs", "/docs"], // Docs is a header item again (footer bundle B, Design 2026-11-13).
+  ["/pl/docs", "/pl/docs"], // PL Dokumentacja points at the Polish docs.
   ["/review/request", "/review/request"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
   ["/pl/review/request", "/pl/review/request"],

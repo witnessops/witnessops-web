@@ -29,7 +29,7 @@ test("shared navigation preserves Polish destinations and selected enquiry", () 
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
   assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/docs",
+    "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/pl/docs",
   ]);
 });
 
