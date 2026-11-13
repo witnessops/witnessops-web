@@ -18,7 +18,7 @@ export const POLISH_PUBLIC_NAV = {
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Dokumentacja", href: "/pl/docs" },
   ],
-  cta: { label: "Zapytaj o przegląd agenta", href: "/pl/review/request", variant: "primary" },
+  cta: { label: "Poproś o test przełamania", href: "/pl/review/request", variant: "primary" },
 } as const;
 
 export type PolishOfferCopy = {

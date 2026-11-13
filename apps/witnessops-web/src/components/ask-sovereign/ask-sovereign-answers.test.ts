@@ -12,7 +12,7 @@ test("simulated answers use the current review and park the external review", ()
   const external = sovereignAnswer("What does the external attack surface review cost?", "en");
   const handoff = sovereignAnswer("Where is the data stored and which model do you use?", "en");
   assert.equal(agent.kind, "agent");
-  assert.match(agent.text, /Fee agreed in signed SOW/);
+  assert.match(agent.text, /Fixed fee, agreed in a signed SOW before we start/);
   assert.match(agent.text, /retest can be included.*original agreement/);
   assert.match(agent.text, /Authorization must be enforced before the system changes/);
   assert.doesNotMatch(agent.text, /€2,500/);
@@ -32,7 +32,7 @@ test("simulated answers use the current review and park the external review", ()
   const polishAgent = sovereignAnswer("ile kosztuje przegląd agenta za 2500", "pl").text;
   assert.match(polishExternal, /nie jest już dostępny/);
   assert.doesNotMatch(polishExternal, /€1\u00A0900/);
-  assert.match(polishAgent, /Cena ustalana w podpisanym SOW/);
+  assert.match(polishAgent, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
   assert.match(polishAgent, /Aktywnie testujemy uzgodnione niedozwolone skutki/);
   assert.match(polishAgent, /zapisaną zmianę i dowody/);
   assert.match(polishAgent, /Upoważnienie musi być egzekwowane przed zmianą/);

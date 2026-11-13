@@ -48,7 +48,7 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
 test("homepage review data uses an agreed fee without inventing a numeric price", () => {
   const data = homepageReviewsJsonLd();
   const offers = data.itemListElement.map((entry) => entry.item.offers);
-  assert.deepEqual(offers.map((offer) => offer.description), ["Fee agreed in signed SOW"]);
+  assert.deepEqual(offers.map((offer) => offer.description), ["Fixed fee, agreed in a signed SOW before we start."]);
   assert.equal(data.itemListElement[0]?.item.name, "Agent Action Security Review");
   assert.ok(offers.every((offer) => !Object.hasOwn(offer, "price") && !Object.hasOwn(offer, "priceCurrency")));
 });
@@ -62,8 +62,8 @@ test("active detail structured data keeps scope and agreed timing without the fo
       "@type": "Offer",
       url: service.url,
       description: locale === "en"
-        ? "Fee agreed in signed SOW. Delivery timing agreed in the signed statement of work."
-        : "Cena ustalana w podpisanym SOW. Termin realizacji według podpisanego SOW.",
+        ? "Fixed fee, agreed in a signed SOW before we start. We don't test until you give written authority."
+        : "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem. Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
     });
     assert.doesNotMatch(JSON.stringify(service), /AggregateOffer|lowPrice|2500|2,500|1900|10 working days|agent-tools-access-review/);
   }

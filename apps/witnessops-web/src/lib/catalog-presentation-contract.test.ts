@@ -18,8 +18,8 @@ const expectedPrices = {
     pl: "Od €2 500 · bez VAT",
   },
   "agent-action-security-review": {
-    en: "Fee agreed in signed SOW",
-    pl: "Cena ustalana w podpisanym SOW",
+    en: "Fixed fee, agreed in a signed SOW before we start.",
+    pl: "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",

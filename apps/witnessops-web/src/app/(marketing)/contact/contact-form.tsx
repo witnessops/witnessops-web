@@ -318,8 +318,8 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
-          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
+          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
+          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,
@@ -356,16 +356,16 @@ export function ContactForm({
           ? `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`
           : `Start your ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
         fitBody: polish
-          ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}.`
-          : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.en}.`,
-        decisionTiming: polish ? "Do kiedy potrzebujesz decyzji?" : "Decision deadline",
+          ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}.`
+          : `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.en}.`,
+        decisionTiming: polish ? "Do kiedy potrzebujesz decyzji?" : "When you need to decide",
         decisionTimingPlaceholder: polish
           ? "Np. przekazanie klientowi w przyszły piątek albo decyzja o uruchomieniu do końca miesiąca."
           : "For example: customer handover next Friday, or a launch decision by the end of the month.",
         decisionTimingHelp: polish
-          ? "Wystarczy przybliżony termin. Termin realizacji ustalamy w podpisanym zakresie prac."
-          : "An approximate date is enough. Delivery timing is agreed in the signed statement of work.",
-        workflow: polish ? "Co ma zrobić agent?" : "Consequential action",
+          ? "Wystarczy przybliżony termin."
+          : "An approximate date is enough.",
+        workflow: polish ? "Co ma zrobić agent?" : "The action",
         workflowPlaceholder: polish
           ? "Np. agent ma zwrócić płatność, zmienić dane w CRM albo nadać dostęp do repozytorium."
           : "For example: the agent can issue a refund, change a record, or grant access.",
@@ -384,10 +384,10 @@ export function ContactForm({
         evidencePlaceholder: polish
           ? "Nazwij tylko rodzaje: zgłoszenie, prompt, log, zatwierdzenie, wynik. Nie wysyłaj ich teraz."
           : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
-        send: polish ? "Wyślij zapytanie" : "Request an agent review",
+        send: polish ? "Poproś o test przełamania" : "Request a break test",
         submitBoundary: polish
-          ? `Wysyłasz zapytanie o przegląd. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
-          : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. It is not a booking, payment, or authority to inspect.`,
+          ? `Wysyłasz zapytanie o przegląd. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
+          : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en} It is not a booking, a payment, or permission to test.`,
       }
     : undefined;
   const copy = externalExposureOrder

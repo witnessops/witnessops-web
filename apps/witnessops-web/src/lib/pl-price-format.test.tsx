@@ -95,12 +95,12 @@ test("Polish rendered prices drop the middot and keep a non-breaking space", asy
     EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
   ].join("\n");
 
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fee agreed in signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fixed fee, agreed in a signed SOW before we start.");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900\u00A0excl.\u00A0VAT");
   assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.amount, "1900");
   assert.doesNotMatch(rendered, FORBIDDEN);
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Cena ustalana w podpisanym SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
   assert.match(EXTERNAL_ATTACK_SURFACE_OFFER.price.pl, LOCKED);
   const prices = rendered.match(/€[0-9\u00A0][^\n]{0,24}bez\u00A0VAT/g) ?? [];
   assert.ok(prices.length >= 1);

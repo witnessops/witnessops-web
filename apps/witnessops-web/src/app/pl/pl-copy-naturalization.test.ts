@@ -27,7 +27,7 @@ test("Polish homepage leads with the agent review", () => {
   assert.doesNotMatch(buyerHomepage, /Zweryfikuj lub napraw proces/);
   assert.doesNotMatch(buyerHomepage, /\/catalog\/automation-repair/);
   assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
-  assert.match(buyerHomepage, /Bez haseł, kluczy API i materiałów produkcyjnych/);
+  assert.match(buyerHomepage, /Nie wysyłaj sekretów/);
   assert.equal(PRIMARY_OFFER.price.pl, "Od €2 500 · bez VAT");
 });
 

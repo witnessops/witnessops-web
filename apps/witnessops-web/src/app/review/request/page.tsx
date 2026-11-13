@@ -15,7 +15,7 @@ import {
 import { languageAlternates } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-const requestDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
+const requestDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en} ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`;
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = (await searchParams) ?? {};
@@ -56,8 +56,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 const agentActionNextSteps = [
   `${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} Do not send source files or secrets.`,
-  `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}.`,
-  `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. Payment and authority are agreed before work. This form does not start the review.`,
+  `${PUBLIC_AGENT_ACTION_OFFER.unit.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en}`,
+  `${PUBLIC_AGENT_ACTION_OFFER.timing.en} Payment and authority are agreed before work. This form does not start the review.`,
 ];
 
 const agentActionOutputs = [
@@ -94,7 +94,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.en}</p>
               <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Talk to an expert</h1>
               <p className="mt-4 text-base leading-7 text-text-muted">Request a 20-minute conversation. Share only a short, non-secret topic, your work email, time zone and two preferred times. The times are requests, not a booking.</p>
-              <p className="mt-3 text-sm leading-6 text-text-secondary">An operator checks the calendar after your email-code check, then confirms an available time by invitation or replies with alternatives. {PUBLIC_AGENT_ACTION_OFFER.price.en} applies to a separately agreed review; this request does not authorize or start one.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">An operator checks the calendar after your email-code check, then confirms an available time by invitation or replies with alternatives. {PUBLIC_AGENT_ACTION_OFFER.price.en} This request does not authorize or start a review.</p>
             </header>
             <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
               <ContactForm compact fitCall intent={decision.intent} campaignAttribution={campaignAttribution} />
@@ -132,11 +132,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           style={{ fontFamily: "var(--font-display)" }}
         >
           {selectedOffer
-            ? "Tell us what you want to check"
+            ? "Start with a fit check. Don't send secrets."
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          {`${PUBLIC_AGENT_ACTION_OFFER.unit.en}. We’ll confirm fit before any work. No secrets or evidence yet.`}
+          Tell us one action, which systems it touches, and when you need to decide.
         </p>
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}
@@ -151,8 +151,8 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         {selectedOffer ? (
           <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary">
             <p className="sr-only">Selected offer: {selectedOffer.name.en}</p>
-            <p>Price: {selectedOffer.price.en}</p>
-            <p>Timing: {selectedOffer.timing.en}</p>
+            <p>{selectedOffer.price.en}</p>
+            <p>{selectedOffer.timing.en}</p>
           </div>
         ) : null}
       </section>
@@ -243,7 +243,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>
-                {`${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}. This form is not a booking, checkout, or authority to inspect.`}
+                {`${PUBLIC_AGENT_ACTION_OFFER.price.en} ${PUBLIC_AGENT_ACTION_OFFER.timing.en} This form is not a booking, a payment, or permission to test.`}
               </p>
               <p>No work or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>

@@ -15,7 +15,7 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test what your AI agent should refuse.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveAccessibleName("We try to break your AI agent before someone else does.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(1);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectFreeToolEntryPoint(page);
@@ -24,13 +24,13 @@ for (const viewport of [
     await expect(trigger).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ask Sovereign", exact: true })).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const sampleLink = hero.getByRole("link", { name: "Request an agent review", exact: true });
+    const sampleLink = hero.getByRole("link", { name: "Request a break test", exact: true });
     await expect(sampleLink).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
     await expect(hero.getByRole("link", { name: "Request an external review", exact: true })).toHaveCount(0);
 
     const enquiry = page.locator("#enquiry");
     await enquiry.scrollIntoViewIfNeeded();
-    await expect(enquiry.getByRole("button", { name: "Request an agent review" })).toBeVisible();
+    await expect(enquiry.getByRole("button", { name: "Request a break test" })).toBeVisible();
     await expect(enquiry).toContainText("confirm your email with a code");
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -49,18 +49,18 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Sprawdź, czy agent odmówi/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Próbujemy przełamać Twojego agenta AI/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("jedno istotne działanie w uzgodnionym środowisku");
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Wskazujesz jedno ważne działanie");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toContainText("Agent Action Security Review");
   const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-  await expect(hero).toContainText("Cena ustalana w podpisanym SOW");
+  await expect(hero).toContainText("Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
   await expect(page.locator("#enquiry form")).toBeVisible();
   const offers = page.locator("[data-home-offer]");
   await expect(offers).toHaveCount(1);
   for (const offer of await offers.all()) {
-    await expect(offer).toContainText("Termin realizacji według podpisanego SOW");
+    await expect(offer).toContainText("Nie testujemy, dopóki nie dasz pisemnego upoważnienia.");
     await expect(offer).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€550|550 €/);
   }
   const docsEntry = page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true });

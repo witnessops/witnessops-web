@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Agent Action Security Review | WitnessOps"
-  description: "Active adversarial testing of one consequential AI-agent action, from attacker-controlled input to saved change and evidence. Fee agreed in signed SOW."
+  description: "We try to break your AI agent before someone else does. Fixed fee, agreed in a signed SOW before we start."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/witnessops-home-editorial-a-2026-10.png"
-  og_title: "Test what your AI agent should refuse. | WitnessOps"
-  og_description: "Agent Action Security Review: test one consequential action in an agreed environment. Test results, demonstrated impact and practical fixes. Fee agreed in signed SOW."
+  og_title: "We try to break your AI agent before someone else does. | WitnessOps"
+  og_description: "Agent Action Security Review. We try to break your AI agent before someone else does. Fixed fee, agreed in a signed SOW before we start."
   twitter_card: "summary_large_image"
 
 theme:

@@ -47,7 +47,7 @@ export const POLISH_DOC_CONTENT: Record<string, PolishDoc> = {
     sections: [
       { heading: "Ile działań obejmuje przegląd?", paragraphs: ["Jedno uzgodnione istotne działanie agenta lub automatyzacji. Jeśli zgłoszenie obejmuje więcej, zakres należy zawęzić; możemy też odmówić jego przyjęcia."] },
       { heading: "Czy wykonujecie działanie podczas testu?", paragraphs: ["Tak, podejmujemy uzgodnione próby wywołania niedozwolonych skutków jednego działania w uzgodnionym środowisku. Sprawdzamy rzeczywisty stan systemu docelowego. Upoważnienie musi być egzekwowane przed zmianą. Badanie nie obejmuje całego środowiska; zmiany produkcyjne wymagają osobnego wyraźnego upoważnienia, a wdrażanie poprawek pozostaje poza zakresem."] },
-      { heading: "Ile kosztuje i jak długo trwa?", paragraphs: [`${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}. Dostępność uzgadniamy przed przyjęciem prac; nie ma domyślnej stałej ceny dla rozszerzonego zakresu.`, PUBLIC_AGENT_ACTION_OFFER.retest.pl] },
+      { heading: "Ile kosztuje i jak długo trwa?", paragraphs: [`${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.timing.pl} Dostępność uzgadniamy przed przyjęciem prac; nie ma domyślnej stałej ceny dla rozszerzonego zakresu.`, PUBLIC_AGENT_ACTION_OFFER.retest.pl] },
       { heading: "Czy zapytanie rozpoczyna pracę?", paragraphs: ["Nie. Najpierw sprawdzamy dopasowanie. Praca wymaga uzgodnienia zakresu, upoważnienia i sposobu obchodzenia się z materiałami."] },
     ],
     related: [{ label: "Oferta i cena", href: "/pl/reviews/agent-action-security-review" }, { label: "Wyślij zapytanie", href: "/pl/review/request" }],

@@ -3,7 +3,7 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
-const pricingDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
+const pricingDescription = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.price.en} ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`;
 
 export const metadata: Metadata = {
   title: "Review Pricing",

@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       ? params.fitCall === "1" ? "Poproś o 20-minutową rozmowę z ekspertem" : `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
       : "To zgłoszenie nie rozpoczyna przeglądu",
     description: agentActionOrder
-      ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Operator potwierdzi dostępny termin zaproszeniem albo zaproponuje inne." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
+      ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Operator potwierdzi dostępny termin zaproszeniem albo zaproponuje inne." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
       : "Ten link nie jest dostępny dla nowych zleceń. Istniejące zgłoszenia i podpisane umowy zachowują pierwotne warunki.",
     alternates: languageAlternates("/pl/contact", {
       en: "/contact",
@@ -57,7 +57,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.pl}</p>
               <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Porozmawiaj z ekspertem</h1>
               <p className="mt-4 text-base leading-7 text-text-muted">Poproś o 20-minutową rozmowę. Podaj tylko krótki, niepoufny temat, służbowy adres e-mail, strefę czasową i dwa preferowane terminy. To prośba, a nie rezerwacja.</p>
-              <p className="mt-3 text-sm leading-6 text-text-secondary">Po potwierdzeniu adresu kodem operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne. {PUBLIC_AGENT_ACTION_OFFER.price.pl} dotyczy osobno uzgodnionego przeglądu; to zgłoszenie nie upoważnia do jego rozpoczęcia.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">Po potwierdzeniu adresu kodem operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne. {PUBLIC_AGENT_ACTION_OFFER.price.pl} To zgłoszenie nie upoważnia do rozpoczęcia przeglądu.</p>
             </header>
             <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
               <ContactForm compact fitCall locale="pl" intent={decision.intent} />
@@ -88,13 +88,13 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         </p>
         <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
           {selectedOffer
-            ? "Opisz, co chcesz sprawdzić"
+            ? "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów."
             : "Opowiedz, co wymaga sprawdzenia"}
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
-          {`${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. Opisz, co agent ma zrobić, z jakich systemów korzysta i do kiedy potrzebujesz decyzji. Na razie bez sekretów i materiałów — wystarczy ogólny opis.`}
+          Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji.
         </p>
-        {selectedOffer ? <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary"><p className="sr-only">Wybrana oferta: {selectedOffer.name}</p><p>Cena: {selectedOffer.price}</p><p>{selectedOffer.timing}, czyli uzgodnionego zakresu prac.</p></div> : null}
+        {selectedOffer ? <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary"><p className="sr-only">Wybrana oferta: {selectedOffer.name}</p><p>{selectedOffer.price}</p><p>{selectedOffer.timing}</p></div> : null}
       </header>
       <div className="grid max-w-3xl gap-6">
         <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
@@ -114,7 +114,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
             <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">
               <li>1. Wyślij krótki opis i potwierdź adres e-mail kodem z wiadomości.</li>
               <li>2. Sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem.</li>
-              <li>3. Przed pracą uzgodnimy zakres, upoważnienie, cenę, termin i sposób przekazania materiałów. Samo zgłoszenie nie rozpoczyna przeglądu.</li>
+              <li>3. Przed pracą uzgodnimy zakres, upoważnienie, opłatę, termin i sposób przekazania materiałów. Samo zgłoszenie nie rozpoczyna przeglądu.</li>
             </ol>
           </section>
           <section className="border border-surface-border bg-surface-bg p-5"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Materiały dopiero po uzgodnieniu zasad</h2><p className="mt-3 text-sm leading-6 text-text-muted">Nie dołączaj logów, zrzutów ekranu, kodu ani danych klientów. Sposób przekazania i wykorzystania materiałów ustalimy po ocenie zapytania.</p></section>

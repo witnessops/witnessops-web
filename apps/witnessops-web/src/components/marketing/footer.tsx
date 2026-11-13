@@ -29,7 +29,7 @@ function lockedOfferFooterLinks(locale: "en" | "pl"): FooterLink[] {
         : "/reviews/agent-action-security-review",
     },
     {
-      label: locale === "pl" ? "Zapytaj o przegląd agenta" : "Request an agent review",
+      label: locale === "pl" ? "Poproś o test przełamania" : "Request a break test",
       href: buyerRequestHref(locale),
     },
   ];

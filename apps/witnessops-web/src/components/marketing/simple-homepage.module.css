@@ -102,8 +102,13 @@
 :global(html[data-theme="dark"]) .cards,
 :global(html[data-theme="light"]) .cards { margin-top: 0; }
 .heroFrame { --crop-frame-inset: -48px -32px; }
+.heroVisualDesktop { display: none; }
+.heroVisualMobile { display: inline; }
+.supportCompact, .supportShort { display: none; }
 
 @media (min-width: 768px) {
+  .heroVisualDesktop { display: inline; }
+  .heroVisualMobile { display: none; }
   .hero { padding: 96px 0 80px; }
   .split { grid-template-columns: 1fr 1fr; column-gap: 56px; align-items: start; margin-top: 56px; padding-top: 40px; }
   .split .actions { flex-direction: row; align-items: center; gap: 32px; margin-top: 40px; }
@@ -120,6 +125,14 @@
   .watermark { display: block; top: 112px; right: max(40px, calc((100% - 1152px) / 2)); }
   .watermark :global(.wo-watermark) { height: 128px; opacity: 0.05; }
   .heroFrame { --crop-frame-inset: -64px -48px; }
+}
+@media (max-width: 420px) {
+  .supportDesktop { display: none; }
+  .supportCompact { display: block; }
+}
+@media (max-width: 360px) {
+  .supportStack .supportCompact { display: none; }
+  .supportStack .supportShort { display: block; }
 }
 @media (max-width: 800px) {
   .frame { width: calc(100% - 40px); }

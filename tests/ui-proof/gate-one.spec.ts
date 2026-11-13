@@ -122,7 +122,7 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
       const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { description: string; price?: string | number } } }> }).find(value => value["@type"] === "ItemList");
       expect(services?.itemListElement).toHaveLength(1);
       expect(services?.itemListElement?.[0].item.name).toBe("Agent Action Security Review");
-      expect(services?.itemListElement?.[0].item.offers.description).toBe("Fee agreed in signed SOW");
+      expect(services?.itemListElement?.[0].item.offers.description).toBe("Fixed fee, agreed in a signed SOW before we start.");
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("price");
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("priceCurrency");
     }

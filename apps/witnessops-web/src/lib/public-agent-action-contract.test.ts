@@ -22,15 +22,15 @@ test("active one-action testing keeps its identity without inheriting the read-o
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fee agreed in signed SOW");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Cena ustalana w podpisanym SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fixed fee, agreed in a signed SOW before we start.");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
   assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "fee_agreed_in_signed_sow");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.scope, "one_action_adversarial_testing_v2");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Termin realizacji według podpisanego SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "We don't test until you give written authority.");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.");
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.timing.en, LEGACY_AGENT_ACTION_OFFER.timing.en);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
   assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.en.includes("Explicit unknowns"));
@@ -43,7 +43,7 @@ test("active one-action testing keeps its identity without inheriting the read-o
   for (const locale of ["en", "pl"] as const) {
     const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
     const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
-    assert.match(rendered, locale === "en" ? /Delivery timing agreed in the signed statement of work/ : /Termin realizacji według podpisanego SOW/);
+    assert.match(rendered, locale === "en" ? /We don't test until you give written authority/ : /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
     assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Czego nie udało się ustalić i jakich dowodów brakuje/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
     assert.doesNotMatch(JSON.stringify(landing), /€2,500|€2 500|No execution of the reviewed action|read, inspect, reconstruct and report|Nie wykonujemy tego działania/);

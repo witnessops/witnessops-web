@@ -40,7 +40,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
     href: POLISH_PUBLIC_NAV.cta.href,
     variant: POLISH_PUBLIC_NAV.cta.variant,
   } : {
-    label: "Request an agent review",
+    label: "Request a break test",
     href: "/review/request",
     variant: "primary",
   };

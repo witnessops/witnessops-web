@@ -13,7 +13,7 @@ test("primary navigation exposes the simplified website destinations", () => {
   }
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
-  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Zapytaj o przegląd agenta");
+  assert.equal(POLISH_PUBLIC_NAV.cta.label, "Poproś o test przełamania");
   assert.equal(POLISH_PUBLIC_NAV.cta.href, "/pl/review/request");
 });
 
@@ -147,10 +147,10 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("English public navigation uses Request an agent review as the primary action", () => {
+test("English public navigation uses Request a break test as the primary action", () => {
   assert.doesNotMatch(navbar, /homepageNativeChrome/);
   assert.match(navbar, /getDesktopCtaClassName/);
-  assert.match(navbar, /label: "Request an agent review",\s+href: "\/review\/request",\s+variant: "primary"/);
+  assert.match(navbar, /label: "Request a break test",\s+href: "\/review\/request",\s+variant: "primary"/);
   assert.doesNotMatch(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
@@ -160,7 +160,7 @@ test("grouped navigation keeps the current review and focused resources", () => 
   const mobile = readFileSync(resolve(__dirname, "mobile-navbar-menu.tsx"), "utf-8");
   assert.match(mobile, /variant=\{cta.variant as/);
   assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
-  assert.match(navbar, /label: "Request an agent review"/);
+  assert.match(navbar, /label: "Request a break test"/);
   assert.doesNotMatch(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
   const reviews = PUBLIC_NAV_GROUPS.find((group) => group.label === "Reviews");

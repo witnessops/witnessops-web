@@ -172,7 +172,7 @@ const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
   "no evidence was collected for this illustration.",
   "no customer, execution, verification, authorisation failure or result is shown.",
   "an enquiry does not authorise collection or start a review.",
-  "evidence survives the dashboard.",
+  "what the record looks like.",
 ] as const;
 
 function normalize(value: string): string {
@@ -330,8 +330,8 @@ test("prohibited homepage copy fails validation", () => {
   const rendered = renderHomepage();
   const dummyBoundary = "not a legal compliance claim";
   const prohibitedCopy = `${copy.replace(
-    "Test what your AI agent should refuse.",
-    "Test what your AI agent should refuse. Verified compliance.",
+    "We try to break your AI agent before someone else does.",
+    "We try to break your AI agent before someone else does. Verified compliance.",
   )}\n${dummyBoundary}`;
 
   const prohibited = assessHomepageClaims(prohibitedCopy, rendered);

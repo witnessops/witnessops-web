@@ -39,10 +39,24 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
         <div className={heroStyles.heroCopy}>
           <span className={heroStyles.rule} aria-hidden="true" />
           <p className={heroStyles.eyebrow}>{hero?.eyebrow ?? text.offerName}</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">{title}</h1>
+          <h1 data-ui-proof-id="homepage-hero-headline">
+            {hero?.title ? title : (
+              <>
+                <span className="sr-only">{text.headline}</span>
+                <span aria-hidden="true" className={heroStyles.heroVisualDesktop}>{text.headlineDesktopVisual ?? text.headline}</span>
+                <span aria-hidden="true" className={heroStyles.heroVisualMobile}>{text.headlineMobile}</span>
+              </>
+            )}
+          </h1>
         </div>
         <div className={heroStyles.split}>
-          <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p>
+          {hero?.body ? <p data-ui-proof-id="homepage-hero-body" className={heroStyles.lead}>{body}</p> : (
+            <div className={text.supportShort ? heroStyles.supportStack : undefined}>
+              <p data-ui-proof-id="homepage-hero-body" className={`${heroStyles.lead} ${heroStyles.supportDesktop}`}>{text.support}</p>
+              <p data-ui-proof-id="homepage-hero-mobile-body" className={`${heroStyles.lead} ${heroStyles.supportCompact}`}>{text.supportCompact}</p>
+              {text.supportShort ? <p data-ui-proof-id="homepage-hero-narrow-body" className={`${heroStyles.lead} ${heroStyles.supportShort}`}>{text.supportShort}</p> : null}
+            </div>
+          )}
           <div>
             <p className={heroStyles.heroPrice}><PriceText text={text.aiPrice} /></p>
             <p className={heroStyles.subline}>{text.timing}</p>
@@ -58,6 +72,23 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       <Link className={heroStyles.textLink} href="#how-it-works">{pl ? "Jak pracujemy" : "How it works"}</Link>
       <Link data-ui-proof-id="homepage-sample-review-cta" className={heroStyles.textLink} href={sampleHref}>{pl ? "Historyczny przykład (EN)" : "See a historical action example"}<ArrowRight size={18} aria-hidden="true" /></Link>
     </div></div></nav>
+    <section className={`${heroStyles.page} ${heroStyles.section}`} aria-labelledby="home-four-ways-heading">
+      <div className={heroStyles.frame}>
+        <span className={heroStyles.rule} aria-hidden="true" />
+        <p className={heroStyles.eyebrow}>{text.fourWaysEyebrow}</p>
+        <h2 id="home-four-ways-heading">{text.fourWaysTitle}</h2>
+        <p>{text.fourWaysIntro}</p>
+        <div className={heroStyles.limits}>
+          {text.fourWays.map(([wayTitle, wayBody]) => (
+            <article key={wayTitle} className="crop">
+              <h3>{wayTitle}</h3>
+              <p>{wayBody}</p>
+            </article>
+          ))}
+        </div>
+        <p className={heroStyles.note}>{text.fourWaysNote}</p>
+      </div>
+    </section>
     <section className={styles.reviewSection} aria-labelledby="home-services-heading"><div className={styles.frame}>
       <div className={styles.sectionIntro}><p className={styles.eyebrow}>{text.reviewsEyebrow}</p><h2 id="home-services-heading" className={styles.sectionTitle}>{text.reviewsTitle}</h2><p className={styles.sectionBody}>{text.reviewsBody}</p></div>
       <ul className={`${styles.reviewGrid} ${styles.serviceGrid}`}>{services.map((service) => (
@@ -84,7 +115,7 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
       </div>
     </div></section>
     <section id="enquiry" className={`${heroStyles.section} ${heroStyles.enquiry} ${styles.homeEnquiry}`} aria-labelledby="home-close-heading"><div className={heroStyles.frame}>
-      <div><p className={styles.eyebrow}>{pl ? "Zapytaj o przegląd" : "Request the review"}</p><h2 id="home-close-heading">{pl ? "Jakie działanie ma wykonać agent?" : "What consequential action can the agent take?"}</h2><p>{pl ? "Opisz działanie, systemy i termin decyzji. Sprawdzimy, czy przegląd odpowiada Twoim potrzebom. Bez haseł, kluczy API i materiałów produkcyjnych." : "Name the action, systems and decision deadline. Leave out secrets and production evidence."}</p><p className={heroStyles.contactLine}>{pl ? "Lub napisz:" : "Discuss a review:"} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p></div>
+      <div><p className={styles.eyebrow}>{pl ? "Zapytaj o przegląd" : "Request the review"}</p><h2 id="home-close-heading">{pl ? "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów." : "What consequential action can the agent take?"}</h2><p>{pl ? "Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji." : "Name the action, systems and decision deadline. Leave out secrets and production evidence."}</p><p className={heroStyles.contactLine}>{pl ? "Lub napisz:" : "Discuss a review:"} <a href={salesReviewMailto()}>{PUBLIC_SALES_REVIEW_EMAIL}</a></p></div>
       <div className={heroStyles.enquiryForm}><ContactForm locale={locale} compact landing /></div>
     </div></section>
   </main>;

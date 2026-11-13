@@ -12,21 +12,21 @@ const COPY = {
   en: {
     all: "The review",
     reviews: "/reviews",
-    receive: "What you receive",
-    limits: "Scope and limits",
-    start: "How to start",
+    receive: "You keep the report and the evidence.",
+    limits: "What this isn't.",
+    start: "We agree the scope first. The findings come with the evidence.",
     agentEyebrow: "Review one agent action",
-    fitNote: "Start with a non-secret fit check. Scope, authority and evidence handling are agreed before work starts.",
+    fitNote: "Start with a fit check. Don't send secrets. Scope, authority and evidence handling are agreed before work starts.",
     example: "Inspect an example",
   },
   pl: {
     all: "Wróć do oferty",
     reviews: "/pl/reviews",
-    receive: "Co otrzymasz",
-    limits: "Zakres i ograniczenia",
-    start: "Jak zacząć",
+    receive: "Zachowujesz raport i dowody.",
+    limits: "Czym to nie jest.",
+    start: "Najpierw uzgadniamy zakres. Ustalenia idą razem z dowodami.",
     agentEyebrow: "Jedno działanie agenta",
-    fitNote: "Opisz działanie bez informacji poufnych. Sprawdzimy, czy przegląd odpowiada Twojej potrzebie. Przed pracą uzgodnimy zakres, upoważnienie i sposób przekazania materiałów.",
+    fitNote: "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów. Zakres, upoważnienie i obsługę dowodów uzgadniamy przed rozpoczęciem pracy.",
     example: "Przykład i jego ograniczenia",
   },
 } as const;
@@ -42,19 +42,33 @@ export function ReviewOffer({ locale }: { locale: BuyerLocale }) {
     <main id="main-content" tabIndex={-1} className={`buyer-page ${styles.page}`} data-buyer-service-detail={id}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(agentActionServiceJsonLd(locale)) }} />
       <div className={styles.grid}>
-        <p className={styles.back}><Link href={copy.reviews}>{copy.all}</Link></p>
+        <p className={styles.back} data-offer-back={locale}><Link href={copy.reviews}>{copy.all}</Link></p>
         <header className={`${styles.content} ${styles.intro}`}>
           <p className={styles.eyebrow}>{copy.agentEyebrow}</p>
           <h1>{locale === "pl" ? "Przegląd zabezpieczeń działania agenta AI" : current.name.en}</h1>
           {locale === "pl" ? <p>{current.name.pl}</p> : null}
-          <p className={styles.lead}>{landing.headline}</p>
-          <p>{landing.whoFor}</p>
-          <p>{landing.scopeNote}</p>
+          <p className={styles.lead}>
+            <span className="sr-only">{landing.headline}</span>
+            <span aria-hidden="true" className={styles.punchDesktop}>{landing.headline}</span>
+            <span aria-hidden="true" className={styles.punchMobile}>{landing.headlineMobile ?? landing.headline}</span>
+          </p>
+          {landing.whoForCompact ? (
+            <>
+              <p className={styles.whoForDesktop}>{landing.whoFor}</p>
+              <p className={`${styles.whoForCompact} ${styles.whoForHideNarrow}`}>{landing.whoForCompact}</p>
+            </>
+          ) : <p>{landing.whoFor}</p>}
+          {landing.scopeNoteCompact ? (
+            <>
+              <p className={styles.scopeDesktop}>{landing.scopeNote}</p>
+              <p className={styles.scopeCompact}>{landing.scopeNoteCompact}</p>
+            </>
+          ) : <p>{landing.scopeNote}</p>}
         </header>
-        <aside className={styles.rail} aria-label={locale === "pl" ? "Cena i zgłoszenie przeglądu" : "Review price and enquiry"}>
+        <aside className={styles.rail} aria-label={locale === "pl" ? "Opłata i zgłoszenie przeglądu" : "Review fee and enquiry"}>
           <p className={styles.price}><PriceText text={current.price[locale]} /></p>
-          <p>{current.timing[locale]}{locale === "pl" ? ", czyli uzgodnionego zakresu prac." : null}</p>
-          <Link className={styles.cta} href={requestHref}>{landing.primaryCta}</Link>
+          <p>{current.timing[locale]}</p>
+          <Link className={styles.cta} href={requestHref} data-ui-proof-id="offer-in-page-cta">{landing.primaryCta}</Link>
           <p className={styles.fitNote}>{copy.fitNote}</p>
         </aside>
         <div className={`${styles.content} ${styles.details}`}>

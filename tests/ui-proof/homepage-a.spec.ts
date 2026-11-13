@@ -10,9 +10,9 @@ for (const width of [390, 1440]) {
     page.on("pageerror", error => errors.push(error.message));
     expect((await page.goto("/"))?.status()).toBe(200);
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test what your AI agent should refuse.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveAccessibleName("We try to break your AI agent before someone else does.");
     await expect(hero).toContainText("engineering teams and AI implementation partners");
-    const primary = hero.getByRole("link", { name: "Request an agent review" });
+    const primary = hero.getByRole("link", { name: "Request a break test" });
     await expect(primary).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     const box = await primary.boundingBox();
     expect(box).not.toBeNull();
@@ -23,12 +23,12 @@ for (const width of [390, 1440]) {
     const agent = page.locator(`[data-home-offer="${PUBLIC_AGENT_ACTION_REVIEW_ID}"]`);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
     await expect(agent).toContainText("Inspect the trigger, executing identity, permissions, approvals and available execution evidence.");
-    await expect(agent).toContainText("Fee agreed in signed SOW");
-    await expect(agent.getByRole("link", { name: "Request an agent review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
+    await expect(agent).toContainText("Fixed fee, agreed in a signed SOW before we start.");
+    await expect(agent.getByRole("link", { name: "Request a break test" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(agent).not.toContainText(/10 working days|3 working days|€550|550 €|€1,900/);
     await expect(page.locator("main")).not.toContainText("Request an external review");
     const specimen = page.locator("[data-agent-action-specimen]");
-    await expect(specimen.getByRole("heading", { level: 2, name: "Evidence survives the dashboard." })).toBeVisible();
+    await expect(specimen.getByRole("heading", { level: 2, name: "What the record looks like." })).toBeVisible();
     await expect(specimen).toContainText("Historical synthetic one-action example");
     await expect(specimen).toContainText("Illustrative · shape only");
     await expect(specimen).toContainText("Designed, not executed");

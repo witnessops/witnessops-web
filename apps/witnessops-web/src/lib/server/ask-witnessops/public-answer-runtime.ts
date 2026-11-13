@@ -461,5 +461,5 @@ export function catalogueClarification(args: NormalizedAskRequest) {
   const base = normalizePublicAskResponse({output_text:JSON.stringify({answer:"A person must confirm fit and availability.",service_id:selected.id,source_ids:[`service.${selected.id}`]})});
   if (!base) return null;
   const lang = askLanguage(args.question);
-  return {...base, text: lang === "pl" ? `${publicPrice(selected, "pl")}. Człowiek musi potwierdzić zakres i dostępność. Czat nie gwarantuje terminu ani dopasowania zlecenia.` : `${publicPrice(selected)}. A person must confirm fit and availability. This chat does not guarantee a start date or that your job fits.`};
+  return {...base, text: lang === "pl" ? `${publicPrice(selected, "pl")} Człowiek musi potwierdzić zakres i dostępność. Czat nie gwarantuje terminu ani dopasowania zlecenia.` : `${publicPrice(selected)} A person must confirm fit and availability. This chat does not guarantee a start date or that your job fits.`};
 }

@@ -68,12 +68,12 @@ test("simulated answers use an agreed fee while historical price formatting stay
     sovereignAnswer("Co obejmuje External Attack Surface Review?", "pl").text,
   ];
   assert.match(answers[0], /no longer available/);
-  assert.match(answers[0], /Fee agreed in signed SOW/);
+  assert.match(answers[0], /Fixed fee, agreed in a signed SOW before we start/);
   assert.doesNotMatch(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
-  assert.match(answers[1], /Fee agreed in signed SOW/);
-  assert.match(answers[2], /Cena ustalana w podpisanym SOW/);
+  assert.match(answers[1], /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(answers[2], /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
   assert.match(answers[3], /nie jest już dostępny/);
-  assert.match(answers[3], /Cena ustalana w podpisanym SOW/);
+  assert.match(answers[3], /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
   assert.doesNotMatch(answers[3], new RegExp(EXTERNAL_PRICE_PL));
   for (const text of answers) {
     assert.doesNotMatch(text, MIDDOT);
