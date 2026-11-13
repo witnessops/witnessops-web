@@ -4,13 +4,21 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i18n";
-import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
+import { PUBLIC_NAV_LINKS } from "./public-nav-groups";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
-test("primary navigation exposes the simplified website destinations", () => {
-  for (const href of ["/early-access", "/reviews", "/pricing", "/check", "/docs"]) {
-    assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
+test("primary navigation exposes only the review destinations (2026-11-13 cleanup)", () => {
+  assert.deepEqual(PUBLIC_NAV_LINKS.map((link) => [link.label, link.href]), [
+    ["The review", "/reviews/agent-action-security-review"],
+    ["How it works", "/how-it-works"],
+    ["Examples", "/review/sample-cases"],
+    ["About", "/about"],
+  ]);
+  for (const href of ["/early-access", "/reviews\"", "/pricing", "/check", "/docs", "/verify", "/docs/assistant"]) {
+    assert.ok(!navbar.includes(`href: "${href}`), `Retired destination still in navbar: ${href}`);
   }
+  assert.doesNotMatch(navbar, /ThemeToggle/, "Theme toggle is footer and mobile menu only.");
+  assert.doesNotMatch(navbar, /DesktopNavbarMenu|PUBLIC_NAV_GROUPS/);
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
   assert.equal(POLISH_PUBLIC_NAV.cta.label, "Poproś o test przełamania");
@@ -21,7 +29,7 @@ test("shared navigation preserves Polish destinations and selected enquiry", () 
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
   assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/reviews", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
+    "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/about",
   ]);
 });
 
@@ -39,10 +47,14 @@ test("language switch preserves every approved paired buyer route", () => {
     ["/library", "/pl/library"],
     ["/why-witnessops", "/pl/why-witnessops"],
     ["/review/request", "/pl/review/request"],
+    ["/privacy", "/pl/privacy"],
+    ["/terms", "/pl/terms"],
+    ["/security", "/pl/security"],
   ]) {
     assert.equal(localizedPath(english, "pl"), polish);
     assert.equal(localizedPath(polish, "en"), english);
   }
+  assert.equal(localizedPath("/how-it-works", "pl"), "/pl", "Unpaired pages fall back to the other locale's home.");
 });
 
 test("request language switch preserves current and historical offer queries", () => {
@@ -135,13 +147,16 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
   assert.doesNotMatch(navbar, /assistantLink=/);
   assert.equal(
-    mobileNavbar.match(/!bg-brand-accent/g)?.length,
+    mobileNavbar.match(/<CtaButton/g)?.length,
     1,
-    "The mobile sheet must contain exactly one orange primary action",
+    "The mobile sheet must contain exactly one primary action",
   );
+  assert.doesNotMatch(mobileNavbar, /\/pricing|groups\?\.map/);
+  assert.match(mobileNavbar, /<ThemeToggle/, "Theme toggle stays in the mobile menu.");
+  assert.match(mobileNavbar, /data-mobile-language-link/);
   assert.equal(
     mobileNavbar.match(/inline-block -translate-y-px/g)?.length,
-    4,
+    5,
     "Every mobile menu text treatment must share the optical baseline correction",
   );
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
@@ -156,23 +171,11 @@ test("English public navigation uses Request a break test as the primary action"
   assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
 });
 
-test("grouped navigation keeps the current review and focused resources", () => {
+test("flat navigation keeps the single review action", () => {
   const mobile = readFileSync(resolve(__dirname, "mobile-navbar-menu.tsx"), "utf-8");
-  assert.match(mobile, /variant=\{cta.variant as/);
+  assert.match(mobile, /variant=\{\(cta.variant as/);
   assert.doesNotMatch(mobile, /rounded-md bg-text-primary/);
   assert.match(navbar, /label: "Request a break test"/);
   assert.doesNotMatch(navbar, /label: "Discuss a review"/);
   assert.doesNotMatch(navbar, /label: "Start a free check"/);
-  const reviews = PUBLIC_NAV_GROUPS.find((group) => group.label === "Reviews");
-  assert.ok(reviews);
-  assert.ok(reviews.links.some((link) => link.label === "The review" && link.href === "/reviews"));
-  const resources = PUBLIC_NAV_GROUPS.find((group) => group.label === "Resources");
-  assert.ok(resources);
-  assert.deepEqual(resources.links.map((link) => [link.label, link.href]), [
-    ["Docs", "/docs"],
-    ["Examples", "/review/sample-cases"],
-    ["Verify a receipt", "/verify"],
-    ["Tool · not a review", "/check"],
-  ]);
-  assert.equal(resources.links[1].description, "Agent actions, approvals and supporting evidence.");
 });

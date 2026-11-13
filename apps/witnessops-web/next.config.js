@@ -156,6 +156,17 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        // Homepage + footer cleanup (2026-11-13): one review page, no pricing page in navigation.
+        source: "/pricing",
+        destination: "/reviews/agent-action-security-review",
+        permanent: true,
+      },
+      {
+        source: "/reviews",
+        destination: "/reviews/agent-action-security-review",
+        permanent: true,
+      },
+      {
         // Relative Location. A route handler would build the target from the
         // listen host (localhost under next start, 0.0.0.0 under standalone).
         source: "/og/home",
@@ -174,7 +185,7 @@ const nextConfig = {
       },
       {
         source: "/catalog/offsec-access-removed",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
@@ -194,37 +205,37 @@ const nextConfig = {
       },
       {
         source: "/catalog/offsec",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/access-change-proof-run",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/catalog/workflow-s",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/catalog/workflow-m",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/catalog/workflow-l",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/catalog/workflow-rerun",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {
         source: "/catalog",
-        destination: "/reviews",
+        destination: "/reviews/agent-action-security-review",
         permanent: true,
       },
       {

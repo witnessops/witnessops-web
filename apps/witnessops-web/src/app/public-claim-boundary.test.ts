@@ -10,6 +10,7 @@ import PricingPage from "@/app/(marketing)/pricing/page";
 import HomePage from "@/app/page";
 import PolishHomePage from "@/app/pl/page";
 import { SimpleHomepage } from "@/components/marketing/simple-homepage";
+import AgentActionSecurityReviewPage from "@/app/(marketing)/reviews/agent-action-security-review/page";
 
 const webRoot = resolve(__dirname, "../..");
 
@@ -21,7 +22,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-two-offer-copy.ts",
-  "src/components/marketing/simple-homepage.tsx",
+  "src/components/marketing/homepage-cut-copy.ts",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -112,6 +113,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "compliance certification",
   "named limits",
   "non-secret fit check",
+  "not a full pentest, certification, fixing or monitoring",
 ] as const;
 
 const POLISH_HOMEPAGE_BOUNDARY_MARKERS = [
@@ -119,6 +121,7 @@ const POLISH_HOMEPAGE_BOUNDARY_MARKERS = [
   "fikcyjny przykład",
   "nie testowano systemu",
   "to nie jest przegląd",
+  "to nie pełny pentest, certyfikacja, naprawa ani monitoring",
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
@@ -128,7 +131,7 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-two-offer-copy.ts",
-  "src/components/marketing/simple-homepage.tsx",
+  "src/components/marketing/homepage-cut-copy.ts",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
@@ -163,7 +166,17 @@ const HOMEPAGE_COPY_EVIDENCE_BOUNDARIES = [
   "no production changes without separate explicit authorization, remediation implementation, continuous monitoring or safety certification.",
 ] as const;
 
+/** The 2026-11-13 homepage cut keeps one short boundary per section. */
 const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
+  "not a full pentest, certification, fixing or monitoring.",
+  "test until you give written authority.",
+  "it is not a booking, a payment or permission to test.",
+  "examples of what we try, not findings.",
+  "no secrets, logs or customer data.",
+] as const;
+
+/** Boundaries and the example record moved from the homepage to the review page. */
+const REVIEW_PAGE_EVIDENCE_BOUNDARIES = [
   ...HOMEPAGE_COPY_EVIDENCE_BOUNDARIES,
   "historical synthetic one-action example",
   "illustrative · shape only",
@@ -171,8 +184,8 @@ const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
   "this specimen carries no finding.",
   "no evidence was collected for this illustration.",
   "no customer, execution, verification, authorisation failure or result is shown.",
-  "an enquiry does not authorise collection or start a review.",
   "what the record looks like.",
+  'id="example-record"',
 ] as const;
 
 function normalize(value: string): string {
@@ -204,6 +217,11 @@ function renderHomepage(): string {
 /** Polish homepage route (`src/app/pl/page.tsx`), including its JSON-LD. */
 function renderPolishHomepage(): string {
   return renderRoute(createElement(PolishHomePage));
+}
+
+/** English review page, the target of the homepage "See an example record" link. */
+function renderReviewPage(): string {
+  return renderRoute(createElement(AgentActionSecurityReviewPage));
 }
 
 function claimSurfaces(): Array<{ path: string; content: string }> {
@@ -281,8 +299,13 @@ test("homepage copy source and rendered homepage keep evidence boundaries", () =
   assert.match(rendered, /type="application\/ld\+json"/);
   assert.ok(PUBLIC_CLAIM_SOURCES.includes(HOMEPAGE_COPY_SOURCE));
   assert.ok(
-    PUBLIC_CLAIM_SOURCES.includes("src/components/marketing/simple-homepage.tsx"),
+    PUBLIC_CLAIM_SOURCES.includes("src/components/marketing/homepage-cut-copy.ts"),
   );
+});
+
+test("review page carries the boundaries and example record moved off the homepage", () => {
+  assert.deepEqual(missingBoundaries(renderReviewPage(), REVIEW_PAGE_EVIDENCE_BOUNDARIES), []);
+  assert.deepEqual(prohibitedClaimsIn(renderReviewPage()), []);
 });
 
 test("homepage claim guard scans the EN and PL route output, including JSON-LD", () => {
@@ -350,8 +373,8 @@ test("prohibited homepage copy fails validation", () => {
     "This is a penetration test of the whole environment.",
   )}\n${dummyBoundary}`;
   const strippedRender = `${rendered.replaceAll(
-    "This is not a penetration test of the whole environment.",
-    "This is a penetration test of the whole environment.",
+    "Not a full pentest, certification, fixing or monitoring.",
+    "A full pentest.",
   )}\n${dummyBoundary}`;
   const stripped = assessHomepageClaims(strippedCopy, strippedRender);
   assert.ok(
@@ -361,7 +384,7 @@ test("prohibited homepage copy fails validation", () => {
   );
   assert.ok(
     stripped.includes(
-      "rendered homepage missing boundary: this is not a penetration test of the whole environment.",
+      "rendered homepage missing boundary: not a full pentest, certification, fixing or monitoring.",
     ),
   );
   assert.equal(stripped.some((failure) => failure.includes(dummyBoundary)), false);

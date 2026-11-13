@@ -1,4 +1,6 @@
-import { expect, test } from "./fixtures";
+import { expect, test, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 test("hover reveals only Talk to Sovereign and clicking opens chat", async ({ page }, testInfo) => {
   await page.goto("/");

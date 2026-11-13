@@ -55,6 +55,7 @@ function headings(html: string) {
 test("rendered buyer copy and JSON-LD contain no public numeric fee", () => {
   const html = [
     render(createElement(SimpleHomepage)),
+    render(createElement(SimpleHomepage, { locale: "pl" })),
     render(createElement(BuyerHomepage, { locale: "en" })),
     render(createElement(BuyerHomepage, { locale: "pl" })),
     render(createElement(ReviewOffer, { locale: "en" })),
@@ -77,7 +78,7 @@ test("rendered buyer copy and JSON-LD contain no public numeric fee", () => {
 test("home renders one h1 whose accessible name is the full sentence", () => {
   for (const [locale, node] of [
     ["en", createElement(SimpleHomepage)],
-    ["pl", createElement(BuyerHomepage, { locale: "pl" })],
+    ["pl", createElement(SimpleHomepage, { locale: "pl" })],
   ] as const) {
     const copy = HOMEPAGE_TWO_OFFER_COPY[locale];
     const html = render(node);
@@ -106,7 +107,7 @@ test("public source has no copper accent outside an explicit allowlist", () => {
   assert.deepEqual(hits, []);
 });
 
-test("Request a break test is the English CTA on header, hero, offer card, form and restart", () => {
+test("Request a break test is the English CTA on header, hero, review page, form and restart", () => {
   const navbar = readFileSync(resolve(webSrc, "components/shared/navbar.tsx"), "utf8");
   const form = readFileSync(resolve(webSrc, "app/(marketing)/contact/contact-form.tsx"), "utf8");
   const confirmed = readFileSync(resolve(webSrc, "components/review-request/review-request-confirmed.tsx"), "utf8");
@@ -118,7 +119,9 @@ test("Request a break test is the English CTA on header, hero, offer card, form 
   assert.doesNotMatch(confirmed, /uppercase tracking-\[0\.08em\]/);
   const hero = home.match(/data-ui-proof-id="homepage-hero-primary-cta"[^>]*>[^<]+/)?.[0] ?? "";
   assert.match(hero, /Request a break test/);
-  assert.match(home, /data-home-offer="agent-action-security-review"[\s\S]*Request a break test/);
+  // The 2026-11-13 homepage cut has no offer card; the form submit keeps the CTA.
+  assert.doesNotMatch(home, /data-home-offer=/);
+  assert.match(home, /<button type="submit"[^>]*>Request a break test<\/button>/);
   assert.match(offer, /data-ui-proof-id="offer-in-page-cta"[^>]*>Request a break test/);
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headlineMobile, "We try to break your AI agent first.");
   assert.equal(

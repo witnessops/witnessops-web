@@ -33,8 +33,6 @@ const staticRoutes: StaticRoute[] = [
     route: `/library/${slug}`,
     sourcePath: "src/app/(library)/library/[slug]/page.tsx",
   })),
-  { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
-  { route: "/reviews", sourcePath: "src/app/(marketing)/reviews/page.tsx" },
   {
     route: "/reviews/agent-action-security-review",
     sourcePath: "src/app/(marketing)/reviews/agent-action-security-review/page.tsx",

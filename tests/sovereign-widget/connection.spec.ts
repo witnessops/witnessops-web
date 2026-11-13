@@ -1,3 +1,5 @@
+// Tests that open the Ask Sovereign widget on / are skipped: the widget was removed
+// from public pages (Design 2026-11-13). /docs/assistant flows stay covered.
 import type { Page } from "@playwright/test";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { plainOfferPrice } from "../../apps/witnessops-web/src/lib/offer-price-unit";
@@ -11,7 +13,7 @@ async function openWidget(page: Page, locale: "en" | "pl" = "en") {
   return page.getByRole("dialog");
 }
 
-test("follow-up requests contain only recent complete exchanges", async ({ page }) => {
+test.skip("follow-up requests contain only recent complete exchanges", async ({ page }) => {
   const requests: AskRequest[] = [];
   await page.route("**/api/ask-witnessops", async (route) => {
     expect(route.request().method()).toBe("POST");
@@ -45,7 +47,7 @@ test("follow-up requests contain only recent complete exchanges", async ({ page 
   await expect(dialog.getByText("AI-generated answer", { exact: true })).toHaveCount(5);
 });
 
-test("a refused exchange is labeled as boundary guidance and excluded from follow-up history", async ({ page }) => {
+test.skip("a refused exchange is labeled as boundary guidance and excluded from follow-up history", async ({ page }) => {
   const requests: AskRequest[] = [];
   const firstQuestion = "What information is needed for an automation review?";
   const firstAnswer = "A published review starts with a non-secret description of the workflow.";
@@ -84,7 +86,7 @@ test("a refused exchange is labeled as boundary guidance and excluded from follo
   });
 });
 
-test("an answer with an unsafe source URL offers retry without rendering the source", async ({ page }) => {
+test.skip("an answer with an unsafe source URL offers retry without rendering the source", async ({ page }) => {
   const requests: AskRequest[] = [];
   await page.route("**/api/ask-witnessops", (route) => {
     requests.push(route.request().postDataJSON());
@@ -106,7 +108,7 @@ test("an answer with an unsafe source URL offers retry without rendering the sou
 });
 
 for (const locale of ["en", "pl"] as const) {
-  test(`canonical sources stay stable and support route retains the ${locale} site context`, async ({ page }, testInfo) => {
+  test.skip(`canonical sources stay stable and support route retains the ${locale} site context`, async ({ page }, testInfo) => {
     await page.route("**/api/ask-witnessops", (route) => route.fulfill({ json: generatedAnswer(
       locale === "pl" ? "To jest testowa odpowiedź z podanym źródłem." : "This is a mocked answer with its source.",
       {
@@ -133,7 +135,7 @@ for (const locale of ["en", "pl"] as const) {
   });
 }
 
-test("a validated commercial recommendation preserves its terms and explicit request link", async ({ page }) => {
+test.skip("a validated commercial recommendation preserves its terms and explicit request link", async ({ page }) => {
   const service = BUYER_SERVICES.find((candidate) => candidate.id === "agent-action-security-review")!;
   const request = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
   request.searchParams.set("source", "ask");
@@ -162,7 +164,7 @@ test("a validated commercial recommendation preserves its terms and explicit req
 });
 
 for (const failure of ["503", "429", "network"] as const) {
-  test(`a ${failure} failure can be retried without duplicating the question or history`, async ({ page }) => {
+  test.skip(`a ${failure} failure can be retried without duplicating the question or history`, async ({ page }) => {
     const requests: AskRequest[] = [];
     await page.route("**/api/ask-witnessops", async (route) => {
       requests.push(route.request().postDataJSON());
@@ -198,7 +200,7 @@ for (const failure of ["503", "429", "network"] as const) {
   });
 }
 
-test("a later successful answer retains the earlier marked failure", async ({ page }) => {
+test.skip("a later successful answer retains the earlier marked failure", async ({ page }) => {
   const requests: AskRequest[] = [];
   let releaseSecond: (() => void) | undefined;
   const heldSecond = new Promise<void>((resolve) => { releaseSecond = resolve; });
@@ -237,7 +239,7 @@ test("a later successful answer retains the earlier marked failure", async ({ pa
   ]);
 });
 
-test("pending close/reopen and repeated submits preserve a single request and response", async ({ page }) => {
+test.skip("pending close/reopen and repeated submits preserve a single request and response", async ({ page }) => {
   const requests: AskRequest[] = [];
   let release: (() => void) | undefined;
   const held = new Promise<void>((resolve) => { release = resolve; });
@@ -265,7 +267,7 @@ test("pending close/reopen and repeated submits preserve a single request and re
   expect(requests).toEqual([{ question: "Synthetic pending question?", history: [], surface: "sovereign_widget", locale: "en" }]);
 });
 
-test("the configured 20-second timeout aborts a pending request and permits retry", async ({ page }) => {
+test.skip("the configured 20-second timeout aborts a pending request and permits retry", async ({ page }) => {
   const requests: AskRequest[] = [];
   let release: (() => void) | undefined;
   const held = new Promise<void>((resolve) => { release = resolve; });
@@ -324,7 +326,7 @@ test("the dedicated assistant preview stays simulated without a sim flag", async
 });
 
 for (const scenario of ["error", "handoff", "slow", "timeout", "typing"] as const) {
-  test(`explicit ${scenario} simulation does not call the API`, async ({ page }) => {
+  test.skip(`explicit ${scenario} simulation does not call the API`, async ({ page }) => {
     await page.goto(`/?sim=${scenario}`);
     await page.clock.install();
     await page.getByRole("button", { name: "Ask Sovereign", exact: true }).click();

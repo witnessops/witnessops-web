@@ -62,3 +62,7 @@ export const test = base.extend<{ apiIsolation: void }>({
 });
 
 export { expect };
+
+// The Ask Sovereign widget is no longer mounted on public pages (Design
+// 2026-11-13). /docs/assistant and its API routes stay and keep their coverage.
+export const WIDGET_REMOVED = "Ask Sovereign widget removed from public pages (Design 2026-11-13); /docs/assistant stays";

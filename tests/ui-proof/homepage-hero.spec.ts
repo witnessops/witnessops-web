@@ -13,7 +13,7 @@ import {
   type CheckResult,
   type ScenarioResult,
 } from "./report";
-import { expectFreeToolEntryPoint } from "./free-tool-entry";
+import { expectMenusOmitRetiredEntries } from "./free-tool-entry";
 import { writeScreenshotGrid } from "./screenshot-grid";
 
 test.describe.configure({ mode: "serial" });
@@ -237,39 +237,34 @@ test("English and Polish homepages preserve bounded entry points and evidence li
           buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID),
         ),
       );
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "/review/sample-cases" : "/review/sample-cases/ai-agent-action-proof-run");
-      await expect(page.locator(`main[data-home-direction="${path === "/" ? "agents-act" : "security-verification"}"]`)).toHaveCount(1);
-      if (path === "/pl") {
-        const primary = page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]');
-        const box = await primary.boundingBox();
-        expect(box).not.toBeNull();
-        expect(box!.y + box!.height).toBeLessThanOrEqual(900);
-        await expect(page.locator('#enquiry form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
-        await expect(page.locator("#home-limits-heading")).toBeVisible();
-        await expect(page.locator("[data-review-finding]")).toHaveCount(0);
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"] img, [data-hero-gap]')).toHaveCount(0);
-      } else {
-        // The English specimen explains the structure; it must not invent a finding.
-        await expect(page.locator("[data-review-finding]")).toHaveCount(0);
-        await expect(page.locator("[data-agent-action-specimen]")).toContainText("Illustrative · shape only");
-        await expect(page.locator('[data-finding-slot="unfilled"]')).toContainText("This specimen carries no finding.");
-        await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
-        await expectFreeToolEntryPoint(page);
-        await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
-      }
+      // Both locales render the five-section cut (Design 2026-11-13).
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", "/reviews/agent-action-security-review#example-record");
+      await expect(page.locator('main[data-home-direction="agents-act"]')).toHaveCount(1);
+      const primary = page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]');
+      const box = await primary.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y + box!.height).toBeLessThanOrEqual(900);
+      await expect(page.locator('#enquiry form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
+      await expect(page.locator("[data-review-finding]")).toHaveCount(0);
+      await expect(page.locator("[data-agent-action-specimen]")).toHaveCount(0);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero"] img, [data-hero-gap]')).toHaveCount(0);
+      await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
+      await expectMenusOmitRetiredEntries(page);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
+      await expect(page.locator('main a[href="/check"], main a[href="/pl/check"]')).toHaveCount(0);
+      await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
+      await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true })).toHaveCount(0);
+      await expect(page.locator("#home-process-heading")).toBeVisible();
+      await expect(page.locator("#enquiry form")).toBeVisible();
       if (path === "/pl") {
-        await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
-        await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true })).toHaveCount(0);
         await expect(page.locator("main").getByRole("link", { name: "Poproś o test przełamania", exact: true }).first()).toHaveAttribute(
           "href",
           buyerServiceRequestHref("pl", buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID)),
         );
-        await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
-        await expect(page.locator("#how-it-works")).toContainText("Ustalamy zakres");
+        await expect(page.locator("main")).toContainText("Nie testujemy bez Twojej pisemnej zgody.");
       } else {
-        await expect(page.locator("#home-limits-heading")).toContainText("What this isn't.");
-        await expect(page.locator("#enquiry form")).toBeVisible();
+        await expect(page.locator("main")).toContainText("We don't test until you give written authority.");
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
@@ -474,12 +469,12 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
     { name: "request-en-mobile-390", path: "/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=agent-tools-access-review", width: 390, height: 844 },
     { name: "request-desktop-1440", path: "/review/request?offerId=agent-tools-access-review", width: 1440, height: 1100 },
-    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844, status: 200, finalPath: "/reviews" },
-    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
+    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844, status: 200, finalPath: "/reviews/agent-action-security-review" },
+    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100, status: 200, finalPath: "/reviews/agent-action-security-review" },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844, status: 410 },
     { name: "workflow-offer-desktop-1440", path: "/catalog/workflows", width: 1440, height: 1100, status: 410 },
-    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844, status: 200, finalPath: "/reviews" },
-    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100, status: 200, finalPath: "/reviews" },
+    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844, status: 200, finalPath: "/reviews/agent-action-security-review" },
+    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100, status: 200, finalPath: "/reviews/agent-action-security-review" },
   ] as const;
 
   for (const capture of pageCaptures) {

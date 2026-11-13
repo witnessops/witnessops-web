@@ -1,15 +1,14 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "./document-navigation";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
-import { DesktopNavbarMenu } from "./desktop-navbar-menu";
-import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
+import { PUBLIC_NAV_LINKS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
-import { ThemeToggle } from "./theme-toggle";
 import {
   isPolishPath,
+  localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
 
@@ -24,17 +23,17 @@ interface NavbarProps {
 
 export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
-  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
-    { label: "How the app works", href: "/early-access" },
-    { label: "Reviews", href: "/reviews" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Tool · not a review", href: "/check" },
-    { label: "Docs", href: "/docs" },
-  ];
+  const effectiveLinks: { label: string; href: string }[] = polish ? [...POLISH_PUBLIC_NAV.links] : [...PUBLIC_NAV_LINKS];
+  // Keep the query on paired pages (e.g. a selected-offer or fit-call request).
+  const search = searchParams?.toString() ?? "";
+  const languageLink = polish
+    ? { label: "English (EN)", href: localizedHref(currentPath, search, "en"), hrefLang: "en" }
+    : { label: "Polski (PL)", href: localizedHref(currentPath, search, "pl"), hrefLang: "pl" };
   const effectiveCta = polish ? {
     label: POLISH_PUBLIC_NAV.cta.label,
     href: POLISH_PUBLIC_NAV.cta.href,
@@ -146,7 +145,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className={polish ? "hidden items-center gap-4 lg:flex lg:gap-1.5 xl:gap-5" : "hidden items-center gap-4 lg:flex lg:gap-1 xl:gap-5"}>
-              {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
+              {effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
                     key={link.href}
@@ -172,7 +171,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
                   </Link>
                 ),
               )}
-              <ThemeToggle locale={polish ? "pl" : "en"} />
+              {/* Theme lives in the footer and the mobile menu only (2026-11-13 cleanup). */}
               {loginHref ? <a href={loginHref} className="hidden min-h-11 shrink-0 items-center whitespace-nowrap px-2 text-sm text-text-secondary lg:inline-flex xl:px-3">{polish ? "Zaloguj się" : "Log in"}</a> : null}
               {effectiveCta && (isExternalHref(effectiveCta.href) ? (
                 <a
@@ -201,7 +200,7 @@ export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = nu
             <MobileNavbarMenu
               loginUrl={appUrl ? new URL("/login", appUrl).href : null}
               links={effectiveLinks}
-              groups={polish ? undefined : PUBLIC_NAV_GROUPS}
+              languageLink={languageLink}
               cta={effectiveCta}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}

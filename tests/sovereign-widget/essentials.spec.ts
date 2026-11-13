@@ -1,4 +1,6 @@
-import { expect, generatedAnswer, test } from "./fixtures";
+import { expect, generatedAnswer, test, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 test("failed connection keeps the question, shows compact recovery, and retries once", async ({ page }, testInfo) => {
   let calls = 0;

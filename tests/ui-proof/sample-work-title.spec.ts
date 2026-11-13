@@ -44,7 +44,6 @@ for (const width of [390, 1440]) {
     await page.screenshot({ path: testInfo.outputPath(`sample-work-${width}.png`) });
     const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
     if (width === 390) await nav.getByRole("button", { name: "Open primary navigation" }).click();
-    await nav.getByRole("button", { name: "Resources", exact: true }).click();
     const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
     await expect(sampleLink).toHaveCount(1);
     await expect(sampleLink).toContainText("Examples");

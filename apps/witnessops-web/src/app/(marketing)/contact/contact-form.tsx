@@ -37,6 +37,7 @@ import {
 } from "@/lib/commercial-truth";
 import { plainOfferPrice } from "@/lib/offer-price-unit";
 import { NEW_SALES_AGENT_ACTION_OFFER_ID } from "@/lib/new-review-request-policy";
+import { HOMEPAGE_CUT_FORM_COPY } from "@/components/marketing/homepage-cut-copy";
 
 type FieldName =
   | "name"
@@ -428,7 +429,15 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, uzgodnionego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, agreed scope, required inputs, and the collection window are confirmed.",
       }
-    : agentActionCopy ?? agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
+    : agentActionCopy
+      ? landing
+        ? {
+            ...agentActionCopy,
+            workflowHelp: HOMEPAGE_CUT_FORM_COPY[locale].workflowHelp,
+            submitBoundary: HOMEPAGE_CUT_FORM_COPY[locale].submitBoundary,
+          }
+        : agentActionCopy
+      : agentToolsAccessReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -1168,7 +1177,7 @@ export function ContactForm({
           <p id="decisionTiming-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.decisionTimingHelp}</p>
           {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
         </div>
-        <p className="text-xs leading-relaxed text-text-muted">{copy.noSecrets}</p>
+        {landing ? null : <p className="text-xs leading-relaxed text-text-muted">{copy.noSecrets}</p>}
       </> : <>
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
@@ -1218,7 +1227,7 @@ export function ContactForm({
         </details>
       ) : additionalContextFields) : null}
 
-      <p className="text-sm leading-6 text-text-secondary">{fitCall ? fitCallCopy.next : polish ? "Po wysłaniu formularza wpisz kod z wiadomości e-mail. Następnie sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
+      <p className="text-sm leading-6 text-text-secondary">{fitCall ? fitCallCopy.next : landing && agentActionOrder ? HOMEPAGE_CUT_FORM_COPY[locale].next : polish ? "Po wysłaniu formularza wpisz kod z wiadomości e-mail. Następnie sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
       <button
         type="submit"
         disabled={status === "sending"}

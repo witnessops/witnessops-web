@@ -1,4 +1,6 @@
-import { expect, generatedAnswer, test } from "./fixtures";
+import { expect, generatedAnswer, test, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 for (const viewport of [{ width: 1280, height: 900 }, { width: 360, height: 640 }]) {
   test(`three clear choices and a compact mascot at ${viewport.width}px`, async ({ page }, testInfo) => {

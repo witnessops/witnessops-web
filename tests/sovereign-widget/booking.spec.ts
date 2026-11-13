@@ -1,3 +1,5 @@
+// Tests that open the Ask Sovereign widget on / are skipped: the widget was removed
+// from public pages (Design 2026-11-13). /docs/assistant flows stay covered.
 import { expect, test, type Page } from "./booking-fixtures";
 
 async function begin(page: Page, widget = false, debug = false) {
@@ -20,7 +22,7 @@ async function review(page: Page) {
   await expect(page.getByRole("heading", { name: "Review your fit call" })).toBeVisible();
 }
 
-test("widget books only after confirmation, reschedules, cancels, and sends nothing", async ({ page }, testInfo) => {
+test.skip("widget books only after confirmation, reschedules, cancels, and sends nothing", async ({ page }, testInfo) => {
   const mutations: string[] = [];
   page.on("request", (request) => { if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method())) mutations.push(request.url()); });
   await begin(page, true);
@@ -110,7 +112,7 @@ test("Polish mobile flow fits a narrow screen and is keyboard operable", async (
 });
 
 
-test("Chat navigation preserves details but releases a prepared confirmation", async ({ page }) => {
+test.skip("Chat navigation preserves details but releases a prepared confirmation", async ({ page }) => {
   await begin(page, true);
   await review(page);
   await page.getByRole("button", { name: "Chat", exact: true }).click();
@@ -124,7 +126,7 @@ test("Chat navigation preserves details but releases a prepared confirmation", a
   await expect(page.getByRole("button", { name: "Confirm demo booking", exact: true })).toBeEnabled();
 });
 
-test("a busy calendar reports the cause and recovers without changing the visitor's details", async ({ page }) => {
+test.skip("a busy calendar reports the cause and recovers without changing the visitor's details", async ({ page }) => {
   let unavailable = true;
   await page.route("**/api/sovereign-booking", async (route) => {
     if (route.request().postDataJSON().action === "start" && unavailable) {

@@ -44,6 +44,16 @@
 .enquiry > .frame > div:first-child > p.contactLine { max-width: none; }
 .contactLine a { color: inherit; text-decoration: underline; text-underline-offset: 4px; }
 .note a { text-decoration: underline; text-underline-offset: 4px; }
+/* Homepage cut (2026-11-13): secondary hero link and inline links keep a 44px tap target. */
+.exampleLink { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--color-text-primary); font-size: var(--type-ui-size); line-height: var(--type-ui-lh); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+/* Example record on the review page (moved from the homepage). */
+.exampleRecord { margin-top: var(--type-h2-gap, 48px); scroll-margin-top: calc(var(--app-navbar-height, 72px) + 16px); }
+.exampleRecord .eyebrow { margin: 0 0 12px; color: var(--color-brand-accent); font-family: var(--font-sans); font-size: var(--type-eyebrow-size); font-weight: var(--type-eyebrow-wt); line-height: var(--type-eyebrow-lh); letter-spacing: var(--type-eyebrow-ls); text-transform: uppercase; }
+.exampleNote { margin-top: 20px; color: var(--color-text-muted); font-size: var(--type-small-size); line-height: var(--type-small-lh); max-width: var(--measure-small); }
+.inlineTarget { display: inline-flex; align-items: center; min-height: 44px; }
+/* Form helper text stays small; the enquiry section's body p rule would otherwise inflate it. */
+:global(body:has(nav[data-public-presentation="quiet"]) #main-content) .enquiryForm form p,
+.page .enquiryForm form p { font-size: var(--type-small-size); line-height: var(--type-small-lh); max-width: none; }
 .offers { padding-bottom: 96px; }
 .offerLayout { display: grid; grid-template-columns: .9fr 1.1fr; align-items: start; gap: 64px; margin-top: 24px; }
 .offerIntro { min-width: 0; }

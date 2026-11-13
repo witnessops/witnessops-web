@@ -25,7 +25,7 @@ test("retired access-removal URLs preserve compatibility with permanent redirect
   assert.deepEqual(legacyRedirects, [
     {
       source: "/catalog/offsec-access-removed",
-      destination: "/reviews",
+      destination: "/reviews/agent-action-security-review",
       permanent: true,
     },
     {
@@ -42,17 +42,17 @@ test("commercial routes with defensible replacements redirect directly", async (
 
   assert.deepEqual(bySource.get("/catalog/offsec"), {
     source: "/catalog/offsec",
-    destination: "/reviews",
+    destination: "/reviews/agent-action-security-review",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/access-change-proof-run"), {
     source: "/access-change-proof-run",
-    destination: "/reviews",
+    destination: "/reviews/agent-action-security-review",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/catalog"), {
     source: "/catalog",
-    destination: "/reviews",
+    destination: "/reviews/agent-action-security-review",
     permanent: true,
   });
   assert.deepEqual(bySource.get("/catalog/offsec-external-exposure"), {
@@ -78,7 +78,7 @@ test("commercial routes with defensible replacements redirect directly", async (
   ]) {
     assert.deepEqual(bySource.get(source), {
       source,
-      destination: "/reviews",
+      destination: "/reviews/agent-action-security-review",
       permanent: true,
     });
   }

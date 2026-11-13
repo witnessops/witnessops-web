@@ -12,6 +12,18 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/pricing",
+      "destination": "/reviews/agent-action-security-review",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/pricing(?:/)?$"
+    },
+    {
+      "source": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/reviews(?:/)?$"
+    },
+    {
       "source": "/og/home",
       "destination": "/og/witnessops-home-editorial-a-2026-10.png",
       "statusCode": 308,
@@ -31,7 +43,7 @@
     },
     {
       "source": "/catalog/offsec-access-removed",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/offsec-access-removed(?:/)?$"
     },
@@ -55,43 +67,43 @@
     },
     {
       "source": "/catalog/offsec",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/offsec(?:/)?$"
     },
     {
       "source": "/access-change-proof-run",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/access-change-proof-run(?:/)?$"
     },
     {
       "source": "/catalog/workflow-s",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-s(?:/)?$"
     },
     {
       "source": "/catalog/workflow-m",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-m(?:/)?$"
     },
     {
       "source": "/catalog/workflow-l",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-l(?:/)?$"
     },
     {
       "source": "/catalog/workflow-rerun",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog/workflow-rerun(?:/)?$"
     },
     {
       "source": "/catalog",
-      "destination": "/reviews",
+      "destination": "/reviews/agent-action-security-review",
       "statusCode": 308,
       "regex": "^(?!/_next)/catalog(?:/)?$"
     },

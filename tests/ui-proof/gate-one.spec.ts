@@ -8,8 +8,9 @@ import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/com
 // Reuse the app's pinned accessibility engine; this gate adds no dependency.
 const axe = createRequire(path.resolve(__dirname, "../../apps/witnessops-web/package.json"))("axe-core") as { source: string };
 const evidenceDir = path.resolve("artifacts/ui-proof/gate-one");
+// /pricing and /reviews 301 to the agent review (Design 2026-11-13).
 const commercialRoutes = [
-  "/", "/pricing", "/reviews", "/reviews/agent-action-security-review", "/review/request",
+  "/", "/reviews/agent-action-security-review", "/review/request",
   "/pl", "/pl/reviews", "/pl/reviews/agent-action-security-review", "/pl/review/request",
 ] as const;
 
@@ -130,6 +131,11 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
   for (const href of localLinks) {
     const response = await request.get(href);
     expect(response.status(), `internal link ${href}`).toBeLessThan(400);
+  }
+  for (const retired of ["/pricing", "/reviews"]) {
+    const response = await request.get(retired, { maxRedirects: 0 });
+    expect(response.status(), retired).toBe(308);
+    expect(response.headers().location, retired).toMatch(/\/reviews\/agent-action-security-review$/);
   }
   const sitemap = await request.get("/sitemap.xml");
   expect(sitemap.status()).toBe(200);

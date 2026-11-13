@@ -1,5 +1,7 @@
 import { expect, test, type Locator } from "./booking-fixtures";
-import { generatedAnswer } from "./fixtures";
+import { generatedAnswer, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 const sizes = [{ width: 1280, height: 720 }, { width: 360, height: 640 }];
 

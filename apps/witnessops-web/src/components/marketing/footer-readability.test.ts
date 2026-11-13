@@ -4,125 +4,79 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 import {
-  footerResourceLinks,
+  footerGroups,
   isExternalFooterHref,
   isFooterRequestHref,
   isLibraryPath,
   resolveFooterHref,
 } from "./footer";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { COMPANY_LEGAL_LINE } from "@/lib/company-details";
 
-test("footer keeps readable text contrast and sizing", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-  const globals = readFileSync(
-    resolve(__dirname, "../../app/globals.css"),
-    "utf-8",
-  );
+const source = () => readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+const globals = () => readFileSync(resolve(__dirname, "../../app/globals.css"), "utf-8");
 
-  assert.match(source, /FOOTER_LINK_CLASS/);
-  assert.match(source, /FOOTER_LEGAL_LINK_CLASS/);
-  assert.match(source, /text-text-secondary/);
-  assert.match(source, /text-xs leading-5 text-text-secondary/);
-  assert.doesNotMatch(source, /Bounded reconstruction|Ograniczona rekonstrukcja/);
-  assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
-  assert.match(source, /One consequential agent action\. Written findings and explicit limits\./);
-  assert.doesNotMatch(source, /label: "Assets"/);
-  assert.doesNotMatch(source, /label: "Reports"/);
-  assert.doesNotMatch(source, /label: "Settings"/);
-  assert.match(source, /FOOTER_NAV_STYLE/);
-  assert.match(source, /fontFamily: "var\(--font-sans\)"/);
-  assert.match(globals, /--type-eyebrow-size/);
-  assert.match(globals, /--type-eyebrow-ls/);
-  assert.match(source, /public-footer/);
-  assert.match(source, /grid-cols-2/);
-  assert.match(source, /md:pr-32/);
-  assert.match(source, /footer-main/);
-  assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
-  assert.match(globals, /background: var\(--color-surface-bg\)/);
-  assert.match(globals, /color: var\(--color-text-primary\)/);
-  assert.doesNotMatch(source, /bg-signal-green/);
-  assert.doesNotMatch(source, /Respect the boundary\. Bring receipts\./);
-
-  assert.doesNotMatch(
-    source,
-    /fontSize:\s*(?:9|10)|text-\[(?:9|10)px\]/,
-    "Footer body text should not regress to ultra-small text sizes.",
-  );
-  assert.doesNotMatch(
-    source,
-    /color:\s*"var\(--color-surface-border\)"/,
-    "Footer text should not use border color as text color.",
-  );
-});
-
-test("footer contact route keeps a concise credential-handling boundary and display CTA", () => {
-  const source = readFileSync(
-    resolve(__dirname, "public-contact-route.tsx"),
-    "utf-8",
-  );
-
-  assert.match(
-    source,
-    /Do not send passwords, private keys, API keys, tokens or recovery codes\./,
-  );
-  assert.match(source, /Nie wysyłaj haseł/);
-  assert.doesNotMatch(source, /No secrets|Bez sekretów/);
-  assert.match(source, /style=\{\{ fontFamily: "var\(--font-display\)" \}\}/);
-  assert.match(source, /min-h-11 w-full/);
-  assert.match(source, /border-brand-accent bg-brand-accent/);
-  assert.match(source, /border-\[#b89b62\] bg-\[#b89b62\]/);
-  assert.doesNotMatch(source, /border border-text-primary bg-text-primary/);
+test("footer keeps readable text contrast, sizing and 44px targets", () => {
+  const footer = source();
+  assert.match(footer, /FOOTER_LINK_CLASS/);
+  assert.match(footer, /FOOTER_LEGAL_LINK_CLASS/);
+  assert.match(footer, /text-text-secondary/);
+  assert.match(footer, /min-h-11 min-w-11/, "Every footer link keeps a 44×44 tap target (Terms/About width).");
+  assert.match(footer, /FOOTER_NAV_STYLE/);
+  assert.match(footer, /fontFamily: "var\(--font-sans\)"/);
+  assert.match(globals(), /footer\.public-shell\.public-footer\[data-brand-footer\]/);
+  assert.match(globals(), /\.simple-public-footer \.footer-email-link \{ display: inline-flex; align-items: center; min-height: 44px;/);
+  assert.doesNotMatch(footer, /fontSize:\s*(?:9|10)|text-\[(?:9|10)px\]/);
+  assert.doesNotMatch(footer, /color:\s*"var\(--color-surface-border\)"/);
 });
 
 test("footer brand lockup uses the canonical horizontal files without a live wordmark", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-
-  assert.match(source, /alt="WitnessOps"/);
-  assert.match(source, /witnessops-horizontal-black\.svg/);
-  assert.match(source, /witnessops-horizontal-white\.svg/);
-  assert.match(source, /wo-lockup--footer/);
-  assert.match(source, /className="public-shell public-footer border-t/);
-  assert.match(source, /data-footer-brand-lockup/);
-  assert.match(source, /data-brand-footer="approved-2026-07-30"/);
-  assert.match(source, /min-h-11/);
-  assert.doesNotMatch(source, /WitnessOpsMark/);
-  assert.doesNotMatch(source, /tone="current"/);
-  assert.doesNotMatch(source, />\s*\{brand_line\}\s*</);
-  assert.doesNotMatch(source, /Package Security Workflow/);
-  assert.doesNotMatch(source, /shadow-\[0_0_6px/);
-  assert.doesNotMatch(
-    source,
-    /drop-shadow|neon|bevel|glowing/i,
-    "Footer mark must stay flat and inspectable.",
-  );
+  const footer = source();
+  assert.match(footer, /alt="WitnessOps"/);
+  assert.match(footer, /witnessops-horizontal-black\.svg/);
+  assert.match(footer, /witnessops-horizontal-white\.svg/);
+  assert.match(footer, /wo-lockup--footer/);
+  assert.match(footer, /className="public-shell public-footer border-t/);
+  assert.match(footer, /data-footer-brand-lockup/);
+  assert.match(footer, /data-brand-footer="approved-2026-07-30"/);
+  assert.doesNotMatch(footer, /WitnessOpsMark/);
+  assert.doesNotMatch(footer, /drop-shadow|neon|bevel|glowing/i);
 });
 
-test("footer provides Polish homepage labels without changing route contracts", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-
-  for (const marker of [
-    "PUBLIC_AGENT_ACTION_OFFER",
-    'label: locale === "pl" ? "Poproś o test przełamania" : "Request a break test"',
-    'label: "Podejście"',
-    'label: "Prywatność", href: "/pl/privacy"',
-    'label: "Warunki", href: "/pl/terms"',
-    'label: "Bezpieczeństwo", href: "/pl/security"',
-  ]) {
-    assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
+test("footer shows one review, two columns and no retired or second-product links", () => {
+  for (const locale of ["en", "pl"] as const) {
+    const hrefs = footerGroups(locale).flatMap((group) => group.links.map((link) => link.href));
+    assert.equal(footerGroups(locale).length, 2);
+    for (const banned of ["/pricing", "/reviews", "/pl/reviews", "/docs/assistant", "/docs", "/pl/docs", "/early-access", "/check", "/verify", "/pl/verify", "/media-kit", "/pl/media-kit"]) {
+      assert.equal(hrefs.includes(banned), false, `${locale} footer must not link ${banned}`);
+    }
+    assert.equal(hrefs.some(isFooterRequestHref), false, "The request action is the single brand CTA, not a column link.");
   }
-  assert.doesNotMatch(source, /label: "Badania i artykuły \(EN\)"/);
-
-  assert.equal(PRIMARY_OFFER.name.pl, "Przegląd narzędzi i dostępu agenta AI");
-  assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
-  assert.match(source, /reviewRequestHrefForLocation\(/);
-  assert.match(source, /primaryHref=\{reviewRequestHref\}/);
+  assert.deepEqual(footerGroups("en").map((group) => [group.label, group.links.map((link) => link.label)]), [
+    ["The review", ["Agent Action Security Review", "How it works", "Examples"]],
+    ["Company", ["About", "Security", "Company details"]],
+  ]);
+  assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [
+    ["Przegląd", ["/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases"]],
+    ["Firma", ["/about", "/pl/security", "/pl/company"]],
+  ]);
+  const footer = source();
+  assert.doesNotMatch(footer, /Ask Sovereign|sovereignAssistantPublished|label: "Pricing"|Talk to an expert|Media kit/);
+  assert.match(footer, /data-footer-review-cta/);
+  assert.match(footer, /reviewRequestHrefForLocation\(/);
 });
 
-test("footer Resources keeps bounded utilities and omits Research", () => {
-  const links = footerResourceLinks();
-  assert.ok(links.some((link) => link.label === "Examples" && link.href === "/review/sample-cases"));
-  assert.ok(links.some((link) => link.label === "Verify a receipt" && link.href === "/verify"));
-  assert.equal(links.some((link) => link.href === "/research"), false);
+test("footer legal line names the company, KRS and NIP from company details", () => {
+  assert.equal(COMPANY_LEGAL_LINE, "© 2026 Witnessops P.S.A. · KRS 0001271405 · NIP 8262233962");
+  assert.match(source(), /\{COMPANY_LEGAL_LINE\}/);
+});
+
+test("footer carries the theme pair and a language switch in the bottom row", () => {
+  const footer = source();
+  assert.match(footer, /<ThemeMemory compact \/>/);
+  assert.match(footer, /role="group" aria-label=\{copy\.language\}/);
+  assert.match(footer, /hrefLang="pl"/);
+  assert.match(footer, /aria-current="true"/);
+  assert.match(footer, /target="_blank" rel="noopener noreferrer"/);
 });
 
 test("library surface includes English and Polish library paths", () => {
@@ -132,102 +86,28 @@ test("library surface includes English and Polish library paths", () => {
   assert.equal(isLibraryPath("/pl/library/"), true);
   assert.equal(isLibraryPath("/pl"), false);
   assert.equal(isLibraryPath("/catalog"), false);
-  assert.equal(isLibraryPath("/pl/catalog"), false);
-});
-
-test("footer uses the bounded public funnel without deleting repair services", () => {
-  const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
-  for (const label of ["Agent Action Security Review", "Our approach", "Research & articles", "Examples", "Tool · not a review", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
-  assert.doesNotMatch(home, /External Attack Surface Review|AI Agent Tools & Access Review/);
-  assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
-});
-
-test("footer keeps Media kit in the English secondary row immediately before GitHub", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-
-  assert.match(source, /en: "\/media-kit", pl: "\/pl\/media-kit"/);
-  assert.match(
-    source,
-    /MEDIA_KIT_HREF\[isPolishSurface \? "pl" : "en"\][\s\S]*href=\{GITHUB_PROFILE_HREF\}/,
-  );
-  assert.doesNotMatch(
-    source,
-    /const POLISH_FOOTER:[\s\S]*label: "Media kit"/,
-  );
 });
 
 test("footer classifies the source route before same-site URL resolution", () => {
   assert.equal(isExternalFooterHref("/privacy"), false);
   assert.equal(isExternalFooterHref("/review/request"), false);
   assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
-});
-
-test("footer keeps every public WitnessOps destination on the current origin", () => {
-  for (const href of [
-    "/catalog",
-    "/catalog/workflows",
-    "/why-witnessops",
-    "/verify",
-    "/docs",
-    "/library",
-    "/privacy",
-    "/terms",
-    "/security",
-    "/media-kit",
-    "/review/request",
-  ]) {
-    assert.equal(resolveFooterHref(href), href);
-    assert.equal(isExternalFooterHref(resolveFooterHref(href)), false);
-  }
-
-  for (const href of [
-    "https://github.com/witnessops",
-    "mailto:engage@witnessops.com",
-  ]) {
+  for (const href of ["/privacy", "/terms", "/security", "/about", "/review/request"]) {
     assert.equal(resolveFooterHref(href), href);
   }
 });
 
 test("footer does not reintroduce canonical production URLs for internal routes", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-  assert.doesNotMatch(source, /getSurfaceUrl\("witnessops"/);
-  assert.doesNotMatch(source, /https:\/\/witnessops\.com\/(?:catalog|why|verify|docs|library|privacy|terms|security|media-kit)/);
+  const footer = source();
+  assert.doesNotMatch(footer, /getSurfaceUrl\("witnessops"/);
+  assert.doesNotMatch(footer, /https:\/\/witnessops\.com\/(?:catalog|why|verify|docs|library|privacy|terms|security|media-kit)/);
+  assert.match(footer, /isPublicBuildLabel/);
 });
 
-test("footer suppresses Build STATIC and keeps Polish resources local", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-
-  assert.match(source, /isPolishSurface \? POLISH_FOOTER/);
-  assert.match(source, /isPublicBuildLabel/);
-  assert.doesNotMatch(
-    source,
-    /build_label:\s*"Build: STATIC"|build_label:\s*"Wersja: STATIC"/,
-  );
-  assert.match(source, /DOCS_PUBLIC_HREF/);
-  assert.match(source, /DOCS_PL_HREF/);
-  assert.match(source, /href: DOCS_PL_HREF/);
-  assert.doesNotMatch(
-    source,
-    /href === "\/pl\/docs".*return DOCS_PUBLIC_HREF|return DOCS_PUBLIC_HREF.*\/pl\/docs/,
-    "Polish /pl/docs must not rewrite to English /docs",
-  );
-});
-
-test("selected-offer enquiry links are removed from footer navigation duplicates", () => {
+test("selected-offer enquiry links are recognised as the footer request action", () => {
   assert.equal(isFooterRequestHref("/review/request"), true);
   assert.equal(isFooterRequestHref("/review/request?offerId=agent-tools-access-review"), true);
   assert.equal(isFooterRequestHref("/pl/review/request?productId=OFFSEC-LOCAL-AUDIT"), true);
   assert.equal(isFooterRequestHref("/review/sample-cases"), false);
   assert.equal(isFooterRequestHref("/review/request/confirmed"), false);
-});
-
-test("footer keeps resources and the theme choice inside the footer grid", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-  const globals = readFileSync(resolve(__dirname, "../../app/globals.css"), "utf-8");
-
-  assert.match(source, /\{ label: "Resources", links: footerResourceLinks\(\) \}/);
-  assert.match(source, /<div className="footer-theme">\s*<ThemeMemory \/>/);
-  assert.doesNotMatch(source, /footer-resources/);
-  assert.match(globals, /grid-template-areas: "brand nav contact" "theme nav contact"/);
-  assert.match(globals, /\[data-footer-review-cta\]:hover \{ background: var\(--color-surface-card-hover\); border-color: var\(--color-brand-accent\); color: var\(--color-text-primary\); \}/);
 });

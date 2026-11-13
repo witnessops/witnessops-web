@@ -23,6 +23,10 @@ export default function AboutPage() {
         Registered details stay on the <Link href="/company" className="underline-offset-4 hover:underline">company page</Link>.
         Contact <a href="mailto:engage@mail.witnessops.com" className="underline-offset-4 hover:underline">engage@mail.witnessops.com</a>.
       </p>
+      <p className="mt-4 text-text-secondary">
+        Press and brand material is in the{" "}
+        <Link href="/media-kit" className="inline-flex min-h-11 items-center underline underline-offset-4" data-about-media-kit>media kit</Link>.
+      </p>
     </main>
   );
 }

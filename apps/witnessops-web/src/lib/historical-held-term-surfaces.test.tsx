@@ -207,9 +207,10 @@ test("sitemap and docs search omit historical pages and keep current pages", asy
   for (const route of HISTORICAL_UNINDEXED_PUBLIC_PATHS) {
     assert.equal(paths.has(route), false, route);
   }
-  for (const route of ["/reviews", "/contact", "/pl/contact", "/pl/reviews"]) {
+  for (const route of ["/reviews/agent-action-security-review", "/contact", "/pl/contact", "/pl/reviews"]) {
     assert.equal(paths.has(route), true, route);
   }
+  assert.equal(paths.has("/reviews"), false, "/reviews redirects to the agent action review");
   assert.equal(paths.has("/reviews/external-attack-surface-review"), false);
   assert.equal(paths.has("/review/request"), false);
   const search = await searchWitnessOpsDocs("review workflow external attack surface");

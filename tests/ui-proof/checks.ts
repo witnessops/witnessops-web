@@ -123,8 +123,8 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const buyerHomepage = await page.locator('main[data-home-direction="security-verification"]').count() === 1;
-  const expectedDemoHref = buyerHomepage ? "/review/sample-cases/ai-agent-action-proof-run" : "/review/sample-cases";
+  // EN and PL homepages link the example record on the review page (Design 2026-11-13).
+  const expectedDemoHref = "/reviews/agent-action-security-review#example-record";
   checks.push({
     name: "sample CTA opens the supported sample destination",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",

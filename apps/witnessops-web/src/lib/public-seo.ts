@@ -15,7 +15,7 @@ export type PublicLanguagePair = {
 
 export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
   { en: "/", pl: "/pl" },
-  { en: "/reviews", pl: "/pl/reviews" },
+  // /reviews 301s to the agent action review (2026-11-13), so /pl/reviews has no EN pair.
   {
     en: "/reviews/agent-action-security-review",
     pl: "/pl/reviews/agent-action-security-review",

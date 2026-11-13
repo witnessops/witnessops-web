@@ -39,8 +39,8 @@ test("homepage leads with the single public paid review and keeps the free hostn
   assert.doesNotMatch(source, /href="\/check"/);
   assert.doesNotMatch(source, /Start a free check/);
   const navGroups = readFileSync(resolve(__dirname, "../shared/public-nav-groups.ts"), "utf8");
-  assert.match(navGroups, /Tool · not a review/);
-  assert.match(navGroups, /href: "\/check"/);
+  // /check is a separate tool and is no longer in navigation (2026-11-13 cleanup).
+  assert.doesNotMatch(navGroups, /href: "\/check"/);
   assert.doesNotMatch(source, /Proofpack/);
   assert.doesNotMatch(source, /\/catalog\/automation-repair/);
   assert.doesNotMatch(source, /agent-tools-access-review/);
@@ -59,8 +59,10 @@ test("homepage leads with the single public paid review and keeps the free hostn
 test("EN and PL homepage sources project only the agent review", () => {
   const simple = readFileSync(resolve(__dirname, "simple-homepage.tsx"), "utf8");
   assert.match(simple, /publicPaidReviews\(BUYER_SERVICES\)/);
-  assert.match(simple, /data-home-offer=\{service\.id\}/);
-  assert.match(simple, /buyerServiceRequestHref\("en", service\)/);
+  // The five-section homepage (2026-11-13) has no offer card; the hero CTA is the one request link.
+  assert.doesNotMatch(simple, /data-home-offer/);
+  assert.match(simple, /buyerServiceRequestHref\(locale, service\)/);
+  assert.match(simple, /PUBLIC_AGENT_ACTION_REVIEW_ID/);
   assert.doesNotMatch(simple, /href="\/check"/);
   assert.doesNotMatch(simple, /Start a free check/);
   assert.doesNotMatch(simple, /Request an external review|externalScopeNote|externalPrice/);
@@ -88,8 +90,11 @@ test("EN and PL homepage sources project only the agent review", () => {
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "What the record looks like.");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
   assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny/);
-  assert.match(simple, /text\.evidenceHeadline/);
-  assert.match(simple, /text\.aiScopeNote/);
+  // The example record and scope note moved to the review page (2026-11-13).
+  const reviewOffer = readFileSync(resolve(__dirname, "review-offer.tsx"), "utf8");
+  assert.match(reviewOffer, /HOMEPAGE_TWO_OFFER_COPY\.en\.evidenceHeadline/);
+  assert.match(reviewOffer, /HOMEPAGE_TWO_OFFER_COPY\.en\.aiScopeNote/);
+  assert.match(simple, /text\.howNote/);
   assert.match(simple, /salesReviewMailto\(\)/);
   assert.match(simple, /\{PUBLIC_SALES_REVIEW_EMAIL\}/);
   assert.doesNotMatch(simple, /PUBLIC_CONTACT_EMAIL/);
