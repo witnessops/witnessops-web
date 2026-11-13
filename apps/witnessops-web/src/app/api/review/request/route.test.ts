@@ -458,6 +458,24 @@ test("fit-call validator refuses nonexistent and ambiguous DST local minutes", (
   }, Date.UTC(2027, 9, 30)), false);
 });
 
+test("fit-call validator measures windows by elapsed time across DST changes", () => {
+  const fitCall = {
+    topic: "Synthetic discussion",
+    timezone: "Europe/Warsaw",
+    preferredStarts: ["2027-03-28T01:50", "2027-03-28T03:10"] as [string, string],
+  };
+  const beforeSpringChange = Date.UTC(2027, 2, 27);
+  assert.equal(fitCallPreferencesAreValid(fitCall, beforeSpringChange), true);
+  assert.equal(fitCallPreferencesAreValid({
+    ...fitCall,
+    preferredStarts: ["2027-03-28T01:50", "2027-03-28T03:05"],
+  }, beforeSpringChange), false);
+  assert.equal(fitCallPreferencesAreValid({
+    ...fitCall,
+    preferredStarts: ["2027-10-31T01:50", "2027-10-31T03:00"],
+  }, Date.UTC(2027, 9, 30)), true);
+});
+
 test("review request route rejects legacy, ambiguous, and unsupported identities before issuance", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-reject-"));
   applyTestEnv(baseDir);

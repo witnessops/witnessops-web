@@ -108,14 +108,8 @@ export function fitCallPreferencesAreValid(fitCall: FitCallRequest, nowMs: numbe
     const wallMs = proposedLocalMinute(value);
     if (wallMs === null) return false;
     const startMs = oneInstantForLocalMinute(formatter, wallMs);
-    const endMs = oneInstantForLocalMinute(
-      formatter,
-      wallMs + FIT_CALL_DURATION_MS,
-    );
     if (
       startMs === null ||
-      endMs === null ||
-      endMs - startMs !== FIT_CALL_DURATION_MS ||
       startMs <= nowMs ||
       startMs > nowMs + FIT_CALL_HORIZON_MS
     ) {
