@@ -53,8 +53,11 @@ test("production publishes real chat while preview flags cannot expose internal 
     for (const page of [en.default, pl.default]) {
       assert.match(renderToStaticMarkup(page()), /OpenAI/);
     }
-    const { footerResourceLinks } = await import("../components/marketing/footer");
-    assert.equal(footerResourceLinks().some((link) => link.href === "/docs/assistant"), true);
+    // The assistant routes stay published, but navigation no longer links them (2026-11-13 cleanup).
+    const { footerGroups } = await import("../components/marketing/footer");
+    for (const locale of ["en", "pl"] as const) {
+      assert.equal(footerGroups(locale).some((group) => group.links.some((link) => link.href.endsWith("/docs/assistant"))), false);
+    }
     const sitemap = readFileSync(resolve(__dirname, "../app/sitemap.ts"), "utf8");
     const beacon = readFileSync(resolve(__dirname, "../../public/witnessops-analytics.js"), "utf8");
     assert.doesNotMatch(sitemap, /\/docs\/assistant/);

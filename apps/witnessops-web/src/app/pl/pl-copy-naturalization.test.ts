@@ -19,7 +19,7 @@ test("Polish pages carry the native-review tag without changing company details"
 });
 
 test("Polish homepage leads with the agent review", () => {
-  assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
+  assert.match(homePage, /<SimpleHomepage locale="pl" \/>/);
   assert.match(homePage, /HOMEPAGE_TWO_OFFER_COPY\.pl\.headline/);
   assert.doesNotMatch(homePage, /co ujawniają Twoje systemy/);
   assert.match(buyerHomepage, /HOMEPAGE_TWO_OFFER_COPY/);

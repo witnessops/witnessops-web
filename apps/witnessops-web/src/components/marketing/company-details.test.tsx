@@ -124,7 +124,7 @@ function chromeBinary(): string | null {
   return null;
 }
 
-test("company details render on the company and contact pages, and the footer keeps only the copyright line and link", async () => {
+test("company details render on the company and contact pages, and the footer keeps the one-line legal line and link", async () => {
   const appRoot = resolve(__dirname, "../../..");
   const data = readFileSync(resolve(appRoot, "src/lib/company-details.ts"), "utf8");
   for (const line of [...EXACT.en, ...EXACT.pl]) {
@@ -181,6 +181,7 @@ test("company details render on the company and contact pages, and the footer ke
     [plFooter, "pl"],
   ] as const) {
     assert.equal(html.includes(COMPANY_COPYRIGHT), true);
+    assert.equal(html.includes("© 2026 Witnessops P.S.A. · KRS 0001271405 · NIP 8262233962"), true);
     assert.match(html, new RegExp(`data-company-details-link="${locale}"`));
     assert.match(html, new RegExp(`href="${COMPANY_DETAILS_HREF[locale]}"`));
     assert.ok(html.includes(`>${COMPANY_DETAILS[locale].heading}<`));

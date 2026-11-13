@@ -22,23 +22,22 @@ test("catalogue and pricing open the agent request path and withdrawn routes sta
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
 
-  await page.goto("/catalog", { waitUntil: "networkidle" });
+  // /catalog, /reviews and /pricing land on the agent review (Design 2026-11-13).
+  for (const retired of ["/catalog", "/pricing", "/reviews"]) {
+    await page.goto(retired, { waitUntil: "networkidle" });
+    await expect(page, retired).toHaveURL(/\/reviews\/agent-action-security-review$/);
+  }
   await expect(page.locator("main")).toContainText("Agent Action Security Review");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
-  await page.locator("[data-buyer-service='agent-action-security-review']").getByRole("link", { name: "Request a break test", exact: true }).click();
+  await page.locator('[data-ui-proof-id="offer-in-page-cta"]').click();
   await expect(page).toHaveURL(/\/review\/request\?offerId=agent-action-security-review(?:&|$)/);
+  expect(new URL(page.url()).searchParams.get("productId")).toBeNull();
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "agent-action-security-review",
   );
   await expect(page.locator("main form")).toBeVisible();
   await shot(page, "catalogue-agent-action-request");
-
-  await page.goto("/pricing", { waitUntil: "networkidle" });
-  await page.locator("[data-buyer-service='agent-action-security-review']").getByRole("link", { name: "Request a break test", exact: true }).click();
-  await expect(page).toHaveURL(/offerId=agent-action-security-review/);
-  expect(new URL(page.url()).searchParams.get("productId")).toBeNull();
-  await shot(page, "pricing-agent-action-request");
 
   for (const withdrawn of [
     "/catalog/workflows",

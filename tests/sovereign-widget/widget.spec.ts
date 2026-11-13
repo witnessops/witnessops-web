@@ -1,5 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, generatedAnswer, test, type AskRequest } from "./fixtures";
+import { expect, generatedAnswer, test, type AskRequest, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 async function box(locator: Locator) {
   const rect = await locator.boundingBox();

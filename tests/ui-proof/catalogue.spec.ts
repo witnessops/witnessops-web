@@ -3,11 +3,9 @@ import { buyerServiceById } from "../../apps/witnessops-web/src/lib/buyer-servic
 import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 
+// The English catalogue (/catalog -> /reviews) now lands on the agent review
+// page (Design 2026-11-13); the Polish catalogue still renders the card.
 const scenarios = [
-  { path: "/catalog", width: 1440, height: 1100 },
-  { path: "/catalog", width: 768, height: 1024 },
-  { path: "/catalog", width: 390, height: 844 },
-  { path: "/catalog", width: 320, height: 740 },
   { path: "/pl/catalog", width: 1440, height: 1100 },
   { path: "/pl/catalog", width: 768, height: 1024 },
   { path: "/pl/catalog", width: 390, height: 844 },
@@ -132,7 +130,6 @@ test("pricing opens the agent review and the external review URL stays parked", 
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
-  await page.getByRole("link", { name: "See scope and deliverables", exact: true }).first().click();
   await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
   await expect(page.locator('[data-buyer-service="external-exposure-assessment"]')).toHaveCount(0);
   await page.goto("/reviews/external-attack-surface-review", { waitUntil: "networkidle" });

@@ -11,7 +11,6 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Footer } from "@/components/marketing/footer";
-import { buyerRequestHref } from "@/lib/buyer-services";
 import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { loadHomeContent } from "@/lib/content";
 const appDir = resolve(__dirname, "../../app");
@@ -89,8 +88,9 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.ok(pl.includes(`>${PUBLIC_AGENT_ACTION_OFFER.name.pl}<`));
   assert.ok(enHrefs.includes("/reviews/agent-action-security-review"));
   assert.ok(plHrefs.includes("/pl/reviews/agent-action-security-review"));
-  assert.ok(enHrefs.includes(buyerRequestHref("en")));
-  assert.ok(plHrefs.includes(buyerRequestHref("pl")));
+  // Exactly one link to the request form per footer: the brand CTA.
+  assert.equal(enHrefs.filter((href) => href.split("?")[0] === "/review/request").length, 1);
+  assert.equal(plHrefs.filter((href) => href.split("?")[0] === "/pl/review/request").length, 1);
   assert.equal(enHrefs.includes("/reviews/external-attack-surface-review"), false);
   assert.equal(plHrefs.includes("/pl/reviews/external-attack-surface-review"), false);
   assert.equal(enHrefs.includes(EXTERNAL_ATTACK_SURFACE_OFFER.route.en), false);
@@ -98,15 +98,18 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.equal(plHrefs.includes("/research"), false);
   assert.ok(enHrefs.includes("/review/sample-cases"));
   assert.ok(plHrefs.includes("/review/sample-cases"));
-  assert.ok(enHrefs.includes("/verify"));
-  assert.ok(plHrefs.includes("/pl/verify"));
+  for (const retired of ["/verify", "/pl/verify", "/pricing", "/reviews", "/docs", "/pl/docs", "/docs/assistant", "/media-kit", "/pl/media-kit", "/check", "/early-access"]) {
+    assert.equal([...enHrefs, ...plHrefs].includes(retired), false, `footer must not link ${retired}`);
+  }
 
-  for (const href of ["/privacy", "/terms", "/security", "/company", "/media-kit"]) {
+  for (const href of ["/privacy", "/terms", "/security", "/company", "/about", "/how-it-works"]) {
     assert.ok(enHrefs.includes(href), `missing EN footer href ${href}`);
   }
-  for (const href of ["/pl/privacy", "/pl/terms", "/pl/security", "/pl/company", "/pl/media-kit"]) {
+  for (const href of ["/pl/privacy", "/pl/terms", "/pl/security", "/pl/company", "/about", "/pl/why-witnessops"]) {
     assert.ok(plHrefs.includes(href), `missing PL footer href ${href}`);
   }
+  assert.ok(enHrefs.includes("/pl"), "EN footer links the Polish home");
+  assert.ok(plHrefs.includes("/"), "PL footer links the English home");
   assert.ok(enHrefs.some((href) => href === "https://github.com/witnessops"));
   assert.ok(plHrefs.some((href) => href === "https://github.com/witnessops"));
   assert.match(en, /engage@mail\.witnessops\.com/);

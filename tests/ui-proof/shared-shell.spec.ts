@@ -71,12 +71,11 @@ const canonicalChrome = {
   },
 } as const;
 
+// Flat header (Design 2026-11-13): /catalog lands on the agent review, and
+// Docs and the Polish services index are no longer header items.
 const activeNavigationHref = new Map<string, string>([
-  ["/catalog", "/reviews"],
-  ["/pl/catalog", "/pl/reviews"],
+  ["/catalog", "/reviews/agent-action-security-review"],
   ["/review/request", "/review/request"],
-  ["/docs", "/docs"],
-  ["/pl/docs", "/pl/docs"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
   ["/pl/review/request", "/pl/review/request"],
 ]);
@@ -319,14 +318,6 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       );
       if (activeHref) {
         if (viewport.width < 1024) await openMobileMenu(page);
-        // English routes now live inside grouped navigation. Inspect the active
-        // link in its expanded group, preserving the one-current-page contract.
-        if (!route.startsWith("/pl")) {
-          const groupName = route === "/catalog" || route === "/reviews" ? "Reviews" : "Resources";
-          const groupToggle = page.locator("nav.public-shell").getByRole("button", { name: groupName, exact: true });
-          await groupToggle.click();
-          await expect(groupToggle).toHaveAttribute("aria-expanded", "true");
-        }
         await expect(visibleActive, `${route} active route`).toHaveCount(1);
         await expect(visibleActive).toHaveAttribute("href", activeHref);
       } else {
@@ -360,7 +351,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/pl/catalog", { waitUntil: "networkidle" });
+  await page.goto("/pl/why-witnessops", { waitUntil: "networkidle" });
 
   const toggle = page.locator('button[aria-controls="witnessops-mobile-menu"]');
   await expect(toggle).toHaveAttribute("aria-label", "Otwórz główną nawigację");
@@ -383,7 +374,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   await expect(
     page.locator("#witnessops-mobile-menu").locator("a[href], button:not([disabled])").first(),
   ).toBeFocused();
-  await expect(firstMenuLink).toHaveAttribute("aria-current", "page");
+  await expect(page.locator('#witnessops-mobile-menu a[aria-current="page"]')).toHaveAttribute("href", "/pl/why-witnessops");
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
 
   const menuVisuals = await page.evaluate(() => {
@@ -437,9 +428,9 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
 
   await openMobileMenu(page);
-  const nextPolishPage = page.locator('#witnessops-mobile-menu a[href="/pl/why-witnessops"]');
+  const nextPolishPage = page.locator('#witnessops-mobile-menu a[href="/pl/reviews/agent-action-security-review"]');
   await nextPolishPage.click();
-  await expect(page).toHaveURL(/\/pl\/why-witnessops$/);
+  await expect(page).toHaveURL(/\/pl\/reviews\/agent-action-security-review$/);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
 });
 
@@ -596,10 +587,9 @@ test("unconfigured production pages expose no app destinations", async ({ page }
           expect(href, `${route} mobile primary action`).not.toMatch(/app\.witnessops\.com|127\.0\.0\.1:3020|\/signup|\/login/);
         }
       }
-      // /check stays in the header Resources group. The footer no longer renders it.
-      const primaryNav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
-      await primaryNav.getByRole("button", { name: "Resources", exact: true }).click();
-      await expect(primaryNav.locator('a[href="/check"]:visible').first()).toBeVisible();
+      // /check stays published but is no longer a header or footer item (Design 2026-11-13).
+      await expect(page.locator('nav a[href="/check"], footer a[href="/check"]')).toHaveCount(0);
+      if (width < 1024) await page.keyboard.press("Escape");
     }
   }
 });

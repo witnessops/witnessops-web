@@ -1,4 +1,6 @@
-import { expect, test } from "./fixtures";
+import { expect, test, WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 test.describe("Shellbit v3 motion", () => {
   test.use({ reducedMotion: "no-preference" });

@@ -6,7 +6,6 @@ import { canonicalUrl } from "@/lib/public-seo";
 import { WITHDRAWN_OFFER_PATHS, WITHDRAWN_SAMPLE_PATHS } from "@/lib/withdrawn-offer-routes";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
-  "/reviews",
   "/pl/reviews",
   "/pl/reviews/agent-action-security-review",
   "/reviews/agent-action-security-review",
@@ -21,7 +20,6 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/pl/contact",
   "/library",
   "/media-kit",
-  "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
   "/review/sample-cases/witnessed-crm-status-change",
@@ -31,6 +29,9 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
 ] as const;
 
 const EXCLUDED_SITEMAP_ROUTES = [
+  // 301 to /reviews/agent-action-security-review (2026-11-13 cleanup).
+  "/reviews",
+  "/pricing",
   "/review/withdrawn-sample",
   "/pl/review/withdrawn-sample",
   "/catalog",

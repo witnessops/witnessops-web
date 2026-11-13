@@ -61,7 +61,9 @@ function assertTruthfulSitemap(xml, label) {
   assert.match(xml, /<urlset\b[^>]*>/);
   assert.match(xml, /<\/urlset>\s*$/);
   assert.match(xml, /<loc>https:\/\/witnessops\.com<\/loc>/);
-  assert.match(xml, /<loc>https:\/\/witnessops\.com\/reviews<\/loc>/);
+  // /reviews 301s to the agent action review (2026-11-13), so it is not in the sitemap.
+  assert.doesNotMatch(xml, /<loc>https:\/\/witnessops\.com\/reviews<\/loc>/);
+  assert.doesNotMatch(xml, /<loc>https:\/\/witnessops\.com\/pricing<\/loc>/);
   assert.match(
     xml,
     /<loc>https:\/\/witnessops\.com\/reviews\/agent-action-security-review<\/loc>/,

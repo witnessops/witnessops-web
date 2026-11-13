@@ -1,8 +1,8 @@
-import { HOMEPAGE_TWO_OFFER_COPY } from "../../apps/witnessops-web/src/components/marketing/homepage-two-offer-copy";
+import { HOMEPAGE_CUT_COPY } from "../../apps/witnessops-web/src/components/marketing/homepage-cut-copy";
 import { buyerPublicOfferRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { PUBLIC_AGENT_ACTION_REVIEW_ID } from "../../apps/witnessops-web/src/lib/public-paid-reviews";
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
-import { expectFreeToolEntryPoint } from "./free-tool-entry";
+import { expectMenusOmitRetiredEntries } from "./free-tool-entry";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -128,17 +128,20 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
       await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("We try to break your AI agent before someone else does.");
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText(HOMEPAGE_TWO_OFFER_COPY.en.support);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText(HOMEPAGE_CUT_COPY.en.sub);
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).not.toContainText("internet-facing systems");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
       await expect(page.getByRole("link", { name: "Create an account", exact: true })).toHaveCount(0);
       await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
-      await expectFreeToolEntryPoint(page);
+      await expectMenusOmitRetiredEntries(page);
       await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).not.toContainText("Workspace access requires an invitation.");
+      // The homepage example link opens the record on the review page (Design 2026-11-13).
       const sampleLink = page.locator('[data-ui-proof-id="homepage-sample-review-cta"]');
-      await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases");
+      await expect(sampleLink).toHaveAttribute("href", "/reviews/agent-action-security-review#example-record");
       await sampleLink.click();
-      await expect(page).toHaveURL(/\/review\/sample-cases$/);
+      await expect(page).toHaveURL(/\/reviews\/agent-action-security-review#example-record$/);
+      await expect(page.locator("#example-record")).toBeVisible();
+      await page.goto("/review/sample-cases", { waitUntil: "networkidle" });
       await expect(page.getByRole("heading", { level: 1, name: "Examples", exact: true })).toBeVisible();
       await expect(page.locator("main")).toContainText("Published sample, not live customer evidence. No production verification or certification.");
       await expect(page.locator('main a[href="/review/sample-cases/ai-agent-action-proof-run"]')).toHaveCount(1);

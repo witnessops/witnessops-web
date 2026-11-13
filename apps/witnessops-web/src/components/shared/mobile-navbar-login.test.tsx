@@ -45,8 +45,11 @@ test("Polish mobile menu keeps login absent without a configured app", () => {
   assert.equal((mobile.match(/Poproś o test przełamania/g) ?? []).length, 1);
 });
 
-test("English grouped mobile navigation keeps its existing login", () => {
+test("English mobile navigation keeps its existing login next to the single CTA", () => {
   const mobile = mobileMenu(renderNavbar("/", "https://app.example.test/"));
-  assert.doesNotMatch(mobile, /data-mobile-login|Zaloguj się/);
-  assert.match(mobile, /href="https:\/\/app\.example\.test\/login"[^>]*>Log in<\/a>/);
+  assert.doesNotMatch(mobile, /Zaloguj się/);
+  assert.equal((mobile.match(/data-mobile-login/g) ?? []).length, 1);
+  assert.match(mobile, /<a(?=[^>]*href="https:\/\/app\.example\.test\/login")[^>]*>Log in<\/a>/);
+  assert.equal((mobile.match(/Request a break test/g) ?? []).length, 1);
+  assert.doesNotMatch(mobile, /href="\/pricing"|href="\/check"|href="\/early-access"|href="\/docs"/);
 });

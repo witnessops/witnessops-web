@@ -11,7 +11,7 @@ import { ThemeToggle } from "./theme-toggle";
 interface MobileNavbarMenuProps {
   loginUrl?: string | null;
   links: { label: string; href: string }[];
-  groups?: readonly { label: string; links: readonly { label: string; href: string }[] }[];
+  languageLink?: { label: string; href: string; hrefLang: string };
   cta: { label: string; href: string; variant: string } | null;
   assistantLink?: { label: string; href: string };
   utilityLink?: { label: string; href: string };
@@ -23,7 +23,7 @@ interface MobileNavbarMenuProps {
 export function MobileNavbarMenu({
   links,
   loginUrl = null,
-  groups,
+  languageLink,
   cta,
   assistantLink,
   utilityLink,
@@ -32,7 +32,6 @@ export function MobileNavbarMenu({
   closeLabel,
 }: MobileNavbarMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -179,17 +178,11 @@ export function MobileNavbarMenu({
       >
         <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
           <div className="border-b border-surface-border py-3"><ThemeToggle className="inline-flex" locale={isPolishPath(currentPath) ? "pl" : "en"} /></div>
-          {groups && (cta || loginUrl) && <div data-mobile-account-actions className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
-            {cta && <CtaButton label={cta.label} href={cta.href} variant={cta.variant as "primary" | "secondary" | "ghost"} onClick={closeMenu} className="min-h-11" ariaCurrent={currentPath === cta.href ? "page" : undefined} />}
-            {loginUrl && <Link href={loginUrl} onClick={closeMenu} className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-4 text-sm">{isPolishPath(currentPath) ? "Zaloguj się" : "Log in"}</Link>}
+          {(cta || loginUrl) && <div data-mobile-account-actions className="grid grid-cols-2 gap-3 border-b border-surface-border py-4">
+            {cta && <CtaButton label={cta.label} href={cta.href} variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"} onClick={closeMenu} className="min-h-11" ariaCurrent={currentPath === cta.href ? "page" : undefined} labelClassName="inline-block -translate-y-px" />}
+            {loginUrl && <Link href={loginUrl} data-mobile-login onClick={closeMenu} className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-4 text-sm">{isPolishPath(currentPath) ? "Zaloguj się" : "Log in"}</Link>}
           </div>}
-          {groups?.map((group, index) => <section key={group.label} className="border-b border-surface-border">
-            <h2><button type="button" className="flex min-h-16 w-full items-center justify-between px-3 text-left text-base text-text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent" aria-expanded={expandedGroup === group.label} aria-controls={`${menuId}-group-${index}`} onClick={() => setExpandedGroup(expandedGroup === group.label ? null : group.label)}>{group.label}<span aria-hidden="true" className="text-xl text-text-muted">{expandedGroup === group.label ? "−" : "+"}</span></button></h2>
-            <div id={`${menuId}-group-${index}`} hidden={expandedGroup !== group.label} className="pb-3">
-              {group.links.map(link => <Link key={link.href} href={link.href} onClick={closeMenu} aria-current={currentPath === link.href ? "page" : undefined} className="flex min-h-11 items-center rounded px-3 text-sm text-text-secondary hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-accent">{link.label}</Link>)}
-            </div>
-          </section>)}
-          {(groups ? [{ label: "Pricing", href: "/pricing" }] : links).map((link) => (
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -204,6 +197,18 @@ export function MobileNavbarMenu({
               <span className="inline-block -translate-y-px">{link.label}</span>
             </Link>
           ))}
+          {languageLink ? (
+            <Link
+              href={languageLink.href}
+              hrefLang={languageLink.hrefLang}
+              lang={languageLink.hrefLang}
+              data-mobile-language-link
+              className="inline-flex h-12 items-center border-l-2 border-transparent px-3 text-sm text-text-secondary transition-colors duration-200 hover:text-text-primary"
+              onClick={closeMenu}
+            >
+              <span className="inline-block -translate-y-px">{languageLink.label}</span>
+            </Link>
+          ) : null}
           {assistantLink ? (
             <Link
               href={assistantLink.href}
@@ -223,27 +228,6 @@ export function MobileNavbarMenu({
               <span className="inline-block -translate-y-px">{utilityLink.label}</span>
             </Link>
           ) : null}
-          {!groups && loginUrl && isPolishPath(currentPath) ? (
-            <Link
-              href={loginUrl}
-              data-mobile-login
-              onClick={closeMenu}
-              className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-4 text-sm"
-            >
-              Zaloguj się
-            </Link>
-          ) : null}
-          {!groups && cta && <CtaButton
-            label={cta.label}
-            href={cta.href}
-            variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className={`mt-2 h-12 w-full !rounded-sm !border !border-brand-accent !bg-brand-accent !text-text-inverse !shadow-none hover:!brightness-110 ${
-              currentPath === cta.href ? "ring-2 ring-brand-accent" : ""
-            }`}
-            ariaCurrent={currentPath === cta.href ? "page" : undefined}
-            onClick={closeMenu}
-            labelClassName="inline-block -translate-y-px"
-          />}
         </div>
       </div>
     </div>

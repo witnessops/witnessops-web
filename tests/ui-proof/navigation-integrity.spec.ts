@@ -60,7 +60,7 @@ async function expectBelowStickyHeader(page: Page, selector: string) {
   );
 }
 
-test("the homepage sample-work link opens the sample library", async ({
+test("the homepage example link opens the example record and the header opens the sample library", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -70,12 +70,18 @@ test("the homepage sample-work link opens the sample library", async ({
   const page = await context.newPage();
 
   await page.goto("/", { waitUntil: "networkidle" });
-  const fragmentLink = page.locator(
+  const exampleLink = page.locator(
     'main a[data-ui-proof-id="homepage-sample-review-cta"]',
   );
-  await expect(fragmentLink).toHaveCount(1);
-  await fragmentLink.click();
+  await expect(exampleLink).toHaveCount(1);
+  await exampleLink.click();
+  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review#example-record$/);
+  await expect(page.locator("#example-record")).toBeInViewport();
 
+  await page
+    .getByRole("navigation", { name: "Primary navigation", exact: true })
+    .getByRole("link", { name: "Examples", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/review\/sample-cases$/);
   await expect(page.getByRole("heading", { name: "Examples", exact: true })).toBeVisible();
   await saveEvidence(page, "01-desktop-sample-cases.png");
@@ -83,13 +89,13 @@ test("the homepage sample-work link opens the sample library", async ({
   await context.close();
 });
 
-test("the Polish homepage historical-action link opens the historical sample", async ({ page }) => {
+test("the Polish homepage example link opens the English example record", async ({ page }) => {
   await page.goto("/pl", { waitUntil: "networkidle" });
   const sampleLink = page.locator('main a[data-ui-proof-id="homepage-sample-review-cta"]');
-  await expect(sampleLink).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");
+  await expect(sampleLink).toHaveAttribute("href", "/reviews/agent-action-security-review#example-record");
   await sampleLink.click();
-  await expect(page).toHaveURL(/\/review\/sample-cases\/ai-agent-action-proof-run$/);
-  await expect(page.locator("main")).toBeVisible();
+  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review#example-record$/);
+  await expect(page.locator("#example-record")).toBeVisible();
 });
 
 test("route navigation and Back restore scroll without a second-frame snap", async ({
@@ -304,37 +310,36 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   });
   const page = await context.newPage();
 
-  await page.goto("/catalog", { waitUntil: "networkidle" });
+  await page.goto("/reviews/agent-action-security-review", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  const lastCta = menu.getByRole("link", {
-    name: getWorkspaceAppUrl("/signup") ? "Sign up" : "Pricing",
-    exact: true,
-  });
+  // Flat menu (Design 2026-11-13): theme, request + login, links, then the language switch last.
+  const cta = menu.getByRole("link", { name: "Request a break test", exact: true });
+  const lastLink = menu.locator("[data-mobile-language-link]");
   await expect(menu).toHaveAttribute("aria-hidden", "false");
   await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeHidden();
+  await expect(cta).toBeInViewport();
+  await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
 
   await menu.hover();
   await page.mouse.wheel(0, 1000);
-  await lastCta.scrollIntoViewIfNeeded();
-  await expect(lastCta).toBeInViewport();
-  const ctaBox = await lastCta.boundingBox();
-  expect(ctaBox, "the final mobile CTA has a rendered box").not.toBeNull();
-  expect(ctaBox!.y).toBeGreaterThanOrEqual(0);
-  expect(ctaBox!.y + ctaBox!.height).toBeLessThanOrEqual(320);
-  const ctaCenterIsClear = await lastCta.evaluate((cta) => {
-    const box = cta.getBoundingClientRect();
+  await lastLink.scrollIntoViewIfNeeded();
+  await expect(lastLink).toBeInViewport();
+  const box = await lastLink.boundingBox();
+  expect(box, "the final mobile link has a rendered box").not.toBeNull();
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(320);
+  const centerIsClear = await lastLink.evaluate((link) => {
+    const rect = link.getBoundingClientRect();
     const hit = document.elementFromPoint(
-      box.left + box.width / 2,
-      box.top + box.height / 2,
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
     );
-    return hit === cta || (hit instanceof Node && cta.contains(hit));
+    return hit === link || (hit instanceof Node && link.contains(hit));
   });
-  expect(ctaCenterIsClear, "the final mobile CTA is not covered by a floating layer").toBe(true);
-
-  await expect(lastCta).toHaveAttribute("href", getWorkspaceAppUrl("/signup") || "/pricing");
-  if (getWorkspaceAppUrl("/signup")) await expect(lastCta).toHaveAttribute("target", "_blank");
-  else await expect(lastCta).not.toHaveAttribute("target", "_blank");
+  expect(centerIsClear, "the final mobile link is not covered by a floating layer").toBe(true);
+  await expect(lastLink).toHaveAttribute("href", "/pl/reviews/agent-action-security-review");
+  if (getWorkspaceAppUrl("/signup")) await expect(menu.locator("[data-mobile-login]")).toHaveCount(1);
   await saveEvidence(page, "05-mobile-menu-signup.png");
 
   await context.close();
@@ -469,90 +474,80 @@ for (const width of [1440, 390]) {
   });
 }
 
-test("grouped desktop navigation supports keyboard, dismissal and document navigation", async ({ page }) => {
+test("flat desktop navigation lists the four links and opens each page", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
-  const resources = page.getByRole("button", { name: "Resources", exact: true });
-  await resources.focus();
-  await page.keyboard.press("ArrowDown");
-  const panel = page.locator("#public-nav-group-2");
-  await expect(panel).toBeVisible();
-  await expect(panel.locator("a")).toHaveCount(4);
-  await expect(panel.locator('a[href="/review/sample-cases"]')).toContainText("Agent actions, approvals and supporting evidence.");
-  for (const href of ["/docs/getting-started/results", "/research", "/chronicles"]) {
-    await expect(panel.locator(`a[href="${href}"]`)).toHaveCount(0);
+  const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
+  await expect(nav.getByRole("button", { name: "Resources", exact: true })).toHaveCount(0);
+  await expect(nav.locator('[role="menu"], [id^="public-nav-group-"]')).toHaveCount(0);
+  const expected = [
+    ["The review", "/reviews/agent-action-security-review"],
+    ["How it works", "/how-it-works"],
+    ["Examples", "/review/sample-cases"],
+    ["About", "/about"],
+  ] as const;
+  for (const [name, href] of expected) {
+    await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   }
-  await expect(panel.getByRole("link", { name: /^Docs/ })).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(panel).toBeHidden();
-  await expect(resources).toBeFocused();
-  await resources.click();
-  await page.mouse.click(30, 700);
-  await expect(panel).toBeHidden();
-  await resources.click();
-  await panel.getByRole("link", { name: /^Docs/ }).click();
-  await expect(page).toHaveURL(/\/docs$/);
-  await expect(panel).toBeHidden();
+  for (const href of ["/check", "/early-access", "/docs", "/pricing", "/research", "/chronicles"]) {
+    await expect(nav.locator(`a[href="${href}"]`)).toHaveCount(0);
+  }
+  // Theme lives in the footer and mobile menu only.
+  await expect(nav.getByRole("button", { name: /theme|motyw|dark|light/i })).toHaveCount(0);
+  await nav.getByRole("link", { name: "Examples", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/review\/sample-cases$/);
 });
 
-test("grouped desktop navigation keeps final links reachable in short windows", async ({ page }) => {
+test("flat desktop navigation fits a short window", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 400 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Resources", exact: true }).click();
-  const panel = page.locator("#public-nav-group-2");
-  await expect(panel).toBeVisible();
-  const panelBox = await panel.boundingBox();
-  expect(panelBox).not.toBeNull();
-  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(400);
-
-  await panel.hover();
-  await page.mouse.wheel(0, 600);
-  await expect(panel.locator("a")).toHaveCount(4);
-  const finalLink = panel.locator("a").last();
-  await expect(finalLink).toHaveAttribute("href", "/check");
-  await expect(finalLink).toBeInViewport({ ratio: 1 });
-  await finalLink.click();
-  await expect(page).toHaveURL(/\/check$/);
-  await expect(panel).toBeHidden();
+  const nav = page.getByRole("navigation", { name: "Primary navigation", exact: true });
+  for (const name of ["The review", "How it works", "Examples", "About"]) {
+    await expect(nav.getByRole("link", { name, exact: true })).toBeInViewport({ ratio: 1 });
+  }
+  const cta = nav.getByRole("link", { name: "Request a break test", exact: true }).first();
+  await expect(cta).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("grouped mobile navigation keeps product and resource links reachable", async ({ page }) => {
+test("flat mobile navigation keeps every link reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  for (const name of ["Product", "Reviews", "Resources"]) {
-    await expect(menu.getByRole("heading", { name, exact: true })).toBeVisible();
+  await expect(menu.getByRole("heading")).toHaveCount(0);
+  if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Log in", exact: true })).toBeInViewport();
+  await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("link", { name: "Docs", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("link", { name: "Request a break test", exact: true })).toBeInViewport();
+  for (const name of ["The review", "How it works", "Examples", "About", "Polski (PL)"]) {
+    await expect(menu.getByRole("link", { name, exact: true })).toBeInViewport();
   }
-  if (getWorkspaceAppUrl("/signup")) await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toBeInViewport();
-  else await expect(menu.getByRole("link", { name: "Sign up", exact: true })).toHaveCount(0);
-  await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toBeInViewport();
-  await menu.getByRole("button", { name: "Product", exact: true }).click();
-  await expect(menu.locator("#witnessops-mobile-menu-group-0").getByRole("link", { name: "Tool · not a review", exact: true })).toHaveCount(0);
-  await menu.getByRole("button", { name: "Resources", exact: true }).click();
-  const resourceLinks = menu.locator("#witnessops-mobile-menu-group-2");
-  await expect(resourceLinks.locator("a")).toHaveCount(4);
-  for (const href of ["/docs/getting-started/results", "/research", "/chronicles"]) {
-    await expect(resourceLinks.locator(`a[href="${href}"]`)).toHaveCount(0);
-  }
-  await expect(resourceLinks.getByRole("link", { name: "Tool · not a review", exact: true })).toBeVisible();
-  await menu.getByRole("link", { name: "Docs", exact: true }).click();
-  await expect(page).toHaveURL(/\/docs$/);
+  await menu.getByRole("link", { name: "How it works", exact: true }).click();
+  await expect(page).toHaveURL(/\/how-it-works$/);
   await expect(page.getByRole("button", { name: "Open primary navigation" })).toHaveAttribute("aria-expanded", "false");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("Resources footer keeps the supported links without Research in both languages", async ({ page }) => {
-  for (const [pathname, label, verifyHref] of [
-    ["/", "Resources", "/verify"],
-    ["/pl", "Zasoby", "/pl/verify"],
+test("footer keeps the review and company links without Research in both languages", async ({ page }) => {
+  for (const [pathname, reviewLabel, companyLabel] of [
+    ["/", "The review", "Company"],
+    ["/pl", "Przegląd", "Firma"],
   ]) {
     await page.goto(pathname);
-    const resources = page.locator("#site-footer").getByRole("navigation", { name: label, exact: true });
-    await expect(resources).toBeVisible();
-    await expect(resources.locator('a[href="/research"]')).toHaveCount(0);
-    await expect(resources.locator('a[href="/review/sample-cases"]')).toBeVisible();
-    await expect(resources.locator(`a[href="${verifyHref}"]`)).toBeVisible();
+    const footer = page.locator("#site-footer");
+    const review = footer.getByRole("navigation", { name: reviewLabel, exact: true });
+    const company = footer.getByRole("navigation", { name: companyLabel, exact: true });
+    await expect(review).toBeVisible();
+    await expect(company).toBeVisible();
+    await expect(footer.locator('a[href="/research"]')).toHaveCount(0);
+    await expect(review.locator('a[href="/review/sample-cases"]')).toBeVisible();
+    await expect(company.locator('a[href="/about"]')).toBeVisible();
+    for (const href of ["/verify", "/pl/verify", "/pricing", "/docs", "/pl/docs", "/docs/assistant", "/media-kit", "/check", "/early-access"]) {
+      await expect(footer.locator(`a[href="${href}"]`)).toHaveCount(0);
+    }
   }
 });
 for (const width of [320, 390, 1440]) {

@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { WIDGET_REMOVED } from "./fixtures";
+
+test.skip(true, WIDGET_REMOVED);
 
 const unavailable = "Sovereign couldn’t answer right now. Your question is still here.";
 

@@ -24,6 +24,12 @@ export type CompanyDetailsLocale = keyof typeof COMPANY_DETAILS;
 
 export const COMPANY_COPYRIGHT = `© 2026 ${COMPANY_DETAILS.en.legalName}`;
 
+export const COMPANY_KRS_NUMBER = COMPANY_REGISTRY_LINE.match(/^KRS: (\d+)/)?.[1] ?? "";
+export const COMPANY_NIP_NUMBER = COMPANY_DETAILS.en.nip.replace(/^NIP:\s*/, "");
+
+/** One-line legal footer, shown on every page. */
+export const COMPANY_LEGAL_LINE = `${COMPANY_COPYRIGHT} · KRS ${COMPANY_KRS_NUMBER} · NIP ${COMPANY_NIP_NUMBER}`;
+
 export const COMPANY_DETAILS_HREF = {
   en: "/company",
   pl: "/pl/company",

@@ -2,30 +2,20 @@ import { expect, generatedAnswer, test } from "../sovereign-widget/fixtures";
 
 for (const locale of ["en", "pl"] as const) {
   for (const width of [1280, 390]) {
-    test(`production ${locale} widget uses the API and ignores simulation flags at ${width}`, async ({ page }) => {
+    test(`production ${locale} homepage has no Ask Sovereign widget at ${width}`, async ({ page }) => {
+      // The widget was removed from public pages (Design 2026-11-13); /docs/assistant stays.
       await page.setViewportSize({ width, height: 844 });
-      const sent: unknown[] = [];
+      let calls = 0;
       await page.route("**/api/ask-witnessops", async route => {
-        sent.push(route.request().postDataJSON());
-        await route.fulfill({ json: generatedAnswer("Synthetic production-browser answer.") });
+        calls++;
+        await route.fulfill({ json: generatedAnswer("unexpected") });
       });
-      await page.goto(`${locale === "pl" ? "/pl" : "/"}?sim=error&at=load`);
-      const launcher = page.getByRole("button", { name: locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign", exact: true });
-      await expect(launcher.locator("[data-shellbit-state]")).toHaveCSS("width", width < 768 ? "68px" : "84px");
-      await launcher.click();
-      const dialog = page.getByRole("dialog");
-      await expect(dialog.locator("[data-shellbit-chat]")).toHaveCSS("width", "32px");
-      await expect(dialog.locator("[data-shellbit-chat]")).toHaveCSS("background-image", /shellbit-v3\/spritesheet[.]png/);
-      await expect(dialog).toContainText("OpenAI");
-      await expect(dialog).not.toContainText(/Needs review|PL copy pending native review|Simulated|Symulacja|Preview, sends nothing/);
-      await dialog.getByRole("textbox").fill("What does WitnessOps do?");
-      await dialog.getByRole("button", { name: locale === "pl" ? "Wyślij" : "Send", exact: true }).click();
-      await expect(dialog.getByText("Synthetic production-browser answer.", { exact: true })).toBeVisible();
-      await expect(dialog.locator('[data-answer-mode="ai_assisted"]')).toBeVisible();
-      expect(sent).toEqual([{ question: "What does WitnessOps do?", history: [], surface: "sovereign_widget", locale }]);
-      await expect(dialog.getByRole("button", { name: /book|voice|microphone|rezerwuj|mikrofon/i })).toHaveCount(0);
+      expect((await page.goto(locale === "pl" ? "/pl" : "/"))?.status()).toBe(200);
+      await expect(page.getByRole("button", { name: locale === "pl" ? "Zapytaj Sovereign" : "Ask Sovereign", exact: true })).toHaveCount(0);
+      await expect(page.locator("[data-shellbit-state]")).toHaveCount(0);
+      await expect(page.locator('a[href$="/docs/assistant"]')).toHaveCount(0);
+      expect(calls).toBe(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-      await page.screenshot({ path: `artifacts/ui-proof/production-chat/${locale}-${width}.png` });
     });
   }
   test(`production ${locale} assistant page uses the API and retains honest retry`, async ({ page }) => {

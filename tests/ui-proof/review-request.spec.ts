@@ -323,7 +323,7 @@ test("the agent enquiry recovers from request and code errors and confirms throu
   }
 });
 
-test("expert footer CTA requests a time through email verification without claiming a booking", async ({ browser }) => {
+test("expert-time request asks for a time through email verification without claiming a booking", async ({ browser }) => {
   for (const locale of ["en", "pl"] as const) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
@@ -359,10 +359,11 @@ test("expert footer CTA requests a time through email verification without claim
       }) });
     });
 
+    // The footer no longer repeats "Talk to an expert" (merged into the one CTA,
+    // Design 2026-11-13); the expert-time request stays available by URL.
     await page.goto(prefix || "/", { waitUntil: "networkidle" });
-    const footerLink = page.locator("#site-footer").getByRole("link", { name: cta, exact: true });
-    await expect(footerLink).toHaveAttribute("href", /\/review\/request\?.*offerId=agent-action-security-review.*fitCall=1/);
-    await footerLink.click();
+    await expect(page.locator("#site-footer").getByRole("link", { name: cta, exact: true })).toHaveCount(0);
+    await page.goto(`${prefix}/review/request?offerId=agent-action-security-review&fitCall=1`, { waitUntil: "networkidle" });
     await expect(page).toHaveURL(new RegExp(`${prefix}/review/request\\?.*fitCall=1`));
     await expect(page.locator("main h1")).toHaveText(cta);
     const form = page.locator("main form");

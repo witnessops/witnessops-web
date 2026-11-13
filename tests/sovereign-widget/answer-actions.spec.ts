@@ -1,5 +1,7 @@
-import { expect, generatedAnswer, test } from "./fixtures";
+import { expect, generatedAnswer, test, WIDGET_REMOVED } from "./fixtures";
 import type { Page } from "@playwright/test";
+
+test.skip(true, WIDGET_REMOVED);
 
 async function setup(page: Page, options: { clipboardFails?: boolean; share?: "success" | "cancel" | "denied"; locale?: "en" | "pl" } = {}) {
   await page.addInitScript((settings) => {
