@@ -1,11 +1,12 @@
 import { expect, type Page } from "@playwright/test";
 
 const DESKTOP_NAV_MIN_WIDTH = 1024;
-const RETIRED_MENU_HREFS = ["/check", "/pl/check", "/early-access", "/docs", "/pl/docs", "/pricing", "/docs/assistant"] as const;
+const RETIRED_MENU_HREFS = ["/check", "/pl/check", "/early-access", "/about", "/pl/docs", "/pricing", "/docs/assistant"] as const;
 
 // Design 2026-11-13: the header is a flat list (review, how it works, examples,
-// about). The free check, Early access, Docs and Pricing pages stay reachable by
-// URL but are no longer offered from the header or the mobile menu.
+// docs; About became Docs in footer bundle B). The free check, Early access, About
+// and Pricing pages stay reachable by URL but are no longer offered from the header
+// or the mobile menu.
 export async function expectMenusOmitRetiredEntries(page: Page): Promise<void> {
   const viewport = page.viewportSize();
   expect(viewport, "viewport is set").not.toBeNull();
