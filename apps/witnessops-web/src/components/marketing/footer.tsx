@@ -10,7 +10,7 @@ import {
 } from "@/lib/company-details";
 import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 import { PUBLIC_SALES_REVIEW_EMAIL, salesReviewMailto } from "@/lib/public-contact";
-import { isPolishPath, localizedPath } from "@/lib/public-i18n";
+import { isPolishPath, localizedHref } from "@/lib/public-i18n";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const DOCS_PUBLIC_HREF = "/docs";
@@ -139,8 +139,10 @@ export function Footer({ build_label }: FooterProps) {
   const locale = isPolishPath(path) ? "pl" : "en";
   const copy = FOOTER_COPY[locale];
   const reviewRequestHref = reviewRequestHrefForLocation(locale, path, searchParams);
-  const englishHref = locale === "en" ? path : localizedPath(path, "en");
-  const polishHref = locale === "pl" ? path : localizedPath(path, "pl");
+  // Keep the query on paired pages so a selected-offer or fit-call request survives the switch.
+  const search = searchParams?.toString() ?? "";
+  const englishHref = localizedHref(path, search, "en");
+  const polishHref = localizedHref(path, search, "pl");
 
   return (
     <footer

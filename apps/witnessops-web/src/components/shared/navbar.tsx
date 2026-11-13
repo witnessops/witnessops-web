@@ -1,14 +1,14 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "./document-navigation";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
 import { PUBLIC_NAV_LINKS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import {
   isPolishPath,
-  localizedPath,
+  localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
 
@@ -23,14 +23,17 @@ interface NavbarProps {
 
 export function Navbar({ announcement, signupUrl: _signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
   const effectiveLinks: { label: string; href: string }[] = polish ? [...POLISH_PUBLIC_NAV.links] : [...PUBLIC_NAV_LINKS];
+  // Keep the query on paired pages (e.g. a selected-offer or fit-call request).
+  const search = searchParams?.toString() ?? "";
   const languageLink = polish
-    ? { label: "English (EN)", href: localizedPath(currentPath, "en"), hrefLang: "en" }
-    : { label: "Polski (PL)", href: localizedPath(currentPath, "pl"), hrefLang: "pl" };
+    ? { label: "English (EN)", href: localizedHref(currentPath, search, "en"), hrefLang: "en" }
+    : { label: "Polski (PL)", href: localizedHref(currentPath, search, "pl"), hrefLang: "pl" };
   const effectiveCta = polish ? {
     label: POLISH_PUBLIC_NAV.cta.label,
     href: POLISH_PUBLIC_NAV.cta.href,

@@ -15,7 +15,7 @@ import { EXTERNAL_ATTACK_SURFACE_OFFER, PUBLIC_AGENT_ACTION_OFFER } from "@/lib/
 import { loadHomeContent } from "@/lib/content";
 const appDir = resolve(__dirname, "../../app");
 
-function render(node: ReactNode, pathname: string) {
+function render(node: ReactNode, pathname: string, search = "") {
   return renderToStaticMarkup(
     createElement(
       AppRouterContext.Provider,
@@ -32,13 +32,13 @@ function render(node: ReactNode, pathname: string) {
       createElement(
         PathnameContext.Provider,
         { value: pathname },
-        createElement(SearchParamsContext.Provider, { value: new URLSearchParams() }, node),
+        createElement(SearchParamsContext.Provider, { value: new URLSearchParams(search) }, node),
       ),
     ),
   );
 }
 
-function renderFooter(pathname: "/" | "/pl") {
+function renderFooter(pathname: string, search = "") {
   const footer = loadHomeContent().footer;
   return render(
     createElement(Footer, {
@@ -50,6 +50,7 @@ function renderFooter(pathname: "/" | "/pl") {
       copyright: footer.copyright,
     }),
     pathname,
+    search,
   );
 }
 
@@ -122,4 +123,12 @@ test("English and Polish footers list the agent review and the footer-linked pag
     if (href.startsWith("mailto:") || href.startsWith("http") || href.startsWith("/brand/") || /\.(?:svg|png|ico|woff2)$/.test(href)) continue;
     assert.equal(routeFileExists(href), true, `footer href has no page: ${href}`);
   }
+});
+
+test("footer language switch keeps the request query on paired pages", () => {
+  const html = renderFooter("/review/request", "offerId=agent-action-security-review&fitCall=1");
+  const links = hrefs(html);
+  assert.ok(links.includes("/pl/review/request?offerId=agent-action-security-review&fitCall=1"), links.join("\n"));
+  const plHtml = renderFooter("/pl/review/request", "offerId=agent-action-security-review");
+  assert.ok(hrefs(plHtml).includes("/review/request?offerId=agent-action-security-review"));
 });
