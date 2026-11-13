@@ -13,6 +13,7 @@ import {
   isGovernedReconRequestIntent,
   isOperatorHandledCommercialRequestIntent,
 } from "@/lib/commercial-request-intents";
+import { NEW_SALES_AGENT_ACTION_OFFER_ID } from "@/lib/new-review-request-policy";
 import type {
   EngageResponse,
   SupportResponse,
@@ -134,6 +135,9 @@ function operatorNotificationSubject(intake: IntakeRecord): string {
   if (intake.channel === "support") {
     return `Verified support request: ${identity}`;
   }
+  if (intake.submission.requestMode === "fit-call" && intake.submission.fitCall) {
+    return `Verified fit call time request: ${identity}`;
+  }
   const requestLabel = getCommercialRequestLabel(intake.submission.intent);
   return `Verified ${requestLabel}: ${identity}`;
 }
@@ -164,6 +168,9 @@ function renderOperatorNotificationText(args: {
   }
 
   const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
+  const fitCall = args.intake.submission.requestMode === "fit-call"
+    ? args.intake.submission.fitCall
+    : null;
   return [
     `Verified WitnessOps ${requestLabel}`,
     "",
@@ -177,9 +184,25 @@ function renderOperatorNotificationText(args: {
     `Intake ID: ${args.intake.intakeId}`,
     `Issuance ID: ${args.issuance.issuanceId}`,
     `Thread ID: ${args.intake.threadId ?? "not assigned"}`,
-    "",
-    "Submitted request summary:",
-    args.intake.submission.scope ?? "not provided",
+    ...(fitCall
+      ? []
+      : [
+          "",
+          "Submitted request summary:",
+          args.intake.submission.scope ?? "not provided",
+        ]),
+    ...(fitCall
+      ? [
+          "",
+          "Fit call preferences — time requested, not booked:",
+          renderTextField("Discussion topic", fitCall.topic),
+          renderTextField("Time zone", fitCall.timezone),
+          `Preferred window 1: ${fitCall.preferredStarts[0]} (20 minutes)`,
+          `Preferred window 2: ${fitCall.preferredStarts[1]} (20 minutes)`,
+          "Check the engage@mail.witnessops.com Google Calendar. Send a confirmed invite only after selecting an available time; otherwise reply with alternatives.",
+          "Calendar event title: WitnessOps fit call. Keep discussion and action details in this request, not in the event.",
+        ]
+      : []),
     "",
     "Operator boundary:",
     "No proof run has started.",
@@ -227,6 +250,9 @@ function renderOperatorNotificationHtml(args: {
 
   const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
   const scope = args.intake.submission.scope ?? "not provided";
+  const fitCall = args.intake.submission.requestMode === "fit-call"
+    ? args.intake.submission.fitCall
+    : null;
   const C = {
     bg: "#f7f5f1",
     surface: "#ffffff",
@@ -252,8 +278,22 @@ function renderOperatorNotificationHtml(args: {
     renderHtmlField("Issuance ID", args.issuance.issuanceId),
     renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
     "</div>",
-    `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Submitted request summary</h2>`,
-    `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid ${C.border};background:${C.surfaceAlt};color:${C.textSecondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(scope)}</pre>`,
+    ...(fitCall
+      ? []
+      : [
+          `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Submitted request summary</h2>`,
+          `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid ${C.border};background:${C.surfaceAlt};color:${C.textSecondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(scope)}</pre>`,
+        ]),
+    ...(fitCall
+      ? [
+          `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Fit call preferences — time requested, not booked</h2>`,
+          renderHtmlField("Discussion topic", fitCall.topic),
+          renderHtmlField("Time zone", fitCall.timezone),
+          renderHtmlField("Preferred window 1 (20 minutes)", fitCall.preferredStarts[0]),
+          renderHtmlField("Preferred window 2 (20 minutes)", fitCall.preferredStarts[1]),
+          `<p style="margin:0;color:${C.textSecondary};font-size:13px;line-height:20px">Check the engage@mail.witnessops.com Google Calendar. Send a confirmed invite only after selecting an available time; otherwise reply with alternatives. Calendar event title: WitnessOps fit call. Keep discussion and action details in this request, not in the event.</p>`,
+        ]
+      : []),
     `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Operator boundary</h2>`,
     `<p style="margin:0;color:${C.textSecondary};font-size:13px;line-height:20px">No proof run has started. No customer evidence has been accepted. Do not request or accept secrets, credentials, private keys, MFA codes, source exports, full logs, screenshots, customer records, or production evidence until scope and evidence handling are agreed.</p>`,
     "</td></tr>",
@@ -275,6 +315,18 @@ function normalizeSubmission(
           ? "en"
           : null,
     scope: normalizeText(submission?.scope),
+    requestMode:
+      submission?.requestMode === "fit-call" && submission.fitCall
+        ? "fit-call"
+        : null,
+    fitCall:
+      submission?.requestMode === "fit-call" && submission.fitCall
+        ? {
+            topic: submission.fitCall.topic,
+            timezone: submission.fitCall.timezone,
+            preferredStarts: [...submission.fitCall.preferredStarts] as [string, string],
+          }
+        : null,
     subject: normalizeText(submission?.subject),
     category: normalizeText(submission?.category),
     severity: normalizeText(submission?.severity),
@@ -675,6 +727,12 @@ function toVerificationResponse(args: {
     postVerifyPath: buildPostVerifyPath(args.intake, args.issuance),
     requestIntent: args.intake.submission.intent?.trim() || null,
     requestLocale: args.intake.submission.locale === "pl" ? "pl" : "en",
+    requestMode:
+      args.intake.submission.requestMode === "fit-call" &&
+      args.intake.submission.fitCall &&
+      args.intake.submission.intent === NEW_SALES_AGENT_ACTION_OFFER_ID
+        ? "fit-call"
+        : undefined,
     run_id: args.assessmentRunId ?? undefined,
   };
 }

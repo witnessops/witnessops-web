@@ -38,6 +38,15 @@ const serviceIdByRequestKind: Partial<
 const copy = {
   en: {
     loading: "Loading the browser-held request record…",
+    fitCallEyebrow: "Expert conversation / time requested",
+    fitCallTitle: "Time requested, not booked.",
+    fitCallIntro: "Your work email was confirmed and the request was saved. Keep the reference below. Your two 20-minute preferences are recorded for operator review; this page does not reserve either time.",
+    fitCallBoundary: "An operator will check availability and confirm a time by calendar invitation or reply with alternatives. A later email or invitation determines current status. Do not send secrets or source materials; no review starts here.",
+    fitCallNextSteps: [
+      "An operator checks the preferred times against the engage@mail.witnessops.com calendar.",
+      "If a time is available, the operator sends a confirmed invitation; otherwise, they reply with alternatives.",
+      "The discussion can clarify fit. A paid review requires a separate agreement and authority before work starts.",
+    ],
     eyebrow: "Review request / recorded",
     title: "Your request is recorded.",
     intro:
@@ -78,6 +87,15 @@ const copy = {
   },
   pl: {
     loading: "Wczytywanie zapisu zgłoszenia przechowywanego w przeglądarce…",
+    fitCallEyebrow: "Rozmowa z ekspertem / prośba o termin",
+    fitCallTitle: "Poproszono o termin, bez rezerwacji.",
+    fitCallIntro: "Potwierdzono służbowy adres e-mail i zapisano prośbę. Zachowaj poniższy numer referencyjny. Dwa preferowane 20-minutowe terminy zapisano do oceny przez operatora; ta strona nie rezerwuje żadnego z nich.",
+    fitCallBoundary: "Operator sprawdzi dostępność i potwierdzi termin zaproszeniem kalendarzowym albo zaproponuje inne. Późniejsza wiadomość lub zaproszenie określa aktualny stan. Nie przesyłaj sekretów ani materiałów źródłowych; przegląd nie rozpoczyna się tutaj.",
+    fitCallNextSteps: [
+      "Operator porówna preferowane terminy z kalendarzem engage@mail.witnessops.com.",
+      "Jeśli termin będzie dostępny, wyśle potwierdzone zaproszenie; w przeciwnym razie zaproponuje inne terminy.",
+      "Rozmowa może wyjaśnić dopasowanie. Płatny przegląd wymaga osobnych ustaleń i upoważnienia przed rozpoczęciem pracy.",
+    ],
     eyebrow: "Zgłoszenie przeglądu / zapisane",
     title: "Twoje zgłoszenie zostało zapisane.",
     intro:
@@ -178,6 +196,7 @@ export function ReviewRequestConfirmed({
     );
   }
 
+  const fitCallRequest = confirmation.requestKind === "fit-call";
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
   const agentActionRequest =
@@ -186,7 +205,9 @@ export function ReviewRequestConfirmed({
     confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
     confirmation.requestKind === "ai-agent-action-proof-run";
-  const nextSteps = publicExposureReview
+  const nextSteps = fitCallRequest
+    ? text.fitCallNextSteps
+    : publicExposureReview
     ? text.publicExposureNextSteps
     : agentActionRequest
       ? text.agentActionNextSteps
@@ -231,19 +252,19 @@ export function ReviewRequestConfirmed({
     >
       <section className="mb-10 max-w-[760px]">
         <p className={`${verificationLight.label} ${verificationLight.trust}`}>
-          {text.eyebrow}
+          {fitCallRequest ? text.fitCallEyebrow : text.eyebrow}
         </p>
         <h1
           className={`mt-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] md:text-5xl ${verificationLight.title}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {text.title}
+          {fitCallRequest ? text.fitCallTitle : text.title}
         </h1>
         <p className={`mt-5 max-w-[680px] text-base leading-relaxed ${verificationLight.body}`}>
-          {text.intro}
+          {fitCallRequest ? text.fitCallIntro : text.intro}
         </p>
         <p className={`mt-4 max-w-[680px] text-sm leading-relaxed ${verificationLight.muted}`}>
-          {text.boundaryNote}
+          {fitCallRequest ? text.fitCallBoundary : text.boundaryNote}
         </p>
       </section>
 

@@ -21,10 +21,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   return {
     title: agentActionOrder
-      ? `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
+      ? params.fitCall === "1" ? "Poproś o 20-minutową rozmowę z ekspertem" : `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
       : "To zgłoszenie nie rozpoczyna przeglądu",
     description: agentActionOrder
-      ? `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
+      ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Operator potwierdzi dostępny termin zaproszeniem albo zaproponuje inne." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
       : "Ten link nie jest dostępny dla nowych zleceń. Istniejące zgłoszenia i podpisane umowy zachowują pierwotne warunki.",
     alternates: languageAlternates("/pl/contact", {
       en: "/contact",
@@ -44,6 +44,26 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
     return (
       <>
         <NewSalesIntakeClosed locale="pl" reason={decision.reason} />
+        <ContactCompanyDetails locale="pl" />
+      </>
+    );
+  }
+  if (params.fitCall === "1") {
+    return (
+      <>
+        <main id="main-content" tabIndex={-1} className="buyer-page">
+          <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 md:py-12">
+            <header className="mb-6 max-w-[720px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.pl}</p>
+              <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Porozmawiaj z ekspertem</h1>
+              <p className="mt-4 text-base leading-7 text-text-muted">Poproś o 20-minutową rozmowę. Podaj tylko krótki, niepoufny temat, służbowy adres e-mail, strefę czasową i dwa preferowane terminy. To prośba, a nie rezerwacja.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">Po potwierdzeniu adresu kodem operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne. {PUBLIC_AGENT_ACTION_OFFER.price.pl} dotyczy osobno uzgodnionego przeglądu; to zgłoszenie nie upoważnia do jego rozpoczęcia.</p>
+            </header>
+            <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
+              <ContactForm compact fitCall locale="pl" intent={decision.intent} />
+            </section>
+          </div>
+        </main>
         <ContactCompanyDetails locale="pl" />
       </>
     );

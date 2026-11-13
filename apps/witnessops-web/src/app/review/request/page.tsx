@@ -25,10 +25,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     offer: params.offer,
   });
   const title = decision.state === "selected"
-    ? `Request ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
+    ? params.fitCall === "1" ? "Request a 20-minute expert conversation" : `Request ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
     : "This link does not start a new review";
   const description = decision.state === "selected"
-    ? requestDescription
+    ? params.fitCall === "1" ? "Request a 20-minute expert conversation. Share a non-secret topic, time zone and two preferred times. An operator confirms availability by invitation or offers alternatives." : requestDescription
     : "This request link is unavailable for new engagements. Existing requests and issued agreements keep their original terms.";
 
   return {
@@ -81,6 +81,26 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     return (
       <>
         <NewSalesIntakeClosed locale="en" reason={decision.reason} />
+        <ContactCompanyDetails locale="en" />
+      </>
+    );
+  }
+  if (params.fitCall === "1") {
+    return (
+      <>
+        <main id="main-content" tabIndex={-1} className="buyer-page">
+          <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 md:py-12">
+            <header className="mb-6 max-w-[720px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.en}</p>
+              <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Talk to an expert</h1>
+              <p className="mt-4 text-base leading-7 text-text-muted">Request a 20-minute conversation. Share only a short, non-secret topic, your work email, time zone and two preferred times. The times are requests, not a booking.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">An operator checks the calendar after your email-code check, then confirms an available time by invitation or replies with alternatives. {PUBLIC_AGENT_ACTION_OFFER.price.en} applies to a separately agreed review; this request does not authorize or start one.</p>
+            </header>
+            <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
+              <ContactForm compact fitCall intent={decision.intent} campaignAttribution={campaignAttribution} />
+            </section>
+          </div>
+        </main>
         <ContactCompanyDetails locale="en" />
       </>
     );

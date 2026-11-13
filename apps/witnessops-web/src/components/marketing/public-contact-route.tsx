@@ -74,6 +74,9 @@ export function PublicContactRoute({
   const actionClass = premium
     ? "border-[#b89b62] bg-[#b89b62] text-[#17130d]"
     : "border-brand-accent bg-brand-accent text-text-inverse";
+  const expertUrl = new URL(primaryHref, "https://witnessops.com");
+  expertUrl.searchParams.set("fitCall", "1");
+  const expertHref = `${expertUrl.pathname}${expertUrl.search}${expertUrl.hash}`;
 
   if (compact) {
     return (
@@ -83,12 +86,12 @@ export function PublicContactRoute({
         data-public-contact-variant="footer"
       >
         <Link
-          href={primaryHref}
+          href={premium ? expertHref : primaryHref}
           data-footer-review-cta
           className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-sm border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 ${actionClass}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {premium ? (polish ? "Zapytaj eksperta" : "Ask an expert") : routeCta}
+          {premium ? (polish ? "Porozmawiaj z ekspertem" : "Talk to an expert") : routeCta}
         </Link>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           {polish ? "Lub napisz:" : "Discuss a review:"}{" "}

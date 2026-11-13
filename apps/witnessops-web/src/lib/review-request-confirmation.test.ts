@@ -61,6 +61,32 @@ test("builds the browser-held record for standalone email verification", () => {
   );
 });
 
+test("fit-call confirmation requires the verified server marker and stores no request details", () => {
+  const fitCallResponse = {
+    ...validResponse,
+    requestMode: "fit-call",
+    requestIntent: "agent-action-security-review",
+    requestLocale: "en",
+  };
+  assert.equal(buildReviewRequestConfirmation(validResponse, {
+    locale: "en", requestKind: "fit-call", source: "request-form",
+  }), null);
+  assert.equal(buildReviewRequestConfirmation(fitCallResponse, {
+    locale: "en", requestKind: "agent-action-security-review", source: "request-form",
+  }), null);
+
+  const confirmation = buildStandaloneReviewRequestConfirmation(fitCallResponse);
+  assert.ok(confirmation);
+  assert.equal(confirmation.requestKind, "fit-call");
+  assert.deepEqual(Object.keys(confirmation).sort(), [
+    "confirmedAt", "locale", "requestKind", "requestReference", "schema", "source",
+  ]);
+  const text = buildReviewRequestConfirmationText(confirmation);
+  assert.match(text, /At request verification: time not booked/);
+  assert.match(text, /later email or invitation determines current status/);
+  assert.doesNotMatch(text, /buyer@example\.com|iss_private_issuance|thread_private/);
+});
+
 test("fails closed for a legacy assessment or unexpected verified state", () => {
   assert.equal(
     buildReviewRequestConfirmation(

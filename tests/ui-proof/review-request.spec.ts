@@ -323,6 +323,85 @@ test("the agent enquiry recovers from request and code errors and confirms throu
   }
 });
 
+test("expert footer CTA requests a time through email verification without claiming a booking", async ({ browser }) => {
+  for (const locale of ["en", "pl"] as const) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    const prefix = locale === "pl" ? "/pl" : "";
+    const cta = locale === "pl" ? "Porozmawiaj z ekspertem" : "Talk to an expert";
+    const title = locale === "pl" ? "Poproszono o termin, bez rezerwacji." : "Time requested, not booked.";
+    const topic = locale === "pl" ? "Przegląd jednego działania agenta" : "Review one agent action";
+    const preferredStarts = [14, 15].map((days) => {
+      const start = new Date(Date.now() + days * 86_400_000);
+      start.setUTCHours(12, 0, 0, 0);
+      return start.toISOString().slice(0, 16);
+    });
+    let requestBody: Record<string, unknown> | null = null;
+    let verificationCount = 0;
+    await page.route("**/api/review/request", async (route) => {
+      requestBody = route.request().postDataJSON() as Record<string, unknown>;
+      await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({
+        issuanceId: "iss_fit_call_test", email: "buyer@example.org", expiresAt: new Date(Date.now() + 600_000).toISOString(),
+      }) });
+    });
+    await page.route("**/api/verify-token", async (route) => {
+      verificationCount += 1;
+      expect(route.request().postDataJSON()).toEqual({
+        issuanceId: "iss_fit_call_test", email: "buyer@example.org", token: "ABCD-EFGH-JKLM",
+      });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+        channel: "engage", intakeId: "int_fit_call_test", issuanceId: "iss_fit_call_test",
+        threadId: null, email: "buyer@example.org", verifiedAt: new Date().toISOString(),
+        status: "verified", admissionState: "admitted", assessmentRunId: null,
+        assessmentStatus: "unavailable", postVerifyPath: `${prefix}/review/request/confirmed`,
+        ...(verificationCount === 2 ? { requestMode: "fit-call" } : {}),
+      }) });
+    });
+
+    await page.goto(prefix || "/", { waitUntil: "networkidle" });
+    const footerLink = page.locator("#site-footer").getByRole("link", { name: cta, exact: true });
+    await expect(footerLink).toHaveAttribute("href", /\/review\/request\?.*offerId=agent-action-security-review.*fitCall=1/);
+    await footerLink.click();
+    await expect(page).toHaveURL(new RegExp(`${prefix}/review/request\\?.*fitCall=1`));
+    await expect(page.locator("main h1")).toHaveText(cta);
+    const form = page.locator("main form");
+    await expect(form.locator("#workflow, #approvalBoundary, #decisionTiming")).toHaveCount(0);
+    await expect(form.locator("#timezone")).not.toHaveValue("");
+    await form.locator("#email").fill("buyer@example.org");
+    await form.locator("#topic").fill(topic);
+    await form.locator("#timezone").fill("Europe/Warsaw");
+    await form.locator("#preferredStart1").fill(preferredStarts[0]);
+    await form.locator("#preferredStart2").fill(preferredStarts[1]);
+    await form.locator('button[type="submit"]').click();
+    await expect(page.locator("#verification-code")).toBeVisible();
+    await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
+    expect(requestBody).toMatchObject({
+      email: "buyer@example.org", intent: "agent-action-security-review", locale,
+      fitCall: { topic, timezone: "Europe/Warsaw", preferredStarts },
+    });
+    expect(JSON.stringify(requestBody?.scope)).not.toContain(topic);
+    expect(JSON.stringify(requestBody?.scope)).not.toContain(preferredStarts[0]);
+
+    await page.locator("#verification-code").fill("ABCD-EFGH-JKLM");
+    await form.locator('input[type="checkbox"]').check();
+    await form.locator('button[type="submit"]').click();
+    await expect(page.locator("#verification-code-error")).toBeVisible();
+    await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
+    expect(await page.evaluate(() => sessionStorage.getItem("witnessops.review-request-confirmation.v1"))).toBeNull();
+
+    await form.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL(new RegExp(`${prefix}/review/request/confirmed$`));
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    await expect(page.locator('[data-ui-proof-id="review-request-record"]')).toContainText("int_fit_call_test");
+    const held = await page.evaluate(() => sessionStorage.getItem("witnessops.review-request-confirmation.v1") ?? "");
+    expect(JSON.parse(held).requestKind).toBe("fit-call");
+    expect(held).not.toContain(topic);
+    expect(held).not.toContain(preferredStarts[0]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await context.close();
+  }
+});
+
 test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {

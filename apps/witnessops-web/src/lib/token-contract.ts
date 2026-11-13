@@ -95,8 +95,23 @@ export const engageRequestSchema = z.object({
   scope: longTextSchema,
 });
 
+export const fitCallRequestSchema = z.object({
+  topic: z.string().trim().min(1).max(INTAKE_SHORT_TEXT_MAX_LENGTH).refine(
+    (value) => !/[\u0000-\u001F\u007F-\u009F\u2028\u2029\u202A-\u202E\u2066-\u2069]/.test(value),
+    { message: "Discussion topic must be a single line." },
+  ),
+  timezone: z.string().trim().min(1).max(64),
+  preferredStarts: z.tuple([
+    z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+  ]),
+}).strict();
+
+export type FitCallRequest = z.infer<typeof fitCallRequestSchema>;
+
 export const reviewRequestSchema = engageRequestSchema.extend({
   scope: z.string().trim().min(1).max(INTAKE_LONG_TEXT_MAX_LENGTH),
+  fitCall: fitCallRequestSchema.optional(),
 });
 
 export const supportRequestSchema = z.object({
@@ -161,6 +176,7 @@ export const verifyTokenResponseSchema = z.object({
     }),
   requestIntent: z.string().trim().max(240).nullable().optional(),
   requestLocale: z.enum(["en", "pl"]).optional(),
+  requestMode: z.literal("fit-call").optional(),
   run_id: z.string().optional(),
 });
 
