@@ -41,7 +41,7 @@ test("stored offer text is escaped in operator rendering", () => {
     submission: { offerSnapshot: { ...recorded, scopeRevision: "<script>bad()</script>",
       price: { ...recorded.price, en: "<img src=x onerror=bad()>" } } },
   }));
-  assert.doesNotMatch(html, /<script>|<img/);
+  assert.doesNotMatch(html, /<script>|<img/i);
   assert.match(html, /&lt;script&gt;/);
   assert.match(html, /&lt;img/);
 });
