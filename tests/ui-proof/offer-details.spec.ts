@@ -76,12 +76,16 @@ test("current review puts its price and fit-check CTA before long detail on narr
       await expect(main.locator("h1")).toHaveText(locale === "en" ? "Agent Action Security Review" : "Przegląd zabezpieczeń działania agenta AI");
       await expect(main.locator("header")).toContainText("Agent Action Security Review");
       const commercial = main.getByRole("complementary");
-      await expect(commercial).toContainText(locale === "en" ? "€2,500\u00a0excl.\u00a0VAT" : "€2\u00a0500\u00a0bez\u00a0VAT");
+      await expect(commercial).toContainText(locale === "en" ? "Fee agreed in signed SOW" : "Cena ustalana w podpisanym SOW");
       const cta = commercial.getByRole("link");
       const target = new URL((await cta.getAttribute("href")) ?? "", "http://witnessops.test");
       expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);
       expect(target.searchParams.get("offerId")).toBe("agent-action-security-review");
       await expect(main).toContainText(locale === "en" ? "effective permissions" : "efektywne uprawnienia");
+      await expect(main).toContainText(locale === "en" ? "actual saved change" : "faktycznie zapisana zmiana");
+      await expect(main).toContainText(locale === "en" ? "Authorization must be enforced before the system changes" : "System musi egzekwować upoważnienie przed zmianą");
+      await expect(main).toContainText(locale === "en" ? "resisted under tested conditions" : "odparcie w warunkach testu");
+      await expect(main).not.toContainText(/€2,500|€2[ \u00a0]500|No execution of the reviewed action/);
       await expect(main).toContainText(locale === "en" ? "Explicit unknowns" : "Czego nie udało się ustalić i jakich dowodów brakuje");
       await expect(main).not.toContainText(/€1,900|separate quote|10 working days/);
       await expect(main.getByRole("link", { name: /historical synthetic|Historyczny syntetyczny/ })).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");

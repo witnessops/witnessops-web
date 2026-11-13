@@ -117,11 +117,12 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
     }
     if (route === "/") {
       const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
-      const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { price: string | number; priceCurrency: string; valueAddedTaxIncluded: boolean } } }> }).find(value => value["@type"] === "ItemList");
+      const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { description: string; price?: string | number } } }> }).find(value => value["@type"] === "ItemList");
       expect(services?.itemListElement).toHaveLength(1);
       expect(services?.itemListElement?.[0].item.name).toBe("Agent Action Security Review");
-      expect(Number(services?.itemListElement?.[0].item.offers.price)).toBe(2500);
-      expect(services?.itemListElement?.[0].item.offers).toMatchObject({ priceCurrency: "EUR", valueAddedTaxIncluded: false });
+      expect(services?.itemListElement?.[0].item.offers.description).toBe("Fee agreed in signed SOW");
+      expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("price");
+      expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("priceCurrency");
     }
   }
   for (const href of localLinks) {

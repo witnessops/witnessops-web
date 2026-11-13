@@ -35,7 +35,7 @@ test("pricing renders the same agent review through shared catalogue presentatio
     [...html.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
     ["agent-action"],
   );
-  assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
+  assert.match(html, /Fee agreed in signed SOW/);
   assert.doesNotMatch(html, /€1,900\u00A0excl.\u00A0VAT/);
   assert.doesNotMatch(html, /enquiryPath=early-bird|Internet Footprint Review|€500|offerId=agent-tools-access-review/);
   assert.match(html, /does not authorise collection or start a review/);

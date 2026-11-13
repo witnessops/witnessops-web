@@ -10,7 +10,7 @@ for (const width of [390, 1440]) {
     page.on("pageerror", error => errors.push(error.message));
     expect((await page.goto("/"))?.status()).toBe(200);
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Understand the controls before your AI agent acts.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test the actions your AI agent should refuse.");
     await expect(hero).toContainText("engineering teams and AI implementation partners");
     const primary = hero.getByRole("link", { name: "Request an agent review" });
     await expect(primary).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
@@ -23,7 +23,7 @@ for (const width of [390, 1440]) {
     const agent = page.locator(`[data-home-offer="${PUBLIC_AGENT_ACTION_REVIEW_ID}"]`);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
     await expect(agent).toContainText("Inspect the trigger, executing identity, permissions, approvals and available execution evidence.");
-    await expect(agent).toContainText("€2,500\u00A0excl.\u00A0VAT");
+    await expect(agent).toContainText("Fee agreed in signed SOW");
     await expect(agent.getByRole("link", { name: "Request an agent review" })).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
     await expect(agent).not.toContainText(/10 working days|3 working days|€550|550 €|€1,900/);
     await expect(page.locator("main")).not.toContainText("Request an external review");

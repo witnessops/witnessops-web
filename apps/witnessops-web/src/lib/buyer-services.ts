@@ -150,8 +150,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     price: PUBLIC_AGENT_ACTION_OFFER.price,
     timing: PUBLIC_AGENT_ACTION_OFFER.timing,
     boundary: {
-      en: "One consequential agent or automation action. Read, inspect, reconstruct and report only. No platform installation, production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring, or certification that an agent is safe.",
-      pl: "Jedno istotne działanie agenta lub automatyzacji. Tylko odczyt, inspekcja, rekonstrukcja i raport. Bez instalacji platformy, zmian produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitorowania i certyfikacji, że agent jest bezpieczny.",
+      en: "Active adversarial testing of one consequential action within the agreed environment. Authorization must be enforced before the system changes. No production changes without separate explicit authorization, destructive activity, persistence, remediation implementation, continuous monitoring or safety certification. Retest cases and allowance must be specified in the agreement.",
+      pl: "Aktywne testy jednego istotnego działania w uzgodnionym środowisku. Upoważnienie musi być egzekwowane przed zmianą systemu. Bez zmian produkcyjnych bez osobnego wyraźnego upoważnienia, działań destrukcyjnych, utrzymywania dostępu, wdrażania poprawek, ciągłego monitoringu i certyfikacji bezpieczeństwa. Przypadki i limit ponownych testów określa umowa.",
     },
     requestCta: {
       en: "Request an agent review",

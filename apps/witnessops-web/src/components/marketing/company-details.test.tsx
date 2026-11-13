@@ -254,7 +254,7 @@ test("company details render on the company and contact pages, and the footer ke
     }),
     "/review/request",
   );
-  assert.match(priced, /€2,500\u00A0excl.\u00A0VAT/);
+  assert.match(priced, /Fee agreed in signed SOW/);
   assert.match(external, /no longer available/);
   assert.doesNotMatch(external, /€1,900/);
 });

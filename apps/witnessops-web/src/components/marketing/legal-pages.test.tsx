@@ -104,8 +104,8 @@ test("media kit names the brand and the legal entity without withdrawn offers", 
     assert.match(
       html,
       locale === "pl"
-        ? /jednego ważnego działania agenta lub automatyzacji/
-        : /one consequential agent or automation action/,
+        ? /jednego istotnego działania agenta AI w uzgodnionym środowisku/
+        : /one consequential AI-agent action in an agreed environment/,
     );
     assert.doesNotMatch(html, /External Attack Surface Review|witnessops-homepage-(desktop|mobile)\.png|id="screenshots"/);
     assert.doesNotMatch(html, /Karol|Stefańsk|stefanski|AI Agent Tools|€250|€750|Start with a question|HubSpot|Notion|Google Drive/i);

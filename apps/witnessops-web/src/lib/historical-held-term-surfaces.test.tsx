@@ -103,7 +103,7 @@ test("buyer docs and historical request copy use the signed-statement timing lin
   );
   for (const source of [reviewWorkflow, buyerPath]) {
     assert.match(source, /Agent Action Security Review/);
-    assert.match(source, /€2,500 excluding VAT/);
+    assert.match(source, /fee agreed in signed SOW/);
     assert.match(source, /External Attack Surface Review is no longer available for new engagements/);
     assert.doesNotMatch(source, /€1,900 excluding VAT/);
     assert.ok(source.includes(CURRENT_TIMING));
@@ -134,12 +134,13 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     assert.match(html, /agent-tools-access-review/);
     assert.doesNotMatch(html, /value="agent-action-security-review"/);
     if (locale === "en") {
-      assert.match(html, /€2,500/);
+      assert.match(html, /Fee agreed in signed SOW/);
+      assert.doesNotMatch(html, /€2,500/);
       assert.match(html, /no longer available for new engagements/);
       assert.doesNotMatch(html, /€1,900/);
     }
     if (locale === "pl") {
-      assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.match(html, /Cena ustalana w podpisanym SOW/);
       assert.match(html, /nie jest już dostępny/);
       assert.doesNotMatch(html, /€1\u00A0900/);
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);

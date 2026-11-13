@@ -15,23 +15,23 @@ function TextLink({ href, children, uiProofId }: { href: string; children: React
 }
 
 const IS = [
-  ["One bounded review", "One named consequential agent or automation action."],
+  ["One bounded test", "Active adversarial testing of one named consequential agent action in an agreed environment."],
   ["Written findings tied to evidence", "Each finding sits beside the evidence that supports it."],
   ["Explicit unknowns", "What the evidence did not establish is named in writing."],
   ["A report you keep", "The written report and evidence are handed over at readout."],
 ] as const;
 
 const ISNT = [
-  ["Not execution", "The review does not perform the agent action."],
-  ["Not a production change", "We read, inspect, reconstruct and report."],
+  ["Agreed test actions only", "We attempt prohibited outcomes only within the written test boundary."],
+  ["Production needs separate authority", "No production changes without separate explicit authorization."],
   ["Not certification", "No badge, seal or claim that an agent is safe is issued."],
   ["Not remediation or monitoring", "Recommendations are prioritised; fixing and continuous monitoring stay outside this review."],
 ] as const;
 
 const STEPS = [
   ["01", "Start without secrets", "Describe one action and the decision you need to make. Do not send credentials or production evidence."],
-  ["02", "Agree the boundary", "Scope, exclusions, price, authority and evidence handling are agreed before work starts. Delivery timing is agreed in the signed statement of work."],
-  ["03", "Review the findings", "Receive the action map, sourced findings and prioritised recommendations in a written report and readout. Unavailable evidence and unanswered questions stay explicit."],
+  ["02", "Agree the boundary", "Environment, test cases, stop conditions, recovery, fee, authority, evidence handling and any retest allowance are agreed before testing. Delivery timing is agreed in the signed statement of work."],
+  ["03", "Review the findings", "Receive the action map, test results, demonstrated impact, reproduction conditions and prioritised recommendations in a written report and readout. Unavailable evidence and unanswered questions stay explicit."],
 ] as const;
 
 const PRINCIPLES = [
@@ -89,7 +89,7 @@ export function SimpleHomepage() {
       <div className={styles.offerIntro}>
         <h2>{text.reviewsTitle}</h2>
         <p>{text.aiWhoFor}</p>
-        <p>Issuing a refund, changing a record or granting access: understand the path from trigger to action, where approval is required and what the available evidence supports.</p>
+        <p>Issuing a refund, changing a record or granting access: test the complete path from attacker-controlled input to the actual saved change and its evidence. Authorization must be enforced before the system changes.</p>
         <p className={styles.note}>{text.reviewsBody}</p>
       </div>
       <div className={styles.cards}>
@@ -107,7 +107,7 @@ export function SimpleHomepage() {
         ))}
       </div>
       </div>
-      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
+      <div className={styles.receive}><h2 className={styles.eyebrow}>What you receive</h2><p>An action map, test results, demonstrated impact, reproduction conditions, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout. A request that exceeds one consequential action is narrowed or declined. An enquiry does not authorise collection or start a review.</p></div>
     </div></section>
     <section className={`${styles.section} ${styles.specimen}`} aria-labelledby="home-specimen-heading" data-agent-action-specimen>
       <div className={styles.frame}>

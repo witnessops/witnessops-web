@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 
 - Start from `docs/commercial/README.md` and `docs/commercial/OFFER_IDENTITY_AND_NAMING_POLICY.md`.
-- The only public paid offer is Agent Action Security Review at €2,500 excluding VAT. External Attack Surface Review is parked: keep the historical record, and do not sell it or present it as the agent review.
+- The only public paid offer is Agent Action Security Review: active adversarial testing of one consequential AI-agent action in an agreed environment. Use `docs/commercial/19-agent-action-adversarial-testing-offer.md`. Fee, delivery capacity and retest cases/allowance must be agreed in the signed SOW; no expanded fixed price is approved. The earlier €2,500 read-only terms remain for issued agreements only. External Attack Surface Review is parked: keep the historical record, and do not sell it or present it as the agent review.
 - The public contact address is `engage@mail.witnessops.com` only.
 - Delivery timing for the public offer is `Delivery timing per signed SOW`.
 - Held or historical prices and terms tracked in the commercial registry must never appear on public surfaces or in new-sales selection. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`. Do not copy those held literals into current public copy.

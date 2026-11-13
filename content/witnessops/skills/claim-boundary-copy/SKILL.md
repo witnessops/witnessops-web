@@ -2,8 +2,8 @@
 name: claim-boundary-copy
 description: >
   Use when drafting public copy, sample-case pages, skill descriptions, or
-  verification results. Keeps claims inside WitnessOps doctrine. Never call the
-  work a pentest, certification, or proof that a system is secure.
+  verification results. Keep claims inside the agreed test scope; never imply
+  whole-environment penetration testing, certification, or proof a system is secure.
 ---
 
 # Claim boundary copy
@@ -14,9 +14,11 @@ Every public sentence must stay inside what the artefact actually established.
 
 Always be willing to say:
 
-- No exploitation
-- Fixed scope
-- No credentials and no internal access
+- Fixed scope and written authority before work
+- For the current Agent Action Security Review, attempts at agreed prohibited outcomes are included; do not apply the former read-only/no-exploitation exclusion
+- Name the environment, permitted test actions, stop conditions and recovery; authorization must be enforced before a system changes
+- No credentials through public enquiry or chat; any limited test access is arranged separately after agreement
+- Free hostname checks and historical reviews retain their own no-exploitation and access exclusions
 - No destructive testing and no continuous monitoring
 - No claim that this is a pentest, certification, or proof the system is secure
 

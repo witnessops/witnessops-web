@@ -45,15 +45,15 @@ test("language pairs are unique, reciprocal, self-referencing, and absolute", ()
   }
 });
 
-test("homepage review data names the agent review price with VAT excluded", () => {
+test("homepage review data uses an agreed fee without inventing a numeric price", () => {
   const data = homepageReviewsJsonLd();
   const offers = data.itemListElement.map((entry) => entry.item.offers);
-  assert.deepEqual(offers.map((offer) => offer.price), ["2500"]);
+  assert.deepEqual(offers.map((offer) => offer.description), ["Fee agreed in signed SOW"]);
   assert.equal(data.itemListElement[0]?.item.name, "Agent Action Security Review");
-  assert.ok(offers.every((offer) => offer.priceCurrency === "EUR" && offer.valueAddedTaxIncluded === false));
+  assert.ok(offers.every((offer) => !Object.hasOwn(offer, "price") && !Object.hasOwn(offer, "priceCurrency")));
 });
 
-test("active detail structured data keeps fixed price, localized identity and agreed timing", () => {
+test("active detail structured data keeps scope and agreed timing without the former fee", () => {
   for (const locale of ["en", "pl"] as const) {
     const service = agentActionServiceJsonLd(locale);
     assert.equal(service.name, "Agent Action Security Review");
@@ -61,14 +61,11 @@ test("active detail structured data keeps fixed price, localized identity and ag
     assert.deepEqual(service.offers, {
       "@type": "Offer",
       url: service.url,
-      price: "2500",
-      priceCurrency: "EUR",
-      valueAddedTaxIncluded: false,
       description: locale === "en"
-        ? "€2,500 excl. VAT. Delivery timing agreed in the signed statement of work."
-        : "€2 500 bez VAT. Termin realizacji według podpisanego SOW.",
+        ? "Fee agreed in signed SOW. Delivery timing agreed in the signed statement of work."
+        : "Cena ustalana w podpisanym SOW. Termin realizacji według podpisanego SOW.",
     });
-    assert.doesNotMatch(JSON.stringify(service), /AggregateOffer|lowPrice|1900|10 working days|agent-tools-access-review/);
+    assert.doesNotMatch(JSON.stringify(service), /AggregateOffer|lowPrice|2500|2,500|1900|10 working days|agent-tools-access-review/);
   }
 });
 

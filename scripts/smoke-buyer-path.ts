@@ -58,8 +58,8 @@ const WITHDRAWN_PURCHASE_MARKERS = [
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Understand the controls before your AI agent acts.", "engineering teams and AI implementation partners", "Inspect the trigger, executing identity, permissions, approvals and available execution evidence.", "Action map", "Findings linked to evidence", "Prioritised recommendations", "Documented unknowns", "Written report and readout", PUBLIC_AGENT_ACTION_OFFER.price.en, "Evidence survives the dashboard.", "Discuss a review:", "engage@mail.witnessops.com", "Request an agent review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), "offerId=agent-action-security-review", "Consequential action", "Systems involved", "Decision deadline", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Tool · not a review", "Scope before work. Evidence beside findings.", "Useful evidence.", "Explicit limits."],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "€1,900", "Request an external review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Submit non-secret enquiry", "Which review?", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
+    requiredMarkers: ["WitnessOps", "Test the actions your AI agent should refuse.", "engineering teams and AI implementation partners", "Authorization must be enforced before the system changes.", "Action map", "Findings linked to evidence", "Prioritised recommendations", "Documented unknowns", "Written report and readout", PUBLIC_AGENT_ACTION_OFFER.price.en, "Evidence survives the dashboard.", "Discuss a review:", "engage@mail.witnessops.com", "Request an agent review", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), "offerId=agent-action-security-review", "Consequential action", "Systems involved", "Decision deadline", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Tool · not a review", "Scope before work. Evidence beside findings.", "Useful evidence.", "Explicit limits."],
+    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "€1,900", "Request an external review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Submit non-secret enquiry", "Which review?", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
   },
   {
     path: "/check",
@@ -106,7 +106,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Request an agent review",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: [
+    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
       "From €1,500",
@@ -182,7 +182,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "broad compliance certification",
       "legal audit opinion",
       "Minimal buyer reading order",
-      "€2,500 excluding VAT",
+      "fee agreed in signed SOW",
       "no longer available for new engagements",
       "Delivery timing agreed in the signed statement of work.",
       "offerId=agent-action-security-review",
@@ -213,11 +213,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Review workflow",
       "Agent Action Security Review",
-      "€2,500 excluding VAT",
+      "fee agreed in signed SOW",
       "External Attack Surface Review is no longer available for new engagements",
       "Delivery timing agreed in the signed statement of work.",
       "offerId=agent-action-security-review",
-      "It is not a penetration test.",
+      "It is not a penetration test of the whole environment or a security guarantee.",
     ],
     prohibitedMarkers: [
       "fixed quote after scope",
@@ -345,7 +345,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "A non-secret fit check comes first. No work starts from the enquiry.",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: [
+    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
       "From €1,500",
@@ -418,8 +418,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Poznaj mechanizmy kontroli, zanim agent AI wykona działanie.", "Zapytaj o przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
-    prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
+    requiredMarkers: ["Sprawdź działania, których agent AI powinien odmówić.", "Zapytaj o przegląd agenta", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
+    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
     path: "/pl/catalog",
@@ -430,7 +430,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Zapytaj o przegląd agenta",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: [
+    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
       "Co się wydarzyło?",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
@@ -585,7 +585,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/review/request?offerId=agent-action-security-review",
     requiredMarkers: [
       "Tell us what you want to check",
-      "€2,500\u00A0excl.\u00A0VAT",
+      PUBLIC_AGENT_ACTION_OFFER.price.en,
       "Consequential action",
       "Systems involved",
       "Decision deadline",
@@ -914,7 +914,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "What this sample can show",
       "that an AI agent caused or authorized the tool calls",
       "Agent Action Security Review",
-      "€2,500\u00A0excl.\u00A0VAT",
+      PUBLIC_AGENT_ACTION_OFFER.price.en,
       "This synthetic one-action example is historical",
       "not a complete sample of the current paid review",
       "do not become standard review deliverables",

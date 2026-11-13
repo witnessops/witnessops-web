@@ -95,18 +95,18 @@ test("Polish rendered prices drop the middot and keep a non-breaking space", asy
     EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
   ].join("\n");
 
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fee agreed in signed SOW");
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, "€1,900\u00A0excl.\u00A0VAT");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
+  assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.amount, "1900");
   assert.doesNotMatch(rendered, FORBIDDEN);
-  assert.match(PUBLIC_AGENT_ACTION_OFFER.price.pl, LOCKED);
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Cena ustalana w podpisanym SOW");
   assert.match(EXTERNAL_ATTACK_SURFACE_OFFER.price.pl, LOCKED);
   const prices = rendered.match(/€[0-9\u00A0][^\n]{0,24}bez\u00A0VAT/g) ?? [];
-  assert.ok(prices.length >= 2);
+  assert.ok(prices.length >= 1);
   for (const price of prices) {
     assert.match(price, LOCKED);
   }
-  assert.match(rendered, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.doesNotMatch(rendered, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.match(rendered, /€1\u00A0900\u00A0bez\u00A0VAT/);
 });

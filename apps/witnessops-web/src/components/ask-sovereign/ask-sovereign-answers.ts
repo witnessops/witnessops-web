@@ -17,9 +17,9 @@ const CONTACT = "engage@mail.witnessops.com";
 function agentText(locale: SovereignLocale): string {
   const offer = PUBLIC_AGENT_ACTION_OFFER;
   if (locale === "pl") {
-    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${offer.price.pl}. ${offer.timing.pl}. Analizujemy dostępne materiały i opisujemy działanie w zakresie, który można ustalić. Nie wykonujemy działania ani nie zmieniamy systemu produkcyjnego.`;
+    return `${offer.name.pl} sprawdza jedno nazwane istotne działanie. Cena: ${offer.price.pl}. ${offer.timing.pl}. Aktywnie testujemy uzgodnione niedozwolone skutki: od treści kontrolowanej przez atakującego, przez decyzję agenta, wywołanie narzędzia lub API i efektywne uprawnienia, po zapisaną zmianę i dowody. Upoważnienie musi być egzekwowane przed zmianą. ${offer.retest.pl}`;
   }
-  return `${offer.name.en} reviews one named consequential action. The price is ${offer.price.en}. ${offer.timing.en}. Inspection and reconstruction only; the review does not execute the action or change production.`;
+  return `${offer.name.en} reviews one named consequential action. The price is ${offer.price.en}. ${offer.timing.en}. Active adversarial testing covers attacker-controlled input, the agent decision, tool or API execution, effective permissions, actual saved change and evidence. Authorization must be enforced before the system changes. ${offer.retest.en}`;
 }
 
 function externalText(locale: SovereignLocale): string {

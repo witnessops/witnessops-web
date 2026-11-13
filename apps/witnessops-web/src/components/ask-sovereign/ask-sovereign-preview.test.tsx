@@ -46,7 +46,7 @@ test("the default simulated preview keeps its disclosure and stores nothing but 
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
   assert.equal(SLOW_PENDING_MS, 6_000);
   assert.doesNotMatch(html, /Needs review/);
-  assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
+  assert.match(html, /Fee agreed in signed SOW/);
   assert.doesNotMatch(html, /€1,900\u00A0excl\.\u00A0VAT/);
   assert.match(source, /Simulated response\\u00A0· preview/);
   assert.match(source, /simulatedChip: "Simulated"/);
@@ -280,7 +280,7 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(html, /Na co Sovereign może odpowiedzieć/);
   assert.match(html, /Jak zacząć i gdzie napisać/);
   assert.match(html, /O tym asystencie/);
-  assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(html, /Cena ustalana w podpisanym SOW/);
   assert.doesNotMatch(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.match(html, /Odpowiadam na pytania o przegląd na podstawie opublikowanych informacji/);

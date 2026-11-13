@@ -25,6 +25,7 @@ import { PriceText } from "@/lib/price-unit";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
+  READ_ONLY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
 const MIDDOT = /·\s*bez VAT/;
@@ -57,7 +58,7 @@ function render(node: ReactNode) {
   );
 }
 
-test("simulated answer sources use the unbreakable price unit and no middot", () => {
+test("simulated answers use an agreed fee while historical price formatting stays intact", () => {
   const source = readFileSync(resolve(__dirname, "../components/ask-sovereign/ask-sovereign-answers.ts"), "utf8");
   assert.doesNotMatch(source, MIDDOT);
   const answers = [
@@ -67,22 +68,23 @@ test("simulated answer sources use the unbreakable price unit and no middot", ()
     sovereignAnswer("Co obejmuje External Attack Surface Review?", "pl").text,
   ];
   assert.match(answers[0], /no longer available/);
-  assert.match(answers[0], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
+  assert.match(answers[0], /Fee agreed in signed SOW/);
   assert.doesNotMatch(answers[0], new RegExp(escapeRegExp(EXTERNAL_PRICE_EN)));
-  assert.match(answers[1], new RegExp(escapeRegExp(AGENT_PRICE_EN)));
-  assert.match(answers[2], new RegExp(AGENT_PRICE_PL));
+  assert.match(answers[1], /Fee agreed in signed SOW/);
+  assert.match(answers[2], /Cena ustalana w podpisanym SOW/);
   assert.match(answers[3], /nie jest już dostępny/);
-  assert.match(answers[3], new RegExp(AGENT_PRICE_PL));
+  assert.match(answers[3], /Cena ustalana w podpisanym SOW/);
   assert.doesNotMatch(answers[3], new RegExp(EXTERNAL_PRICE_PL));
   for (const text of answers) {
     assert.doesNotMatch(text, MIDDOT);
     assert.doesNotMatch(text, LOOSE);
   }
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.price.amount, "2500");
+  assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.amount, "1900");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, AGENT_PRICE_EN);
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.price.en, AGENT_PRICE_EN);
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.en, EXTERNAL_PRICE_EN);
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, AGENT_PRICE_PL);
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.price.pl, AGENT_PRICE_PL);
   assert.equal(EXTERNAL_ATTACK_SURFACE_OFFER.price.pl, EXTERNAL_PRICE_PL);
   assert.equal(bindOfferPriceUnits("€2 500 · bez VAT"), AGENT_PRICE_PL);
   assert.equal(bindOfferPriceUnits("€1,900 excl. VAT"), EXTERNAL_PRICE_EN);

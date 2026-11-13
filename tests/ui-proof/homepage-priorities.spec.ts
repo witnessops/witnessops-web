@@ -15,7 +15,7 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Understand the controls before your AI agent acts.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test the actions your AI agent should refuse.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(1);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectFreeToolEntryPoint(page);
@@ -49,13 +49,13 @@ test("Polish homepage keeps the own-system case and localized docs destination e
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl");
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Zanim agent AI zadziała/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /Sprawdź działania, których agent AI powinien odmówić/);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
-  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("przegląd jednego ważnego działania agenta");
+  await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("jedno istotne działanie w uzgodnionym środowisku");
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText("Agent Action Security Review");
   const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-  await expect(hero).toContainText("€2 500 bez VAT");
+  await expect(hero).toContainText("Cena ustalana w podpisanym SOW");
   await expect(page.locator("#enquiry form")).toBeVisible();
   const offers = page.locator("[data-home-offer]");
   await expect(offers).toHaveCount(1);

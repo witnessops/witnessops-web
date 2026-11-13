@@ -48,7 +48,7 @@ test("media kit metadata has the exact title and canonical route", () => {
 test("media kit preserves the approved description, palette and type wording", () => {
   assert.match(
     contentSource,
-    /WitnessOps delivers Agent Action Security Review: a bounded, read-only review of one consequential agent or automation action/,
+    /WitnessOps delivers Agent Action Security Review: active adversarial testing of one consequential AI-agent action in an agreed environment/,
   );
   assert.doesNotMatch(contentSource, /bounded security and operational reviews|product screenshots/i);
   for (const marker of ["#0B0C0B", "#B89B62", "#F5F1E8", "Inter", "IBM Plex Mono"]) {

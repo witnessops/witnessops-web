@@ -70,24 +70,24 @@ test("EN and PL homepage sources project only the agent review", () => {
   for (const locale of ["en", "pl"] as const) {
     const copy = HOMEPAGE_TWO_OFFER_COPY[locale];
     assert.equal(copy.aiCta.length > 0, true);
-    assert.match(copy.headline, locale === "en" ? /Understand the controls before your AI agent acts/ : /Zanim agent AI zadziała/);
+    assert.match(copy.headline, locale === "en" ? /Test the actions your AI agent should refuse/ : /Sprawdź działania, których agent AI powinien odmówić/);
     assert.match(copy.support, /Agent Action Security Review/);
     assert.match(copy.freeBody, locale === "en" ? /Not a review/ : /nie jest przegląd/);
     assert.doesNotMatch(`${copy.headline} ${copy.aiHeadline} ${copy.support}`, /inventory|€500|One Server|€1,900/);
   }
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiCta, "Request an agent review");
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Understand the controls before your AI agent acts.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headline, "Test the actions your AI agent should refuse.");
   assert.match(HOMEPAGE_TWO_OFFER_COPY.en.support, /engineering teams and AI implementation partners/);
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "Understand the controls before your AI agent acts.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiQuestion, "Test the actions your AI agent should refuse.");
   assert.match(HOMEPAGE_TWO_OFFER_COPY.en.aiDescription, /documented unknowns/);
   assert.doesNotMatch(
     `${HOMEPAGE_TWO_OFFER_COPY.en.aiDescription} ${HOMEPAGE_TWO_OFFER_COPY.en.aiScopeNote}`,
     /10 working days|3 working days|€550|550 €|fixed quote after scope|€1,900/,
   );
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "Fee agreed in signed SOW");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "Evidence survives the dashboard.");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
-  assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Zanim agent AI zadziała/);
+  assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Sprawdź działania, których agent AI powinien odmówić/);
   assert.match(simple, /text\.evidenceHeadline/);
   assert.match(simple, /text\.aiScopeNote/);
   assert.match(simple, /salesReviewMailto\(\)/);

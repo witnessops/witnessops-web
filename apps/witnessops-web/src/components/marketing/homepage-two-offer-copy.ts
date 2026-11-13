@@ -1,4 +1,4 @@
-import { AGENT_PRICE_EN, AGENT_PRICE_PL } from "@/lib/offer-price-unit";
+import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
 
 /**
  * Homepage presentation of the only current paid review.
@@ -6,17 +6,17 @@ import { AGENT_PRICE_EN, AGENT_PRICE_PL } from "@/lib/offer-price-unit";
  */
 export const HOMEPAGE_TWO_OFFER_COPY = {
   en: {
-    headline: "Understand the controls before your AI agent acts.",
+    headline: "Test the actions your AI agent should refuse.",
     support:
-      "Agent Action Security Review helps engineering teams and AI implementation partners decide what needs attention before launch or handover. Review one consequential action and leave with sourced findings, clear priorities and explicit unknowns.",
-    aiQuestion: "Understand the controls before your AI agent acts.",
-    aiHeadline: "Understand the controls before your AI agent acts.",
+      "We try to make your AI agent take actions it should refuse, then show you the evidence and what needs fixing. Agent Action Security Review for engineering teams and AI implementation partners, within an agreed environment and test boundary.",
+    aiQuestion: "Test the actions your AI agent should refuse.",
+    aiHeadline: "Test the actions your AI agent should refuse.",
     aiWhoFor: "For engineering teams and AI implementation partners preparing to launch or hand over an agent.",
     aiScopeNote:
-      "One consequential action, such as issuing a refund, changing a record or granting access. Operating mode: read, inspect, reconstruct and report. We do not execute the action, change production, remediate, monitor continuously or certify that an agent is safe. This is not a penetration test.",
+      "One consequential action, such as issuing a refund, changing a record or granting access. Active adversarial testing only within the agreed environment and test boundary. Authorization must be enforced before the system changes. No production changes without separate explicit authorization, remediation implementation, continuous monitoring or safety certification. This is not a penetration test of the whole environment.",
     aiDescription:
-      "Inspect the trigger, executing identity, effective permissions, approvals and available execution evidence. You receive an action map, findings linked to evidence, prioritised recommendations, documented unknowns, a written report and a readout.",
-    aiPrice: AGENT_PRICE_EN,
+      "Test attacker-controlled input, the agent decision, tool or API execution, effective permissions and the actual saved change against the supporting evidence. Receive an action map, test results, demonstrated impact, reproduction conditions, prioritised recommendations, documented unknowns, a written report and a readout.",
+    aiPrice: PUBLIC_AGENT_ACTION_OFFER.price.en,
     aiCta: "Request an agent review",
     evidenceHeadline: "Evidence survives the dashboard.",
     contactLead: "Discuss a review:",
@@ -34,28 +34,30 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     deliverables: [
       "Action map",
       "Findings linked to evidence",
+      "Test results and demonstrated impact",
+      "Reproduction conditions",
       "Prioritised recommendations",
       "Documented unknowns",
       "Written report and readout",
     ],
   },
   pl: {
-    headline: "Zanim agent AI zadziała.",
+    headline: "Sprawdź działania, których agent AI powinien odmówić.",
     support:
-      "Agent Action Security Review to przegląd jednego ważnego działania agenta — na przykład zwrotu płatności lub nadania dostępu. Otrzymasz raport z ustaleniami, zaleceniami i opisem tego, czego nie udało się ustalić.",
-    aiHeadline: "Sprawdź jedno ważne działanie agenta.",
+      "Próbujemy skłonić agenta AI do działań, których powinien odmówić. Pokazujemy dowody i wskazujemy, co poprawić. Agent Action Security Review obejmuje jedno istotne działanie w uzgodnionym środowisku i granicach testu.",
+    aiHeadline: "Sprawdź, czy agent odmówi niedozwolonego działania.",
     aiWhoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     aiScopeNote:
-      "Przegląd obejmuje jedno istotne działanie, na przykład zwrot płatności, zmianę danych lub nadanie dostępu. Analizujemy dostępne materiały i odtwarzamy przebieg działania. Nie wykonujemy go, nie zmieniamy systemów produkcyjnych, nie wdrażamy poprawek, nie prowadzimy ciągłego monitoringu ani nie certyfikujemy bezpieczeństwa agenta.",
+      "Aktywne testy jednego istotnego działania w uzgodnionym środowisku. Upoważnienie musi być egzekwowane przed zmianą systemu. Zmiany produkcyjne wymagają osobnego wyraźnego upoważnienia. Bez wdrażania poprawek, ciągłego monitoringu i certyfikacji bezpieczeństwa agenta. To nie jest test penetracyjny całego środowiska.",
     aiDescription:
-      "Sprawdzamy, co uruchamia działanie i jaka tożsamość je wykonuje, na przykład konto usługi. W dostępnych materiałach szukamy informacji o jej uprawnieniach, zatwierdzaniu działania i zapisach wykonania.",
-    aiPrice: AGENT_PRICE_PL,
+      "Badamy treść kontrolowaną przez atakującego, decyzję agenta, wywołanie narzędzia lub API, efektywne uprawnienia, faktycznie zapisaną zmianę i dowody wyniku.",
+    aiPrice: PUBLIC_AGENT_ACTION_OFFER.price.pl,
     aiCta: "Zapytaj o przegląd agenta",
     evidenceHeadline: "Dowody zostają po zamknięciu panelu.",
     contactLead: "Zapytaj o przegląd:",
     reviewsEyebrow: "Jeden płatny przegląd",
     reviewsTitle: "Jedno działanie. Konkretny zakres.",
-    reviewsBody: "Przed uruchomieniem lub przekazaniem agenta sprawdź zabezpieczenia działania, które może zmienić dane, pieniądze lub dostęp.",
+    reviewsBody: "Testujemy uzgodnione niedozwolone skutki jednego działania, które może zmienić dane, pieniądze lub dostęp.",
     freeLabel: "Bezpłatne sprawdzenie — to nie jest przegląd",
     freeTitle: "Bezpłatne sprawdzenie",
     freeBody: "Publiczny podgląd nazwy hosta. Bez konta. To nie jest przegląd.",
@@ -67,6 +69,8 @@ export const HOMEPAGE_TWO_OFFER_COPY = {
     deliverables: [
       "Mapa działania",
       "Ustalenia powiązane z dowodami",
+      "Wyniki testów i wykazany wpływ",
+      "Warunki odtworzenia",
       "Zalecenia w kolejności ważności",
       "Informacje o tym, czego nie udało się ustalić",
       "Raport pisemny i omówienie",

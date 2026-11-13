@@ -141,7 +141,7 @@ export const LEGACY_AGENT_ACTION_OFFER = {
 } as const;
 
 /**
- * Founder-selected new public one-action offer (2026-10-08).
+ * Earlier public read-only one-action offer (2026-10-08), retained for issued terms.
  *
  * Preserve the immutable meaning of the earlier bounded-workflow-review
  * request identity. This new identity inherits the *same bounded commercial
@@ -149,7 +149,7 @@ export const LEGACY_AGENT_ACTION_OFFER = {
  * never a historical ID alias. The inventory-plus-action PRIMARY_OFFER remains
  * a separate source contract; no billing or live issuance is activated here.
  */
-export const PUBLIC_AGENT_ACTION_OFFER = {
+export const READ_ONLY_AGENT_ACTION_OFFER = {
   ...LEGACY_AGENT_ACTION_OFFER,
   id: "agent-action-security-review",
   cardSituation: {
@@ -196,6 +196,63 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
       "Jawne niewiadome",
       "Omówienie wyniku",
     ],
+  },
+} as const;
+
+/** Founder-directed active testing scope. Earlier agreements keep their accepted terms. */
+export const PUBLIC_AGENT_ACTION_OFFER = {
+  id: "agent-action-security-review",
+  route: "/reviews/agent-action-security-review",
+  requestRoute: "/review/request",
+  mailSubject: "WitnessOps request — Agent Action Security Review",
+  name: { en: PRIMARY_OFFER_PUBLIC_NAME, pl: PRIMARY_OFFER_PUBLIC_NAME },
+  unit: LEGACY_AGENT_ACTION_OFFER.unit,
+  fitCheck: LEGACY_AGENT_ACTION_OFFER.fitCheck,
+  fitCheckQuestion: LEGACY_AGENT_ACTION_OFFER.fitCheckQuestion,
+  commercialContract: {
+    scope: "one_action_adversarial_testing_v2",
+    price: "fee_agreed_in_signed_sow",
+    timing: "delivery_timing_per_signed_sow",
+  },
+  price: {
+    en: "Fee agreed in signed SOW",
+    pl: "Cena ustalana w podpisanym SOW",
+  },
+  timing: {
+    en: "Delivery timing agreed in the signed statement of work",
+    pl: "Termin realizacji według podpisanego SOW",
+  },
+  cardSituation: {
+    en: "Can attacker-controlled input make your agent take an action it should refuse?",
+    pl: "Czy treść kontrolowana przez atakującego może skłonić agenta do niedozwolonego działania?",
+  },
+  situation: {
+    en: "WitnessOps actively tests one consequential AI-agent action across the complete path: attacker-controlled input, the agent’s selected action, tool or API execution, effective permissions, the actual saved change, and the evidence supporting the result. Within an agreed environment and test boundary, we attempt prohibited outcomes and show which controls resisted, which failed, what changed, and what needs fixing.",
+    pl: "WitnessOps aktywnie testuje jedno istotne działanie agenta AI na całej ścieżce: treść kontrolowana przez atakującego, działanie wybrane przez agenta, wykonanie narzędzia lub wywołania API, efektywne uprawnienia, faktycznie zapisana zmiana i dowody wyniku. W uzgodnionym środowisku i granicach testu próbujemy doprowadzić do niedozwolonych skutków. Pokazujemy, które zabezpieczenia zadziałały, które zawiodły, co się zmieniło i co wymaga poprawy.",
+  },
+  result: {
+    en: "An action map, test results, demonstrated impact, reproduction conditions, mitigation recommendations, explicit gaps, and a written report and readout. Each case is failure demonstrated, resisted under tested conditions, inconclusive, or not tested.",
+    pl: "Mapa działania, wyniki testów, wykazany wpływ, warunki odtworzenia, zalecenia naprawcze, jawne luki w wiedzy oraz raport pisemny i omówienie. Wynik każdego przypadku: wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu.",
+  },
+  stages: {
+    en: ["Attacker-controlled input", "Agent decision", "Tool or API call", "Effective permissions", "Actual saved change", "Evidence"],
+    pl: ["Treść kontrolowana przez atakującego", "Decyzja agenta", "Wywołanie narzędzia lub API", "Efektywne uprawnienia", "Faktycznie zapisana zmiana", "Dowody"],
+  },
+  included: {
+    en: ["Action map", "Test results linked to evidence", "Demonstrated impact", "Reproduction conditions", "Mitigation recommendations", "Explicit unknowns", "Written report and readout"],
+    pl: ["Mapa działania", "Wyniki testów powiązane z dowodami", "Wykazany wpływ", "Warunki odtworzenia", "Zalecenia naprawcze", "Jawne niewiadome", "Raport pisemny i omówienie"],
+  },
+  defaultAuthority: {
+    en: "Written authorization, environment, permitted test actions, prohibited outcomes, stop conditions and recovery are agreed before testing. Authorization must be enforced before the system changes; the six stages describe coverage, not permission-check ordering.",
+    pl: "Pisemne upoważnienie, środowisko, dozwolone czynności testowe, niedozwolone skutki, warunki przerwania i odtworzenie stanu uzgadniamy przed testem. System musi egzekwować upoważnienie przed zmianą; sześć etapów opisuje zakres badania, a nie kolejność sprawdzania uprawnień.",
+  },
+  retest: {
+    en: "A retest can be included in the original agreement when its cases, window and allowance are specified. No default retest allowance is promised.",
+    pl: "Ponowny test może być częścią pierwotnej umowy, jeśli określono przypadki, termin i limit prac. Nie obiecujemy domyślnego zakresu ponownych testów.",
+  },
+  notIncluded: {
+    en: ["Testing outside the agreed action and environment", "Production changes without separate explicit authorization", "Destructive activity, persistence or unrelated data access", "Remediation implementation", "Unspecified or unlimited retesting", "Continuous monitoring or safety certification", "Whole-environment assurance or a security guarantee"],
+    pl: ["Testy poza uzgodnionym działaniem i środowiskiem", "Zmiany produkcyjne bez osobnego wyraźnego upoważnienia", "Działania destrukcyjne, utrzymywanie dostępu i dostęp do niepowiązanych danych", "Wdrażanie poprawek", "Nieuzgodnione lub nielimitowane ponowne testy", "Ciągły monitoring i certyfikacja bezpieczeństwa", "Ocena całego środowiska i gwarancja bezpieczeństwa"],
   },
 } as const;
 

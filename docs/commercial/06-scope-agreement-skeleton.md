@@ -40,17 +40,32 @@ not alternatives to paste into a new agreement.
 
 ```text
 - Offer identity: agent-action-security-review
-- One consequential agent or automation action: [action and agreed boundary]
-- Trigger, executing identity, approvals and permission boundary: [named path]
-- Available execution evidence and agreed sources: [sources and explicit gaps]
-- Operating mode: read, inspect, reconstruct and report
-- Deliverables: action map covering authority, execution path, permission boundary
-  and evidence chain; findings linked to sources; prioritised recommendations;
-  documented unknowns; readout
-- Not included: executing the action, remediation, retesting, wider workflow
-  programmes, platform installation, production changes, exploitation,
-  credential changes, persistence, continuous monitoring or safety certification
+- Scope revision: one_action_adversarial_testing_v2
+- One consequential AI-agent action: [allowed behaviour and prohibited outcomes]
+- Agreed environment/resources/input surfaces: [named boundary and owners]
+- Test identities, effective permissions and approvals: [named path and evidence]
+- Permitted test operations, test data and side-effect/attempt/rate/cost limits: [list]
+- Test window, written authority and third-party authority: [references]
+- Stop conditions and escalation contact: [conditions and owner]
+- Saved baseline and recovery method: [location, method and owner]
+- Method: active adversarial attempts at the agreed prohibited outcomes
+- Coverage: attacker-controlled input; observable agent decision; tool/API call;
+  effective permissions; actual saved change; supporting evidence
+- Authoritative backend before/after state, including partial, duplicate or absent
+  changes: [source/readback method; record any unavailable evidence as a gap]
+- Deliverables: action map, test results, demonstrated impact, reproduction
+  conditions, mitigation recommendations, explicit gaps, written report and readout
+- Per-case outcome: failure demonstrated / resisted under tested conditions /
+  inconclusive / not tested
+- Retest: [included or excluded; if included, cases, window and allowance]
+- Exclusions: actions or environments outside this agreement; production changes
+  without separate explicit authorization; destructive activity; persistence;
+  unrelated data access; remediation implementation; continuous monitoring;
+  safety certification or whole-environment assurance
 ```
+
+Authorization must be enforced before the system changes. The six stages describe
+coverage, not permission-check ordering. See the [current scope record](./19-agent-action-adversarial-testing-offer.md).
 
 The distinct historical inventory-plus-action review is not included. This
 one-action scope does not require or promise a full device inventory.
@@ -157,7 +172,9 @@ Payment: [terms]
 
 Current paid review, for a new agreement:
 
-- Agent Action Security Review: €2,500 excluding VAT (fixed fee). Inspection and reporting only; no retesting.
+- Agent Action Security Review: fee agreed in signed SOW for the specified testing scope. Resolve delivery capacity and any retest cases, window and allowance before acceptance. No expanded fixed price or default retest allowance is approved.
+
+Earlier read-only Agent Action agreements at €2,500 excluding VAT retain their accepted scope, fee and exclusions. They do not authorize active testing.
 
 Delivery timing agreed in the signed statement of work.
 
@@ -174,9 +191,11 @@ keep their signed terms. Record the actual start date and any pause.
 
 ```text
 - Customer confirms authority to engage WitnessOps for this scope
-- Evidence / collection only after this agreement is accepted
+- Evidence / collection / testing only after this agreement and written authority are accepted
 - Handling: [how files move, retention, who may access]
-- Material: approved non-secret source material only, through the agreed channel
+- Material: approved test data and sanitized evidence through the agreed channel
+- Test access: limited identities and secure access method agreed separately; no credentials in enquiry/chat
+- Authority must be enforced before the system changes; enquiry or payment alone grants none
 ```
 
 For historical External Attack Surface Review agreements, credential and
@@ -204,8 +223,10 @@ No access or evidence transfer begins from an initial request alone.
 
 For the current agent review, use the one-action scope above and the
 [current commercial index](./README.md): findings and recommendations
-from agreed inspection, with explicit unknowns; no execution, remediation,
-retesting or security guarantee. For historical External Attack Surface Review
+from agreed active tests, with demonstrated impact, reproduction conditions and
+explicit gaps. A resisted case is limited to its tested conditions; missing evidence
+is not a pass. No remediation implementation or security guarantee. Retesting is
+included only when its cases, window and allowance are specified. For historical External Attack Surface Review
 agreements, use the complete exclusions and evidence limits in [its offer
 record](./10-public-exposure-review-offer.md).
 Package-integrity checks do not prove that a system is secure.

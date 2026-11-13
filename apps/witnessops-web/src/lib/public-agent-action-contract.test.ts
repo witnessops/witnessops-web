@@ -6,6 +6,7 @@ import {
   LEGACY_AGENT_ACTION_OFFER,
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
+  READ_ONLY_AGENT_ACTION_OFFER,
 } from "./commercial-truth";
 import {
   PUBLIC_AGENT_ACTION_REVIEW_ID,
@@ -14,17 +15,19 @@ import {
 } from "./public-paid-reviews";
 import { getServiceLanding } from "./service-landings";
 
-test("new Agent Action public contract reuses the fixed one-action terms without reactivating the historical ID", () => {
+test("active one-action testing keeps its identity without inheriting the read-only fee or exclusions", () => {
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_REVIEW_ID);
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.id, LEGACY_AGENT_ACTION_OFFER.id);
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.id, PRIMARY_OFFER.id);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.amount, "2500");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fee agreed in signed SOW");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Cena ustalana w podpisanym SOW");
+  assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "fee_agreed_in_signed_sow");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.scope, "one_action_adversarial_testing_v2");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "Delivery timing agreed in the signed statement of work");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Termin realizacji według podpisanego SOW");
@@ -32,14 +35,30 @@ test("new Agent Action public contract reuses the fixed one-action terms without
   assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
   assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.en.includes("Explicit unknowns"));
   assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.pl.includes("Jawne niewiadome"));
-  assert.ok(PUBLIC_AGENT_ACTION_OFFER.notIncluded.en.includes("Exploitation"));
+  assert.deepEqual(PUBLIC_AGENT_ACTION_OFFER.stages.en, ["Attacker-controlled input", "Agent decision", "Tool or API call", "Effective permissions", "Actual saved change", "Evidence"]);
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.stages.pl.length, 6);
+  assert.match(PUBLIC_AGENT_ACTION_OFFER.defaultAuthority.en, /Authorization must be enforced before the system changes/);
+  assert.match(PUBLIC_AGENT_ACTION_OFFER.retest.en, /original agreement.*cases, window and allowance/);
+  assert.doesNotMatch(PUBLIC_AGENT_ACTION_OFFER.notIncluded.en.join(" "), /Executing the action|^Exploitation$/);
   for (const locale of ["en", "pl"] as const) {
     const landing = getServiceLanding(PUBLIC_AGENT_ACTION_OFFER.id, locale);
     const rendered = [...landing.deliverables, ...landing.steps.flat()].join(" ");
     assert.match(rendered, locale === "en" ? /Delivery timing agreed in the signed statement of work/ : /Termin realizacji według podpisanego SOW/);
     assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Czego nie udało się ustalić i jakich dowodów brakuje/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
+    assert.doesNotMatch(JSON.stringify(landing), /€2,500|€2 500|No execution of the reviewed action|read, inspect, reconstruct and report|Nie wykonujemy tego działania/);
+    assert.match(rendered, locale === "en" ? /failure demonstrated, resisted under tested conditions, inconclusive, or not tested/ : /wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu/);
+    assert.match(rendered, locale === "en" ? /partial, duplicate or absent changes/ : /częściowe, powielone lub niezapisane/);
   }
+});
+
+test("the earlier public read-only agreement keeps its price, method and exclusions", () => {
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.id, PUBLIC_AGENT_ACTION_OFFER.id);
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.price.amount, "2500");
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_fixed");
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.match(READ_ONLY_AGENT_ACTION_OFFER.defaultAuthority.en, /read, inspect, reconstruct/);
+  assert.ok(READ_ONLY_AGENT_ACTION_OFFER.notIncluded.en.includes("Exploitation"));
 });
 
 test("the distinct inventory review retains its original identity and its different price model", () => {

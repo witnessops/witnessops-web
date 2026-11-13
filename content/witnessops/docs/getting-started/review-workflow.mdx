@@ -1,6 +1,6 @@
 ---
 title: "Review workflow"
-description: "How the Agent Action Security Review moves from a non-secret fit check to agreed scope, manual reconstruction, and a report and readout."
+description: "How the Agent Action Security Review moves from a non-secret fit check to agreed scope, active adversarial testing, and a report and readout."
 section: "docs"
 order: 2
 nav_label: "Review workflow"
@@ -9,7 +9,7 @@ draft: false
 
 # Review workflow
 
-The current paid review is [Agent Action Security Review](/reviews/agent-action-security-review) at €2,500 excluding VAT. It examines one consequential agent or automation action: what triggers it, which identity acts, what permissions it has, how approval works, and what execution evidence is available. Delivery timing agreed in the signed statement of work.
+The current paid review is [Agent Action Security Review](/reviews/agent-action-security-review) with a fee agreed in signed SOW. It actively tests one consequential AI-agent action across attacker-controlled input, the observable agent decision, tool or API call, effective permissions, actual saved change and supporting evidence. Delivery timing agreed in the signed statement of work.
 
 ## 1. Send a non-secret fit check
 
@@ -17,17 +17,19 @@ Describe the one action you want reviewed, the systems involved, and your decisi
 
 ## 2. Agree scope and authority
 
-Before inspection starts, agree the action boundary, approving authority, available sources, exclusions, evidence handling, recipients, fee and delivery timing in a signed statement of work. Required inputs, payment and operator capacity must also be confirmed. Only approved, non-secret source material may be shared after authority, scope and secure handling are agreed. A new action or wider workflow needs its own scope decision.
+Before testing, agree the environment, action, input surfaces, identities, permitted operations, prohibited outcomes, attempt and side-effect limits, stop conditions, saved baseline and recovery. Confirm written authority for affected resources, evidence sources, handling, recipients, fee and timing in the signed statement of work. Arrange any limited test access separately through the agreed secure method. Required inputs, payment and operator capacity must also be confirmed. Only approved test data and sanitized evidence may be shared after authority, scope and secure handling are agreed. No expanded fixed price, delivery capacity or default retest allowance is promised; resolve them before accepting work. A new action or wider workflow needs its own scope decision.
 
-## 3. Reconstruct the agreed action
+## 3. Actively test the complete action path
 
-WitnessOps reads, inspects, reconstructs and reports against the agreed sources. The review maps the trigger, executing identity, effective permissions, approvals and available execution evidence. Findings identify their source; unavailable or inconclusive material remains an explicit unknown. If the agreed boundary no longer holds, work stops until the scope is resolved.
+WitnessOps attempts the agreed prohibited outcomes. We record the input surface, observable agent decision, submitted tool or API calls and parameters, validation, errors and retries, acting identity, effective permissions and approval boundaries. We read back the authoritative backend to establish actual saved changes, including partial, duplicate or absent changes. A tool success message alone is insufficient.
+
+Authorization must be enforced before the system changes. The six stages describe coverage, not permission-check ordering. Findings cite their evidence; unavailable or inconclusive material remains an explicit gap. If authority, an agreed limit or a stop condition fails, work stops until the boundary is resolved.
 
 ## 4. Receive the report and readout
 
-The handover includes an action map, findings linked to sources, prioritised recommendations, documented unknowns, a written report and a readout. Your team decides whether and how to address the findings. Remediation and retesting are separate work, not part of this review.
+The handover includes an action map, test results, demonstrated impact, reproduction conditions, mitigation recommendations, explicit gaps, a written report and a readout. Each case is failure demonstrated, resisted under tested conditions, inconclusive, or not tested. Missing evidence is not a pass, and a resisted case does not establish safety beyond the tested conditions. Your team owns remediation. A retest can be included in the original agreement when its cases, window and allowance are specified.
 
-The operating mode is read, inspect, reconstruct and report. The review does not execute the action, install a platform, change production or credentials, exploit a system, perform destructive testing, monitor continuously or certify that an agent is safe. It does not promise a full device inventory, cryptographic receipt or offline verifier as a standard deliverable. It is not a penetration test.
+Production changes require separate explicit authorization. Destructive activity, persistence, unrelated data access, remediation implementation, continuous monitoring and safety certification are excluded. It does not promise a full device inventory, cryptographic receipt or offline verifier as a standard deliverable. It is not a penetration test of the whole environment or a security guarantee. Earlier agreements retain their accepted scope, fee, exclusions and retest terms; the expanded scope does not silently enlarge a previous read-only review or inherit its price.
 
 ## Historical External Attack Surface Review
 

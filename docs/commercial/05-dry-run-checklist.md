@@ -11,15 +11,21 @@ customer access or testing.
   review, retired offers and private pilot are not new-sales choices.
 - [ ] Request identity is `agent-action-security-review`. Historical IDs,
   including `OFFSEC-EXTERNAL-EXPOSURE`, retain their old meaning.
-- [ ] Price is €2,500 excl. VAT for Agent Action Security Review. Delivery
-  timing is agreed in the signed SOW.
+- [ ] Fee, delivery capacity and any retest cases, window and allowance are
+  agreed in the signed SOW; no expanded fixed price is assumed. Earlier €2,500
+  read-only agreements keep their accepted terms.
 - [ ] The [current scope block](./06-scope-agreement-skeleton.md) matches the
   selected review. Scope, authority, handling, required inputs, payment terms
   and capacity are resolved before work; a request alone grants no authority.
-- [ ] Agent rehearsal covers one consequential action through read, inspect,
-  reconstruct and report: action map, sourced findings, prioritised
-  recommendations, documented unknowns and readout. No action execution,
-  remediation, retesting or full-device inventory is promised.
+- [ ] Synthetic rehearsal covers attacker-controlled input, observable agent
+  decision, tool/API call, effective permissions, actual saved change and evidence.
+  Authorization is enforced before changes. Confirm permitted tests, attempt and
+  side-effect limits, stop conditions, baseline and recovery before execution.
+- [ ] Package contains action map, test results, demonstrated impact, reproduction
+  conditions, mitigation recommendations, explicit gaps and readout. Include
+  partial, duplicate or absent backend changes. Cases are failure demonstrated,
+  resisted under tested conditions, inconclusive or not tested; missing evidence
+  is not a pass. No remediation or full-device inventory is promised.
 - [ ] Samples remain labelled synthetic. Available evidence, missing coverage
   and verification limits are clear; no security or certification guarantee.
 - [ ] Record review/date, scope gaps and the next owner before accepting work.

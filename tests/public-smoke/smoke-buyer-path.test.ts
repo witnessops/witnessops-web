@@ -179,7 +179,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
 test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
   assert.ok(english.requiredMarkers.includes("Tool · not a review"));
-  assert.ok(english.requiredMarkers.includes("Understand the controls before your AI agent acts."));
+  assert.ok(english.requiredMarkers.includes("Test the actions your AI agent should refuse."));
   assert.ok(english.requiredMarkers.includes("Scope before work. Evidence beside findings."));
   assert.equal(english.requiredMarkers.includes("Start a free check"), false);
   assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);
@@ -188,7 +188,7 @@ test("homepage contracts preserve the free-check journey, limits and Polish samp
   assert.ok(english.prohibitedMarkers?.includes("€550"));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zapytaj o przegląd agenta"));
-  assert.ok(polish.requiredMarkers.includes("Poznaj mechanizmy kontroli, zanim agent AI wykona działanie."));
+  assert.ok(polish.requiredMarkers.includes("Sprawdź działania, których agent AI powinien odmówić."));
   assert.ok(polish.requiredMarkers.includes("Termin realizacji według podpisanego SOW"));
   assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
   assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
@@ -233,7 +233,7 @@ test("catalogue smoke preserves the single public review request path", () => {
   const catalogue = routeContract("/catalog");
   for (const marker of [
     "Agent Action Security Review",
-    "€2,500\u00A0excl.\u00A0VAT",
+    "Fee agreed in signed SOW",
     "Delivery timing agreed in the signed statement of work",
     "Request an agent review",
   ]) {
@@ -337,7 +337,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const englishOpen = routeContract(
     "/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(englishOpen.requiredMarkers.includes("€2,500\u00A0excl.\u00A0VAT"));
+  assert.ok(englishOpen.requiredMarkers.includes("Fee agreed in signed SOW"));
   assert.ok(
     englishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
@@ -360,7 +360,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const polishOpen = routeContract(
     "/pl/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(polishOpen.requiredMarkers.includes("€2\u00A0500\u00A0bez\u00A0VAT"));
+  assert.ok(polishOpen.requiredMarkers.includes("Cena ustalana w podpisanym SOW"));
   assert.ok(
     polishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
