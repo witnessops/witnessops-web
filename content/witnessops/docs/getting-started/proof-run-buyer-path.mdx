@@ -1,6 +1,6 @@
 ---
 title: "Buyer path for a security or operational review"
-description: "A buyer-facing reading path: start from the situation, inspect the catalogue and samples, understand the verifier boundary, then send a non-secret fit check."
+description: "Check the current review scope, send a non-secret fit check, and use public samples and receipt verification only where relevant."
 section: "docs"
 order: 2
 nav_label: "Buyer path"
@@ -11,40 +11,71 @@ page_answer:
   links:
     - href: "/catalog"
       label: "View services"
-    - href: "/review/request?offerId=agent-action-security-review"
+    - href: "/reviews/agent-action-security-review"
       label: "Agent Action Security Review"
-    - href: "/reviews/external-attack-surface-review"
-      label: "External Attack Surface Review availability"
-    - href: "/review/request"
+    - href: "/review/request?offerId=agent-action-security-review"
       label: "Start a review"
 ---
 
 # Buyer path for a security or operational review
 
-This page gives a buyer-readable path through the public WitnessOps surfaces before submitting a real request.
+Use this page to check the current offer, understand the first contact step, and decide whether public examples or receipt verification are useful to you.
 
-It is for a reviewer who wants to know:
+## 1. Check the current review and its limits
 
-- what the public catalogue offers
-- what a sample demonstrates
-- what the verifier can and cannot check
-- what the request form starts
-- what must not be submitted in the first message
-- what remains outside the engagement boundary
+WitnessOps delivers **bounded security and operational reviews** with evidence references, named limits and unresolved items. Treat [View services](/catalog) as the live offer list; this page summarizes the current review and first-contact boundary.
 
-## 1. Start with the situation and the catalogue
+The current paid review is [Agent Action Security Review](/reviews/agent-action-security-review) at €2,500 excluding VAT. It examines one consequential agent or automation action. Delivery timing agreed in the signed statement of work. [Review workflow](/docs/getting-started/review-workflow) explains the steps from enquiry to report and readout.
 
-WitnessOps delivers **bounded security and operational reviews** with evidence references, named limits and unresolved items. Treat [View services](/catalog) as the live offer list; this page deliberately does not duplicate its inventory or commercial status.
+External Attack Surface Review is no longer available for new engagements and is not this review. Do not read the current offer as a broad AI governance program, production deployment claim, legal compliance claim, certification, or whole-environment assurance claim.
 
-The current paid review is [Agent Action Security Review](/review/request?offerId=agent-action-security-review) at €2,500 excluding VAT. It examines one consequential agent or automation action. Delivery timing agreed in the signed statement of work. External Attack Surface Review is no longer available for new engagements and is not this review.
+## 2. Send a non-secret fit check
 
-Do not read the catalogue as a broad AI governance program, production deployment claim, legal compliance claim, certification, or whole-environment assurance claim.
+Use [Start a review](/review/request?offerId=agent-action-security-review) when you can describe one bounded action and why it matters.
 
-## 2. Inspect a sample before sharing source material
+The request form is a **non-secret fit check**. Start with a general description. Do not send files, logs, screenshots or customer evidence during the fit check. Do not send credentials, private keys, API keys, MFA codes, recovery codes, session tokens or other secrets at any stage.
 
-Open the [historical synthetic one-action package](/review/sample-cases/ai-agent-action-proof-run) or the other [agent-action examples](/review/sample-cases). The historical one-action package is not a complete sample of the current Agent Action Security Review and does not add a signed receipt to its standard deliverables.
+Fallback contact: [engage@mail.witnessops.com](mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check).
 
-Samples are public illustrations, not live customer evidence. Read each example's limits: some explain a control path without downloadable artifacts; the CRM replay produces an unsigned demonstration receipt. The key-rotation specimen has its own sample-specific verifier, separate from receipt-only `/verify`.
+## 3. Mailbox verification is not review start
+
+After the request form, the mailbox verification step confirms mailbox access only.
+
+The confirmation page means:
+
+- the mailbox was confirmed for the request
+- no review work has started
+- no customer evidence has been accepted
+- scope, fee, and evidence handling still need to be agreed
+
+## 4. Agree the work before sharing material
+
+If the situation fits, WitnessOps confirms the review, scope, authority, fee, timing and secure evidence handling before any approved, non-secret source material is accepted. Agreement on handling does not authorise sending credentials or secrets.
+
+The engagement should make five things easy to see:
+
+- what the situation was
+- what was authorised and included
+- what was checked or reviewed
+- which material supports the result
+- what remains limited, unknown or unresolved
+
+## 5. Stop conditions
+
+Stop the request if:
+
+- the work cannot be bounded to one useful scope
+- no approving authority can be named
+- required evidence cannot be handled safely
+- the goal is a broad compliance certification
+- the goal is a legal audit opinion
+- the request requires credentials or secrets at any stage
+
+## 6. Optional: inspect public samples
+
+Open the [historical synthetic one-action package](/review/sample-cases/ai-agent-action-proof-run) or the other [agent-action examples](/review/sample-cases) if you want to see how a bounded action can be described. These are public illustrations, not live customer evidence or a complete sample of the current Agent Action Security Review. They do not add a signed receipt to its standard deliverables.
+
+Read each example's limits: some explain a control path without downloadable artifacts; the CRM replay produces an unsigned demonstration receipt. The key-rotation specimen has its own sample-specific verifier, separate from receipt-only `/verify`.
 
 **For the pinned AI-agent public sample only**, use the table below:
 
@@ -58,74 +89,23 @@ Samples are public illustrations, not live customer evidence. Read each example'
 | `CHALLENGE_PATH.md` | How another party can inspect, dispute, or request stronger evidence. |
 | `MANIFEST.sha256` | Whether sample files match the published hash manifest. |
 
-## 3. Understand the verifier boundary
+## 7. Optional: understand receipt verification
 
-Use [Verify a receipt](/verify) when you have receipt JSON to check — upload or paste, then read the result.
+Use [Verify a receipt](/verify) when you have supported receipt JSON to check. The public console is **receipt-only v1**. It can check supported receipt JSON; it does not prove the full runtime story, source-system honesty, artifact-byte revalidation, or complete bundle custody. A receipt and verifier are not standard deliverables of the current review.
 
-The public console is **receipt-only v1**. It can check supported receipt JSON. It does not prove the full runtime story, source-system honesty, artifact-byte revalidation, or complete bundle custody.
-
-An internal `limited-pass` maps to public `indeterminate`. For the legacy-named `public_exposure_review` receipt profile, the public result stays `indeterminate` while request, authority, workflow, manifest and artifact bytes, evidence support, signature, and production key authorization were not independently checked.
+An internal `limited-pass` maps to public `indeterminate`. The legacy-named `public_exposure_review` receipt profile retains a historical name; it does not describe the current sales offer. Its public result stays `indeterminate` while request, authority, workflow, manifest and artifact bytes, evidence support, signature, and production key authorization were not independently checked.
 
 For the full procedure split (public vs offline bundle-complete), read [How to Verify a Receipt](/docs/how-it-works/verification).
 
-## 4. Commercial scope
+## 8. Minimal buyer reading order
 
-Use [Pricing](/pricing) and the [review](/reviews) for the current price. Agent Action Security Review is €2,500 excluding VAT. Delivery timing agreed in the signed statement of work. Only approved, non-secret source material is accepted after scope, authority, fee, timing and secure evidence handling are agreed. External Attack Surface Review is no longer available for new engagements.
+1. [Agent Action Security Review](/reviews/agent-action-security-review) — check the current scope and limits.
+2. [Review workflow](/docs/getting-started/review-workflow) — see what happens before and during the review.
+3. [Start a review](/review/request?offerId=agent-action-security-review) — submit only the non-secret fit check.
 
-## 5. Submit only the first non-secret fit check
-
-Use [Start a review](/review/request) only after you can describe one bounded situation in plain language.
-
-The request form is a **non-secret fit check**. Start with a general description. Do not send files, logs, screenshots or customer evidence during the fit check. Do not send credentials, private keys, API keys, MFA codes, recovery codes, session tokens or other secrets at any stage.
-
-Fallback contact: [engage@mail.witnessops.com](mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check).
-
-## 6. Mailbox verification is not review start
-
-After the request form, the mailbox verification step confirms mailbox access only.
-
-The confirmation page means:
-
-- the mailbox was confirmed for the request
-- no review work has started
-- no customer evidence has been accepted
-- scope, fee, and evidence handling still need to be agreed
-
-## 7. What happens after the fit check
-
-If the situation fits, WitnessOps confirms the review, scope, authority, price, timing and secure evidence handling by email before any approved, non-secret source material is accepted. Agreement on handling does not authorise sending credentials or secrets.
-
-The engagement should make five things easy to see:
-
-- what the situation was  
-- what was authorised and included  
-- what was checked or reviewed  
-- which material supports the result  
-- what remains limited, unknown or unresolved  
-
-## 8. Stop conditions
-
-Stop the request if:
-
-- the work cannot be bounded to one useful scope  
-- no approving authority can be named  
-- required evidence cannot be handled safely  
-- the goal is a broad compliance certification  
-- the goal is a legal audit opinion  
-- the request requires credentials or secrets at any stage
-
-## 9. Minimal buyer reading order
-
-1. [Verify a receipt](/verify) — use **Try an example** and inspect why the receipt-only result is incomplete
-2. [View services](/catalog)  
-3. [Agent Action Security Review](/review/request?offerId=agent-action-security-review)
-4. [Sample cases](/review/sample-cases)  
-5. [Start a review](/review/request)  
-6. [Verification docs](/docs/how-it-works/verification)  
-
-The key rule: do not rely on a claim unless the evidence reference, receipt, verifier result or named limit that supports it is visible.
+If you want to inspect public examples, continue to [Sample cases](/review/sample-cases). If you have supported receipt JSON, use [Verify a receipt](/verify) and the [verification docs](/docs/how-it-works/verification). A receipt result supports only the checks and limits it names.
 
 ## Related
 
-- [Getting Started](/docs/getting-started)  
-- [Why WitnessOps](/why-witnessops)  
+- [Getting Started](/docs/getting-started)
+- [Why WitnessOps](/why-witnessops)
