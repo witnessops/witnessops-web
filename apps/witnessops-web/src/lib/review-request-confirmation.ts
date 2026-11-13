@@ -28,6 +28,7 @@ export const REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY =
 
 export type ReviewRequestConfirmationLocale = "en" | "pl";
 export type ReviewRequestKind =
+  | "fit-call"
   | "agent-risk-control-review"
   | "agent-action-security-review"
   | "agent-tools-access-review"
@@ -48,6 +49,7 @@ const reviewRequestConfirmationSchema = z.object({
   confirmedAt: z.string().datetime({ offset: true }),
   locale: z.enum(["en", "pl"]),
   requestKind: z.enum([
+    "fit-call",
     "agent-risk-control-review",
     "agent-action-security-review",
     "agent-tools-access-review",
@@ -131,6 +133,9 @@ export function buildReviewRequestConfirmation(
   ) {
     return null;
   }
+  if ((context.requestKind === "fit-call") !== (response.requestMode === "fit-call")) {
+    return null;
+  }
 
   return reviewRequestConfirmationSchema.parse({
     schema: "witnessops.review-request-confirmation.v1",
@@ -158,7 +163,7 @@ export function buildStandaloneReviewRequestConfirmation(
 
   return buildReviewRequestConfirmation(response, {
     locale,
-    requestKind: resolveReviewRequestKind(requestIntent),
+    requestKind: response.requestMode === "fit-call" ? "fit-call" : resolveReviewRequestKind(requestIntent),
     source: requestIntent === ASK_AI_CONTACT_INTENT ? "ask" : "request-form",
   });
 }
@@ -200,6 +205,7 @@ export function buildReviewRequestConfirmationText(
     Record<ReviewRequestKind, string>
   > = {
     en: {
+      "fit-call": "20-minute expert conversation request",
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
       "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.en,
       "agent-tools-access-review": PRIMARY_OFFER.name.en,
@@ -216,6 +222,7 @@ export function buildReviewRequestConfirmationText(
       "review-request": "WitnessOps review request",
     },
     pl: {
+      "fit-call": "Prośba o 20-minutową rozmowę z ekspertem",
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
       "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.pl,
       "agent-tools-access-review": PRIMARY_OFFER.name.pl,
@@ -233,6 +240,32 @@ export function buildReviewRequestConfirmationText(
     },
   };
   const requestLabel = requestLabels[confirmation.locale][confirmation.requestKind];
+
+  if (confirmation.requestKind === "fit-call") {
+    return polish
+      ? [
+          "WITNESSOPS / PROŚBA O TERMIN",
+          `Zgłoszenie: ${requestLabel}`,
+          `Numer referencyjny: ${confirmation.requestReference}`,
+          `Potwierdzono dostęp do skrzynki: ${confirmation.confirmedAt}`,
+          "W chwili potwierdzenia zgłoszenia: termin niezarezerwowany",
+          "Ten formularz nie wysłał zaproszenia kalendarzowego",
+          "To zgłoszenie nie rozpoczęło przeglądu",
+          "",
+          "Zgłoszenie potwierdza wyłącznie dostęp do skrzynki i prośbę o termin. Operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne terminy. Późniejsza wiadomość lub zaproszenie określa aktualny stan. Nie jest to rozpoczęcie pracy.",
+        ].join("\n")
+      : [
+          "WITNESSOPS / TIME REQUEST",
+          `Request: ${requestLabel}`,
+          `Request reference: ${confirmation.requestReference}`,
+          `Mailbox confirmed at: ${confirmation.confirmedAt}`,
+          "At request verification: time not booked",
+          "No calendar invitation was sent by this form",
+          "This request did not start a review",
+          "",
+          "This record confirms mailbox access and a time request only. An operator will check availability and confirm a time by invitation or reply with alternatives. A later email or invitation determines current status. This is not a start-of-work record.",
+        ].join("\n");
+  }
 
   return polish
     ? [

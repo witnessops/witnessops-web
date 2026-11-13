@@ -63,6 +63,12 @@ export interface IntakeSubmissionRecord {
   intent?: string | null;
   locale?: "en" | "pl" | null;
   scope?: string | null;
+  requestMode?: "fit-call" | null;
+  fitCall?: {
+    topic: string;
+    timezone: string;
+    preferredStarts: [string, string];
+  } | null;
   subject?: string | null;
   category?: string | null;
   severity?: string | null;

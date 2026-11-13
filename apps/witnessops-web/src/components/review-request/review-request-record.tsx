@@ -22,8 +22,17 @@ const copyByLocale = {
     status: "Mailbox confirmed",
     kicker: "Recorded request / bounded status",
     title: "Request captured.",
+    fitCallTitle: "Time requested.",
+    fitCallStatus: "Mailbox confirmed / time request received",
+    fitCallBookingLabel: "At request verification",
+    fitCallBookingState: "Time not booked",
+    fitCallEvidenceLabel: "Invitation by this form",
+    fitCallEvidenceState: "None sent",
+    fitCallNextStep: "Operator checks availability and confirms a time or replies with alternatives",
+    fitCallBoundary: "This record confirms mailbox access and a time request at verification. It does not reserve time or start work. A later email or calendar invitation determines current status.",
     requestLabel: "Requested path",
     requestNames: {
+      "fit-call": "20-minute expert conversation request",
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
       "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.en,
       "agent-tools-access-review": PRIMARY_OFFER.name.en,
@@ -59,8 +68,17 @@ const copyByLocale = {
     status: "Skrzynka potwierdzona",
     kicker: "Zapisane zgłoszenie / ograniczony status",
     title: "Zgłoszenie zapisane.",
+    fitCallTitle: "Poproszono o termin.",
+    fitCallStatus: "Skrzynka potwierdzona / prośba o termin przyjęta",
+    fitCallBookingLabel: "W chwili potwierdzenia zgłoszenia",
+    fitCallBookingState: "Termin niezarezerwowany",
+    fitCallEvidenceLabel: "Zaproszenie z tego formularza",
+    fitCallEvidenceState: "Nie wysłano",
+    fitCallNextStep: "Operator sprawdzi dostępność i potwierdzi termin albo zaproponuje inne",
+    fitCallBoundary: "Ten zapis potwierdza dostęp do skrzynki i prośbę o termin w chwili weryfikacji. Nie rezerwuje terminu ani nie rozpoczyna pracy. Późniejsza wiadomość lub zaproszenie określa aktualny stan.",
     requestLabel: "Wybrana ścieżka",
     requestNames: {
+      "fit-call": "Prośba o 20-minutową rozmowę z ekspertem",
       "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
       "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.pl,
       "agent-tools-access-review": PRIMARY_OFFER.name.pl,
@@ -112,6 +130,7 @@ export function ReviewRequestRecord({
   const fallbackId = useId();
   const text = copyByLocale[confirmation.locale];
   const recordText = buildReviewRequestConfirmationText(confirmation);
+  const fitCall = confirmation.requestKind === "fit-call";
 
   async function copyRecord() {
     try {
@@ -134,7 +153,7 @@ export function ReviewRequestRecord({
     >
       <header className={styles.header}>
         <span>{text.documentLabel}</span>
-        <strong>{text.status}</strong>
+        <strong>{fitCall ? text.fitCallStatus : text.status}</strong>
       </header>
 
       <div className={styles.body}>
@@ -145,7 +164,7 @@ export function ReviewRequestRecord({
           className={styles.title}
           tabIndex={headingRef ? -1 : undefined}
         >
-          {text.title}
+          {fitCall ? text.fitCallTitle : text.title}
         </h2>
         <p className={styles.requestName}>
           <span>{text.requestLabel}</span>
@@ -168,21 +187,21 @@ export function ReviewRequestRecord({
             </dd>
           </div>
           <div>
-            <dt>{text.reviewStarted}</dt>
-            <dd className={styles.negative}>{text.no}</dd>
+            <dt>{fitCall ? text.fitCallBookingLabel : text.reviewStarted}</dt>
+            <dd className={styles.negative}>{fitCall ? text.fitCallBookingState : text.no}</dd>
           </div>
           <div>
-            <dt>{text.evidenceAccepted}</dt>
-            <dd className={styles.negative}>{text.no}</dd>
+            <dt>{fitCall ? text.fitCallEvidenceLabel : text.evidenceAccepted}</dt>
+            <dd className={styles.negative}>{fitCall ? text.fitCallEvidenceState : text.no}</dd>
           </div>
         </dl>
 
         <div className={styles.nextStep}>
           <span>{text.nextStepLabel}</span>
-          <strong>{text.nextStep}</strong>
+          <strong>{fitCall ? text.fitCallNextStep : text.nextStep}</strong>
         </div>
 
-        <p className={styles.boundary}>{text.boundary}</p>
+        <p className={styles.boundary}>{fitCall ? text.fitCallBoundary : text.boundary}</p>
 
         <button
           type="button"

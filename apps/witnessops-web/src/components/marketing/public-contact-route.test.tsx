@@ -88,6 +88,21 @@ test("contact route preserves an explicitly selected offer request", () => {
   );
 });
 
+test("premium footer CTA opens the short expert form and preserves the selected offer", () => {
+  const selectedHref = "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review";
+  const english = renderToStaticMarkup(
+    <PublicContactRoute compact premium primaryHref={selectedHref} />,
+  );
+  const polish = renderToStaticMarkup(
+    <PublicContactRoute compact premium locale="pl" primaryHref={`/pl${selectedHref}`} />,
+  );
+
+  assert.match(english, /Talk to an expert/);
+  assert.match(english, /href="\/review\/request\?offerId=agent-action-security-review&amp;offer=Agent\+Action\+Security\+Review&amp;fitCall=1"/);
+  assert.match(polish, /Porozmawiaj z ekspertem/);
+  assert.match(polish, /href="\/pl\/review\/request\?offerId=agent-action-security-review&amp;offer=Agent\+Action\+Security\+Review&amp;fitCall=1"/);
+});
+
 test("non-compact contact route wraps a selected-offer URL on narrow screens", () => {
   const selectedHref =
     "/review/request?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint";

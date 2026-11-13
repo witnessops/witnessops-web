@@ -45,7 +45,11 @@ type FieldName =
   | "workflow"
   | "agentPath"
   | "approvalBoundary"
-  | "evidenceAvailable";
+  | "evidenceAvailable"
+  | "topic"
+  | "timezone"
+  | "preferredStart1"
+  | "preferredStart2";
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-display)",
@@ -92,12 +96,14 @@ export function ContactForm({
   campaignAttribution,
   compact = false,
   landing = false,
+  fitCall = false,
 }: {
   locale?: "en" | "pl";
   intent?: string;
   campaignAttribution?: string;
   compact?: boolean;
   landing?: boolean;
+  fitCall?: boolean;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -430,6 +436,47 @@ export function ContactForm({
   const [verificationStep, setVerificationStep] = useState<VerificationStep | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationBoundaryAccepted, setVerificationBoundaryAccepted] = useState(false);
+  const [timezoneValue, setTimezoneValue] = useState("");
+
+  useEffect(() => {
+    if (fitCall) {
+      setTimezoneValue((current) => current || Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+    }
+  }, [fitCall]);
+
+  const fitCallCopy = polish
+    ? {
+        topic: "Temat rozmowy",
+        topicPlaceholder: "Np. czy przegląd jednego działania agenta pasuje do naszej potrzeby",
+        timezone: "Strefa czasowa (nazwa IANA)",
+        timezoneHelp: "Np. Europe/Warsaw. Oba terminy podaj w tej strefie czasowej.",
+        start1: "Pierwszy preferowany termin (20 minut)",
+        start2: "Drugi preferowany termin (20 minut)",
+        startsHelp: "Wybierz dwa różne terminy w ciągu najbliższych 90 dni. To preferencje, nie rezerwacja.",
+        send: "Poproś o 20-minutową rozmowę",
+        next: "Po wysłaniu potwierdź służbowy adres e-mail kodem. Następnie operator sprawdzi dostępność w kalendarzu i potwierdzi termin zaproszeniem albo zaproponuje inne terminy.",
+        boundary: "Terminy są prośbą, nie rezerwacją. Nie tworzymy teraz wydarzenia w kalendarzu ani nie rozpoczynamy przeglądu.",
+        verifyBoundary: "Kod potwierdza jedynie dostęp do skrzynki. Terminy nie są zarezerwowane; operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne terminy.",
+        duplicate: "Wybierz dwa różne terminy rozmowy.",
+        timezoneError: "Podaj prawidłową strefę czasową IANA, np. Europe/Warsaw.",
+        serverError: "Sprawdź temat, strefę czasową i oba preferowane terminy. Terminy muszą mieścić się w najbliższych 90 dniach i być możliwe w wybranej strefie czasowej.",
+      }
+    : {
+        topic: "Discussion topic",
+        topicPlaceholder: "For example: whether one agent action fits a bounded review",
+        timezone: "Time zone (IANA name)",
+        timezoneHelp: "For example, Europe/Warsaw. Enter both times in this time zone.",
+        start1: "First preferred time (20 minutes)",
+        start2: "Second preferred time (20 minutes)",
+        startsHelp: "Choose two distinct times within the next 90 days. These are preferences, not a booking.",
+        send: "Request a 20-minute conversation",
+        next: "After sending, confirm your work email with a code. An operator will check availability and confirm a time by invitation or reply with alternatives.",
+        boundary: "These times are requests, not a booking. No calendar event is created and no review starts here.",
+        verifyBoundary: "The code confirms mailbox access only. Your times are not booked; an operator will check availability and confirm a time by invitation or reply with alternatives.",
+        duplicate: "Choose two different conversation times.",
+        timezoneError: "Enter a valid IANA time zone, such as Europe/Warsaw.",
+        serverError: "Check the topic, time zone and both preferred times. Times must fall within the next 90 days and exist in the selected time zone.",
+      };
 
   useEffect(() => {
     if (!verificationStep) return;
@@ -474,7 +521,18 @@ export function ContactForm({
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
-    const requestScope = [
+    const topic = stringField(data, "topic");
+    const timezone = stringField(data, "timezone");
+    const preferredStarts = [stringField(data, "preferredStart1"), stringField(data, "preferredStart2")];
+    const requestScope = fitCall
+      ? [
+          "Request: 20-minute expert conversation about Agent Action Security Review",
+          `Selected product / intent: ${submittedIntent}`,
+          `Request locale: ${locale}`,
+          "First-message boundary: non-secret topic only; no files, credentials, logs, customer records, or production evidence requested",
+          "Follow-up needed: operator checks calendar and sends a confirmed invitation; request does not book time or start work",
+        ].join("\n")
+      : [
       agentActionOrder
         ? `Request: ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
         : externalExposureOrder
@@ -516,6 +574,18 @@ export function ContactForm({
     ].join("\n");
 
     try {
+      if (fitCall) {
+        if (preferredStarts[0] === preferredStarts[1]) {
+          updateFieldError("preferredStart2", fitCallCopy.duplicate);
+          throw new Error(fitCallCopy.duplicate);
+        }
+        try {
+          new Intl.DateTimeFormat("en", { timeZone: timezone });
+        } catch {
+          updateFieldError("timezone", fitCallCopy.timezoneError);
+          throw new Error(fitCallCopy.timezoneError);
+        }
+      }
       const res = await fetch("/api/review/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -526,6 +596,7 @@ export function ContactForm({
           intent: submittedIntent,
           locale,
           scope: requestScope,
+          ...(fitCall ? { fitCall: { topic, timezone, preferredStarts } } : {}),
         }),
       }).catch((error: unknown) => {
         if (polish) {
@@ -547,6 +618,8 @@ export function ContactForm({
           updateFieldError("name", payload.error ?? copy.sendError);
         } else if (payload.field === "org") {
           updateFieldError("org", payload.error ?? copy.sendError);
+        } else if (payload.field === "fitCall") {
+          throw new Error(fitCallCopy.serverError);
         }
         throw new Error(polish ? copy.sendError : (payload.error ?? copy.sendError));
       }
@@ -618,9 +691,16 @@ export function ContactForm({
       }
 
       if (payload.postVerifyPath === reviewRequestConfirmationPath(locale)) {
+        if (fitCall && payload.requestMode !== "fit-call") {
+          throw new Error(
+            polish
+              ? "Skrzynka została potwierdzona, ale nie udało się potwierdzić prośby o rozmowę. Skontaktuj się z nami ze swojego służbowego adresu e-mail."
+              : "Mailbox confirmed, but the conversation request could not be confirmed. Contact us from your work email.",
+          );
+        }
         const confirmation = buildReviewRequestConfirmation(payload, {
           locale,
-          requestKind: resolveReviewRequestKind(submittedIntent),
+          requestKind: payload.requestMode === "fit-call" ? "fit-call" : resolveReviewRequestKind(submittedIntent),
           source: "request-form",
         });
         if (!confirmation) {
@@ -785,7 +865,7 @@ export function ContactForm({
               {copy.codeSent} {verificationStep.email}. {copy.codeInstructions}
             </p>
             <p className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
-              {copy.mailboxBoundary}
+              {fitCall ? fitCallCopy.verifyBoundary : copy.mailboxBoundary}
             </p>
           </div>
 
@@ -918,7 +998,7 @@ export function ContactForm({
                   target.focus();
                   target.scrollIntoView({ block: "center" });
                 }
-              }}>{({ name: copy.name, email: copy.email, org: copy.organization, workflow: copy.workflow, decisionTiming: copy.decisionTiming, agentPath: copy.actionPath, approvalBoundary: copy.approval, evidenceAvailable: copy.evidence } as Record<string, string>)[field]}: {message}</a></li>
+              }}>{({ name: copy.name, email: copy.email, org: copy.organization, workflow: copy.workflow, decisionTiming: copy.decisionTiming, agentPath: copy.actionPath, approvalBoundary: copy.approval, evidenceAvailable: copy.evidence, topic: fitCallCopy.topic, timezone: fitCallCopy.timezone, preferredStart1: fitCallCopy.start1, preferredStart2: fitCallCopy.start2 } as Record<string, string>)[field]}: {message}</a></li>
             ))}
           </ul>
         </div>
@@ -957,7 +1037,7 @@ export function ContactForm({
         </div>
       </div>
 
-      {!landing && !agentActionOrder && <div>
+      {!landing && !agentActionOrder && !fitCall && <div>
         <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
           id="org" name="org" type="text" autoComplete="organization"
@@ -973,7 +1053,66 @@ export function ContactForm({
         {fieldErrors.org && <p id="org-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.org}</p>}
       </div>}
 
-      {agentActionOrder ? <>
+      {fitCall ? <>
+        <div>
+          <label htmlFor="topic" className="mb-2 block" style={labelStyle}>
+            {fitCallCopy.topic} <span className="text-text-muted">{copy.required}</span>
+          </label>
+          <input
+            id="topic" name="topic" type="text" required maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
+            className={`${inputClass} ${fieldErrors.topic ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder={fitCallCopy.topicPlaceholder}
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            aria-invalid={fieldErrors.topic ? true : undefined}
+            aria-describedby={fieldErrors.topic ? "topic-error" : undefined}
+            aria-errormessage={fieldErrors.topic ? "topic-error" : undefined}
+          />
+          {fieldErrors.topic && <p id="topic-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.topic}</p>}
+        </div>
+        <div>
+          <label htmlFor="timezone" className="mb-2 block" style={labelStyle}>
+            {fitCallCopy.timezone} <span className="text-text-muted">{copy.required}</span>
+          </label>
+          <input
+            id="timezone" name="timezone" type="text" required maxLength={64}
+            value={timezoneValue}
+            onChange={(event) => setTimezoneValue(event.currentTarget.value)}
+            autoCapitalize="none" autoComplete="off" spellCheck={false}
+            className={`${inputClass} ${fieldErrors.timezone ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder="Europe/Warsaw"
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            aria-invalid={fieldErrors.timezone ? true : undefined}
+            aria-describedby={fieldErrors.timezone ? "timezone-help timezone-error" : "timezone-help"}
+            aria-errormessage={fieldErrors.timezone ? "timezone-error" : undefined}
+          />
+          <p id="timezone-help" className="mt-2 text-xs leading-relaxed text-text-muted">{fitCallCopy.timezoneHelp}</p>
+          {fieldErrors.timezone && <p id="timezone-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.timezone}</p>}
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
+          {([1, 2] as const).map((number) => {
+            const field = number === 1 ? "preferredStart1" : "preferredStart2";
+            return <div key={field} className="min-w-0">
+              <label htmlFor={field} className="mb-2 block" style={labelStyle}>
+                {number === 1 ? fitCallCopy.start1 : fitCallCopy.start2} <span className="text-text-muted">{copy.required}</span>
+              </label>
+              <input
+                id={field} name={field} type="datetime-local" required step={60}
+                className={`${inputClass} min-w-0 ${fieldErrors[field] ? "!border-signal-red" : ""}`}
+                style={inputStyle}
+                onInvalid={handleInvalid} onInput={handleFieldInput}
+                aria-invalid={fieldErrors[field] ? true : undefined}
+                aria-describedby={fieldErrors[field] ? `${field}-error` : "preferred-starts-help"}
+                aria-errormessage={fieldErrors[field] ? `${field}-error` : undefined}
+              />
+              {fieldErrors[field] && <p id={`${field}-error`} className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors[field]}</p>}
+            </div>;
+          })}
+        </div>
+        <p id="preferred-starts-help" className="text-xs leading-relaxed text-text-muted">{fitCallCopy.startsHelp}</p>
+        <p className="text-xs leading-relaxed text-text-muted">{copy.noSecrets}</p>
+      </> : agentActionOrder ? <>
         <div>
           <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
             {copy.workflow} <span className="text-text-muted">{copy.required}</span>
@@ -1071,7 +1210,7 @@ export function ContactForm({
         {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
       </div>
       </>}
-      {!agentActionOrder ? (optionalContext ? (
+      {!fitCall && !agentActionOrder ? (optionalContext ? (
         <details className="border-t border-surface-border pt-4">
           <summary className="cursor-pointer text-sm font-semibold text-text-primary">
             {polish ? "Dodaj kontekst (opcjonalnie)" : "Add context (optional)"}
@@ -1080,7 +1219,7 @@ export function ContactForm({
         </details>
       ) : additionalContextFields) : null}
 
-      <p className="text-sm leading-6 text-text-secondary">{polish ? "Po wysłaniu formularza wpisz kod z wiadomości e-mail. Następnie sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
+      <p className="text-sm leading-6 text-text-secondary">{fitCall ? fitCallCopy.next : polish ? "Po wysłaniu formularza wpisz kod z wiadomości e-mail. Następnie sprawdzimy, czy przegląd odpowiada Twojej potrzebie, i odpowiemy e-mailem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
       <button
         type="submit"
         disabled={status === "sending"}
@@ -1093,11 +1232,11 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? copy.sending : copy.send}
+        {status === "sending" ? copy.sending : fitCall ? fitCallCopy.send : copy.send}
       </button>
 
       {(agentActionOrder || !landing) && <p className="text-xs leading-relaxed text-text-muted">
-        {copy.submitBoundary}
+        {fitCall ? fitCallCopy.boundary : copy.submitBoundary}
       </p>}
 
       {status === "sent" && (

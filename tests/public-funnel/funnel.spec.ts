@@ -33,7 +33,7 @@ for(const width of [1440,390])test(`footer and research at ${width}`,async({page
  for(const [name,href] of Object.entries(links))await expect(footer.getByRole('link',{name,exact:true})).toHaveAttribute('href',href);
  await expect(footer.getByRole('link',{name:'Research',exact:true})).toHaveCount(0);
  for(const name of ['Services','Docs','Support','The Sovereign Chronicles','Tool · not a review','Sign up','Log in'])await expect(footer.getByRole('link',{name,exact:true})).toHaveCount(0);
- await expect(footer).not.toContainText('AI Agent Tools & Access Review');await expect(footer).not.toContainText('Repair and handover');await expect(footer.getByRole('link',{name:'Ask an expert',exact:true})).toHaveAttribute('href',/\/review\/request/);
+ await expect(footer).not.toContainText('AI Agent Tools & Access Review');await expect(footer).not.toContainText('Repair and handover');await expect(footer.getByRole('link',{name:'Talk to an expert',exact:true})).toHaveAttribute('href',/\/review\/request\?.*fitCall=1/);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole('link',{name:'How to read a public exposure snapshot',exact:true}).click();await expect(page.getByRole('heading',{level:1})).toHaveText('How to read a public exposure snapshot');await expect(page.locator('main')).toContainText('No new target was checked');await expect(page.getByRole('button',{name:'Ask WitnessOps',exact:true})).toBeVisible();
  expect((await page.goto('/catalog/automation-repair'))?.status()).toBe(410);await expect(page.getByRole('heading',{name:'This offer has been withdrawn'})).toBeVisible();
