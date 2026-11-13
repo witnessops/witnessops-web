@@ -28,6 +28,8 @@ test("single-review catalogue routes remain responsive and usable", async ({ bro
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
+    await expect(page.locator("main")).not.toContainText(/Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go/);
+    await expect(page.locator("main")).toContainText(scenario.path.startsWith("/pl") ? "Aktywnie testujemy jedno istotne działanie" : "Active adversarial testing of one consequential action");
     if (scenario.path.startsWith("/pl")) {
       await expect(page.locator("main h1")).toHaveText("Przegląd zabezpieczeń działania agenta AI");
       await expect(page.locator("main header")).toContainText("Agent Action Security Review");

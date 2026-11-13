@@ -10,7 +10,7 @@ for (const width of [390, 1440]) {
     page.on("pageerror", error => errors.push(error.message));
     expect((await page.goto("/"))?.status()).toBe(200);
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test the actions your AI agent should refuse.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test what your AI agent should refuse.");
     await expect(hero).toContainText("engineering teams and AI implementation partners");
     const primary = hero.getByRole("link", { name: "Request an agent review" });
     await expect(primary).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));

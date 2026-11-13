@@ -179,7 +179,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
 test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
   assert.ok(english.requiredMarkers.includes("Tool · not a review"));
-  assert.ok(english.requiredMarkers.includes("Test the actions your AI agent should refuse."));
+  assert.ok(english.requiredMarkers.includes("Test what your AI agent should refuse."));
   assert.ok(english.requiredMarkers.includes("Scope before work. Evidence beside findings."));
   assert.equal(english.requiredMarkers.includes("Start a free check"), false);
   assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);

@@ -330,8 +330,8 @@ test("prohibited homepage copy fails validation", () => {
   const rendered = renderHomepage();
   const dummyBoundary = "not a legal compliance claim";
   const prohibitedCopy = `${copy.replace(
-    "Test the actions your AI agent should refuse.",
-    "Test the actions your AI agent should refuse. Verified compliance.",
+    "Test what your AI agent should refuse.",
+    "Test what your AI agent should refuse. Verified compliance.",
   )}\n${dummyBoundary}`;
 
   const prohibited = assessHomepageClaims(prohibitedCopy, rendered);

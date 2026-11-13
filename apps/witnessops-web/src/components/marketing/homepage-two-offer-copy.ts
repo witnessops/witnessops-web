@@ -6,11 +6,11 @@ import { PUBLIC_AGENT_ACTION_OFFER } from "@/lib/commercial-truth";
  */
 export const HOMEPAGE_TWO_OFFER_COPY = {
   en: {
-    headline: "Test the actions your AI agent should refuse.",
+    headline: "Test what your AI agent should refuse.",
     support:
       "We try to make your AI agent take actions it should refuse, then show you the evidence and what needs fixing. Agent Action Security Review for engineering teams and AI implementation partners, within an agreed environment and test boundary.",
-    aiQuestion: "Test the actions your AI agent should refuse.",
-    aiHeadline: "Test the actions your AI agent should refuse.",
+    aiQuestion: "Test what your AI agent should refuse.",
+    aiHeadline: "Test what your AI agent should refuse.",
     aiWhoFor: "For engineering teams and AI implementation partners preparing to launch or hand over an agent.",
     aiScopeNote:
       "One consequential action, such as issuing a refund, changing a record or granting access. Active adversarial testing only within the agreed environment and test boundary. Authorization must be enforced before the system changes. No production changes without separate explicit authorization, remediation implementation, continuous monitoring or safety certification. This is not a penetration test of the whole environment.",

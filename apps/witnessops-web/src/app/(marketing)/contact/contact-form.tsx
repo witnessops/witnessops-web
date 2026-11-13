@@ -318,8 +318,8 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
-          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
+          ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}.`
+          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)}. ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,
@@ -386,7 +386,7 @@ export function ContactForm({
           : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
         send: polish ? "Wyślij zapytanie" : "Request an agent review",
         submitBoundary: polish
-          ? `Wysyłasz zapytanie o przegląd za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
+          ? `Wysyłasz zapytanie o przegląd. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
           : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en}. It is not a booking, payment, or authority to inspect.`,
       }
     : undefined;
@@ -564,7 +564,7 @@ export function ContactForm({
           ]),
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       agentActionOrder
-        ? `Follow-up needed: one consequential action, systems involved, decision deadline, authority, executing identity, and the fixed ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} terms`
+        ? `Follow-up needed: agreed test environment, prohibited outcomes, permitted actions, executing identity, authority, attempt and side-effect limits, stop conditions, recovery, evidence handling, fee, delivery capacity and any retest cases, window and allowance; ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)}`
         : externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : selectedNonAgentService

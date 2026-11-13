@@ -61,12 +61,12 @@ const copy = {
     ],
     agentActionNextSteps: [
       `We assess one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} No secrets yet.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.price.en}. Authority, the executing identity, the approval boundary, and the evidence path are agreed before work.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.en}. Before active testing, agree the environment, permitted actions, authority, executing identity, approval boundary, stop conditions, recovery and evidence handling.`,
       `${PUBLIC_AGENT_ACTION_OFFER.timing.en}. The request and mailbox confirmation do not start work.`,
     ],
     primaryOfferNextSteps: [
       "This recorded request stays agent-tools-access-review. It is not reassigned to Agent Action Security Review.",
-      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en} at ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")}. External Attack Surface Review is no longer available for new engagements.`,
+      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")}. External Attack Surface Review is no longer available for new engagements.`,
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
@@ -110,12 +110,12 @@ const copy = {
     ],
     agentActionNextSteps: [
       "Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu. Nie wysyłaj jeszcze danych poufnych.",
-      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed rozpoczęciem pracy uzgadniamy zakres, upoważnienie i sposób postępowania z materiałami i dowodami. Na ich podstawie analizujemy tożsamość wykonującą działanie oraz zasady jego zatwierdzania.`,
+      `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Przed aktywnym testem uzgadniamy środowisko, dozwolone działania, upoważnienie, tożsamość wykonującą działanie, granice zatwierdzania, warunki przerwania, odtworzenie stanu i obsługę dowodów.`,
       `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} (uzgodniony zakres prac). Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
       "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
-      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl} za ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
+      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}. External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [

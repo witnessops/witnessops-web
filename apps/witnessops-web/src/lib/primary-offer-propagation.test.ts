@@ -187,7 +187,7 @@ test("current homepage metadata and offer ownership stay current", () => {
   );
   assert.equal(
     home.seo.og_title,
-    "Test the actions your AI agent should refuse. | WitnessOps",
+    "Test what your AI agent should refuse. | WitnessOps",
   );
 
   const homepageSource = readFileSync(

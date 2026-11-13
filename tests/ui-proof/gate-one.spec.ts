@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 
 import { expect, test, type Page } from "@playwright/test";
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 
 // Reuse the app's pinned accessibility engine; this gate adds no dependency.
 const axe = createRequire(path.resolve(__dirname, "../../apps/witnessops-web/package.json"))("axe-core") as { source: string };
@@ -75,7 +76,8 @@ for (const width of [1440, 390, 320]) {
       const main = page.getByRole("main");
       await expect(main.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(main).toContainText("Agent Action Security Review");
-      await expect(main).toContainText(/2[,\s\u00a0]?500/);
+      await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.price[route.startsWith("/pl") ? "pl" : "en"]);
+      await expect(main).not.toContainText(/€2[, \u00a0]500/);
       await expect(main).not.toContainText(/External Attack Surface Review|€1[,\s]?900|€950|€550|10 working days|3 working days/);
       await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
       await expect(main.locator('a[href*="/review/request"]:visible, form:visible').first()).toBeVisible();

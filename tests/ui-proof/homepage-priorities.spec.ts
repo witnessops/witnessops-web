@@ -15,7 +15,7 @@ for (const viewport of [
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
     const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test the actions your AI agent should refuse.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText("Test what your AI agent should refuse.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(1);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectFreeToolEntryPoint(page);

@@ -532,6 +532,10 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     expect(submittedPayload?.scope).toContain("Consequential action:");
     expect(submittedPayload?.scope).toContain("Systems involved:");
     expect(submittedPayload?.scope).toContain("Decision deadline:");
+    expect(submittedPayload?.scope).toContain("permitted actions");
+    expect(submittedPayload?.scope).toContain("stop conditions, recovery");
+    expect(submittedPayload?.scope).toContain("any retest cases, window and allowance");
+    expect(submittedPayload?.scope).not.toMatch(/fixed Fee agreed|fixed fee|€2[, \u00a0]500/);
     expect(submittedPayload?.scope).not.toContain("Unintended effect:");
     expect(submittedPayload?.scope).not.toContain("dated system-level inventory");
 

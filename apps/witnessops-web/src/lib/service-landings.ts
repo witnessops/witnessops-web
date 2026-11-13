@@ -108,7 +108,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Request a scope and fixed quote",
   },
   "agent-action-security-review": {
-    headline: "Test the actions your AI agent should refuse.",
+    headline: "Test what your AI agent should refuse.",
     whoFor: "Engineering teams and AI implementation partners preparing to launch or hand over an agent.",
     scopeNote: PUBLIC_AGENT_ACTION_OFFER.situation.en,
     deliverables: [

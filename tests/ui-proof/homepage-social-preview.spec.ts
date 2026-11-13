@@ -14,7 +14,7 @@ test("homepages publish the canonical WitnessOps Editorial A preview", async ({ 
   await page.goto("/");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
     "content",
-    "Test the actions your AI agent should refuse. | WitnessOps",
+    "Test what your AI agent should refuse. | WitnessOps",
   );
   await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
     "content",
