@@ -55,7 +55,7 @@ test("English review intake can preserve the current workflow offer without revi
   assert.match(source, /resolveNewSalesPageQuery\(/);
   assert.match(source, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.match(source, /Selected offer: \{selectedOffer\.name\.en\}/);
-  assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
+  assert.match(source, /\{selectedOffer\.price\.en\}/);
   assert.doesNotMatch(source, /offerId === LEGACY_AGENT_ACTION_OFFER\.id/);
 
   const offer = buyerServiceByPublicOfferId("agent-tools-access-review");
@@ -131,6 +131,6 @@ test("Polish review intake preserves the same public workflow offer", () => {
   assert.match(source, /resolveNewSalesPageQuery\(/);
   assert.match(source, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.match(source, /Wybrana oferta: \{selectedOffer\.name\}/);
-  assert.match(source, /Cena: \{selectedOffer\.price\}/);
+  assert.match(source, /\{selectedOffer\.price\}/);
   assert.doesNotMatch(source, /PRIMARY_OFFER\.id/);
 });

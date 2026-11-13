@@ -18,7 +18,7 @@ test("Polish request chrome uses the agent review and closes a parked external q
   assert.match(page, /NewSalesIntakeClosed/);
   assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.name\.pl/);
   assert.match(page, /agentActionOrder/);
-  assert.match(page, /Opisz, co chcesz sprawdzić/);
+  assert.match(page, /Zacznij od sprawdzenia dopasowania\. Nie wysyłaj sekretów\./);
   assert.doesNotMatch(page, /decision\.role === "product"/);
   assert.doesNotMatch(page, /EXTERNAL_ATTACK_SURFACE_OFFER/);
 

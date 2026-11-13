@@ -46,7 +46,7 @@ test("the default simulated preview keeps its disclosure and stores nothing but 
   assert.equal(PENDING_TIMEOUT_MS, 15_000);
   assert.equal(SLOW_PENDING_MS, 6_000);
   assert.doesNotMatch(html, /Needs review/);
-  assert.match(html, /Fee agreed in signed SOW/);
+  assert.match(html, /Fixed fee, agreed in a signed SOW before we start/);
   assert.doesNotMatch(html, /€1,900\u00A0excl\.\u00A0VAT/);
   assert.match(source, /Simulated response\\u00A0· preview/);
   assert.match(source, /simulatedChip: "Simulated"/);
@@ -262,7 +262,8 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(layout, /Nic nie zostało wysłane\. Spróbować ponownie\?/);
   assert.match(layout, /Podgląd · symulowane przekazanie/);
   assert.match(layout, /Podgląd · symulowany błąd/);
-  assert.match(layout, /className="[^"]*reviewTag/);
+  const reviewBar = readFileSync(resolve(__dirname, "../../app/pl/pl-copy-review-bar.tsx"), "utf8");
+  assert.match(reviewBar, /reviewTag/);
   const status = html.match(/<p class="[^"]*status[^"]*"[\s\S]*?<\/p>/);
   const hint = html.match(/<p id="ask-sovereign-optin-hint"[\s\S]*?<\/p>/);
   assert.ok(status);
@@ -280,7 +281,7 @@ test("Polish Ask Sovereign chrome keeps the locked retest line and leaves review
   assert.match(html, /Na co Sovereign może odpowiedzieć/);
   assert.match(html, /Jak zacząć i gdzie napisać/);
   assert.match(html, /O tym asystencie/);
-  assert.match(html, /Cena ustalana w podpisanym SOW/);
+  assert.match(html, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
   assert.doesNotMatch(html, /€1\u00A0900\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.match(html, /Odpowiadam na pytania o przegląd na podstawie opublikowanych informacji/);

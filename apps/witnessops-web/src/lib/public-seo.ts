@@ -169,14 +169,14 @@ export function agentActionServiceJsonLd(locale: "en" | "pl") {
     "@type": "Service",
     "@id": `${url}#service`,
     name: offer.name[locale],
-    description: `${offer.situation[locale]} ${offer.timing[locale]}.`,
+    description: `${offer.situation[locale]} ${offer.timing[locale]}`,
     serviceType: "Agent action security review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {
       "@type": "Offer",
       url,
-      description: `${plainOfferPrice(offer.price[locale])}. ${offer.timing[locale]}.`,
+      description: `${plainOfferPrice(offer.price[locale])} ${offer.timing[locale]}`,
     },
   } as const;
 }

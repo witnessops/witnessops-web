@@ -112,8 +112,8 @@ export function AskWitnessOpsCommercialFitCard({
       : `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: one authorised internet-facing system. One focused retest within 30 calendar days of initial report handover. This is not a penetration test.`
     : likely
       ? pl
-        ? `${PUBLIC_AGENT_ACTION_OFFER.name.pl}: jedno istotne działanie agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`
-        : `${PUBLIC_AGENT_ACTION_OFFER.name.en}: one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.price.en}.`
+        ? `${PUBLIC_AGENT_ACTION_OFFER.name.pl}: jedno istotne działanie agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}`
+        : `${PUBLIC_AGENT_ACTION_OFFER.name.en}: one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.price.en}`
       : pl
         ? "Może pasować, gdy jedno istotne działanie, upoważnienie i ścieżka dowodów są jasne."
         : "It may fit once one consequential action, its authority, and the evidence path are clear.";

@@ -76,7 +76,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       await expect(main.locator("h1")).toHaveText(locale === "en" ? "Agent Action Security Review" : "Przegląd zabezpieczeń działania agenta AI");
       await expect(main.locator("header")).toContainText("Agent Action Security Review");
       const commercial = main.getByRole("complementary");
-      await expect(commercial).toContainText(locale === "en" ? "Fee agreed in signed SOW" : "Cena ustalana w podpisanym SOW");
+      await expect(commercial).toContainText(locale === "en" ? "Fixed fee, agreed in a signed SOW before we start." : "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
       const cta = commercial.getByRole("link");
       const target = new URL((await cta.getAttribute("href")) ?? "", "http://witnessops.test");
       expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);

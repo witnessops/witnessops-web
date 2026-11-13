@@ -61,7 +61,7 @@ test("direct confirmation-page visits do not claim a verified request", () => {
   assert.match(confirmed, /readReviewRequestConfirmation/);
   assert.match(confirmed, /WitnessOps \/ zapis zgłoszenia/);
   assert.match(confirmed, /Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu/);
-  assert.match(confirmed, /uzgodniony zakres prac/);
+  assert.match(confirmed, /PUBLIC_AGENT_ACTION_OFFER\.timing\.pl/);
   assert.match(confirmed, /Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy/);
   assert.doesNotMatch(confirmed, /Your mailbox is verified/);
   assert.doesNotMatch(confirmed, /Request verified/);
@@ -124,7 +124,7 @@ test("record controls preserve a minimum 44px target", () => {
 });
 
 test("compact request record keeps its paper styles isolated from Ask chrome", () => {
-  assert.match(recordCss, /--record-accent:\s*#b94716/);
+  assert.match(recordCss, /--record-accent:\s*var\(--color-action-fill\)/);
   assert.match(handoff, /data-ask-contact-form/);
   assert.match(handoff, /data-ask-contact-heading/);
   assert.match(widgetCss, /\[data-ask-contact-form\]\s+textarea/);
@@ -156,9 +156,9 @@ test("Ask contact handoff locks concurrent requests and restores focus", () => {
 test("light confirmation shell uses contrast-safe controls and scoped paper colors", () => {
   assert.match(verificationShell, /trust:\s*"text-\[#2d777c\]"/);
   assert.match(verificationShell, /border border-\[#6f6a63\] bg-white/);
-  assert.match(verificationShell, /focus:border-\[#b94716\]/);
-  assert.match(verificationShell, /bg-\[#b94716\][^"]+text-\[#fafaf7\]/);
-  assert.match(verificationShell, /accent:\s*"text-\[#b94716\]"/);
+  assert.match(verificationShell, /focus:border-\[var\(--color-action-fill\)\]/);
+  assert.match(verificationShell, /bg-\[var\(--color-action-fill\)\][^"]+text-\[var\(--color-action-on-fill\)\]/);
+  assert.match(verificationShell, /accent:\s*"text-\[var\(--color-action-fill\)\]"/);
   assert.match(contactForm, /const lightButtonFocusClass = "";/);
   assert.doesNotMatch(contactForm, /ring-offset-\[#f7f5f1\]/);
 });

@@ -261,14 +261,14 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       if (path === "/pl") {
         await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(0);
         await expect(page.locator("main").getByRole("link", { name: "Zgłoś przegląd ekspozycji", exact: true })).toHaveCount(0);
-        await expect(page.locator("main").getByRole("link", { name: "Zapytaj o przegląd agenta", exact: true }).first()).toHaveAttribute(
+        await expect(page.locator("main").getByRole("link", { name: "Poproś o test przełamania", exact: true }).first()).toHaveAttribute(
           "href",
           buyerServiceRequestHref("pl", buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID)),
         );
         await expect(page.locator('main a[href="/check"]')).toHaveCount(0);
         await expect(page.locator("#how-it-works")).toContainText("Ustalamy zakres");
       } else {
-        await expect(page.locator("#home-limits-heading")).toContainText("Useful evidence. Explicit limits.");
+        await expect(page.locator("#home-limits-heading")).toContainText("What this isn't.");
         await expect(page.locator("#enquiry form")).toBeVisible();
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

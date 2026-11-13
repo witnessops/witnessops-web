@@ -34,7 +34,7 @@ for (const width of [390, 1440]) {
       if (route === '/') {
         await page.screenshot({ path: testInfo.outputPath(`nav-${width}.png`) });
         if (width === 390) await page.keyboard.press('Escape');
-        const hero = page.locator('[data-ui-proof-id="homepage-hero"]').getByRole('link', { name: 'Request an agent review', exact: true });
+        const hero = page.locator('[data-ui-proof-id="homepage-hero"]').getByRole('link', { name: 'Request a break test', exact: true });
         await expect(hero).toBeVisible();
         expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
         await expect(page.locator('main').getByRole('link', { name: 'Start a free check', exact: true })).toHaveAttribute('href', '/check');

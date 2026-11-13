@@ -26,8 +26,8 @@ test("English FAQ describes review pricing without changing signup boundaries", 
   assert.doesNotMatch(faq, /Paid app plans on the pricing page are illustrative/);
   assert.match(faq, /\/review\/request\?offerId=agent-action-security-review/);
   assert.doesNotMatch(faq, /\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE/);
-  assert.match(faq, /fee agreed in signed SOW/);
-  assert.match(faq, /Delivery timing agreed in the signed statement of work/);
+  assert.match(faq, /fixed fee, agreed in a signed SOW before we start/);
+  assert.match(faq, /We don't test until you give written authority/);
   assert.match(faq, /explicit gaps/);
   assert.match(faq, /External Attack Surface Review is no longer available for new engagements/);
   assert.doesNotMatch(faq, /€550|10 working days|3 working days|fixed quote after scope|30 calendar days/);

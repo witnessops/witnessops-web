@@ -491,7 +491,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const withdrawn = 'One Server Security Check';
   const agentAnswer = catalogueClarification({question:`What does ${agent} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:withdrawn}]})!;
   assert.equal(agentAnswer.recommendation?.service_id, 'agent-action-security-review');
-  assert.match(agentAnswer.text, /Fee agreed in signed SOW/);
+  assert.match(agentAnswer.text, /Fixed fee, agreed in a signed SOW before we start/);
   assert.doesNotMatch(agentAnswer.text, /\u00A0/);
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation, null);

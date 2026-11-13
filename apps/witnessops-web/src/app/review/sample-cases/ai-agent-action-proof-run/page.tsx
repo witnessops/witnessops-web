@@ -76,10 +76,10 @@ export default function ApiKeyRotationSamplePage() {
             <p>This synthetic one-action example is historical. It is not a complete sample of the current paid review. Its signed artifacts and verification tools do not become standard review deliverables.</p>
             <p>{PUBLIC_AGENT_ACTION_OFFER.result.en}</p>
             <strong className={styles.offerPrice}>{PUBLIC_AGENT_ACTION_OFFER.price.en}</strong>
-            <p className={styles.offerTiming}>{PUBLIC_AGENT_ACTION_OFFER.timing.en}.</p>
+            <p className={styles.offerTiming}>{PUBLIC_AGENT_ACTION_OFFER.timing.en}</p>
           </div>
           <div className={styles.offerAction}>
-            <Link href={reviewRequestHref}>Request an agent review</Link>
+            <Link href={reviewRequestHref}>Request a break test</Link>
             <span>Non-secret fit and scoping request first.</span>
           </div>
         </section>

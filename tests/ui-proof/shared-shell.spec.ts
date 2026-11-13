@@ -294,7 +294,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         `${route} footer contrast`,
       ).toBeGreaterThanOrEqual(4.5);
       if (viewport.width >= 1024 && !route.startsWith("/pl")) {
-        expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Request an agent review");
+        expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Request a break test");
         expect(shell.desktopCtaHref, `${route} desktop CTA destination`).toBe("/review/request");
         if (signupUrl) {
           expect(shell.desktopCtaHref, `${route} signup is not the header action`).not.toBe(signupUrl);
@@ -524,7 +524,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     const response = await page.goto("/review/request", { waitUntil: "networkidle" });
 
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole("heading", { name: "Tell us what you want to check" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Start with a fit check. Don't send secrets." })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {

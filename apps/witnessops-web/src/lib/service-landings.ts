@@ -3,14 +3,21 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
+import { OFFER_SPOKEN_SUPPORT } from "@/components/marketing/homepage-two-offer-copy";
 
 export type ServiceLandingCopy = {
-  /** Punchy hero line under the service name (CSR-style). */
+  /** Punchy hero line under the service name (CSR-style). Accessible name. */
   headline: string;
+  /** Visual punch below 768px. Not a second heading. */
+  headlineMobile?: string;
   /** Who the review is for. */
   whoFor: string;
   /** Essential scope shown before the expandable detail. */
   scopeNote: string;
+  /** Shorter scope note below 768px on the offer landing. */
+  scopeNoteCompact?: string;
+  /** Shorter who-for line below 768px. */
+  whoForCompact?: string;
   /** Human deliverable lines (not raw filenames). */
   deliverables: readonly string[];
   /** How the engagement runs. */
@@ -108,22 +115,26 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Request a scope and fixed quote",
   },
   "agent-action-security-review": {
-    headline: "Test what your AI agent should refuse.",
+    headline: "We try to break your AI agent before someone else does.",
+    headlineMobile: "We try to break your AI agent first.",
     whoFor: "Engineering teams and AI implementation partners preparing to launch or hand over an agent.",
-    scopeNote: PUBLIC_AGENT_ACTION_OFFER.situation.en,
+    scopeNote: OFFER_SPOKEN_SUPPORT.en,
+    scopeNoteCompact: OFFER_SPOKEN_SUPPORT.enCompact,
     deliverables: [
-      "Action map from attacker-controlled input through the agent decision, tool or API call, effective permissions and actual saved change to supporting evidence.",
-      "Test results linked to evidence, demonstrated impact and reproduction conditions, including partial, duplicate or absent changes.",
-      "Prioritised recommendations for mitigation.",
-      "Explicit unknowns and coverage gaps. Each case is failure demonstrated, resisted under tested conditions, inconclusive, or not tested.",
-      "Written report and readout.",
+      "A map of the action — from a message in, to a change that sticks",
+      "What we tried, and what it actually did",
+      "How to reproduce each result",
+      "Findings, each tied to the evidence behind them",
+      "What we'd fix first, in order",
+      "What we couldn't see, or couldn't prove",
+      "A written report, and a walkthrough of it",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.en],
     steps: [
       ["Non-secret fit check", "Name the consequential action, systems involved, prohibited outcome and decision deadline. Do not send credentials, secrets or production data."],
       ["Agreed scope and authority", "Agree the environment, input surfaces, identities, permitted test actions, stop conditions, recovery, evidence handling and recipients before testing. Confirm fee, delivery capacity, timing and any retest cases and allowance in the signed SOW."],
       ["Active adversarial testing", "Attempt the agreed prohibited outcomes. Record the observable agent decision, submitted tools and parameters, validation, errors and retries. Check the authoritative backend for actual saved changes, including partial, duplicate or absent changes."],
-      ["Report and readout", "Delivery timing agreed in the signed statement of work. Explain which controls resisted or failed, demonstrated impact, reproduction conditions, mitigation recommendations and gaps. Your team owns remediation decisions."],
+      ["Report and readout", "We don't test until you give written authority. Explain which controls resisted or failed, demonstrated impact, reproduction conditions, mitigation recommendations and gaps. Each case is failure demonstrated, resisted under tested conditions, inconclusive, or not tested. Explicit unknowns stay named. Your team owns remediation decisions."],
     ],
     boundaries: [
       "One consequential agent action in the agreed environment only; no whole-environment assurance.",
@@ -134,8 +145,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
-    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.en}. Delivery capacity and any retest allowance are agreed before work. The request is not a booking, checkout or authorization.`,
-    primaryCta: "Request an agent review",
+    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.en} Delivery capacity and any retest allowance are agreed before work. The request is not a booking, checkout or authorization.`,
+    primaryCta: "Request a break test",
   },
   "one-server-security-check": {
     headline: "Know what needs attention on one Linux server.",
@@ -448,22 +459,27 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Poproś o zakres i stałą wycenę",
   },
   "agent-action-security-review": {
-    headline: "Sprawdź, czy agent odmówi.",
+    headline: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
+    headlineMobile: "Najpierw próbujemy przełamać Twojego agenta AI.",
     whoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
-    scopeNote: PUBLIC_AGENT_ACTION_OFFER.situation.pl,
+    whoForCompact: "Dla zespołów inżynierskich i partnerów wdrażających AI.",
+    scopeNote: OFFER_SPOKEN_SUPPORT.pl,
+    scopeNoteCompact: OFFER_SPOKEN_SUPPORT.plCompact,
     deliverables: [
-      "Mapa działania: treść kontrolowana przez atakującego, decyzja agenta, wywołanie narzędzia lub API, efektywne uprawnienia, faktycznie zapisana zmiana i dowody.",
-      "Wyniki testów ze źródłami, wykazany wpływ i warunki odtworzenia, także dla zmian częściowych, powielonych lub niezapisanych.",
-      "Zalecenia naprawcze uporządkowane według priorytetu.",
-      "Czego nie udało się ustalić i jakich dowodów brakuje. Wynik przypadku: wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu.",
-      "Raport pisemny i omówienie.",
+      "Mapa działania — od wiadomości na wejściu do zmiany, która zostaje",
+      "Co próbowaliśmy i co to faktycznie zrobiło",
+      "Jak odtworzyć każdy wynik",
+      "Ustalenia, każde powiązane z dowodami",
+      "Co naprawilibyśmy najpierw, w kolejności",
+      "Czego nie zobaczyliśmy albo nie zdołaliśmy wykazać",
+      "Pisemny raport i jego omówienie",
     ],
     scopeLimits: [PUBLIC_AGENT_ACTION_OFFER.unit.pl],
     steps: [
       ["Opisz potrzebę", "Podaj działanie, związane z nim systemy, niedozwolony skutek i termin decyzji. Nie przesyłaj danych dostępowych ani materiałów produkcyjnych."],
       ["Uzgodnijmy warunki", "Przed testem ustalamy środowisko, powierzchnie wejścia, tożsamości, dozwolone czynności, warunki przerwania, odtworzenie stanu oraz obsługę materiałów i odbiorców. Cenę, dostępność, termin oraz ewentualne przypadki i limit ponownych testów określa podpisany SOW."],
       ["Aktywnie testujemy", "Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków. Zapisujemy obserwowalną decyzję agenta, narzędzia i parametry, walidację, błędy i ponowienia. Sprawdzamy faktyczny stan w systemie docelowym, także zmiany częściowe, powielone lub niezapisane."],
-      ["Otrzymujesz raport", "Termin realizacji według podpisanego SOW. Pokazujemy, które zabezpieczenia zadziałały, które zawiodły, wykazany wpływ, warunki odtworzenia, zalecenia i luki. Twój zespół decyduje o wdrożeniu poprawek."],
+      ["Otrzymujesz raport", "Nie testujemy, dopóki nie dasz pisemnego upoważnienia. Pokazujemy, które zabezpieczenia zadziałały, które zawiodły, wykazany wpływ, warunki odtworzenia, zalecenia i luki. Czego nie udało się ustalić i jakich dowodów brakuje. Wynik przypadku: wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu. Twój zespół decyduje o wdrożeniu poprawek."],
     ],
     boundaries: [
       "Jedno istotne działanie w uzgodnionym środowisku. Bez oceny całego środowiska.",
@@ -474,8 +490,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "Historyczny syntetyczny przykład jednego działania (EN; nie jest pełnym raportem z przeglądu)",
-    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.pl}. Dostępność i limit ponownych testów uzgadniamy przed pracą. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.`,
-    primaryCta: "Zapytaj o przegląd agenta",
+    commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.pl} Dostępność i limit ponownych testów uzgadniamy przed pracą. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.`,
+    primaryCta: "Poproś o test przełamania",
   },
   "one-server-security-check": {
     headline: "Sprawdź, co poprawić na serwerze.",

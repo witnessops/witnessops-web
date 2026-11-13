@@ -35,14 +35,14 @@ test("Polish mobile menu exposes the existing configured login and keeps one rev
   const mobile = mobileMenu(html);
   assert.equal((mobile.match(/data-mobile-login/g) ?? []).length, 1);
   assert.match(mobile, /<a(?=[^>]*href="https:\/\/app\.example\.test\/login")(?=[^>]*data-mobile-login)[^>]*>Zaloguj się<\/a>/);
-  assert.equal((mobile.match(/Zapytaj o przegląd agenta/g) ?? []).length, 1);
+  assert.equal((mobile.match(/Poproś o test przełamania/g) ?? []).length, 1);
   assert.match(html.slice(0, html.indexOf('id="witnessops-mobile-menu"')), /href="https:\/\/app\.example\.test\/login"[^>]*>Zaloguj się<\/a>/);
 });
 
 test("Polish mobile menu keeps login absent without a configured app", () => {
   const mobile = mobileMenu(renderNavbar("/pl", null));
   assert.doesNotMatch(mobile, /data-mobile-login|Zaloguj się|\/login/);
-  assert.equal((mobile.match(/Zapytaj o przegląd agenta/g) ?? []).length, 1);
+  assert.equal((mobile.match(/Poproś o test przełamania/g) ?? []).length, 1);
 });
 
 test("English grouped mobile navigation keeps its existing login", () => {

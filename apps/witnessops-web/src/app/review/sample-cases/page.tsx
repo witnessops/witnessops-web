@@ -84,9 +84,9 @@ const nextSteps = [
   {
     title: "Start a review",
     description:
-      "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
+      "Describe one situation without secrets. We confirm fit, scope, fee and evidence handling before work starts.",
     href: "/review/request",
-    label: "Start a review",
+    label: "Request a break test",
   },
 ] as const;
 

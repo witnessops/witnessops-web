@@ -40,15 +40,15 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.getByText(/execution of the declared hard-stop conditions/)).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Need to review one important agent action?" })).toBeVisible();
   await expect(page.locator("main")).toContainText("Agent Action Security Review");
-  await expect(page.locator("main")).toContainText("Fee agreed in signed SOW");
+  await expect(page.locator("main")).toContainText("Fixed fee, agreed in a signed SOW before we start.");
   await expect(page.locator("main")).toContainText("This synthetic one-action example is historical. It is not a complete sample of the current paid review. Its signed artifacts and verification tools do not become standard review deliverables.");
   await expect(page.locator("main")).toContainText("Non-secret fit and scoping request first.");
-  await expect(page.locator("main")).toContainText("Delivery timing agreed in the signed statement of work");
+  await expect(page.locator("main")).toContainText("We don't test until you give written authority.");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("AI Agent Tools & Access Review");
   await expect(page.locator("main")).not.toContainText("dated, source-bounded device inventory");
   await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.locator("main").getByRole("link", { name: "Request an agent review", exact: true }))
+  await expect(page.locator("main").getByRole("link", { name: "Request a break test", exact: true }))
     .toHaveAttribute("href", REVIEW_HREF);
 
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(

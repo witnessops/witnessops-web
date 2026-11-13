@@ -133,7 +133,7 @@ test("issuance itself ignores supplied snapshots and the verified handoff retain
   const after = await getIntakeById(issued.intakeId);
   assert.deepEqual(after?.submission.offerSnapshot, before?.submission.offerSnapshot);
   assert.match(notification, /Offer revision: one_action_adversarial_testing_v2/);
-  assert.match(notification, /Price at enquiry: Fee agreed in signed SOW/);
+  assert.match(notification, /Price at enquiry: Fixed fee, agreed in a signed SOW before we start/);
   assert.match(notification, /<strong>Offer revision:<\/strong> one_action_adversarial_testing_v2/);
   assert.match(notification, /Enquiry context only/);
   assert.equal((await getIssuanceById(issued.issuanceId))?.approvalStatus, "pending");

@@ -8,7 +8,7 @@ import { pageSocialMetadata } from "@/lib/social-metadata";
 import { getServiceLanding } from "@/lib/service-landings";
 
 const landing = getServiceLanding(PUBLIC_AGENT_ACTION_REVIEW_ID, "pl");
-const description = `${landing.headline} ${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`;
+const description = `${landing.headline} ${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}`;
 
 export const metadata: Metadata = {
   title: PUBLIC_AGENT_ACTION_OFFER.name.pl,

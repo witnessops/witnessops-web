@@ -215,16 +215,16 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     timing: "delivery_timing_per_signed_sow",
   },
   price: {
-    en: "Fee agreed in signed SOW",
-    pl: "Cena ustalana w podpisanym SOW",
+    en: "Fixed fee, agreed in a signed SOW before we start.",
+    pl: "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.",
   },
   timing: {
-    en: "Delivery timing agreed in the signed statement of work",
-    pl: "Termin realizacji według podpisanego SOW",
+    en: "We don't test until you give written authority.",
+    pl: "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
   },
   cardSituation: {
-    en: "Can attacker-controlled input make your agent take an action it should refuse?",
-    pl: "Czy treść kontrolowana przez atakującego może skłonić agenta do niedozwolonego działania?",
+    en: "We try to break your AI agent before someone else does.",
+    pl: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
   },
   situation: {
     en: "WitnessOps actively tests one consequential AI-agent action across the complete path: attacker-controlled input, the agent’s selected action, tool or API execution, effective permissions, the actual saved change, and the evidence supporting the result. Within an agreed environment and test boundary, we attempt prohibited outcomes and show which controls resisted, which failed, what changed, and what needs fixing.",

@@ -1,3 +1,5 @@
+import { PlCopyReviewBar } from "./pl-copy-review-bar";
+
 /**
  * PL copy pending native review. The banner covers these strings:
  * Ciemny, Jasny, Przełącz na ciemny motyw, Przełącz na jasny motyw,
@@ -6,13 +8,12 @@
  * Zaloguj się, Przykłady, Zobacz przykłady, Narzędzie, nie przegląd,
  * Nic nie zostało wysłane. Spróbować ponownie?,
  * Podgląd · symulowane przekazanie, Podgląd · symulowany błąd.
+ * Home and the agent-action offer use a shorter bar. Other PL routes keep the full bar.
  */
 export default function PolishLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <p className="pl-copy-review reviewTag border-b border-[var(--line)] bg-[var(--paper-2)] px-4 py-2 text-center text-[var(--ink-dim)]">
-        PL copy pending native review
-      </p>
+      <PlCopyReviewBar />
       {children}
     </>
   );

@@ -254,7 +254,7 @@ test("company details render on the company and contact pages, and the footer ke
     }),
     "/review/request",
   );
-  assert.match(priced, /Fee agreed in signed SOW/);
+  assert.match(priced, /Fixed fee, agreed in a signed SOW before we start/);
   assert.match(external, /no longer available/);
   assert.doesNotMatch(external, /€1,900/);
 });

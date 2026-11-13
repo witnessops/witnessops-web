@@ -56,8 +56,8 @@ export function polishOfferGuidance(args: NormalizedAskRequest): { text: string;
   const timing = /\b(?:jak dlugo|ile (?:to )?trwa|termin realizacji|kiedy (?:otrzymam|dostane))\b/.test(question);
   const scope = /\b(?:co (?:obejmuje|dostane|otrzymam)|jakie (?:sa )?(?:wyniki|rezultaty))\b/.test(question);
   if (currentContext && (price || timing || scope || namesCurrent)) {
-    return { text: price ? `${offer.name.pl}: ${offer.price.pl}. ${offer.timing.pl}. Zakres i dostępność wymagają potwierdzenia przed rozpoczęciem pracy.`
-      : timing ? `${offer.timing.pl}. Ta rozmowa nie potwierdza dostępności ani daty rozpoczęcia przeglądu.`
+    return { text: price ? `${offer.name.pl}: ${offer.price.pl} ${offer.timing.pl} Zakres i dostępność wymagają potwierdzenia przed rozpoczęciem pracy.`
+      : timing ? `${offer.timing.pl} Ta rozmowa nie potwierdza dostępności ani daty rozpoczęcia przeglądu.`
         : `${offer.situation.pl} ${offer.result.pl}`, recommend: true };
   }
   return null;

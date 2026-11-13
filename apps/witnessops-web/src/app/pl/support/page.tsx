@@ -24,7 +24,7 @@ const routes = [
   [
     PUBLIC_AGENT_ACTION_OFFER.name.pl,
     "/pl/reviews/agent-action-security-review",
-    `Przegląd jednego istotnego działania agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}.`,
+    `Przegląd jednego istotnego działania agenta lub automatyzacji. ${PUBLIC_AGENT_ACTION_OFFER.price.pl}`,
   ],
   [
     "Mam istniejące zgłoszenie",
