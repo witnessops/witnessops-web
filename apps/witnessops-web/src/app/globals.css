@@ -1290,9 +1290,16 @@ html[data-theme="light"] footer.public-shell.public-footer.simple-public-footer[
 .simple-public-footer .footer-legal { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-top: 32px; padding-top: 8px; border-top: 1px solid var(--color-surface-border); }
 .simple-public-footer .footer-legal-start, .simple-public-footer .footer-legal-end { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; min-width: 0; }
 .simple-public-footer .footer-legal span { font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; color: var(--color-text-secondary); }
-.simple-public-footer [data-theme-memory] button { font-family: var(--font-sans); font-size: var(--type-caption-size); line-height: var(--type-caption-lh); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--color-text-secondary); background: transparent; }
-.simple-public-footer [data-theme-memory] button[aria-pressed="true"] { color: var(--color-text-primary); background: var(--color-surface-card); border-color: var(--color-surface-border-strong); }
-html[data-theme="light"] .simple-public-footer [data-theme-memory] button { border-color: var(--color-surface-border-strong); }
+/* Footer bundle B (Design 2026-11-13): "Tested on agents built with" strip above the legal divider.
+   Marks sit at about 60% ivory (#E9E1CC) with matched optical heights; each link keeps a 44px tap target. */
+.simple-public-footer .footer-tested { display: flex; flex-wrap: wrap; align-items: center; gap: 0 17px; margin-top: 28px; }
+.simple-public-footer .footer-tested + .footer-legal { margin-top: 16px; }
+.simple-public-footer .footer-tested-label { margin: 0; font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em; color: #A7A399; }
+.simple-public-footer .footer-tested-marks { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.simple-public-footer .footer-tested-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; border-radius: var(--radius-control); color: rgba(233, 225, 204, 0.6); text-decoration: none; transition: color 150ms ease; }
+.simple-public-footer .footer-tested-link:hover, .simple-public-footer .footer-tested-link:focus-visible { color: #E9E1CC; }
+.simple-public-footer .footer-tested-xai { display: block; flex: none; height: 16px; width: auto; aspect-ratio: 2176 / 831; }
+.simple-public-footer .footer-tested-codex { display: block; flex: none; height: 20px; width: 20px; }
 @media (min-width: 640px) {
   .simple-public-footer .footer-main { gap: 32px; }
 }
@@ -1303,6 +1310,7 @@ html[data-theme="light"] .simple-public-footer [data-theme-memory] button { bord
 }
 @media (max-width: 767px) {
   .simple-public-footer > div { padding-block: 32px calc(32px + env(safe-area-inset-bottom)); }
+  .simple-public-footer .footer-legal-end { width: 100%; justify-content: space-between; }
 }
 
 @media (min-width: 1200px) { .simple-public-navbar > div { min-height: 72px; } }

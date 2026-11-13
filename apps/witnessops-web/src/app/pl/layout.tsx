@@ -2,9 +2,8 @@ import { PlCopyReviewBar } from "./pl-copy-review-bar";
 
 /**
  * PL copy pending native review. The banner covers these strings:
- * Ciemny, Jasny, Przełącz na ciemny motyw, Przełącz na jasny motyw,
- * Motyw na tym urządzeniu, Zapamiętany na tym urządzeniu,
- * Zapisujemy wybór tylko w tej przeglądarce, dopiero po kliknięciu. WitnessOps nie otrzymuje tego wyboru.,
+ * Dokumentacja, Testujemy agentów zbudowanych na,
+ * Materiały prasowe i znak marki:, zestaw dla mediów,
  * Zaloguj się, Przykłady, Zobacz przykłady, Narzędzie, nie przegląd,
  * Nic nie zostało wysłane. Spróbować ponownie?,
  * Podgląd · symulowane przekazanie, Podgląd · symulowany błąd.

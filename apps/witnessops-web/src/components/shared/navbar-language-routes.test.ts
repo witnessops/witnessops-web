@@ -12,12 +12,12 @@ test("primary navigation exposes only the review destinations (2026-11-13 cleanu
     ["The review", "/reviews/agent-action-security-review"],
     ["How it works", "/how-it-works"],
     ["Examples", "/review/sample-cases"],
-    ["About", "/about"],
+    ["Docs", "/docs"],
   ]);
-  for (const href of ["/early-access", "/reviews\"", "/pricing", "/check", "/docs", "/verify", "/docs/assistant"]) {
+  for (const href of ["/early-access", "/reviews\"", "/pricing", "/check", "/about", "/verify", "/docs/assistant"]) {
     assert.ok(!navbar.includes(`href: "${href}`), `Retired destination still in navbar: ${href}`);
   }
-  assert.doesNotMatch(navbar, /ThemeToggle/, "Theme toggle is footer and mobile menu only.");
+  assert.doesNotMatch(navbar, /ThemeToggle/, "The site is dark only; there is no theme toggle.");
   assert.doesNotMatch(navbar, /DesktopNavbarMenu|PUBLIC_NAV_GROUPS/);
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.match(navbar, /POLISH_PUBLIC_NAV\.cta\.label/);
@@ -29,7 +29,7 @@ test("shared navigation preserves Polish destinations and selected enquiry", () 
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
   assert.match(navbar, /href: POLISH_PUBLIC_NAV\.cta\.href/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
-    "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/about",
+    "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/docs",
   ]);
 });
 
@@ -152,7 +152,7 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
     "The mobile sheet must contain exactly one primary action",
   );
   assert.doesNotMatch(mobileNavbar, /\/pricing|groups\?\.map/);
-  assert.match(mobileNavbar, /<ThemeToggle/, "Theme toggle stays in the mobile menu.");
+  assert.doesNotMatch(mobileNavbar, /ThemeToggle/, "The site is dark only; the mobile menu has no theme toggle.");
   assert.match(mobileNavbar, /data-mobile-language-link/);
   assert.equal(
     mobileNavbar.match(/inline-block -translate-y-px/g)?.length,
