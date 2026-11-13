@@ -5,6 +5,7 @@ import {
   CHRONICLE_SERIES_INTRO,
   PUBLISHED_CHAPTERS,
   RESERVED_CHAPTERS,
+  type ChronicleChapter,
 } from "@/lib/chronicles";
 import { canonicalUrl } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   },
 };
 
-function publishedChapter(id: "001" | "002" | "003" | "004") {
+function publishedChapter(id: ChronicleChapter["id"]) {
   const chapter = PUBLISHED_CHAPTERS.find((item) => item.id === id);
   if (!chapter) {
     throw new Error(`Missing published chronicle ${id}`);
@@ -32,13 +33,14 @@ const chapterOne = publishedChapter("001");
 const chapterTwo = publishedChapter("002");
 const chapterThree = publishedChapter("003");
 const chapterFour = publishedChapter("004");
-const nextChapter = RESERVED_CHAPTERS[0];
+const chapterFive = publishedChapter("005");
 
 const rows = [
   { ...chapterOne, kicker: "CHAPTER I · TUESDAY · 17:23", href: `/chronicles/${chapterOne.slug}` },
   { ...chapterTwo, kicker: "CHAPTER II · WEDNESDAY · 09:12", href: `/chronicles/${chapterTwo.slug}` },
   { ...chapterThree, kicker: "CHAPTER III · 15 OCTOBER 2026 · 02:40 WARSAW", href: `/chronicles/${chapterThree.slug}` },
   { ...chapterFour, kicker: "CHAPTER IV · 27 OCTOBER 2026 · 09:00", href: `/chronicles/${chapterFour.slug}` },
+  { ...chapterFive, kicker: "CHAPTER V · 13 NOVEMBER 2026", href: `/chronicles/${chapterFive.slug}` },
 ] as const;
 
 export default function ChroniclesIndexPage() {
@@ -65,11 +67,13 @@ export default function ChroniclesIndexPage() {
           </li>
         ))}
       </ol>
-      <section className="mt-8 rounded-md border border-dashed border-surface-border p-5" aria-label={`Chapter ${nextChapter.id}, ${nextChapter.title}, coming soon`}>
-        <p className="wo-mono-caps text-text-muted">Up next · Chapter V · Coming soon · Not linked</p>
-        <h3 className="wo-h3 mt-2 text-text-muted">{nextChapter.title}</h3>
-        <p className="wo-small mt-2 text-text-muted">{nextChapter.teaser}</p>
-      </section>
+      {RESERVED_CHAPTERS.map((nextChapter) => (
+        <section key={nextChapter.id} className="mt-8 rounded-md border border-dashed border-surface-border p-5" aria-label={`Chapter ${nextChapter.id}, ${nextChapter.title}, coming soon`}>
+          <p className="wo-mono-caps text-text-muted">{`Up next · Chapter ${nextChapter.id} · Coming soon · Not linked`}</p>
+          <h3 className="wo-h3 mt-2 text-text-muted">{nextChapter.title}</h3>
+          <p className="wo-small mt-2 text-text-muted">{nextChapter.teaser}</p>
+        </section>
+      ))}
       <p className="wo-small mt-10 text-text-secondary">
         Outside the stories, WitnessOps publishes one focused security review for new engagements.{" "}
         <Link href="/reviews" className="underline-offset-4 hover:underline">See the current review</Link>

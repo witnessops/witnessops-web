@@ -581,3 +581,40 @@ for (const width of [320, 390, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }
+
+test("chronicles index links chapter 005", async ({ page }) => {
+  await page.goto("/chronicles");
+  await expect(page.getByRole("link", { name: "The Dashboard That Never Was", exact: true })).toHaveAttribute(
+    "href",
+    "/chronicles/005-the-dashboard-that-never-was",
+  );
+});
+
+for (const width of [320, 390, 1440]) {
+  test(`Chapter 005 fits at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/chronicles/005-the-dashboard-that-never-was");
+    await page.evaluate(() => document.fonts.ready);
+
+    await expect(page.locator("[data-chronicle-dateline]")).toHaveText("13 November 2026");
+    await expect(page.locator("[data-chronicle-dateline]")).toHaveCSS("text-transform", "none");
+    await expect(page.getByRole("heading", { level: 1, name: "The Dashboard That Never Was", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chapter 004", exact: true })).toHaveAttribute(
+      "href",
+      "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+    );
+    await expect(page.getByRole("link", { name: "All chronicles", exact: true })).toHaveAttribute("href", "/chronicles");
+
+    const prose = page.locator(".chronicle-prose");
+    const bounds = await prose.boundingBox();
+    expect(bounds).not.toBeNull();
+    const headings = prose.locator("h2");
+    expect(await headings.count()).toBe(8);
+    for (const heading of await headings.all()) {
+      const box = await heading.boundingBox();
+      expect(box).not.toBeNull();
+      expect(Math.abs(box!.x + box!.width / 2 - (bounds!.x + bounds!.width / 2))).toBeLessThan(1);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}

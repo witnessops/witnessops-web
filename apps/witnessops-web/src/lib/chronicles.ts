@@ -54,7 +54,7 @@ export function chroniclePreviewText(source: string): string {
 }
 
 export type ChronicleChapter = {
-  id: "001" | "002" | "003" | "004";
+  id: "001" | "002" | "003" | "004" | "005";
   slug: string;
   number: string;
   kicker: string;
@@ -130,15 +130,29 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
       "WitnessOps Headquarters — 27 October 2026",
     ],
   },
-] as const;
-
-export const RESERVED_CHAPTERS = [
   {
     id: "005",
-    title: "The Agent Who Was Told Not to Press the Button",
-    teaser: "The button is red. The instructions say do not press it. Sir Whiskers has already pressed it.",
+    slug: "005-the-dashboard-that-never-was",
+    number: "005",
+    kicker: "THE SOVEREIGN CHRONICLES · CHAPTER V",
+    title: "The Dashboard That Never Was",
+    subtitle: "A fictionalised episode with The Crew.",
+    dateline: "13 November 2026",
+    meta: "CH-005 · FICTION · 9 MIN READ",
+    description: "A story from the WitnessOps desk about the dashboard that never was.",
+    sourceFile: "chapter-005.md",
+    dropLines: [
+      "A fictionalised episode with The Crew.",
+      "13 November 2026",
+    ],
   },
 ] as const;
+
+export const RESERVED_CHAPTERS: readonly {
+  id: string;
+  title: string;
+  teaser: string;
+}[] = [];
 
 export function readChronicleSource(fileName: string): string {
   return readFileSync(resolve(process.cwd(), "src/content/chronicles", fileName), "utf8");

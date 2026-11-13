@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import ChroniclesIndexPage from "@/app/(marketing)/chronicles/page";
+import ChronicleChapterPage, { generateMetadata } from "@/app/(marketing)/chronicles/[slug]/page";
 import { ChronicleBody, ChroniclePager } from "@/components/marketing/chronicle-body";
 import {
   PUBLISHED_CHAPTERS,
@@ -13,6 +14,7 @@ import {
   readChronicleSource,
   type ChronicleChapter,
 } from "@/lib/chronicles";
+import { canonicalUrl } from "@/lib/public-seo";
 
 const BANNED = ["ChatGPT", "Cursor", "Grok", "Slack", "Facebook", "GitHub", "Jira", "Solitaire"];
 const ENDING_MARKERS = ["END OF CHAPTER", "Next in", "Next chapter teaser"] as const;
@@ -23,8 +25,12 @@ function chapterById(id: ChronicleChapter["id"]): ChronicleChapter {
   return chapter;
 }
 
+function linkedHrefs(html: string): string[] {
+  return [...html.matchAll(/href="([^"]*)"/g)].map((match) => match[1] ?? "");
+}
+
 test("published chapters stay in reading order", () => {
-  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003", "004"]);
+  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003", "004", "005"]);
   assert.deepEqual(
     PUBLISHED_CHAPTERS.map((chapter) => chapter.slug),
     [
@@ -32,9 +38,10 @@ test("published chapters stay in reading order", () => {
       "002-sir-whiskers-opens-a-pull-request",
       "003-the-meeting-nobody-authorized",
       "004-the-agent-who-scheduled-a-meeting-with-himself",
+      "005-the-dashboard-that-never-was",
     ],
   );
-  assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), ["005"]);
+  assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), []);
   const chapter = chapterById("002");
   assert.equal(chapter.title, "Sir Whiskers Opens a Pull Request");
   assert.equal(chapter.kicker, "THE SOVEREIGN CHRONICLES · CHAPTER II");
@@ -102,36 +109,47 @@ test("rendered chapter 002 shows the fiction label", () => {
   assert.equal(chapter.meta.includes("FICTION"), true);
 });
 
-test("pager links published chapters only", () => {
+test("pager links adjacent published chapters", () => {
   const html = (id: ChronicleChapter["id"]) => renderToStaticMarkup(createElement(ChroniclePager, { chapter: chapterById(id) }));
-  const first = html("001");
-  assert.match(first, /href="\/chronicles"/);
-  assert.match(first, /href="\/chronicles\/002-sir-whiskers-opens-a-pull-request"/);
-  assert.doesNotMatch(first, /001-the-unauthorized-feline|coming soon|Not yet linked|Chapter 004/);
-  const second = html("002");
-  assert.match(second, /href="\/chronicles\/001-the-unauthorized-feline"/);
-  assert.match(second, /href="\/chronicles\/003-the-meeting-nobody-authorized"/);
-  assert.doesNotMatch(second, /coming soon|Not yet linked|Chapter 004/);
-  const third = html("003");
-  assert.match(third, /href="\/chronicles\/002-sir-whiskers-opens-a-pull-request"/);
-  assert.match(third, /href="\/chronicles\/004-the-agent-who-scheduled-a-meeting-with-himself"/);
-  assert.doesNotMatch(third, /003-the-meeting-nobody-authorized|coming soon|Not yet linked|Chapter 005/);
-  const fourth = html("004");
-  assert.match(fourth, /href="\/chronicles\/003-the-meeting-nobody-authorized"/);
-  assert.match(fourth, /href="\/chronicles"/);
-  assert.doesNotMatch(fourth, /004-the-agent-who-scheduled-a-meeting-with-himself|coming soon|Not yet linked|Chapter 005/);
+  assert.deepEqual(linkedHrefs(html("001")), ["/chronicles", "/chronicles/002-sir-whiskers-opens-a-pull-request"]);
+  assert.deepEqual(linkedHrefs(html("002")), [
+    "/chronicles/001-the-unauthorized-feline",
+    "/chronicles/003-the-meeting-nobody-authorized",
+  ]);
+  assert.deepEqual(linkedHrefs(html("003")), [
+    "/chronicles/002-sir-whiskers-opens-a-pull-request",
+    "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+  ]);
+  assert.deepEqual(linkedHrefs(html("004")), [
+    "/chronicles/003-the-meeting-nobody-authorized",
+    "/chronicles/005-the-dashboard-that-never-was",
+  ]);
+  assert.deepEqual(linkedHrefs(html("005")), [
+    "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+    "/chronicles",
+  ]);
+  for (const id of ["001", "002", "003", "004", "005"] as const) {
+    assert.equal(html(id).includes("coming soon"), false, id);
+    assert.equal(html(id).includes("Not yet linked"), false, id);
+  }
 });
 
-test("chronicles index links published chapters and keeps the chapter V block", () => {
+test("chronicles index links the five published chapters", () => {
   const html = renderToStaticMarkup(createElement(ChroniclesIndexPage));
-  assert.match(html, /href="\/chronicles\/001-the-unauthorized-feline"/);
-  assert.match(html, /href="\/chronicles\/002-sir-whiskers-opens-a-pull-request"/);
-  assert.match(html, /href="\/chronicles\/003-the-meeting-nobody-authorized"/);
-  assert.match(html, /href="\/chronicles\/004-the-agent-who-scheduled-a-meeting-with-himself"/);
-  assert.match(html, /The Agent Who Scheduled a Meeting With Himself/);
-  assert.match(html, /Up next · Chapter V · Coming soon · Not linked/);
-  assert.match(html, /The Agent Who Was Told Not to Press the Button/);
-  assert.doesNotMatch(html, /coming soon<\/p>/);
+  assert.deepEqual(linkedHrefs(html), [
+    "/research",
+    "/chronicles/001-the-unauthorized-feline",
+    "/chronicles/002-sir-whiskers-opens-a-pull-request",
+    "/chronicles/003-the-meeting-nobody-authorized",
+    "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+    "/chronicles/005-the-dashboard-that-never-was",
+    "/reviews",
+  ]);
+  assert.equal(html.includes("The Dashboard That Never Was"), true);
+  assert.equal(html.includes("CHAPTER V · 13 NOVEMBER 2026"), true);
+  assert.equal(html.includes("The Agent Who Was Told Not to Press the Button"), false);
+  assert.equal(html.includes("Coming soon"), false);
+  assert.equal(html.includes("Not linked"), false);
 });
 
 test("chapter 004 keeps the fiction boundary and the single remaining review", () => {
@@ -146,4 +164,69 @@ test("chapter 004 keeps the fiction boundary and the single remaining review", (
   assert.match(html, /STATUS: IN PROGRESS/);
   assert.doesNotMatch(html, /END OF CHAPTER|CHAPTER V/);
   for (const name of BANNED) assert.equal(html.includes(name), false, name);
+});
+
+test("chapter 005 keeps the manuscript, the fiction subtitle, and the forward link from 004", async () => {
+  const chapter = chapterById("005");
+  assert.equal(chapter.title, "The Dashboard That Never Was");
+  assert.equal(chapter.subtitle, "A fictionalised episode with The Crew.");
+  assert.equal(chapter.dateline, "13 November 2026");
+  assert.equal(chapter.kicker, "THE SOVEREIGN CHRONICLES · CHAPTER V");
+  assert.equal(chapter.meta, "CH-005 · FICTION · 9 MIN READ");
+  assert.equal(chapter.slug, "005-the-dashboard-that-never-was");
+  const raw = readChronicleSource(chapter.sourceFile);
+  assert.equal(raw.includes("Stopped thinking"), false);
+  assert.equal(raw.includes("unpublished"), false);
+  assert.equal(raw.includes("END OF CHAPTER"), false);
+  assert.equal(raw.split("\n").includes("A fictionalised episode with The Crew."), true);
+  assert.equal(raw.split("\n").includes("13 November 2026"), true);
+  const body = chronicleBodySource(chapter);
+  const lines = body.split("\n");
+  assert.equal(lines[0], "### I. And this one?");
+  assert.equal(lines.at(-1), "It was a task that finished.");
+  for (const heading of [
+    "### I. And this one?",
+    "### II. A small integration",
+    "### III. The two-word specification",
+    "### IV. The machine behind the conversation",
+    "### V. The customer",
+    "### VI. GO ZIP",
+    "### VII. The four boxes",
+    "### Epilogue: A different definition of finished",
+  ]) {
+    assert.equal(lines.includes(heading), true, heading);
+  }
+  assert.equal(lines.includes("13 November 2026"), false);
+  assert.equal(lines.includes("A fictionalised episode with The Crew."), false);
+  assert.equal(body.includes("“What does this one do?”"), true);
+  assert.equal(body.includes("“GO ZIP.”"), true);
+  assert.equal(body.includes("Observed state, 13 November 2026. Not a monitoring system."), true);
+  assert.equal(body.includes("a successful workflow—when they reached one—would not automatically become a finished operating system."), true);
+  assert.equal(body.includes("The next useful thing was not another screen."), true);
+  const html = renderToStaticMarkup(await ChronicleChapterPage({
+    params: Promise.resolve({ slug: chapter.slug }),
+  }));
+  assert.equal(html.includes("A story from the WitnessOps desk. Fiction; events dramatised."), true);
+  assert.equal(html.includes("A fictionalised episode with The Crew."), true);
+  assert.equal(html.includes(">13 November 2026<"), true);
+  assert.equal(html.includes("Stopped thinking"), false);
+  assert.equal(html.includes("unpublished"), false);
+  assert.equal(html.includes("END OF CHAPTER"), false);
+  assert.deepEqual(linkedHrefs(html), [
+    "/fonts/newsreader-400.woff2",
+    "/research",
+    "/chronicles",
+    "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+    "/chronicles",
+  ]);
+  const metadata = await generateMetadata({ params: Promise.resolve({ slug: chapter.slug }) });
+  const title = "The Dashboard That Never Was · The Sovereign Chronicles";
+  const canonical = canonicalUrl("/chronicles/005-the-dashboard-that-never-was");
+  assert.equal(metadata.title, title);
+  assert.equal(metadata.description, chapter.description);
+  assert.deepEqual(metadata.alternates, { canonical });
+  assert.equal(metadata.openGraph?.title, title);
+  assert.equal(metadata.openGraph?.description, chapter.description);
+  assert.equal(metadata.twitter?.title, title);
+  assert.equal(metadata.twitter?.description, chapter.description);
 });
