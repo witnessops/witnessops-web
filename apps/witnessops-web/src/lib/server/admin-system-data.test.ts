@@ -12,6 +12,8 @@ import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import audioManifest from "../../content/chronicles/audio-manifest.json";
+
 import {
   PUBLIC_SURFACE_URL_FALLBACK,
   countAudioFiles,
@@ -117,8 +119,8 @@ test("WEB-011: countAudioFiles ignores non-audio files", async () => {
   assert.equal(await countAudioFiles(dir), 1);
 });
 
-test("WEB-011: countAudioFiles on the retired audio tree returns 0", async () => {
-  assert.equal(await countAudioFiles(), 0);
+test("WEB-011: countAudioFiles matches the admitted Chronicle recordings", async () => {
+  assert.equal(await countAudioFiles(), Object.keys(audioManifest).length);
 });
 
 // ---------------------------------------------------------------------------

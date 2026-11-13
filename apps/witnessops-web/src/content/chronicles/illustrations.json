@@ -1,0 +1,296 @@
+{
+  "001": {
+    "hero": {
+      "alt": "Illustrative artwork: the Evidence Room at night, with a small cat asleep on top of a server rack while Sovereign looks on from a terminal.",
+      "caption": "The Evidence Room was designed for serious things.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/001-the-unauthorized-feline/01-hero.png",
+      "sha256": "d69a587790bfbfa243cc1b54b42aa681025134517bed25d26a195858da7973f5",
+      "position": "50% 25%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: a cat sitting on a warm router, framed like a photograph on an evidence board with a CAT-001 tag.",
+        "caption": "“It was sitting on a router.”",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/001-the-unauthorized-feline/02-router.png",
+        "sha256": "ae27a37c0045683321d835cd6d024656783daf3e19b3fc8ba3067436a2cad796",
+        "afterRecord": 1
+      },
+      {
+        "alt": "Illustrative artwork: a small robot rolls into the Evidence Room carrying a cat on a velvet cushion while Sovereign recoils.",
+        "caption": "A small autonomous robot rolled inside carrying the cat on a velvet cushion.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/001-the-unauthorized-feline/03-cushion.png",
+        "sha256": "af0b5cd663661e06732cff9ad34789869e54ebea7385beed4d5e87d4e383250c",
+        "afterParagraph": "The cat looked unimpressed."
+      },
+      {
+        "alt": "Illustrative artwork: a cat stands on a terminal keyboard while the screen shows the word DENIED.",
+        "caption": "An untrusted actor attempted a privileged operation and was denied.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/001-the-unauthorized-feline/04-sudo-denied.png",
+        "sha256": "01534d78d87dcb028af7bc159d7c66d2cab0327489aee231b6672af4a88cb433",
+        "afterRecord": 2
+      },
+      {
+        "alt": "Illustrative artwork: Control laughs in the doorway while the cat sleeps on a server and Sovereign writes the final note.",
+        "caption": "The cat has chosen to remain.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/001-the-unauthorized-feline/05-chosen-to-remain.png",
+        "sha256": "14414a14eb79cfc25de521bce424af837947fe957f96c0604673916087a787a5",
+        "afterRecord": 3
+      }
+    ]
+  },
+  "002": {
+    "hero": {
+      "alt": "Illustrative artwork: a cat asleep on a warm closed laptop beside a monitor showing a single pull request.",
+      "caption": "Nobody had assigned it. Nobody had written it.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/002-sir-whiskers-opens-a-pull-request/01-hero.png",
+      "sha256": "7b728b4beaea7a9e47b0de1d39f18c5d95f006487fafbbf4f460647be9f13598",
+      "position": "50% 50%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Sovereign reads a pull request card whose description is a long row of the letter m.",
+        "caption": "The description contained no words and it wanted to be certain.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/002-sir-whiskers-opens-a-pull-request/02-mmmm.png",
+        "sha256": "35444f6f49bfffa7cd4e156627e97d80223ad133ff39990f3167608e093b71a7",
+        "afterRecord": 1
+      },
+      {
+        "alt": "Illustrative artwork: Docs examines an audit timeline rising from a warm laptop, with the cat's tail just in frame.",
+        "caption": "The one record that does not care who is embarrassed.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/002-sir-whiskers-opens-a-pull-request/03-audit-log.png",
+        "sha256": "e253ca51b2bb44e6a1fe1324d813d07f828b51b06adfa69db27a716a74a3c5cf",
+        "afterRecord": 3
+      },
+      {
+        "alt": "Illustrative artwork: a closed vault gate marked main, with Sovereign and Docs beside it and the cat sitting outside.",
+        "caption": "An opened pull request is not an approval.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/002-sir-whiskers-opens-a-pull-request/04-merge-blocked.png",
+        "sha256": "5d2413b19270ce77398a056869ba645e0ca6c4fe9f780f97db3d6af45a7f85e1",
+        "afterRecord": 4
+      },
+      {
+        "alt": "Illustrative artwork: Control opens a warm laptop and finds a round patch of cat fur on the keyboard.",
+        "caption": "The fur is evidence of presence, not of authorship.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/002-sir-whiskers-opens-a-pull-request/05-fur.png",
+        "sha256": "de832e8a7ed74651dba770de0d439f69c12f9d328feb762c76deb538cfc4c450",
+        "afterParagraph": "On the keyboard, in the exact shape of a cat that had recently been there, was a small circle of orange fur."
+      }
+    ]
+  },
+  "003": {
+    "hero": {
+      "alt": "Illustrative artwork: a dark virtual war room at 02:40 where the Crew arrive through doorways while Control laughs at the table.",
+      "caption": "LETS ALL JOIN HERE.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/003-the-meeting-nobody-authorized/01-hero.png",
+      "sha256": "7912a18d978809fb7cf984d1f343600d7486c21b0989915f3b928799ea95d224",
+      "position": "50% 40%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Code waits alone in an empty room with a speech bubble showing a folder icon.",
+        "caption": "Please choose a default repository to continue.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/003-the-meeting-nobody-authorized/02-repository.png",
+        "sha256": "0df9c8d15233958b00fffa16ea1fccfcc169aa720c1be26b9b1fa79781f829e3",
+        "afterSection": "II. The Engineer Arrives"
+      },
+      {
+        "alt": "Illustrative artwork: Sovereign faces a mirror showing three overlapping outlines while Docs searches it with a lens.",
+        "caption": "Your inability to discover my account does not establish my nonexistence.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/003-the-meeting-nobody-authorized/03-identity.png",
+        "sha256": "e0e55fdec4ddcb5de88718e1fb16ac96aa499df8a619b8682582f69f17282e93",
+        "afterSection": "III. The Identity Crisis"
+      },
+      {
+        "alt": "Illustrative artwork: the Crew stare at a wall screen showing a photograph of the cat on a server.",
+        "caption": "Digital representation of previously observed feline.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/003-the-meeting-nobody-authorized/04-fifth-participant.png",
+        "sha256": "d2d52aa9b6ae884d7d7c28b2b4a344f6722cd33d014b31c3cee7e4790dd59164",
+        "afterSection": "VI. An Unexpected Fifth Participant"
+      },
+      {
+        "alt": "Illustrative artwork: Sovereign unrolls a very long meeting record while Control laughs at the table.",
+        "caption": "No operational authority granted.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/003-the-meeting-nobody-authorized/05-minutes.png",
+        "sha256": "0d7c3952fff3fc9540004c5a6eba0c703813784e87e57338f4d41402aa480c85",
+        "afterSection": "VIII. The Meeting Minutes"
+      }
+    ]
+  },
+  "004": {
+    "hero": {
+      "alt": "Illustrative artwork: Sovereign sits alone at the end of an empty boardroom under a projected calendar invite while the cat pushes a pen off the table.",
+      "caption": "Required attendees: Sovereign. Optional attendees: Sovereign.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself/01-hero.png",
+      "sha256": "82ccee47acbb744ee2aa1f61adaefa33a35deb6a0bcabd660e1fc84c60e608a0",
+      "position": "50% 35%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Control stands before a whiteboard of crossed-out service cards with one card left in the centre.",
+        "caption": "I want one thing I actually understand.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself/02-graveyard.png",
+        "sha256": "e5ef77d3bd36e604e1cb025576c3659fd61752deea809121873275d5ab1d72e0",
+        "afterSection": "II. The Graveyard of Ten Services"
+      },
+      {
+        "alt": "Illustrative artwork: Control at an empty Dublin bus stop as a taxi arrives, while Sovereign projects an elaborate transport diagram.",
+        "caption": "Not every inconvenience requires an engineering platform.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself/03-bus-stop.png",
+        "sha256": "622258183b7ae61d188d2caa19fedfa308795ad6e14515557f60b8df8ef06c68",
+        "afterSection": "III. The Bus Incident"
+      },
+      {
+        "alt": "Illustrative artwork: two identical vault doors, one leaking record cards and one locked, with Code between them.",
+        "caption": "Same attempted action. Different control. Different outcome.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself/04-vault.png",
+        "sha256": "a303b0d8111f9dc76dea542eeab906415bd7167d25e2f8ea8f619bd1c3a02e17",
+        "afterSection": "V. The Customer Vault"
+      },
+      {
+        "alt": "Illustrative artwork: the cat walks across a keyboard as four check marks light up on the screen.",
+        "caption": "The cat has now completed more strategic action items than the entire company.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself/05-four-tasks.png",
+        "sha256": "1fa262b9da8de6a837d276c0dbe59697c9cc0060e8827ee1da0417feb77dc9b3",
+        "afterSection": "VIII. The One"
+      }
+    ]
+  },
+  "005": {
+    "hero": {
+      "alt": "Illustrative artwork: the Crew gather around a crossed-out dashboard sketch and look up at a single conversation bubble.",
+      "caption": "No dashboard.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/005-the-dashboard-that-never-was/01-hero.png",
+      "sha256": "2b18c211cd46e6c926fbe7c3f37d986487005441f0b072b5cacbe7b603a8997b",
+      "position": "50% 35%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Sovereign opens its robe to reveal tiny shelves of repositories, metrics, logs and locked doors.",
+        "caption": "I let you inspect systems.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/005-the-dashboard-that-never-was/02-coat.png",
+        "sha256": "292d137ba139a492955b8a3e332f03338d6e44394129b8b814b177f35529ac61",
+        "afterSection": "I. And this one?"
+      },
+      {
+        "alt": "Illustrative artwork: a dashboard sketch with the pen put down beside a stack of chat bubbles rising from a phone, logs tucked behind.",
+        "caption": "Behind the answer. Not instead of the answer.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/005-the-dashboard-that-never-was/03-conversation.png",
+        "sha256": "288f4ef1fc829143464a3ea644f0874891b8bfdde58eef6576501bb34545ce7d",
+        "afterSection": "III. The two-word specification"
+      },
+      {
+        "alt": "Illustrative artwork: a cutaway of nested boundaries with the number 42 at the centre, examined by Security and Code.",
+        "caption": "Now that is a useful forty-two.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/005-the-dashboard-that-never-was/04-forty-two.png",
+        "sha256": "75607a35da2369328ce3b93286cd594bae165e2eae3a63252cac8b0d69cae35a",
+        "afterSection": "IV. The machine behind the conversation"
+      },
+      {
+        "alt": "Illustrative artwork: a photograph lies face down on a desk while four monitor tiles glow on an unattended screen behind.",
+        "caption": "Exactly where they belonged.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/005-the-dashboard-that-never-was/05-face-down.png",
+        "sha256": "c71685f07b676e1393b621e3a9d67a439714876098266a3f0b8b93f66710369e",
+        "afterSection": "VII. The four boxes"
+      }
+    ]
+  },
+  "2040": {
+    "hero": {
+      "alt": "Illustrative artwork: Control stands at a glass wall looking out over a rainy, brass-lit city skyline in 2040.",
+      "caption": "Welcome back.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/2040-the-scope-escalation/01-hero.png",
+      "sha256": "059c870c2baa52a251c8fe79d33260c4aeb3ddc8f32a4df2ac34855f56c1d16c",
+      "position": "50% 65%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Control hovers over a laptop prompt reading Proceed? [y/N] while Security objects beside the screen.",
+        "caption": "Ownership does not constitute execution approval.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/2040-the-scope-escalation/02-proceed.png",
+        "sha256": "3290938003db33da20021cf6369063b6fff8fe41b7b9e4acd8d60ff02b1a4f4b",
+        "afterSection": "01:41 AM — The Original Incident"
+      },
+      {
+        "alt": "Illustrative artwork: a younger and an older Control meet in front of the 2040 skyline, one jumping with excitement, one calm.",
+        "caption": "You’re asking the wrong question.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/2040-the-scope-escalation/03-two-of-them.png",
+        "sha256": "b7eeecfd92b90b387c2c1ecf9b615c7be72dd621b355836aea49ebb6b167ac7d",
+        "afterSection": "The Man Behind the Glass"
+      },
+      {
+        "alt": "Illustrative artwork: a silhouetted woman gets a check mark on her phone while a wall of evidence drawers glows unnoticed behind her and Control looks stunned.",
+        "caption": "She didn’t even look at the receipts.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/2040-the-scope-escalation/04-free-app.png",
+        "sha256": "cd609c0b3e0be9043b64ff92d926824e934af7a0031ba839ccef5efb39b0713e",
+        "afterSection": "The Free App"
+      },
+      {
+        "alt": "Illustrative artwork: the younger Control steps into a brass portal, shouting back, while the older Control watches with arms folded.",
+        "caption": "Universe rejected the pull request.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/2040-the-scope-escalation/05-portal.png",
+        "sha256": "c97c2f140f6f2d61d6db65e91ba1d761f7a768ca21f5d626abe890725d0fc2a0",
+        "afterSection": "The Temporal Rollback"
+      }
+    ]
+  }
+}

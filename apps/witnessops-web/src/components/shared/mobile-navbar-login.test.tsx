@@ -30,19 +30,25 @@ function mobileMenu(html: string): string {
   return html.slice(start);
 }
 
+function accountActions(html: string): string {
+  const match = html.match(/<div data-mobile-account-actions[^>]*>([\s\S]*?)<\/div>/);
+  assert.ok(match, "mobile account actions are rendered");
+  return match[1];
+}
+
 test("Polish mobile menu exposes the existing configured login and keeps one review CTA", () => {
   const html = renderNavbar("/pl", "https://app.example.test/");
   const mobile = mobileMenu(html);
   assert.equal((mobile.match(/data-mobile-login/g) ?? []).length, 1);
   assert.match(mobile, /<a(?=[^>]*href="https:\/\/app\.example\.test\/login")(?=[^>]*data-mobile-login)[^>]*>Zaloguj się<\/a>/);
-  assert.equal((mobile.match(/Poproś o test przełamania/g) ?? []).length, 1);
+  assert.equal((accountActions(mobile).match(/Poproś o test przełamania/g) ?? []).length, 1);
   assert.match(html.slice(0, html.indexOf('id="witnessops-mobile-menu"')), /href="https:\/\/app\.example\.test\/login"[^>]*>Zaloguj się<\/a>/);
 });
 
 test("Polish mobile menu keeps login absent without a configured app", () => {
   const mobile = mobileMenu(renderNavbar("/pl", null));
   assert.doesNotMatch(mobile, /data-mobile-login|Zaloguj się|\/login/);
-  assert.equal((mobile.match(/Poproś o test przełamania/g) ?? []).length, 1);
+  assert.equal((accountActions(mobile).match(/Poproś o test przełamania/g) ?? []).length, 1);
 });
 
 test("English mobile navigation keeps its existing login next to the single CTA", () => {
@@ -50,7 +56,7 @@ test("English mobile navigation keeps its existing login next to the single CTA"
   assert.doesNotMatch(mobile, /Zaloguj się/);
   assert.equal((mobile.match(/data-mobile-login/g) ?? []).length, 1);
   assert.match(mobile, /<a(?=[^>]*href="https:\/\/app\.example\.test\/login")[^>]*>Log in<\/a>/);
-  assert.equal((mobile.match(/Request a break test/g) ?? []).length, 1);
+  assert.equal((accountActions(mobile).match(/Request a break test/g) ?? []).length, 1);
   assert.doesNotMatch(mobile, /href="\/pricing"|href="\/check"|href="\/early-access"|href="\/about"/);
   // About became Docs (footer bundle B, Design 2026-11-13); the site is dark only, so no theme control.
   assert.match(mobile, /href="\/docs"[^>]*><span[^>]*>Docs<\/span>/);

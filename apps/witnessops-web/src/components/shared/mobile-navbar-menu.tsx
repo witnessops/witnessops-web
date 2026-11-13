@@ -3,13 +3,17 @@
 import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { CtaButton } from "./cta-button";
 import { isPolishPath } from "@/lib/public-i18n";
+import type { PublicNavGroup } from "./public-nav-groups";
+import styles from "./mobile-navbar-menu.module.css";
 
 interface MobileNavbarMenuProps {
   loginUrl?: string | null;
   links: { label: string; href: string }[];
+  groups?: readonly PublicNavGroup[];
   languageLink?: { label: string; href: string; hrefLang: string };
   cta: { label: string; href: string; variant: string } | null;
   assistantLink?: { label: string; href: string };
@@ -21,6 +25,7 @@ interface MobileNavbarMenuProps {
 
 export function MobileNavbarMenu({
   links,
+  groups = [],
   loginUrl = null,
   languageLink,
   cta,
@@ -31,7 +36,9 @@ export function MobileNavbarMenu({
   closeLabel,
 }: MobileNavbarMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const pathname = usePathname();
+  const previousPathRef = useRef(pathname);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuId = "witnessops-mobile-menu";
@@ -39,7 +46,8 @@ export function MobileNavbarMenu({
   const closeMenu = () => setMenuOpen(false);
 
   useEffect(() => {
-    setMenuOpen(false);
+    if (previousPathRef.current !== pathname) setMenuOpen(false);
+    previousPathRef.current = pathname;
   }, [pathname]);
 
   useEffect(() => {
@@ -49,6 +57,7 @@ export function MobileNavbarMenu({
       root.setAttribute("data-mobile-nav-open", "true");
     } else {
       root.removeAttribute("data-mobile-nav-open");
+      setOpenGroup(null);
     }
 
     return () => root.removeAttribute("data-mobile-nav-open");
@@ -180,6 +189,43 @@ export function MobileNavbarMenu({
             {cta && <CtaButton label={cta.label} href={cta.href} variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"} onClick={closeMenu} className="min-h-11" ariaCurrent={currentPath === cta.href ? "page" : undefined} labelClassName="inline-block -translate-y-px" />}
             {loginUrl && <Link href={loginUrl} data-mobile-login onClick={closeMenu} className="flex min-h-11 items-center justify-center whitespace-nowrap rounded-sm border border-surface-border px-4 text-sm">{isPolishPath(currentPath) ? "Zaloguj się" : "Log in"}</Link>}
           </div>}
+          {groups.map((group) => {
+            const expanded = openGroup === group.id;
+            const panelId = `${menuId}-${group.id}`;
+            const triggerId = `${panelId}-trigger`;
+            return (
+              <div key={group.id} className={styles.group}>
+                <button
+                  id={triggerId}
+                  type="button"
+                  className={styles.groupTrigger}
+                  aria-expanded={expanded}
+                  aria-controls={panelId}
+                  onClick={() => setOpenGroup((current) => current === group.id ? null : group.id)}
+                >
+                  {group.label}
+                  <ChevronDown size={18} aria-hidden="true" />
+                </button>
+                <div id={panelId} className={styles.groupPanel} hidden={!expanded} aria-labelledby={triggerId}>
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      prefetch={false}
+                      aria-current={currentPath === link.href.split("?")[0] ? "page" : undefined}
+                      className={`${styles.groupLink} ${currentPath === link.href.split("?")[0]
+                        ? "border-brand-accent bg-brand-accent/[0.06] font-semibold text-text-primary"
+                        : "border-transparent text-text-secondary"}`}
+                      onClick={closeMenu}
+                    >
+                      <span className={styles.linkTitle}>{link.label}</span>
+                      <span className={styles.linkDescription}>{link.description}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
           {links.map((link) => (
             <Link
               key={link.href}

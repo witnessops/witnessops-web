@@ -1,65 +1,31 @@
 import { expect, test } from '@playwright/test';
-
 import { getWorkspaceAppUrl } from '../../apps/witnessops-web/src/lib/workspace-access';
 
-const signup = getWorkspaceAppUrl('/signup');
-const routes = ['/', '/pricing', '/catalog', '/check', '/early-access', '/docs', '/library', '/research', '/verify', '/support', '/review/request', '/catalog/workflows'];
+const appUrl = getWorkspaceAppUrl();
+const login = appUrl ? new URL('/login', appUrl).href : null;
+
 for (const width of [390, 1440]) {
-  test(`public signup stays outlined across the shell at ${width}`, async ({ page }, testInfo) => {
+  test(`public navigation keeps the request, login and Docs reachable at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    for (const route of routes) {
-      await page.goto(route);
-      const nav = page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-      if (width === 390) await nav.getByRole('button', { name: 'Open primary navigation' }).click();
-      if (!signup) {
-        await expect(nav.getByRole('link', { name: 'Sign up', exact: true })).toHaveCount(0);
-        await expect(nav.locator('[data-public-primary-cta]')).toHaveCount(0);
-        continue;
-      }
-      if (width === 390) {
-        await expect(nav.locator('[data-mobile-account-actions]')).toBeVisible();
-        if (route === '/') await expect(nav.getByRole('link', { name: 'Log in', exact: true })).toHaveAttribute('href', new URL('/login', signup!).href);
-      }
-      const cta = nav.getByRole('link', { name: 'Sign up', exact: true }).filter({ visible: true });
-      await expect(cta).toHaveCount(1);
-      await expect(cta).toHaveAttribute('href', signup);
-      await expect(cta).toBeInViewport();
-      const style = await cta.evaluate(el => {
-        const s = getComputedStyle(el);
-        return { background: s.backgroundColor, border: s.borderTopWidth, height: el.getBoundingClientRect().height };
-      });
-      expect(style.background).toBe('rgba(0, 0, 0, 0)');
-      expect(parseFloat(style.border)).toBeGreaterThanOrEqual(1);
-      expect(style.height).toBeGreaterThanOrEqual(44);
-      if (route === '/') {
-        await page.screenshot({ path: testInfo.outputPath(`nav-${width}.png`) });
-        if (width === 390) await page.keyboard.press('Escape');
-        const hero = page.locator('[data-ui-proof-id="homepage-hero"]').getByRole('link', { name: 'Request a break test', exact: true });
-        await expect(hero).toBeVisible();
-        expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
-        await expect(page.locator('main').getByRole('link', { name: 'Start a free check', exact: true })).toHaveAttribute('href', '/check');
-      }
-    }
-    // Route the configured destination locally: test navigation, never an actual signup.
-    if (signup) {
-    await page.context().route(signup, route => route.fulfill({ contentType: 'text/html', body: '<h1>Signup destination fixture</h1>' }));
-    const popupPromise = page.waitForEvent('popup');
-    await page.getByRole('navigation', { name: 'Primary navigation', exact: true }).getByRole('link', { name: 'Sign up', exact: true }).filter({ visible: true }).click();
-    const popup = await popupPromise;
-    await popup.waitForLoadState();
-    expect(popup.url()).toBe(signup);
-    await popup.close();
-    }
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'networkidle' });
     const nav = page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    if (width === 390) await nav.getByRole('button', { name: 'Open primary navigation' }).click();
-    await nav.getByRole('button', { name: 'Resources', exact: true }).click();
-    const sampleLink = nav.locator('a[href="/review/sample-cases"]:visible');
-    await expect(sampleLink).toHaveCount(1);
-    await expect(sampleLink).toContainText('Examples');
-    await expect(sampleLink).toHaveAttribute('href', '/review/sample-cases');
-    await nav.getByRole('button', { name: 'Reviews', exact: true }).click();
-    await nav.locator('a[href="/catalog"]:visible').click();
-    await expect(page).toHaveURL(/\/catalog$/);
+    if (width < 1024) await nav.getByRole('button', { name: 'Open primary navigation' }).click();
+    const account = width < 1024 ? nav.locator('[data-mobile-account-actions]') : nav;
+    const cta = account.getByRole('link', { name: 'Request a break test', exact: true }).filter({ visible: true });
+    await expect(cta).toHaveCount(1);
+    await expect(cta).toHaveAttribute('href', '/review/request');
+    await expect(cta).toBeInViewport();
+    const loginLink = account.getByRole('link', { name: 'Log in', exact: true }).filter({ visible: true });
+    if (login) await expect(loginLink).toHaveAttribute('href', login);
+    else await expect(loginLink).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: 'Docs', exact: true }).filter({ visible: true })).toHaveAttribute('href', '/docs');
+    await expect(nav.getByRole('link', { name: 'Sign up', exact: true })).toHaveCount(0);
+    for (const href of ['/pricing', '/check', '/early-access', '/about']) {
+      await expect(nav.locator(`a[href="${href}"]`)).toHaveCount(0);
+    }
+    const scope = width < 1024 ? nav.locator('#witnessops-mobile-menu') : nav;
+    await scope.getByRole('button', { name: 'The review', exact: true }).click();
+    await scope.getByRole('link', { name: /^Examples/ }).filter({ visible: true }).click();
+    await expect(page).toHaveURL(/\/review\/sample-cases$/);
   });
 }
