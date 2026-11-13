@@ -59,10 +59,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F5F1E8" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B0C0B" },
-  ],
+  // Dark only (Design 2026-11-13): one browser chrome colour, whatever the system preference.
+  themeColor: "#0B0C0B",
 };
 
 function fontPreloads(language: string) {
@@ -110,9 +108,9 @@ export default async function RootLayout({
   const localWorkspace = headerStore.get("x-witnessops-local-workspace");
   if (localWorkspace === "proofpack" || localWorkspace === "external-check") {
     return (
-      <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
+      <html lang={documentLanguage} data-theme="dark" style={appShellStyle} suppressHydrationWarning>
         <head>
-          <meta name="color-scheme" content="light dark" />
+          <meta name="color-scheme" content="dark" />
           {fontPreloads(documentLanguage)}
           <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         </head>
@@ -143,9 +141,9 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={documentLanguage} data-theme="light" style={appShellStyle} suppressHydrationWarning>
+    <html lang={documentLanguage} data-theme="dark" style={appShellStyle} suppressHydrationWarning>
       <head>
-        <meta name="color-scheme" content="light dark" />
+        <meta name="color-scheme" content="dark" />
         {fontPreloads(documentLanguage)}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <meta name="penguin" content="respect" />

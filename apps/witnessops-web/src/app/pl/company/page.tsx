@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { CompanyDetails } from "@/components/marketing/company-details";
 import { COMPANY_DETAILS } from "@/lib/company-details";
@@ -22,6 +23,11 @@ export default function PolishCompanyPage() {
       className="mx-auto w-full min-w-0 max-w-3xl px-6 py-16"
     >
       <CompanyDetails locale="pl" placement="page" />
+      {/* Media kit link moved here from /about (footer bundle B, Design 2026-11-13). PL copy pending native review. */}
+      <p className="mt-8 text-text-secondary">
+        Materiały prasowe i znak marki:{" "}
+        <Link href="/pl/media-kit" className="inline-flex min-h-11 items-center underline underline-offset-4" data-company-media-kit>zestaw dla mediów</Link>.
+      </p>
     </main>
   );
 }

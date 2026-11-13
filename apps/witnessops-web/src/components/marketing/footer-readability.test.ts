@@ -46,18 +46,18 @@ test("footer shows one review, two columns and no retired or second-product link
   for (const locale of ["en", "pl"] as const) {
     const hrefs = footerGroups(locale).flatMap((group) => group.links.map((link) => link.href));
     assert.equal(footerGroups(locale).length, 2);
-    for (const banned of ["/pricing", "/reviews", "/pl/reviews", "/docs/assistant", "/docs", "/pl/docs", "/early-access", "/check", "/verify", "/pl/verify", "/media-kit", "/pl/media-kit"]) {
+    for (const banned of ["/pricing", "/reviews", "/pl/reviews", "/docs/assistant", "/about", "/early-access", "/check", "/verify", "/pl/verify", "/media-kit", "/pl/media-kit"]) {
       assert.equal(hrefs.includes(banned), false, `${locale} footer must not link ${banned}`);
     }
     assert.equal(hrefs.some(isFooterRequestHref), false, "The request action is the single brand CTA, not a column link.");
   }
   assert.deepEqual(footerGroups("en").map((group) => [group.label, group.links.map((link) => link.label)]), [
     ["The review", ["Agent Action Security Review", "How it works", "Examples"]],
-    ["Company", ["About", "Security", "Company details"]],
+    ["Company", ["Docs", "Security", "Company details"]],
   ]);
   assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [
     ["Przegląd", ["/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases"]],
-    ["Firma", ["/about", "/pl/security", "/pl/company"]],
+    ["Firma", ["/pl/docs", "/pl/security", "/pl/company"]],
   ]);
   const footer = source();
   assert.doesNotMatch(footer, /Ask Sovereign|sovereignAssistantPublished|label: "Pricing"|Talk to an expert|Media kit/);
@@ -70,9 +70,11 @@ test("footer legal line names the company, KRS and NIP from company details", ()
   assert.match(source(), /\{COMPANY_LEGAL_LINE\}/);
 });
 
-test("footer carries the theme pair and a language switch in the bottom row", () => {
+test("footer bottom row: language switch and GitHub, no theme control and no X link (bundle B)", () => {
   const footer = source();
-  assert.match(footer, /<ThemeMemory compact \/>/);
+  assert.doesNotMatch(footer, /ThemeMemory|data-theme-choice/);
+  assert.doesNotMatch(footer, /x\.com|twitter|X_PROFILE_HREF/i);
+  assert.match(footer, /GITHUB_PROFILE_HREF = "https:\/\/github\.com\/witnessops"/);
   assert.match(footer, /role="group" aria-label=\{copy\.language\}/);
   assert.match(footer, /hrefLang="pl"/);
   assert.match(footer, /aria-current="true"/);
@@ -92,7 +94,7 @@ test("footer classifies the source route before same-site URL resolution", () =>
   assert.equal(isExternalFooterHref("/privacy"), false);
   assert.equal(isExternalFooterHref("/review/request"), false);
   assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
-  for (const href of ["/privacy", "/terms", "/security", "/about", "/review/request"]) {
+  for (const href of ["/privacy", "/terms", "/security", "/docs", "/review/request"]) {
     assert.equal(resolveFooterHref(href), href);
   }
 });
@@ -110,4 +112,17 @@ test("selected-offer enquiry links are recognised as the footer request action",
   assert.equal(isFooterRequestHref("/pl/review/request?productId=OFFSEC-LOCAL-AUDIT"), true);
   assert.equal(isFooterRequestHref("/review/sample-cases"), false);
   assert.equal(isFooterRequestHref("/review/request/confirmed"), false);
+});
+
+test("footer carries a labelled 'Tested on agents built with' strip with xAI and Codex marks above the legal line", () => {
+  const footer = source();
+  assert.match(footer, /testedWith: "Tested on agents built with"/);
+  assert.match(footer, /testedWith: "Testujemy agentów zbudowanych na"/);
+  assert.match(footer, /XAI_HREF = "https:\/\/x\.ai"/);
+  assert.match(footer, /CODEX_HREF = "https:\/\/openai\.com\/codex\/"/);
+  assert.match(footer, /https:\/\/agents\.md\/logos\/codex\.svg/);
+  assert.match(footer, /aria-label=\{copy\.xai\}/);
+  assert.match(footer, /codex: "OpenAI Codex"/);
+  assert.ok(footer.indexOf("data-footer-tested") < footer.indexOf("data-footer-legal"), "strip sits above the legal divider");
+  assert.doesNotMatch(footer, /Partners?\b|Official/);
 });

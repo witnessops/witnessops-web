@@ -107,7 +107,7 @@ for (const scheme of schemes) {
     for (const route of ["/verify", "/pl/verify"]) {
       test(`${route} receipt textarea keeps typed text readable`, async ({ page }) => {
         await page.goto(route);
-        await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+        await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // dark only (bundle B), whatever the emulated scheme
         const textarea = page.locator("main textarea").first();
         await expect(textarea).toHaveValue("");
         const measurements = await measure(page, [{ label: "receipt textarea placeholder", selector: "main textarea", pseudo: "::placeholder" }]);
@@ -122,7 +122,7 @@ for (const scheme of schemes) {
 
     test("/verify/skill boundary panel, editor and evidence stay readable", async ({ page }) => {
       await page.goto("/verify/skill");
-      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // dark only (bundle B), whatever the emulated scheme
       const panel = '[data-ui-proof-id="skill-local-boundary"]';
       const editor = page.getByRole("textbox", { name: "Paste SKILL.md" });
       await expect(editor).toHaveValue("");
@@ -161,7 +161,7 @@ for (const scheme of schemes) {
 
     test("/verify result states keep readable signals and visible edges", async ({ page }) => {
       await page.goto("/verify");
-      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // dark only (bundle B), whatever the emulated scheme
       const textarea = page.locator("main textarea").first();
       const verify = async () => {
         const response = page.waitForResponse((candidate) => candidate.url().endsWith("/api/verify"));
@@ -211,7 +211,7 @@ for (const scheme of schemes) {
 
     test("/verify/skill verdict and error edges stay visible", async ({ page }) => {
       await page.goto("/verify/skill");
-      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // dark only (bundle B), whatever the emulated scheme
       const editor = page.getByRole("textbox", { name: "Paste SKILL.md" });
       const head = "---\nname: helper\ndescription: Helps.\n---\n# Helper\n\n";
       const states = [
@@ -253,7 +253,7 @@ for (const scheme of schemes) {
     test("CRM sample case inactive stage names stay readable", async ({ page }) => {
       const route = "/review/sample-cases/witnessed-crm-status-change";
       await page.goto(route);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", scheme);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // dark only (bundle B), whatever the emulated scheme
       const measurements = await measure(page, [
         { label: "inactive stage name", selector: 'ol[aria-label="Recorded action stages"] li:not([data-active="true"]) strong' },
         { label: "active stage name", selector: 'ol[aria-label="Recorded action stages"] li[data-active="true"] strong' },

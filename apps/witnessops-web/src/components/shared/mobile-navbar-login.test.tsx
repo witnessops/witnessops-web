@@ -51,5 +51,8 @@ test("English mobile navigation keeps its existing login next to the single CTA"
   assert.equal((mobile.match(/data-mobile-login/g) ?? []).length, 1);
   assert.match(mobile, /<a(?=[^>]*href="https:\/\/app\.example\.test\/login")[^>]*>Log in<\/a>/);
   assert.equal((mobile.match(/Request a break test/g) ?? []).length, 1);
-  assert.doesNotMatch(mobile, /href="\/pricing"|href="\/check"|href="\/early-access"|href="\/docs"/);
+  assert.doesNotMatch(mobile, /href="\/pricing"|href="\/check"|href="\/early-access"|href="\/about"/);
+  // About became Docs (footer bundle B, Design 2026-11-13); the site is dark only, so no theme control.
+  assert.match(mobile, /href="\/docs"[^>]*><span[^>]*>Docs<\/span>/);
+  assert.doesNotMatch(mobile, /data-theme-toggle|data-theme-choice/);
 });

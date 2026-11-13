@@ -11,13 +11,13 @@ export type CanonicalOffsecProductId = string;
 export const POLISH_NO_SECRETS_NOTE =
   "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesyjnych ani innych sekretów.";
 
-/** Przegląd and O nas (EN) are new PL labels pending native review. */
+/** Przegląd and Dokumentacja are new PL labels pending native review. */
 export const POLISH_PUBLIC_NAV = {
   links: [
     { label: "Przegląd", href: "/pl/reviews/agent-action-security-review" },
     { label: "Podejście", href: "/pl/why-witnessops" },
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
-    { label: "O nas (EN)", href: "/about" },
+    { label: "Dokumentacja", href: "/pl/docs" },
   ],
   cta: { label: "Poproś o test przełamania", href: "/pl/review/request", variant: "primary" },
 } as const;

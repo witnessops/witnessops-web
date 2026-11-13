@@ -64,7 +64,8 @@ test("Polish homepage carries the same five sections and keeps docs reachable by
   await expect(page.locator("[data-home-offer]")).toHaveCount(0);
   await expect(page.locator("main")).toContainText("Nie testujemy bez Twojej pisemnej zgody.");
   await expect(page.locator("main")).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€|EUR|PLN/);
-  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true })).toHaveCount(0);
+  // Footer bundle B (Design 2026-11-13): About became Docs, labelled Dokumentacja (pending native review).
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true })).toHaveAttribute("href", "/pl/docs");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   expect((await page.request.get("/pl/docs")).status()).toBe(200);
 });

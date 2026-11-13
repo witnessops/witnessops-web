@@ -99,20 +99,27 @@ test("English and Polish footers list the agent review and the footer-linked pag
   assert.equal(plHrefs.includes("/research"), false);
   assert.ok(enHrefs.includes("/review/sample-cases"));
   assert.ok(plHrefs.includes("/review/sample-cases"));
-  for (const retired of ["/verify", "/pl/verify", "/pricing", "/reviews", "/docs", "/pl/docs", "/docs/assistant", "/media-kit", "/pl/media-kit", "/check", "/early-access"]) {
+  for (const retired of ["/verify", "/pl/verify", "/pricing", "/reviews", "/about", "/docs/assistant", "/media-kit", "/pl/media-kit", "/check", "/early-access"]) {
     assert.equal([...enHrefs, ...plHrefs].includes(retired), false, `footer must not link ${retired}`);
   }
 
-  for (const href of ["/privacy", "/terms", "/security", "/company", "/about", "/how-it-works"]) {
+  for (const href of ["/privacy", "/terms", "/security", "/company", "/docs", "/how-it-works"]) {
     assert.ok(enHrefs.includes(href), `missing EN footer href ${href}`);
   }
-  for (const href of ["/pl/privacy", "/pl/terms", "/pl/security", "/pl/company", "/about", "/pl/why-witnessops"]) {
+  for (const href of ["/pl/privacy", "/pl/terms", "/pl/security", "/pl/company", "/pl/docs", "/pl/why-witnessops"]) {
     assert.ok(plHrefs.includes(href), `missing PL footer href ${href}`);
   }
   assert.ok(enHrefs.includes("/pl"), "EN footer links the Polish home");
   assert.ok(plHrefs.includes("/"), "PL footer links the English home");
   assert.ok(enHrefs.some((href) => href === "https://github.com/witnessops"));
   assert.ok(plHrefs.some((href) => href === "https://github.com/witnessops"));
+  assert.ok(enHrefs.includes("/docs") && !enHrefs.includes("/pl/docs"), "EN Docs links /docs");
+  assert.ok(!plHrefs.includes("/docs"), "PL Dokumentacja links /pl/docs, not /docs");
+  for (const hrefs of [enHrefs, plHrefs]) {
+    assert.ok(hrefs.some((href) => href === "https://x.ai"), "footer links the xAI mark");
+    assert.ok(hrefs.some((href) => href === "https://openai.com/codex/"), "footer links the Codex mark");
+    assert.equal(hrefs.some((href) => /x\.com|twitter/i.test(href)), false, "no X profile link");
+  }
   assert.match(en, /engage@mail\.witnessops\.com/);
   assert.match(pl, /engage@mail\.witnessops\.com/);
   assert.doesNotMatch(en, /Karol|Stefańsk|stefanski/i);

@@ -1,3 +1,6 @@
-/** Runs before paint. A stored click wins; otherwise the system preference applies. Nothing is written here. */
+/**
+ * Runs before paint. The public site is dark only (Design 2026-11-13, footer bundle B):
+ * the system preference and any stored wo-theme value are ignored, and nothing is written.
+ */
 export const THEME_INIT_SCRIPT =
-  '(function(){try{var t=localStorage.getItem("wo-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';
+  '(function(){document.documentElement.setAttribute("data-theme","dark");})();';
