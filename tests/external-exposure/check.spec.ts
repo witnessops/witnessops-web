@@ -260,7 +260,9 @@ test('uncollected timeout observations remain unknown and a long hostname wraps'
   await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
 });
 
-test('a new visitor can reach the free check from shared desktop and mobile navigation', async ({ page }) => {
+// Design 2026-11-13: the free check is no longer a header or mobile-menu item.
+// The page stays published and reachable by URL.
+test('the free check stays reachable by URL after leaving the shared navigation', async ({ page }) => {
   for (const width of [1440, 1024, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/');
@@ -272,15 +274,10 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
       await expect(page.locator('#witnessops-mobile-menu')).toBeVisible();
     }
     const navigation = mobile ? page.locator('#witnessops-mobile-menu') : page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    const resources = navigation.getByRole('button', { name: 'Resources', exact: true });
-    await resources.click();
-    const panelId = await resources.getAttribute('aria-controls');
-    expect(panelId).toBeTruthy();
-    const link = page.locator(`[id="${panelId}"]`).getByRole('link', { name: /^Tool · not a review/ });
-    await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute('href', '/check');
+    await expect(navigation.getByRole('button', { name: 'Resources', exact: true })).toHaveCount(0);
+    await expect(navigation.locator('a[href="/check"]')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await link.click();
+    await page.goto('/check');
     await expect(page.getByRole('heading', { name: 'Check your hostname. Know what to do next.', exact: true })).toBeVisible();
     await expect(page.getByLabel('Public hostname', { exact: true })).toBeVisible();
   }
