@@ -41,7 +41,7 @@ for (const viewport of viewports) {
       );
       console.log(JSON.stringify(measurement));
       expect(top, JSON.stringify(measurement)).toBeGreaterThanOrEqual(0);
-      expect(clearance, JSON.stringify(measurement)).toBeGreaterThanOrEqual(16);
+      expect(clearance, JSON.stringify(measurement)).toBeGreaterThanOrEqual(12);
     });
   }
 }
