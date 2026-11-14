@@ -43,3 +43,37 @@ Pre-auth single-use and the login limiter are process-local. A cookie used on on
 ### I11. Forwarded client address
 
 The proxy must always overwrite `X-Forwarded-For`, or append `$remote_addr` to it, before the request reaches the server. The server reads that header from the right, and only when the connecting socket is listed in `ACADEMY_TRUSTED_PROXIES`.
+
+## A4: one lesson journey
+
+The existing `witnessops-academy/public/lessons/report-or-evidence/` content is
+rendered at `/academy/learn/report-or-evidence`. All three public lesson aliases
+redirect there. The server snapshots the same public files at startup; ship both
+Academy packages at the same revision and restart after a source change.
+The standalone static preview remains an unsaved preview.
+
+On 14 November 2026 the owner explicitly selected **Keycloak to replace WorkOS
+AuthKit for Academy**. Academy uses only the existing `(iss, sub)` identity and
+PostgreSQL drafts. Product-app WorkOS authentication is outside this decision.
+No provider, client, account or production configuration is changed by A4.
+
+The browser loads before enabling edits, saves partial answers plus pasted
+feedback and earlier attempts, and resumes on a new visit or fresh login.
+It uses the existing CSRF token, session-derived owner, expected version and
+save-request UUID. A network retry reuses the same request. A conflict leaves
+edits available to copy and requires reloading before another save. Unknown
+saved formats (including MCP text) are displayed as text; replacing them with
+the lesson form needs an explicit choice. No learner text goes into HTML,
+URLs, localStorage, sessionStorage or logs. Cached-page returns revalidate.
+Draft content still has the API's 32 KiB cap; oversized work is never truncated.
+
+Run service-free checks with `pnpm academy:test`. Against the existing disposable
+CI stack, run `ACADEMY_E2E=1 node apps/witnessops-academy-server/test/browser-e2e.mjs`
+from the repository root (after the HTTP probes and an app restart to reset the login limiter).
+The browser runner uses Chromium; `ACADEMY_TEST_BROWSER_EXECUTABLE` optionally
+selects an already installed binary. It writes only synthetic result summaries,
+not credentials, tokens, cookies, traces or raw page HTML.
+
+See [the unapplied A4 routing proposal](ROUTING-A4.md). Source completion is not
+production acceptance. A3 token-at-rest protection and the independent review of
+PR #573 remain release-readiness work, outside this integration.

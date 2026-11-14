@@ -14,7 +14,7 @@ const types = {
 };
 
 /** Snapshot supported public files before accepting requests. Never follow symlinks. */
-async function preloadRoutes(root) {
+export async function preloadRoutes(root) {
   const routes = new Map();
   const rootPath = await realpath(fileURLToPath(root));
   async function visit(directory, prefix = '') {
