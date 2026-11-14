@@ -9,4 +9,6 @@ const sql = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../db/bo
 test('bootstrap resets existing role attributes instead of leaving drift in place', () => {
   assert.match(sql, /ALTER ROLE academy_migrator NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;/);
   assert.match(sql, /ALTER ROLE academy_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;/);
+  assert.match(sql, /REVOKE %I FROM academy_app/);
+  assert.match(sql, /grantee\.rolname = 'academy_app'/);
 });

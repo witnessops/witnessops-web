@@ -6,6 +6,22 @@ SELECT 'CREATE ROLE academy_migrator NOLOGIN' WHERE NOT EXISTS (SELECT 1 FROM pg
 SELECT 'CREATE ROLE academy_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT' WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'academy_app') \gexec
 ALTER ROLE academy_migrator NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
 ALTER ROLE academy_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
+-- Drop every role membership. NOINHERIT does not stop SET ROLE, and a membership
+-- such as pg_write_all_data or academy_migrator would survive a later attribute reset.
+DO $$
+DECLARE
+  membership text;
+BEGIN
+  FOR membership IN
+    SELECT granted.rolname
+    FROM pg_auth_members member_of
+    JOIN pg_roles granted ON granted.oid = member_of.roleid
+    JOIN pg_roles grantee ON grantee.oid = member_of.member
+    WHERE grantee.rolname = 'academy_app'
+  LOOP
+    EXECUTE format('REVOKE %I FROM academy_app', membership);
+  END LOOP;
+END $$;
 SELECT format('CREATE DATABASE %I OWNER academy_migrator', :'db') WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db') \gexec
 SELECT format('REVOKE ALL ON DATABASE %I FROM PUBLIC', :'db') \gexec
 SELECT format('GRANT CONNECT ON DATABASE %I TO academy_app', :'db') \gexec

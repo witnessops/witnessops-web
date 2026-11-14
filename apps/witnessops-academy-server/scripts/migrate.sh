@@ -23,16 +23,26 @@ shopt -s nullglob
 for f in "$DIR"/*.sql; do
   v=$(basename "$f" .sql)
   [[ "$v" =~ ^[0-9a-z_]+$ ]] || { echo "bad migration name: $v" >&2; exit 1; }
-  # Read history as the table owner. A failed read stops the script instead of reapplying.
-  state=$("$PSQL" -X -v ON_ERROR_STOP=1 -tAq -d "$DB" -v version="$v" <<'SQL'
+  # Ask whether the history table exists before naming it in FROM.
+  # PostgreSQL plans every branch of a CASE, so a missing relation fails the whole query.
+  present=$("$PSQL" -X -v ON_ERROR_STOP=1 -tAq -d "$DB" <<'SQL'
 SET ROLE academy_migrator;
-SELECT CASE
-  WHEN to_regclass('public.academy_schema_migrations') IS NULL THEN 'missing'
-  WHEN EXISTS (SELECT 1 FROM academy_schema_migrations WHERE version = :'version') THEN 'applied'
-  ELSE 'pending'
-END;
+SELECT CASE WHEN to_regclass('public.academy_schema_migrations') IS NULL THEN 'missing' ELSE 'present' END;
 SQL
 )
+  state=missing
+  if [ "$present" = "present" ]; then
+    state=$("$PSQL" -X -v ON_ERROR_STOP=1 -tAq -d "$DB" -v version="$v" <<'SQL'
+SET ROLE academy_migrator;
+SELECT CASE WHEN EXISTS (
+  SELECT 1 FROM academy_schema_migrations WHERE version = :'version'
+) THEN 'applied' ELSE 'pending' END;
+SQL
+)
+  elif [ "$present" != "missing" ]; then
+    echo "migration history check failed for $v" >&2
+    exit 1
+  fi
   case "$state" in
     applied)
       echo "skip $v (applied)"
