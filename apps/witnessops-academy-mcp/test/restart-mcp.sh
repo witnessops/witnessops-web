@@ -11,6 +11,23 @@ fi
 # shellcheck disable=SC1090
 source "$ACADEMY_CI_ENV"
 
+mask_secret_file() {
+  local value
+  value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+  [[ -n "$value" ]] || return 0
+  # stdout is captured by ci-setup. The mask directive goes to fd 4 when that
+  # descriptor is the Actions log, and is otherwise discarded.
+  { echo "::add-mask::${value}" >&4; } 2>/dev/null || true
+}
+if [[ -n "${ACADEMY_CI_SECRET_DIR:-}" && -d "$ACADEMY_CI_SECRET_DIR" ]]; then
+  shopt -s nullglob
+  for secret_file in "$ACADEMY_CI_SECRET_DIR"/*; do
+    [[ -f "$secret_file" ]] || continue
+    [[ "$(basename "$secret_file")" == "scan-patterns" ]] && continue
+    mask_secret_file "$secret_file"
+  done
+fi
+
 root=${ACADEMY_MCP_ROOT:?}
 pidfile=${ACADEMY_MCP_PID_FILE:?}
 log=${ACADEMY_MCP_SERVER_LOG:?}
@@ -59,6 +76,9 @@ if [[ -f "$pidfile" ]]; then
 fi
 
 cd "$root"
+# The bootstrap step opens these onto the Actions log. The server must not inherit them.
+exec 3>&- || true
+exec 4>&- || true
 node src/server.mjs >>"$log" 2>&1 &
 echo $! >"$pidfile"
 

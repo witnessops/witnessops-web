@@ -89,17 +89,25 @@ jobs:
           set -euo pipefail
           umask 077
           mkdir -p "$ACADEMY_CI_SECRET_DIR" "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR"
+          mask_secret_file() {
+            local value
+            value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            [[ -n "$value" ]] || return 0
+            echo "::add-mask::${value}"
+          }
+          openssl rand -hex 24 > "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
+          openssl rand -hex 24 > "$KC_ADMIN_PASSWORD_FILE"
+          chmod 600 "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" "$KC_ADMIN_PASSWORD_FILE"
+          if [[ ! -s "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" || ! -s "$KC_ADMIN_PASSWORD_FILE" ]]; then
+            echo "runtime password file is empty" >&2
+            exit 1
+          fi
+          mask_secret_file "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
+          mask_secret_file "$KC_ADMIN_PASSWORD_FILE"
           set -o pipefail
           {
             echo "postgres image ${POSTGRES_IMAGE}"
             echo "keycloak image ${KEYCLOAK_IMAGE}"
-            openssl rand -hex 24 > "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
-            openssl rand -hex 24 > "$KC_ADMIN_PASSWORD_FILE"
-            chmod 600 "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" "$KC_ADMIN_PASSWORD_FILE"
-            if [[ ! -s "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" || ! -s "$KC_ADMIN_PASSWORD_FILE" ]]; then
-              echo "runtime password file is empty" >&2
-              exit 1
-            fi
             docker pull "$POSTGRES_IMAGE"
             docker pull "$KEYCLOAK_IMAGE"
             docker rm -f "$ACADEMY_PG_CONTAINER" "$ACADEMY_TEST_KC_CONTAINER" >/dev/null 2>&1 || true
@@ -178,7 +186,8 @@ jobs:
           set +x
           set -euo pipefail
           set -o pipefail
-          bash apps/witnessops-academy-server/test/ci-setup.sh 2>&1 | tee "$ACADEMY_CI_LOG_DIR/ci-setup.log"
+          exec 3>&1
+          bash apps/witnessops-academy-server/test/ci-setup.sh 4>&3 2>&1 | tee "$ACADEMY_CI_LOG_DIR/ci-setup.log"
 
       - name: Run Academy e2e
         id: e2e
@@ -194,6 +203,20 @@ jobs:
           if [[ "${ACADEMY_E2E:-}" != "1" ]]; then
             echo "ACADEMY_E2E must be 1" >&2
             exit 1
+          fi
+          mask_secret_file() {
+            local value
+            value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            [[ -n "$value" ]] || return 0
+            echo "::add-mask::${value}"
+          }
+          if [[ -d "$ACADEMY_CI_SECRET_DIR" ]]; then
+            shopt -s nullglob
+            for secret_file in "$ACADEMY_CI_SECRET_DIR"/*; do
+              [[ -f "$secret_file" ]] || continue
+              [[ "$(basename "$secret_file")" == "scan-patterns" ]] && continue
+              mask_secret_file "$secret_file"
+            done
           fi
           set -o pipefail
           set +e
@@ -250,6 +273,18 @@ jobs:
           set -euo pipefail
           umask 077
           mkdir -p "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR" "$ACADEMY_CI_SECRET_DIR"
+          mask_secret_file() {
+            local value
+            value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            [[ -n "$value" ]] || return 0
+            echo "::add-mask::${value}"
+          }
+          shopt -s nullglob
+          for secret_file in "$ACADEMY_CI_SECRET_DIR"/*; do
+            [[ -f "$secret_file" ]] || continue
+            [[ "$(basename "$secret_file")" == "scan-patterns" ]] && continue
+            mask_secret_file "$secret_file"
+          done
           docker logs "$ACADEMY_PG_CONTAINER" > "$ACADEMY_CI_LOG_DIR/postgres.log" 2>&1 || true
           docker logs "$ACADEMY_TEST_KC_CONTAINER" > "$ACADEMY_CI_LOG_DIR/keycloak.log" 2>&1 || true
           pattern="$ACADEMY_CI_SECRET_DIR/scan-patterns"
