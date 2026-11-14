@@ -1,0 +1,278 @@
+# Academy lesson-server end-to-end job.
+# Image digests resolved 2026-11-14 from registry index manifests:
+#   postgres:17
+#     sha256:846a7ddaa67a4b354ae1d21087b683901aa6113a4ed626d3787cfbf6c85e3e07
+#   quay.io/keycloak/keycloak:26.8.2
+#     sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
+# GitHub Actions starts service containers before any step, so a password
+# generated with openssl cannot be injected into services.env. The job writes
+# the passwords into $RUNNER_TEMP and passes them to `docker run` in the
+# environment. The values are not echoed.
+
+name: Academy e2e
+
+on:
+  pull_request:
+    paths:
+      - "apps/witnessops-academy-*/**"
+      - ".github/workflows/academy-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: academy-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  academy-e2e:
+    name: Academy e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      POSTGRES_IMAGE: postgres:17@sha256:846a7ddaa67a4b354ae1d21087b683901aa6113a4ed626d3787cfbf6c85e3e07
+      KEYCLOAK_IMAGE: quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
+      KC_ADMIN_BASE_URL: http://127.0.0.1:8080
+      KC_ADMIN_USERNAME: ci-admin
+      KC_ADMIN_PASSWORD_GRANT: "1"
+      KC_CREATE_TEST_USERS: "1"
+      KC_SSL_REQUIRED: none
+      KC_REALM: academy
+      ACADEMY_PUBLIC_ORIGIN: http://127.0.0.1:18300
+      ACADEMY_PG_CONTAINER: academy-pg
+      ACADEMY_TEST_KC_CONTAINER: academy-kc
+
+    steps:
+      - name: Prepare runtime directories
+        run: |
+          set -euo pipefail
+          {
+            echo "ACADEMY_CI_SECRET_DIR=$RUNNER_TEMP/academy-secrets"
+            echo "ACADEMY_CI_LOG_DIR=$RUNNER_TEMP/academy-logs"
+            echo "ACADEMY_CI_ENV=$RUNNER_TEMP/academy-ci.env"
+            echo "ACADEMY_TEST_EVIDENCE_DIR=$RUNNER_TEMP/academy-evidence"
+            echo "ACADEMY_TEST_PGADMIN_PASSWORD_FILE=$RUNNER_TEMP/academy-secrets/pg_admin_password"
+            echo "KC_ADMIN_PASSWORD_FILE=$RUNNER_TEMP/academy-secrets/kc_admin_password"
+          } >> "$GITHUB_ENV"
+
+      - name: Check out repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Postgres 17 and Keycloak 26.8.2
+        id: deps
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          umask 077
+          mkdir -p "$ACADEMY_CI_SECRET_DIR" "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR"
+          set -o pipefail
+          {
+            echo "postgres image ${POSTGRES_IMAGE}"
+            echo "keycloak image ${KEYCLOAK_IMAGE}"
+            openssl rand -hex 24 > "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
+            openssl rand -hex 24 > "$KC_ADMIN_PASSWORD_FILE"
+            chmod 600 "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" "$KC_ADMIN_PASSWORD_FILE"
+            if [[ ! -s "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE" || ! -s "$KC_ADMIN_PASSWORD_FILE" ]]; then
+              echo "runtime password file is empty" >&2
+              exit 1
+            fi
+            docker pull "$POSTGRES_IMAGE"
+            docker pull "$KEYCLOAK_IMAGE"
+            docker rm -f "$ACADEMY_PG_CONTAINER" "$ACADEMY_TEST_KC_CONTAINER" >/dev/null 2>&1 || true
+            docker run -d --name "$ACADEMY_PG_CONTAINER" \
+              --publish 127.0.0.1:5432:5432 \
+              --env POSTGRES_USER=postgres \
+              --env POSTGRES_DB=postgres \
+              --env POSTGRES_PASSWORD="$(<"$ACADEMY_TEST_PGADMIN_PASSWORD_FILE")" \
+              "$POSTGRES_IMAGE"
+            docker run -d --name "$ACADEMY_TEST_KC_CONTAINER" \
+              --memory=1536m \
+              --publish 127.0.0.1:8080:8080 \
+              --env KC_BOOTSTRAP_ADMIN_USERNAME="$KC_ADMIN_USERNAME" \
+              --env KC_BOOTSTRAP_ADMIN_PASSWORD="$(<"$KC_ADMIN_PASSWORD_FILE")" \
+              --env KC_HOSTNAME=http://127.0.0.1:8080 \
+              --env KC_HTTP_ENABLED=true \
+              --env KC_HEALTH_ENABLED=true \
+              --env KC_LOG_LEVEL=warn \
+              --env "JAVA_OPTS_KC_HEAP=-Xms256m -Xmx768m" \
+              "$KEYCLOAK_IMAGE" \
+              start-dev --http-port=8080 --log-level=WARN
+            ready=0
+            for _ in $(seq 1 60); do
+              if docker exec "$ACADEMY_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
+                ready=1
+                break
+              fi
+              sleep 2
+            done
+            if [[ "$ready" != 1 ]]; then
+              echo "postgres did not become ready" >&2
+              exit 1
+            fi
+            echo "postgres is ready"
+            ready=0
+            for _ in $(seq 1 150); do
+              if curl -fsS -o /dev/null "$KC_ADMIN_BASE_URL/realms/master" 2>/dev/null; then
+                ready=1
+                break
+              fi
+              if [[ "$(docker inspect -f '{{.State.Running}}' "$ACADEMY_TEST_KC_CONTAINER" 2>/dev/null || echo false)" != "true" ]]; then
+                echo "keycloak container stopped" >&2
+                break
+              fi
+              sleep 2
+            done
+            if [[ "$ready" != 1 ]]; then
+              echo "keycloak did not become ready" >&2
+              docker logs "$ACADEMY_TEST_KC_CONTAINER" > "$ACADEMY_CI_LOG_DIR/keycloak-start.log" 2>&1 || true
+              python3 - "$ACADEMY_CI_LOG_DIR/keycloak-start.log" "$ACADEMY_CI_SECRET_DIR" <<'PY'
+          import pathlib, sys
+          path, secret_dir = sys.argv[1:]
+          text = pathlib.Path(path).read_text(errors="replace") if pathlib.Path(path).is_file() else ""
+          secrets = []
+          for item in pathlib.Path(secret_dir).iterdir():
+              if item.is_file():
+                  value = item.read_text(errors="replace").strip()
+                  if len(value) >= 8:
+                      secrets.append(value)
+          for value in sorted(secrets, key=len, reverse=True):
+              text = text.replace(value, "[REDACTED]")
+          needle = "ey" + "J"
+          lines = [line for line in text.splitlines() if needle not in line]
+          sys.stdout.write("\n".join(lines[-60:]) + ("\n" if lines else ""))
+          PY
+              exit 1
+            fi
+            echo "keycloak is ready"
+          } 2>&1 | tee "$ACADEMY_CI_LOG_DIR/deps.log"
+
+      - name: Bootstrap database and realm
+        id: setup
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -o pipefail
+          bash apps/witnessops-academy-server/test/ci-setup.sh 2>&1 | tee "$ACADEMY_CI_LOG_DIR/ci-setup.log"
+
+      - name: Run Academy e2e
+        id: e2e
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          set -o pipefail
+          set +e
+          node apps/witnessops-academy-server/test/e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/e2e.log"
+          code=${PIPESTATUS[0]}
+          if [[ -f apps/witnessops-academy-mcp/test/e2e.mjs ]]; then
+            echo "running academy mcp e2e"
+            node apps/witnessops-academy-mcp/test/e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/mcp-e2e.log"
+            mcp=${PIPESTATUS[0]}
+            if [[ "$mcp" -ne 0 ]]; then
+              code=$mcp
+            fi
+          else
+            echo "no academy mcp e2e suite"
+          fi
+          set -e
+          if [[ "$code" -ne 0 && -f ${ACADEMY_CI_LOG_DIR}/server.log ]]; then
+            echo "e2e failed; redacted server log tail follows"
+            python3 - "$ACADEMY_CI_LOG_DIR/server.log" "$ACADEMY_CI_SECRET_DIR" <<'PY'
+          import pathlib, sys
+          path, secret_dir = sys.argv[1:]
+          text = pathlib.Path(path).read_text(errors="replace")
+          secrets = []
+          for item in pathlib.Path(secret_dir).iterdir():
+              if item.is_file():
+                  value = item.read_text(errors="replace").strip()
+                  if len(value) >= 8:
+                      secrets.append(value)
+          for value in sorted(secrets, key=len, reverse=True):
+              text = text.replace(value, "[REDACTED]")
+          needle = "ey" + "J"
+          lines = [line for line in text.splitlines() if needle not in line]
+          sys.stdout.write("\n".join(lines[-80:]) + ("\n" if lines else ""))
+          PY
+          fi
+          exit "$code"
+
+      - name: Fail if generated secrets or JWTs appear in logs or evidence
+        id: scan
+        if: always()
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          umask 077
+          mkdir -p "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR" "$ACADEMY_CI_SECRET_DIR"
+          docker logs "$ACADEMY_PG_CONTAINER" > "$ACADEMY_CI_LOG_DIR/postgres.log" 2>&1 || true
+          docker logs "$ACADEMY_TEST_KC_CONTAINER" > "$ACADEMY_CI_LOG_DIR/keycloak.log" 2>&1 || true
+          pattern="$ACADEMY_CI_SECRET_DIR/scan-patterns"
+          : > "$pattern"
+          for file in "$ACADEMY_CI_SECRET_DIR"/*; do
+            [[ -f "$file" ]] || continue
+            [[ "$(basename "$file")" == "scan-patterns" ]] && continue
+            tr -d '\r\n' < "$file" >> "$pattern"
+            printf '\n' >> "$pattern"
+          done
+          awk 'length($0) >= 16' "$pattern" > "$pattern.long"
+          mv "$pattern.long" "$pattern"
+          chmod 600 "$pattern"
+          if [[ ! -s "$pattern" ]]; then
+            echo "no generated secrets to scan" >&2
+            exit 1
+          fi
+          secret_hits=$(grep -R -I -F -l -f "$pattern" "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR" || true)
+          if [[ -n "$secret_hits" ]]; then
+            echo "generated secret appeared in logs or evidence"
+            printf '%s\n' "$secret_hits"
+            exit 1
+          fi
+          # JWT header prefix. Split so this script is not itself a match.
+          jwt_hits=$(grep -R -I -l -e "$(printf '%s%s' ey J)" "$ACADEMY_CI_LOG_DIR" "$ACADEMY_TEST_EVIDENCE_DIR" || true)
+          if [[ -n "$jwt_hits" ]]; then
+            echo "JWT-looking string appeared in logs or evidence"
+            printf '%s\n' "$jwt_hits"
+            exit 1
+          fi
+          echo "logs and evidence are free of generated secrets and JWT header prefixes"
+
+      - name: Upload redacted evidence
+        if: always() && steps.scan.outcome == 'success' && (steps.e2e.outcome == 'success' || steps.e2e.outcome == 'failure')
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: academy-e2e-evidence
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/academy-evidence
