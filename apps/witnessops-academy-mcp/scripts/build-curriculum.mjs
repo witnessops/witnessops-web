@@ -285,8 +285,10 @@ export function buildCurriculum({ lessonsDir = LESSONS_DIR } = {}) {
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  if (ids.length === 0) throw new Error('no lesson directories');
-  return ids.map((id) => {
+  // The MCP curriculum stays on the mapped pilot lesson. Other static lesson
+  // directories are public pages and are not exported until a later allow-list.
+  if (!ids.includes(MAPPED_LESSON)) throw new Error(`mapped lesson directory is missing: ${MAPPED_LESSON}`);
+  return [MAPPED_LESSON].map((id) => {
     const html = fs.readFileSync(path.join(lessonsDir, id, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
     const lesson = lessonFromHtml(id, html);
     return { name: `${id}.json`, text: `${JSON.stringify(lesson, null, 2)}\n` };

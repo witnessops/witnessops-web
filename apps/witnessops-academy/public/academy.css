@@ -150,3 +150,26 @@ footer.site{font:400 13px/21px Inter,sans-serif;letter-spacing:0;padding:24px ma
  .btnrow{flex-direction:column;align-items:stretch}
  .answer-preview textarea{font-size:12px}
 }
+
+/* Prepared lesson and the local workbook. .sheet remains the mobile overlay in chron.css. */
+.st2.chain{color:var(--brass);border-color:var(--border-acc);margin-top:0;text-transform:none;letter-spacing:.02em}
+.labels{list-style:none;margin:8px 0 28px;display:flex;flex-direction:column;gap:10px}
+.labels li{display:flex;gap:10px;align-items:flex-start;font:400 15px/22px Inter,sans-serif;color:var(--t2)}
+.labels .st2{flex:none}
+.case{margin:0 0 22px}
+.case h3,h3.case{font:500 16px/24px "IBM Plex Mono",monospace;letter-spacing:.04em;color:var(--brass);margin:0 0 8px}
+.status-note{margin-top:16px}
+.practice .field{margin:0 0 16px}
+.practice textarea{width:100%;min-height:72px;background:var(--bg);border:1px solid var(--border-strong);border-radius:4px;color:var(--t1);padding:12px;font:400 16px/24px Inter,sans-serif;resize:vertical}
+.attempt,.copy{overflow-wrap:anywhere}
+@media(max-width:600px){
+ .labels li{flex-direction:column;gap:6px}
+}
+@media print{
+ body.workbook{background:#fff!important;color:#111!important;background-image:none!important}
+ body.workbook header.site,body.workbook .skip-link,body.workbook footer.site,body.workbook .noprint{display:none!important}
+ body.workbook .col,body.workbook .prose p,body.workbook .dek,body.workbook h1,body.workbook h2,body.workbook .practice,body.workbook .practice textarea,body.workbook .copy,body.workbook .meta,body.workbook .boundary,body.workbook .objective,body.workbook .labels li{color:#111!important;background:#fff!important}
+ body.workbook a{color:#111!important}
+ body.workbook .practice textarea,body.workbook .copy,body.workbook .boundary,body.workbook .objective,body.workbook .attempt{border-color:#222!important}
+ body.workbook .specbar{color:#111!important;background:#fff!important;border-color:#222!important}
+}
