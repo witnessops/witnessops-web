@@ -47,13 +47,28 @@ const config = await oidc.discovery(
   oidc.ClientSecretPost(CLIENT_SECRET),
   ISSUER_URL.protocol === 'http:' ? { execute: [oidc.allowInsecureRequests] } : undefined,
 );
-const END_SESSION = config.serverMetadata().end_session_endpoint || `${ISSUER}/protocol/openid-connect/logout`;
+const END_SESSION = requireHttpsOrLoopback(
+  'ACADEMY_OIDC_END_SESSION',
+  config.serverMetadata().end_session_endpoint || `${ISSUER}/protocol/openid-connect/logout`,
+).href;
+const PG_INT_MAX = 2147483647;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+class IdpUnavailable extends Error {
+  constructor() {
+    super('idp_unavailable');
+    this.name = 'IdpUnavailable';
+  }
+}
 // Short-lived single-process login state. Durable pre-auth storage is a later ticket.
 const preauth = new Map();
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const rnd = (n = 32) => crypto.randomBytes(n).toString('base64url');
 const log = (o) => console.log(JSON.stringify({ t: new Date().toISOString(), ...o }));
+pool.on('error', (error) => {
+  log({ ev: 'db_pool_error', err: error.message });
+});
 
 function cookies(req) {
   const out = {};
@@ -86,16 +101,37 @@ function readBody(req) {
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks = [];
-    req.on('data', (c) => {
-      size += c.length;
+    let settled = false;
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+    req.on('data', (chunk) => {
+      if (settled) return;
+      size += chunk.length;
       if (size > MAX_BODY_BYTES) {
-        reject(Object.assign(new Error('too large'), { status: 413 }));
-        req.destroy();
-      } else chunks.push(c);
+        req.pause();
+        fail(Object.assign(new Error('too large'), { status: 413 }));
+        req.removeAllListeners('data');
+        req.on('data', () => {});
+        req.resume();
+        return;
+      }
+      chunks.push(chunk);
     });
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    req.on('error', reject);
+    req.on('end', () => {
+      if (settled) return;
+      settled = true;
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    req.on('error', fail);
   });
+}
+
+function idpRejected(error) {
+  return error instanceof oidc.ResponseBodyError
+    && (error.error === 'invalid_grant' || error.error === 'invalid_token');
 }
 
 async function revoke(s, reason) {
@@ -120,7 +156,8 @@ async function getSession(req) {
   let active = false;
   try {
     active = (await oidc.tokenIntrospection(config, s.access_token)).active === true;
-  } catch {
+  } catch (error) {
+    if (!idpRejected(error)) throw new IdpUnavailable();
     active = false;
   }
   if (!active) {
@@ -132,7 +169,8 @@ async function getSession(req) {
       );
       s.access_token = t.access_token;
       s.refresh_token = t.refresh_token || s.refresh_token;
-    } catch {
+    } catch (error) {
+      if (!idpRejected(error)) throw new IdpUnavailable();
       await revoke(s, 'idp_session_inactive');
       return null;
     }
@@ -240,6 +278,7 @@ async function handle(req, res) {
     await revoke(s, 'logout');
     const r = await fetch(END_SESSION, {
       method: 'POST',
+      redirect: 'manual',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: s.refresh_token }),
     });
@@ -278,13 +317,16 @@ async function handle(req, res) {
       if (extra.length) return send(res, 400, { error: 'unexpected_fields', fields: extra.slice(0, 20) });
       const content = body.content;
       const expectedVersion = body.expected_version;
-      const saveRequestId = body.save_request_id;
+      const saveRequestId = typeof body.save_request_id === 'string' && UUID_RE.test(body.save_request_id)
+        ? body.save_request_id.toLowerCase()
+        : null;
       if (
         typeof content !== 'string'
+        || content.includes('\0')
         || !Number.isSafeInteger(expectedVersion)
         || expectedVersion < 0
-        || typeof saveRequestId !== 'string'
-        || !/^[0-9a-f-]{36}$/i.test(saveRequestId)
+        || expectedVersion > PG_INT_MAX
+        || saveRequestId === null
       ) return send(res, 400, { error: 'invalid_fields' });
       if (Buffer.byteLength(content, 'utf8') > MAX_CONTENT_BYTES) {
         return send(res, 413, { error: 'content_too_large', max_bytes: MAX_CONTENT_BYTES });
@@ -339,17 +381,29 @@ function page(s) {
 <label>Limit<br><textarea name="limit" rows="2"></textarea></label><p><button type="submit">Save draft</button> <span id="st" role="status"></span></p></form>
 <p><button id="lo">Sign out</button></p>
 <script>
-const CSRF=${JSON.stringify(s.csrf_token)};let version=0;const f=document.getElementById('f'),st=document.getElementById('st');
+const CSRF=${JSON.stringify(s.csrf_token)};let version=0;let ready=false;const f=document.getElementById('f'),st=document.getElementById('st');
+const fields=()=>f.querySelectorAll('input,textarea,button');
+fields().forEach((el)=>el.disabled=true);
+const unlock=()=>{ready=true;fields().forEach((el)=>el.disabled=false);};
 const collect=()=>JSON.stringify({claims:[0,1,2].map(i=>({label:(f['l'+i].value||null),reason:f['r'+i].value})),limit:f.limit.value});
 const apply=(c)=>{try{const d=JSON.parse(c);d.claims.forEach((x,i)=>{if(x.label)f['l'+i].value=x.label;f['r'+i].value=x.reason||''});f.limit.value=d.limit||''}catch{}};
-fetch('${DRAFT_API}').then(async r=>{if(r.ok){const d=await r.json();version=d.version;apply(d.content);st.textContent='Draft loaded (v'+version+')'}});
-f.onsubmit=async e=>{e.preventDefault();const r=await fetch('${DRAFT_API}',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':CSRF},body:JSON.stringify({content:collect(),expected_version:version,save_request_id:crypto.randomUUID()})});
+fetch('${DRAFT_API}').then(async r=>{
+  if(r.ok){const d=await r.json();version=d.version;apply(d.content);st.textContent='Draft loaded (v'+version+')';unlock();}
+  else if(r.status===404){unlock();}
+  else st.textContent='Draft not loaded';
+}).catch(()=>{st.textContent='Draft not loaded';});
+f.onsubmit=async e=>{e.preventDefault();if(!ready)return;const r=await fetch('${DRAFT_API}',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':CSRF},body:JSON.stringify({content:collect(),expected_version:version,save_request_id:crypto.randomUUID()})});
 const d=await r.json();if(r.ok){version=d.version;st.textContent='Saved (v'+version+')'}else if(r.status===409){st.textContent='Saved elsewhere (v'+d.current_version+'). Reload before saving.'}else st.textContent='Not saved: '+d.error};
 document.getElementById('lo').onclick=async()=>{const r=await fetch('/academy/auth/logout',{method:'POST',headers:{'X-CSRF-Token':CSRF}});await r.json();location.href='${LESSON_ROUTE}'};
 </script></body></html>`;
 }
 
 const server = http.createServer((req, res) => handle(req, res).catch((e) => {
+  if (e instanceof IdpUnavailable) {
+    log({ ev: 'idp_unavailable' });
+    if (!res.headersSent) send(res, 503, { error: 'idp_unavailable' });
+    return;
+  }
   log({ ev: 'error', err: e.message });
   if (!res.headersSent) send(res, 500, { error: 'internal' });
 }));

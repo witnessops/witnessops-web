@@ -23,19 +23,28 @@ shopt -s nullglob
 for f in "$DIR"/*.sql; do
   v=$(basename "$f" .sql)
   [[ "$v" =~ ^[0-9a-z_]+$ ]] || { echo "bad migration name: $v" >&2; exit 1; }
-  have=$("$PSQL" -X -tAq -d "$DB" -c "select 1 from pg_tables where schemaname = 'public' and tablename = 'academy_schema_migrations'")
-  # psql does not substitute variables in -c. The version is an allowlisted migration name.
-  applied=""
-  if [ "$have" = 1 ]; then
-    applied=$("$PSQL" -X -tAq -d "$DB" -v version="$v" <<'SQL'
-select 1 from academy_schema_migrations where version = :'version'
+  # Read history as the table owner. A failed read stops the script instead of reapplying.
+  state=$("$PSQL" -X -v ON_ERROR_STOP=1 -tAq -d "$DB" -v version="$v" <<'SQL'
+SET ROLE academy_migrator;
+SELECT CASE
+  WHEN to_regclass('public.academy_schema_migrations') IS NULL THEN 'missing'
+  WHEN EXISTS (SELECT 1 FROM academy_schema_migrations WHERE version = :'version') THEN 'applied'
+  ELSE 'pending'
+END;
 SQL
 )
-  fi
-  if [ "$applied" = 1 ]; then
-    echo "skip $v (applied)"
-    continue
-  fi
+  case "$state" in
+    applied)
+      echo "skip $v (applied)"
+      continue
+      ;;
+    missing|pending)
+      ;;
+    *)
+      echo "migration history check failed for $v" >&2
+      exit 1
+      ;;
+  esac
   "$PSQL" -X -v ON_ERROR_STOP=1 -q -d "$DB" -1 -c "SET ROLE academy_migrator" -f "$f"
   echo "applied $v to $DB"
 done
