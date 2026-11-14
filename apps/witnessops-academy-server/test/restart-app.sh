@@ -8,13 +8,49 @@ if [[ -z ${ACADEMY_CI_ENV:-} || ! -f ${ACADEMY_CI_ENV} ]]; then
   echo "ACADEMY_CI_ENV is not set" >&2
   exit 1
 fi
-# shellcheck disable=SC1090
-source "$ACADEMY_CI_ENV"
 
-db=${1:-${ACADEMY_DB_NAME:-academy}}
+db=${1:-academy}
 if [[ ! "$db" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
   echo "bad database name" >&2
   exit 1
+fi
+quoted_env=$(mktemp)
+found_db=0
+while IFS= read -r line || [[ -n "$line" ]]; do
+  if [[ "${line%%=*}" == "ACADEMY_DB_NAME" ]]; then
+    printf '%s=%q\n' ACADEMY_DB_NAME "$db"
+    found_db=1
+  else
+    printf '%s\n' "$line"
+  fi
+done <"$ACADEMY_CI_ENV" >"$quoted_env"
+if [[ "$found_db" != 1 ]]; then
+  printf '%s=%q\n' ACADEMY_DB_NAME "$db" >>"$quoted_env"
+fi
+mv "$quoted_env" "$ACADEMY_CI_ENV"
+chmod 600 "$ACADEMY_CI_ENV"
+# shellcheck disable=SC1090
+source "$ACADEMY_CI_ENV"
+export ACADEMY_DB_NAME="$db"
+
+mask_secret_file() {
+  local value
+  value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+  [[ -n "$value" ]] || return 0
+  if { echo "::add-mask::${value}" >&4; } 2>/dev/null; then
+    return 0
+  fi
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    echo "::add-mask::${value}"
+  fi
+}
+if [[ -n "${ACADEMY_CI_SECRET_DIR:-}" && -d "$ACADEMY_CI_SECRET_DIR" ]]; then
+  shopt -s nullglob
+  for secret_file in "$ACADEMY_CI_SECRET_DIR"/*; do
+    [[ -f "$secret_file" ]] || continue
+    [[ "$(basename "$secret_file")" == "scan-patterns" ]] && continue
+    mask_secret_file "$secret_file"
+  done
 fi
 
 root=${ACADEMY_SERVER_ROOT:?}
