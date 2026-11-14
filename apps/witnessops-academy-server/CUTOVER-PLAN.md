@@ -85,8 +85,10 @@ check, not an assertion of operational custody or completed provisioning.
 ## Failure and rollback
 
 Before migrations/cutover, the old matched app/static/proxy pair may remain a
-rollback candidate only if the old runtime contract still holds. After cutover,
-never drop the protection constraint or restart the old plaintext-writing server.
+rollback candidate only if the old runtime contract still holds. From migration
+003 onward, including a failed cutover, never drop the protection constraint or
+restart the old plaintext-writing server. If the startup gate is still unvalidated,
+keep admission closed until the owner authorizes recovery of that exact phase.
 Use an approved encryption-aware rollback with the exact required retained keyring
 and matching schema/artifacts, or keep Academy admission closed while the owner
 resolves the failure. A source-compatible version is not a staged/accepted rollback

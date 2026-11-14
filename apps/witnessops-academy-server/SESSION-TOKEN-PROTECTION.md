@@ -76,7 +76,8 @@ revocation, draft preservation and repeated cutover.
 
 ## Rollback and acceptance
 
-Do not restart the old plaintext-writing server against the new constraint or
+Once migration 003 is applied, including after a failed cutover, do not restart
+the old plaintext-writing server against the new constraint or
 remove the constraint to make rollback pass. Prefer an encryption-aware previous
 code version, retaining the exact needed keyring and database state. Any restoration
 of an older database/old server needs separate authority and an explicit plaintext
