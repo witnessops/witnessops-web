@@ -3,11 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "WitnessOps Academy lesson server configuration loader.",
+  "description": "WitnessOps Academy lesson server: Keycloak OIDC sign-in and owner-scoped drafts.",
   "scripts": {
+    "start": "node src/server.mjs",
     "test": "node --test --test-concurrency=1 test/*.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0 <23"
+  },
+  "dependencies": {
+    "openid-client": "6.8.9",
+    "pg": "8.23.0"
   }
 }
