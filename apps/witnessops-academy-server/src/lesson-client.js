@@ -43,10 +43,15 @@ fetch('/academy/api/lessons/report-or-evidence/draft').then(async (r) => {
 f.onsubmit = async (e) => {
   e.preventDefault();
   if (!ready) return;
+  const content = contentToSave(stored, collect(), edited);
+  if (content == null || content === '') {
+    st.textContent = 'Nothing to save';
+    return;
+  }
   const r = await fetch('/academy/api/lessons/report-or-evidence/draft', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF },
-    body: JSON.stringify({ content: contentToSave(stored, collect(), edited), expected_version: version, save_request_id: crypto.randomUUID() }),
+    body: JSON.stringify({ content, expected_version: version, save_request_id: crypto.randomUUID() }),
   });
   const d = await r.json();
   if (r.ok) {

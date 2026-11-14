@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.mjs",
     "build:curriculum": "node scripts/build-curriculum.mjs",
-    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+    "test": "node scripts/lint-tool-schemas.mjs && node --test --test-concurrency=1 test/*.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0 <23"

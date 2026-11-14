@@ -20,6 +20,8 @@ export function isBrowserDraft(stored) {
 }
 
 export function contentToSave(stored, formJson, edited) {
+  if (stored === '' && !edited) return null;
   if (!edited && !isBrowserDraft(stored)) return stored;
+  if (formJson === '') return null;
   return formJson;
 }

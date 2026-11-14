@@ -44,12 +44,14 @@ const PW = {
 };
 const PGADMIN = env('ACADEMY_TEST_PGADMIN_USER', 'postgres');
 const PGADMIN_PW = secret('ACADEMY_TEST_PGADMIN_PASSWORD');
+const MCP_DB_USER = env('ACADEMY_MCP_DB_USER', 'academy_mcp');
+const MCP_DB_PW = secret('ACADEMY_MCP_DB_PASSWORD');
 const DBH = env('ACADEMY_DB_HOST', '127.0.0.1');
 const DBP = int('ACADEMY_DB_PORT', 5432);
 const DBN = env('ACADEMY_DB_NAME', 'academy');
 const KC_SCRIPT = path.join(HERE, '../keycloak/kc_mcp_setup.py');
 const EXPECTED = ['M1', 'M2', 'M3', 'A1', 'M4', 'A2', 'A3a', 'A4', 'A5', 'A6', 'A6b', 'A7', 'M5', 'A3b'];
-const SECRET_VALUES = [PW.a, PW.b, PW.c, PGADMIN_PW];
+const SECRET_VALUES = [PW.a, PW.b, PW.c, PGADMIN_PW, MCP_DB_PW];
 const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const EV = env('MCP_TEST_EVIDENCE_DIR', path.join(os.tmpdir(), 'academy-mcp-evidence'));
 fs.mkdirSync(EV, { recursive: true });
@@ -428,3 +430,69 @@ try {
 const passed = results.filter((row) => row.result === 'PASS').length;
 console.log(`RESULT: ${passed}/${results.length} PASS`);
 if (passed !== EXPECTED.length || results.map((row) => row.id).join(',') !== EXPECTED.join(',')) process.exitCode = 1;
+
+async function denied(client, sql) {
+  try {
+    await client.query(sql);
+    return false;
+  } catch (error) {
+    return error.code === '42501';
+  }
+}
+
+const health = await (await fetch(`${BASE}/healthz`)).json();
+if (health?.ok !== true || Object.keys(health).join(',') !== 'ok') {
+  console.log(`FAIL healthz is not status only (${Object.keys(health).join(',')})`);
+  process.exitCode = 1;
+} else {
+  console.log('PASS healthz is status only');
+}
+const bare = await fetch(`${BASE}/.well-known/oauth-protected-resource`);
+await bare.body?.cancel();
+if (bare.status !== 404) {
+  console.log(`FAIL bare protected-resource metadata status ${bare.status}`);
+  process.exitCode = 1;
+} else {
+  console.log('PASS bare protected-resource metadata is not served');
+}
+
+const reconcileSql = fs.readFileSync(path.join(HERE, '../../witnessops-academy-server/db/reconcile-academy-mcp.sql'), 'utf8');
+const admin = new pg.Client({ host: DBH, port: DBP, database: DBN, user: PGADMIN, password: PGADMIN_PW });
+const roleClient = new pg.Client({
+  host: DBH,
+  port: DBP,
+  database: DBN,
+  user: MCP_DB_USER,
+  password: MCP_DB_PW,
+});
+try {
+  await admin.connect();
+  await admin.query('GRANT SELECT ON academy_sessions TO academy_mcp');
+  await admin.query('GRANT DELETE ON academy_lesson_drafts TO academy_mcp');
+  await admin.query('GRANT CREATE ON SCHEMA public TO academy_mcp');
+  await admin.query(reconcileSql);
+  await admin.query(reconcileSql);
+  await roleClient.connect();
+  await roleClient.query('SELECT id FROM academy_identities LIMIT 0');
+  await roleClient.query('SELECT content FROM academy_lesson_drafts LIMIT 0');
+  const roleChecks = {
+    select_session: await denied(roleClient, 'SELECT token_hash FROM academy_sessions LIMIT 0'),
+    delete_draft: await denied(roleClient, 'DELETE FROM academy_lesson_drafts'),
+    drop: await denied(roleClient, 'DROP TABLE academy_lesson_drafts'),
+    create: await denied(roleClient, 'CREATE TABLE academy_mcp_should_not (id integer)'),
+    delete_session: await denied(roleClient, 'DELETE FROM academy_sessions'),
+    insert_session: await denied(roleClient, 'INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, expires_at) VALUES (\'x\', gen_random_uuid(), \'x\', now())'),
+  };
+  if (Object.values(roleChecks).every(Boolean)) {
+    console.log('PASS academy_mcp allowlist survived a pre-existing overgrant');
+  } else {
+    console.log(`FAIL academy_mcp privilege probe ${JSON.stringify(roleChecks)}`);
+    process.exitCode = 1;
+  }
+} catch (error) {
+  console.log(redactText(`FAIL academy_mcp privilege probe ${error.message}`));
+  process.exitCode = 1;
+} finally {
+  await roleClient.end().catch(() => {});
+  await admin.end().catch(() => {});
+}
