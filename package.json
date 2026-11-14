@@ -68,7 +68,8 @@
     "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs",
     "academy:dev": "pnpm --filter @witnessops/academy dev",
     "academy:build": "pnpm --filter @witnessops/academy build",
-    "academy:test": "pnpm --filter @witnessops/academy test"
+    "academy:test": "pnpm --filter @witnessops/academy test && pnpm academy:release:test",
+    "academy:release:test": "python3 -m unittest discover -s deploy/academy -p 'test_*.py'"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
