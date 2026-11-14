@@ -39,7 +39,8 @@ async function signedIn(index, prepare) {
   await page.locator('#sign-in').click();
   await page.locator('#username').fill(users[index][0]);
   await page.locator('#password').fill(users[index][1]);
-  await page.locator('#kc-login').click();
+  // Intercepted draft loads may intentionally remain pending after navigation.
+  await page.locator('#kc-login').click({ noWaitAfter: Boolean(prepare) });
   await expect(page).toHaveURL(APP + LESSON);
   if (!prepare) await expect(page.locator('#progress-status')).toContainText(/loaded|No saved work/);
   return { context, page };
@@ -206,6 +207,83 @@ try {
   await a.page.locator('#reason-1').fill('Synthetic explicit replacement.');
   await save(a.page);
   pass('unknown or MCP text is preserved until explicit replacement');
+
+  stage = 'multiline legacy draft preservation';
+  const multiline = JSON.stringify({ claims: [{ label: 'Evidenced', reason: 'Synthetic first line\r\nSecond line' }, {}, {}], limit: '' });
+  const beforeMultiline = await draft(a.page);
+  assert.equal((await put(a.page, { content: multiline, expected_version: beforeMultiline.version, save_request_id: crypto.randomUUID() })).status, 200);
+  await a.page.reload();
+  await expect(a.page.locator('#saved-text')).toHaveValue(multiline);
+  await expect(a.page.locator('#other-draft')).toBeVisible();
+  await expect(a.page.locator('#reason-1')).toBeDisabled();
+  assert.equal((await draft(a.page)).content, multiline);
+  a.page.once('dialog', dialog => dialog.accept());
+  await a.page.locator('#replace-draft').click();
+  await a.page.locator('#reason-1').fill('Synthetic explicit replacement.');
+  await save(a.page);
+  pass('multiline legacy reasons stay intact in raw view until explicit replacement');
+
+  for (const boundary of ['logout', 'pagehide']) {
+    stage = 'delayed draft load after ' + boundary;
+    let release, captured = false, interceptedLoad = false;
+    const held = new Promise(resolve => { release = resolve; });
+    const delayed = await signedIn(0, async ctx => ctx.route('**' + API, async route => {
+      if (route.request().method() !== 'GET' || interceptedLoad) return route.continue();
+      interceptedLoad = true;
+      const original = await route.fetch();
+      captured = true;
+      await held;
+      await route.fulfill({ response: original });
+    }));
+    try {
+      await expect.poll(() => captured).toBe(true);
+      if (boundary === 'logout') {
+        await delayed.page.locator('#sign-out').click();
+        await expect(delayed.page.locator('#progress-status')).toContainText('Signed out');
+      } else {
+        await delayed.page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+      }
+      const endedStatus = await delayed.page.locator('#progress-status').textContent();
+      const stale = delayed.page.waitForResponse(r => r.url() === APP + API && r.request().method() === 'GET');
+      release();
+      await stale;
+      await delayed.page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+      await expect(delayed.page.locator('#reason-1')).toHaveValue('');
+      await expect(delayed.page.locator('#reason-1')).toBeDisabled();
+      await expect(delayed.page.locator('#save-progress')).toBeHidden();
+      await expect(delayed.page.locator('#progress-status')).toHaveText(endedStatus);
+      if (boundary === 'logout') assert.equal((await delayed.page.request.get(APP + API)).status(), 401);
+      else {
+        await delayed.page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
+        await expect(delayed.page.locator('#progress-status')).toContainText('loaded');
+        await expect(delayed.page.locator('#reason-1')).toHaveValue('Synthetic explicit replacement.');
+      }
+      pass('delayed draft cannot restore or unlock work after ' + boundary);
+    } finally {
+      release();
+      await delayed.context.close();
+    }
+  }
+
+  for (const report of ['pending', 'failed']) {
+    stage = 'local logout with IdP ' + report;
+    const incomplete = await signedIn(0);
+    await incomplete.page.route('**/academy/auth/logout', async route => {
+      const actual = await route.fetch(); // Revoke the real disposable local session.
+      assert.equal(actual.status(), 200);
+      await route.fulfill({ response: actual, status: 502, contentType: 'application/json',
+        body: JSON.stringify({ ok: false, idp_logout: report }) });
+    });
+    await incomplete.page.locator('#sign-out').click();
+    await expect(incomplete.page.locator('#progress-status')).toContainText('Signed out of Academy');
+    await expect(incomplete.page.locator('#progress-status')).toContainText('incomplete');
+    await expect(incomplete.page.locator('#reason-1')).toHaveValue('');
+    await expect(incomplete.page.locator('#reason-1')).toBeDisabled();
+    await expect(incomplete.page.locator('#sign-in')).toBeVisible();
+    assert.equal((await incomplete.page.request.get(APP + API)).status(), 401);
+    await incomplete.context.close();
+    pass('local logout clears work when the synthetic IdP report is ' + report);
+  }
 
   stage = 'logout and return';
   const saved = await draft(a.page);
