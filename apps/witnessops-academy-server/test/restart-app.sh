@@ -37,12 +37,9 @@ mask_secret_file() {
   local value
   value=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
   [[ -n "$value" ]] || return 0
-  if { echo "::add-mask::${value}" >&4; } 2>/dev/null; then
-    return 0
-  fi
-  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
-    echo "::add-mask::${value}"
-  fi
+  # The e2e runner captures this script's stdout and does not pass fd 4.
+  # Writing the mask directive there would put the secret in that capture.
+  { echo "::add-mask::${value}" >&4; } 2>/dev/null || true
 }
 if [[ -n "${ACADEMY_CI_SECRET_DIR:-}" && -d "$ACADEMY_CI_SECRET_DIR" ]]; then
   shopt -s nullglob
@@ -101,6 +98,9 @@ fi
 
 export ACADEMY_DB_NAME="$db"
 cd "$root"
+# The bootstrap step opens these onto the Actions log. The server must not inherit them.
+exec 3>&- || true
+exec 4>&- || true
 node src/server.mjs >>"$log" 2>&1 &
 echo $! >"$pidfile"
 
