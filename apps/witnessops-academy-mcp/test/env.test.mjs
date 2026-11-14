@@ -61,6 +61,34 @@ test('CREDENTIALS_DIRECTORY reads the lower-case credential name', () => {
   });
 });
 
+test('an empty or whitespace-only secret throws', () => {
+  withTempDir('academy-env-blank-', (dir) => {
+    const file = join(dir, 'blank');
+    const credentialDir = join(dir, 'credentials');
+    const missing = /missing secret ACADEMY_BLANK_SECRET: set ACADEMY_BLANK_SECRET_FILE or provide a systemd credential named academy_blank_secret/;
+    mkdirSync(credentialDir);
+    writeFileSync(join(credentialDir, 'academy_blank_secret'), 'synthetic-credential-secret\n');
+    for (const contents of ['', ' \n\t']) {
+      writeFileSync(file, contents);
+      withEnv({
+        ACADEMY_BLANK_SECRET_FILE: file,
+        CREDENTIALS_DIRECTORY: credentialDir,
+      }, () => {
+        assert.throws(() => secret('ACADEMY_BLANK_SECRET'), missing);
+      });
+    }
+    for (const contents of ['', ' \n\t']) {
+      writeFileSync(join(credentialDir, 'academy_blank_secret'), contents);
+      withEnv({
+        ACADEMY_BLANK_SECRET_FILE: undefined,
+        CREDENTIALS_DIRECTORY: credentialDir,
+      }, () => {
+        assert.throws(() => secret('ACADEMY_BLANK_SECRET'), missing);
+      });
+    }
+  });
+});
+
 test('a missing secret throws', () => {
   withTempDir('academy-env-missing-', (dir) => {
     withEnv({

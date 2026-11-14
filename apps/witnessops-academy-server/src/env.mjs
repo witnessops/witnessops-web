@@ -8,12 +8,26 @@ export function env(name, def) {
   if (def !== undefined) return def;
   throw new Error(`missing required env ${name}`);
 }
+function missingSecret(name) {
+  throw new Error(`missing secret ${name}: set ${name}_FILE or provide a systemd credential named ${name.toLowerCase()}`);
+}
+function trimmedSecret(file) {
+  return fs.readFileSync(file, 'utf8').trim();
+}
 export function secret(name) {
   const file = process.env[`${name}_FILE`];
-  if (file) return fs.readFileSync(file, 'utf8').trim();
+  if (file) {
+    const value = trimmedSecret(file);
+    if (value !== '') return value;
+    missingSecret(name);
+  }
   const dir = process.env.CREDENTIALS_DIRECTORY;
-  if (dir && fs.existsSync(`${dir}/${name.toLowerCase()}`)) return fs.readFileSync(`${dir}/${name.toLowerCase()}`, 'utf8').trim();
-  throw new Error(`missing secret ${name}: set ${name}_FILE or provide a systemd credential named ${name.toLowerCase()}`);
+  const credential = dir ? `${dir}/${name.toLowerCase()}` : '';
+  if (credential && fs.existsSync(credential)) {
+    const value = trimmedSecret(credential);
+    if (value !== '') return value;
+  }
+  missingSecret(name);
 }
 export const bool = (name, def) => { const v = process.env[name]; return v === undefined || v === '' ? def : /^(1|true|yes|on)$/i.test(v); };
 export const int = (name, def) => { const n = Number(env(name, String(def))); if (!Number.isSafeInteger(n)) throw new Error(`env ${name} must be an integer`); return n; };
