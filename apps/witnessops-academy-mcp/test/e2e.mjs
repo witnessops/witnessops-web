@@ -456,6 +456,8 @@ if (bare.status !== 404) {
   console.log('PASS bare protected-resource metadata is not served');
 }
 
+const reconcileSql = fs.readFileSync(path.join(HERE, '../../witnessops-academy-server/db/reconcile-academy-mcp.sql'), 'utf8');
+const admin = new pg.Client({ host: DBH, port: DBP, database: DBN, user: PGADMIN, password: PGADMIN_PW });
 const roleClient = new pg.Client({
   host: DBH,
   port: DBP,
@@ -464,10 +466,17 @@ const roleClient = new pg.Client({
   password: MCP_DB_PW,
 });
 try {
+  await admin.connect();
+  await admin.query('GRANT SELECT ON academy_sessions TO academy_mcp');
+  await admin.query('GRANT DELETE ON academy_lesson_drafts TO academy_mcp');
+  await admin.query('GRANT CREATE ON SCHEMA public TO academy_mcp');
+  await admin.query(reconcileSql);
+  await admin.query(reconcileSql);
   await roleClient.connect();
   await roleClient.query('SELECT id FROM academy_identities LIMIT 0');
   await roleClient.query('SELECT content FROM academy_lesson_drafts LIMIT 0');
   const roleChecks = {
+    select_session: await denied(roleClient, 'SELECT token_hash FROM academy_sessions LIMIT 0'),
     delete_draft: await denied(roleClient, 'DELETE FROM academy_lesson_drafts'),
     drop: await denied(roleClient, 'DROP TABLE academy_lesson_drafts'),
     create: await denied(roleClient, 'CREATE TABLE academy_mcp_should_not (id integer)'),
@@ -475,7 +484,7 @@ try {
     insert_session: await denied(roleClient, 'INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, expires_at) VALUES (\'x\', gen_random_uuid(), \'x\', now())'),
   };
   if (Object.values(roleChecks).every(Boolean)) {
-    console.log('PASS academy_mcp cannot DELETE or run DDL');
+    console.log('PASS academy_mcp allowlist survived a pre-existing overgrant');
   } else {
     console.log(`FAIL academy_mcp privilege probe ${JSON.stringify(roleChecks)}`);
     process.exitCode = 1;
@@ -485,4 +494,5 @@ try {
   process.exitCode = 1;
 } finally {
   await roleClient.end().catch(() => {});
+  await admin.end().catch(() => {});
 }

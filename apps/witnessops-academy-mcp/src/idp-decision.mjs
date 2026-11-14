@@ -23,8 +23,9 @@ export function isIdpUnreachable(error) {
   return false;
 }
 
-export function jwtFailure(error) {
-  if (isIdpUnreachable(error)) {
+export function jwtFailure(error, context = {}) {
+  const jwksStatus = Number(context.jwksStatus || 0);
+  if (jwksStatus >= 500 || isIdpUnreachable(error)) {
     return { status: 503, retryAfter: IDP_RETRY_AFTER_SECONDS, error: 'idp_unavailable' };
   }
   return { status: 401, error: 'invalid_token', why: error?.code || 'jwt_invalid', challenge: true };

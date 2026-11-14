@@ -19,6 +19,7 @@ import { assertHttpBindIsLoopback } from './listen-policy.mjs';
 import { answerTextError, MAX_BODY_BYTES } from './limits.mjs';
 import { discardAfterResponse, readBody } from './read-body.mjs';
 import { authDenial, introspectionFailure, isIdpUnreachable, jwtFailure } from './idp-decision.mjs';
+import { createRemoteJwks } from './jwks-client.mjs';
 import { isProtectedResourceMetadataRequest, protectedResourceMetadataPath } from './metadata-path.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 
@@ -63,7 +64,7 @@ const pool = new pg.Pool({
   password: secret('ACADEMY_MCP_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
-const JWKS = jose.createRemoteJWKSet(new URL(JWKS_URL), { cooldownDuration: 30_000, cacheMaxAge: 600_000 });
+const JWKS = createRemoteJwks(new URL(JWKS_URL), { timeoutMs: IDP_TIMEOUT_MS });
 const LESSONS = loadCurriculum(CURRICULUM_DIR);
 
 const log = (entry) => {
@@ -112,7 +113,7 @@ async function authenticate(req) {
   const token = match[1];
   let claims;
   try {
-    ({ payload: claims } = await jose.jwtVerify(token, JWKS, {
+    ({ payload: claims } = await jose.jwtVerify(token, JWKS.keys, {
       issuer: ISSUER,
       audience: RESOURCE,
       algorithms: ['RS256', 'PS256', 'ES256'],
@@ -120,7 +121,7 @@ async function authenticate(req) {
       requiredClaims: ['exp', 'iat', 'sub'],
     }));
   } catch (error) {
-    return { ok: false, ...jwtFailure(error) };
+    return { ok: false, ...jwtFailure(error, { jwksStatus: JWKS.status() }) };
   }
   if (claims.typ !== 'Bearer') return { ok: false, status: 401, error: 'invalid_token', why: 'not_access_token' };
   if (typeof claims.sub !== 'string' || claims.sub === '') {
