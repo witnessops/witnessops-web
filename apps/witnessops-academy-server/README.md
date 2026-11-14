@@ -26,6 +26,11 @@ A draft body larger than the accepted JSON worst case is answered with `413`. Th
 
 The lesson server checks access tokens by calling Keycloak token introspection. The realm config in `keycloak/academy-realm.json` adds an audience mapper on the `academy-app` client so issued access tokens include `academy-app` as an audience. Without that mapper, introspection does not establish that the token was intended for this client.
 
+`ACADEMY_TOKEN_KEYRING_FILE` is required for the encrypted server-side token bundle;
+see [A3](SESSION-TOKEN-PROTECTION.md) before running migrations or changing keys.
+The MCP runtime uses `ACADEMY_MCP_DB_USER` (default `academy_mcp`) and
+`ACADEMY_MCP_DB_PASSWORD_FILE`, separately from the lesson app role/secret.
+Its reconciled grants exclude all session tables, DELETE and DDL.
 Other secrets use the same `*_FILE` or `CREDENTIALS_DIRECTORY` rule as the rest of this package. Migrations are run explicitly with `scripts/migrate.sh`. The app does not migrate on startup.
 
 ## Production deployment checklist
@@ -43,3 +48,40 @@ Pre-auth single-use and the login limiter are process-local. A cookie used on on
 ### I11. Forwarded client address
 
 The proxy must always overwrite `X-Forwarded-For`, or append `$remote_addr` to it, before the request reaches the server. The server reads that header from the right, and only when the connecting socket is listed in `ACADEMY_TRUSTED_PROXIES`.
+
+## A4: one lesson journey
+
+The existing `witnessops-academy/public/lessons/report-or-evidence/` content is
+rendered at `/academy/learn/report-or-evidence`. All three public lesson aliases
+redirect there. The server snapshots the same public files at startup; ship both
+Academy packages at the same revision and restart after a source change.
+The standalone static preview remains an unsaved preview.
+
+On 14 November 2026 the owner explicitly selected **Keycloak to replace WorkOS
+AuthKit for Academy**. Academy uses only the existing `(iss, sub)` identity and
+PostgreSQL drafts. Product-app WorkOS authentication is outside this decision.
+No provider, client, account or production configuration is changed by A4.
+
+The browser loads before enabling edits, saves partial answers plus pasted
+feedback and earlier attempts, and resumes on a new visit or fresh login.
+It uses the existing CSRF token, session-derived owner, expected version and
+save-request UUID. A network retry reuses the same request. A conflict leaves
+edits available to copy and requires reloading before another save. Unknown
+saved formats (including MCP text) are displayed as text; replacing them with
+the lesson form needs an explicit choice. No learner text goes into HTML,
+URLs, localStorage, sessionStorage or logs. Cached-page returns revalidate.
+Draft content still has the API's 32 KiB cap; oversized work is never truncated.
+
+Run service-free checks with `pnpm academy:test`. Against the existing disposable
+CI stack, run `ACADEMY_E2E=1 node apps/witnessops-academy-server/test/browser-e2e.mjs`
+from the repository root (after the HTTP probes and an app restart to reset the login limiter).
+The browser runner uses Chromium; `ACADEMY_TEST_BROWSER_EXECUTABLE` optionally
+selects an already installed binary. It writes only synthetic result summaries,
+not credentials, tokens, cookies, traces or raw page HTML.
+
+See [the complete unapplied Academy proxy candidate](ROUTING-A4.md) and
+[the reviewed custody/cutover plan](CUTOVER-PLAN.md). Source completion is not
+production acceptance. [A3 token protection](SESSION-TOKEN-PROTECTION.md) and
+[the #573 reconciliation review](SECURITY-A3-RECONCILIATION.md) describe the
+combined source changes, explicit cutover, rotation, rollback limits and remaining
+operator acceptance. No production cutover or key provisioning has been applied.

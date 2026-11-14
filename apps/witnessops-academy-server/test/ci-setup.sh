@@ -90,21 +90,43 @@ mask_secret_file "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
 mask_secret_file "$KC_ADMIN_PASSWORD_FILE"
 
 ACADEMY_DB_PASSWORD_FILE=$ACADEMY_CI_SECRET_DIR/db_password
+ACADEMY_MCP_DB_USER=academy_mcp
+ACADEMY_MCP_DB_PASSWORD_FILE=$ACADEMY_CI_SECRET_DIR/mcp_db_password
 ACADEMY_OIDC_CLIENT_SECRET_FILE=$ACADEMY_CI_SECRET_DIR/oidc_client_secret
 ACADEMY_PREAUTH_KEY_FILE=$ACADEMY_CI_SECRET_DIR/preauth_key
+ACADEMY_TOKEN_KEYRING_FILE=$ACADEMY_CI_SECRET_DIR/token_keyring
 TEST_LEARNER_A_PASSWORD_FILE=$ACADEMY_CI_SECRET_DIR/learner_a_password
 TEST_LEARNER_B_PASSWORD_FILE=$ACADEMY_CI_SECRET_DIR/learner_b_password
 new_secret "$ACADEMY_DB_PASSWORD_FILE"
 mask_secret_file "$ACADEMY_DB_PASSWORD_FILE"
+new_secret "$ACADEMY_MCP_DB_PASSWORD_FILE"
+mask_secret_file "$ACADEMY_MCP_DB_PASSWORD_FILE"
 new_secret "$ACADEMY_OIDC_CLIENT_SECRET_FILE"
 mask_secret_file "$ACADEMY_OIDC_CLIENT_SECRET_FILE"
 new_secret "$ACADEMY_PREAUTH_KEY_FILE" 32
 mask_secret_file "$ACADEMY_PREAUTH_KEY_FILE"
+# Separate random token-encryption keys. Individual values are also masked/scanned.
+openssl rand -base64 32 > "$ACADEMY_CI_SECRET_DIR/token_key_current"
+openssl rand -base64 32 > "$ACADEMY_CI_SECRET_DIR/token_key_previous"
+mask_secret_file "$ACADEMY_CI_SECRET_DIR/token_key_current"
+mask_secret_file "$ACADEMY_CI_SECRET_DIR/token_key_previous"
+python3 - "$ACADEMY_CI_SECRET_DIR" "$ACADEMY_TOKEN_KEYRING_FILE" <<'KEYRING'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+pathlib.Path(sys.argv[2]).write_text(json.dumps({"active": "current", "keys": {
+    "current": (root / "token_key_current").read_text().strip(),
+    "previous": (root / "token_key_previous").read_text().strip(),
+}}))
+KEYRING
+chmod 600 "$ACADEMY_TOKEN_KEYRING_FILE"
+mask_secret_file "$ACADEMY_TOKEN_KEYRING_FILE"
+ACADEMY_TOKEN_KEYRING_FILE="$ACADEMY_TOKEN_KEYRING_FILE" node "$ROOT/scripts/check-token-keyring.mjs"
 new_secret "$TEST_LEARNER_A_PASSWORD_FILE"
 mask_secret_file "$TEST_LEARNER_A_PASSWORD_FILE"
 new_secret "$TEST_LEARNER_B_PASSWORD_FILE"
 mask_secret_file "$TEST_LEARNER_B_PASSWORD_FILE"
-export ACADEMY_DB_PASSWORD_FILE ACADEMY_OIDC_CLIENT_SECRET_FILE ACADEMY_PREAUTH_KEY_FILE
+export ACADEMY_DB_PASSWORD_FILE ACADEMY_MCP_DB_USER ACADEMY_MCP_DB_PASSWORD_FILE
+export ACADEMY_OIDC_CLIENT_SECRET_FILE ACADEMY_PREAUTH_KEY_FILE ACADEMY_TOKEN_KEYRING_FILE
 export TEST_LEARNER_A_PASSWORD_FILE TEST_LEARNER_B_PASSWORD_FILE
 
 if [[ -x /usr/lib/postgresql/17/bin/psql ]]; then
@@ -164,12 +186,15 @@ export PGPASSWORD
 echo "bootstrapping database"
 "$PG_BINDIR/psql" -X -v ON_ERROR_STOP=1 -v db="$ACADEMY_DB_NAME" -d postgres -f "$ROOT/db/bootstrap.sql"
 app_pw=$(tr -d '\r' <"$ACADEMY_DB_PASSWORD_FILE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+mcp_pw=$(tr -d '\r' <"$ACADEMY_MCP_DB_PASSWORD_FILE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 "$PG_BINDIR/psql" -X -q -v ON_ERROR_STOP=1 -d postgres <<SQL
 ALTER ROLE academy_app PASSWORD '${app_pw}';
+ALTER ROLE academy_mcp PASSWORD '${mcp_pw}';
 SQL
-unset app_pw
+unset app_pw mcp_pw
 echo "migrating database"
 "$ROOT/scripts/migrate.sh" "$ACADEMY_DB_NAME"
+"$PG_BINDIR/psql" -X -v ON_ERROR_STOP=1 -d "$ACADEMY_DB_NAME" -f "$ROOT/db/session-token-cutover.sql"
 unset PGPASSWORD
 
 echo "importing realm"
@@ -271,11 +296,14 @@ write_env ACADEMY_OIDC_ISSUER "$ACADEMY_OIDC_ISSUER"
 write_env ACADEMY_OIDC_CLIENT_ID "$ACADEMY_OIDC_CLIENT_ID"
 write_env ACADEMY_OIDC_CLIENT_SECRET_FILE "$ACADEMY_OIDC_CLIENT_SECRET_FILE"
 write_env ACADEMY_PREAUTH_KEY_FILE "$ACADEMY_PREAUTH_KEY_FILE"
+write_env ACADEMY_TOKEN_KEYRING_FILE "$ACADEMY_TOKEN_KEYRING_FILE"
 write_env ACADEMY_DB_HOST "$ACADEMY_DB_HOST"
 write_env ACADEMY_DB_PORT "$ACADEMY_DB_PORT"
 write_env ACADEMY_DB_NAME "$ACADEMY_DB_NAME"
 write_env ACADEMY_DB_USER "$ACADEMY_DB_USER"
 write_env ACADEMY_DB_PASSWORD_FILE "$ACADEMY_DB_PASSWORD_FILE"
+write_env ACADEMY_MCP_DB_USER "$ACADEMY_MCP_DB_USER"
+write_env ACADEMY_MCP_DB_PASSWORD_FILE "$ACADEMY_MCP_DB_PASSWORD_FILE"
 write_env ACADEMY_TEST_PGADMIN_USER "$ACADEMY_TEST_PGADMIN_USER"
 write_env ACADEMY_TEST_PGADMIN_PASSWORD_FILE "$ACADEMY_TEST_PGADMIN_PASSWORD_FILE"
 write_env ACADEMY_TEST_PG_BINDIR "$ACADEMY_TEST_PG_BINDIR"

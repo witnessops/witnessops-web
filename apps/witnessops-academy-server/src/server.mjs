@@ -6,10 +6,14 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { preloadRoutes } from '../../witnessops-academy/scripts/serve.mjs';
+import { LESSON_ROUTE, LESSON_ALIASES, lessonPage } from './lesson-page.mjs';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import * as oidc from 'openid-client';
 import { clientAddress } from './client-address.mjs';
+import { createSessionTokenCodec, assertTokenStorageReady } from './session-tokens.mjs';
+import { readSessionTokenKeyring } from './token-keyring-file.mjs';
 import { publicErrorCode, validateDraft } from './draft-input.mjs';
 import { idpFailureAction, idpLogoutReport } from './idp-decision.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
@@ -22,6 +26,8 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
 const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
+const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
+const LESSON_HTML = PUBLIC_ROUTES.get('/lessons/report-or-evidence/').body.toString();
 
 const HOST = env('ACADEMY_APP_HOST', '127.0.0.1');
 const PORT = int('ACADEMY_APP_PORT', 18300);
@@ -33,9 +39,9 @@ const ISSUER_URL = requireHttpsOrLoopback('ACADEMY_OIDC_ISSUER', env('ACADEMY_OI
 const ISSUER = ISSUER_URL.href.replace(/\/$/, '');
 const CLIENT_ID = env('ACADEMY_OIDC_CLIENT_ID', 'academy-app');
 const CLIENT_SECRET = secret('ACADEMY_OIDC_CLIENT_SECRET');
+const sessionTokens = createSessionTokenCodec(readSessionTokenKeyring(), { issuer: ISSUER, clientId: CLIENT_ID });
 const SECURE = ORIGIN.startsWith('https://');
 const REDIRECT_URI = `${ORIGIN}/academy/auth/callback`;
-const LESSON_ROUTE = '/academy/learn/report-or-evidence';
 const LESSON_ID = 'report-or-evidence';
 const DRAFT_API = `/academy/api/lessons/${LESSON_ID}/draft`;
 const SESSION_TTL_MS = int('ACADEMY_SESSION_TTL_SECONDS', 8 * 3600) * 1000;
@@ -55,6 +61,7 @@ const pool = new pg.Pool({
   password: secret('ACADEMY_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
+await assertTokenStorageReady(pool);
 const IDP_TIMEOUT_MS = 5000;
 async function timedFetch(url, options = {}) {
   return fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(IDP_TIMEOUT_MS) });
@@ -98,7 +105,7 @@ function cookies(req) {
 }
 const setCookie = (name, val, maxAge) =>
   `${name}=${val}; Path=${COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${SECURE ? '; Secure' : ''}`;
-const CSP = `default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'; form-action 'self' ${ISSUER_URL.origin}`;
+const CSP = `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self' ${ISSUER_URL.origin}`;
 
 function send(res, status, body, headers = {}) {
   const isBytes = Buffer.isBuffer(body);
@@ -118,7 +125,7 @@ function send(res, status, body, headers = {}) {
 
 async function revoke(s, reason) {
   await pool.query(
-    'UPDATE academy_sessions SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL',
+    'UPDATE academy_sessions SET revoked_at = now(), tokens_ciphertext = NULL WHERE token_hash = $1 AND revoked_at IS NULL',
     [s.token_hash],
   );
   await pool.query(
@@ -144,26 +151,45 @@ async function loadLocalSession(req) {
   return s;
 }
 
+async function unsealSession(s) {
+  let opened;
+  try { opened = sessionTokens.open(s.tokens_ciphertext, s); }
+  catch {
+    await revoke(s, 'token_protection_failed');
+    return null;
+  }
+  if (opened.needsRewrap) {
+    // Compare-and-set: a concurrent refresh or revocation must not be overwritten.
+    await pool.query(`UPDATE academy_sessions SET tokens_ciphertext=$2
+      WHERE token_hash=$1 AND tokens_ciphertext=$3 AND revoked_at IS NULL AND expires_at>now()`,
+    [s.token_hash, sessionTokens.seal(opened.tokens, s), s.tokens_ciphertext]);
+  }
+  return { ...s, tokens: opened.tokens };
+}
+
 // Confirm the IdP session is still alive. Admin revocation and IdP logout deny the request. Fail closed.
 async function getSession(req) {
-  const s = await loadLocalSession(req);
+  const local = await loadLocalSession(req);
+  if (!local) return null;
+  const s = await unsealSession(local);
   if (!s) return null;
   let active = false;
   try {
-    active = (await oidc.tokenIntrospection(config, s.access_token)).active === true;
+    active = (await oidc.tokenIntrospection(config, s.tokens.access_token)).active === true;
   } catch (error) {
     if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
     active = false;
   }
   if (!active) {
     try {
-      const t = await oidc.refreshTokenGrant(config, s.refresh_token);
-      await pool.query(
-        'UPDATE academy_sessions SET access_token=$2, refresh_token=$3, access_expires_at=now()+make_interval(secs=>$4) WHERE token_hash=$1',
-        [s.token_hash, t.access_token, t.refresh_token || s.refresh_token, t.expires_in || 300],
+      const t = await oidc.refreshTokenGrant(config, s.tokens.refresh_token);
+      const tokens = { id_token: t.id_token || s.tokens.id_token, access_token: t.access_token, refresh_token: t.refresh_token || s.tokens.refresh_token };
+      const saved = await pool.query(
+        'UPDATE academy_sessions SET tokens_ciphertext=$2, access_expires_at=now()+make_interval(secs=>$3) WHERE token_hash=$1 AND revoked_at IS NULL AND expires_at>now()',
+        [s.token_hash, sessionTokens.seal(tokens, s), t.expires_in || 300],
       );
-      s.access_token = t.access_token;
-      s.refresh_token = t.refresh_token || s.refresh_token;
+      if (saved.rowCount !== 1) return null;
+      s.tokens = tokens;
     } catch (error) {
       if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
       await revoke(s, 'idp_session_inactive');
@@ -195,10 +221,12 @@ function identityClaims(tokens) {
 async function handle(req, res) {
   const url = new URL(req.url, ORIGIN);
   const p = url.pathname;
+  const read = req.method === 'GET' || req.method === 'HEAD';
+  if (LESSON_ALIASES.has(p) && read) return send(res, 302, '', { Location: LESSON_ROUTE });
 
   if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
 
-  if (p === '/academy/static/lesson.js' && req.method === 'GET') {
+  if (p === '/academy/static/lesson.js' && read) {
     return send(res, 200, LESSON_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
   }
   if (p === '/academy/static/draft-text.mjs' && req.method === 'GET') {
@@ -263,10 +291,12 @@ async function handle(req, res) {
     }
     const sid = rnd();
     const csrf = rnd();
+    const context = { token_hash: sha(sid), identity_id: rows[0].id };
+    const sealed = sessionTokens.seal({ id_token: tokens.id_token, access_token: tokens.access_token, refresh_token: tokens.refresh_token }, context);
     await pool.query(
-      `INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, idp_session_id, id_token, access_token, access_expires_at, refresh_token, expires_at)
-      VALUES ($1,$2,$3,$4,$5,$6, now()+make_interval(secs=>$7), $8, now()+make_interval(secs=>$9))`,
-      [sha(sid), rows[0].id, csrf, claims.sid || null, tokens.id_token, tokens.access_token, tokens.expires_in || 300, tokens.refresh_token, SESSION_TTL_MS / 1000],
+      `INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, idp_session_id, tokens_ciphertext, access_expires_at, expires_at)
+      VALUES ($1,$2,$3,$4,$5, now()+make_interval(secs=>$6), now()+make_interval(secs=>$7))`,
+      [context.token_hash, context.identity_id, csrf, claims.sid || null, sealed, tokens.expires_in || 300, SESSION_TTL_MS / 1000],
     );
     log({ ev: 'login', identity: rows[0].id });
     return send(res, 302, '', {
@@ -280,15 +310,18 @@ async function handle(req, res) {
     if (!s) return send(res, 401, { error: 'unauthenticated' }, { 'Set-Cookie': setCookie(COOKIE, '', 0) });
     const bad = csrfOk(req, s);
     if (bad) return send(res, 403, { error: 'csrf', check: bad });
+    let logoutTokens;
+    try { logoutTokens = sessionTokens.open(s.tokens_ciphertext, s).tokens; } catch { logoutTokens = null; }
     await revoke(s, 'logout');
     let idpStatus = 0;
     try {
+      if (!logoutTokens) throw new Error('session_token_protection_failed');
       const r = await fetch(END_SESSION, {
         method: 'POST',
         redirect: 'manual',
         signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: s.refresh_token }),
+        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: logoutTokens.refresh_token }),
       });
       idpStatus = r.status;
     } catch {
@@ -297,7 +330,7 @@ async function handle(req, res) {
     let endPath = '';
     try {
       const endUrl = oidc.buildEndSessionUrl(config, {
-        id_token_hint: s.id_token,
+        id_token_hint: logoutTokens?.id_token,
         post_logout_redirect_uri: `${ORIGIN}${LESSON_ROUTE}`,
       });
       endPath = endUrl.origin + endUrl.pathname;
@@ -375,27 +408,13 @@ async function handle(req, res) {
     return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, PUT' });
   }
 
-  if (p === LESSON_ROUTE && req.method === 'GET') {
+  if (p === LESSON_ROUTE && read) {
     const s = await getSession(req);
-    return send(res, 200, page(s));
+    return send(res, 200, lessonPage(LESSON_HTML, s));
   }
+  const resource = PUBLIC_ROUTES.get(p);
+  if (resource && read) return send(res, 200, resource.body, { 'Content-Type': resource.type });
   return send(res, 404, { error: 'not_found' });
-}
-
-// Stand-in lesson page. The existing Academy lesson UI replaces it in a later ticket.
-function page(s) {
-  const head = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report or evidence? · Academy</title>
-<link rel="stylesheet" href="/academy/static/lesson.css"></head><body>
-<p><small>Pilot · synthetic teaching material · lesson text adapted from the Academy lesson pages</small></p>
-<h1>Lesson 1 · Report or evidence?</h1>`;
-  if (!s) return `${head}<p>Sign in to keep your draft between visits.</p><p><a href="/academy/auth/login">Sign in</a></p></body></html>`;
-  const claims = ['The 02:00 backup run completed.', 'All 3 databases saved.', 'Restore tested.'];
-  const labels = ['Evidenced', 'Only claimed', 'Contradicted'];
-  return `${head}<form id="f">${claims.map((c, i) => `<fieldset><legend>${i + 1}. ${c}</legend>${labels.map((l) => `<label><input type="radio" name="l${i}" value="${l}" disabled> ${l}</label> `).join('')}<br><label>Artifact and reason<br><textarea name="r${i}" rows="2" disabled></textarea></label></fieldset>`).join('')}
-<label>Limit<br><textarea name="limit" rows="2" disabled></textarea></label><p><button type="submit" disabled>Save draft</button> <span id="st" role="status"></span></p></form>
-<p><button id="lo">Sign out</button></p>
-<script type="application/json" id="academy-csrf">${JSON.stringify(s.csrf_token)}</script>
-<script type="module" src="/academy/static/lesson.js"></script></body></html>`;
 }
 
 const server = http.createServer((req, res) => handle(req, res).catch((e) => {
