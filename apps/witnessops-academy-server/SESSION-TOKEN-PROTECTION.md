@@ -32,7 +32,10 @@ raw-environment secret or automatic development-key fallback.
 
 The structural shape is `{ "active": "current", "keys": { "current": "<base64-encoded random 32-byte key>" } }`.
 This is a shape illustration, not a usable keyring. Keep the real file outside
-source, logs and artifacts, readable only by the intended runtime identity.
+source, logs and artifacts. Runtime loading requires a non-symlink regular file
+owned by root or the runtime UID, exact 0400/0600 permissions and a bounded size.
+Use the [read-only custody preflight and ordered plan](CUTOVER-PLAN.md) before
+stopping the old app or clearing any legacy token.
 Keyring absence, invalid key length/encoding or unknown active id prevents startup.
 
 A separately authorized rotation provisions a new independent key and changes
@@ -55,10 +58,12 @@ constraints. Its no-plaintext constraint is initially NOT VALID, retaining legac
 rows unchanged. It already rejects new/updated rows containing plaintext.
 The server refuses startup until that constraint has been explicitly validated.
 
-For a later authorized cutover, stop the old app, preserve the approved rollback
+For a later authorized cutover, complete the offline custody/format preflight
+and approved recovery evidence first. Then stop the old app, preserve the approved rollback
 and database backup, apply the reviewed migrations with the schema owner/admin,
 then run `db/session-token-cutover.sql` with that owner/admin. This separate,
-transactional source step revokes legacy sessions, clears all three plaintext
+transactional source step uses a five-second lock timeout and five-minute
+statement timeout, revokes legacy sessions, clears all three plaintext
 columns, appends revocation records, and validates the constraint. It is
 repeatable, does not delete session rows, and never alters identities or learner
 drafts. Start the new app only with the separately provisioned keyring. Existing

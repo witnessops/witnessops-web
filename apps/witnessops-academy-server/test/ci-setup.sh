@@ -120,6 +120,7 @@ pathlib.Path(sys.argv[2]).write_text(json.dumps({"active": "current", "keys": {
 KEYRING
 chmod 600 "$ACADEMY_TOKEN_KEYRING_FILE"
 mask_secret_file "$ACADEMY_TOKEN_KEYRING_FILE"
+ACADEMY_TOKEN_KEYRING_FILE="$ACADEMY_TOKEN_KEYRING_FILE" node "$ROOT/scripts/check-token-keyring.mjs"
 new_secret "$TEST_LEARNER_A_PASSWORD_FILE"
 mask_secret_file "$TEST_LEARNER_A_PASSWORD_FILE"
 new_secret "$TEST_LEARNER_B_PASSWORD_FILE"

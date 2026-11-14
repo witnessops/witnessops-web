@@ -1,40 +1,94 @@
-# Source-only exact-host block. Merge into a freshly captured full active
-# Caddyfile only after a separate production GO and full-config validation.
-# The static release tool stages this root; it does not edit or reload Caddy.
-# /mcp and the path-suffixed OAuth protected-resource metadata path reverse-proxy
-# to the loopback Academy MCP server. The resource identifier is /mcp, so RFC 9728
-# uses /.well-known/oauth-protected-resource/mcp. The origin-level well-known path
-# is a different resource and is not routed. These paths are not part of the static release.
+# Complete Academy virtual-host candidate. SOURCE ONLY: not installed/reloaded.
+# Integrate only with a freshly captured full active host configuration under
+# separate apply authority. The static tool does not apply this file.
 academy.witnessops.com {
-	@mcp path /mcp /mcp/*
-	handle @mcp {
-		reverse_proxy 127.0.0.1:18500 {
-			flush_interval -1
+	# Keep the exact allowlist before reserved-path denial and static fallback.
+	route {
+		@lessonRead {
+			method GET HEAD
+			path /lessons/report-or-evidence /lessons/report-or-evidence/ /lessons/report-or-evidence/index.html
 		}
-	}
-
-	@prm path /.well-known/oauth-protected-resource/mcp
-	handle @prm {
-		reverse_proxy 127.0.0.1:18500
-	}
-
-	handle {
-		root * /srv/witnessops-academy/current
-
-		header {
-			Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
-			X-Content-Type-Options "nosniff"
-			Referrer-Policy "strict-origin-when-cross-origin"
-			Cache-Control "no-store"
+		handle @lessonRead {
+			# Explicit matcher: a leading-slash destination is otherwise ambiguous.
+			redir * /academy/learn/report-or-evidence 302
+		}
+		@lessonOther path /lessons/report-or-evidence /lessons/report-or-evidence/ /lessons/report-or-evidence/index.html
+		handle @lessonOther {
+			header Allow "GET, HEAD"
+			respond "Method not allowed" 405
 		}
 
-		@write not method GET HEAD
-		header @write Allow "GET, HEAD"
-		respond @write "Method not allowed" 405
+		@academyRead {
+			method GET HEAD
+			path /academy/learn/report-or-evidence /academy/static/lesson.js
+		}
+		handle @academyRead {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyLogin {
+			method GET
+			path /academy/auth/login /academy/auth/callback
+		}
+		handle @academyLogin {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyDraft {
+			method GET PUT
+			path /academy/api/lessons/report-or-evidence/draft
+		}
+		handle @academyDraft {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyLogout {
+			method POST
+			path /academy/auth/logout
+		}
+		handle @academyLogout {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyOther path /academy /academy/*
+		handle @academyOther {
+			respond "Not found" 404
+		}
 
-		file_server {
-			index index.html
-			hide .*
+		@mcp path /mcp /mcp/*
+		handle @mcp {
+			reverse_proxy 127.0.0.1:18500 {
+				flush_interval -1
+			}
+		}
+		@prm path /.well-known/oauth-protected-resource/mcp
+		handle @prm {
+			reverse_proxy 127.0.0.1:18500
+		}
+
+		handle {
+			root * /srv/witnessops-academy/current
+			header {
+				Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
+				X-Content-Type-Options "nosniff"
+				Referrer-Policy "strict-origin-when-cross-origin"
+				Cache-Control "no-store"
+			}
+			@write not method GET HEAD
+			header @write Allow "GET, HEAD"
+			respond @write "Method not allowed" 405
+			file_server {
+				index index.html
+				hide .*
+			}
 		}
 	}
 }

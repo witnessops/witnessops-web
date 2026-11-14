@@ -34,6 +34,22 @@ try {
   try { await client.query("UPDATE academy_sessions SET access_token='raw' WHERE token_hash=$1", [hash]); }
   catch (error) { denied = error.code === '23514'; }
   assert.ok(denied);
+  // A blocked cutover must time out and roll back without partially clearing tokens.
+  const blocker = new pg.Client({ ...settings, database: name });
+  await blocker.connect();
+  try {
+    await blocker.query('BEGIN; LOCK TABLE academy_sessions IN ACCESS EXCLUSIVE MODE');
+    let timedOut = false;
+    try { await client.query(readFileSync(new URL('../db/session-token-cutover.sql', import.meta.url), 'utf8')); }
+    catch (error) { timedOut = error.code === '55P03'; }
+    await client.query('ROLLBACK');
+    assert.ok(timedOut);
+  } finally {
+    await blocker.query('ROLLBACK');
+    await blocker.end();
+  }
+  const unchanged = (await client.query('SELECT revoked_at, access_token FROM academy_sessions WHERE token_hash=$1', [hash])).rows[0];
+  assert.ok(unchanged.revoked_at === null && unchanged.access_token === 'synthetic-legacy-access');
   await client.query(readFileSync(new URL('../db/session-token-cutover.sql', import.meta.url), 'utf8'));
   await assertTokenStorageReady(client);
   const row = (await client.query('SELECT * FROM academy_sessions WHERE token_hash=$1', [hash])).rows[0];
@@ -43,8 +59,8 @@ try {
   // Repeating the explicit cutover neither deletes drafts nor duplicates revocations.
   await client.query(readFileSync(new URL('../db/session-token-cutover.sql', import.meta.url), 'utf8'));
   assert.equal((await client.query('SELECT count(*)::int n FROM academy_session_revocations')).rows[0].n, 1);
-  results.push({ name: 'Legacy plaintext removed, sessions revoked, draft preserved; constraint and startup gate enforced; cutover repeatable', result: 'PASS' });
-  console.log('PASS A3 legacy cutover, draft preservation, constraints and startup gate');
+  results.push({ name: 'Legacy plaintext removed, sessions revoked, draft preserved; constraint and startup gate enforced; cutover repeatable; blocked cutover times out without partial changes', result: 'PASS' });
+  console.log('PASS A3 legacy cutover, draft preservation, bounded lock failure, constraints and startup gate');
 } catch (error) {
   results.push({ name: 'cutover', result: 'FAIL', code: /^[A-Za-z0-9_]+$/.test(error.code || '') ? error.code : 'assertion' });
   console.error('FAIL A3 cutover (credential-safe diagnostics)');

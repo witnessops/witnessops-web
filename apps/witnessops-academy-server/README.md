@@ -79,7 +79,8 @@ The browser runner uses Chromium; `ACADEMY_TEST_BROWSER_EXECUTABLE` optionally
 selects an already installed binary. It writes only synthetic result summaries,
 not credentials, tokens, cookies, traces or raw page HTML.
 
-See [the unapplied A4 routing proposal](ROUTING-A4.md). Source completion is not
+See [the complete unapplied Academy proxy candidate](ROUTING-A4.md) and
+[the reviewed custody/cutover plan](CUTOVER-PLAN.md). Source completion is not
 production acceptance. [A3 token protection](SESSION-TOKEN-PROTECTION.md) and
 [the #573 reconciliation review](SECURITY-A3-RECONCILIATION.md) describe the
 combined source changes, explicit cutover, rotation, rollback limits and remaining

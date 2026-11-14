@@ -13,6 +13,7 @@ import pg from 'pg';
 import * as oidc from 'openid-client';
 import { clientAddress } from './client-address.mjs';
 import { createSessionTokenCodec, assertTokenStorageReady } from './session-tokens.mjs';
+import { readSessionTokenKeyring } from './token-keyring-file.mjs';
 import { publicErrorCode, validateDraft } from './draft-input.mjs';
 import { idpFailureAction, idpLogoutReport } from './idp-decision.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
@@ -38,7 +39,7 @@ const ISSUER_URL = requireHttpsOrLoopback('ACADEMY_OIDC_ISSUER', env('ACADEMY_OI
 const ISSUER = ISSUER_URL.href.replace(/\/$/, '');
 const CLIENT_ID = env('ACADEMY_OIDC_CLIENT_ID', 'academy-app');
 const CLIENT_SECRET = secret('ACADEMY_OIDC_CLIENT_SECRET');
-const sessionTokens = createSessionTokenCodec(secret('ACADEMY_TOKEN_KEYRING'), { issuer: ISSUER, clientId: CLIENT_ID });
+const sessionTokens = createSessionTokenCodec(readSessionTokenKeyring(), { issuer: ISSUER, clientId: CLIENT_ID });
 const SECURE = ORIGIN.startsWith('https://');
 const REDIRECT_URI = `${ORIGIN}/academy/auth/callback`;
 const LESSON_ID = 'report-or-evidence';
