@@ -22,6 +22,17 @@ test('Retry-After is the remaining lockout, not a fixed minute', () => {
   assert.equal(limited.retryAfter, 8);
 });
 
+test('the hits map stays within its cap by dropping the oldest clients', () => {
+  const guard = createLoginGuard({ maxPerWindow: 10, windowMs: 60_000, maxClients: 2 });
+  const now = 50_000;
+  assert.equal(guard.begin('203.0.113.1', now).ok, true);
+  assert.equal(guard.begin('203.0.113.2', now).ok, true);
+  assert.equal(guard.begin('203.0.113.3', now).ok, true);
+  assert.equal(guard.clients(), 2);
+  assert.equal(guard.begin('203.0.113.1', now).ok, true);
+  assert.equal(guard.clients(), 2);
+});
+
 test('the sweep timer clears an expired client window', async () => {
   const guard = createLoginGuard({ maxPerWindow: 1, windowMs: 40 });
   const timer = startLoginSweep(guard, 20);

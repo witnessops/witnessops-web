@@ -16,4 +16,12 @@ test('X-Forwarded-For is ignored unless the socket peer is a configured proxy', 
     remoteAddress: '192.0.2.10',
     forwardedFor: '',
   }, trusted), '192.0.2.10');
+  assert.equal(clientAddress({
+    remoteAddress: '192.0.2.10',
+    forwardedFor: '198.51.100.99, 203.0.113.8',
+  }, trusted), '203.0.113.8');
+  assert.equal(clientAddress({
+    remoteAddress: '192.0.2.10',
+    forwardedFor: 'not-an-ip',
+  }, trusted), '192.0.2.10');
 });
