@@ -107,6 +107,7 @@ class ProxyCandidateTests(unittest.TestCase):
                 if cls.request("GET", "/")[0] == 200:
                     return
             except OSError:
+                # Retry connection failures while the disposable listener starts.
                 pass
             if cls.process.poll() is not None:
                 break
