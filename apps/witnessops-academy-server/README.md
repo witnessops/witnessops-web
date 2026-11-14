@@ -26,6 +26,11 @@ A draft body larger than the accepted JSON worst case is answered with `413`. Th
 
 The lesson server checks access tokens by calling Keycloak token introspection. The realm config in `keycloak/academy-realm.json` adds an audience mapper on the `academy-app` client so issued access tokens include `academy-app` as an audience. Without that mapper, introspection does not establish that the token was intended for this client.
 
+`ACADEMY_TOKEN_KEYRING_FILE` is required for the encrypted server-side token bundle;
+see [A3](SESSION-TOKEN-PROTECTION.md) before running migrations or changing keys.
+The MCP runtime uses `ACADEMY_MCP_DB_USER` (default `academy_mcp`) and
+`ACADEMY_MCP_DB_PASSWORD_FILE`, separately from the lesson app role/secret.
+Its reconciled grants exclude all session tables, DELETE and DDL.
 Other secrets use the same `*_FILE` or `CREDENTIALS_DIRECTORY` rule as the rest of this package. Migrations are run explicitly with `scripts/migrate.sh`. The app does not migrate on startup.
 
 ## Production deployment checklist
@@ -75,5 +80,7 @@ selects an already installed binary. It writes only synthetic result summaries,
 not credentials, tokens, cookies, traces or raw page HTML.
 
 See [the unapplied A4 routing proposal](ROUTING-A4.md). Source completion is not
-production acceptance. A3 token-at-rest protection and the independent review of
-PR #573 remain release-readiness work, outside this integration.
+production acceptance. [A3 token protection](SESSION-TOKEN-PROTECTION.md) and
+[the #573 reconciliation review](SECURITY-A3-RECONCILIATION.md) describe the
+combined source changes, explicit cutover, rotation, rollback limits and remaining
+operator acceptance. No production cutover or key provisioning has been applied.

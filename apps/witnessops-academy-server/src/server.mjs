@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import * as oidc from 'openid-client';
 import { clientAddress } from './client-address.mjs';
+import { createSessionTokenCodec, assertTokenStorageReady } from './session-tokens.mjs';
 import { publicErrorCode, validateDraft } from './draft-input.mjs';
 import { idpFailureAction, idpLogoutReport } from './idp-decision.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
@@ -37,6 +38,7 @@ const ISSUER_URL = requireHttpsOrLoopback('ACADEMY_OIDC_ISSUER', env('ACADEMY_OI
 const ISSUER = ISSUER_URL.href.replace(/\/$/, '');
 const CLIENT_ID = env('ACADEMY_OIDC_CLIENT_ID', 'academy-app');
 const CLIENT_SECRET = secret('ACADEMY_OIDC_CLIENT_SECRET');
+const sessionTokens = createSessionTokenCodec(secret('ACADEMY_TOKEN_KEYRING'), { issuer: ISSUER, clientId: CLIENT_ID });
 const SECURE = ORIGIN.startsWith('https://');
 const REDIRECT_URI = `${ORIGIN}/academy/auth/callback`;
 const LESSON_ID = 'report-or-evidence';
@@ -58,6 +60,7 @@ const pool = new pg.Pool({
   password: secret('ACADEMY_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
+await assertTokenStorageReady(pool);
 const IDP_TIMEOUT_MS = 5000;
 async function timedFetch(url, options = {}) {
   return fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(IDP_TIMEOUT_MS) });
@@ -121,7 +124,7 @@ function send(res, status, body, headers = {}) {
 
 async function revoke(s, reason) {
   await pool.query(
-    'UPDATE academy_sessions SET revoked_at = now() WHERE token_hash = $1 AND revoked_at IS NULL',
+    'UPDATE academy_sessions SET revoked_at = now(), tokens_ciphertext = NULL WHERE token_hash = $1 AND revoked_at IS NULL',
     [s.token_hash],
   );
   await pool.query(
@@ -147,26 +150,45 @@ async function loadLocalSession(req) {
   return s;
 }
 
+async function unsealSession(s) {
+  let opened;
+  try { opened = sessionTokens.open(s.tokens_ciphertext, s); }
+  catch {
+    await revoke(s, 'token_protection_failed');
+    return null;
+  }
+  if (opened.needsRewrap) {
+    // Compare-and-set: a concurrent refresh or revocation must not be overwritten.
+    await pool.query(`UPDATE academy_sessions SET tokens_ciphertext=$2
+      WHERE token_hash=$1 AND tokens_ciphertext=$3 AND revoked_at IS NULL AND expires_at>now()`,
+    [s.token_hash, sessionTokens.seal(opened.tokens, s), s.tokens_ciphertext]);
+  }
+  return { ...s, tokens: opened.tokens };
+}
+
 // Confirm the IdP session is still alive. Admin revocation and IdP logout deny the request. Fail closed.
 async function getSession(req) {
-  const s = await loadLocalSession(req);
+  const local = await loadLocalSession(req);
+  if (!local) return null;
+  const s = await unsealSession(local);
   if (!s) return null;
   let active = false;
   try {
-    active = (await oidc.tokenIntrospection(config, s.access_token)).active === true;
+    active = (await oidc.tokenIntrospection(config, s.tokens.access_token)).active === true;
   } catch (error) {
     if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
     active = false;
   }
   if (!active) {
     try {
-      const t = await oidc.refreshTokenGrant(config, s.refresh_token);
-      await pool.query(
-        'UPDATE academy_sessions SET access_token=$2, refresh_token=$3, access_expires_at=now()+make_interval(secs=>$4) WHERE token_hash=$1',
-        [s.token_hash, t.access_token, t.refresh_token || s.refresh_token, t.expires_in || 300],
+      const t = await oidc.refreshTokenGrant(config, s.tokens.refresh_token);
+      const tokens = { id_token: t.id_token || s.tokens.id_token, access_token: t.access_token, refresh_token: t.refresh_token || s.tokens.refresh_token };
+      const saved = await pool.query(
+        'UPDATE academy_sessions SET tokens_ciphertext=$2, access_expires_at=now()+make_interval(secs=>$3) WHERE token_hash=$1 AND revoked_at IS NULL AND expires_at>now()',
+        [s.token_hash, sessionTokens.seal(tokens, s), t.expires_in || 300],
       );
-      s.access_token = t.access_token;
-      s.refresh_token = t.refresh_token || s.refresh_token;
+      if (saved.rowCount !== 1) return null;
+      s.tokens = tokens;
     } catch (error) {
       if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
       await revoke(s, 'idp_session_inactive');
@@ -268,10 +290,12 @@ async function handle(req, res) {
     }
     const sid = rnd();
     const csrf = rnd();
+    const context = { token_hash: sha(sid), identity_id: rows[0].id };
+    const sealed = sessionTokens.seal({ id_token: tokens.id_token, access_token: tokens.access_token, refresh_token: tokens.refresh_token }, context);
     await pool.query(
-      `INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, idp_session_id, id_token, access_token, access_expires_at, refresh_token, expires_at)
-      VALUES ($1,$2,$3,$4,$5,$6, now()+make_interval(secs=>$7), $8, now()+make_interval(secs=>$9))`,
-      [sha(sid), rows[0].id, csrf, claims.sid || null, tokens.id_token, tokens.access_token, tokens.expires_in || 300, tokens.refresh_token, SESSION_TTL_MS / 1000],
+      `INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, idp_session_id, tokens_ciphertext, access_expires_at, expires_at)
+      VALUES ($1,$2,$3,$4,$5, now()+make_interval(secs=>$6), now()+make_interval(secs=>$7))`,
+      [context.token_hash, context.identity_id, csrf, claims.sid || null, sealed, tokens.expires_in || 300, SESSION_TTL_MS / 1000],
     );
     log({ ev: 'login', identity: rows[0].id });
     return send(res, 302, '', {
@@ -285,15 +309,18 @@ async function handle(req, res) {
     if (!s) return send(res, 401, { error: 'unauthenticated' }, { 'Set-Cookie': setCookie(COOKIE, '', 0) });
     const bad = csrfOk(req, s);
     if (bad) return send(res, 403, { error: 'csrf', check: bad });
+    let logoutTokens;
+    try { logoutTokens = sessionTokens.open(s.tokens_ciphertext, s).tokens; } catch { logoutTokens = null; }
     await revoke(s, 'logout');
     let idpStatus = 0;
     try {
+      if (!logoutTokens) throw new Error('session_token_protection_failed');
       const r = await fetch(END_SESSION, {
         method: 'POST',
         redirect: 'manual',
         signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: s.refresh_token }),
+        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: logoutTokens.refresh_token }),
       });
       idpStatus = r.status;
     } catch {
@@ -302,7 +329,7 @@ async function handle(req, res) {
     let endPath = '';
     try {
       const endUrl = oidc.buildEndSessionUrl(config, {
-        id_token_hint: s.id_token,
+        id_token_hint: logoutTokens?.id_token,
         post_logout_redirect_uri: `${ORIGIN}${LESSON_ROUTE}`,
       });
       endPath = endUrl.origin + endUrl.pathname;

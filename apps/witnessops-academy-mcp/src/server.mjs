@@ -18,6 +18,9 @@ import { env, secret, bool, int, list, requireHttpsOrLoopback } from './env.mjs'
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
 import { answerTextError, MAX_BODY_BYTES } from './limits.mjs';
 import { discardAfterResponse, readBody } from './read-body.mjs';
+import { authDenial, introspectionFailure, isIdpUnreachable, jwtFailure } from './idp-decision.mjs';
+import { createRemoteJwks } from './jwks-client.mjs';
+import { isProtectedResourceMetadataRequest, protectedResourceMetadataPath } from './metadata-path.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -28,7 +31,7 @@ const RESOURCE_URL = requireHttpsOrLoopback('MCP_RESOURCE_URL', env('MCP_RESOURC
 const RESOURCE = RESOURCE_URL.href;
 const ORIGIN = RESOURCE_URL.origin;
 const MCP_PATH = RESOURCE_URL.pathname;
-const PRM_PATH = `/.well-known/oauth-protected-resource${MCP_PATH}`;
+const PRM_PATH = protectedResourceMetadataPath(MCP_PATH);
 const ALLOWED_HOSTS = new Set(list('MCP_ALLOWED_HOSTS', RESOURCE_URL.host));
 const ALLOWED_ORIGINS = new Set(list('MCP_ALLOWED_ORIGINS', ORIGIN));
 const ISSUER = requireHttpsOrLoopback('ACADEMY_OIDC_ISSUER', env('ACADEMY_OIDC_ISSUER')).href.replace(/\/$/, '');
@@ -57,11 +60,11 @@ const pool = new pg.Pool({
   host: env('ACADEMY_DB_HOST', '127.0.0.1'),
   port: int('ACADEMY_DB_PORT', 5432),
   database: DB_NAME,
-  user: env('ACADEMY_DB_USER', 'academy_app'),
-  password: secret('ACADEMY_DB_PASSWORD'),
+  user: env('ACADEMY_MCP_DB_USER', 'academy_mcp'),
+  password: secret('ACADEMY_MCP_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
-const JWKS = jose.createRemoteJWKSet(new URL(JWKS_URL), { cooldownDuration: 30_000, cacheMaxAge: 600_000 });
+const JWKS = createRemoteJwks(new URL(JWKS_URL), { timeoutMs: IDP_TIMEOUT_MS });
 const LESSONS = loadCurriculum(CURRICULUM_DIR);
 
 const log = (entry) => {
@@ -110,7 +113,7 @@ async function authenticate(req) {
   const token = match[1];
   let claims;
   try {
-    ({ payload: claims } = await jose.jwtVerify(token, JWKS, {
+    ({ payload: claims } = await jose.jwtVerify(token, JWKS.keys, {
       issuer: ISSUER,
       audience: RESOURCE,
       algorithms: ['RS256', 'PS256', 'ES256'],
@@ -118,7 +121,7 @@ async function authenticate(req) {
       requiredClaims: ['exp', 'iat', 'sub'],
     }));
   } catch (error) {
-    return { ok: false, status: 401, error: 'invalid_token', why: error.code || 'jwt_invalid' };
+    return { ok: false, ...jwtFailure(error, { jwksStatus: JWKS.status() }) };
   }
   if (claims.typ !== 'Bearer') return { ok: false, status: 401, error: 'invalid_token', why: 'not_access_token' };
   if (typeof claims.sub !== 'string' || claims.sub === '') {
@@ -128,8 +131,7 @@ async function authenticate(req) {
   const scopes = String(claims.scope || '').split(' ').filter(Boolean);
   if (!scopes.includes(REQUIRED_SCOPE)) return { ok: false, status: 403, error: 'insufficient_scope', why: 'scope_missing' };
   if (INTROSPECT) {
-    let active = false;
-    let why;
+    let outcome;
     try {
       const response = await fetch(INTROSPECTION_URL, {
         method: 'POST',
@@ -143,19 +145,18 @@ async function authenticate(req) {
         signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
       });
       const body = response.ok ? await response.json() : {};
-      if (body.active !== true) why = 'inactive';
-      else if (body.sub !== claims.sub) why = 'inactive_subject';
-      else if (body.iss !== undefined && body.iss !== claims.iss) why = 'inactive_issuer';
-      else if (!audienceIncludesResource(body.aud)) why = 'inactive_audience';
-      else {
-        active = true;
-        why = '';
-      }
-    } catch {
-      active = false;
-      why = 'inactive';
+      outcome = introspectionFailure({
+        status: response.status,
+        body,
+        claims,
+        resourceMatches: audienceIncludesResource(body.aud),
+      });
+    } catch (error) {
+      outcome = isIdpUnreachable(error)
+        ? jwtFailure(error)
+        : introspectionFailure({ thrown: true, claims, resourceMatches: false });
     }
-    if (!active) return { ok: false, status: 401, error: 'invalid_token', why };
+    if (!outcome.ok) return { ok: false, ...outcome };
   }
   return {
     ok: true,
@@ -288,13 +289,13 @@ async function handle(req, res) {
   if (!ALLOWED_HOSTS.has(req.headers.host)) return send(res, 421, { error: 'misdirected_request' });
   const url = new URL(req.url, ORIGIN);
   const pathname = url.pathname;
-  if (req.method === 'GET' && (pathname === PRM_PATH || pathname === '/.well-known/oauth-protected-resource')) {
+  if (req.method === 'GET' && isProtectedResourceMetadataRequest(pathname, MCP_PATH)) {
     return send(res, 200, PRM, { 'Cache-Control': 'max-age=300' });
   }
   if (req.method === 'GET' && pathname === '/healthz') {
     try {
       await pool.query('SELECT 1');
-      return send(res, 200, { ok: true, db: DB_NAME, introspect: INTROSPECT });
+      return send(res, 200, { ok: true });
     } catch {
       log({ ev: 'health_db', err: 'unavailable' });
       return send(res, 503, { ok: false });
@@ -305,8 +306,10 @@ async function handle(req, res) {
 
   const auth = await authenticate(req);
   if (!auth.ok) {
-    log({ ev: 'auth_denied', why: auth.why, status: auth.status });
-    return challenge(res, auth.status, auth.error, auth.why);
+    log({ ev: 'auth_denied', why: auth.why || auth.error, status: auth.status });
+    const denial = authDenial(auth);
+    if (!denial.challenge) return send(res, denial.status, denial.body, denial.headers);
+    return challenge(res, denial.status, denial.error, denial.why);
   }
   const { iss, sub } = auth.auth.extra;
   req.auth = auth.auth;
@@ -345,7 +348,7 @@ async function handle(req, res) {
   if (req.method !== 'POST' || !isInitializeRequest(body)) {
     return send(res, 400, { jsonrpc: '2.0', error: { code: -32000, message: 'Bad Request: no valid session' }, id: null });
   }
-  const admission = sessions.prepare(sub);
+  const admission = sessions.prepare(iss, sub);
   if (!admission.ok) return send(res, admission.status, { error: admission.error });
   let opened = false;
   const transport = new StreamableHTTPServerTransport({

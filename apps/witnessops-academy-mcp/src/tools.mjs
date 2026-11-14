@@ -17,6 +17,8 @@ export const FORBIDDEN_INPUT_FIELDS = Object.freeze([
   'sub',
   'subject',
   'id',
+  'user_id',
+  'issuer',
 ]);
 
 const lessonId = z.string().regex(/^[a-z0-9-]{1,64}$/);
@@ -25,14 +27,14 @@ export const TOOLS = Object.freeze([
   {
     name: 'list_lessons',
     title: 'List lessons',
-    description: 'List Academy lessons available to the signed-in learner.',
+    description: `List Academy lessons available to the signed-in learner. ${SAVED_TEXT_NOTE}`,
     inputSchema: z.object({}).strict(),
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: 'get_lesson',
     title: 'Get lesson',
-    description: 'Get a lesson: objective, explanation, worked example and exercise.',
+    description: `Get a lesson: objective, explanation, worked example and exercise. ${SAVED_TEXT_NOTE}`,
     inputSchema: z.object({ lesson_id: lessonId }).strict(),
     annotations: { readOnlyHint: true, openWorldHint: false },
   },

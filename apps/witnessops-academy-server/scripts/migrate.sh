@@ -58,3 +58,7 @@ SQL
   "$PSQL" -X -v ON_ERROR_STOP=1 -q -d "$DB" -1 -c "SET ROLE academy_migrator" -f "$f"
   echo "applied $v to $DB"
 done
+# One-shot migrations cannot take privileges away on a later run. Reconcile
+# academy_mcp against its allowlist every time, as the connecting superuser.
+"$PSQL" -X -v ON_ERROR_STOP=1 -q -d "$DB" -f "$ROOT/db/reconcile-academy-mcp.sql"
+echo "reconciled academy_mcp grants on $DB"

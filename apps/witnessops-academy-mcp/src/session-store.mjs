@@ -6,17 +6,25 @@ export function createSessionStore({ maxSessions, maxPerUser, idleMs, now = () =
   const sessions = new Map();
   const pending = [];
 
-  function countFor(sub) {
+  function sameLearner(iss, sub, otherIss, otherSub) {
+    return iss === otherIss && sub === otherSub;
+  }
+
+  function countFor(iss, sub) {
     let count = 0;
-    for (const session of sessions.values()) if (session.sub === sub) count += 1;
-    for (const ticket of pending) if (ticket.sub === sub) count += 1;
+    for (const session of sessions.values()) {
+      if (sameLearner(iss, sub, session.iss, session.sub)) count += 1;
+    }
+    for (const ticket of pending) {
+      if (sameLearner(iss, sub, ticket.iss, ticket.sub)) count += 1;
+    }
     return count;
   }
 
-  function oldestFor(sub) {
+  function oldestFor(iss, sub) {
     let oldest = null;
     for (const [id, session] of sessions) {
-      if (session.sub !== sub) continue;
+      if (!sameLearner(iss, sub, session.iss, session.sub)) continue;
       if (!oldest || session.opened < oldest.session.opened) oldest = { id, session };
     }
     return oldest;
@@ -36,17 +44,20 @@ export function createSessionStore({ maxSessions, maxPerUser, idleMs, now = () =
     }
   }
 
-  function prepare(sub, at = now()) {
+  function prepare(iss, sub, at = now()) {
+    if (typeof iss !== 'string' || iss === '' || typeof sub !== 'string' || sub === '') {
+      throw new Error('session identity requires issuer and subject');
+    }
     reap(at);
-    while (countFor(sub) >= maxPerUser) {
-      const oldest = oldestFor(sub);
+    while (countFor(iss, sub) >= maxPerUser) {
+      const oldest = oldestFor(iss, sub);
       if (!oldest) return { ok: false, status: 429, error: 'too_many_sessions_for_user' };
       drop(oldest.id);
     }
     if (sessions.size + pending.length >= maxSessions) {
       return { ok: false, status: 503, error: 'too_many_sessions' };
     }
-    const ticket = { sub };
+    const ticket = { iss, sub };
     pending.push(ticket);
     return { ok: true, ticket };
   }
@@ -56,8 +67,8 @@ export function createSessionStore({ maxSessions, maxPerUser, idleMs, now = () =
     if (index >= 0) pending.splice(index, 1);
     sessions.set(id, {
       transport: fields.transport,
-      iss: fields.iss,
-      sub: fields.sub,
+      iss: ticket.iss,
+      sub: ticket.sub,
       last: at,
       opened: at,
     });

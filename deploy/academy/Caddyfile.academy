@@ -1,8 +1,10 @@
 # Source-only exact-host block. Merge into a freshly captured full active
 # Caddyfile only after a separate production GO and full-config validation.
 # The static release tool stages this root; it does not edit or reload Caddy.
-# /mcp and the OAuth protected-resource metadata path reverse-proxy to the
-# loopback Academy MCP server. They are not part of the static release.
+# /mcp and the path-suffixed OAuth protected-resource metadata path reverse-proxy
+# to the loopback Academy MCP server. The resource identifier is /mcp, so RFC 9728
+# uses /.well-known/oauth-protected-resource/mcp. The origin-level well-known path
+# is a different resource and is not routed. These paths are not part of the static release.
 academy.witnessops.com {
 	@mcp path /mcp /mcp/*
 	handle @mcp {

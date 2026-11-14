@@ -11,6 +11,12 @@ const form = JSON.stringify({
   limit: 'No proof of restore.',
 });
 
+test('an unedited empty draft is not saved as an empty string', () => {
+  assert.equal(contentToSave('', form, false), null);
+  assert.equal(contentToSave('ą', form, false), 'ą');
+  assert.equal(contentToSave(form, '', true), null);
+});
+
 test('free text is kept until the learner edits the form', () => {
   const saved = 'ą'.repeat(32);
   assert.equal(isBrowserDraft(saved), false);

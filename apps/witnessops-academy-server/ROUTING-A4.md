@@ -60,7 +60,8 @@ handle @academyOther {
 }
 ```
 
-Leave the existing MCP and metadata handles unchanged for their separate review.
+Retain the MCP handles in the current source-only Caddy example, including
+#573's metadata restriction. This lesson proposal adds no further MCP exposure.
 The existing static fallback serves `/academy.css`, `/chron.css`, `/academy.mjs`,
 `/lesson.mjs`, `/lesson-state.mjs`, `/lesson-progress.mjs`, `/assets/*`, `/fonts/*`
 and the other public pages. Build both parts from the same source revision.
@@ -76,12 +77,18 @@ The health route is intentionally absent from public proxy routing.
 
 Next readiness check: review/adapt this proposal with the complete candidate
 Caddy configuration, then run `caddy validate` on that complete candidate without
-applying or reloading it. Check A3, Keycloak client settings and database grants
+applying or reloading it. Review the A3 key-custody/explicit-cutover contract,
+Keycloak client settings and database grants
 before requesting deployment authorization. A syntax check alone is not routing
 or production acceptance.
 
-Rollback before deployment: discard the A4 branch. For a later authorized
-release, restore the previous complete code/static pair and proxy configuration.
-A4 changes no schema and does not delete drafts; saved browser JSON remains text
-in the existing draft column. An older UI may not display feedback/history, so
+Rollback before deployment: discard the draft branch. Before an A3 cutover, a
+later authorized rollback can restore the previous
+complete code/static pair and proxy configuration. After an A3 cutover, use only
+an encryption-aware rollback as described in the token-protection contract.
+The combined A3/A4 source adds the token-protection schema and explicit cutover;
+see SESSION-TOKEN-PROTECTION.md before rollback. Never restart the old plaintext
+server or drop its protection constraint as a shortcut. Learner drafts are not
+deleted; saved browser JSON remains text in the existing draft column. An older
+UI may not display feedback/history, so
 retain draft rows and avoid overwriting them during rollback.

@@ -7,3 +7,14 @@ test('NUL in an answer is rejected before it can reach PostgreSQL', () => {
   assert.equal(answerTextError('plain text'), null);
   assert.equal(answerTextError('ą'.repeat(MAX_TEXT_BYTES / 2)), null);
 });
+
+test('a lone UTF-16 surrogate is rejected and a paired character is kept', () => {
+  assert.deepEqual(answerTextError('\uD800'), { error: 'invalid_text', status: 400 });
+  assert.deepEqual(answerTextError('tail\uDFFF'), { error: 'invalid_text', status: 400 });
+  assert.equal(answerTextError('ok\uD83D\uDCD8'), null);
+});
+
+test('an empty answer is rejected so an unedited draft is not stored', () => {
+  assert.deepEqual(answerTextError(''), { error: 'empty_text', status: 400 });
+  assert.equal(answerTextError(' '), null);
+});

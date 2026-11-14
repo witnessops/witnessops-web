@@ -25,7 +25,9 @@ release drift; the manifest is not a signature or proof of GitHub CI approval.
 The Caddy block serves the exact Academy hostname from the Academy active
 reference. Static files stay GET/HEAD, with a restrictive CSP and no-store
 responses. `/mcp` and `/.well-known/oauth-protected-resource/mcp` are
-reverse-proxied to the loopback MCP server at 127.0.0.1:18500. The static
+reverse-proxied to the loopback MCP server at 127.0.0.1:18500. The origin-level
+`/.well-known/oauth-protected-resource` path is not proxied: the resource
+identifier is `/mcp`, so the metadata URL is the path-suffixed one. The static
 root is a proposed deployment contract, not an observation of the live host.
 The complete active Caddy config, service identity, permissions, capacity,
 certificate storage and rollback state must be captured and checked after a

@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { chromium, expect } from '@playwright/test';
 import pg from 'pg';
 import { env, secret, int } from '../src/env.mjs';
+import { createSessionTokenCodec } from '../src/session-tokens.mjs';
 
 if (process.env.ACADEMY_E2E !== '1') {
   console.log('Academy browser acceptance skipped; requires ACADEMY_E2E=1 and disposable services.');
@@ -20,6 +21,9 @@ const users = [
   [env('TEST_LEARNER_A_USERNAME'), secret('TEST_LEARNER_A_PASSWORD')],
   [env('TEST_LEARNER_B_USERNAME'), secret('TEST_LEARNER_B_PASSWORD')],
 ];
+const ring = JSON.parse(secret('ACADEMY_TOKEN_KEYRING'));
+const tokenContext = { issuer: env('ACADEMY_OIDC_ISSUER').replace(/\/$/, ''), clientId: env('ACADEMY_OIDC_CLIENT_ID', 'academy-app') };
+const codec = createSessionTokenCodec(JSON.stringify(ring), tokenContext);
 const results = [];
 let stage = 'startup';
 let browser;
@@ -48,6 +52,11 @@ async function draft(page) {
   const response = await page.request.get(APP + API);
   assert.equal(response.status(), 200);
   return response.json();
+}
+async function sessionRow(context) {
+  const cookie = (await context.cookies()).find(c => c.name === 'academy_sid' || c.name === '__Host-academy_sid');
+  const hash = crypto.createHash('sha256').update(cookie.value).digest('hex');
+  return (await db.query('SELECT * FROM academy_sessions WHERE token_hash=$1', [hash])).rows[0];
 }
 async function put(page, body) {
   return page.evaluate(async ({ api, body }) => {
@@ -118,6 +127,26 @@ try {
   await expect(a.page.locator('#reason-1')).toHaveValue(partial);
   assert.equal(JSON.parse((await draft(a.page)).content).claims[0].reason, partial);
   pass('two synthetic learners own separate records; forged owner rejected');
+
+  stage = 'encrypted tokens, rotation and refresh';
+  let sealedRow = await sessionRow(a.context);
+  assert.ok(sealedRow.id_token === null && sealedRow.access_token === null && sealedRow.refresh_token === null);
+  const opened = codec.open(sealedRow.tokens_ciphertext, sealedRow);
+  assert.ok(Boolean(opened.tokens.id_token && opened.tokens.access_token && opened.tokens.refresh_token));
+  const previous = Object.keys(ring.keys).find(id => id !== ring.active);
+  assert.ok(previous);
+  const previousCodec = createSessionTokenCodec(JSON.stringify({ ...ring, active: previous }), tokenContext);
+  await db.query('UPDATE academy_sessions SET tokens_ciphertext=$2 WHERE token_hash=$1', [sealedRow.token_hash, previousCodec.seal(opened.tokens, sealedRow)]);
+  assert.equal((await a.page.request.get(APP + API)).status(), 200);
+  sealedRow = await sessionRow(a.context);
+  assert.ok(sealedRow.tokens_ciphertext.startsWith('v1.' + ring.active + '.'));
+  const forRefresh = codec.open(sealedRow.tokens_ciphertext, sealedRow).tokens;
+  await db.query('UPDATE academy_sessions SET tokens_ciphertext=$2 WHERE token_hash=$1', [sealedRow.token_hash, codec.seal({ ...forRefresh, access_token: 'synthetic-invalid' }, sealedRow)]);
+  assert.equal((await a.page.request.get(APP + API)).status(), 200);
+  sealedRow = await sessionRow(a.context);
+  assert.ok(sealedRow.id_token === null && sealedRow.access_token === null && sealedRow.refresh_token === null);
+  assert.ok(codec.open(sealedRow.tokens_ciphertext, sealedRow).tokens.access_token !== 'synthetic-invalid');
+  pass('A3 tokens sealed at rest; retained-key rewrap and real Keycloak refresh stay encrypted');
 
   stage = 'concurrent tabs';
   const stale = await a.context.newPage();
@@ -200,6 +229,28 @@ try {
   await expect(a.page.locator('#sign-in')).toBeVisible();
   assert.equal((await b.page.request.get(APP + API)).status(), 200);
   pass('expired session clears local work and denies saving; other learner unaffected');
+
+  stage = 'encrypted token tampering and cross-session substitution';
+  const bound = await signedIn(0);
+  let boundRow = await sessionRow(bound.context);
+  const bRow = await sessionRow(b.context);
+  await db.query('UPDATE academy_sessions SET tokens_ciphertext=$2 WHERE token_hash=$1', [boundRow.token_hash, bRow.tokens_ciphertext]);
+  assert.equal((await bound.page.request.get(APP + API)).status(), 401);
+  boundRow = await sessionRow(bound.context);
+  assert.ok(boundRow.revoked_at && boundRow.tokens_ciphertext === null);
+  assert.equal((await b.page.request.get(APP + API)).status(), 200);
+  await bound.context.close();
+  const tampered = await signedIn(0);
+  let tamperedRow = await sessionRow(tampered.context);
+  const parts = tamperedRow.tokens_ciphertext.split('.');
+  parts[3] = (parts[3][0] === 'A' ? 'B' : 'A') + parts[3].slice(1);
+  await db.query('UPDATE academy_sessions SET tokens_ciphertext=$2 WHERE token_hash=$1', [tamperedRow.token_hash, parts.join('.')]);
+  assert.equal((await tampered.page.request.get(APP + API)).status(), 401);
+  tamperedRow = await sessionRow(tampered.context);
+  assert.ok(tamperedRow.revoked_at && tamperedRow.tokens_ciphertext === null);
+  await tampered.context.close();
+  pass('A3 ciphertext tampering and cross-learner bundle substitution fail closed');
+
 } catch (error) {
   let detail = String(error.message || error.name);
   for (const value of [users[0][1], users[1][1], secret('ACADEMY_TEST_PGADMIN_PASSWORD')]) detail = detail.split(value).join('[REDACTED]');

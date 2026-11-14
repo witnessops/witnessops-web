@@ -93,7 +93,7 @@ document.querySelector('#replace-draft').addEventListener('click', () => {
   changed();
 });
 save.addEventListener('click', async () => {
-  if (!ready || differentFormat) return;
+  if (!ready || differentFormat || (!dirty && !pending)) return;
   const current = JSON.stringify(collectProgress());
   const request = pending || { content: current, expected_version: version, save_request_id: crypto.randomUUID() };
   if (new TextEncoder().encode(request.content).length > 32768) {
