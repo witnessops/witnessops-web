@@ -20,6 +20,7 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
+const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 
 const HOST = env('ACADEMY_APP_HOST', '127.0.0.1');
@@ -199,6 +200,9 @@ async function handle(req, res) {
 
   if (p === '/academy/static/lesson.js' && req.method === 'GET') {
     return send(res, 200, LESSON_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === '/academy/static/draft-text.mjs' && req.method === 'GET') {
+    return send(res, 200, DRAFT_TEXT_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
   }
   if (p === '/academy/static/lesson.css' && req.method === 'GET') {
     return send(res, 200, LESSON_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
@@ -391,7 +395,7 @@ function page(s) {
 <label>Limit<br><textarea name="limit" rows="2" disabled></textarea></label><p><button type="submit" disabled>Save draft</button> <span id="st" role="status"></span></p></form>
 <p><button id="lo">Sign out</button></p>
 <script type="application/json" id="academy-csrf">${JSON.stringify(s.csrf_token)}</script>
-<script src="/academy/static/lesson.js" defer></script></body></html>`;
+<script type="module" src="/academy/static/lesson.js"></script></body></html>`;
 }
 
 const server = http.createServer((req, res) => handle(req, res).catch((e) => {

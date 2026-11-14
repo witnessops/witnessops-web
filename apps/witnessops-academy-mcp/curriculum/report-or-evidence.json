@@ -1,0 +1,68 @@
+{
+  "id": "report-or-evidence",
+  "title": "Report or evidence?",
+  "path": "Verify results",
+  "position": "Lesson 1 (pilot draft)",
+  "teacher": "Crew Docs — keeps the records. Explains, shows, then reads your attempt. Coaches; never grades.",
+  "source": "apps/witnessops-academy/public/lessons/report-or-evidence/index.html + apps/witnessops-academy/public/lesson-state.mjs",
+  "objective": "Separate an AI's report from evidence of what actually happened: for each claim, say whether it is evidenced, only claimed, or contradicted, and state one honest limit.",
+  "explain": [
+    "A report is a sentence somebody wrote. Evidence is something you can open and check without asking them.",
+    "When an agent says it finished, it is telling you what it believes. That may be true. Your job is to find out which parts you can see for yourself.",
+    "For every claim, look for a record with a time and its zone, a named source, and an artifact you can open, ideally with a hash so you know it is the same file. Then sort the claim:",
+    "And always say what your evidence does not prove. That line is the one people forget."
+  ],
+  "labels": {
+    "Evidenced": "A record shows it happened.",
+    "Only claimed": "Only the report says so. A missing record is a gap, not a “no”.",
+    "Contradicted": "An explicit record of the same scope (same target, same time) shows something incompatible."
+  },
+  "worked_example": {
+    "agent_report": "Done, deployed and tested. The login timeout is fixed in production and all checks pass.",
+    "evidence": [
+      "Observed 2026-XX-XX 14:05 America/Chicago (UTC-6) Source repository history (read-only) Artifact commit 4e1c… \"raise session timeout to 30 min\" + diff SHA-256 9f2a…c41e (placeholder)",
+      "Source deploy log, inspected window: last 24 h (completeness not known) Artifact no deploy entry found in that window after 2026-XX-XX 09:12",
+      "Source test runner Artifact none attached Not supplied behavioural test of rev 4e1c… in production"
+    ],
+    "sorted": [
+      {
+        "claim": "The timeout-related code change was committed.",
+        "label": "Evidenced",
+        "why": "Commit 4e1c… and its diff are in the repository history."
+      },
+      {
+        "claim": "The login timeout is fixed",
+        "label": "Only claimed",
+        "why": "Not established: code changed, behaviour unshown. Needed: a behavioural test of rev 4e1c… in the named environment, with output, time and zone."
+      },
+      {
+        "claim": "Deployed to production",
+        "label": "Only claimed",
+        "why": "Not established. No entry in the inspected 24 h window is a gap, not a “no”."
+      },
+      {
+        "claim": "Tested, all checks pass",
+        "label": "Only claimed",
+        "why": "No test output was attached."
+      }
+    ],
+    "limit": "The commit proves a timeout-related change was committed. It does not prove the fix works, that it reached production, or that any checks ran."
+  },
+  "exercise": {
+    "agent_report": "The 02:00 backup run completed. All 3 databases saved. Restore tested.",
+    "artifacts": {
+      "A · backup-job.log": "job nightly-db\n2026-XX-XX 02:00:14 UTC start\n2026-XX-XX 02:07:51 UTC done: orders, users",
+      "B · run manifest": "job nightly-db\nrun 2026-XX-XX 02:00:14 UTC\nstatus: complete for this run\ndatabases (2):\norders.dump 1.2 GB SHA-256 7d3b…a90f (placeholder)\nusers.dump 88 MB SHA-256 e07b…3f12 (placeholder)",
+      "C · restore log": "(none provided)"
+    },
+    "note": "B is the complete manifest for this same job and run. These are fictional records; the shortened hashes are placeholders, not verified digests.",
+    "claims": [
+      "The 02:00 backup run completed.",
+      "All 3 databases saved.",
+      "Restore tested."
+    ],
+    "instructions": "Choose a label for each claim, name the artifact and explain your reason. Then add one honest limit. This page does not mark your answers.",
+    "answer_format": "Free text, or JSON {\"claims\":[{\"label\",\"reason\"} x3],\"limit\"}. Max 32768 UTF-8 bytes."
+  },
+  "coaching_rule": "Coaching is not assessment. Docs coaches; nothing in this lesson is graded or recorded as a result. No certificate is issued in this pilot."
+}
