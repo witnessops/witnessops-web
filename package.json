@@ -68,7 +68,9 @@
     "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs",
     "academy:dev": "pnpm --filter @witnessops/academy dev",
     "academy:build": "pnpm --filter @witnessops/academy build",
-    "academy:test": "pnpm --filter @witnessops/academy test && pnpm academy:release:test",
+    "academy:server:test": "pnpm --filter @witnessops/academy-server test",
+    "academy:mcp:test": "pnpm --filter @witnessops/academy-mcp test",
+    "academy:test": "pnpm --filter @witnessops/academy test && pnpm academy:server:test && pnpm academy:mcp:test && pnpm academy:release:test",
     "academy:release:test": "python3 -m unittest discover -s deploy/academy -p 'test_*.py'"
   },
   "devDependencies": {

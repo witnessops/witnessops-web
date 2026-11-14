@@ -71,6 +71,10 @@ importers:
 
   apps/witnessops-academy: {}
 
+  apps/witnessops-academy-mcp: {}
+
+  apps/witnessops-academy-server: {}
+
   apps/witnessops-app:
     dependencies:
       '@witnessops/config':
