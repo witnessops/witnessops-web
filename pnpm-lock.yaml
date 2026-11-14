@@ -77,8 +77,8 @@ importers:
         specifier: 1.32.2
         version: 1.32.2(zod@4.6.7)
       jose:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.17
+        version: 6.2.17
       pg:
         specifier: 8.23.0
         version: 8.23.0
@@ -3354,7 +3354,7 @@ snapshots:
       express: 5.2.1
       express-rate-limit: 8.2.2(express@5.2.1)
       hono: 4.13.16
-      jose: 6.2.2
+      jose: 6.2.17
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
@@ -3376,7 +3376,7 @@ snapshots:
       express: 5.2.1
       express-rate-limit: 8.2.2(express@5.2.1)
       hono: 4.13.16
-      jose: 6.2.2
+      jose: 6.2.17
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2

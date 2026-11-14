@@ -1,7 +1,11 @@
+import { contentToSave, isBrowserDraft } from '/academy/static/draft-text.mjs';
+
 const raw = document.getElementById('academy-csrf')?.textContent || '""';
 const CSRF = JSON.parse(raw);
 let version = 0;
 let ready = false;
+let stored = '';
+let edited = false;
 const f = document.getElementById('f');
 const st = document.getElementById('st');
 const fields = () => f.querySelectorAll('input,textarea,button');
@@ -15,15 +19,17 @@ const collect = () => JSON.stringify({
   limit: f.limit.value,
 });
 const apply = (c) => {
-  try {
-    const d = JSON.parse(c);
-    d.claims.forEach((x, i) => {
-      if (x.label) f[`l${i}`].value = x.label;
-      f[`r${i}`].value = x.reason || '';
-    });
-    f.limit.value = d.limit || '';
-  } catch { /* stored text is not this form's shape */ }
+  stored = c;
+  if (!isBrowserDraft(c)) return;
+  const d = JSON.parse(c);
+  d.claims.forEach((x, i) => {
+    if (typeof x.label === 'string' && x.label) f[`l${i}`].value = x.label;
+    f[`r${i}`].value = typeof x.reason === 'string' ? x.reason : '';
+  });
+  f.limit.value = d.limit;
 };
+f.addEventListener('input', () => { edited = true; });
+f.addEventListener('change', () => { edited = true; });
 fetch('/academy/api/lessons/report-or-evidence/draft').then(async (r) => {
   if (r.ok) {
     const d = await r.json();
@@ -40,7 +46,7 @@ f.onsubmit = async (e) => {
   const r = await fetch('/academy/api/lessons/report-or-evidence/draft', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF },
-    body: JSON.stringify({ content: collect(), expected_version: version, save_request_id: crypto.randomUUID() }),
+    body: JSON.stringify({ content: contentToSave(stored, collect(), edited), expected_version: version, save_request_id: crypto.randomUUID() }),
   });
   const d = await r.json();
   if (r.ok) {

@@ -13,9 +13,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { loadCurriculum } from './curriculum.mjs';
+import { createSessionStore } from './session-store.mjs';
 import { env, secret, bool, int, list, requireHttpsOrLoopback } from './env.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
-import { MAX_BODY_BYTES, MAX_TEXT_BYTES } from './limits.mjs';
+import { answerTextError, MAX_BODY_BYTES } from './limits.mjs';
+import { discardAfterResponse, readBody } from './read-body.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -39,6 +41,8 @@ const RS_CLIENT_ID = env('MCP_INTROSPECTION_CLIENT_ID', 'academy-mcp-rs');
 const RS_SECRET = INTROSPECT ? secret('MCP_INTROSPECTION_CLIENT_SECRET') : null;
 const SESSION_IDLE_MS = int('MCP_SESSION_IDLE_SECONDS', 1800) * 1000;
 const MAX_SESSIONS = int('MCP_MAX_SESSIONS', 200);
+const MAX_SESSIONS_PER_USER = int('MCP_MAX_SESSIONS_PER_USER', 5);
+const ALLOW_PUBLIC_BIND = bool('MCP_ALLOW_PUBLIC_BIND', false);
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
 const CURRICULUM_DIR = path.resolve(PACKAGE_ROOT, env('MCP_CURRICULUM_DIR', 'curriculum'));
 const RESOURCE_NAME = env('MCP_RESOURCE_NAME', 'WitnessOps Academy');
@@ -47,7 +51,7 @@ const IDP_TIMEOUT_MS = int('MCP_IDP_TIMEOUT_MS', 5000);
 for (const value of [RESOURCE, ORIGIN, PRM_PATH, REQUIRED_SCOPE, RESOURCE_NAME]) {
   if (/["\\\r\n]/.test(value)) throw new Error('MCP metadata contains a character that cannot go in a header');
 }
-assertHttpBindIsLoopback(HOST, RESOURCE);
+assertHttpBindIsLoopback(HOST, ALLOW_PUBLIC_BIND);
 
 const pool = new pg.Pool({
   host: env('ACADEMY_DB_HOST', '127.0.0.1'),
@@ -237,8 +241,9 @@ function buildServer() {
     annotations: saveAnswer.annotations,
   }, async ({ lesson_id: lessonId, text, expected_version: expectedVersion }, extra) => {
     if (!LESSONS.has(lessonId)) return fail({ error: 'unknown_lesson', status: 404 });
+    const textError = answerTextError(text);
+    if (textError) return fail(textError);
     const bytes = Buffer.byteLength(text, 'utf8');
-    if (bytes > MAX_TEXT_BYTES) return fail({ error: 'content_too_large', status: 413, max_bytes: MAX_TEXT_BYTES, bytes });
     const owner = await ownerId(extra.authInfo);
     const requestId = crypto.randomUUID();
     const saved = expectedVersion === 0
@@ -272,35 +277,12 @@ function buildServer() {
   return server;
 }
 
-const sessions = new Map();
-function reap() {
-  const now = Date.now();
-  for (const [id, session] of sessions) {
-    if (now - session.last > SESSION_IDLE_MS) {
-      session.transport.close().catch(() => {});
-      sessions.delete(id);
-    }
-  }
-}
-setInterval(reap, 60_000).unref();
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks = [];
-    req.on('data', (chunk) => {
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) {
-        reject(Object.assign(new Error('too large'), { status: 413 }));
-        req.destroy();
-      } else {
-        chunks.push(chunk);
-      }
-    });
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    req.on('error', reject);
-  });
-}
+const sessions = createSessionStore({
+  maxSessions: MAX_SESSIONS,
+  maxPerUser: MAX_SESSIONS_PER_USER,
+  idleMs: SESSION_IDLE_MS,
+});
+setInterval(() => sessions.reap(), 60_000).unref();
 
 async function handle(req, res) {
   if (!ALLOWED_HOSTS.has(req.headers.host)) return send(res, 421, { error: 'misdirected_request' });
@@ -332,11 +314,20 @@ async function handle(req, res) {
   let body;
   if (req.method === 'POST') {
     try {
-      body = JSON.parse(await readBody(req));
+      body = JSON.parse(await readBody(req, MAX_BODY_BYTES));
     } catch (error) {
-      return send(res, error.status || 400, {
+      if (error.status === 413) {
+        send(res, 413, {
+          jsonrpc: '2.0',
+          error: { code: -32700, message: 'body too large' },
+          id: null,
+        });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, {
         jsonrpc: '2.0',
-        error: { code: -32700, message: error.status ? 'body too large' : 'parse error' },
+        error: { code: -32700, message: 'parse error' },
         id: null,
       });
     }
@@ -348,31 +339,37 @@ async function handle(req, res) {
       log({ ev: 'session_rejected', known: Boolean(session) });
       return send(res, 404, { jsonrpc: '2.0', error: { code: -32001, message: 'Session not found' }, id: null });
     }
-    session.last = Date.now();
+    sessions.touch(sessionId);
     return session.transport.handleRequest(req, res, body);
   }
   if (req.method !== 'POST' || !isInitializeRequest(body)) {
     return send(res, 400, { jsonrpc: '2.0', error: { code: -32000, message: 'Bad Request: no valid session' }, id: null });
   }
-  if (sessions.size >= MAX_SESSIONS) reap();
-  if (sessions.size >= MAX_SESSIONS) return send(res, 503, { error: 'too_many_sessions' });
+  const admission = sessions.prepare(sub);
+  if (!admission.ok) return send(res, admission.status, { error: admission.error });
+  let opened = false;
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => crypto.randomBytes(32).toString('base64url'),
     enableJsonResponse: true,
     onsessioninitialized: (id) => {
-      sessions.set(id, { transport, iss, sub, last: Date.now() });
+      sessions.commit(admission.ticket, id, { transport, iss, sub });
+      opened = true;
       log({ ev: 'session_open', sub: h16(sub) });
     },
     onsessionclosed: (id) => {
-      sessions.delete(id);
+      sessions.close(id);
       log({ ev: 'session_closed' });
     },
   });
   transport.onclose = () => {
-    if (transport.sessionId) sessions.delete(transport.sessionId);
+    if (transport.sessionId) sessions.close(transport.sessionId);
   };
-  await buildServer().connect(transport);
-  return transport.handleRequest(req, res, body);
+  try {
+    await buildServer().connect(transport);
+    return await transport.handleRequest(req, res, body);
+  } finally {
+    if (!opened) sessions.cancel(admission.ticket);
+  }
 }
 
 const server = http.createServer((req, res) => {
