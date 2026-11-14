@@ -1,0 +1,136 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Same record, wrong scope? · WitnessOps Academy</title><link rel="icon" type="image/png" href="/assets/control-256.png"><link rel="stylesheet" href="/chron.css"><link rel="stylesheet" href="/academy.css"></head><body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="site" data-menu>
+ <a class="site-logo" href="/" aria-label="WitnessOps Academy home"><img src="/assets/witnessops-horizontal-white.svg" alt="WitnessOps"></a>
+ <button class="menu-toggle" type="button" aria-label="Open academy navigation" aria-expanded="false" aria-controls="academy-nav" hidden><span aria-hidden="true"></span></button>
+ <nav id="academy-nav" aria-label="Academy navigation"><a href="/">Academy</a><a href="/#paths">Paths</a><a href="/#crew">The Crew</a><a href="/#how">How lessons work</a></nav>
+</header>
+<main id="main-content">
+<div class="col">
+ <div class="crumb"><a href="/">Academy</a> / Verify results / Lesson 2</div>
+ <div class="eyebrow" style="margin-top:28px">Verify results · Lesson 2 · pilot draft</div>
+ <h1 style="margin-top:8px">Same record, wrong scope?</h1>
+ <div class="dek" style="margin-top:14px">A lesson with Docs. A record can be true and still be about a different environment, target, or time than the claim.</div>
+ <div class="objective"><div class="k">Lesson objective</div><p>Decide whether a record is the same scope as the claim. A different scope is a gap, not a contradiction. For each claim, say whether it is evidenced, only claimed, or contradicted, and state one honest limit.</p></div>
+ <div class="teacher"><img src="/assets/docs-256.png" alt="Docs, Crew teacher"><div><div class="rl">Your teacher · Crew</div><div class="nm">Docs</div><div class="ln">Keeps the records. Explains, shows, then reads your attempt. Coaches; never grades.</div></div></div>
+</div>
+<div class="hero"><img src="/assets/p3-lesson-hero.png" alt="Illustrative artwork: Docs teaches at a slate board showing a clock, a tag and a fingerprint, while Sovereign listens and an empty learner's desk waits."></div>
+<div class="col">
+ <div class="cap">The Evidence Room, after hours. Somebody had left a desk free.</div>
+
+ <div class="sec"><div class="n">I</div><h2>Docs explains</h2></div>
+ <div class="prose">
+  <div class="say"><img src="/assets/docs-256.png" alt=""><p>“A true record of the wrong room is not evidence of this claim. It is not a contradiction either.”</p></div>
+  <p>Lesson 1 asked you to sort a report into what a record shows, what only the report says, and what a same-scope record rules out. This lesson asks a narrower question: is this record about the same thing?</p>
+  <p>Same scope means the same target, the same environment, and the same time, with the zone named. A staging log can be accurate and still say nothing about production. A missing record of this scope is a gap, not a “no”.</p>
+ </div>
+ <div class="claims" style="margin-bottom:12px">
+  <div class="cl"><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">A record of the same scope shows it happened.</div></div>
+  <div class="cl"><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">Only the report says so for this scope. A true record of a different environment, target, or time is a gap, not a “no”.</div></div>
+  <div class="cl"><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">An explicit record of the same scope shows something incompatible.</div></div>
+ </div>
+ <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“Name the scope before you name the label. Then say what even a matching record does <em>not</em> prove.”</p></div></div>
+
+ <div class="sec"><div class="n">II</div><h2>Watch Docs do it</h2></div>
+ <div class="prose"><p>Docs set the agent's report beside two logs of the same service. One log was staging. One was production.</p></div>
+ <div class="report"><div class="k">Agent report · example</div><p>“Search reindex finished in production at 09:00 UTC with zero errors. Customers can rely on the new index.”</p></div>
+ <figure class="rec"><div class="hd"><span>Evidence record · example data</span><span>Teacher's own</span></div>
+<pre><b>EVIDENCE RECORD</b>
+<span class="dv" style="display:block"></span>Source    reindex log
+          service search-reindex
+          environment: staging
+Observed  2026-XX-XX 09:00:01 UTC
+          through 09:00:44 UTC
+Artifact  staging run log
+          errors: 0
+SHA-256   1ab4…e20c (placeholder)
+<span class="dv" style="display:block"></span>Source    reindex log
+          service search-reindex
+          environment: production
+Observed  2026-XX-XX 09:12:03 UTC
+          through 09:18:40 UTC
+Artifact  production run log
+          errors: 2
+SHA-256   9c0e…77a1 (placeholder)
+<span class="dv" style="display:block"></span>Not supplied
+          customer-search check
+          of the production index</pre></figure>
+ <div class="claims" id="sorted"><div class="hd">Docs sorts the claims <span>Worked example</span></div>
+  <div class="cl"><div class="q">“A production reindex ran.”</div><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">The production log for search-reindex shows a finished run in production, from 09:12:03 UTC to 09:18:40 UTC.</div></div>
+  <div class="cl"><div class="q">“Finished at 09:00 UTC”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">The 09:00 UTC finish with zero errors is the staging log. A true record of another environment does not evidence the production time, and it does not contradict it. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Different scope</span></div></div>
+  <div class="cl"><div class="q">“Zero errors”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log, same service and same window, says errors: 2.</div></div>
+  <div class="cl"><div class="q">“Customers can rely on the new index”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">No customer-search check was supplied. The production log does not measure that. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
+  <div class="cl"><div class="q">Limit Docs writes</div><div class="why" style="color:var(--t1)">The production log shows a reindex run and an error count. It does not prove search quality for customers. The staging log is a different environment. The hashes here are only placeholders.</div></div>
+ </div>
+ <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“The staging log is real. It is the wrong room. Same service, same environment, same window: that is the scope you compare. A run log is not a check that customers can use the index.”</p></div></div>
+
+ <div class="sec"><div class="n">III</div><h2>Your turn</h2></div>
+ <div class="work" id="exercise">
+  <div class="tag">Exercise <span id="attempt-label">Attempt 1 · your own words</span></div>
+  <div class="report" style="margin-top:0"><div class="k">Agent report · example</div><p>“The nightly price file was stored in production. All 4 regions loaded it. Checkout was checked against it.”</p></div>
+  <div class="lbl">Artifacts you can open · example data</div>
+  <div class="attempt"><b>A · transfer log</b>  job price-file
+environment: production
+2026-XX-XX 01:15:02 UTC  start
+2026-XX-XX 01:15:40 UTC  stored: price-file.csv
+  SHA-256 4c8a…b17d (placeholder)
+<b>B · region load report</b>  job price-file
+environment: production
+run 2026-XX-XX 01:15:02 UTC
+regions loaded (3): eu-central, eu-west, us-east
+status: complete for the regions listed
+<b>C · checkout price check</b>
+environment: staging
+2026-XX-XX 01:16:05 UTC  result: pass
+(no production checkout record)</div>
+  <p class="meta">B is the load report for this same job and run. C names a different environment. These are fictional records; the shortened hashes are placeholders, not verified digests.</p>
+  <p class="brief exercise-intro">Choose a label for each claim, name the artifact and explain your reason. Then add one honest limit. This page does not mark your answers.</p>
+  <noscript><p class="notice">Enable JavaScript to assemble and copy your answer. You can still read the lesson and write your answers in your existing conversation.</p></noscript>
+  <form id="lesson-form" autocomplete="off" data-lesson-title="Lesson 2 · Same record, wrong scope?">
+<fieldset class="claim-field" data-claim="The nightly price file was stored in production."><legend>1 · The nightly price file was stored in production.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-1" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-1" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-1" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-1">Artifact and reason</label><input id="reason-1" name="reason-1" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+<fieldset class="claim-field" data-claim="All 4 regions loaded it."><legend>2 · All 4 regions loaded it.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-2" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-2" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-2" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-2">Artifact and reason</label><input id="reason-2" name="reason-2" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+<fieldset class="claim-field" data-claim="Checkout was checked against it."><legend>3 · Checkout was checked against it.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-3" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-3" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-3" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-3">Artifact and reason</label><input id="reason-3" name="reason-3" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+   <label class="field-label" for="honest-limit">One honest limit</label>
+   <textarea id="honest-limit" name="honest-limit" maxlength="1500" required placeholder="What do these artifacts not prove?"></textarea>
+   <div class="answer-preview">
+    <label class="field-label" for="answer-text">Your answer to copy</label>
+    <textarea id="answer-text" readonly rows="8" spellcheck="false" aria-describedby="answer-help"></textarea>
+    <p class="meta" id="answer-help">Your choices and words appear here as plain text. Copy them into your existing conversation with Docs.</p>
+    <div class="btnrow"><button type="button" class="btn" id="copy-answer">Copy answer</button><button type="button" class="btn ghost" id="select-answer">Select answer text</button></div>
+   </div>
+  </form>
+  <p class="lesson-status" id="lesson-status" role="status" aria-live="polite"></p>
+  <p class="manual"><b>Pilot, by hand:</b> this page does not contact Docs. Send the copied answer in an existing conversation, then paste the teacher's reply below. Your answers stay only in this open page; reloading or closing it clears them.</p>
+ </div>
+
+ <div class="sec"><div class="n">IV</div><h2>Feedback, then try again</h2></div>
+ <div class="work">
+  <label class="field-label" for="teacher-reply">Paste Docs's reply for this attempt</label>
+  <textarea id="teacher-reply" maxlength="10000" placeholder="Paste the reply you received in your existing conversation."></textarea>
+  <p class="meta">Pasted feedback is your record of that conversation. This page does not verify its source or generate a reply.</p>
+  <div class="btnrow"><button type="button" class="btn ghost" id="start-retry">Start next attempt</button></div>
+  <p class="manual">Use the feedback to edit your own answers. Starting a retry keeps your previous choices for editing and keeps a copy of the earlier attempt below, only until this page closes or reloads.</p>
+ </div>
+ <div id="attempt-history" aria-label="Earlier attempts in this page"></div>
+ <details class="feedback-example"><summary>See an example of teacher feedback <span aria-hidden="true">+</span></summary><div class="in">
+  <p>This is a fictional example, not feedback on your answers.</p>
+  <p>A passing checkout check can be a true record and still be the wrong scope. Read the environment named on that record before you treat it as evidence of the production claim. A different environment is a gap, not a contradiction, unless a record of the same environment says something incompatible.</p>
+ </div></details>
+
+ <div class="boundary"><b>Coaching is not assessment.</b> Docs coaches; nothing in this lesson is graded or recorded as a result. <b>No certificate is issued in this pilot.</b></div>
+
+ <div class="eyebrow">Path IV · Verify results</div>
+ <div class="lessons">
+  <a href="/lessons/report-or-evidence/"><div class="no">1</div><div class="k">Lesson 1 · with Docs · pilot draft</div><div class="t">Report or evidence?</div></a>
+  <a class="here" href="/lessons/same-scope/" aria-current="page"><div class="no">2</div><div class="k">Lesson 2 · with Docs · pilot draft</div><div class="t">Same record, wrong scope?</div></a>
+ </div>
+ <div class="pn"><a href="/lessons/report-or-evidence/">← Lesson 1</a><a href="/#paths">All paths</a></div>
+</div>
+</main>
+<footer class="site">WitnessOps Academy · Sovereign AI programme<br>Coaching, not assessment. No certificate is issued in this pilot.</footer>
+<script type="module" src="/academy.mjs"></script>
+<script type="module" src="/lesson.mjs"></script>
+</body></html>

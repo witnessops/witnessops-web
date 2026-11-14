@@ -9,11 +9,15 @@ let attempt = 1;
 
 function currentAnswer() {
   const data = new FormData(form);
+  const fields = [...form.querySelectorAll('[data-claim]')];
+  const sources = fields.length > 0 ? fields : [1, 2, 3];
   return buildAnswer({
+    title: form.dataset.lessonTitle,
     attempt,
-    claims: [1, 2, 3].map((index) => ({
-      label: data.get(`claim-${index}`),
-      reason: data.get(`reason-${index}`),
+    claims: sources.map((field, index) => ({
+      text: typeof field === 'number' ? undefined : field.dataset.claim,
+      label: data.get(`claim-${index + 1}`),
+      reason: data.get(`reason-${index + 1}`),
     })),
     limit: data.get('honest-limit'),
   });
