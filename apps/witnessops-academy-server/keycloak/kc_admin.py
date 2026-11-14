@@ -43,7 +43,7 @@ def req(method, path, body=None, token=None, form=None):
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(KC + path, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(request) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:
             raw = response.read()
             parsed = json.loads(raw) if raw else None
             return response.status, parsed
