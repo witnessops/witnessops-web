@@ -88,6 +88,16 @@ test('prepared lesson and workbook share one exercise and one label set', async 
   assert.match(lesson, /This page has no save and no send/);
 });
 
+test('workbook print styles darken the light foreground tokens', async () => {
+  const css = await readFile(new URL('../public/academy.css', import.meta.url), 'utf8');
+  const printBlock = css.slice(css.indexOf('@media print'));
+  assert.notEqual(printBlock.indexOf('@media print'), -1);
+  for (const token of ['--t1:#111', '--t2:#222', '--mute:#333', '--brass:#3d3112']) {
+    assert.equal(printBlock.includes(token), true, token);
+  }
+  assert.match(printBlock, /body\.workbook\{[^}]*--t1:#111/);
+});
+
 test('academy pages avoid banned wording and keep local links on this origin', async () => {
   const pages = await htmlFiles(PUBLIC_ROOT);
   assert.deepEqual(pages.filter((file) => file.startsWith('lessons/')).sort(), [

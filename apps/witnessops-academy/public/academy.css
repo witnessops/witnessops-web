@@ -166,10 +166,11 @@ footer.site{font:400 13px/21px Inter,sans-serif;letter-spacing:0;padding:24px ma
  .labels li{flex-direction:column;gap:6px}
 }
 @media print{
- body.workbook{background:#fff!important;color:#111!important;background-image:none!important}
+ body.workbook{
+  --bg:#fff;--card:#fff;--inset:#fff;
+  --t1:#111;--t2:#222;--mute:#333;--brass:#3d3112;--brass-h:#3d3112;
+  background:#fff!important;color:var(--t1)!important;background-image:none!important
+ }
  body.workbook header.site,body.workbook .skip-link,body.workbook footer.site,body.workbook .noprint{display:none!important}
- body.workbook .col,body.workbook .prose p,body.workbook .dek,body.workbook h1,body.workbook h2,body.workbook .practice,body.workbook .practice textarea,body.workbook .copy,body.workbook .meta,body.workbook .boundary,body.workbook .objective,body.workbook .labels li{color:#111!important;background:#fff!important}
- body.workbook a{color:#111!important}
- body.workbook .practice textarea,body.workbook .copy,body.workbook .boundary,body.workbook .objective,body.workbook .attempt{border-color:#222!important}
- body.workbook .specbar{color:#111!important;background:#fff!important;border-color:#222!important}
+ body.workbook .specbar,body.workbook .practice textarea,body.workbook .copy,body.workbook .attempt{background:#fff!important;color:var(--t1)!important;border-color:#222!important}
 }
