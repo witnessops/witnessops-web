@@ -4,6 +4,7 @@ import io
 import json
 import os
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -75,6 +76,51 @@ class StaticReleaseTests(unittest.TestCase):
             homepage.write_bytes(b"changed after staging")
             with self.assertRaisesRegex(release.ReleaseError, "unsafe|size|digest"):
                 release.activate(root, source, "absent", manifest_hash, owner)
+            self.assertEqual(release.current_source(root), "absent")
+
+    def test_mode_only_drift_blocks_activation(self):
+        source, archive, manifest, archive_hash, manifest_hash = bundle()
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch) / "academy"
+            owner = os.getuid()
+            release.stage(root, archive, manifest, source, archive_hash, manifest_hash, owner)
+            homepage = root / "releases" / source / "public" / "index.html"
+            homepage.chmod(0o600)
+            with self.assertRaisesRegex(release.ReleaseError, "unsafe"):
+                release.activate(root, source, "absent", manifest_hash, owner)
+            self.assertEqual(release.current_source(root), "absent")
+
+    def test_fifo_inputs_and_installed_manifest_fail_without_blocking(self):
+        source, archive, manifest, archive_hash, manifest_hash = bundle()
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch) / "academy"
+            fifo = Path(scratch) / "input-fifo"
+            os.mkfifo(fifo)
+            verify = subprocess.run(
+                [sys.executable, str(MODULE_PATH), "verify", "--archive", str(fifo),
+                 "--manifest", str(fifo), "--source-commit", source,
+                 "--archive-sha256", archive_hash, "--manifest-sha256", manifest_hash],
+                capture_output=True, text=True, timeout=3,
+            )
+            self.assertNotEqual(verify.returncode, 0)
+            self.assertIn("bounded regular file", verify.stderr)
+            release.stage(root, archive, manifest, source, archive_hash, manifest_hash, os.getuid())
+            installed = root / "releases" / source / "manifest.json"
+            installed.unlink()
+            os.mkfifo(installed)
+            installed.chmod(0o644)
+            code = (
+                "import importlib.util,os,pathlib,sys;"
+                "s=importlib.util.spec_from_file_location('release',sys.argv[1]);"
+                "m=importlib.util.module_from_spec(s);s.loader.exec_module(m);"
+                "m.activate(pathlib.Path(sys.argv[2]),sys.argv[3],'absent',sys.argv[4],os.getuid())"
+            )
+            activation = subprocess.run(
+                [sys.executable, "-c", code, str(MODULE_PATH), str(root), source, manifest_hash],
+                capture_output=True, text=True, timeout=3,
+            )
+            self.assertNotEqual(activation.returncode, 0)
+            self.assertIn("bounded regular file", activation.stderr)
             self.assertEqual(release.current_source(root), "absent")
 
     def test_archive_requires_external_digests_and_exact_file_set(self):

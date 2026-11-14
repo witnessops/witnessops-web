@@ -193,7 +193,12 @@ def parse_manifest(data, expected_source):
 
 
 def read_regular(path, limit):
-    descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    preliminary = path.lstat()
+    if not stat.S_ISREG(preliminary.st_mode) or preliminary.st_size > limit:
+        raise ReleaseError("release input is not a bounded regular file")
+    descriptor = os.open(
+        path, os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+    )
     with os.fdopen(descriptor, "rb") as stream:
         entry = os.fstat(stream.fileno())
         if not stat.S_ISREG(entry.st_mode) or entry.st_size > limit:
@@ -316,7 +321,7 @@ def verify_installed(root, source, manifest_digest, owner):
             if (
                 not stat.S_ISREG(info.st_mode)
                 or info.st_uid != owner
-                or info.st_mode & 0o022
+                or stat.S_IMODE(info.st_mode) != 0o644
                 or relative not in expected
                 or info.st_size != expected[relative]["size"]
             ):
