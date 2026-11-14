@@ -14,7 +14,7 @@ import { publicErrorCode, validateDraft } from './draft-input.mjs';
 import { idpFailureAction, idpLogoutReport } from './idp-decision.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
 import { createLoginGuard, startLoginSweep } from './login-guard.mjs';
-import { openPreauth, preauthKeyFromSecret, sealPreauth } from './preauth-cookie.mjs';
+import { PREAUTH_TTL_MS, createPreauthCodec, preauthKeyFromSecret } from './preauth-cookie.mjs';
 import { discardAfterResponse, readBody } from './read-body.mjs';
 import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 
@@ -42,9 +42,8 @@ const COOKIE = SECURE ? '__Host-academy_sid' : 'academy_sid';
 const PRE = SECURE ? '__Host-academy_preauth' : 'academy_preauth';
 const COOKIE_PATH = SECURE ? '/' : '/academy';
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
-const PREAUTH_TTL_MS = 600_000;
 const TRUSTED_PROXIES = list('ACADEMY_TRUSTED_PROXIES', '');
-const preauthKey = preauthKeyFromSecret(secret('ACADEMY_PREAUTH_KEY'));
+const preauth = createPreauthCodec(preauthKeyFromSecret(secret('ACADEMY_PREAUTH_KEY')));
 assertHttpBindIsLoopback(HOST, ORIGIN);
 
 const pool = new pg.Pool({
@@ -213,7 +212,7 @@ async function handle(req, res) {
     const state = rnd();
     const nonce = rnd();
     const verifier = oidc.randomPKCECodeVerifier();
-    const sealed = sealPreauth({ state, nonce, verifier, exp: Date.now() + PREAUTH_TTL_MS }, preauthKey);
+    const sealed = preauth.seal({ state, nonce, verifier });
     const to = oidc.buildAuthorizationUrl(config, {
       redirect_uri: REDIRECT_URI,
       scope: 'openid',
@@ -226,7 +225,7 @@ async function handle(req, res) {
   }
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
-    const pa = openPreauth(cookies(req)[PRE], preauthKey);
+    const pa = preauth.open(cookies(req)[PRE]);
     if (!pa) return send(res, 400, { error: 'login_state_missing' });
     let tokens;
     try {
