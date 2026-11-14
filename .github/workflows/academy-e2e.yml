@@ -35,12 +35,6 @@ jobs:
     env:
       POSTGRES_IMAGE: postgres:17@sha256:846a7ddaa67a4b354ae1d21087b683901aa6113a4ed626d3787cfbf6c85e3e07
       KEYCLOAK_IMAGE: quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
-      ACADEMY_CI_SECRET_DIR: ${{ runner.temp }}/academy-secrets
-      ACADEMY_CI_LOG_DIR: ${{ runner.temp }}/academy-logs
-      ACADEMY_CI_ENV: ${{ runner.temp }}/academy-ci.env
-      ACADEMY_TEST_EVIDENCE_DIR: ${{ runner.temp }}/academy-evidence
-      ACADEMY_TEST_PGADMIN_PASSWORD_FILE: ${{ runner.temp }}/academy-secrets/pg_admin_password
-      KC_ADMIN_PASSWORD_FILE: ${{ runner.temp }}/academy-secrets/kc_admin_password
       KC_ADMIN_BASE_URL: http://127.0.0.1:8080
       KC_ADMIN_USERNAME: ci-admin
       KC_ADMIN_PASSWORD_GRANT: "1"
@@ -52,6 +46,18 @@ jobs:
       ACADEMY_TEST_KC_CONTAINER: academy-kc
 
     steps:
+      - name: Prepare runtime directories
+        run: |
+          set -euo pipefail
+          {
+            echo "ACADEMY_CI_SECRET_DIR=$RUNNER_TEMP/academy-secrets"
+            echo "ACADEMY_CI_LOG_DIR=$RUNNER_TEMP/academy-logs"
+            echo "ACADEMY_CI_ENV=$RUNNER_TEMP/academy-ci.env"
+            echo "ACADEMY_TEST_EVIDENCE_DIR=$RUNNER_TEMP/academy-evidence"
+            echo "ACADEMY_TEST_PGADMIN_PASSWORD_FILE=$RUNNER_TEMP/academy-secrets/pg_admin_password"
+            echo "KC_ADMIN_PASSWORD_FILE=$RUNNER_TEMP/academy-secrets/kc_admin_password"
+          } >> "$GITHUB_ENV"
+
       - name: Check out repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
