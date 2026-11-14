@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { env, secret, int } from '../src/env.mjs';
+import { LOGIN_MAX_PER_WINDOW } from '../src/login-guard.mjs';
 
 if (process.env.ACADEMY_E2E !== '1') {
   console.log('academy lesson e2e skipped; set ACADEMY_E2E=1 to run against disposable Postgres and Keycloak');
@@ -121,7 +122,9 @@ class Ctx {
     r = await this.req('GET', cb, { note: 'oidc callback' });
     if (r.status !== 302) throw new Error(`callback ${r.status}`);
     r = await this.req('GET', `${APP}/academy/learn/report-or-evidence`, { note: 'lesson page' });
-    this.csrf = r.text.match(/const CSRF="([^"]+)"/)?.[1];
+    const csp = r.headers.get('content-security-policy') || '';
+    if (csp.includes("'unsafe-inline'")) throw new Error('lesson page still allows inline scripts or styles');
+    this.csrf = r.text.match(/id="academy-csrf">"([^"]*)"/)?.[1];
     if (!this.csrf) throw new Error('not signed in');
     return this;
   }
@@ -291,6 +294,12 @@ restartApp(RESTORE_DB);
 const health = await (await fetch(`${APP}/academy/healthz`).catch(() => fetch(`${APP}/academy/healthz`))).json();
 const ra = await new Ctx('A-restore').login(...A);
 const rag = await ra.get();
+const marker = `restore-marker ${rid()}`;
+const marked = rag.status === 200
+  ? await ra.put({ content: marker, expected_version: rag.json().version, save_request_id: rid() }, { note: 'restore marker' })
+  : { status: 0 };
+const restoredRow = (await q(RESTORE_DB, 'select content from academy_lesson_drafts where owner_id=$1', [ida.id]))[0];
+const primaryRow = (await q(DBN, 'select content from academy_lesson_drafts where owner_id=$1', [ida.id]))[0];
 const rb = await new Ctx('B-restore').login(...B);
 const rbg = (await rb.get()).status;
 const rbq = (await rb.get(`?owner_id=${ida.id}`)).status;
@@ -298,8 +307,8 @@ const rbp = (await rb.put({ content: 'B on restore', expected_version: 1, save_r
 const rold = (await old.get()).status;
 restartApp(DBN);
 check('T7', `pg_dump/pg_restore into isolated DB ${RESTORE_DB}: A record returned, B denied, logged-out session still denied`,
-  health.db === RESTORE_DB && rag.status === 200 && rag.json().content === finalA && rbg === 404 && rbq === 404 && rbp === 400 && rold === 401,
-  { app_db: health.db, restored_counts: counts, a_status: rag.status, a_sha: hash(rag.json().content || ''), expected_sha: hash(finalA || ''), b_get: rbg, b_get_owner_query: rbq, b_put_forged: rbp, old_logged_out_cookie: rold });
+  health.ok === true && !Object.hasOwn(health, 'db') && rag.status === 200 && rag.json().content === finalA && marked.status === 200 && restoredRow?.content === marker && primaryRow?.content !== marker && rbg === 404 && rbq === 404 && rbp === 400 && rold === 401,
+  { health_names_db: Object.hasOwn(health, 'db'), restored_counts: counts, a_status: rag.status, a_sha: hash(rag.json().content || ''), expected_sha: hash(finalA || ''), marker_on_restore: restoredRow?.content === marker, marker_on_primary: primaryRow?.content === marker, b_get: rbg, b_get_owner_query: rbq, b_put_forged: rbp, old_logged_out_cookie: rold });
 
 async function denied(client, sql) {
   try {
@@ -368,7 +377,31 @@ const f10 = {
 };
 console.log(`${f10.result} F10 academy_app has no DELETE or DDL :: ${JSON.stringify(f10.evidence)}`);
 
-fs.writeFileSync(`${EV}/results.json`, JSON.stringify({ ran_at: new Date().toISOString(), results, f10 }, null, 2));
+await q(DBN, 'ALTER ROLE academy_app CREATEDB CREATEROLE');
+run('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-v', 'db=academy', '-d', 'postgres', '-f', path.join(HERE, '../db/bootstrap.sql')]);
+const resetRole = (await q(DBN, 'SELECT rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolreplication, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = $1', [appUser]))[0];
+const l6ok = Boolean(resetRole)
+  && resetRole.rolcanlogin === true
+  && resetRole.rolsuper === false
+  && resetRole.rolcreatedb === false
+  && resetRole.rolcreaterole === false
+  && resetRole.rolinherit === false
+  && resetRole.rolreplication === false
+  && resetRole.rolbypassrls === false;
+console.log(`${l6ok ? 'PASS' : 'FAIL'} L6 bootstrap resets drifted academy_app attributes`);
+
+let loginAllowed = 0;
+let loginLimited = 0;
+for (let i = 0; i < LOGIN_MAX_PER_WINDOW + 15; i += 1) {
+  const response = await fetch(`${APP}/academy/auth/login`, { redirect: 'manual' });
+  await response.arrayBuffer();
+  if (response.status === 429) loginLimited += 1;
+  else loginAllowed += 1;
+}
+const m1ok = loginLimited > 0 && loginAllowed <= LOGIN_MAX_PER_WINDOW;
+console.log(`${m1ok ? 'PASS' : 'FAIL'} M1 login burst is rate-limited :: ${JSON.stringify({ allowed: loginAllowed, limited: loginLimited, cap: LOGIN_MAX_PER_WINDOW })}`);
+
+fs.writeFileSync(`${EV}/results.json`, JSON.stringify({ ran_at: new Date().toISOString(), results, f10, l6ok, m1ok }, null, 2));
 fs.closeSync(logf);
 console.log(`\n${results.filter((x) => x.result === 'PASS').length}/${results.length} PASS`);
-if (results.length !== 10 || results.some((x) => x.result !== 'PASS') || !f10ok) process.exitCode = 1;
+if (results.length !== 10 || results.some((x) => x.result !== 'PASS') || !f10ok || !l6ok || !m1ok) process.exitCode = 1;

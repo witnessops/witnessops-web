@@ -4,9 +4,21 @@
 // Secrets come only from *_FILE or CREDENTIALS_DIRECTORY. See src/env.mjs.
 import http from 'node:http';
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import * as oidc from 'openid-client';
+import { publicErrorCode, validateDraft } from './draft-input.mjs';
+import { idpFailureAction } from './idp-decision.mjs';
+import { assertHttpBindIsLoopback } from './listen-policy.mjs';
+import { PREAUTH_TTL_MS, createLoginGuard, startLoginSweep } from './login-guard.mjs';
+import { readBody } from './read-body.mjs';
 import { env, secret, int, requireHttpsOrLoopback } from './env.mjs';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
+const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 
 const HOST = env('ACADEMY_APP_HOST', '127.0.0.1');
 const PORT = int('ACADEMY_APP_PORT', 18300);
@@ -23,14 +35,12 @@ const REDIRECT_URI = `${ORIGIN}/academy/auth/callback`;
 const LESSON_ROUTE = '/academy/learn/report-or-evidence';
 const LESSON_ID = 'report-or-evidence';
 const DRAFT_API = `/academy/api/lessons/${LESSON_ID}/draft`;
-const MAX_CONTENT_BYTES = 32 * 1024;
-const MAX_BODY_BYTES = 64 * 1024;
 const SESSION_TTL_MS = int('ACADEMY_SESSION_TTL_SECONDS', 8 * 3600) * 1000;
 const COOKIE = SECURE ? '__Host-academy_sid' : 'academy_sid';
 const PRE = SECURE ? '__Host-academy_preauth' : 'academy_preauth';
 const COOKIE_PATH = SECURE ? '/' : '/academy';
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
-const DRAFT_FIELDS = new Set(['content', 'expected_version', 'save_request_id']);
+assertHttpBindIsLoopback(HOST, ORIGIN);
 
 const pool = new pg.Pool({
   host: env('ACADEMY_DB_HOST', '127.0.0.1'),
@@ -40,34 +50,37 @@ const pool = new pg.Pool({
   password: secret('ACADEMY_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
+const IDP_TIMEOUT_MS = 5000;
+async function timedFetch(url, options = {}) {
+  return fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(IDP_TIMEOUT_MS) });
+}
+const discoveryOptions = { [oidc.customFetch]: timedFetch };
+if (ISSUER_URL.protocol === 'http:') discoveryOptions.execute = [oidc.allowInsecureRequests];
 const config = await oidc.discovery(
   ISSUER_URL,
   CLIENT_ID,
   CLIENT_SECRET,
   oidc.ClientSecretPost(CLIENT_SECRET),
-  ISSUER_URL.protocol === 'http:' ? { execute: [oidc.allowInsecureRequests] } : undefined,
+  discoveryOptions,
 );
 const END_SESSION = requireHttpsOrLoopback(
   'ACADEMY_OIDC_END_SESSION',
   config.serverMetadata().end_session_endpoint || `${ISSUER}/protocol/openid-connect/logout`,
 ).href;
-const PG_INT_MAX = 2147483647;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 class IdpUnavailable extends Error {
   constructor() {
     super('idp_unavailable');
     this.name = 'IdpUnavailable';
   }
 }
-// Short-lived single-process login state. Durable pre-auth storage is a later ticket.
-const preauth = new Map();
+const loginGuard = createLoginGuard();
+startLoginSweep(loginGuard);
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const rnd = (n = 32) => crypto.randomBytes(n).toString('base64url');
 const log = (o) => console.log(JSON.stringify({ t: new Date().toISOString(), ...o }));
 pool.on('error', (error) => {
-  log({ ev: 'db_pool_error', err: error.message });
+  log({ ev: 'db_pool_error', err: publicErrorCode(error) });
 });
 
 function cookies(req) {
@@ -80,10 +93,11 @@ function cookies(req) {
 }
 const setCookie = (name, val, maxAge) =>
   `${name}=${val}; Path=${COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${SECURE ? '; Secure' : ''}`;
-const CSP = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self' ${ISSUER_URL.origin}`;
+const CSP = `default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'; form-action 'self' ${ISSUER_URL.origin}`;
 
 function send(res, status, body, headers = {}) {
-  const isObj = typeof body === 'object' && body !== null;
+  const isBytes = Buffer.isBuffer(body);
+  const isObj = !isBytes && typeof body === 'object' && body !== null;
   res.writeHead(status, {
     'Content-Type': isObj ? 'application/json' : 'text/html; charset=utf-8',
     'Cache-Control': 'no-store',
@@ -95,43 +109,6 @@ function send(res, status, body, headers = {}) {
     ...headers,
   });
   res.end(isObj ? JSON.stringify(body) : body);
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks = [];
-    let settled = false;
-    const fail = (error) => {
-      if (settled) return;
-      settled = true;
-      reject(error);
-    };
-    req.on('data', (chunk) => {
-      if (settled) return;
-      size += chunk.length;
-      if (size > MAX_BODY_BYTES) {
-        req.pause();
-        fail(Object.assign(new Error('too large'), { status: 413 }));
-        req.removeAllListeners('data');
-        req.on('data', () => {});
-        req.resume();
-        return;
-      }
-      chunks.push(chunk);
-    });
-    req.on('end', () => {
-      if (settled) return;
-      settled = true;
-      resolve(Buffer.concat(chunks).toString('utf8'));
-    });
-    req.on('error', fail);
-  });
-}
-
-function idpRejected(error) {
-  return error instanceof oidc.ResponseBodyError
-    && (error.error === 'invalid_grant' || error.error === 'invalid_token');
 }
 
 async function revoke(s, reason) {
@@ -157,7 +134,7 @@ async function getSession(req) {
   try {
     active = (await oidc.tokenIntrospection(config, s.access_token)).active === true;
   } catch (error) {
-    if (!idpRejected(error)) throw new IdpUnavailable();
+    if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
     active = false;
   }
   if (!active) {
@@ -170,7 +147,7 @@ async function getSession(req) {
       s.access_token = t.access_token;
       s.refresh_token = t.refresh_token || s.refresh_token;
     } catch (error) {
-      if (!idpRejected(error)) throw new IdpUnavailable();
+      if (idpFailureAction(error) !== 'revoke') throw new IdpUnavailable();
       await revoke(s, 'idp_session_inactive');
       return null;
     }
@@ -201,15 +178,24 @@ async function handle(req, res) {
   const url = new URL(req.url, ORIGIN);
   const p = url.pathname;
 
-  if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true, db: DB_NAME });
+  if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
+
+  if (p === '/academy/static/lesson.js' && req.method === 'GET') {
+    return send(res, 200, LESSON_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === '/academy/static/lesson.css' && req.method === 'GET') {
+    return send(res, 200, LESSON_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
+  }
 
   if (p === '/academy/auth/login' && req.method === 'GET') {
+    const decision = loginGuard.begin(req.socket?.remoteAddress || '');
+    if (!decision.ok) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
     const key = rnd();
     const state = rnd();
     const nonce = rnd();
     const verifier = oidc.randomPKCECodeVerifier();
-    preauth.set(key, { state, nonce, verifier, exp: Date.now() + 600_000 });
-    for (const [k, v] of preauth) if (v.exp < Date.now()) preauth.delete(k);
+    const stored = loginGuard.put(key, { state, nonce, verifier, exp: Date.now() + PREAUTH_TTL_MS });
+    if (!stored) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
     const to = oidc.buildAuthorizationUrl(config, {
       redirect_uri: REDIRECT_URI,
       scope: 'openid',
@@ -223,8 +209,7 @@ async function handle(req, res) {
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
     const key = cookies(req)[PRE];
-    const pa = key && preauth.get(key);
-    preauth.delete(key);
+    const pa = key && loginGuard.take(key);
     if (!pa || pa.exp < Date.now()) return send(res, 400, { error: 'login_state_missing' });
     let tokens;
     try {
@@ -235,7 +220,7 @@ async function handle(req, res) {
         idTokenExpected: true,
       });
     } catch (e) {
-      log({ ev: 'callback_failed', err: e.code || e.message });
+      log({ ev: 'callback_failed', err: publicErrorCode(e) });
       return send(res, 400, { error: 'login_failed' });
     }
     const claims = identityClaims(tokens);
@@ -276,18 +261,30 @@ async function handle(req, res) {
     const bad = csrfOk(req, s);
     if (bad) return send(res, 403, { error: 'csrf', check: bad });
     await revoke(s, 'logout');
-    const r = await fetch(END_SESSION, {
-      method: 'POST',
-      redirect: 'manual',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: s.refresh_token }),
-    });
+    let idpStatus = 0;
+    try {
+      const r = await fetch(END_SESSION, {
+        method: 'POST',
+        redirect: 'manual',
+        signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, refresh_token: s.refresh_token }),
+      });
+      idpStatus = r.status;
+    } catch {
+      idpStatus = 0;
+    }
     const endUrl = oidc.buildEndSessionUrl(config, {
       id_token_hint: s.id_token,
       post_logout_redirect_uri: `${ORIGIN}${LESSON_ROUTE}`,
     });
-    log({ ev: 'logout', identity: s.identity_id, idp_logout_status: r.status });
-    return send(res, 200, { ok: true, idp_logout_status: r.status, end_session_url: endUrl.origin + endUrl.pathname }, {
+    const idpOk = idpStatus >= 200 && idpStatus < 300;
+    log({ ev: 'logout', identity: s.identity_id, idp_logout_status: idpStatus });
+    return send(res, idpOk ? 200 : 502, {
+      ok: idpOk,
+      idp_logout_status: idpStatus,
+      end_session_url: endUrl.origin + endUrl.pathname,
+    }, {
       'Set-Cookie': setCookie(COOKIE, '', 0),
     });
   }
@@ -312,25 +309,15 @@ async function handle(req, res) {
       } catch (e) {
         return send(res, e.status || 400, { error: e.status ? 'body_too_large' : 'bad_json' });
       }
-      if (body === null || typeof body !== 'object' || Array.isArray(body)) return send(res, 400, { error: 'invalid_fields' });
-      const extra = Object.keys(body).filter((k) => !DRAFT_FIELDS.has(k));
-      if (extra.length) return send(res, 400, { error: 'unexpected_fields', fields: extra.slice(0, 20) });
-      const content = body.content;
-      const expectedVersion = body.expected_version;
-      const saveRequestId = typeof body.save_request_id === 'string' && UUID_RE.test(body.save_request_id)
-        ? body.save_request_id.toLowerCase()
-        : null;
-      if (
-        typeof content !== 'string'
-        || content.includes('\0')
-        || !Number.isSafeInteger(expectedVersion)
-        || expectedVersion < 0
-        || expectedVersion > PG_INT_MAX
-        || saveRequestId === null
-      ) return send(res, 400, { error: 'invalid_fields' });
-      if (Buffer.byteLength(content, 'utf8') > MAX_CONTENT_BYTES) {
-        return send(res, 413, { error: 'content_too_large', max_bytes: MAX_CONTENT_BYTES });
+      const draft = validateDraft(body);
+      if (!draft.ok) {
+        return send(res, draft.status, {
+          error: draft.error,
+          ...(draft.fields ? { fields: draft.fields } : {}),
+          ...(draft.max_bytes ? { max_bytes: draft.max_bytes } : {}),
+        });
       }
+      const { content, expectedVersion, saveRequestId } = draft;
       let saved;
       if (expectedVersion === 0) {
         saved = await pool.query(
@@ -371,31 +358,17 @@ async function handle(req, res) {
 // Stand-in lesson page. The existing Academy lesson UI replaces it in a later ticket.
 function page(s) {
   const head = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report or evidence? · Academy</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem}fieldset{margin:1rem 0}textarea{width:100%}small{color:#555}</style></head><body>
+<link rel="stylesheet" href="/academy/static/lesson.css"></head><body>
 <p><small>Pilot · synthetic teaching material · lesson text adapted from the Academy lesson pages</small></p>
 <h1>Lesson 1 · Report or evidence?</h1>`;
   if (!s) return `${head}<p>Sign in to keep your draft between visits.</p><p><a href="/academy/auth/login">Sign in</a></p></body></html>`;
   const claims = ['The 02:00 backup run completed.', 'All 3 databases saved.', 'Restore tested.'];
   const labels = ['Evidenced', 'Only claimed', 'Contradicted'];
-  return `${head}<form id="f">${claims.map((c, i) => `<fieldset><legend>${i + 1}. ${c}</legend>${labels.map((l) => `<label><input type="radio" name="l${i}" value="${l}"> ${l}</label> `).join('')}<br><label>Artifact and reason<br><textarea name="r${i}" rows="2"></textarea></label></fieldset>`).join('')}
-<label>Limit<br><textarea name="limit" rows="2"></textarea></label><p><button type="submit">Save draft</button> <span id="st" role="status"></span></p></form>
+  return `${head}<form id="f">${claims.map((c, i) => `<fieldset><legend>${i + 1}. ${c}</legend>${labels.map((l) => `<label><input type="radio" name="l${i}" value="${l}" disabled> ${l}</label> `).join('')}<br><label>Artifact and reason<br><textarea name="r${i}" rows="2" disabled></textarea></label></fieldset>`).join('')}
+<label>Limit<br><textarea name="limit" rows="2" disabled></textarea></label><p><button type="submit" disabled>Save draft</button> <span id="st" role="status"></span></p></form>
 <p><button id="lo">Sign out</button></p>
-<script>
-const CSRF=${JSON.stringify(s.csrf_token)};let version=0;let ready=false;const f=document.getElementById('f'),st=document.getElementById('st');
-const fields=()=>f.querySelectorAll('input,textarea,button');
-fields().forEach((el)=>el.disabled=true);
-const unlock=()=>{ready=true;fields().forEach((el)=>el.disabled=false);};
-const collect=()=>JSON.stringify({claims:[0,1,2].map(i=>({label:(f['l'+i].value||null),reason:f['r'+i].value})),limit:f.limit.value});
-const apply=(c)=>{try{const d=JSON.parse(c);d.claims.forEach((x,i)=>{if(x.label)f['l'+i].value=x.label;f['r'+i].value=x.reason||''});f.limit.value=d.limit||''}catch{}};
-fetch('${DRAFT_API}').then(async r=>{
-  if(r.ok){const d=await r.json();version=d.version;apply(d.content);st.textContent='Draft loaded (v'+version+')';unlock();}
-  else if(r.status===404){unlock();}
-  else st.textContent='Draft not loaded';
-}).catch(()=>{st.textContent='Draft not loaded';});
-f.onsubmit=async e=>{e.preventDefault();if(!ready)return;const r=await fetch('${DRAFT_API}',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':CSRF},body:JSON.stringify({content:collect(),expected_version:version,save_request_id:crypto.randomUUID()})});
-const d=await r.json();if(r.ok){version=d.version;st.textContent='Saved (v'+version+')'}else if(r.status===409){st.textContent='Saved elsewhere (v'+d.current_version+'). Reload before saving.'}else st.textContent='Not saved: '+d.error};
-document.getElementById('lo').onclick=async()=>{const r=await fetch('/academy/auth/logout',{method:'POST',headers:{'X-CSRF-Token':CSRF}});await r.json();location.href='${LESSON_ROUTE}'};
-</script></body></html>`;
+<script type="application/json" id="academy-csrf">${JSON.stringify(s.csrf_token)}</script>
+<script src="/academy/static/lesson.js" defer></script></body></html>`;
 }
 
 const server = http.createServer((req, res) => handle(req, res).catch((e) => {
@@ -404,7 +377,7 @@ const server = http.createServer((req, res) => handle(req, res).catch((e) => {
     if (!res.headersSent) send(res, 503, { error: 'idp_unavailable' });
     return;
   }
-  log({ ev: 'error', err: e.message });
+  log({ ev: 'error', err: publicErrorCode(e) });
   if (!res.headersSent) send(res, 500, { error: 'internal' });
 }));
 server.listen(PORT, HOST, () => log({ ev: 'listening', host: HOST, port: PORT, origin: ORIGIN, db: DB_NAME }));
