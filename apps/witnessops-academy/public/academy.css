@@ -174,3 +174,8 @@ footer.site{font:400 13px/21px Inter,sans-serif;letter-spacing:0;padding:24px ma
  body.workbook header.site,body.workbook .skip-link,body.workbook footer.site,body.workbook .noprint{display:none!important}
  body.workbook .specbar,body.workbook .practice textarea,body.workbook .copy,body.workbook .attempt{background:#fff!important;color:var(--t1)!important;border-color:#222!important}
 }
+
+/* Lesson layout remains compatible with the authenticated page's strict CSP. */
+.lesson-mt28{margin-top:28px}.lesson-mt8{margin-top:8px}.lesson-mt14{margin-top:14px}.lesson-mb12{margin-bottom:12px}.lesson-block{display:block}.lesson-primary{color:var(--t1)}.lesson-mt0{margin-top:0}
+.learner-session{max-width:720px;margin:24px auto;padding:20px;border:1px solid var(--t3);border-radius:12px}
+.learner-session textarea{width:100%;min-height:120px}.learner-session [hidden]{display:none}

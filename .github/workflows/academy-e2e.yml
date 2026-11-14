@@ -15,6 +15,7 @@ on:
   pull_request:
     paths:
       - "apps/witnessops-academy-*/**"
+      - "apps/witnessops-academy/**"
       - ".github/workflows/academy-e2e.yml"
   workflow_dispatch:
 
@@ -79,6 +80,9 @@ jobs:
       - name: Install dependencies
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for the real lesson journey
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Start Postgres 17 and Keycloak 26.8.2
         id: deps
@@ -222,6 +226,13 @@ jobs:
           set +e
           node apps/witnessops-academy-server/test/e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/e2e.log"
           code=${PIPESTATUS[0]}
+          bash "$ACADEMY_TEST_RESTART_APP_CMD" "$ACADEMY_DB_NAME"
+          restart=${PIPESTATUS[0]}
+          node apps/witnessops-academy-server/test/browser-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/a4-browser.log"
+          browser=${PIPESTATUS[0]}
+          if [[ "$browser" -ne 0 || "$restart" -ne 0 ]]; then
+            code=1
+          fi
           if [[ -f apps/witnessops-academy-mcp/test/e2e.mjs ]]; then
             echo "running academy mcp e2e"
             node apps/witnessops-academy-mcp/test/e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/mcp-e2e.log"
