@@ -12,7 +12,7 @@
     "node": ">=22.0.0 <23"
   },
   "dependencies": {
-    "openid-client": "6.9.0",
+    "openid-client": "6.8.9",
     "pg": "8.23.0"
   }
 }
