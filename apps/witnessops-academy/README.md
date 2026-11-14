@@ -1,0 +1,33 @@
+# WitnessOps Academy
+
+A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home and one pilot lesson: **Report or evidence?** The other three learning paths are labelled as not written yet.
+
+## Run locally
+
+Use the workspace's Node 22 and pnpm 9.15.4 toolchain:
+
+```sh
+pnpm academy:dev
+```
+
+Open `http://127.0.0.1:3003`. This preview binds to loopback only. The main website's development server can run independently.
+
+```sh
+pnpm academy:test
+pnpm academy:build
+pnpm --filter @witnessops/academy start
+```
+
+The build copies only `public/` into ignored `dist/`. There are no runtime dependencies. `academy.witnessops.com` is the intended hostname; this change does not configure DNS, TLS, hosting, or deployment.
+
+## Pilot boundary
+
+The lesson helps a learner classify claims, cite artifacts, state a limit, and prepare a text answer. The learner explicitly copies an answer and pastes it into an existing conversation with Docs. Feedback is pasted back by hand before another attempt. The app does not contact a model or send answers. It has no accounts, database, analytics, storage, assessment, grades, or certificates. A reload discards the current attempt.
+
+The learner exercise is under `docs/`, outside the served directory. The supplied teacher guide and answer key stay local and are ignored by Git; they are excluded from the public source and static build. Example records and truncated hashes are synthetic teaching material, not evidence of real infrastructure or verified file digests. The backup exercise refers to the **02:00 run**, which finished at **02:07:51 UTC**, rather than claiming it finished at 02:00.
+
+## Verification
+
+`pnpm academy:test` runs focused Node tests, including static-route isolation and rejected writes. `pnpm health` retains the existing repository checks and includes the Academy tests/build. Browser acceptance must also cover desktop/mobile layout, keyboard navigation, claim choices, answer copying and clipboard fallback, manual feedback/retry, no persistence or network submission, and synthetic-evidence wording.
+
+No live teaching session with Docs has been performed by these automated checks.
