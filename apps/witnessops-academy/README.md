@@ -12,6 +12,8 @@ pnpm academy:dev
 
 Open `http://127.0.0.1:3003`. This preview binds to loopback only. The main website's development server can run independently.
 
+The preview loads supported public files into memory before listening. Restart it after editing files; requests do not read from the filesystem. Dotfiles, symlinks and unsupported file types are excluded.
+
 ```sh
 pnpm academy:test
 pnpm academy:build
