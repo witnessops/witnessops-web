@@ -42,8 +42,8 @@ if secret_dir and secret_dir.is_dir():
 secrets.sort(key=len, reverse=True)
 for value in secrets:
     text = text.replace(value, "[REDACTED]")
-text = text.replace("ey" + "J", "[REDACTED]")
-lines = text.splitlines()
+needle = "ey" + "J"
+lines = [line for line in text.splitlines() if needle not in line]
 sys.stdout.write("\n".join(lines[-80:]) + ("\n" if lines else ""))
 PY
 }

@@ -166,7 +166,7 @@ fi
 
 issuer=$(curl -fsS "$KC_ADMIN_BASE_URL/realms/$KC_REALM/.well-known/openid-configuration" | python3 -c 'import json,sys; print(json.load(sys.stdin)["issuer"])')
 case "$issuer" in
-  http://127.0.0.1/*|http://127.0.0.1:*|http://localhost/*|http://localhost:*|http://[::1]/*|http://[::1]:*) ;;
+  http://127.0.0.1/*|http://127.0.0.1:*|http://localhost/*|http://localhost:*|http://\[::1\]/*|http://\[::1\]:*) ;;
   *)
     echo "refusing non-loopback issuer" >&2
     exit 1
