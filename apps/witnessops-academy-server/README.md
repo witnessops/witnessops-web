@@ -27,3 +27,19 @@ A draft body larger than the accepted JSON worst case is answered with `413`. Th
 The lesson server checks access tokens by calling Keycloak token introspection. The realm config in `keycloak/academy-realm.json` adds an audience mapper on the `academy-app` client so issued access tokens include `academy-app` as an audience. Without that mapper, introspection does not establish that the token was intended for this client.
 
 Other secrets use the same `*_FILE` or `CREDENTIALS_DIRECTORY` rule as the rest of this package. Migrations are run explicitly with `scripts/migrate.sh`. The app does not migrate on startup.
+
+## Production deployment checklist
+
+This checklist is source guidance for a later operator review. It does not authorize deployment.
+
+### I12. Academy client
+
+The production Keycloak `academy-app` client must set exact `redirectUris`. Wildcard redirect URIs are not acceptable. Set the client attribute `pkce.code.challenge.method` to `S256`. The audience mapper that adds `academy-app` to the access token must be present. That mapper is recorded in `keycloak/academy-realm.json`.
+
+### I9. One process
+
+Pre-auth single-use and the login limiter are process-local. A cookie used on one process can still be presented to another, and the limiter does not share its counters. Check this before running more than one replica.
+
+### I11. Forwarded client address
+
+The proxy must always overwrite `X-Forwarded-For`, or append `$remote_addr` to it, before the request reaches the server. The server reads that header from the right, and only when the connecting socket is listed in `ACADEMY_TRUSTED_PROXIES`.
