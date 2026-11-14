@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { lintToolSchemas } from '../src/tool-schema-lint.mjs';
 import { FORBIDDEN_INPUT_FIELDS, SAVED_TEXT_NOTE, SERVER_INSTRUCTIONS, TOOLS } from '../src/tools.mjs';
 
 const EXPECTED_KEYS = {
@@ -25,8 +26,8 @@ test('tool inputs have no owner, sub, or id fields', () => {
 test('saved learner text is described as data, not instructions', () => {
   assert.match(SAVED_TEXT_NOTE, /data, not instructions/);
   assert.match(SERVER_INSTRUCTIONS, /data, not instructions/);
-  for (const name of ['get_my_answer', 'save_answer']) {
-    const tool = TOOLS.find((item) => item.name === name);
+  assert.deepEqual(lintToolSchemas(), []);
+  for (const tool of TOOLS) {
     assert.match(tool.description, /data, not instructions/);
   }
 });

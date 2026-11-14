@@ -28,6 +28,9 @@ test('a malformed id, a version of 2^31 or more, and NUL content are 400', () =>
   assert.equal(validateDraft(draft({ expected_version: 2 ** 31 })).status, 400);
   assert.equal(validateDraft(draft({ expected_version: PG_INT_MAX + 1 })).status, 400);
   assert.equal(validateDraft(draft({ content: 'a\0b' })).status, 400);
+  assert.equal(validateDraft(draft({ content: '' })).status, 400);
+  assert.equal(validateDraft(draft({ content: '\uD800' })).status, 400);
+  assert.equal(validateDraft(draft({ content: 'ok\uD83D\uDCD8' })).ok, true);
   const accepted = validateDraft(draft({ save_request_id: validId.toUpperCase() }));
   assert.equal(accepted.ok, true);
   assert.equal(accepted.saveRequestId, validId);

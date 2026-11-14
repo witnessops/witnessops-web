@@ -80,6 +80,9 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
+      - name: Lint MCP tool schemas
+        run: node apps/witnessops-academy-mcp/scripts/lint-tool-schemas.mjs
+
       - name: Start Postgres 17 and Keycloak 26.8.2
         id: deps
         timeout-minutes: 15

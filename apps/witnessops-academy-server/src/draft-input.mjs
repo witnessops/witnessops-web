@@ -6,6 +6,18 @@ export const PG_INT_MAX = 2147483647;
 const DRAFT_FIELDS = new Set(['content', 'expected_version', 'save_request_id']);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function hasLoneSurrogate(text) {
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if (code >= 0xD800 && code <= 0xDBFF) {
+      const next = text.charCodeAt(index + 1);
+      if (!(next >= 0xDC00 && next <= 0xDFFF)) return true;
+      index += 1;
+    } else if (code >= 0xDC00 && code <= 0xDFFF) return true;
+  }
+  return false;
+}
+
 export function validateDraft(body) {
   if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     return { ok: false, status: 400, error: 'invalid_fields' };
@@ -19,7 +31,9 @@ export function validateDraft(body) {
     : null;
   if (
     typeof content !== 'string'
+    || content === ''
     || content.includes('\0')
+    || hasLoneSurrogate(content)
     || !Number.isSafeInteger(expectedVersion)
     || expectedVersion < 0
     || expectedVersion > PG_INT_MAX
