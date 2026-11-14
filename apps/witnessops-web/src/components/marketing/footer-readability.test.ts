@@ -53,11 +53,11 @@ test("footer shows one review, two columns and no retired or second-product link
   }
   assert.deepEqual(footerGroups("en").map((group) => [group.label, group.links.map((link) => link.label)]), [
     ["The review", ["Agent Action Security Review", "How it works", "Examples"]],
-    ["Company", ["Docs", "Security", "Company details"]],
+    ["Company", ["Docs", "Academy", "Security", "Company details"]],
   ]);
   assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [
     ["Przegląd", ["/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases"]],
-    ["Firma", ["/pl/docs", "/pl/security", "/pl/company"]],
+    ["Firma", ["/pl/docs", "https://academy.witnessops.com/", "/pl/security", "/pl/company"]],
   ]);
   const footer = source();
   assert.doesNotMatch(footer, /Ask Sovereign|sovereignAssistantPublished|label: "Pricing"|Talk to an expert|Media kit/);
@@ -94,6 +94,7 @@ test("footer classifies the source route before same-site URL resolution", () =>
   assert.equal(isExternalFooterHref("/privacy"), false);
   assert.equal(isExternalFooterHref("/review/request"), false);
   assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
+  assert.equal(isExternalFooterHref("https://academy.witnessops.com/"), true);
   for (const href of ["/privacy", "/terms", "/security", "/docs", "/review/request"]) {
     assert.equal(resolveFooterHref(href), href);
   }
