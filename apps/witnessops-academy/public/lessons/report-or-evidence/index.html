@@ -1,0 +1,138 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report or evidence? · WitnessOps Academy</title><link rel="icon" type="image/png" href="/assets/control-256.png"><link rel="stylesheet" href="/chron.css"><link rel="stylesheet" href="/academy.css"></head><body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<header class="site" data-menu>
+ <a class="site-logo" href="/" aria-label="WitnessOps Academy home"><img src="/assets/witnessops-horizontal-white.svg" alt="WitnessOps"></a>
+ <button class="menu-toggle" type="button" aria-label="Open academy navigation" aria-expanded="false" aria-controls="academy-nav" hidden><span aria-hidden="true"></span></button>
+ <nav id="academy-nav" aria-label="Academy navigation"><a href="/">Academy</a><a href="/#paths">Paths</a><a href="/#crew">The Crew</a><a href="/#how">How lessons work</a></nav>
+</header>
+<main id="main-content">
+<div class="col">
+ <div class="crumb"><a href="/">Academy</a> / Verify results / Lesson 1</div>
+ <div class="eyebrow" style="margin-top:28px">Verify results · Lesson 1 · pilot draft</div>
+ <h1 style="margin-top:8px">Report or evidence?</h1>
+ <div class="dek" style="margin-top:14px">A lesson with Docs. An AI tells you what it did. You learn to check that against what the record shows actually happened.</div>
+ <div class="objective"><div class="k">Lesson objective</div><p>Separate an AI's report from evidence of what actually happened: for each claim, say whether it is evidenced, only claimed, or contradicted, and state one honest limit.</p></div>
+ <div class="teacher"><img src="/assets/docs-256.png" alt="Docs, Crew teacher"><div><div class="rl">Your teacher · Crew</div><div class="nm">Docs</div><div class="ln">Keeps the records. Explains, shows, then reads your attempt. Coaches; never grades.</div></div></div>
+</div>
+<div class="hero"><img src="/assets/p3-lesson-hero.png" alt="Illustrative artwork: Docs teaches at a slate board showing a clock, a tag and a fingerprint, while Sovereign listens and an empty learner's desk waits."></div>
+<div class="col">
+ <div class="cap">The Evidence Room, after hours. Somebody had left a desk free.</div>
+
+ <div class="sec"><div class="n">I</div><h2>Docs explains</h2></div>
+ <div class="prose">
+  <div class="say"><img src="/assets/docs-256.png" alt=""><p>“A report is a sentence somebody wrote. Evidence is something you can open and check without asking them.”</p></div>
+  <p>When an agent says it finished, it is telling you what it believes. That may be true. Your job is to find out which parts you can see for yourself.</p>
+  <p>For every claim, look for a record with <em>a time and its zone</em>, <em>a named source</em>, and <em>an artifact</em> you can open, ideally with a hash so you know it is the same file. Then sort the claim:</p>
+ </div>
+ <div class="claims" style="margin-bottom:12px">
+  <div class="cl"><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">A record shows it happened.</div></div>
+  <div class="cl"><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">Only the report says so. A missing record is a gap, not a “no”.</div></div>
+  <div class="cl"><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">An explicit record of the same scope (same target, same time) shows something incompatible.</div></div>
+ </div>
+ <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“And always say what your evidence does <em>not</em> prove. That line is the one people forget.”</p></div></div>
+
+ <div class="sec"><div class="n">II</div><h2>Watch Docs do it</h2></div>
+ <div class="prose"><p>Docs put an agent's report on one side of the desk and the evidence on the other.</p></div>
+ <div class="report"><div class="k">Agent report · example</div><p>“Done, deployed and tested. The login timeout is fixed in production and all checks pass.”</p></div>
+ <figure class="rec"><div class="hd"><span>Evidence record · example data</span><span>Teacher's own</span></div>
+<pre><b>EVIDENCE RECORD</b>
+<span class="dv" style="display:block"></span>Observed  2026-XX-XX 14:05
+          America/Chicago (UTC-6)
+Source    repository history
+          (read-only)
+Artifact  commit 4e1c… "raise session
+          timeout to 30 min" + diff
+SHA-256   9f2a…c41e (placeholder)
+<span class="dv" style="display:block"></span>Source    deploy log, inspected
+          window: last 24 h
+          (completeness not known)
+Artifact  no deploy entry found
+          in that window after
+          2026-XX-XX 09:12
+<span class="dv" style="display:block"></span>Source    test runner
+Artifact  none attached
+<span class="dv" style="display:block"></span>Not supplied
+          behavioural test of rev
+          4e1c… in production</pre></figure>
+ <div class="claims" id="sorted"><div class="hd">Docs sorts the claims <span>Worked example</span></div>
+  <div class="cl"><div class="q">“The timeout-related code change was committed.”</div><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">Commit 4e1c… and its diff are in the repository history.</div></div>
+  <div class="cl"><div class="q">“The login timeout is fixed”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">Not established: code changed, behaviour unshown. Needed: a behavioural test of rev 4e1c… in the named environment, with output, time and zone. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
+  <div class="cl"><div class="q">“Deployed to production”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">Not established. No entry in the inspected 24 h window is a gap, not a “no”. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
+  <div class="cl"><div class="q">“Tested, all checks pass”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">No test output was attached. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
+  <div class="cl"><div class="q">Limit Docs writes</div><div class="why" style="color:var(--t1)">The commit proves a timeout-related change was committed. It does not prove the fix works, that it reached production, or that any checks ran.</div></div>
+ </div>
+ <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“Four claims. One I can see; three nobody showed me. A missing log entry is a gap, not a ‘no’. ‘Done’ was a summary, not a fact.”</p></div></div>
+
+ <div class="sec"><div class="n">III</div><h2>Your turn</h2></div>
+ <div class="work" id="exercise">
+  <div class="tag">Exercise <span id="attempt-label">Attempt 1 · your own words</span></div>
+  <div class="report" style="margin-top:0"><div class="k">Agent report · example</div><p>“The 02:00 backup run completed. All 3 databases saved. Restore tested.”</p></div>
+  <div class="lbl">Artifacts you can open · example data</div>
+  <div class="attempt"><b>A · backup-job.log</b>  job nightly-db
+2026-XX-XX 02:00:14 UTC  start
+2026-XX-XX 02:07:51 UTC  done: orders, users
+<b>B · run manifest</b>  job nightly-db
+run 2026-XX-XX 02:00:14 UTC
+status: complete for this run
+databases (2):
+orders.dump  1.2 GB
+  SHA-256 7d3b…a90f (placeholder)
+users.dump   88 MB
+  SHA-256 e07b…3f12 (placeholder)
+<b>C · restore log</b>
+(none provided)</div>
+  <p class="meta">B is the complete manifest for this same job and run. These are fictional records; the shortened hashes are placeholders, not verified digests.</p>
+  <p class="brief exercise-intro">Choose a label for each claim, name the artifact and explain your reason. Then add one honest limit. This page does not mark your answers.</p>
+  <noscript><p class="notice">Enable JavaScript to assemble and copy your answer. You can still read the lesson and write your answers in your existing conversation.</p></noscript>
+  <form id="lesson-form" autocomplete="off">
+<fieldset class="claim-field"><legend>1 · The 02:00 backup run completed.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-1" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-1" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-1" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-1">Artifact and reason</label><input id="reason-1" name="reason-1" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+<fieldset class="claim-field"><legend>2 · All 3 databases saved.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-2" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-2" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-2" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-2">Artifact and reason</label><input id="reason-2" name="reason-2" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+<fieldset class="claim-field"><legend>3 · Restore tested.</legend><div class="choices"><label class="choice"><input type="radio" name="claim-3" value="Evidenced" required><span>Evidenced</span></label><label class="choice"><input type="radio" name="claim-3" value="Only claimed" required><span>Only claimed</span></label><label class="choice"><input type="radio" name="claim-3" value="Contradicted" required><span>Contradicted</span></label></div>
+ <label class="field-label" for="reason-3">Artifact and reason</label><input id="reason-3" name="reason-3" type="text" maxlength="500" required autocomplete="off" placeholder="Name A, B or C and explain what it shows."></fieldset>
+   <label class="field-label" for="honest-limit">One honest limit</label>
+   <textarea id="honest-limit" name="honest-limit" maxlength="1500" required placeholder="What do these artifacts not prove?"></textarea>
+   <div class="answer-preview">
+    <label class="field-label" for="answer-text">Your answer to copy</label>
+    <textarea id="answer-text" readonly rows="8" spellcheck="false" aria-describedby="answer-help"></textarea>
+    <p class="meta" id="answer-help">Your choices and words appear here as plain text. Copy them into your existing conversation with Docs.</p>
+    <div class="btnrow"><button type="button" class="btn" id="copy-answer">Copy answer</button><button type="button" class="btn ghost" id="select-answer">Select answer text</button></div>
+   </div>
+  </form>
+  <p class="lesson-status" id="lesson-status" role="status" aria-live="polite"></p>
+  <p class="manual"><b>Pilot, by hand:</b> this page does not contact Docs. Send the copied answer in an existing conversation, then paste the teacher's reply below. Your answers stay only in this open page; reloading or closing it clears them.</p>
+ </div>
+
+ <div class="sec"><div class="n">IV</div><h2>Feedback, then try again</h2></div>
+ <div class="work">
+  <label class="field-label" for="teacher-reply">Paste Docs's reply for this attempt</label>
+  <textarea id="teacher-reply" maxlength="10000" placeholder="Paste the reply you received in your existing conversation."></textarea>
+  <p class="meta">Pasted feedback is your record of that conversation. This page does not verify its source or generate a reply.</p>
+  <div class="btnrow"><button type="button" class="btn ghost" id="start-retry">Start next attempt</button></div>
+  <p class="manual">Use the feedback to edit your own answers. Starting a retry keeps your previous choices for editing and keeps a copy of the earlier attempt below, only until this page closes or reloads.</p>
+ </div>
+ <div id="attempt-history" aria-label="Earlier attempts in this page"></div>
+ <details class="feedback-example"><summary>See an example of teacher feedback <span aria-hidden="true">+</span></summary><div class="in">
+  <p>This is a fictional example, not feedback on your answers.</p>
+  <div class="fb">
+   <div class="row"><span class="ic ok">✓ GOOD</span><span>Claim 1: you named A and noticed the 02:00 run finished at 02:07:51 UTC.</span></div>
+   <div class="row"><span class="ic retry">↻ AGAIN</span><span>Check whether B describes the complete list for this same run. Compare the number of databases with the report.</span></div>
+   <div class="row"><span class="ic retry">↻ AGAIN</span><span>Add one limit. A matching digest could bind bytes to a record; it would not, by itself, show that a restore works. The hashes here are only placeholders.</span></div>
+  </div>
+ </div></details>
+
+ <div class="boundary"><b>Coaching is not assessment.</b> Docs coaches; nothing in this lesson is graded or recorded as a result. <b>No certificate is issued in this pilot.</b></div>
+
+ <div class="eyebrow">Path IV · Verify results</div>
+ <div class="lessons">
+  <a class="here" href="/lessons/report-or-evidence/" aria-current="page"><div class="no">1</div><div class="k">Lesson 1 · with Docs · pilot draft</div><div class="t">Report or evidence?</div></a>
+ </div>
+ <div class="only">This is the only lesson written so far.</div>
+ <div class="pn"><a href="/">← Academy home</a><a href="/#paths">All paths</a></div>
+</div>
+</main>
+<footer class="site">WitnessOps Academy · Sovereign AI programme<br>Coaching, not assessment. No certificate is issued in this pilot.</footer>
+<script type="module" src="/academy.mjs"></script>
+<script type="module" src="/lesson.mjs"></script>
+</body></html>

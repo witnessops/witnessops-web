@@ -11,9 +11,9 @@
     "build": "pnpm --filter witnessops-web build",
     "lint": "pnpm --filter witnessops-web lint",
     "typecheck": "pnpm --filter witnessops-web typecheck",
-    "test": "pnpm test:dependencies && pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test && pnpm deploy:ghcr:test && pnpm app:test && pnpm cli:test",
+    "test": "pnpm test:dependencies && pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test && pnpm deploy:ghcr:test && pnpm app:test && pnpm cli:test && pnpm academy:test",
     "test:dependencies": "node --test tests/dependencies/*.test.mjs",
-    "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate && pnpm app:build && pnpm --filter @witnessops/app lint && pnpm --filter @witnessops/app typecheck",
+    "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate && pnpm app:build && pnpm --filter @witnessops/app lint && pnpm --filter @witnessops/app typecheck && pnpm academy:build",
     "health:node22": "bash scripts/health-on-node22.sh",
     "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
     "release": "pnpm --filter witnessops-web build",
@@ -65,7 +65,10 @@
     "cli:artifact": "node scripts/build-cli-artifact.mjs",
     "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py",
     "morpheus:handoff:inspect": "node --import tsx scripts/morpheus-handoff/cli.ts",
-    "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs"
+    "morpheus:handoff:test": "node --import tsx --test tests/morpheus-handoff/intake.test.mjs",
+    "academy:dev": "pnpm --filter @witnessops/academy dev",
+    "academy:build": "pnpm --filter @witnessops/academy build",
+    "academy:test": "pnpm --filter @witnessops/academy test"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

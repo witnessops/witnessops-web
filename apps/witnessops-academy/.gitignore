@@ -1,0 +1,4 @@
+dist/
+node_modules/
+/docs/ANSWER-KEY.md
+/docs/TEACHER-SCRIPT.md
