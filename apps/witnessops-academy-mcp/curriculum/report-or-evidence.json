@@ -64,5 +64,5 @@
     "instructions": "Choose a label for each claim, name the artifact and explain your reason. Then add one honest limit. This page does not mark your answers.",
     "answer_format": "Free text, or JSON {\"claims\":[{\"label\",\"reason\"} x3],\"limit\"}. Max 32768 UTF-8 bytes."
   },
-  "coaching_rule": "Coaching is not assessment. Docs coaches; nothing in this lesson is graded or recorded as a result. No certificate is issued in this pilot."
+  "coaching_rule": "Coaching is not assessment. Docs coaches; nothing in this lesson is graded or recorded as a result. No formal award is issued in this pilot."
 }

@@ -100,6 +100,52 @@ test('ignores symlink files/directories, dotfiles and unsupported file types dur
   }
 });
 
+test('serves the prepared lesson and workbook beside the pilot lesson', async () => {
+  const home = await get('/');
+  assert.match(home.body, /href="\/lessons\/report-or-evidence\/"/);
+  assert.match(home.body, /href="\/lessons\/reported-versus-saved\/"/);
+  assert.match(home.body, /href="\/workbook\/"/);
+  assert.match(home.headers['content-security-policy'], /connect-src 'none'/);
+
+  const lesson = await get('/lessons/reported-versus-saved/');
+  assert.equal(lesson.status, 200);
+  assert.equal(lesson.headers['content-type'], 'text/html; charset=utf-8');
+  assert.equal(lesson.headers['content-security-policy'], home.headers['content-security-policy']);
+  assert.match(lesson.body, /Case A/);
+  assert.match(lesson.body, /Case D/);
+  assert.match(lesson.body, /SYNTHETIC-JOB-12/);
+  assert.match(lesson.body, /SYNTHETIC-DOC-17/);
+  assert.doesNotMatch(lesson.body, /<form\b/i);
+  assert.doesNotMatch(lesson.body, /certif|accredit/i);
+
+  const workbook = await get('/workbook/');
+  assert.equal(workbook.status, 200);
+  assert.equal(workbook.headers['content-security-policy'], home.headers['content-security-policy']);
+  assert.match(workbook.body, /Nothing on this page is sent or stored/);
+  assert.match(workbook.body, /Case A/);
+  assert.doesNotMatch(workbook.body, /<form\b/i);
+  assert.doesNotMatch(workbook.body, /certif|accredit/i);
+
+  for (const path of [
+    '/lessons/reported-versus-saved',
+    '/lessons/reported-versus-saved/index.html',
+    '/lessons/reported-versus-saved/?from=home',
+    '/workbook',
+    '/workbook/index.html',
+    '/workbook/?print=1',
+  ]) {
+    const result = await get(path);
+    assert.equal(result.status, 200, path);
+    assert.equal(result.body, path.includes('workbook') ? workbook.body : lesson.body, path);
+  }
+  assert.equal((await get('/lessons/reported-versus-saved/', 'POST')).status, 405);
+  assert.equal((await get('/workbook/', 'POST')).status, 405);
+  const head = await get('/workbook/', 'HEAD');
+  assert.equal(head.status, 200);
+  assert.equal(head.body, '');
+  assert.ok(Number(head.headers['content-length']) > 0);
+});
+
 test('requests use the startup snapshot even when files change or disappear later', async t => {
   const fixture = await fixtureServer(t, async publicRoot => {
     await writeFile(join(publicRoot, 'index.html'), 'snapshot home');

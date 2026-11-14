@@ -15,6 +15,8 @@ test('curriculum JSON is byte-stable from the lesson source', () => {
   const second = buildCurriculum();
   assert.deepEqual(second, first);
   assert.deepEqual(first.map((file) => file.name), ['report-or-evidence.json']);
+  assert.equal(fs.existsSync(path.resolve(ROOT, '../witnessops-academy/public/lessons/reported-versus-saved/index.html')), true);
+  assert.equal(first.some((file) => file.name === 'reported-versus-saved.json'), false);
   const committed = fs.readFileSync(path.join(CURRICULUM_DIR, first[0].name), 'utf8');
   assert.equal(first[0].text, committed);
   const lessons = loadCurriculum(CURRICULUM_DIR);

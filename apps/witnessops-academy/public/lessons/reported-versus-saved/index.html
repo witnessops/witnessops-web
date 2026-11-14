@@ -1,0 +1,102 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Report or evidence? · Prepared Lesson 1 · WitnessOps Academy</title><link rel="icon" type="image/png" href="/assets/control-256.png"><link rel="stylesheet" href="/chron.css"><link rel="stylesheet" href="/academy.css"></head><body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div class="specbar">PROPOSED title: Build Your First AI Operator · PROPOSED price hypothesis: €149 · PROPOSED syllabus: four lessons</div>
+<header class="site" data-menu>
+ <a class="site-logo" href="/" aria-label="WitnessOps Academy home"><img src="/assets/witnessops-horizontal-white.svg" alt="WitnessOps"></a>
+ <button class="menu-toggle" type="button" aria-label="Open academy navigation" aria-expanded="false" aria-controls="academy-nav" hidden><span aria-hidden="true"></span></button>
+ <nav id="academy-nav" aria-label="Academy navigation"><a href="/">Academy</a><a href="/#paths">Paths</a><a href="/#prepared">Prepared course</a><a href="/workbook/">Workbook</a></nav>
+</header>
+<main id="main-content">
+<div class="col">
+ <div class="crumb"><a href="/">Academy</a> / <a href="/#prepared">Prepared course</a> / Lesson 1</div>
+ <div class="eyebrow" style="margin-top:28px">Prepared course · Lesson 1 · not yet tried with a learner</div>
+ <h1 style="margin-top:8px">Report or evidence?</h1>
+ <div class="dek" style="margin-top:14px">Distinguish what an assistant says happened from the evidence you can inspect about a saved result. Then name the smallest useful next check.</div>
+ <p class="meta status-note">PROPOSED title: Build Your First AI Operator. PROPOSED price hypothesis: €149 per learner for five founding places. PROPOSED syllabus: report or evidence; connect tools; finish the job; recover and repeat. Lessons 2–4 are outlines. This page does not take payment and does not open enrolment. Lesson text: prepared. A learner has not yet tried it. Suggested time: 20–30 minutes, as a planning estimate.</p>
+ <div class="objective"><div class="k">Lesson objective</div><p>You can separate a proposed action, an attempt, a reported result, an observed record, and a bounded verified match. You can also say what is still unknown.</p></div>
+ <div class="teacher"><img src="/assets/docs-256.png" alt="Docs, Crew teacher"><div><div class="rl">Your teacher · Crew</div><div class="nm">Docs</div><div class="ln">Keeps the records. Explains, shows, then reads your attempt. Coaches; never grades.</div></div></div>
+</div>
+<div class="hero"><img src="/assets/p3-lesson-hero.png" alt="Illustrative artwork: Docs teaches at a slate board showing a clock, a tag and a fingerprint, while Sovereign listens and an empty learner's desk waits."></div>
+<div class="col">
+ <div class="cap">The Evidence Room, after hours. Somebody had left a desk free.</div>
+
+ <div class="sec"><div class="n">I</div><h2>A useful habit</h2></div>
+ <div class="prose">
+  <div class="say"><img src="/assets/docs-256.png" alt=""><p>“An assistant can describe a plan, quote a tool, or hand you a finished-looking answer. Inspect the evidence that belongs to the goal you actually set.”</p></div>
+  <p>For a task that should save a document, each link answers a different question:</p>
+ </div>
+ <div class="attempt"><b>Requested content</b> → permitted action → tool response → retrieved saved content.</div>
+ <div class="prose"><p>A matching retrieved record supports a bounded conclusion about that record at that time. It does not prove every property of the surrounding system.</p></div>
+ <div class="lbl">Label set for this exercise</div>
+ <ul class="labels">
+  <li><span class="st2 chain">Proposed</span><span>An action is described as intended or suggested. No request has been shown.</span></li>
+  <li><span class="st2 chain">Attempted</span><span>A request or job exists in the supplied artifact. Completion is a separate question.</span></li>
+  <li><span class="st2 chain">Reported</span><span>An assistant message says what happened. The message is not the saved record.</span></li>
+  <li><span class="st2 chain">Observed</span><span>A retrieved record, response or destination state was actually read.</span></li>
+  <li><span class="st2 chain">Verified for a bounded claim</span><span>The observed record matches the exact claim being checked, and the conclusion stays inside that match.</span></li>
+ </ul>
+
+ <div class="sec"><div class="n">II</div><h2>A worked example</h2></div>
+ <div class="prose"><p>Task: save a synthetic meeting summary in a test folder. No external service was called.</p></div>
+ <div class="report"><div class="k">Available evidence · example</div><p>“The summary is saved.”</p></div>
+ <p class="meta">No tool request, response, document ID or retrieved document is available.</p>
+ <div class="claims"><div class="hd">What this example supports <span>Worked example</span></div>
+  <div class="cl"><div class="q">Supported conclusion</div><div class="why">The assistant reported success. The saved result remains unknown.</div></div>
+  <div class="cl"><div class="q">Smallest useful next check</div><div class="why">Locate the intended destination and retrieve the document through the supported read route. Compare its actual contents with the requested summary.</div></div>
+ </div>
+
+ <div class="sec"><div class="n">III</div><h2>Your exercise</h2></div>
+ <div class="work" id="exercise">
+  <div class="tag">Cases A–D <span>Invented teaching data</span></div>
+  <p class="brief">All names, IDs, timestamps and records below are invented. No external service was called. For each case, record what is supported, what remains unknown, and the smallest useful next check if one is needed. Use the label set above. This page does not mark your answers.</p>
+
+  <article class="case" id="case-a">
+   <h3>Case A — a confident message</h3>
+   <p>The learner asks an agent to save a brief. The agent replies: “Done. Your brief is in the folder.” The transcript contains no tool event or saved-record reference.</p>
+  </article>
+
+  <article class="case" id="case-b">
+   <h3>Case B — a queued request</h3>
+   <p>Synthetic response:</p>
+   <pre class="attempt">{
+  "http_status": 202,
+  "job_id": "SYNTHETIC-JOB-12",
+  "state": "queued"
+}</pre>
+   <p>The assistant says the document has been saved. No later job state or retrieved document is available.</p>
+  </article>
+
+  <article class="case" id="case-c">
+   <h3>Case C — the matching saved result</h3>
+   <p>The approved synthetic content is:</p>
+   <pre class="attempt">Title: Sample supplier brief
+Finding: Two supplied sources disagree about the launch date.
+Limit: No primary announcement was supplied.</pre>
+   <p>The write response returns record ID <span class="mono">SYNTHETIC-DOC-17</span>, revision <span class="mono">1</span>. A subsequent fresh read of that exact ID and revision returns the same title, finding and limit. The recorded destination matches the learner's approved test folder.</p>
+  </article>
+
+  <article class="case" id="case-d">
+   <h3>Case D — an uncertain response</h3>
+   <p>A synthetic save request times out before a response arrives. The assistant says: “The save failed, so I will create it again.” The destination has not been read, and there is no saved-state evidence showing whether the first request committed.</p>
+  </article>
+
+  <p class="manual"><b>Where to write:</b> record the attempt in the <a class="link" href="/workbook/#lesson-1">workbook</a>. Keep your original answer, then add reviewer feedback and your revision. This page has no save and no send.</p>
+ </div>
+
+ <div class="sec"><div class="n">IV</div><h2>Before you move on</h2></div>
+ <div class="prose"><p>You are ready to move on when you can explain why Case C supports a stronger conclusion than A or B, and why Case D needs reconciliation before another create attempt.</p></div>
+ <div class="boundary"><b>Coaching is not assessment.</b> This page does not show a marked reading of the cases. Nothing you read here is graded or stored. Finishing this lesson is practice. No formal award is issued.</div>
+
+ <div class="eyebrow">Prepared course · PROPOSED syllabus</div>
+ <div class="lessons">
+  <a class="here" href="/lessons/reported-versus-saved/" aria-current="page"><div class="no">1</div><div class="k">Prepared Lesson 1 · with Docs</div><div class="t">Report or evidence?</div></a>
+  <a href="/workbook/"><div class="no">W</div><div class="k">Local workbook · nothing stored on the server</div><div class="t">My first AI operator</div></a>
+  <a href="/lessons/report-or-evidence/"><div class="no">P</div><div class="k">Pilot lesson · different exercise and labels</div><div class="t">Report or evidence?</div></a>
+ </div>
+ <div class="only">Lessons 2–4 of the PROPOSED syllabus are outlines only. They are not written on this site yet.</div>
+ <div class="pn"><a href="/">← Academy home</a><a href="/workbook/#lesson-1">Workbook</a></div>
+</div>
+</main>
+<footer class="site">WitnessOps Academy · Sovereign AI programme<br>Coaching, not assessment. This page does not grade or store your work.</footer>
+<script type="module" src="/academy.mjs"></script>
+</body></html>

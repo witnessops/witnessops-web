@@ -39,6 +39,8 @@ class StaticReleaseTests(unittest.TestCase):
         self.assertEqual(parsed["source_commit"], source)
         self.assertIn("index.html", files)
         self.assertIn("lessons/report-or-evidence/index.html", files)
+        self.assertIn("lessons/reported-versus-saved/index.html", files)
+        self.assertIn("workbook/index.html", files)
         self.assertTrue(all(not name.startswith("docs/") for name in files))
         self.assertTrue(all(not name.startswith(".") for name in files))
 
