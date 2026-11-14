@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { env, secret, int } from '../src/env.mjs';
-import { LOGIN_MAX_PER_WINDOW } from '../src/login-guard.mjs';
+import { LOGIN_MAX_PER_WINDOW, LOGIN_WINDOW_MS } from '../src/login-guard.mjs';
 
 if (process.env.ACADEMY_E2E !== '1') {
   console.log('academy lesson e2e skipped; set ACADEMY_E2E=1 to run against disposable Postgres and Keycloak');
@@ -377,9 +377,19 @@ const f10 = {
 };
 console.log(`${f10.result} F10 academy_app has no DELETE or DDL :: ${JSON.stringify(f10.evidence)}`);
 
-await q(DBN, 'ALTER ROLE academy_app CREATEDB CREATEROLE');
+await q(DBN, 'GRANT academy_migrator TO academy_app');
+await q(DBN, 'GRANT pg_write_all_data TO academy_app');
+await q(DBN, 'ALTER ROLE academy_app INHERIT CREATEDB CREATEROLE');
 run('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-v', 'db=academy', '-d', 'postgres', '-f', path.join(HERE, '../db/bootstrap.sql')]);
 const resetRole = (await q(DBN, 'SELECT rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolreplication, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname = $1', [appUser]))[0];
+const memberApp = new pg.Client({
+  host: DBH, port: DBP, database: DBN, user: appUser, password: secret('ACADEMY_DB_PASSWORD'),
+});
+await memberApp.connect();
+const noDelete = await denied(memberApp, 'DELETE FROM academy_lesson_drafts');
+const noTruncate = await denied(memberApp, 'TRUNCATE academy_lesson_drafts');
+const noSetRole = await denied(memberApp, 'SET ROLE academy_migrator');
+await memberApp.end();
 const l6ok = Boolean(resetRole)
   && resetRole.rolcanlogin === true
   && resetRole.rolsuper === false
@@ -387,21 +397,66 @@ const l6ok = Boolean(resetRole)
   && resetRole.rolcreaterole === false
   && resetRole.rolinherit === false
   && resetRole.rolreplication === false
-  && resetRole.rolbypassrls === false;
-console.log(`${l6ok ? 'PASS' : 'FAIL'} L6 bootstrap resets drifted academy_app attributes`);
+  && resetRole.rolbypassrls === false
+  && noDelete && noTruncate && noSetRole;
+console.log(`${l6ok ? 'PASS' : 'FAIL'} L6 bootstrap clears drifted attributes and memberships :: ${JSON.stringify({ noDelete, noTruncate, noSetRole })}`);
+
+const FRESH = 'academy_fresh_n1';
+sqlIdent(FRESH);
+run('psql', ['-X', '-q', '-v', 'ON_ERROR_STOP=1', '-d', 'postgres',
+  '-c', `DROP DATABASE IF EXISTS ${sqlIdent(FRESH)} WITH (FORCE)`,
+  '-c', `CREATE DATABASE ${sqlIdent(FRESH)} OWNER academy_migrator`,
+  '-c', `REVOKE ALL ON DATABASE ${sqlIdent(FRESH)} FROM PUBLIC`,
+  '-c', `GRANT CONNECT ON DATABASE ${sqlIdent(FRESH)} TO academy_app`,
+]);
+const migrateScript = path.join(HERE, '../scripts/migrate.sh');
+const migrateEnv = {
+  ...process.env,
+  PGHOST: DBH,
+  PGPORT: String(DBP),
+  PGUSER: PGADMIN,
+  PGPASSWORD_FILE: process.env.ACADEMY_TEST_PGADMIN_PASSWORD_FILE,
+  ...(process.env.ACADEMY_TEST_PG_BINDIR ? { PG_BINDIR: process.env.ACADEMY_TEST_PG_BINDIR } : {}),
+};
+const firstMigrate = execFileSync(migrateScript, [FRESH], { encoding: 'utf8', env: migrateEnv });
+const secondMigrate = execFileSync(migrateScript, [FRESH], { encoding: 'utf8', env: migrateEnv });
+run('psql', ['-X', '-q', '-v', 'ON_ERROR_STOP=1', '-d', 'postgres', '-c', `DROP DATABASE IF EXISTS ${sqlIdent(FRESH)} WITH (FORCE)`]);
+const n1ok = firstMigrate.includes(`applied 001_academy_identity_and_drafts to ${FRESH}`)
+  && secondMigrate.includes('skip 001_academy_identity_and_drafts (applied)');
+console.log(`${n1ok ? 'PASS' : 'FAIL'} N1 fresh database migration`);
+
+const pending = await new Ctx('A-idp-down').login(...A);
+const pendingHash = crypto.createHash('sha256').update(pending.sid()).digest('hex');
+const kcContainer = env('ACADEMY_TEST_KC_CONTAINER', 'academy-kc');
+execFileSync('sudo', ['docker', 'pause', kcContainer], { stdio: 'inherit' });
+let l8ok = false;
+try {
+  const lo = await pending.logout();
+  const body = lo.json();
+  const cleared = lo.headers.getSetCookie().some((cookie) => /academy_sid=/.test(cookie) && /max-age=0/i.test(cookie));
+  const row = (await q(DBN, 'select revoked_at is not null as revoked from academy_sessions where token_hash = $1', [pendingHash]))[0];
+  l8ok = lo.status === 502 && body.ok === false && body.idp_logout === 'pending' && cleared && row?.revoked === true;
+  console.log(`${l8ok ? 'PASS' : 'FAIL'} L8 logout while the IdP is down :: ${JSON.stringify({ status: lo.status, idp_logout: body.idp_logout, cleared, revoked: row?.revoked === true })}`);
+} finally {
+  execFileSync('sudo', ['docker', 'unpause', kcContainer], { stdio: 'inherit' });
+}
 
 let loginAllowed = 0;
 let loginLimited = 0;
+let retryAfterOk = true;
 for (let i = 0; i < LOGIN_MAX_PER_WINDOW + 15; i += 1) {
   const response = await fetch(`${APP}/academy/auth/login`, { redirect: 'manual' });
   await response.arrayBuffer();
-  if (response.status === 429) loginLimited += 1;
-  else loginAllowed += 1;
+  if (response.status === 429) {
+    loginLimited += 1;
+    const retryAfter = Number(response.headers.get('retry-after'));
+    if (!Number.isInteger(retryAfter) || retryAfter < 1 || retryAfter > LOGIN_WINDOW_MS / 1000) retryAfterOk = false;
+  } else loginAllowed += 1;
 }
-const m1ok = loginLimited > 0 && loginAllowed <= LOGIN_MAX_PER_WINDOW;
-console.log(`${m1ok ? 'PASS' : 'FAIL'} M1 login burst is rate-limited :: ${JSON.stringify({ allowed: loginAllowed, limited: loginLimited, cap: LOGIN_MAX_PER_WINDOW })}`);
+const m1ok = loginLimited > 0 && loginAllowed <= LOGIN_MAX_PER_WINDOW && retryAfterOk;
+console.log(`${m1ok ? 'PASS' : 'FAIL'} M1 login burst is rate-limited :: ${JSON.stringify({ allowed: loginAllowed, limited: loginLimited, cap: LOGIN_MAX_PER_WINDOW, retryAfterOk })}`);
 
-fs.writeFileSync(`${EV}/results.json`, JSON.stringify({ ran_at: new Date().toISOString(), results, f10, l6ok, m1ok }, null, 2));
+fs.writeFileSync(`${EV}/results.json`, JSON.stringify({ ran_at: new Date().toISOString(), results, f10, l6ok, n1ok, l8ok, m1ok }, null, 2));
 fs.closeSync(logf);
 console.log(`\n${results.filter((x) => x.result === 'PASS').length}/${results.length} PASS`);
-if (results.length !== 10 || results.some((x) => x.result !== 'PASS') || !f10ok || !l6ok || !m1ok) process.exitCode = 1;
+if (results.length !== 10 || results.some((x) => x.result !== 'PASS') || !f10ok || !l6ok || !n1ok || !l8ok || !m1ok) process.exitCode = 1;

@@ -9,12 +9,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import * as oidc from 'openid-client';
+import { clientAddress } from './client-address.mjs';
 import { publicErrorCode, validateDraft } from './draft-input.mjs';
-import { idpFailureAction } from './idp-decision.mjs';
+import { idpFailureAction, idpLogoutReport } from './idp-decision.mjs';
 import { assertHttpBindIsLoopback } from './listen-policy.mjs';
-import { PREAUTH_TTL_MS, createLoginGuard, startLoginSweep } from './login-guard.mjs';
-import { readBody } from './read-body.mjs';
-import { env, secret, int, requireHttpsOrLoopback } from './env.mjs';
+import { createLoginGuard, startLoginSweep } from './login-guard.mjs';
+import { openPreauth, preauthKeyFromSecret, sealPreauth } from './preauth-cookie.mjs';
+import { discardAfterResponse, readBody } from './read-body.mjs';
+import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
@@ -40,6 +42,9 @@ const COOKIE = SECURE ? '__Host-academy_sid' : 'academy_sid';
 const PRE = SECURE ? '__Host-academy_preauth' : 'academy_preauth';
 const COOKIE_PATH = SECURE ? '/' : '/academy';
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
+const PREAUTH_TTL_MS = 600_000;
+const TRUSTED_PROXIES = list('ACADEMY_TRUSTED_PROXIES', '');
+const preauthKey = preauthKeyFromSecret(secret('ACADEMY_PREAUTH_KEY'));
 assertHttpBindIsLoopback(HOST, ORIGIN);
 
 const pool = new pg.Pool({
@@ -123,13 +128,26 @@ async function revoke(s, reason) {
   log({ ev: 'session_revoked', reason, identity: s.identity_id });
 }
 
-// Confirm the IdP session is still alive. Admin revocation and IdP logout deny the request. Fail closed.
-async function getSession(req) {
+function requestClient(req) {
+  return clientAddress({
+    remoteAddress: req.socket?.remoteAddress || '',
+    forwardedFor: req.headers['x-forwarded-for'],
+  }, TRUSTED_PROXIES);
+}
+
+async function loadLocalSession(req) {
   const tok = cookies(req)[COOKIE];
   if (!tok || !/^[A-Za-z0-9_-]{43}$/.test(tok)) return null;
   const { rows } = await pool.query('SELECT * FROM academy_sessions WHERE token_hash = $1', [sha(tok)]);
   const s = rows[0];
   if (!s || s.revoked_at || s.expires_at < new Date()) return null;
+  return s;
+}
+
+// Confirm the IdP session is still alive. Admin revocation and IdP logout deny the request. Fail closed.
+async function getSession(req) {
+  const s = await loadLocalSession(req);
+  if (!s) return null;
   let active = false;
   try {
     active = (await oidc.tokenIntrospection(config, s.access_token)).active === true;
@@ -188,14 +206,14 @@ async function handle(req, res) {
   }
 
   if (p === '/academy/auth/login' && req.method === 'GET') {
-    const decision = loginGuard.begin(req.socket?.remoteAddress || '');
-    if (!decision.ok) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
-    const key = rnd();
+    const decision = loginGuard.begin(requestClient(req));
+    if (!decision.ok) {
+      return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(decision.retryAfter) });
+    }
     const state = rnd();
     const nonce = rnd();
     const verifier = oidc.randomPKCECodeVerifier();
-    const stored = loginGuard.put(key, { state, nonce, verifier, exp: Date.now() + PREAUTH_TTL_MS });
-    if (!stored) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': '60' });
+    const sealed = sealPreauth({ state, nonce, verifier, exp: Date.now() + PREAUTH_TTL_MS }, preauthKey);
     const to = oidc.buildAuthorizationUrl(config, {
       redirect_uri: REDIRECT_URI,
       scope: 'openid',
@@ -204,13 +222,12 @@ async function handle(req, res) {
       code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
       code_challenge_method: 'S256',
     });
-    return send(res, 302, '', { Location: to.href, 'Set-Cookie': setCookie(PRE, key, 600) });
+    return send(res, 302, '', { Location: to.href, 'Set-Cookie': setCookie(PRE, sealed, PREAUTH_TTL_MS / 1000) });
   }
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
-    const key = cookies(req)[PRE];
-    const pa = key && loginGuard.take(key);
-    if (!pa || pa.exp < Date.now()) return send(res, 400, { error: 'login_state_missing' });
+    const pa = openPreauth(cookies(req)[PRE], preauthKey);
+    if (!pa) return send(res, 400, { error: 'login_state_missing' });
     let tokens;
     try {
       tokens = await oidc.authorizationCodeGrant(config, new URL(req.url, ORIGIN), {
@@ -256,7 +273,7 @@ async function handle(req, res) {
   }
 
   if (p === '/academy/auth/logout' && req.method === 'POST') {
-    const s = await getSession(req);
+    const s = await loadLocalSession(req);
     if (!s) return send(res, 401, { error: 'unauthenticated' }, { 'Set-Cookie': setCookie(COOKIE, '', 0) });
     const bad = csrfOk(req, s);
     if (bad) return send(res, 403, { error: 'csrf', check: bad });
@@ -274,17 +291,19 @@ async function handle(req, res) {
     } catch {
       idpStatus = 0;
     }
-    const endUrl = oidc.buildEndSessionUrl(config, {
-      id_token_hint: s.id_token,
-      post_logout_redirect_uri: `${ORIGIN}${LESSON_ROUTE}`,
-    });
-    const idpOk = idpStatus >= 200 && idpStatus < 300;
-    log({ ev: 'logout', identity: s.identity_id, idp_logout_status: idpStatus });
-    return send(res, idpOk ? 200 : 502, {
-      ok: idpOk,
-      idp_logout_status: idpStatus,
-      end_session_url: endUrl.origin + endUrl.pathname,
-    }, {
+    let endPath = '';
+    try {
+      const endUrl = oidc.buildEndSessionUrl(config, {
+        id_token_hint: s.id_token,
+        post_logout_redirect_uri: `${ORIGIN}${LESSON_ROUTE}`,
+      });
+      endPath = endUrl.origin + endUrl.pathname;
+    } catch {
+      endPath = '';
+    }
+    const report = idpLogoutReport(idpStatus);
+    log({ ev: 'logout', identity: s.identity_id, idp_logout: report.body.idp_logout });
+    return send(res, report.httpStatus, { ...report.body, end_session_url: endPath }, {
       'Set-Cookie': setCookie(COOKIE, '', 0),
     });
   }
@@ -307,7 +326,12 @@ async function handle(req, res) {
       try {
         body = JSON.parse(await readBody(req));
       } catch (e) {
-        return send(res, e.status || 400, { error: e.status ? 'body_too_large' : 'bad_json' });
+        if (e.status === 413) {
+          send(res, 413, { error: 'body_too_large' });
+          discardAfterResponse(res, req);
+          return;
+        }
+        return send(res, 400, { error: 'bad_json' });
       }
       const draft = validateDraft(body);
       if (!draft.ok) {

@@ -9,7 +9,7 @@ import {
   validateDraft,
   worstCaseDraftJsonBytes,
 } from '../src/draft-input.mjs';
-import { readBody } from '../src/read-body.mjs';
+import { discardAfterResponse, readBody } from '../src/read-body.mjs';
 
 const validId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
@@ -41,17 +41,23 @@ test('the body limit holds the worst-case JSON encoding of a 32 KiB draft', () =
   assert.equal(validateDraft(draft({ content: 'a'.repeat(MAX_CONTENT_BYTES + 1) })).status, 413);
 });
 
-test('an oversized body is rejected with 413 without destroying the request', async () => {
+test('an oversized body stops reading and is destroyed only after the 413 is sent', async () => {
   const req = new EventEmitter();
+  let resumed = false;
   let destroyed = false;
   req.pause = () => {};
-  req.resume = () => {};
+  req.resume = () => { resumed = true; };
   req.destroy = () => { destroyed = true; };
   const pending = readBody(req, 8);
   req.emit('data', Buffer.alloc(6, 1));
   req.emit('data', Buffer.alloc(6, 2));
   await assert.rejects(pending, (error) => error.status === 413);
+  assert.equal(resumed, false);
   assert.equal(destroyed, false);
+  const res = new EventEmitter();
+  discardAfterResponse(res, req);
+  res.emit('finish');
+  assert.equal(destroyed, true);
 });
 
 test('database failures are logged by code, not by the raw error text', () => {

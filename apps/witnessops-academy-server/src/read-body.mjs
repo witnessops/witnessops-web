@@ -15,10 +15,8 @@ export function readBody(req, maxBytes = MAX_BODY_BYTES) {
       size += chunk.length;
       if (size > maxBytes) {
         req.pause();
-        fail(Object.assign(new Error('too large'), { status: 413 }));
         req.removeAllListeners('data');
-        req.on('data', () => {});
-        req.resume();
+        fail(Object.assign(new Error('too large'), { status: 413 }));
         return;
       }
       chunks.push(chunk);
@@ -29,5 +27,11 @@ export function readBody(req, maxBytes = MAX_BODY_BYTES) {
       resolve(Buffer.concat(chunks).toString('utf8'));
     });
     req.on('error', fail);
+  });
+}
+
+export function discardAfterResponse(res, req) {
+  res.once('finish', () => {
+    if (typeof req.destroy === 'function') req.destroy();
   });
 }
