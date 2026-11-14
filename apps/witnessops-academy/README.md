@@ -20,7 +20,11 @@ pnpm academy:build
 pnpm --filter @witnessops/academy start
 ```
 
-The build copies only `public/` into ignored `dist/`. There are no runtime dependencies. `academy.witnessops.com` is the intended hostname; this change does not configure DNS, TLS, hosting, or deployment.
+The development build copies `public/` into ignored `dist/`. It is not the
+production release artifact. The separate [static release source](../../deploy/academy/README.md)
+packages only approved Git-tracked public files. There are no Academy runtime
+dependencies. `academy.witnessops.com` is the intended hostname; the deployment
+source does not configure live DNS, TLS or hosting by itself.
 
 ## Pilot boundary
 

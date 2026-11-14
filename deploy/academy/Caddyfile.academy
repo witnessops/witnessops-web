@@ -1,0 +1,22 @@
+# Source-only exact-host block. Merge into a freshly captured full active
+# Caddyfile only after a separate production GO and full-config validation.
+# The static release tool stages this root; it does not edit or reload Caddy.
+academy.witnessops.com {
+	root * /srv/witnessops-academy/current
+
+	header {
+		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Cache-Control "no-store"
+	}
+
+	@write not method GET HEAD
+	header @write Allow "GET, HEAD"
+	respond @write "Method not allowed" 405
+
+	file_server {
+		index index.html
+		hide .*
+	}
+}

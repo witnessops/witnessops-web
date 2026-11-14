@@ -35,6 +35,7 @@ This table is intentionally limited to authority classification. It does not pub
 | --- | --- |
 | `deploy/app/host/witnessops-app-lifecycle` and `deploy/app/host/witnessops-app.service` | **Authenticated-app lifecycle source.** The helper compares a recorded approval with a recorded CI candidate and fails closed before container replacement when that comparison does not hold. A new image identity needs a new CI candidate and a new approval record. Source presence is not a host procedure or evidence of a live image. |
 | `deploy/app/host/Caddyfile.app-witnessops` | **Source-only app proxy snippet.** It is not applied or reloaded by this repository. Edge changes stay a separate authority lane. |
+| [`deploy/academy/`](../deploy/academy/) | **Source-only Academy static artifact and exact-host Caddy block.** The artifact tool is not wired to a production workflow. Its presence neither authorizes nor performs host promotion, DNS, TLS, Caddy reload, or public exposure. |
 
 ## Distinguish validation, retained helpers and activation
 
