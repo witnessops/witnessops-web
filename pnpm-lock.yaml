@@ -71,6 +71,27 @@ importers:
 
   apps/witnessops-academy: {}
 
+  apps/witnessops-academy-mcp:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: 1.32.1
+        version: 1.32.1(zod@3.25.76)
+      jose:
+        specifier: 6.2.2
+        version: 6.2.2
+      pg:
+        specifier: 8.23.0
+        version: 8.23.0
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
+
+  apps/witnessops-academy-server:
+    dependencies:
+      pg:
+        specifier: 8.23.0
+        version: 8.23.0
+
   apps/witnessops-app:
     dependencies:
       '@witnessops/config':

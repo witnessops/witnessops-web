@@ -1,0 +1,19 @@
+{
+  "name": "@witnessops/academy-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WitnessOps Academy MCP server configuration loader.",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0 <23"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "jose": "6.2.2",
+    "pg": "8.23.0",
+    "zod": "3.25.76"
+  }
+}
