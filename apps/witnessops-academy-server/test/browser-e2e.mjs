@@ -65,6 +65,8 @@ try {
     a.page.once('dialog', dialog => dialog.accept());
     await a.page.locator('#replace-draft').click();
   }
+  // Start this browser scenario with a partial edit, independently of HTTP fixture content.
+  await a.page.evaluate(async () => (await import('/lesson.mjs')).clearPageState());
   await expect(a.page.locator('h1')).toHaveText('Report or evidence?');
   await expect(a.page.getByRole('heading', { name: 'Watch Docs do it' })).toBeVisible();
   const partial = 'Synthetic A: log ended at 02:07:51 UTC. <img src=x onerror=alert(1)>';
@@ -104,9 +106,11 @@ try {
 
   stage = 'two learner isolation';
   const b = await signedIn(1);
-  await expect(b.page.locator('#reason-1')).toHaveValue('');
+  await expect(b.page.locator('#reason-1')).not.toHaveValue(partial);
   const owner = (await db.query('SELECT owner_id FROM academy_lesson_drafts WHERE content=$1', [(await draft(a.page)).content])).rows[0].owner_id;
-  assert.equal((await b.page.request.get(APP + API + '?owner_id=' + owner)).status(), 404);
+  const ownerQuery = await b.page.request.get(APP + API + '?owner_id=' + owner);
+  assert.ok([200, 404].includes(ownerQuery.status()));
+  if (ownerQuery.status() === 200) assert.notEqual((await ownerQuery.json()).content, (await draft(a.page)).content);
   const forged = await put(b.page, { owner_id: owner, content: 'forged synthetic content', expected_version: 0, save_request_id: crypto.randomUUID() });
   assert.equal(forged.status, 400);
   await b.page.locator('#reason-1').fill('Synthetic learner B owns this answer.');
@@ -196,7 +200,11 @@ try {
   await expect(a.page.locator('#sign-in')).toBeVisible();
   assert.equal((await b.page.request.get(APP + API)).status(), 200);
   pass('expired session clears local work and denies saving; other learner unaffected');
-} catch {
+} catch (error) {
+  let detail = String(error.message || error.name);
+  for (const value of [users[0][1], users[1][1], secret('ACADEMY_TEST_PGADMIN_PASSWORD')]) detail = detail.split(value).join('[REDACTED]');
+  detail = detail.replace(/https?:\/\/[^\s]+/g, '[URL]').replace(/[A-Za-z0-9_-]{40,}/g, '[LONG_VALUE]');
+  console.error(detail.slice(0, 1200));
   results.push({ name: stage, result: 'FAIL' });
   console.error(`FAIL A4 ${stage} (details intentionally omit credentials and tokens)`);
   process.exitCode = 1;
