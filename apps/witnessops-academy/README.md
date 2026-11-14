@@ -1,6 +1,6 @@
 # WitnessOps Academy
 
-A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home and one pilot lesson: **Report or evidence?** The other three learning paths are labelled as not written yet.
+A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home and two pilot lessons on Verify results: **Report or evidence?** and **Same record, wrong scope?** The other three learning paths are labelled as not written yet.
 
 ## Run locally
 
@@ -30,7 +30,7 @@ source does not configure live DNS, TLS or hosting by itself.
 
 The lesson helps a learner classify claims, cite artifacts, state a limit, and prepare a text answer. The learner explicitly copies an answer and pastes it into an existing conversation with Docs. Feedback is pasted back by hand before another attempt. The app does not contact a model or send answers. It has no accounts, database, analytics, storage, assessment, grades, or certificates. A reload discards the current attempt.
 
-The learner exercise is under `docs/`, outside the served directory. The supplied teacher guide and answer key stay local and are ignored by Git; they are excluded from the public source and static build. Example records and truncated hashes are synthetic teaching material, not evidence of real infrastructure or verified file digests. The backup exercise refers to the **02:00 run**, which finished at **02:07:51 UTC**, rather than claiming it finished at 02:00.
+The learner exercises are under `docs/`, outside the served directory. The supplied teacher guide and answer key stay local and are ignored by Git; they are excluded from the public source and static build. Example records and truncated hashes are synthetic teaching material, not evidence of real infrastructure or verified file digests. The backup exercise refers to the **02:00 run**, which finished at **02:07:51 UTC**, rather than claiming it finished at 02:00. The price-file exercise includes a passing checkout check on staging. That record is a different environment from the production transfer and load report.
 
 ## Verification
 

@@ -34,6 +34,15 @@ test('serves home and the nested lesson with a script policy that prevents netwo
   const lesson = await get('/lessons/report-or-evidence/');
   assert.equal(lesson.status, 200);
   assert.match(lesson.body, /Report or evidence/);
+  const second = await get('/lessons/same-scope/');
+  assert.equal(second.status, 200);
+  assert.match(second.body, /Same record, wrong scope/);
+  assert.match(second.headers['content-security-policy'], /connect-src 'none'/);
+  assert.match(home.body, /Two lessons exist so far\. Both are pilot drafts, taught by Docs\./);
+  assert.match(home.body, /Lessons 1 and 2/);
+  assert.match(home.body, /Work with AI[\s\S]*?Not written yet/);
+  assert.match(home.body, /Build agents[\s\S]*?Not written yet/);
+  assert.match(home.body, /Operate safely[\s\S]*?Not written yet/);
 });
 
 test('HEAD preserves headers without sending the page body', async () => {
@@ -62,6 +71,12 @@ test('preloads directory index aliases and keeps query strings out of route look
     const result = await get(path);
     assert.equal(result.status, 200, path);
     assert.equal(result.body, lesson.body, path);
+  }
+  const second = await get('/lessons/same-scope/');
+  for (const path of ['/lessons/same-scope', '/lessons/same-scope/index.html', '/lessons/same-scope/?from=lesson-1']) {
+    const result = await get(path);
+    assert.equal(result.status, 200, path);
+    assert.equal(result.body, second.body, path);
   }
 });
 
