@@ -111,10 +111,12 @@ async function login(user = 'a', clientId = CLIENT_ID, { disabled = false } = {}
     resource: MCP,
     prompt: 'login',
   })) url.searchParams.set(key, value);
-  let { r, text } = await browser.req('GET', url);
+  let text = (await browser.req('GET', url)).text;
   const action = text.match(/id="kc-form-login"[^>]*action="([^"]+)"/)?.[1]?.replace(/&amp;/g, '&');
   assert(action, 'Keycloak login form');
-  ({ r, text } = await browser.req('POST', action, new URLSearchParams({ username: USERS[user], password: PW[user], credentialId: '' })));
+  const posted = await browser.req('POST', action, new URLSearchParams({ username: USERS[user], password: PW[user], credentialId: '' }));
+  const r = posted.r;
+  text = posted.text;
   if (disabled) {
     return { disabled: !r.headers.get('location') && /Account is disabled|account is disabled/i.test(text), status: r.status };
   }

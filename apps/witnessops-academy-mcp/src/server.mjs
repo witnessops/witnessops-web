@@ -125,7 +125,7 @@ async function authenticate(req) {
   if (!scopes.includes(REQUIRED_SCOPE)) return { ok: false, status: 403, error: 'insufficient_scope', why: 'scope_missing' };
   if (INTROSPECT) {
     let active = false;
-    let why = 'inactive';
+    let why;
     try {
       const response = await fetch(INTROSPECTION_URL, {
         method: 'POST',

@@ -13,19 +13,41 @@ const OUTPUT_DIR = path.resolve(PACKAGE_ROOT, 'curriculum');
 const MAPPED_LESSON = 'report-or-evidence';
 
 function decodeEntities(value) {
-  return value
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&#(\d+);/g, (_, digits) => String.fromCodePoint(Number(digits)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, digits) => String.fromCodePoint(parseInt(digits, 16)));
+  return value.replace(/&(?:#x[0-9a-f]+|#\d+|nbsp|amp|lt|gt|quot|apos);/gi, (entity) => {
+    const body = entity.slice(1, -1);
+    const lower = body.toLowerCase();
+    if (lower === 'nbsp') return ' ';
+    if (lower === 'amp') return '&';
+    if (lower === 'lt') return '<';
+    if (lower === 'gt') return '>';
+    if (lower === 'quot') return '"';
+    if (lower === 'apos' || body === '#39') return "'";
+    const code = lower.startsWith('#x') ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+    if (!Number.isInteger(code) || code < 0 || code > 0x10ffff) return entity;
+    return String.fromCodePoint(code);
+  });
+}
+
+function stripMarkup(value) {
+  let out = '';
+  let index = 0;
+  while (index < value.length) {
+    const open = value.indexOf('<', index);
+    if (open < 0) {
+      out += value.slice(index);
+      break;
+    }
+    out += value.slice(index, open);
+    const close = value.indexOf('>', open + 1);
+    if (close < 0) break;
+    if (/^br\b/i.test(value.slice(open + 1, close).trim())) out += '\n';
+    index = close + 1;
+  }
+  return out;
 }
 
 function textOf(html, { newlines = false } = {}) {
-  const decoded = decodeEntities(html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')).replace(/\u00a0/g, ' ');
+  const decoded = stripMarkup(decodeEntities(html)).replace(/\u00a0/g, ' ');
   if (!newlines) return decoded.replace(/\s+/g, ' ').trim();
   return decoded
     .split('\n')
