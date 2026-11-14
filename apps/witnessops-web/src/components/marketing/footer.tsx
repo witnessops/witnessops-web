@@ -1,6 +1,7 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
+import { ACADEMY_PUBLIC_HREF } from "@/components/shared/public-nav-groups";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   COMPANY_DETAILS,
@@ -56,6 +57,7 @@ const FOOTER_COPY = {
       ] },
       { id: "footer-company-heading", label: "Company", links: [
         { label: "Docs", href: "/docs" },
+        { label: "Academy", href: ACADEMY_PUBLIC_HREF },
         { label: "Security", href: "/security" },
         { label: COMPANY_DETAILS.en.heading, href: COMPANY_DETAILS_HREF.en },
       ] },
@@ -84,6 +86,7 @@ const FOOTER_COPY = {
       ] },
       { id: "footer-company-heading", label: "Firma", links: [
         { label: "Dokumentacja", href: "/pl/docs" },
+        { label: "Academy (EN)", href: ACADEMY_PUBLIC_HREF },
         { label: "Bezpieczeństwo", href: "/pl/security" },
         { label: COMPANY_DETAILS.pl.heading, href: COMPANY_DETAILS_HREF.pl },
       ] },

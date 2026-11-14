@@ -4,14 +4,14 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i18n";
-import { PUBLIC_NAV_LINKS, PUBLIC_NAV_GROUPS, POLISH_NAV_LINKS, POLISH_NAV_GROUPS } from "./public-nav-groups";
+import { ACADEMY_PUBLIC_HREF, PUBLIC_NAV_LINKS, PUBLIC_NAV_GROUPS, POLISH_NAV_LINKS, POLISH_NAV_GROUPS } from "./public-nav-groups";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary navigation exposes the current review and exploration groups with direct Docs", () => {
   assert.deepEqual(PUBLIC_NAV_LINKS.map((link) => [link.label, link.href]), [["Docs", "/docs"]]);
   assert.deepEqual(PUBLIC_NAV_GROUPS.map((group) => [group.label, group.links.map((link) => link.href)]), [
     ["The review", ["/reviews/agent-action-security-review", "/how-it-works", "/review/sample-cases", "/review/request"]],
-    ["Explore", ["/chronicles", "/research", "/company", "/security"]],
+    ["Explore", [ACADEMY_PUBLIC_HREF, "/chronicles", "/research", "/company", "/security"]],
   ]);
   const destinations = PUBLIC_NAV_GROUPS.flatMap((group) => group.links.map((link) => link.href));
   for (const href of ["/early-access", "/reviews", "/pricing", "/check", "/about", "/verify", "/docs/assistant"]) {
@@ -31,7 +31,7 @@ test("shared navigation preserves Polish destinations and labels English-only co
   assert.deepEqual(POLISH_NAV_LINKS.map((link) => link.href), ["/pl/docs"]);
   assert.deepEqual(POLISH_NAV_GROUPS.flatMap((group) => group.links.map((link) => link.href)), [
     "/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases", "/pl/review/request",
-    "/chronicles", "/research", "/pl/company", "/pl/security",
+    ACADEMY_PUBLIC_HREF, "/chronicles", "/research", "/pl/company", "/pl/security",
   ]);
   for (const group of POLISH_NAV_GROUPS) {
     for (const link of group.links) {
