@@ -29,7 +29,7 @@ jobs:
   academy-e2e:
     name: Academy e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
     env:
@@ -42,6 +42,7 @@ jobs:
       KC_SSL_REQUIRED: none
       KC_REALM: academy
       ACADEMY_PUBLIC_ORIGIN: http://127.0.0.1:18300
+      ACADEMY_E2E: "1"
       ACADEMY_PG_CONTAINER: academy-pg
       ACADEMY_TEST_KC_CONTAINER: academy-kc
 
@@ -181,7 +182,7 @@ jobs:
 
       - name: Run Academy e2e
         id: e2e
-        timeout-minutes: 20
+        timeout-minutes: 25
         shell: bash
         run: |
           set +x
@@ -190,6 +191,10 @@ jobs:
           # shellcheck disable=SC1090
           source "$ACADEMY_CI_ENV"
           set +a
+          if [[ "${ACADEMY_E2E:-}" != "1" ]]; then
+            echo "ACADEMY_E2E must be 1" >&2
+            exit 1
+          fi
           set -o pipefail
           set +e
           node apps/witnessops-academy-server/test/e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/e2e.log"
@@ -201,13 +206,20 @@ jobs:
             if [[ "$mcp" -ne 0 ]]; then
               code=$mcp
             fi
+            if ! grep -q 'RESULT: 14/14 PASS' "$ACADEMY_CI_LOG_DIR/mcp-e2e.log"; then
+              echo "academy mcp e2e did not report 14/14" >&2
+              code=1
+            fi
           else
-            echo "no academy mcp e2e suite"
+            echo "academy mcp e2e suite is missing" >&2
+            code=1
           fi
           set -e
-          if [[ "$code" -ne 0 && -f ${ACADEMY_CI_LOG_DIR}/server.log ]]; then
-            echo "e2e failed; redacted server log tail follows"
-            python3 - "$ACADEMY_CI_LOG_DIR/server.log" "$ACADEMY_CI_SECRET_DIR" <<'PY'
+          if [[ "$code" -ne 0 ]]; then
+            echo "e2e failed; redacted server log tails follow"
+            for log in "$ACADEMY_CI_LOG_DIR/server.log" "$ACADEMY_CI_LOG_DIR/mcp-server.log"; do
+              if [[ -f "$log" ]]; then
+                python3 - "$log" "$ACADEMY_CI_SECRET_DIR" <<'PY'
           import pathlib, sys
           path, secret_dir = sys.argv[1:]
           text = pathlib.Path(path).read_text(errors="replace")
@@ -223,6 +235,8 @@ jobs:
           lines = [line for line in text.splitlines() if needle not in line]
           sys.stdout.write("\n".join(lines[-80:]) + ("\n" if lines else ""))
           PY
+              fi
+            done
           fi
           exit "$code"
 

@@ -22,8 +22,10 @@ operations do not touch the website image, app workload, DNS, certificates or
 Caddy service. These checks protect against malformed artifacts and ordinary
 release drift; the manifest is not a signature or proof of GitHub CI approval.
 
-The Caddy block serves only the exact Academy hostname from the Academy active
-reference, with GET/HEAD access, a restrictive CSP and no-store responses. Its
+The Caddy block serves the exact Academy hostname from the Academy active
+reference. Static files stay GET/HEAD, with a restrictive CSP and no-store
+responses. `/mcp` and `/.well-known/oauth-protected-resource/mcp` are
+reverse-proxied to the loopback MCP server at 127.0.0.1:18500. The static
 root is a proposed deployment contract, not an observation of the live host.
 The complete active Caddy config, service identity, permissions, capacity,
 certificate storage and rollback state must be captured and checked after a
