@@ -37,6 +37,7 @@ const chapterTwo = publishedChapter("002");
 const chapterThree = publishedChapter("003");
 const chapterFour = publishedChapter("004");
 const chapterFive = publishedChapter("005");
+const chapterSix = publishedChapter("006");
 
 const rows = [
   { ...chapterOne, kicker: "CHAPTER I · TUESDAY · 17:23", href: `/chronicles/${chapterOne.slug}` },
@@ -44,6 +45,7 @@ const rows = [
   { ...chapterThree, kicker: "CHAPTER III · 15 OCTOBER 2026 · 02:40 WARSAW", href: `/chronicles/${chapterThree.slug}` },
   { ...chapterFour, kicker: "CHAPTER IV · 27 OCTOBER 2026 · 09:00", href: `/chronicles/${chapterFour.slug}` },
   { ...chapterFive, kicker: "CHAPTER V · 13 NOVEMBER 2026", href: `/chronicles/${chapterFive.slug}` },
+  { ...chapterSix, kicker: "CHAPTER VI · 14–15 NOVEMBER 2026", href: `/chronicles/${chapterSix.slug}` },
 ] as const;
 
 export default function ChroniclesIndexPage() {

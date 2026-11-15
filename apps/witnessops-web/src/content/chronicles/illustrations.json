@@ -244,6 +244,64 @@
       }
     ]
   },
+  "006": {
+    "hero": {
+      "alt": "Illustrative artwork: Control stands at a dark desk where one glowing conversation thread continues across a laptop, a second screen and a phone, while Sovereign looks on.",
+      "caption": "The same conversation, another screen.",
+      "width": 1916,
+      "height": 821,
+      "src": "/images/chronicles/006-before-the-cut/01-hero.webp",
+      "sha256": "f084560d6b6d6f6a28de29ea43855055f6e896a5b3ae640fee5afe9399facefe",
+      "position": "50% 45%"
+    },
+    "body": [
+      {
+        "alt": "Illustrative artwork: Docs and Code stand among several nearly identical system cabinets while a cat sleeps on a folder marked CURRENT.",
+        "caption": "Which copy?",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/006-before-the-cut/02-which-copy.webp",
+        "sha256": "ba6955c0c29e0bcd469c056345b9a36483cc4593783c334e4da1e8a1ff6c45df",
+        "afterParagraph": "“Which copy?”"
+      },
+      {
+        "alt": "Illustrative artwork: several brass-outlined infrastructure blocks are switched off or removed, while a database, a snapshot and a load balancer stay lit, watched by Sovereign and Code.",
+        "caption": "Seven resources.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/006-before-the-cut/03-seven-resources.webp",
+        "sha256": "8c7a2ccf24c425da2b6a360877cdf5e301928aa862e4078133fcf4a0e5aaccf4",
+        "afterParagraph": "“Seven resources,” said Sovereign."
+      },
+      {
+        "alt": "Illustrative artwork: a learner's door stands ajar onto a desk where saved work waits, with Security standing close by.",
+        "caption": "A learner has to be able to come back.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/006-before-the-cut/04-come-back.webp",
+        "sha256": "8b643bba7e05377c63ee7c5f6870dd2bb880953572ed2588907fc851dc10e3df",
+        "afterParagraph": "“What happens,” asked the Founder, “when somebody closes the browser?”"
+      },
+      {
+        "alt": "Illustrative artwork: the five Crew figures walk a short bridge toward a single open laptop, with the last step still an open gap.",
+        "caption": "Bring the Crew home.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/006-before-the-cut/05-bring-the-crew-home.webp",
+        "sha256": "34c465785884ae350b3a539c8b24f2197e4abea690efe16f8b34e54f0f9aecbc",
+        "afterParagraph": "“So the bridge exists.”"
+      },
+      {
+        "alt": "Illustrative artwork: Control pulls a roster closer, Sovereign opens it, and a cat steps away from the keyboard.",
+        "caption": "Before the Cut.",
+        "width": 1916,
+        "height": 821,
+        "src": "/images/chronicles/006-before-the-cut/06-before-the-cut.webp",
+        "sha256": "f657bef07694b174f8a8449d94b6296dda6f21576a90ed8d9cbcd048c544a7e8",
+        "afterParagraph": "Sovereign opened the roster."
+      }
+    ]
+  },
   "2040": {
     "hero": {
       "alt": "Illustrative artwork: Control stands at a glass wall looking out over a rainy, brass-lit city skyline in 2040.",

@@ -54,7 +54,7 @@ export function chroniclePreviewText(source: string): string {
 }
 
 export type ChronicleChapter = {
-  id: "001" | "002" | "003" | "004" | "005" | "2040";
+  id: "001" | "002" | "003" | "004" | "005" | "006" | "2040";
   slug: string;
   number: string;
   kicker: string;
@@ -144,6 +144,22 @@ export const PUBLISHED_CHAPTERS: readonly ChronicleChapter[] = [
     dropLines: [
       "A fictionalised episode with The Crew.",
       "13 November 2026",
+    ],
+  },
+  {
+    id: "006",
+    slug: "006-before-the-cut",
+    number: "006",
+    kicker: "THE SOVEREIGN CHRONICLES · CHAPTER VI",
+    title: "Before the Cut",
+    subtitle: "A dramatized reconstruction.",
+    dateline: "Weekend of 14–15 November 2026 · Europe/Warsaw",
+    meta: "CH-006 · FICTION · 8 MIN READ",
+    description: "A story from the WitnessOps desk about the weekend before the cut.",
+    sourceFile: "chapter-006.md",
+    dropLines: [
+      "A dramatized reconstruction.",
+      "Weekend of 14–15 November 2026 · Europe/Warsaw",
     ],
   },
 ] as const;

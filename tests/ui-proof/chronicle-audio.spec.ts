@@ -108,6 +108,12 @@ for (const slug of [chapters[0], scopeEscalationChapter]) {
   }
 }
 
+test("chapter 006 leaves narration out when no recording is admitted", async ({ page }) => {
+  await page.goto("/chronicles/006-before-the-cut");
+  await expect(page.locator("[data-chronicle-audio]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Play narration" })).toHaveCount(0);
+});
+
 test("an unavailable recording shows an error and can be retried", async ({ page }) => {
   await page.route("**/audio/chronicles/*.mp3", (route) => route.abort());
   await page.goto(`/chronicles/${chapters[0]}`);
