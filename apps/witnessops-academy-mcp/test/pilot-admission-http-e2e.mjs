@@ -3,12 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import pg from 'pg';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { env, secret, int } from '../src/env.mjs';
 
 if (process.env.ACADEMY_E2E !== '1' || process.env.ACADEMY_INVITATIONS_DISPOSABLE !== '1' || process.env.ACADEMY_ACCESS_POLICY !== 'approved-free-pilot') {
@@ -16,17 +14,11 @@ if (process.env.ACADEMY_E2E !== '1' || process.env.ACADEMY_INVITATIONS_DISPOSABL
 }
 
 if (!['127.0.0.1', 'localhost', '::1'].includes(env('ACADEMY_DB_HOST'))) throw new Error('Disposable loopback database required');
-const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MCP = env('MCP_TEST_URL', env('MCP_RESOURCE_URL', 'http://127.0.0.1:18500/mcp'));
-const MU = new URL(MCP);
-const BASE = MU.origin;
 const ISS = env('ACADEMY_OIDC_ISSUER').replace(/\/$/, '');
 const REDIRECT = env('MCP_TEST_REDIRECT_URI', 'http://127.0.0.1:18599/callback');
 const LESSON = 'report-or-evidence';
-const AS_META = `${new URL(ISS).origin}/.well-known/oauth-authorization-server${new URL(ISS).pathname}`;
 const CLIENT_ID = env('MCP_TEST_CLIENT_ID', env('MCP_CLIENT_ID', 'academy-mcp-client'));
-const WRONG_CLIENT = env('MCP_TEST_WRONGAUD_CLIENT_ID', 'academy-mcp-wrongaud');
-const LISTEN_PORT = int('MCP_PORT', Number(MU.port || 443));
 const USERS = {
   a: env('TEST_MCP_LEARNER_A_USERNAME', 'mcp-learner-a'),
   b: env('TEST_MCP_LEARNER_B_USERNAME', 'mcp-learner-b'),
@@ -39,14 +31,11 @@ const PW = {
 };
 const PGADMIN = env('ACADEMY_TEST_PGADMIN_USER', 'postgres');
 const PGADMIN_PW = secret('ACADEMY_TEST_PGADMIN_PASSWORD');
-const MCP_DB_USER = env('ACADEMY_MCP_DB_USER', 'academy_mcp');
 const MCP_DB_PW = secret('ACADEMY_MCP_DB_PASSWORD');
 const DBH = env('ACADEMY_DB_HOST', '127.0.0.1');
 const DBP = int('ACADEMY_DB_PORT', 5432);
 const DBN = env('ACADEMY_DB_NAME', 'academy');
-const KC_SCRIPT = path.join(HERE, '../keycloak/kc_mcp_setup.py');
 const SECRET_VALUES = [PW.a, PW.b, PW.c, PGADMIN_PW, MCP_DB_PW];
-const hash = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const EV = env('MCP_TEST_EVIDENCE_DIR', path.join(os.tmpdir(), 'academy-mcp-evidence'));
 fs.mkdirSync(EV, { recursive: true });
 const results = [];
@@ -61,12 +50,6 @@ function redactText(value) {
   return out.replace(new RegExp('ey' + 'J' + '[A-Za-z0-9_-]{8,}', 'g'), '[REDACTED]');
 }
 function log(entry) { trace.push({ t: stamp(), ...entry }); }
-function check(id, name, ok, detail = {}) {
-  const row = { id, name, result: ok ? 'PASS' : 'FAIL', detail };
-  results.push(row);
-  console.log(redactText(`${row.result} ${id} ${name} ${JSON.stringify(detail)}`));
-}
-const kc = (...args) => execFileSync('python3', [KC_SCRIPT, ...args], { encoding: 'utf8' }).trim();
 const payload = (token) => JSON.parse(Buffer.from(token.split('.')[1], 'base64url'));
 
 class Browser {
