@@ -11,11 +11,15 @@ const authenticated = document.documentElement.hasAttribute('data-academy-authen
 
 function currentAnswer() {
   const get = (name) => form.elements.namedItem(name)?.value ?? null;
+  const fields = [...form.querySelectorAll('[data-claim]')];
+  const sources = fields.length > 0 ? fields : [1, 2, 3];
   return buildAnswer({
+    title: form.dataset.lessonTitle,
     attempt,
-    claims: [1, 2, 3].map((index) => ({
-      label: get(`claim-${index}`),
-      reason: get(`reason-${index}`),
+    claims: sources.map((field, index) => ({
+      text: typeof field === 'number' ? undefined : field.dataset.claim,
+      label: get(`claim-${index + 1}`),
+      reason: get(`reason-${index + 1}`),
     })),
     limit: get('honest-limit'),
   });

@@ -41,6 +41,8 @@ class StaticReleaseTests(unittest.TestCase):
         self.assertIn("lessons/report-or-evidence/index.html", files)
         self.assertIn("lessons/reported-versus-saved/index.html", files)
         self.assertIn("workbook/index.html", files)
+        self.assertIn("lessons/same-scope/index.html", files)
+        self.assertNotIn("docs/EXERCISE-LESSON-2.md", files)
         self.assertTrue(all(not name.startswith("docs/") for name in files))
         self.assertTrue(all(not name.startswith(".") for name in files))
 
