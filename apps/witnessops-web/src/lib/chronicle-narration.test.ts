@@ -17,14 +17,21 @@ test("narration uses the published fiction text and removes visual markup", () =
     assert.equal(chronicleNarrationInputHash(chapter, "orion"), chronicleNarrationInputHash(chapter, "orion"));
     assert.notEqual(chronicleNarrationInputHash(chapter, "orion"), chronicleNarrationInputHash(chapter, "eve"));
   }
-  const latest = chronicleNarrationText(PUBLISHED_CHAPTERS[4]!);
-  assert.ok(latest.includes("“GO ZIP.”"));
-  assert.ok(latest.endsWith("It was a task that finished."));
+  const chapterFive = chronicleNarrationText(PUBLISHED_CHAPTERS.find((chapter) => chapter.id === "005")!);
+  assert.ok(chapterFive.includes("“GO ZIP.”"));
+  assert.ok(chapterFive.endsWith("It was a task that finished."));
+  const chapterSix = chronicleNarrationText(PUBLISHED_CHAPTERS.find((chapter) => chapter.id === "006")!);
+  assert.ok(chapterSix.includes("A dramatized reconstruction."));
+  assert.ok(chapterSix.endsWith("That was where the weekend left them."));
 });
 
 test("every admitted narration points to its exact local MP3 bytes", () => {
   for (const chapter of ALL_CHAPTERS) {
     const asset = getChronicleNarration(chapter);
+    if (chapter.id === "006") {
+      assert.equal(asset, null);
+      continue;
+    }
     assert.ok(asset, `Chapter ${chapter.id} has a current narration`);
     assert.ok(asset.durationSeconds > 1);
     assert.ok(["orion", "eve", "rex", "sal"].includes(asset.voice));

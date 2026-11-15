@@ -638,6 +638,50 @@ for (const width of [320, 390, 1440]) {
       "href",
       "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
     );
+    await expect(page.getByRole("link", { name: "Chapter 006", exact: true })).toHaveAttribute(
+      "href",
+      "/chronicles/006-before-the-cut",
+    );
+
+    const prose = page.locator(".chronicle-prose");
+    const bounds = await prose.boundingBox();
+    expect(bounds).not.toBeNull();
+    const headings = prose.locator("h2");
+    expect(await headings.count()).toBe(8);
+    for (const heading of await headings.all()) {
+      const box = await heading.boundingBox();
+      expect(box).not.toBeNull();
+      expect(Math.abs(box!.x - bounds!.x)).toBeLessThan(1);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
+
+test("chronicles index links chapter 006", async ({ page }) => {
+  await page.goto("/chronicles");
+  await expect(page.getByRole("link", { name: "Before the Cut", exact: true })).toHaveAttribute(
+    "href",
+    "/chronicles/006-before-the-cut",
+  );
+});
+
+for (const width of [320, 390, 1440]) {
+  test(`Chapter 006 fits at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const reference = await editorialReadingStyle(page);
+    await page.goto("/chronicles/006-before-the-cut");
+    await page.evaluate(() => document.fonts.ready);
+    await expectChronicleReadingStyle(page, reference);
+
+    await expect(page.locator("[data-chronicle-dateline]")).toHaveText("Weekend of 14–15 November 2026 · Europe/Warsaw");
+    await expect(page.locator("[data-chronicle-dateline]")).toHaveCSS("text-transform", "none");
+    await expect(page.getByRole("heading", { level: 1, name: "Before the Cut", exact: true })).toBeVisible();
+    await expect(page.getByText("A dramatized reconstruction.")).toBeVisible();
+    await expect(page.locator("[data-chronicle-audio]")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Chapter 005", exact: true })).toHaveAttribute(
+      "href",
+      "/chronicles/005-the-dashboard-that-never-was",
+    );
     await expect(page.getByRole("link", { name: "All chronicles", exact: true })).toHaveAttribute("href", "/chronicles");
 
     const prose = page.locator(".chronicle-prose");
@@ -650,6 +694,11 @@ for (const width of [320, 390, 1440]) {
       expect(box).not.toBeNull();
       expect(Math.abs(box!.x - bounds!.x)).toBeLessThan(1);
     }
+    const plate = page.locator("[data-chronicle-illustration$='05-bring-the-crew-home.webp'] img");
+    await plate.scrollIntoViewIfNeeded();
+    const plateBox = await plate.boundingBox();
+    expect(plateBox).not.toBeNull();
+    expect(Math.abs(plateBox!.width / plateBox!.height - 1916 / 821)).toBeLessThan(0.05);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }

@@ -33,7 +33,7 @@ function linkedHrefs(html: string): string[] {
 }
 
 test("published chapters stay in reading order", () => {
-  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003", "004", "005"]);
+  assert.deepEqual(PUBLISHED_CHAPTERS.map((chapter) => chapter.id), ["001", "002", "003", "004", "005", "006"]);
   assert.deepEqual(
     PUBLISHED_CHAPTERS.map((chapter) => chapter.slug),
     [
@@ -42,6 +42,7 @@ test("published chapters stay in reading order", () => {
       "003-the-meeting-nobody-authorized",
       "004-the-agent-who-scheduled-a-meeting-with-himself",
       "005-the-dashboard-that-never-was",
+      "006-before-the-cut",
     ],
   );
   assert.deepEqual(RESERVED_CHAPTERS.map((chapter) => chapter.id), []);
@@ -129,15 +130,19 @@ test("pager links adjacent published chapters", () => {
   ]);
   assert.deepEqual(linkedHrefs(html("005")), [
     "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
+    "/chronicles/006-before-the-cut",
+  ]);
+  assert.deepEqual(linkedHrefs(html("006")), [
+    "/chronicles/005-the-dashboard-that-never-was",
     "/chronicles",
   ]);
-  for (const id of ["001", "002", "003", "004", "005"] as const) {
+  for (const id of ["001", "002", "003", "004", "005", "006"] as const) {
     assert.equal(html(id).includes("coming soon"), false, id);
     assert.equal(html(id).includes("Not yet linked"), false, id);
   }
 });
 
-test("chronicles index links the five main chapters and the separate future receipt", () => {
+test("chronicles index links the six main chapters and the separate future receipt", () => {
   const html = renderToStaticMarkup(createElement(ChroniclesIndexPage));
   assert.deepEqual(linkedHrefs(html), [
     "/research",
@@ -146,11 +151,14 @@ test("chronicles index links the five main chapters and the separate future rece
     "/chronicles/003-the-meeting-nobody-authorized",
     "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
     "/chronicles/005-the-dashboard-that-never-was",
+    "/chronicles/006-before-the-cut",
     "/chronicles/2040-the-scope-escalation",
     "/reviews",
   ]);
   assert.equal(html.includes("The Dashboard That Never Was"), true);
   assert.equal(html.includes("CHAPTER V · 13 NOVEMBER 2026"), true);
+  assert.equal(html.includes("Before the Cut"), true);
+  assert.equal(html.includes("CHAPTER VI · 14–15 NOVEMBER 2026"), true);
   assert.equal(html.includes("The Agent Who Was Told Not to Press the Button"), false);
   assert.equal(html.includes("Coming soon"), false);
   assert.equal(html.includes("Not linked"), false);
@@ -245,7 +253,7 @@ test("chapter 005 keeps the manuscript, the fiction subtitle, and the forward li
     "/research",
     "/chronicles",
     "/chronicles/004-the-agent-who-scheduled-a-meeting-with-himself",
-    "/chronicles",
+    "/chronicles/006-before-the-cut",
   ]);
   const metadata = await generateMetadata({ params: Promise.resolve({ slug: chapter.slug }) });
   const title = "The Dashboard That Never Was · The Sovereign Chronicles";
@@ -257,4 +265,79 @@ test("chapter 005 keeps the manuscript, the fiction subtitle, and the forward li
   assert.equal(metadata.openGraph?.description, chapter.description);
   assert.equal(metadata.twitter?.title, title);
   assert.equal(metadata.twitter?.description, chapter.description);
+});
+
+test("chapter 006 publishes the narrative, omits the evidence notes, and places the plates", async () => {
+  const chapter = chapterById("006");
+  assert.equal(chapter.title, "Before the Cut");
+  assert.equal(chapter.subtitle, "A dramatized reconstruction.");
+  assert.equal(chapter.dateline, "Weekend of 14–15 November 2026 · Europe/Warsaw");
+  assert.equal(chapter.kicker, "THE SOVEREIGN CHRONICLES · CHAPTER VI");
+  assert.equal(chapter.meta, "CH-006 · FICTION · 8 MIN READ");
+  assert.equal(chapter.slug, "006-before-the-cut");
+  assert.equal(getChronicleNarration(chapter), null);
+  const raw = readChronicleSource(chapter.sourceFile);
+  for (const omitted of ["Editorial evidence notes", "chatgpt.com", "/srv/", "WitnessOps_AWS", "libfile_", "€", "END OF CHAPTER", "unpublished"]) {
+    assert.equal(raw.includes(omitted), false, omitted);
+  }
+  const body = chronicleBodySource(chapter);
+  const lines = body.split("\n");
+  assert.equal(lines[0], "### I. The same conversation, another screen");
+  assert.equal(lines.at(-1), "That was where the weekend left them.");
+  for (const heading of [
+    "### I. The same conversation, another screen",
+    "### II. Please show what is actually running",
+    "### III. Some progress looked like subtraction",
+    "### IV. A learner has to be able to come back",
+    "### V. Bring the Crew home",
+    "### VI. What the number had taught him",
+    "### VII. Seven days",
+    "### VIII. The roster",
+  ]) {
+    assert.equal(lines.includes(heading), true, heading);
+  }
+  assert.equal(lines.includes("A dramatized reconstruction."), false);
+  assert.equal(lines.includes("Weekend of 14–15 November 2026 · Europe/Warsaw"), false);
+  const html = renderToStaticMarkup(await ChronicleChapterPage({
+    params: Promise.resolve({ slug: chapter.slug }),
+  }));
+  assert.equal(html.includes("A story from the WitnessOps desk. Fiction; events dramatised."), true);
+  assert.equal(html.includes(">A dramatized reconstruction.<"), true);
+  assert.equal(html.includes(">Weekend of 14–15 November 2026 · Europe/Warsaw<"), true);
+  assert.equal(html.includes("data-chronicle-audio"), false);
+  assert.equal(html.includes("€"), false);
+  assert.ok(html.indexOf("data-editorial-hero") < html.indexOf("<h1"));
+  const anchors = [
+    ["“Which copy?”", "/images/chronicles/006-before-the-cut/02-which-copy.webp"],
+    ["“Seven resources,” said Sovereign.", "/images/chronicles/006-before-the-cut/03-seven-resources.webp"],
+    ["“What happens,” asked the Founder, “when somebody closes the browser?”", "/images/chronicles/006-before-the-cut/04-come-back.webp"],
+    ["“So the bridge exists.”", "/images/chronicles/006-before-the-cut/05-bring-the-crew-home.webp"],
+    ["Sovereign opened the roster.", "/images/chronicles/006-before-the-cut/06-before-the-cut.webp"],
+  ] as const;
+  let cursor = html.indexOf("<h1");
+  for (const [anchor, src] of anchors) {
+    const anchorAt = html.indexOf(anchor, cursor);
+    const imageAt = html.indexOf(`data-chronicle-illustration="${src}"`, anchorAt);
+    assert.ok(anchorAt > cursor, anchor);
+    assert.ok(imageAt > anchorAt, src);
+    cursor = imageAt;
+  }
+  const closing = html.indexOf("That was where the weekend left them.", cursor);
+  assert.ok(closing > cursor);
+  assert.equal((html.match(/data-chronicle-illustration=/g) ?? []).length, 5);
+  const crew = html.slice(html.indexOf("05-bring-the-crew-home.webp"), html.indexOf("05-bring-the-crew-home.webp") + 700);
+  assert.match(crew, /width="1916"/);
+  assert.match(crew, /height="821"/);
+  assert.doesNotMatch(crew, /object-cover/);
+  assert.deepEqual(linkedHrefs(html), [
+    "/research",
+    "/chronicles",
+    "/chronicles/005-the-dashboard-that-never-was",
+    "/chronicles",
+  ]);
+  const metadata = await generateMetadata({ params: Promise.resolve({ slug: chapter.slug }) });
+  const title = "Before the Cut · The Sovereign Chronicles";
+  assert.equal(metadata.title, title);
+  assert.equal(metadata.description, chapter.description);
+  assert.deepEqual(metadata.alternates, { canonical: canonicalUrl("/chronicles/006-before-the-cut") });
 });
