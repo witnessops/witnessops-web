@@ -26,5 +26,6 @@ type PublicNavigationLinkProps = Omit<
 
 export function PublicNavigationLink({ prefetch, ...props }: PublicNavigationLinkProps) {
   const documentNavigation = useContext(DocumentNavigationContext);
-  return documentNavigation ? <a {...props} /> : <NextLink prefetch={prefetch} {...props} />;
+  const external = /^https?:\/\//i.test(props.href);
+  return documentNavigation || external ? <a {...props} /> : <NextLink prefetch={prefetch} {...props} />;
 }
