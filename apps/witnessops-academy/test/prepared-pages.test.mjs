@@ -73,7 +73,7 @@ test('prepared lesson and workbook share one exercise and one label set', async 
     assert.equal(lesson.includes(marker), true, marker);
     assert.equal(workbook.includes(marker), true, marker);
   }
-  for (const marker of ['PROPOSED title: Build Your First AI Operator', '€149', 'connect tools', 'finish the job', 'recover and repeat']) {
+  for (const marker of ['PROPOSED title: Build Your First AI Operator', 'connect tools', 'finish the job', 'recover and repeat']) {
     assert.equal(lesson.includes(marker), true, marker);
     assert.equal(workbook.includes(marker), true, marker);
   }
@@ -115,6 +115,7 @@ test('academy pages avoid banned wording and keep local links on this origin', a
   for (const relative of pages) {
     const html = await readPublic(relative);
     assert.doesNotMatch(html, BANNED_WORDING, relative);
+    assert.doesNotMatch(html, /[€$£]\s*\d|\b(?:EUR|PLN|USD|GBP)\s*\d|\bprice hypothesis\b/i, `${relative} must not publish a price`);
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
     assert.deepEqual(ids, [...new Set(ids)], relative);
     const scripts = [...html.matchAll(/<script\b([^>]*)>/gi)].map((match) => match[1]);

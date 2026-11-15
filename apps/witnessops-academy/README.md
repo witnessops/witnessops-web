@@ -1,6 +1,6 @@
 # WitnessOps Academy
 
-A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home, two Verify results pilot lessons (**Report or evidence?** and **Same record, wrong scope?**), a separate prepared Lesson 1, and a printable workbook. The prepared course title **Build Your First AI Operator**, the **€149** price hypothesis and the four-lesson syllabus are **PROPOSED**. The other three learning paths are labelled as not written yet.
+A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home, two Verify results pilot lessons (**Report or evidence?** and **Same record, wrong scope?**), a separate prepared Lesson 1, and a printable workbook. The prepared course title **Build Your First AI Operator** and the four-lesson syllabus are **PROPOSED**. No price is published. The other three learning paths are labelled as not written yet.
 
 ## Run locally
 
