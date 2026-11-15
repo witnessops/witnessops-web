@@ -5,6 +5,8 @@ export type PublicNavGroup = {
   links: readonly { label: string; description: string; href: string }[];
 };
 
+export const ACADEMY_PUBLIC_HREF = "https://academy.witnessops.com/";
+
 /** Current destinations, grouped for the click-to-expand public navigation. */
 export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
   {
@@ -21,8 +23,9 @@ export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
   {
     id: "explore",
     label: "Explore",
-    description: "Stories, ideas and the people behind them.",
+    description: "Lessons, stories, ideas and the people behind them.",
     links: [
+      { label: "WitnessOps Academy", href: ACADEMY_PUBLIC_HREF, description: "Try the pilot lesson on checking AI results." },
       { label: "The Sovereign Chronicles", href: "/chronicles", description: "Stories from the WitnessOps desk. Read or listen." },
       { label: "Research & articles", href: "/research", description: "Ideas, observations and longer reads." },
       { label: "Company details", href: "/company", description: "Who we are and how to reach us." },
@@ -49,8 +52,9 @@ export const POLISH_NAV_GROUPS: readonly PublicNavGroup[] = [
   {
     id: "explore",
     label: "Odkrywaj",
-    description: "Historie, artykuły i ludzie stojący za WitnessOps.",
+    description: "Lekcje, historie, artykuły i ludzie stojący za WitnessOps.",
     links: [
+      { label: "WitnessOps Academy (EN)", href: ACADEMY_PUBLIC_HREF, description: "Wypróbuj lekcję pilotażową o sprawdzaniu wyników AI." },
       { label: "The Sovereign Chronicles (EN)", href: "/chronicles", description: "Historie z biurka WitnessOps. Czytaj lub słuchaj." },
       { label: "Artykuły i analizy (EN)", href: "/research", description: "Pomysły, obserwacje i dłuższe teksty." },
       { label: "Dane firmy", href: "/pl/company", description: "Kim jesteśmy i jak się z nami skontaktować." },
