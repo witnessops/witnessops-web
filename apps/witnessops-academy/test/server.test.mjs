@@ -38,7 +38,7 @@ test('serves home and the nested lesson with a script policy that prevents netwo
   assert.equal(second.status, 200);
   assert.match(second.body, /Same record, wrong scope/);
   assert.match(second.headers['content-security-policy'], /connect-src 'none'/);
-  assert.match(home.body, /Two lessons exist so far\. Both are pilot drafts, taught by Docs\./);
+  assert.match(home.body, /Two Verify results pilot lessons are available, taught by Docs\./);
   assert.match(home.body, /Lessons 1 and 2/);
   assert.match(home.body, /Work with AI[\s\S]*?Not written yet/);
   assert.match(home.body, /Build agents[\s\S]*?Not written yet/);

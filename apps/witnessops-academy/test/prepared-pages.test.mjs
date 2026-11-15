@@ -103,6 +103,7 @@ test('academy pages avoid banned wording and keep local links on this origin', a
   assert.deepEqual(pages.filter((file) => file.startsWith('lessons/')).sort(), [
     PILOT,
     LESSON,
+    'lessons/same-scope/index.html',
   ]);
   assert.equal(pages.includes(WORKBOOK), true);
   const readme = await readFile(new URL('../README.md', import.meta.url), 'utf8');
