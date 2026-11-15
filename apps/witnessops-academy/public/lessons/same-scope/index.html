@@ -33,12 +33,13 @@
 
  <div class="sec"><div class="n">II</div><h2>Watch Docs do it</h2></div>
  <div class="prose"><p>Docs set the agent's report beside two logs of the same service. One log was staging. One was production.</p></div>
- <div class="report"><div class="k">Agent report · example</div><p>“Search reindex finished in production at 09:00 UTC with zero errors. Customers can rely on the new index.”</p></div>
+ <div class="report"><div class="k">Agent report · example</div><p>“Search reindex run prod-42 finished in production at 09:00 UTC with zero errors. Customers can rely on the new index.”</p></div>
  <figure class="rec"><div class="hd"><span>Evidence record · example data</span><span>Teacher's own</span></div>
 <pre><b>EVIDENCE RECORD</b>
 <span class="dv" style="display:block"></span>Source    reindex log
           service search-reindex
           environment: staging
+          run: stage-17
 Observed  2026-XX-XX 09:00:01 UTC
           through 09:00:44 UTC
 Artifact  staging run log
@@ -47,9 +48,11 @@ SHA-256   1ab4…e20c (placeholder)
 <span class="dv" style="display:block"></span>Source    reindex log
           service search-reindex
           environment: production
+          run: prod-42
 Observed  2026-XX-XX 09:12:03 UTC
           through 09:18:40 UTC
 Artifact  production run log
+          run: prod-42 finished at 09:18:40 UTC
           errors: 2
 SHA-256   9c0e…77a1 (placeholder)
 <span class="dv" style="display:block"></span>Not supplied
@@ -57,12 +60,12 @@ SHA-256   9c0e…77a1 (placeholder)
           of the production index</pre></figure>
  <div class="claims" id="sorted"><div class="hd">Docs sorts the claims <span>Worked example</span></div>
   <div class="cl"><div class="q">“A production reindex ran.”</div><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">The production log for search-reindex shows a finished run in production, from 09:12:03 UTC to 09:18:40 UTC.</div></div>
-  <div class="cl"><div class="q">“Finished at 09:00 UTC”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">The 09:00 UTC finish with zero errors is the staging log. A true record of another environment does not evidence the production time, and it does not contradict it. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Different scope</span></div></div>
-  <div class="cl"><div class="q">“Zero errors”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log, same service and same window, says errors: 2.</div></div>
+  <div class="cl"><div class="q">“Finished at 09:00 UTC”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log names the same run, prod-42, and records its finish at 09:18:40 UTC. That contradicts a 09:00 UTC finish for this run. The staging log belongs to stage-17; it cannot establish a production finish time.</div></div>
+  <div class="cl"><div class="q">“Zero errors”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log for the same named run, prod-42, says errors: 2.</div></div>
   <div class="cl"><div class="q">“Customers can rely on the new index”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">No customer-search check was supplied. The production log does not measure that. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
   <div class="cl"><div class="q">Limit Docs writes</div><div class="why" style="color:var(--t1)">The production log shows a reindex run and an error count. It does not prove search quality for customers. The staging log is a different environment. The hashes here are only placeholders.</div></div>
  </div>
- <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“The staging log is real. It is the wrong room. Same service, same environment, same window: that is the scope you compare. A run log is not a check that customers can use the index.”</p></div></div>
+ <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“The staging log is real. It is the wrong room. Same service, same environment, same named run: that is the scope you compare. Without the production log, the staging record would leave a gap, not a contradiction. A run log is not a check that customers can use the index.”</p></div></div>
 
  <div class="sec"><div class="n">III</div><h2>Your turn</h2></div>
  <div class="work" id="exercise">
@@ -78,7 +81,8 @@ environment: production
 environment: production
 run 2026-XX-XX 01:15:02 UTC
 regions loaded (3): eu-central, eu-west, us-east
-status: complete for the regions listed
+regions expected: 4
+status: complete report for this run; 3 of 4 loaded
 <b>C · checkout price check</b>
 environment: staging
 2026-XX-XX 01:16:05 UTC  result: pass
@@ -120,7 +124,7 @@ environment: staging
   <p>A passing checkout check can be a true record and still be the wrong scope. Read the environment named on that record before you treat it as evidence of the production claim. A different environment is a gap, not a contradiction, unless a record of the same environment says something incompatible.</p>
  </div></details>
 
- <div class="boundary"><b>Coaching is not assessment.</b> Docs coaches; nothing in this lesson is graded or recorded as a result. <b>No certificate is issued in this pilot.</b></div>
+ <div class="boundary"><b>Coaching is not assessment.</b> Docs coaches; nothing in this lesson is graded or recorded as a result. <b>No formal award is issued in this pilot.</b></div>
 
  <div class="eyebrow">Path IV · Verify results</div>
  <div class="lessons">
@@ -130,7 +134,7 @@ environment: staging
  <div class="pn"><a href="/lessons/report-or-evidence/">← Lesson 1</a><a href="/#paths">All paths</a></div>
 </div>
 </main>
-<footer class="site">WitnessOps Academy · Sovereign AI programme<br>Coaching, not assessment. No certificate is issued in this pilot.</footer>
+<footer class="site">WitnessOps Academy · Sovereign AI programme<br>Coaching, not assessment. No formal award is issued in this pilot.</footer>
 <script type="module" src="/academy.mjs"></script>
 <script type="module" src="/lesson.mjs"></script>
 </body></html>

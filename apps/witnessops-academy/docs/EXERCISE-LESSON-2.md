@@ -15,7 +15,8 @@ B · region load report   job price-file
 environment: production
 run 2026-XX-XX 01:15:02 UTC
 regions loaded (3): eu-central, eu-west, us-east
-status: complete for the regions listed
+regions expected: 4
+status: complete report for this run; 3 of 4 loaded
 
 C · checkout price check
 environment: staging
