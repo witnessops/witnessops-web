@@ -30,10 +30,15 @@ for(const width of [1440,390])test(`named host reader retains secret and avoids 
   expect(url.pathname==='/'||url.pathname.startsWith('/_next/')||url.pathname.startsWith('/__nextjs_font/')||url.pathname==='/favicon.ico'||/^\/apple-touch-icon(?:-precomposed)?\.png$/.test(url.pathname),url.pathname).toBe(true);
   const response=await route.fetch({url:baseURL+url.pathname+url.search,headers:{...route.request().headers(),host},maxRedirects:0});return route.fulfill({response});
  });
- await page.goto(origin+'/#'+token);await expect(page.getByRole('heading',{name:'Named specimen'})).toBeVisible();await page.getByRole('button',{name:'Findings',exact:true}).click();expect(new URL(page.url()).hash).toBe('#'+token);
- await expect(page.getByRole('link',{name:'Run your own check'})).toHaveAttribute('href',baseURL+'/signup');
- await page.screenshot({path:info.outputPath(`named-report-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
- await page.reload();await expect(page.getByRole('heading',{name:'Named specimen'})).toBeVisible();revoked=true;await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await expect(page.locator('main').getByRole('alert')).toContainText('unavailable');
+ try {
+  await page.goto(origin+'/#'+token);await expect(page.getByRole('heading',{name:'Named specimen'})).toBeVisible();await page.getByRole('button',{name:'Findings',exact:true}).click();expect(new URL(page.url()).hash).toBe('#'+token);
+  await expect(page.getByRole('link',{name:'Run your own check'})).toHaveAttribute('href',baseURL+'/signup');
+  await page.screenshot({path:info.outputPath(`named-report-${width}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  await page.reload();await expect(page.getByRole('heading',{name:'Named specimen'})).toBeVisible();revoked=true;await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await expect(page.locator('main').getByRole('alert')).toContainText('unavailable');
+ } finally {
+  // Complete in-flight proxy handlers before Playwright closes the context.
+  await page.unrouteAll({behavior:'wait'});
+ }
 });
 
 test('creator previews the reporting name and publishes the server-selected link',async({page})=>{

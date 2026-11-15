@@ -1,6 +1,7 @@
 -- Repeatable. Run on the academy database as a superuser after migrations.
 -- Strips every direct grant on academy_mcp, then applies the allowlist:
 -- CONNECT, USAGE on public, SELECT/INSERT identities, SELECT/INSERT/UPDATE drafts.
+-- Status-only pilot admission predicate after migration 004.
 -- No DELETE, no DDL, no session tables, no sequences.
 ALTER ROLE academy_mcp LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;
 DO $$
@@ -73,4 +74,7 @@ BEGIN
 
   EXECUTE 'GRANT SELECT, INSERT ON TABLE public.academy_identities TO academy_mcp';
   EXECUTE 'GRANT SELECT, INSERT, UPDATE ON TABLE public.academy_lesson_drafts TO academy_mcp';
+  IF to_regprocedure('public.academy_has_approved_free_grant(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.academy_has_approved_free_grant(uuid) TO academy_mcp';
+  END IF;
 END $$;

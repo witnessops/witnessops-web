@@ -9,6 +9,16 @@ if [[ -z ${ACADEMY_CI_ENV:-} || ! -f ${ACADEMY_CI_ENV} ]]; then
   exit 1
 fi
 
+# shellcheck disable=SC1090
+source "$ACADEMY_CI_ENV"
+# Persisted fixture policy must survive child-process restarts, even when the
+# policy did not inherit an export attribute. Never default the production server here.
+case "${ACADEMY_ACCESS_POLICY:-}" in session-only|approved-free-pilot) ;; *) echo "fixture access policy is missing or invalid" >&2; exit 1 ;; esac
+if [[ "${ACADEMY_E2E:-}" != 1 ]]; then echo "disposable e2e profile required" >&2; exit 1; fi
+case "${ACADEMY_DB_HOST:-}" in 127.0.0.1|localhost|::1) ;; *) echo "disposable loopback database required" >&2; exit 1 ;; esac
+export ACADEMY_ACCESS_POLICY
+
+
 db=${1:-academy}
 if [[ ! "$db" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
   echo "bad database name" >&2

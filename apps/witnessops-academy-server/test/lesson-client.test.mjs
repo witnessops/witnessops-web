@@ -15,17 +15,19 @@ function deferred() {
 }
 function element() {
   const listeners = new Map();
-  return { value: '', textContent: '', disabled: false, hidden: false,
+  return { value: '', textContent: '', disabled: false, hidden: false, dataset: {},
     addEventListener: (name, fn) => listeners.set(name, fn),
     fire: (name, event = {}) => listeners.get(name)?.(event) };
 }
-function lesson({ draft = () => response(200, { version: 1, content: JSON.stringify(saved) }),
+function lesson({ lessonId = 'report-or-evidence', draft = () => response(200, { version: 1, content: JSON.stringify(saved) }),
   logout = () => response(200, { idp_logout: 'complete' }),
   put = () => response(200, { version: 2 }) } = {}) {
   const nodes = new Map(['lesson-form', 'progress-status', 'save-progress', 'sign-out', 'sign-in',
     'retry-load', 'other-draft', 'saved-text', 'academy-csrf', 'teacher-reply', 'start-retry',
     'replace-draft', 'reason-1'].map(id => ['#' + id, element()]));
   const get = id => nodes.get('#' + id);
+  get('lesson-form').dataset.draftApi = `/academy/api/lessons/${lessonId}/draft`;
+  const calls = [];
   get('academy-csrf').textContent = JSON.stringify('synthetic-csrf');
   get('sign-in').hidden = get('other-draft').hidden = true;
   const window = element();
@@ -36,10 +38,12 @@ function lesson({ draft = () => response(200, { version: 1, content: JSON.string
     collectProgress: () => ({ ...saved, claims: [{ ...saved.claims[0], reason: get('reason-1').value }, {}, {}] }),
     restoreProgress: progress => { get('reason-1').value = progress.claims[0].reason; },
     clearPageState: () => { fields.forEach(field => { field.value = ''; }); },
-    fetch: (url, options = {}) => url.endsWith('/logout') ? logout()
-      : options.method === 'PUT' ? put() : draft() };
+    fetch: (url, options = {}) => {
+      calls.push({ url, method: options.method || 'GET' });
+      return url.endsWith('/logout') ? logout() : options.method === 'PUT' ? put() : draft();
+    } };
   const boot = vm.runInNewContext('(async () => {\n' + source + '\n})()', context);
-  return { get, window, boot };
+  return { get, window, boot, calls };
 }
 function cleared(page, expectedStatus) {
   assert.equal(page.get('reason-1').value, '');
@@ -108,4 +112,21 @@ test('a late save response cannot unlock a suspended page', async () => {
   pending.resolve(response(200, { version: 2 }));
   await saving;
   cleared(page, status);
+});
+
+test('second lesson loads and saves through its own draft endpoint', async () => {
+  const page = lesson({ lessonId: 'same-scope' });
+  await page.boot;
+  page.get('reason-1').value = 'Synthetic second-lesson edit';
+  page.get('lesson-form').fire('input');
+  await page.get('save-progress').fire('click');
+  assert.deepEqual(page.calls.map(call => [call.method, call.url]), [
+    ['GET', '/academy/api/lessons/same-scope/draft'],
+    ['PUT', '/academy/api/lessons/same-scope/draft'],
+  ]);
+});
+test('an unrecognized lesson fails before loading a draft', async () => {
+  const page = lesson({ lessonId: '../../someone-else' });
+  await assert.rejects(page.boot, /Unsupported lesson/);
+  assert.equal(page.calls.length, 0);
 });

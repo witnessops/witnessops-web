@@ -22,6 +22,7 @@ import { authDenial, introspectionFailure, isIdpUnreachable, jwtFailure } from '
 import { createRemoteJwks } from './jwks-client.mjs';
 import { isProtectedResourceMetadataRequest, protectedResourceMetadataPath } from './metadata-path.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
+import { assertPilotAccessReady, requireAccessPolicy, withPilotAdmission } from './pilot-access.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
@@ -47,9 +48,11 @@ const MAX_SESSIONS = int('MCP_MAX_SESSIONS', 200);
 const MAX_SESSIONS_PER_USER = int('MCP_MAX_SESSIONS_PER_USER', 5);
 const ALLOW_PUBLIC_BIND = bool('MCP_ALLOW_PUBLIC_BIND', false);
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
+const ACCESS_POLICY = requireAccessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved-free-pilot'));
 const CURRICULUM_DIR = path.resolve(PACKAGE_ROOT, env('MCP_CURRICULUM_DIR', 'curriculum'));
 const RESOURCE_NAME = env('MCP_RESOURCE_NAME', 'WitnessOps Academy');
 const IDP_TIMEOUT_MS = int('MCP_IDP_TIMEOUT_MS', 5000);
+const DATABASE_TIMEOUT_MS = 5000;
 
 for (const value of [RESOURCE, ORIGIN, PRM_PATH, REQUIRED_SCOPE, RESOURCE_NAME]) {
   if (/["\\\r\n]/.test(value)) throw new Error('MCP metadata contains a character that cannot go in a header');
@@ -63,7 +66,13 @@ const pool = new pg.Pool({
   user: env('ACADEMY_MCP_DB_USER', 'academy_mcp'),
   password: secret('ACADEMY_MCP_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
+  // Bound pool acquisition/connect, client response and PostgreSQL execution.
+  // pool.query releases errors with release(error), removing the failed client.
+  connectionTimeoutMillis: DATABASE_TIMEOUT_MS,
+  query_timeout: DATABASE_TIMEOUT_MS,
+  statement_timeout: DATABASE_TIMEOUT_MS,
 });
+await assertPilotAccessReady(pool, ACCESS_POLICY);
 const JWKS = createRemoteJwks(new URL(JWKS_URL), { timeoutMs: IDP_TIMEOUT_MS });
 const LESSONS = loadCurriculum(CURRICULUM_DIR);
 
@@ -192,6 +201,7 @@ const ok = (obj) => ({ content: [{ type: 'text', text: JSON.stringify(obj) }], s
 const fail = (obj) => ({ isError: true, content: [{ type: 'text', text: JSON.stringify(obj) }], structuredContent: obj });
 
 function buildServer() {
+  const admitted = (handler) => withPilotAdmission({ db: pool, policy: ACCESS_POLICY, ownerId }, handler);
   const server = new McpServer({ name: 'witnessops-academy', version: '0.1.0' }, { instructions: SERVER_INSTRUCTIONS });
   const listLessons = toolByName('list_lessons');
   const getLesson = toolByName('get_lesson');
@@ -202,30 +212,30 @@ function buildServer() {
     description: listLessons.description,
     inputSchema: listLessons.inputSchema,
     annotations: listLessons.annotations,
-  }, async () => ok({
+  }, admitted(async () => ok({
     lessons: [...LESSONS.values()].map(({ id, title, path: lessonPath, position }) => ({
       id,
       title,
       path: lessonPath,
       position,
     })),
-  }));
+  })));
   server.registerTool(getLesson.name, {
     title: getLesson.title,
     description: getLesson.description,
     inputSchema: getLesson.inputSchema,
     annotations: getLesson.annotations,
-  }, async ({ lesson_id: lessonId }) => (
+  }, admitted(async ({ lesson_id: lessonId }) => (
     LESSONS.has(lessonId) ? ok({ lesson: LESSONS.get(lessonId) }) : fail({ error: 'unknown_lesson', status: 404 })
-  ));
+  )));
   server.registerTool(getAnswer.name, {
     title: getAnswer.title,
     description: getAnswer.description,
     inputSchema: getAnswer.inputSchema,
     annotations: getAnswer.annotations,
-  }, async ({ lesson_id: lessonId }, extra) => {
+  }, admitted(async ({ lesson_id: lessonId }, extra, admittedOwner) => {
     if (!LESSONS.has(lessonId)) return fail({ error: 'unknown_lesson', status: 404 });
-    const owner = await ownerId(extra.authInfo);
+    const owner = admittedOwner ?? await ownerId(extra.authInfo);
     const { rows } = await pool.query(
       'SELECT content, version, updated_at FROM academy_lesson_drafts WHERE owner_id = $1 AND lesson_id = $2',
       [owner, lessonId],
@@ -234,18 +244,18 @@ function buildServer() {
     return rows[0]
       ? ok({ lesson_id: lessonId, found: true, text: rows[0].content, version: rows[0].version, updated_at: rows[0].updated_at })
       : ok({ lesson_id: lessonId, found: false, version: 0 });
-  });
+  }));
   server.registerTool(saveAnswer.name, {
     title: saveAnswer.title,
     description: saveAnswer.description,
     inputSchema: saveAnswer.inputSchema,
     annotations: saveAnswer.annotations,
-  }, async ({ lesson_id: lessonId, text, expected_version: expectedVersion }, extra) => {
+  }, admitted(async ({ lesson_id: lessonId, text, expected_version: expectedVersion }, extra, admittedOwner) => {
     if (!LESSONS.has(lessonId)) return fail({ error: 'unknown_lesson', status: 404 });
     const textError = answerTextError(text);
     if (textError) return fail(textError);
     const bytes = Buffer.byteLength(text, 'utf8');
-    const owner = await ownerId(extra.authInfo);
+    const owner = admittedOwner ?? await ownerId(extra.authInfo);
     const requestId = crypto.randomUUID();
     const saved = expectedVersion === 0
       ? await pool.query(
@@ -274,7 +284,7 @@ function buildServer() {
       current_version: current ? current.version : 0,
       updated_at: current?.updated_at,
     });
-  });
+  }));
   return server;
 }
 
@@ -388,6 +398,7 @@ server.listen(PORT, HOST, () => log({
   resource: RESOURCE,
   db: DB_NAME,
   introspect: INTROSPECT,
+  access_policy: ACCESS_POLICY,
   lessons: [...LESSONS.keys()],
 }));
 for (const signal of ['SIGTERM', 'SIGINT']) {

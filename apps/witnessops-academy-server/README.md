@@ -51,9 +51,12 @@ The proxy must always overwrite `X-Forwarded-For`, or append `$remote_addr` to i
 
 ## A4: one lesson journey
 
-The existing `witnessops-academy/public/lessons/report-or-evidence/` content is
-rendered at `/academy/learn/report-or-evidence`. All three public lesson aliases
-redirect there. The server snapshots the same public files at startup; ship both
+The existing Report or evidence? and Same record, wrong scope? lessons render
+at `/academy/learn/report-or-evidence` and `/academy/learn/same-scope`. Each set
+of three public aliases redirects to its own saved lesson. Login returns to the
+selected allowlisted lesson; URL parameters cannot create other return targets.
+Drafts keep the existing `(owner_id, lesson_id)` key, without a migration or any
+rewrite of existing progress. The server snapshots the same public files at startup; ship both
 Academy packages at the same revision and restart after a source change.
 The standalone static preview remains an unsaved preview.
 
@@ -85,3 +88,83 @@ production acceptance. [A3 token protection](SESSION-TOKEN-PROTECTION.md) and
 [the #573 reconciliation review](SECURITY-A3-RECONCILIATION.md) describe the
 combined source changes, explicit cutover, rotation, rollback limits and remaining
 operator acceptance. No production cutover or key provisioning has been applied.
+
+## Owner-approved initial free pilot
+
+Academy remains a paid programme; the owner approved an initial group of one to
+four learners free. The new server defaults to `ACADEMY_ACCESS_POLICY=approved-free-pilot`.
+Sign-in alone does not grant access. Both saved lessons and their draft endpoints
+require an unrevoked Academy pilot grant. Unknown policy values stop startup;
+missing migration `004_academy_pilot_invitations` also stops the admitted profile.
+The MCP server uses the same default policy and rechecks admission on every tool
+invocation, including existing sessions. All four tools require an active grant;
+unavailable grant status fails closed. Its database role can execute only a
+boolean admission predicate. MCP database acquisition/connection, client responses
+and PostgreSQL statement execution each have a five-second limit; failed pooled
+queries remove their connection. These are per-operation limits: identity lookup
+and the grant check run sequentially, rather than sharing one five-second request
+deadline. Stalled checks return `access_unavailable` without invoking the tool.
+The database role has no direct invitation/grant table access or
+rights to issue, redeem or revive access. Repeatable privilege reconciliation
+retains that narrow predicate permission. MCP curriculum remains limited to the
+existing mapped Report or evidence? lesson; adding saved browser Lesson 2 does
+not export another MCP curriculum entry.
+The explicit `session-only` compatibility profile exists for earlier regression
+fixtures and is not an accepted launch access policy.
+
+Invitations name an exact Keycloak issuer and subject, expire within seven days,
+and are consumed atomically into a fixed learner-only `approved_free` grant.
+They grant neither administrative nor community access. Existing identities and
+drafts are unchanged. The application can only preview/redeem invitations and
+read grant status; only the operator role can create or revoke them. Revoking an
+invitation and revoking granted access are separate actions. Revocation retains
+saved work and prevents subsequent lesson/draft reads and writes.
+
+The captured-email helper defaults to validation only:
+
+```sh
+node apps/witnessops-academy-server/scripts/prepare-pilot-invitations.mjs --help
+```
+
+Its apply mode accepts only an explicitly disposable loopback database, private
+files and `.invalid` captured recipients. It does not send email. The invitation
+bearer is delivered in a URL fragment, immediately removed from browser history,
+then sent in a same-origin POST or encrypted PKCE login context. No token or
+learner ID in a query string establishes access. Opening an invitation through
+the correct account is required; a reused link cannot create another grant.
+An operator must identify the real initial recipients and sender before any
+separately authorized real invitation is issued or delivered.
+
+Run `test/pilot-invitations-e2e.mjs` and `test/pilot-journey-e2e.mjs` directly with
+Node 22 only against the disposable CI profile, setting both `ACADEMY_E2E=1`
+and `ACADEMY_INVITATIONS_DISPOSABLE=1`. The PostgreSQL suite checks actual locking,
+privileges, expiry, revocation and preservation. The browser journey uses two
+synthetic learners, captured email, real Keycloak, saves, fresh login and restart.
+These are separate from service-free `pnpm academy:test`.
+
+No live checkout is included: payment provider, price/currency, access term,
+cancellation/refund rules and invoice workflow remain owner decisions. The free
+pilot does not imply a zero-priced public product or automatic enrollment.
+Rocket.Chat sign-in, private room admission and removal remain a separately
+verified integration; an Academy grant currently grants no chat membership.
+
+`ACADEMY_COMMUNITY_URL` optionally configures the existing community entry point.
+It accepts HTTPS, or loopback HTTP for isolated tests, without credentials, query
+parameters or fragments. The admitted lesson opens it in a separate tab to retain
+unsaved work. No Academy token is forwarded. This navigation alone is not proof
+of SSO or room admission; the community must enforce its own verified identity,
+persisted room membership, exclusion and operator removal. The disposable journey
+exports sanitized actual PostgreSQL grant states for attended community acceptance.
+
+Invitation pages use `Referrer-Policy: same-origin` so native form POSTs retain
+their exact Origin. Other server responses retain `no-referrer`. The invitation
+controller removes the fragment before submission. Origin and CSRF checks remain
+strict. Run the isolated native-form browser regression after installing Chromium:
+
+```sh
+ACADEMY_INVITATION_BROWSER=1 node apps/witnessops-academy-server/test/invitation-entry-browser.mjs
+```
+
+This regression uses actual HTML/controller/header policy and a synthetic loopback
+receiver. It proves native form/header behavior, not external identity integration.
+The separate two-learner Keycloak/PostgreSQL journey still verifies the full flow.

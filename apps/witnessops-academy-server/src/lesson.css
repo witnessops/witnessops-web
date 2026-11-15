@@ -2,3 +2,12 @@ body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding
 fieldset{margin:1rem 0}
 textarea{width:100%}
 small{color:#555}
+
+/* Shared saved-lesson layout under the authenticated strict CSP. */
+.lesson-eyebrow { margin-top: 28px; }
+.lesson-title { margin-top: 8px; }
+.lesson-dek { margin-top: 14px; }
+.lesson-claims { margin-bottom: 12px; }
+.lesson-divider { display: block; }
+.lesson-limit { color: var(--t1); }
+.lesson-report { margin-top: 0; }
