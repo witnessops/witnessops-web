@@ -6,11 +6,12 @@
  <nav id="academy-nav" aria-label="Academy navigation"><a href="/">Academy</a><a href="/#paths">Paths</a><a href="/#crew">The Crew</a><a href="/#how">How lessons work</a></nav>
 </header>
 <main id="main-content">
+<!-- academy-session -->
 <div class="col">
  <div class="crumb"><a href="/">Academy</a> / Verify results / Lesson 2</div>
- <div class="eyebrow" style="margin-top:28px">Verify results · Lesson 2 · pilot draft</div>
- <h1 style="margin-top:8px">Same record, wrong scope?</h1>
- <div class="dek" style="margin-top:14px">A lesson with Docs. A record can be true and still be about a different environment, target, or time than the claim.</div>
+ <div class="eyebrow lesson-eyebrow">Verify results · Lesson 2 · pilot draft</div>
+ <h1 class="lesson-title">Same record, wrong scope?</h1>
+ <div class="dek lesson-dek">A lesson with Docs. A record can be true and still be about a different environment, target, or time than the claim.</div>
  <div class="objective"><div class="k">Lesson objective</div><p>Decide whether a record is the same scope as the claim. A different scope is a gap, not a contradiction. For each claim, say whether it is evidenced, only claimed, or contradicted, and state one honest limit.</p></div>
  <div class="teacher"><img src="/assets/docs-256.png" alt="Docs, Crew teacher"><div><div class="rl">Your teacher · Crew</div><div class="nm">Docs</div><div class="ln">Keeps the records. Explains, shows, then reads your attempt. Coaches; never grades.</div></div></div>
 </div>
@@ -24,7 +25,7 @@
   <p>Lesson 1 asked you to sort a report into what a record shows, what only the report says, and what a same-scope record rules out. This lesson asks a narrower question: is this record about the same thing?</p>
   <p>Same scope means the same target, the same environment, and the same time, with the zone named. A staging log can be accurate and still say nothing about production. A missing record of this scope is a gap, not a “no”.</p>
  </div>
- <div class="claims" style="margin-bottom:12px">
+ <div class="claims lesson-claims">
   <div class="cl"><span class="st2 ev"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Evidenced</span><div class="why">A record of the same scope shows it happened.</div></div>
   <div class="cl"><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">Only the report says so for this scope. A true record of a different environment, target, or time is a gap, not a “no”.</div></div>
   <div class="cl"><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">An explicit record of the same scope shows something incompatible.</div></div>
@@ -36,7 +37,7 @@
  <div class="report"><div class="k">Agent report · example</div><p>“Search reindex run prod-42 finished in production at 09:00 UTC with zero errors. Customers can rely on the new index.”</p></div>
  <figure class="rec"><div class="hd"><span>Evidence record · example data</span><span>Teacher's own</span></div>
 <pre><b>EVIDENCE RECORD</b>
-<span class="dv" style="display:block"></span>Source    reindex log
+<span class="dv lesson-divider"></span>Source    reindex log
           service search-reindex
           environment: staging
           run: stage-17
@@ -45,7 +46,7 @@ Observed  2026-XX-XX 09:00:01 UTC
 Artifact  staging run log
           errors: 0
 SHA-256   1ab4…e20c (placeholder)
-<span class="dv" style="display:block"></span>Source    reindex log
+<span class="dv lesson-divider"></span>Source    reindex log
           service search-reindex
           environment: production
           run: prod-42
@@ -55,7 +56,7 @@ Artifact  production run log
           run: prod-42 finished at 09:18:40 UTC
           errors: 2
 SHA-256   9c0e…77a1 (placeholder)
-<span class="dv" style="display:block"></span>Not supplied
+<span class="dv lesson-divider"></span>Not supplied
           customer-search check
           of the production index</pre></figure>
  <div class="claims" id="sorted"><div class="hd">Docs sorts the claims <span>Worked example</span></div>
@@ -63,14 +64,14 @@ SHA-256   9c0e…77a1 (placeholder)
   <div class="cl"><div class="q">“Finished at 09:00 UTC”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log names the same run, prod-42, and records its finish at 09:18:40 UTC. That contradicts a 09:00 UTC finish for this run. The staging log belongs to stage-17; it cannot establish a production finish time.</div></div>
   <div class="cl"><div class="q">“Zero errors”</div><span class="st2 co"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.6"/></svg>Contradicted</span><div class="why">The production log for the same named run, prod-42, says errors: 2.</div></div>
   <div class="cl"><div class="q">“Customers can rely on the new index”</div><span class="st2 oc"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Only claimed</span><div class="why">No customer-search check was supplied. The production log does not measure that. <span class="st2 mi"><svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.6"/></svg>Missing evidence</span></div></div>
-  <div class="cl"><div class="q">Limit Docs writes</div><div class="why" style="color:var(--t1)">The production log shows a reindex run and an error count. It does not prove search quality for customers. The staging log is a different environment. The hashes here are only placeholders.</div></div>
+  <div class="cl"><div class="q">Limit Docs writes</div><div class="why lesson-limit">The production log shows a reindex run and an error count. It does not prove search quality for customers. The staging log is a different environment. The hashes here are only placeholders.</div></div>
  </div>
  <div class="say"><img src="/assets/docs-256.png" alt=""><div class="prose"><p>“The staging log is real. It is the wrong room. Same service, same environment, same named run: that is the scope you compare. Without the production log, the staging record would leave a gap, not a contradiction. A run log is not a check that customers can use the index.”</p></div></div>
 
  <div class="sec"><div class="n">III</div><h2>Your turn</h2></div>
  <div class="work" id="exercise">
   <div class="tag">Exercise <span id="attempt-label">Attempt 1 · your own words</span></div>
-  <div class="report" style="margin-top:0"><div class="k">Agent report · example</div><p>“The nightly price file was stored in production. All 4 regions loaded it. Checkout was checked against it.”</p></div>
+  <div class="report lesson-report"><div class="k">Agent report · example</div><p>“The nightly price file was stored in production. All 4 regions loaded it. Checkout was checked against it.”</p></div>
   <div class="lbl">Artifacts you can open · example data</div>
   <div class="attempt"><b>A · transfer log</b>  job price-file
 environment: production
@@ -107,7 +108,7 @@ environment: staging
    </div>
   </form>
   <p class="lesson-status" id="lesson-status" role="status" aria-live="polite"></p>
-  <p class="manual"><b>Pilot, by hand:</b> this page does not contact Docs. Send the copied answer in an existing conversation, then paste the teacher's reply below. Your answers stay only in this open page; reloading or closing it clears them.</p>
+  <p class="manual" id="lesson-storage-help"><b>Pilot, by hand:</b> this page does not contact Docs. Send the copied answer in an existing conversation, then paste the teacher's reply below. Your answers stay only in this open page; reloading or closing it clears them.</p>
  </div>
 
  <div class="sec"><div class="n">IV</div><h2>Feedback, then try again</h2></div>
@@ -116,7 +117,7 @@ environment: staging
   <textarea id="teacher-reply" maxlength="10000" placeholder="Paste the reply you received in your existing conversation."></textarea>
   <p class="meta">Pasted feedback is your record of that conversation. This page does not verify its source or generate a reply.</p>
   <div class="btnrow"><button type="button" class="btn ghost" id="start-retry">Start next attempt</button></div>
-  <p class="manual">Use the feedback to edit your own answers. Starting a retry keeps your previous choices for editing and keeps a copy of the earlier attempt below, only until this page closes or reloads.</p>
+  <p class="manual" id="lesson-history-help">Use the feedback to edit your own answers. Starting a retry keeps your previous choices for editing and keeps a copy of the earlier attempt below, only until this page closes or reloads.</p>
  </div>
  <div id="attempt-history" aria-label="Earlier attempts in this page"></div>
  <details class="feedback-example"><summary>See an example of teacher feedback <span aria-hidden="true">+</span></summary><div class="in">

@@ -152,18 +152,26 @@ class ProxyCandidateTests(unittest.TestCase):
             connection.close()
 
     def test_public_aliases_have_the_exact_redirect_and_no_backend_write(self):
-        for path in ["/lessons/report-or-evidence", "/lessons/report-or-evidence/", "/lessons/report-or-evidence/index.html?from=home"]:
+        for path in [f"/lessons/{lesson}{suffix}" for lesson in ["report-or-evidence", "same-scope"]
+                     for suffix in ["", "/", "/index.html?from=home"]]:
             for method in ["GET", "HEAD"]:
                 status, headers, _ = self.request(method, path)
                 self.assertEqual(status, 302)
-                self.assertEqual(headers.get("Location"), "/academy/learn/report-or-evidence")
+                self.assertEqual(headers.get("Location"), "/academy/learn/" + path.split("/")[2])
             status, headers, _ = self.request("POST", path, "synthetic")
             self.assertEqual(status, 405)
             self.assertEqual(headers.get("Allow"), "GET, HEAD")
 
     def test_exact_app_allowlist_and_reserved_paths(self):
         allowed = {"/academy/learn/report-or-evidence": ["GET", "HEAD"],
+                   "/academy/learn/same-scope": ["GET", "HEAD"],
+                   "/academy/api/lessons/same-scope/draft": ["GET", "PUT"],
                    "/academy/static/lesson.js": ["GET", "HEAD"],
+                   "/academy/invitation": ["GET", "HEAD"],
+                   "/academy/static/invitation.js": ["GET", "HEAD"],
+                   "/academy/auth/invitation": ["POST"],
+                   "/academy/api/invitations/preview": ["POST"],
+                   "/academy/api/invitations/redeem": ["POST"],
                    "/academy/auth/login": ["GET"], "/academy/auth/callback": ["GET"],
                    "/academy/api/lessons/report-or-evidence/draft": ["GET", "PUT"],
                    "/academy/auth/logout": ["POST"]}
@@ -177,7 +185,9 @@ class ProxyCandidateTests(unittest.TestCase):
                              ("DELETE", "/academy/api/lessons/report-or-evidence/draft"),
                              ("GET", "/academy/auth/logout"), ("HEAD", "/academy/auth/login"),
                              ("GET", "/academy/healthz"), ("GET", "/academy/api/other"),
-                             ("GET", "/academy/static/draft-text.mjs")]:
+                             ("GET", "/academy/static/draft-text.mjs"),
+                             ("PUT", "/academy/api/lessons/unknown/draft"),
+                             ("POST", "/academy/api/lessons/same-scope/draft")]:
             before = len(self.app.seen)
             self.assertEqual(self.request(method, path)[0], 404, (method, path))
             self.assertEqual(len(self.app.seen), before)

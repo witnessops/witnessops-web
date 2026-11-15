@@ -64,6 +64,8 @@ export function createPreauthCodec(key, options = {}) {
         state: fields.state,
         nonce: fields.nonce,
         verifier: fields.verifier,
+        ...(typeof fields.lessonId === 'string' ? { lessonId: fields.lessonId } : {}),
+        ...(typeof fields.invitationToken === 'string' ? { invitationToken: fields.invitationToken } : {}),
         id: crypto.randomBytes(16).toString('base64url'),
         exp: now + ttlMs,
       }, key);

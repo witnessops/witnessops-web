@@ -7,7 +7,11 @@ import crypto from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { preloadRoutes } from '../../witnessops-academy/scripts/serve.mjs';
-import { LESSON_ROUTE, LESSON_ALIASES, lessonPage } from './lesson-page.mjs';
+import { LESSON_ROUTE, lessonPage } from './lesson-page.mjs';
+import { LESSONS, DEFAULT_LESSON, lessonById, lessonByAlias, lessonByRoute, lessonByDraft } from './lesson-routes.mjs';
+import { accessPolicy, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
+import { communityUrl } from './community-link.mjs';
+import { previewInvitation, redeemInvitation, hasApprovedFreeGrant } from './pilot-invitations.mjs';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import * as oidc from 'openid-client';
@@ -24,10 +28,14 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
+const INVITATION_JS = readFileSync(join(HERE, 'invitation-client.js'));
+const ACCESS_POLICY = accessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved-free-pilot'));
+const REQUIRES_GRANT = ACCESS_POLICY === 'approved-free-pilot';
+const COMMUNITY_URL = communityUrl(env('ACADEMY_COMMUNITY_URL', ''));
 const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
-const LESSON_HTML = PUBLIC_ROUTES.get('/lessons/report-or-evidence/').body.toString();
+const LESSON_HTML = new Map(LESSONS.map(lesson => [lesson.id, PUBLIC_ROUTES.get(lesson.publicPath).body.toString()]));
 
 const HOST = env('ACADEMY_APP_HOST', '127.0.0.1');
 const PORT = int('ACADEMY_APP_PORT', 18300);
@@ -42,8 +50,6 @@ const CLIENT_SECRET = secret('ACADEMY_OIDC_CLIENT_SECRET');
 const sessionTokens = createSessionTokenCodec(readSessionTokenKeyring(), { issuer: ISSUER, clientId: CLIENT_ID });
 const SECURE = ORIGIN.startsWith('https://');
 const REDIRECT_URI = `${ORIGIN}/academy/auth/callback`;
-const LESSON_ID = 'report-or-evidence';
-const DRAFT_API = `/academy/api/lessons/${LESSON_ID}/draft`;
 const SESSION_TTL_MS = int('ACADEMY_SESSION_TTL_SECONDS', 8 * 3600) * 1000;
 const COOKIE = SECURE ? '__Host-academy_sid' : 'academy_sid';
 const PRE = SECURE ? '__Host-academy_preauth' : 'academy_preauth';
@@ -62,6 +68,10 @@ const pool = new pg.Pool({
   max: int('ACADEMY_DB_POOL_MAX', 5),
 });
 await assertTokenStorageReady(pool);
+if (REQUIRES_GRANT) {
+  const migration = await pool.query("SELECT 1 FROM academy_schema_migrations WHERE version='004_academy_pilot_invitations'");
+  if (migration.rowCount !== 1) throw new Error('Academy admission migration is required');
+}
 const IDP_TIMEOUT_MS = 5000;
 async function timedFetch(url, options = {}) {
   return fetch(url, { ...options, signal: options.signal ?? AbortSignal.timeout(IDP_TIMEOUT_MS) });
@@ -87,6 +97,8 @@ class IdpUnavailable extends Error {
 }
 const loginGuard = createLoginGuard();
 startLoginSweep(loginGuard);
+const invitationGuard = createLoginGuard();
+startLoginSweep(invitationGuard);
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const rnd = (n = 32) => crypto.randomBytes(n).toString('base64url');
@@ -218,11 +230,33 @@ function identityClaims(tokens) {
   return claims;
 }
 
+async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken } = {}) {
+  const decision = loginGuard.begin(requestClient(req));
+  if (!decision.ok) {
+    return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(decision.retryAfter) });
+  }
+  const state = rnd();
+  const nonce = rnd();
+  const verifier = oidc.randomPKCECodeVerifier();
+  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, invitationToken });
+  const to = oidc.buildAuthorizationUrl(config, {
+    redirect_uri: REDIRECT_URI,
+    scope: 'openid',
+    state,
+    nonce,
+    code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
+    code_challenge_method: 'S256',
+  });
+  return send(res, 302, '', { Location: to.href, 'Set-Cookie': setCookie(PRE, sealed, PREAUTH_TTL_MS / 1000) });
+}
+
 async function handle(req, res) {
   const url = new URL(req.url, ORIGIN);
   const p = url.pathname;
   const read = req.method === 'GET' || req.method === 'HEAD';
-  if (LESSON_ALIASES.has(p) && read) return send(res, 302, '', { Location: LESSON_ROUTE });
+  const alias = lessonByAlias(p);
+  if (alias) return read ? send(res, 302, '', { Location: alias.route })
+    : send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, HEAD' });
 
   if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
 
@@ -236,24 +270,57 @@ async function handle(req, res) {
     return send(res, 200, LESSON_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
   }
 
-  if (p === '/academy/auth/login' && req.method === 'GET') {
-    const decision = loginGuard.begin(requestClient(req));
-    if (!decision.ok) {
-      return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(decision.retryAfter) });
+  if (REQUIRES_GRANT && p === '/academy/invitation' && read) {
+    return send(res, 200, invitationPage(await getSession(req), { failed: url.searchParams.get('status') === 'not-accepted' }), INVITATION_PAGE_HEADERS);
+  }
+  if (REQUIRES_GRANT && p === '/academy/static/invitation.js' && read) {
+    return send(res, 200, INVITATION_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (REQUIRES_GRANT && p === '/academy/auth/invitation' && req.method === 'POST') {
+    if (req.headers.origin !== ORIGIN || (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site'] !== 'same-origin')) return send(res, 403, { error: 'origin' });
+    if (!(req.headers['content-type'] || '').startsWith('application/x-www-form-urlencoded')) return send(res, 415, { error: 'form_required' });
+    let raw;
+    try { raw = await readBody(req); } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_invitation' });
     }
-    const state = rnd();
-    const nonce = rnd();
-    const verifier = oidc.randomPKCECodeVerifier();
-    const sealed = preauth.seal({ state, nonce, verifier });
-    const to = oidc.buildAuthorizationUrl(config, {
-      redirect_uri: REDIRECT_URI,
-      scope: 'openid',
-      state,
-      nonce,
-      code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
-      code_challenge_method: 'S256',
-    });
-    return send(res, 302, '', { Location: to.href, 'Set-Cookie': setCookie(PRE, sealed, PREAUTH_TTL_MS / 1000) });
+    const fields = new URLSearchParams(raw);
+    const token = invitationInput({ token: fields.get('token') });
+    if (fields.size !== 1 || !token) return send(res, 400, { error: 'invalid_invitation' });
+    return startLogin(req, res, { invitationToken: token });
+  }
+  if (REQUIRES_GRANT && ['/academy/api/invitations/preview', '/academy/api/invitations/redeem'].includes(p)) {
+    const s = await getSession(req);
+    if (!s) return send(res, 401, { error: 'unauthenticated' });
+    if (req.method !== 'POST') return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'POST' });
+    const bad = csrfOk(req, s);
+    if (bad) return send(res, 403, { error: 'csrf', check: bad });
+    const limit = invitationGuard.begin(requestClient(req));
+    if (!limit.ok) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(limit.retryAfter) });
+    if (!(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'json_required' });
+    let body;
+    try { body = JSON.parse(await readBody(req)); } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_invitation' });
+    }
+    const token = invitationInput(body);
+    if (!token) return send(res, 400, { error: 'invalid_invitation' });
+    const result = p.endsWith('/preview') ? await previewInvitation(pool, { token, identityId: s.identity_id })
+      : await redeemInvitation(pool, { token, identityId: s.identity_id });
+    return send(res, result.ok ? 200 : 403, result.ok
+      ? (p.endsWith('/preview') ? { eligible: true } : { accepted: true })
+      : { error: 'invalid_invitation' });
+  }
+  if (p === '/academy/auth/login' && req.method === 'GET') {
+    return startLogin(req, res, { lesson: lessonById(url.searchParams.get('lesson')) || DEFAULT_LESSON });
   }
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
@@ -298,9 +365,14 @@ async function handle(req, res) {
       VALUES ($1,$2,$3,$4,$5, now()+make_interval(secs=>$6), now()+make_interval(secs=>$7))`,
       [context.token_hash, context.identity_id, csrf, claims.sid || null, sealed, tokens.expires_in || 300, SESSION_TTL_MS / 1000],
     );
+    let destination = (lessonById(pa.lessonId) || DEFAULT_LESSON).route;
+    if (REQUIRES_GRANT && pa.invitationToken) {
+      const result = await redeemInvitation(pool, { token: pa.invitationToken, identityId: rows[0].id });
+      if (!result.ok) destination = '/academy/invitation?status=not-accepted';
+    }
     log({ ev: 'login', identity: rows[0].id });
     return send(res, 302, '', {
-      Location: LESSON_ROUTE,
+      Location: destination,
       'Set-Cookie': [setCookie(COOKIE, sid, SESSION_TTL_MS / 1000), setCookie(PRE, '', 0)],
     });
   }
@@ -344,9 +416,12 @@ async function handle(req, res) {
     });
   }
 
-  if (p === DRAFT_API) {
+  const draftLesson = lessonByDraft(p);
+  if (draftLesson) {
+    const LESSON_ID = draftLesson.id;
     const s = await getSession(req);
     if (!s) return send(res, 401, { error: 'unauthenticated' });
+    if (REQUIRES_GRANT && !await hasApprovedFreeGrant(pool, { identityId: s.identity_id })) return send(res, 403, { error: 'access_required' });
     if (req.method === 'GET') {
       const { rows } = await pool.query(
         'SELECT content, version, updated_at FROM academy_lesson_drafts WHERE owner_id = $1 AND lesson_id = $2',
@@ -408,9 +483,13 @@ async function handle(req, res) {
     return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, PUT' });
   }
 
-  if (p === LESSON_ROUTE && read) {
+  const lesson = lessonByRoute(p);
+  if (lesson && read) {
     const s = await getSession(req);
-    return send(res, 200, lessonPage(LESSON_HTML, s));
+    if (REQUIRES_GRANT && (!s || !await hasApprovedFreeGrant(pool, { identityId: s.identity_id }))) {
+      return send(res, 403, invitationPage(s, { denied: true, lesson }), INVITATION_PAGE_HEADERS);
+    }
+    return send(res, 200, lessonPage(LESSON_HTML.get(lesson.id), s, lesson, COMMUNITY_URL));
   }
   const resource = PUBLIC_ROUTES.get(p);
   if (resource && read) return send(res, 200, resource.body, { 'Content-Type': resource.type });

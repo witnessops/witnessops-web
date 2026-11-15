@@ -45,6 +45,8 @@ jobs:
       KC_REALM: academy
       ACADEMY_PUBLIC_ORIGIN: http://127.0.0.1:18300
       ACADEMY_E2E: "1"
+      # Explicit legacy fixture only; the production server still defaults to approved-free-pilot.
+      ACADEMY_ACCESS_POLICY: session-only
       ACADEMY_PG_CONTAINER: academy-pg
       ACADEMY_TEST_KC_CONTAINER: academy-kc
 
@@ -106,6 +108,9 @@ jobs:
 
       - name: Install Chromium for the real lesson journey
         run: pnpm exec playwright install chromium --with-deps
+
+      - name: Validate native invitation form Origin and fragment handling
+        run: ACADEMY_INVITATION_BROWSER=1 node apps/witnessops-academy-server/test/invitation-entry-browser.mjs
 
       - name: Start Postgres 17 and Keycloak 26.8.2
         id: deps
@@ -298,6 +303,45 @@ jobs:
             done
           fi
           exit "$code"
+
+      - name: Verify disposable invitation PostgreSQL invariants
+        id: invitation_core
+        timeout-minutes: 5
+        env:
+          ACADEMY_INVITATIONS_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == session-only ]]
+          node apps/witnessops-academy-server/test/pilot-invitations-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-invitations.log"
+
+      - name: Verify approved-free invitation and return journey
+        id: invitation_journey
+        timeout-minutes: 15
+        env:
+          ACADEMY_INVITATIONS_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          node apps/witnessops-academy-server/test/ci-access-policy.mjs approved-free-pilot
+          set -a
+          # Child restarts source this same persisted profile, not the job's legacy fixture value.
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == approved-free-pilot ]]
+          bash "$ACADEMY_TEST_RESTART_APP_CMD" "$ACADEMY_DB_NAME"
+          node apps/witnessops-academy-server/test/pilot-journey-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-journey.log"
 
       - name: Fail if generated secrets or JWTs appear in logs or evidence
         id: scan
