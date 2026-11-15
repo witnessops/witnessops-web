@@ -23,6 +23,9 @@ REPO_ROOT=$(cd "$ROOT/../.." && pwd)
 : "${ACADEMY_DB_PORT:=5432}"
 : "${ACADEMY_DB_NAME:=academy}"
 : "${ACADEMY_DB_USER:=academy_app}"
+# The older HTTP/MCP/browser fixture explicitly exercises session-only behavior.
+: "${ACADEMY_ACCESS_POLICY:=session-only}"
+case "$ACADEMY_ACCESS_POLICY" in session-only|approved-free-pilot) ;; *) echo "bad fixture access policy" >&2; exit 1 ;; esac
 : "${ACADEMY_TEST_PGADMIN_USER:=postgres}"
 : "${ACADEMY_APP_HOST:=127.0.0.1}"
 : "${ACADEMY_APP_PORT:=18300}"
@@ -34,9 +37,14 @@ REPO_ROOT=$(cd "$ROOT/../.." && pwd)
 : "${ACADEMY_TEST_PGADMIN_PASSWORD_FILE:=$ACADEMY_CI_SECRET_DIR/pg_admin_password}"
 : "${KC_ADMIN_PASSWORD_FILE:=$ACADEMY_CI_SECRET_DIR/kc_admin_password}"
 
+# This helper owns disposable fixtures only, never an operational deployment.
+if [[ "${ACADEMY_E2E:-}" != 1 ]]; then echo "disposable e2e profile required" >&2; exit 1; fi
+case "$ACADEMY_DB_HOST" in 127.0.0.1|localhost|::1) ;; *) echo "disposable loopback database required" >&2; exit 1 ;; esac
+case "$ACADEMY_APP_HOST" in 127.0.0.1|localhost|::1) ;; *) echo "disposable loopback application required" >&2; exit 1 ;; esac
+
 export KC_ADMIN_BASE_URL ACADEMY_PUBLIC_ORIGIN KC_REALM KC_CREATE_TEST_USERS
 export KC_ADMIN_PASSWORD_GRANT KC_ADMIN_USERNAME KC_SSL_REQUIRED
-export ACADEMY_DB_HOST ACADEMY_DB_PORT ACADEMY_DB_NAME ACADEMY_DB_USER
+export ACADEMY_DB_HOST ACADEMY_DB_PORT ACADEMY_DB_NAME ACADEMY_DB_USER ACADEMY_ACCESS_POLICY
 export ACADEMY_TEST_PGADMIN_USER ACADEMY_APP_HOST ACADEMY_APP_PORT
 export ACADEMY_OIDC_CLIENT_ID TEST_LEARNER_A_USERNAME TEST_LEARNER_B_USERNAME
 export ACADEMY_TEST_KC_CONTAINER ACADEMY_PG_CONTAINER
@@ -301,6 +309,7 @@ write_env ACADEMY_DB_HOST "$ACADEMY_DB_HOST"
 write_env ACADEMY_DB_PORT "$ACADEMY_DB_PORT"
 write_env ACADEMY_DB_NAME "$ACADEMY_DB_NAME"
 write_env ACADEMY_DB_USER "$ACADEMY_DB_USER"
+write_env ACADEMY_ACCESS_POLICY "$ACADEMY_ACCESS_POLICY"
 write_env ACADEMY_DB_PASSWORD_FILE "$ACADEMY_DB_PASSWORD_FILE"
 write_env ACADEMY_MCP_DB_USER "$ACADEMY_MCP_DB_USER"
 write_env ACADEMY_MCP_DB_PASSWORD_FILE "$ACADEMY_MCP_DB_PASSWORD_FILE"

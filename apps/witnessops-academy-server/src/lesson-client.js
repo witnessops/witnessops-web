@@ -1,8 +1,9 @@
 import { collectProgress, restoreProgress, clearPageState } from '/lesson.mjs';
 import { parseProgress } from '/lesson-progress.mjs';
 
-const API = '/academy/api/lessons/report-or-evidence/draft';
 const form = document.querySelector('#lesson-form');
+const API = form.dataset.draftApi;
+if (!['/academy/api/lessons/report-or-evidence/draft', '/academy/api/lessons/same-scope/draft'].includes(API)) throw new Error('Unsupported lesson');
 const status = document.querySelector('#progress-status');
 const save = document.querySelector('#save-progress');
 const logout = document.querySelector('#sign-out');
@@ -64,6 +65,10 @@ async function load() {
     const response = await fetch(API, { cache: 'no-store', credentials: 'same-origin' });
     if (!signedIn || current !== generation) return;
     if (response.status === 401) return ended('Your session ended. Sign in again to recover your saved work.');
+    if (response.status === 403) {
+      status.textContent = 'Your Academy access is unavailable. Your saved work is retained; contact the owner.';
+      return;
+    }
     if (response.status === 404) {
       const body = await response.json();
       if (!signedIn || current !== generation) return;

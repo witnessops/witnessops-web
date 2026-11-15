@@ -18,3 +18,13 @@ test('csrf JSON is HTML escaped and all public lesson aliases select the same jo
   assert.doesNotMatch(lessonPage(html, { csrf_token: '</script><img>' }), /<\/script><img>/);
   for (const path of ['/lessons/report-or-evidence', '/lessons/report-or-evidence/', '/lessons/report-or-evidence/index.html']) assert.ok(LESSON_ALIASES.has(path));
 });
+
+test('second lesson uses its own endpoint and retains its return path without inline styling', async () => {
+  const { lessonById } = await import('../src/lesson-routes.mjs');
+  const second = readFileSync(new URL('../../witnessops-academy/public/lessons/same-scope/index.html', import.meta.url), 'utf8');
+  const page = lessonPage(second, { csrf_token: 'synthetic-token' }, lessonById('same-scope'));
+  assert.match(page, /data-draft-api="\/academy\/api\/lessons\/same-scope\/draft"/);
+  assert.match(page, /href="\/academy\/auth\/login\?lesson=same-scope"/);
+  assert.match(page, /id="save-progress"/);
+  assert.doesNotMatch(page, /style=|reloading or closing it clears them|only until this page closes/);
+});

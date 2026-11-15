@@ -18,9 +18,22 @@ academy.witnessops.com {
 			respond "Method not allowed" 405
 		}
 
+		@secondLessonRead {
+			method GET HEAD
+			path /lessons/same-scope /lessons/same-scope/ /lessons/same-scope/index.html
+		}
+		handle @secondLessonRead {
+			redir * /academy/learn/same-scope 302
+		}
+		@secondLessonOther path /lessons/same-scope /lessons/same-scope/ /lessons/same-scope/index.html
+		handle @secondLessonOther {
+			header Allow "GET, HEAD"
+			respond "Method not allowed" 405
+		}
+
 		@academyRead {
 			method GET HEAD
-			path /academy/learn/report-or-evidence /academy/static/lesson.js
+			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/invitation /academy/static/invitation.js
 		}
 		handle @academyRead {
 			reverse_proxy 127.0.0.1:18300 {
@@ -40,9 +53,19 @@ academy.witnessops.com {
 		}
 		@academyDraft {
 			method GET PUT
-			path /academy/api/lessons/report-or-evidence/draft
+			path /academy/api/lessons/report-or-evidence/draft /academy/api/lessons/same-scope/draft
 		}
 		handle @academyDraft {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyInvitationWrite {
+			method POST
+			path /academy/auth/invitation /academy/api/invitations/preview /academy/api/invitations/redeem
+		}
+		handle @academyInvitationWrite {
 			reverse_proxy 127.0.0.1:18300 {
 				header_up -Forwarded
 				header_up X-Forwarded-For {http.request.remote.host}

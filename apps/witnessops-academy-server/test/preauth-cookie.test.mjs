@@ -44,3 +44,18 @@ test('a preauth key shorter than 32 bytes is refused', () => {
   assert.throws(() => preauthKeyFromSecret('a'.repeat(31)), /ACADEMY_PREAUTH_KEY must be at least 32 bytes/);
   assert.equal(preauthKeyFromSecret('a'.repeat(32)).length, 32);
 });
+
+test('sealed login context retains a lesson choice for an allowlisted callback return', () => {
+  const codec = createPreauthCodec(key);
+  const token = codec.seal({ state: 's', nonce: 'n', verifier: 'v', lessonId: 'same-scope' });
+  assert.equal(codec.open(token).lessonId, 'same-scope');
+});
+
+test('invitation context is encrypted, authenticated and single-use with login', () => {
+  const codec = createPreauthCodec(key);
+  const invitationToken = 'x'.repeat(43);
+  const token = codec.seal({ state: 's', nonce: 'n', verifier: 'v', invitationToken });
+  assert.equal(token.includes(invitationToken), false);
+  assert.equal(codec.open(token).invitationToken, invitationToken);
+  assert.equal(codec.open(token), null);
+});

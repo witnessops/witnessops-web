@@ -16,7 +16,8 @@ explain the source checks.
 
 ## Checked request contract
 
-- GET/HEAD public lesson aliases redirect to the single authenticated lesson.
+- GET/HEAD aliases for each of the two pilot lessons redirect to its matching
+  authenticated lesson and its separate allowlisted draft endpoint.
   Other methods on those aliases receive 405.
 - GET/HEAD serves the authenticated lesson and its controller. Only GET reaches
   login/callback. Only GET/PUT reaches the exact lesson draft. Only POST reaches

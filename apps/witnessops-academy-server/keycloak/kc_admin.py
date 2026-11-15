@@ -278,9 +278,41 @@ def setup():
     assert_client_contract(access)
 
 
+def create_test_invitee(username):
+    # Test-only first-use coverage. Never provision a real or nonloopback account.
+    if not CREATE_TEST_USERS or urllib.parse.urlparse(KC).hostname not in {"127.0.0.1", "localhost", "::1"}:
+        raise SystemExit("first-use invitee requires disposable loopback test profile")
+    import re
+    if not re.fullmatch(r"learner-new-[a-f0-9-]{8,40}", username):
+        raise SystemExit("synthetic first-use username required")
+    def quiet_ok(status, label):
+        if status >= 300:
+            raise SystemExit(f"{label} failed status {status}")
+
+    access = token()
+    status, existing = req("GET", f"/admin/realms/{REALM}/users?exact=true&username={urllib.parse.quote(username)}", token=access)
+    quiet_ok(status, "synthetic invitee lookup")
+    if existing:
+        raise SystemExit("synthetic first-use invitee already exists")
+    status, _body = req("POST", f"/admin/realms/{REALM}/users", {
+        "username": username, "enabled": True, "email": username + "@example.invalid",
+        "emailVerified": True, "firstName": "Synthetic", "lastName": "First-use learner", "requiredActions": [],
+    }, access)
+    quiet_ok(status, "synthetic invitee create")
+    subject = uid(access, username)
+    # Reuse a generated, already masked disposable fixture password, never an operational key.
+    status, _body = req("PUT", f"/admin/realms/{REALM}/users/{subject}/reset-password", {
+        "type": "password", "value": secret("TEST_LEARNER_B_PASSWORD"), "temporary": False,
+    }, access)
+    quiet_ok(status, "synthetic invitee password")
+    print(json.dumps({"subject": subject, "username": username}))
+
+
 def main():
     command = sys.argv[1]
-    if command == "setup":
+    if command == "create-test-invitee":
+        create_test_invitee(sys.argv[2])
+    elif command == "setup":
         setup()
     elif command == "user-id":
         print(uid(token(), sys.argv[2]))
