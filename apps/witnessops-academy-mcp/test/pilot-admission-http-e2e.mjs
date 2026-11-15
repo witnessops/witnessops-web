@@ -31,6 +31,7 @@ const PW = {
 };
 const PGADMIN = env('ACADEMY_TEST_PGADMIN_USER', 'postgres');
 const PGADMIN_PW = secret('ACADEMY_TEST_PGADMIN_PASSWORD');
+const MCP_DB_USER = env('ACADEMY_MCP_DB_USER', 'academy_mcp');
 const MCP_DB_PW = secret('ACADEMY_MCP_DB_PASSWORD');
 const DBH = env('ACADEMY_DB_HOST', '127.0.0.1');
 const DBP = int('ACADEMY_DB_PORT', 5432);
@@ -195,6 +196,54 @@ try {
  } finally { await operator.query('GRANT EXECUTE ON FUNCTION public.academy_has_approved_free_grant(uuid) TO academy_mcp'); }
  assert.equal(obj(await a.client.callTool({ name:'get_my_answer', arguments:{ lesson_id:LESSON } })).text,contents[0]);
  pass('unavailable admission predicate fails all four tools closed with 503 and recovers without losing work');
+ // Exercise the actual MCP process/pool, including more requests than its
+ // default five clients. Locks block identity lookup and admission separately.
+ for (const relation of ['academy_identities', 'academy_pilot_grants']) {
+  const snapshot = (await operator.query(
+   'SELECT content,version FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2',
+   [a.identity.id, LESSON],
+  )).rows[0];
+  const blocker = await operator.connect();
+  const started = performance.now();
+  try {
+   await blocker.query('BEGIN');
+   await blocker.query(`LOCK TABLE public.${relation} IN ACCESS EXCLUSIVE MODE`);
+   const responses = await Promise.all(Array.from({ length: 6 }, (_, index) => {
+    const [name, original] = cases[index % cases.length];
+    const args = name === 'save_answer'
+     ? { lesson_id: LESSON, text: 'Synthetic blocked write must never run', expected_version: snapshot.version }
+     : original;
+    return a.client.callTool({ name, arguments: args }, undefined, { timeout: 20000 });
+   }));
+   assert.ok(performance.now() - started < 20000, 'stalled checks must finish within the request budget');
+   for (const response of responses) {
+    assert.equal(response.isError, true);
+    assert.deepEqual(obj(response), { error: 'access_unavailable', status: 503 });
+   }
+   const blocked = await operator.query(
+    `SELECT count(*)::int AS count FROM pg_stat_activity
+     WHERE datname=$1 AND usename=$2 AND wait_event_type='Lock'`,
+    [DBN, MCP_DB_USER],
+   );
+   assert.equal(blocked.rows[0].count, 0, 'timed-out queries must not retain blocked connections');
+  } finally {
+   await blocker.query('ROLLBACK');
+   blocker.release();
+  }
+  const recovered = await Promise.all(Array.from({ length: 6 }, () =>
+   a.client.callTool({ name: 'get_my_answer', arguments: { lesson_id: LESSON } }),
+  ));
+  for (const response of recovered) {
+   assert.notEqual(response.isError, true);
+   assert.equal(obj(response).text, snapshot.content);
+   assert.equal(obj(response).version, snapshot.version);
+  }
+  assert.deepEqual((await operator.query(
+   'SELECT content,version FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2',
+   [a.identity.id, LESSON],
+  )).rows[0], snapshot, 'timed-out checks must not invoke a delayed save');
+  pass(`stalled ${relation} checks return bounded 503, release capacity and retain saved work`);
+ }
 } catch (error) { failed = true; console.error(redactText(error.stack)); process.exitCode = 1; }
 finally {
  for (const client of clients) await client.close().catch(() => {});
@@ -205,5 +254,5 @@ finally {
  await runtime.end(); await operator.end();
  fs.writeFileSync(path.join(EV, 'pilot-mcp-admission-http-results.json'), JSON.stringify({ scope:'disposable real Keycloak/PostgreSQL/MCP HTTP', results, failed }, null, 2));
 }
-console.log(`RESULT MCP pilot ${results.length}/5 PASS`);
-if (results.length !== 5) process.exitCode = 1;
+console.log(`RESULT MCP pilot ${results.length}/7 PASS`);
+if (results.length !== 7) process.exitCode = 1;

@@ -99,7 +99,12 @@ missing migration `004_academy_pilot_invitations` also stops the admitted profil
 The MCP server uses the same default policy and rechecks admission on every tool
 invocation, including existing sessions. All four tools require an active grant;
 unavailable grant status fails closed. Its database role can execute only a
-status-only boolean predicate, without direct invitation/grant table access or
+boolean admission predicate. MCP database acquisition/connection, client responses
+and PostgreSQL statement execution each have a five-second limit; failed pooled
+queries remove their connection. These are per-operation limits: identity lookup
+and the grant check run sequentially, rather than sharing one five-second request
+deadline. Stalled checks return `access_unavailable` without invoking the tool.
+The database role has no direct invitation/grant table access or
 rights to issue, redeem or revive access. Repeatable privilege reconciliation
 retains that narrow predicate permission. MCP curriculum remains limited to the
 existing mapped Report or evidence? lesson; adding saved browser Lesson 2 does

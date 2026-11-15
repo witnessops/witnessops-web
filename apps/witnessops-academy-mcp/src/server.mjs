@@ -52,6 +52,7 @@ const ACCESS_POLICY = requireAccessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved
 const CURRICULUM_DIR = path.resolve(PACKAGE_ROOT, env('MCP_CURRICULUM_DIR', 'curriculum'));
 const RESOURCE_NAME = env('MCP_RESOURCE_NAME', 'WitnessOps Academy');
 const IDP_TIMEOUT_MS = int('MCP_IDP_TIMEOUT_MS', 5000);
+const DATABASE_TIMEOUT_MS = 5000;
 
 for (const value of [RESOURCE, ORIGIN, PRM_PATH, REQUIRED_SCOPE, RESOURCE_NAME]) {
   if (/["\\\r\n]/.test(value)) throw new Error('MCP metadata contains a character that cannot go in a header');
@@ -65,6 +66,11 @@ const pool = new pg.Pool({
   user: env('ACADEMY_MCP_DB_USER', 'academy_mcp'),
   password: secret('ACADEMY_MCP_DB_PASSWORD'),
   max: int('ACADEMY_DB_POOL_MAX', 5),
+  // Bound pool acquisition/connect, client response and PostgreSQL execution.
+  // pool.query releases errors with release(error), removing the failed client.
+  connectionTimeoutMillis: DATABASE_TIMEOUT_MS,
+  query_timeout: DATABASE_TIMEOUT_MS,
+  statement_timeout: DATABASE_TIMEOUT_MS,
 });
 await assertPilotAccessReady(pool, ACCESS_POLICY);
 const JWKS = createRemoteJwks(new URL(JWKS_URL), { timeoutMs: IDP_TIMEOUT_MS });
