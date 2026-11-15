@@ -277,17 +277,6 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
       p { margin: 0 0 8px; max-width: 100%; min-width: 0; overflow-wrap: break-word; }
     </style></head><body>
       <main><p data-company-registry="">${registry}</p></main>
-      <script>
-        const root = document.documentElement;
-        const line = document.querySelector("[data-company-registry]");
-        parent.postMessage({
-          overflow: root.scrollWidth > root.clientWidth || line.scrollWidth > line.clientWidth,
-          scroll: root.scrollWidth,
-          client: root.clientWidth,
-          lineScroll: line.scrollWidth,
-          lineClient: line.clientWidth,
-        }, "*");
-      </script>
     </body></html>`;
   const frames = [390, 768, 1440].flatMap((width) =>
     ["light", "dark"].map((scheme) => ({ width, scheme })),
@@ -306,14 +295,21 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
         .join("\n")}
       <pre id="result"></pre>
       <script>
-        const results = {};
-        const frames = Array.from(document.querySelectorAll("iframe"));
-        addEventListener("message", (event) => {
-          const source = frames.find((item) => item.contentWindow === event.source);
-          if (!source) return;
-          results[source.dataset.frame] = event.data;
+        addEventListener("load", () => {
+          const results = {};
+          for (const frame of document.querySelectorAll("iframe")) {
+            const root = frame.contentDocument.documentElement;
+            const line = frame.contentDocument.querySelector("[data-company-registry]");
+            results[frame.dataset.frame] = {
+              overflow: root.scrollWidth > root.clientWidth || line.scrollWidth > line.clientWidth,
+              scroll: root.scrollWidth,
+              client: root.clientWidth,
+              lineScroll: line.scrollWidth,
+              lineClient: line.clientWidth,
+            };
+          }
           document.getElementById("result").textContent = JSON.stringify(results);
-        });
+        }, { once: true });
       </script>
     </body></html>`,
   );
@@ -335,6 +331,7 @@ test("the court line wraps without horizontal overflow at 390, 768 and 1440", (t
     ],
     { encoding: "utf8", timeout: 60_000 },
   );
+  assert.equal(launched.status, 0, `Chrome measurement failed: ${launched.error?.message ?? launched.stderr}`);
   const dom = String(launched.stdout ?? "");
   const matched = dom.match(/<pre id="result">([\s\S]*?)<\/pre>/);
   assert.ok(matched, `missing overflow result status=${launched.status} signal=${launched.signal} error=${launched.error?.message ?? "none"} stderr=${String(launched.stderr ?? "").slice(-400)}`);
