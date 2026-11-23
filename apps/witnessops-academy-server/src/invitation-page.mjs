@@ -18,8 +18,10 @@ export function invitationInput(body) {
 }
 const jsonText = value => JSON.stringify(value).replaceAll('<', String.fromCharCode(92) + 'u003c');
 
-// Only fixed application text and an existing random CSRF token enter this page.
-export function invitationPage(session, { denied = false, failed = false, lesson = DEFAULT_LESSON } = {}) {
+// Only fixed text, the validated Community URL and an existing random CSRF token enter this page.
+export function invitationPage(session, { denied = false, failed = false, lesson = DEFAULT_LESSON, communityUrl = null } = {}) {
+  const community = session && communityUrl
+    ? `<p><a id="community-link" class="btn ghost" href="${communityUrl.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;')}" target="_blank" rel="noopener noreferrer">Community (opens in a new tab)</a></p>` : '';
   const status = failed ? 'Invitation not accepted. Sign in with the invited account and reopen the original link. Expired, revoked or used invitations need a new invitation from the owner.'
     : denied ? 'You need an owner-approved pilot place to use saved lessons. Sign-in alone does not grant access. Your previously saved work is retained.'
       : 'Open your invitation link to accept your free pilot place.';
@@ -32,7 +34,7 @@ export function invitationPage(session, { denied = false, failed = false, lesson
 <input type="hidden" id="invitation-token" name="token"><button class="btn" id="accept-invitation" type="${session ? 'button' : 'submit'}" disabled>${session ? 'Accept invitation' : 'Accept invitation and sign in'}</button></form>
 <p><a id="sign-in" href="/academy/auth/login?lesson=${lesson.id}"${session ? ' hidden' : ''}>Sign in</a>
 <button class="btn ghost" type="button" id="sign-out"${session ? '' : ' hidden'}>Sign out</button></p>
-<noscript>JavaScript is required to accept this private invitation. Contact the Academy owner if you cannot use it.</noscript>
+${community}<noscript>JavaScript is required to accept this private invitation. Contact the Academy owner if you cannot use it.</noscript>
 </main>${session ? `<script type="application/json" id="academy-csrf">${jsonText(session.csrf_token)}</script>` : ''}
 <script type="module" src="/academy/static/invitation.js"></script></body></html>`;
 }

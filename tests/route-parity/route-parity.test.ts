@@ -97,6 +97,15 @@ test("routes-manifest matches the frozen baseline", () => {
       { key: "Cache-Control", value: "no-store" },
     ],
   }]);
+  const matrixDiscoveryPath = "/.well-known/matrix/client";
+  const matrixDiscoveryHeaders = manifest.headers.filter(header => header.source === matrixDiscoveryPath);
+  assert.deepEqual(matrixDiscoveryHeaders, [{
+    source: matrixDiscoveryPath, regex: "^/\\.well-known/matrix/client(?:/)?$", headers: [
+      { key: "Content-Type", value: "application/json; charset=utf-8" },
+      { key: "Access-Control-Allow-Origin", value: "*" },
+      { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+    ],
+  }]);
   const analyticsSources = ["/", "/:section(pricing|privacy|terms|security|media-kit|why|support|review|docs|articles|research|services|catalog|library|why-witnessops)/:path*"];
   const analyticsHeaders = manifest.headers.filter(header => analyticsSources.includes(header.source));
   assert.equal(analyticsHeaders.length, 2);
@@ -106,7 +115,7 @@ test("routes-manifest matches the frozen baseline", () => {
     for (const excluded of ["/admin", "/api/admin/workos/callback", "/check", "/proofpack", "/package/private", "/assessment/private", "/verify-token"]) assert.equal(new RegExp(header.regex).test(excluded), false);
   }
   assert.deepEqual(
-    { ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) },
+    { ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", matrixDiscoveryPath, ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) },
     { ...expectedManifest, staticRoutes: expectedManifest.staticRoutes.filter(route => !retiredRoutes.some(({ publicPath }) => publicPath === route.page)) },
   );
 });

@@ -145,15 +145,17 @@ These are separate from service-free `pnpm academy:test`.
 No live checkout is included: payment provider, price/currency, access term,
 cancellation/refund rules and invoice workflow remain owner decisions. The free
 pilot does not imply a zero-priced public product or automatic enrollment.
-Rocket.Chat sign-in, private room admission and removal remain a separately
+Community sign-in, private room admission and removal remain a separately
 verified integration; an Academy grant currently grants no chat membership.
 
 `ACADEMY_COMMUNITY_URL` optionally configures the existing community entry point.
 It accepts HTTPS, or loopback HTTP for isolated tests, without credentials, query
-parameters or fragments. The admitted lesson opens it in a separate tab to retain
-unsaved work. No Academy token is forwarded. This navigation alone is not proof
-of SSO or room admission; the community must enforce its own verified identity,
-persisted room membership, exclusion and operator removal. The disposable journey
+parameters or fragments. Signed-in lessons and invitation/admission pages open it
+in a separate tab to retain unsaved work. Community navigation does not require
+an Academy course grant; lesson and draft access still do. No Academy token is
+forwarded. This navigation alone is not proof of SSO or room admission; the
+community must enforce its own verified identity, persisted room membership,
+exclusion and operator removal. The disposable journey
 exports sanitized actual PostgreSQL grant states for attended community acceptance.
 
 Invitation pages use `Referrer-Policy: same-origin` so native form POSTs retain
