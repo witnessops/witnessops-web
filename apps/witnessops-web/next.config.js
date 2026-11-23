@@ -118,6 +118,14 @@ const nextConfig = {
         ],
       },
       {
+        source: "/.well-known/matrix/client",
+        headers: [
+          { key: "Content-Type", value: "application/json; charset=utf-8" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+        ],
+      },
+      {
         source: "/.well-known/witnessops-demo-signing-keys.json",
         headers: [
           {
