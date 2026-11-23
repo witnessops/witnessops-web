@@ -84,7 +84,7 @@
   },
   "pnpm": {
     "overrides": {
-      "next": "15.5.28",
+      "next": "15.5.29",
       "postcss": ">=8.5.18",
       "flatted": ">=3.4.2",
       "@hono/node-server": "2.1.6",
