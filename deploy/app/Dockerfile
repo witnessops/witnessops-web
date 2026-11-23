@@ -7,7 +7,7 @@ ENV NEXT_PUBLIC_WORKOS_REDIRECT_URI=https://app.witnessops.com/callback
 RUN pnpm install --frozen-lockfile && pnpm --filter @witnessops/app build
 
 FROM node:22.23.2-alpine3.24@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS producer
-RUN apk add --no-cache python3=3.14.10-r1 py3-pip=26.1.2-r0
+RUN apk add --no-cache python3=3.14.10-r1 py3-pip=26.1.2-r1
 COPY tests/server-check/producer /build/producer
 # This archive contains the exact accepted producer source, not a replacement implementation.
 RUN mkdir -p /opt/witnessops && python3 /build/producer/prepare.py /opt/witnessops/finalizer \
@@ -20,7 +20,7 @@ RUN mkdir -p /opt/witnessops && python3 /build/producer/prepare.py /opt/witnesso
 FROM node:22.23.2-alpine3.24@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
 # The pinned upstream image still carries OpenSSL 3.5.7 and musl-utils 1.2.6-r2.
 # Exact package constraints fail closed if these patched versions are unavailable; never use apk upgrade.
-RUN apk add --no-cache libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 musl=1.2.6-r3 musl-utils=1.2.6-r3 zlib=1.4-r0 python3=3.14.10-r1 \
+RUN apk add --no-cache libcrypto3=3.5.9-r1 libssl3=3.5.9-r1 musl=1.2.6-r3 musl-utils=1.2.6-r3 zlib=1.4-r0 python3=3.14.10-r1 \
     && rm -rf /usr/local/lib/node_modules /opt/yarn-v1.22.22 \
     && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
       /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/docker-entrypoint.sh \
