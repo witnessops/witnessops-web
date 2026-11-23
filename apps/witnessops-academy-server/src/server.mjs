@@ -271,7 +271,7 @@ async function handle(req, res) {
   }
 
   if (REQUIRES_GRANT && p === '/academy/invitation' && read) {
-    return send(res, 200, invitationPage(await getSession(req), { failed: url.searchParams.get('status') === 'not-accepted' }), INVITATION_PAGE_HEADERS);
+    return send(res, 200, invitationPage(await getSession(req), { failed: url.searchParams.get('status') === 'not-accepted', communityUrl: COMMUNITY_URL }), INVITATION_PAGE_HEADERS);
   }
   if (REQUIRES_GRANT && p === '/academy/static/invitation.js' && read) {
     return send(res, 200, INVITATION_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
@@ -487,7 +487,7 @@ async function handle(req, res) {
   if (lesson && read) {
     const s = await getSession(req);
     if (REQUIRES_GRANT && (!s || !await hasApprovedFreeGrant(pool, { identityId: s.identity_id }))) {
-      return send(res, 403, invitationPage(s, { denied: true, lesson }), INVITATION_PAGE_HEADERS);
+      return send(res, 403, invitationPage(s, { denied: true, lesson, communityUrl: COMMUNITY_URL }), INVITATION_PAGE_HEADERS);
     }
     return send(res, 200, lessonPage(LESSON_HTML.get(lesson.id), s, lesson, COMMUNITY_URL));
   }

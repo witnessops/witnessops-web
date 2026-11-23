@@ -1,4 +1,4 @@
-// This is navigation only. Rocket.Chat independently verifies identity and room membership.
+// This is navigation only. The community independently verifies identity and room membership.
 export function communityUrl(value = '') {
   if (value === '') return null;
   const url = new URL(value);
