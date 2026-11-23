@@ -231,14 +231,14 @@ test("AWS runtime must retain the patched zlib package version", () => {
 
 test("AWS runtime must retain the patched OpenSSL package versions", () => {
   const staleCrypto = changed("dockerfile", (value) =>
-    value.replace("libcrypto3=3.5.9-r0", "libcrypto3=3.5.8-r0"),
+    value.replace("libcrypto3=3.5.9-r1", "libcrypto3=3.5.8-r0"),
   );
-  assert.throws(() => validatePhase3Sources(staleCrypto), /libcrypto3=3\.5\.9-r0/);
+  assert.throws(() => validatePhase3Sources(staleCrypto), /libcrypto3=3\.5\.9-r1/);
 
   const staleSsl = changed("dockerfile", (value) =>
-    value.replace("libssl3=3.5.9-r0", "libssl3=3.5.8-r0"),
+    value.replace("libssl3=3.5.9-r1", "libssl3=3.5.8-r0"),
   );
-  assert.throws(() => validatePhase3Sources(staleSsl), /libssl3=3\.5\.9-r0/);
+  assert.throws(() => validatePhase3Sources(staleSsl), /libssl3=3\.5\.9-r1/);
 });
 
 test("AWS builder and runtime must each install the patched musl packages", () => {
@@ -315,7 +315,7 @@ test("PR validation must build without image publication authority", () => {
 
   const staleCryptoCheck = changed("validation", (value) =>
     value.replace(
-      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
       'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
     ),
   );
@@ -326,7 +326,7 @@ test("PR validation must build without image publication authority", () => {
 
   const staleSslCheck = changed("validation", (value) =>
     value.replace(
-      'test "$(installed_apk_version libssl3)" = "3.5.9-r0"',
+      'test "$(installed_apk_version libssl3)" = "3.5.9-r1"',
       'test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
     ),
   );
@@ -337,8 +337,8 @@ test("PR validation must build without image publication authority", () => {
 
   const nonEnforcingVersionCheck = changed("validation", (value) =>
     value.replace(
-      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
-      'echo "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
+      'echo "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
     ),
   );
   assert.throws(
@@ -347,8 +347,8 @@ test("PR validation must build without image publication authority", () => {
   );
 
   for (const [name, expected] of [
-    ["libcrypto3", 'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"'],
-    ["libssl3", 'test "$(installed_apk_version libssl3)" = "3.5.9-r0"'],
+    ["libcrypto3", 'test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"'],
+    ["libssl3", 'test "$(installed_apk_version libssl3)" = "3.5.9-r1"'],
   ]) {
     const commentedOutVersionCheck = changed("validation", (value) =>
       value.replace(expected, `# ${expected}`),
@@ -361,8 +361,8 @@ test("PR validation must build without image publication authority", () => {
 
   const duplicateVersionCheck = changed("validation", (value) =>
     value.replace(
-      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
-      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"\n              test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"\n              test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
     ),
   );
   assert.throws(
@@ -372,8 +372,8 @@ test("PR validation must build without image publication authority", () => {
 
   const deadBranchVersionCheck = changed("validation", (value) =>
     value.replace(
-      '              test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"',
-      '              if false; then\n                test "$(installed_apk_version libcrypto3)" = "3.5.9-r0"\n              fi',
+      '              test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"',
+      '              if false; then\n                test "$(installed_apk_version libcrypto3)" = "3.5.9-r1"\n              fi',
     ),
   );
   assert.throws(
