@@ -20,6 +20,12 @@ test('registration mail decodes quoted-printable soft wrapping and HTML entities
   assert.equal(parse(mail), action);
 });
 
+test('registration mail does not double-decode nested HTML entities', () => {
+  const nested = action.replace('&client_id=', '&amp;#38;client_id=');
+  const mail = message('Content-Type: text/html; charset=UTF-8', '<a href="' + nested + '">Verify</a>');
+  assert.throws(() => parse(mail), /ONE_PRIVATE_ACTION_LINK/);
+});
+
 test('registration mail decodes base64 text', () => {
   const encoded = Buffer.from('Reset your synthetic password:\r\n' + action).toString('base64');
   assert.equal(parse(message('Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64', encoded)), action);

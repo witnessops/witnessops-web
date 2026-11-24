@@ -149,7 +149,8 @@ export function capturedActionLink(message, keycloakOrigin, realm) {
   const expectedPath = base.pathname.replace(/\/$/, '') + `/realms/${realm}/login-actions/action-token`;
   const links = new Set();
   for (const part of textParts(message)) {
-    const text = part.replaceAll('&amp;', '&').replaceAll('&#38;', '&');
+    // Decode each original entity once; never reinterpret a replacement.
+    const text = part.replace(/&(?:amp|#38);/g, '&');
     for (const match of text.matchAll(/https?:\/\/[^\s<>"']+/g)) {
       let url;
       try { url = new URL(match[0]); } catch { continue; }
