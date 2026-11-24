@@ -10,7 +10,7 @@ A small, independent static app for the Sovereign AI programme, based on the sup
 mockups of 24 November 2026: charcoal, ivory and brass, Libre Caslon Text headings
 (OFL) and Inter body text. They are static and need no account. The Track IV page
 links the two existing pilot lessons; their routes, sign-in and saved drafts are
-unchanged. The home page at `/` is unchanged and does not link the teaser yet.
+unchanged. The home page at `/` links the teaser with one "Explore the four tracks" button.
 `test/teaser-pages.test.mjs` covers the routes, links and copy rules.
 
 ## Run locally

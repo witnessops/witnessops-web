@@ -81,3 +81,21 @@ test('teaser stylesheet uses the charcoal, ivory and brass palette with Libre Ca
   assert.doesNotMatch(css, /orange|#ff[0-9a-f]{4}\b|#f[0-9a-f]9[0-9a-f]{3}\b/i);
   assert.equal((await get('/fonts/libre-caslon-text-700.woff2')).status, 200);
 });
+
+test('home links the teaser once and keeps its account, sign-in, invitation, lesson and help entry points', async () => {
+  const home = (await get('/')).body;
+  assert.equal(home.match(/href="\/tracks\/"/g)?.length, 1);
+  assert.ok(home.includes('<a class="btn ghost" href="/tracks/">Explore the four tracks</a>'));
+  for (const href of [
+    '/academy/account',
+    '/academy/auth/login',
+    '/lessons/report-or-evidence/',
+    '/lessons/same-scope/',
+    '/#support',
+    'https://witnessops.com/support#support-request',
+    'mailto:engage@mail.witnessops.com?subject=Academy%20help',
+  ]) assert.ok(home.includes(`href="${href}"`), href);
+  assert.ok(home.includes('<a class="btn" href="/academy/account">Your account</a>'));
+  assert.match(home, /Open the private invitation link you received/);
+  assert.match(home, /Creating an account or signing in does not grant lesson access/);
+});
