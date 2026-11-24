@@ -2,6 +2,17 @@
 
 A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home, two Verify results pilot lessons (**Report or evidence?** and **Same record, wrong scope?**), a separate prepared Lesson 1, and a printable workbook. The prepared course title **Build Your First AI Operator** and the four-lesson syllabus are **PROPOSED**. No price is published. The other three learning paths are labelled as not written yet.
 
+## Track teaser pages
+
+`/tracks/` is the Academy teaser index with the four track cards, and
+`/tracks/work-with-ai/`, `/tracks/build-agents/`, `/tracks/operate-safely/` and
+`/tracks/verify-results/` are the four track pages. They follow the approved v2
+mockups of 24 November 2026: charcoal, ivory and brass, Libre Caslon Text headings
+(OFL) and Inter body text. They are static and need no account. The Track IV page
+links the two existing pilot lessons; their routes, sign-in and saved drafts are
+unchanged. The home page at `/` is unchanged and does not link the teaser yet.
+`test/teaser-pages.test.mjs` covers the routes, links and copy rules.
+
 ## Run locally
 
 Use the workspace's Node 22 and pnpm 9.15.4 toolchain:
