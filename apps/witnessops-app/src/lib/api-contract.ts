@@ -1,5 +1,5 @@
 import type { HttpMethod } from "../../../witnessops-web/src/lib/server/api-contract";
-/** Product endpoints plus one narrowly token-authorized recipient endpoint. WorkOS authenticates; the database
+/** Product endpoints plus one narrowly token-authorized recipient endpoint. The configured identity provider authenticates; the database
  * owns active workspace membership. These are separate from the public API. */
 export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: readonly HttpMethod[]; summary: string }> = [
   { path: "/api/aasr-fixture", methods: ["GET", "POST"], summary: "Synthetic AASR workflow for local development or an explicitly compiled staging profile; native membership and independent assignment required; disabled in standard production builds" },
@@ -26,11 +26,13 @@ export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: read
   { path: "/api/runs", methods: ["GET", "POST"], summary: "Read a known immutable run in the authorized workspace; Capability-authorized hostname execution" },
 ];
 export const DECLARED_APP_AUTH_ROUTES = [
-  { path: "/cli/login", methods: ["GET"], summary: "AuthKit login with fixed CLI confirmation return path" },
-  { path: "/login", methods: ["GET"], summary: "Begin hosted AuthKit sign-in with a fixed or validated invitation return target" },
-  { path: "/signup", methods: ["GET"], summary: "Begin hosted AuthKit signup with a fixed or validated invitation return target" },
-  { path: "/callback", methods: ["GET"], summary: "AuthKit PKCE/state-validated authorization callback" },
+  { path: "/account/link-keycloak", methods: ["POST"], summary: "Explicitly link a Keycloak identity to the active WorkOS account through a one-use OIDC ceremony" },
+  { path: "/auth/keycloak/callback", methods: ["GET"], summary: "One-use state and PKCE validated Keycloak callback for login or account linking" },
+  { path: "/cli/login", methods: ["GET"], summary: "Configured identity-provider login with fixed CLI confirmation return path" },
+  { path: "/login", methods: ["GET"], summary: "Begin configured identity-provider sign-in with a fixed or validated invitation return target" },
+  { path: "/signup", methods: ["GET"], summary: "Begin hosted signup only when WorkOS mode permits it" },
+  { path: "/callback", methods: ["GET"], summary: "WorkOS PKCE/state-validated authorization callback" },
 ] as const;
 
 /** Framework-managed, same-origin POST server action; no independent API route. */
-export const DECLARED_APP_ACTIONS = [{ name: "logout", summary: "AuthKit session termination; fixed configured return origin" }] as const;
+export const DECLARED_APP_ACTIONS = [{ name: "logout", summary: "Durable session revocation and configured identity-provider logout" }] as const;

@@ -2,6 +2,7 @@ import { authkitMiddleware } from "@workos-inc/authkit-nextjs";
 import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 import {reportHost} from './lib/report-host';
 import { authConfiguration } from "./lib/auth-config";
+import { appAuthMode } from "./lib/auth-mode";
 import { appReportOnlyContentSecurityPolicy, createCspNonce } from "./lib/app-security-headers";
 import { aasrStagingRequestBoundary } from './lib/aasr-staging/routes';
 
@@ -32,6 +33,11 @@ export default function middleware(request: NextRequest, event: NextFetchEvent) 
   }
   // Next nonces framework scripts from this request header. The enforced CSP remains the next.config response header.
   request.headers.set(reportOnlyHeader, policy);
+  if (appAuthMode() === "keycloak") {
+    const response = NextResponse.next({ request: { headers: request.headers } });
+    response.headers.set(reportOnlyHeader, policy);
+    return response;
+  }
   return Promise.resolve(authkitMiddleware({ middlewareAuth: { enabled: false, unauthenticatedPaths: [] } })(request, event)).then((response) => {
     if (!response) throw new Error("AuthKit middleware returned no response.");
     response.headers.set(reportOnlyHeader, policy);

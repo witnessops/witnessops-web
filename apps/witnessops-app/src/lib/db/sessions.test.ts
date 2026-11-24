@@ -11,6 +11,14 @@ test("session revocation: malformed or missing claims fail closed before SQL", a
   assert.throws(() => sessionKey(key.issuer, key.sessionId, "not-a-user"), /Sign in/);
   assert.throws(() => sessionKey("", key.sessionId, key.subject), /Sign in/);
 });
+test("Keycloak session key retains its real opaque subject and checks the realm issuer", () => {
+  const linked = sessionKey("https://identity.example.test/realms/academy", "session_" + "a".repeat(64), "018f9ae4-188c-7a5e-88c3-758fcbad0fd5", "keycloak");
+  assert.equal(linked.subject, "018f9ae4-188c-7a5e-88c3-758fcbad0fd5");
+  assert.equal(linked.provider, "keycloak");
+  assert.throws(() => sessionKey("https://identity.example.test/other", linked.sessionId, linked.subject, "keycloak"), /Sign in/);
+  assert.throws(() => sessionKey(linked.issuer, linked.sessionId, "subject with space", "keycloak"), /Sign in/);
+  assert.throws(() => sessionKey(linked.issuer, linked.sessionId, linked.subject), /Sign in/);
+});
 test("session revocation: DB lookup and write failure never become success", async () => {
   const unavailable = { query: async () => { throw new Error("database unavailable"); } } as unknown as Pool;
   await assert.rejects(requireUnrevokedSession(unavailable, key), /unavailable/);

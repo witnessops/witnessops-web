@@ -4,12 +4,12 @@ import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { parseEnv } from "node:util";
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { Pool } from "pg";
 import { migrate } from "../../../scripts/migrate.mjs";
 import { ensureRuntimeRole } from "./runtime-role";
 import { removeWorkspaceContent } from "../../../scripts/workspace-content-removal.mjs";
-import { resolveIdentity as resolveUnenrolledIdentity, type Identity, type AppUser } from "./identity";
+import { linkKeycloakIdentity, linkKeycloakIdentityFromWorkosSession, resolveIdentity as resolveUnenrolledIdentity, type Identity, type KeycloakIdentity, type AppUser } from "./identity";
 import { WorkspaceStore } from "./workspaces";
 import { createFoundationService } from "../server";
 import { canonicalSource } from "../source-digest";
@@ -19,6 +19,7 @@ import { EarlyAccessPlanStore } from './early-access-plans';
 import { EARLY_ACCESS_PLAN_POLICY, planTermsAt } from '../plan-policy';
 import { ApiError } from '../errors';
 import { requireUnrevokedSession, revokeSession, sessionKey } from "./sessions";
+import { consumeKeycloakPreauth, createKeycloakPreauth, workosSessionBindingHash } from "../keycloak-preauth";
 import { compareRuns, CHECK_IDS, type Run, type ExternalSnapshotV1 } from "../model";
 
 // Only the explicit isolated test URL; never fall back to DATABASE_URL.
@@ -786,6 +787,87 @@ test("identity: concurrent first resolution creates one internal user; another i
   assert.equal(new Set(ids.map(u => u.id)).size, 1);
   const other = await resolveIdentity(pool, { ...identity("user_a"), issuer: "https://api.workos.com/user_management/other_client" });
   assert.notEqual(other.id, a.id);
+});
+test("identity: Keycloak needs an explicit active-user link and never matches by email", async () => {
+  const matchedEmail = (await pool.query<{ verified_email_snapshot: string | null }>(
+    "SELECT verified_email_snapshot FROM identity_mappings WHERE user_id=$1 AND provider='workos'", [a.id],
+  )).rows[0].verified_email_snapshot;
+  assert.ok(matchedEmail);
+  const keycloak: KeycloakIdentity = {
+    provider: "keycloak", issuer: "https://auth.example.test/realms/academy", subject: "academy_user_a",
+    email: matchedEmail, displayName: "Academy A",
+  };
+  await assert.rejects(resolveUnenrolledIdentity(pool, keycloak), (error: unknown) => error instanceof ApiError && error.status === 401);
+  assert.equal((await linkKeycloakIdentity(pool, a.id, keycloak)).id, a.id);
+  assert.equal((await linkKeycloakIdentity(pool, a.id, keycloak)).id, a.id);
+  const linked = await resolveUnenrolledIdentity(pool, keycloak);
+  assert.equal(linked.id, a.id);
+  assert.equal((await store.read(linked, wa)).role, "owner");
+  await assert.rejects(linkKeycloakIdentity(pool, b.id, keycloak), (error: unknown) => error instanceof ApiError && error.status === 409);
+  await assert.rejects(linkKeycloakIdentity(pool, a.id, { ...keycloak, subject: "another_academy_user" }), (error: unknown) => error instanceof ApiError && error.status === 409);
+  const disabled = await resolveUnenrolledIdentity(pool, identity("keycloak_link_disabled"));
+  await pool.query("UPDATE users SET status='disabled' WHERE id=$1", [disabled.id]);
+  await assert.rejects(linkKeycloakIdentity(pool, disabled.id, { ...keycloak, subject: "disabled_academy_user" }), (error: unknown) => error instanceof ApiError && error.status === 403);
+  assert.equal((await pool.query("SELECT count(*) FROM identity_mappings WHERE provider='keycloak' AND issuer=$1 AND subject=$2", [keycloak.issuer, "disabled_academy_user"])).rows[0].count, "0");
+});
+test("identity: concurrent Keycloak claims cannot bind one subject to two accounts", async () => {
+  const first = await resolveUnenrolledIdentity(pool, identity("keycloak_race_first"));
+  const second = await resolveUnenrolledIdentity(pool, identity("keycloak_race_second"));
+  const keycloak: KeycloakIdentity = {
+    provider: "keycloak", issuer: "https://auth.example.test/realms/academy", subject: "academy_race",
+    email: "same@example.test", displayName: null,
+  };
+  const outcomes = await Promise.allSettled([
+    linkKeycloakIdentity(pool, first.id, keycloak),
+    linkKeycloakIdentity(pool, second.id, keycloak),
+  ]);
+  assert.equal(outcomes.filter(outcome => outcome.status === "fulfilled").length, 1);
+  assert.equal(outcomes.filter(outcome => outcome.status === "rejected" && outcome.reason instanceof ApiError && outcome.reason.status === 409).length, 1);
+  const resolved = await resolveUnenrolledIdentity(pool, keycloak);
+  assert.ok([first.id, second.id].includes(resolved.id));
+});
+test("identity: WorkOS-bound Keycloak linking rejects another user and a revoked session", async () => {
+  const source = identity("keycloak_session_link");
+  const owner = await resolveUnenrolledIdentity(pool, source);
+  const session = sessionKey(source.issuer, "session_keycloaklink", source.subject);
+  const keycloak: KeycloakIdentity = { provider: "keycloak", issuer: "https://auth.example.test/realms/academy",
+    subject: "keycloak_session_link", email: source.email, displayName: "Linked member" };
+  await assert.rejects(linkKeycloakIdentityFromWorkosSession(pool, session, b.id, keycloak),
+    (error: unknown) => error instanceof ApiError && error.status === 403);
+  assert.equal((await pool.query("SELECT count(*) FROM identity_mappings WHERE provider='keycloak' AND subject=$1", [keycloak.subject])).rows[0].count, "0");
+  assert.equal((await linkKeycloakIdentityFromWorkosSession(pool, session, owner.id, keycloak)).id, owner.id);
+  const revokedSource = identity("keycloak_session_revoked");
+  const revokedOwner = await resolveUnenrolledIdentity(pool, revokedSource);
+  const revoked = sessionKey(revokedSource.issuer, "session_keycloakrevoked", revokedSource.subject);
+  await revokeSession(pool, revoked);
+  await assert.rejects(linkKeycloakIdentityFromWorkosSession(pool, revoked, revokedOwner.id,
+    { ...keycloak, subject: "keycloak_session_revoked" }),
+  (error: unknown) => error instanceof ApiError && error.status === 401);
+  assert.equal((await pool.query("SELECT count(*) FROM identity_mappings WHERE provider='keycloak' AND subject='keycloak_session_revoked'")).rows[0].count, "0");
+});
+test("Keycloak preauth: a linked WorkOS session has a durable one-use attempt across concurrent consumers", async () => {
+  const attempt = () => ({ state: randomBytes(32).toString("base64url"),
+    nonce: randomBytes(32).toString("base64url"), codeVerifier: randomBytes(32).toString("base64url") });
+  const session = sessionKey(identity("user_a").issuer, "session_preauth", identity("user_a").subject);
+  const linked = { purpose: "link" as const, attempt: attempt(), returnPath: "/",
+    binding: { userId: a.id, sessionHash: workosSessionBindingHash(session) } };
+  const token = await createKeycloakPreauth(pool, linked);
+  const hash = createHash("sha256").update(token).digest("hex");
+  assert.equal((await pool.query("SELECT token_hash FROM keycloak_auth_attempts WHERE token_hash=$1", [hash])).rows[0].token_hash, hash);
+  const consumed = await Promise.all([
+    consumeKeycloakPreauth(pool, token, linked.attempt.state),
+    consumeKeycloakPreauth(pool, token, linked.attempt.state),
+  ]);
+  assert.equal(consumed.filter(Boolean).length, 1);
+  assert.deepEqual(consumed.find(Boolean), linked);
+  assert.equal(await consumeKeycloakPreauth(pool, token, linked.attempt.state), null);
+
+  const expired = { purpose: "login" as const, attempt: attempt(), returnPath: "/cli/authorize" };
+  const expiredToken = await createKeycloakPreauth(pool, expired);
+  await pool.query(`UPDATE keycloak_auth_attempts SET created_at=now() - interval '6 minutes',
+    expires_at=now() - interval '1 minute' WHERE token_hash=$1`,
+  [createHash("sha256").update(expiredToken).digest("hex")]);
+  assert.equal(await consumeKeycloakPreauth(pool, expiredToken, expired.attempt.state), null);
 });
 test("workspace: creation and Owner membership are atomic; retry uses the same creation key", async () => {
   const key = randomUUID();

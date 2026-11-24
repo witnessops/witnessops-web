@@ -1,6 +1,6 @@
 # Product foundation
 
-Use root instructions. WorkOS AuthKit owns customer identity/session; WitnessOps PostgreSQL owns workspace membership and product data. Production deployment remains separately authorized.
+Use root instructions. WorkOS AuthKit remains the default customer identity/session path. An explicitly selected Keycloak OIDC candidate uses a dedicated app client and WitnessOps-owned PostgreSQL sessions; neither provider identity nor a matching email grants workspace membership. WitnessOps PostgreSQL owns membership and product data. Production authentication changes and deployment remain separately authorized.
 
 Keep the public External Exposure endpoint and engine contracts unchanged. Reuse the internal runner and preserve the complete immutable source snapshot. No OFFSEC executor or arbitrary ports. Do not equate provider identity, workspace name or asset creation with verified company/hostname ownership.
 

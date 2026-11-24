@@ -92,6 +92,32 @@ test('session expires and logout revokes replay idempotently',async()=>{
 test('originating web logout invalidates pending grant and issued CLI session',async()=>{
  const credential=await issued(),pending=await authorize();await revokeSession(pool,web.session);await rejectsCode(store.status(credential),'revoked');await rejectsCode(store.poll(pending.device),'revoked');
 });
+test('web logout waits for in-flight CLI server work before committing revocation',async()=>{
+ const prior=process.env.WITNESSOPS_FINALIZER_ENABLED;
+ process.env.WITNESSOPS_FINALIZER_ENABLED='1';
+ try {
+  const login=await store.create();
+  await store.bind(web,{code:login.userCode,workspaceId:workspace,displayedUserId:user.id,
+   action:'authorize',scope:'cli:session server_check:create'});
+  const issued=await store.poll(login.device);
+  assert.equal(issued.state,'active');
+  if(issued.state!=='active')throw new Error('Expected CLI credential');
+  let entered!:()=>void,release!:()=>void;
+  const enteredPromise=new Promise<void>(resolve=>{entered=resolve;});
+  const hold=new Promise<void>(resolve=>{release=resolve;});
+  const work=store.withServerWork(issued.credential,async()=>{entered();await hold;return 'committed';});
+  await enteredPromise;
+  let logoutCommitted=false;
+  const logout=revokeSession(pool,web.session).then(()=>{logoutCommitted=true;});
+  try {
+   await new Promise(resolve=>setTimeout(resolve,100));
+   assert.equal(logoutCommitted,false);
+  } finally { release(); }
+  assert.equal(await work,'committed');
+  await logout;
+  await rejectsCode(store.status(issued.credential),'revoked');
+ } finally {if(prior===undefined)delete process.env.WITNESSOPS_FINALIZER_ENABLED;else process.env.WITNESSOPS_FINALIZER_ENABLED=prior;}
+});
 test('current role is rechecked and membership removal denies credential',async()=>{
  const credential=await issued();await pool.query("UPDATE memberships SET role='viewer' WHERE user_id=$1",[user.id]);await rejectsCode(store.status(credential),'revoked');
  const fresh=await issued();assert.equal((await store.status(fresh)).role,'viewer');

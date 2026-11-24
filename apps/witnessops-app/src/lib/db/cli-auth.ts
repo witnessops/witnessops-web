@@ -7,6 +7,8 @@ import { resolveIdentity, type Identity } from './identity';
 import { sessionKey, type SessionKey } from './sessions';
 import { ApiError } from '../errors';
 import { finalizerEnabled } from '../finalizer-config';
+import { appAuthMode } from '../auth-mode';
+import { keycloakRuntime } from '../keycloak-runtime';
 
 export const LOGIN_TTL = 600_000, SESSION_TTL = 3_600_000, POLL_MS = 5_000;
 export class CliError extends ApiError {
@@ -23,11 +25,35 @@ function code(value: unknown) {
   return value;
 }
 type Binding = { user_id: string; workspace_id: string; web_issuer: string; web_session_id: string; scope: string; membership_generation: number };
-async function parentActive(client: PoolClient, issuer: string, session: string) {
+async function parentActive(client: PoolClient, issuer: string, session: string, userId: string) {
+  // Hold the logout ordering lock through the caller's transaction, including
+  // any CLI server work, so web logout cannot commit before that work does.
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 39116))', [JSON.stringify([issuer, session])]);
   if ((await client.query('SELECT 1 FROM revoked_sessions WHERE issuer=$1 AND session_id=$2', [issuer, session])).rowCount) throw new CliError('revoked', 401);
+  if (appAuthMode() === 'keycloak') {
+    let loaded: Awaited<ReturnType<Awaited<ReturnType<typeof keycloakRuntime>>['store']['loadBySessionId']>>;
+    try {
+      const { settings, store, provider } = await keycloakRuntime(client);
+      if (issuer !== settings.issuer.href) throw new CliError('revoked', 401);
+      // CLI work may still roll back this transaction. Never rotate a remote
+      // refresh token here: its provider-side change cannot roll back with us.
+      loaded = await store.loadBySessionId(session, { introspect: provider.introspect,
+        refresh: async () => ({ status: 'unavailable' }) });
+    } catch (error) {
+      if (error instanceof CliError) throw error;
+      throw new CliError('provider_unavailable', 503);
+    }
+    if (loaded.status === 'unavailable') throw new CliError('provider_unavailable', 503);
+    if (loaded.status !== 'authenticated' || loaded.session.issuer !== issuer || loaded.session.userId !== userId) throw new CliError('revoked', 401);
+  } else {
+    // A rollback to WorkOS cannot leave a previously issued Keycloak CLI
+    // credential active merely because its local tombstone is absent.
+    try { if (/(?:^|\/)realms\/[^/]+$/.test(new URL(issuer).pathname)) throw new CliError('revoked', 401); }
+    catch (error) { if (error instanceof CliError) throw error; }
+  }
 }
 async function current(client: PoolClient, binding: Binding) {
-  await parentActive(client, binding.web_issuer, binding.web_session_id);
+  await parentActive(client, binding.web_issuer, binding.web_session_id, binding.user_id);
   const member = await requireWorkspaceMembership(client, { id: binding.user_id, displayName: null }, binding.workspace_id);
   if (member.generation !== binding.membership_generation) throw new CliError('revoked', 401);
   const user = (await client.query('SELECT display_name FROM users WHERE id=$1', [binding.user_id])).rows[0];
@@ -79,8 +105,8 @@ export class CliAuthStore {
     });
   }
   async context(web: WebCliIdentity) {
-    sessionKey(web.session.issuer, web.session.sessionId, web.session.subject);
-    if (web.identity.issuer !== web.session.issuer || web.identity.subject !== web.session.subject) throw new CliError('unauthorized', 401);
+    sessionKey(web.session.issuer, web.session.sessionId, web.session.subject, web.session.provider);
+    if (web.identity.provider !== (web.session.provider ?? 'workos') || web.identity.issuer !== web.session.issuer || web.identity.subject !== web.session.subject) throw new CliError('unauthorized', 401);
     const user = await resolveIdentity(this.pool, web.identity);
     return { user, workspaces: await new WorkspaceStore(this.pool).list(user), serverCheckScopeOffered: finalizerEnabled() };
   }
@@ -89,7 +115,7 @@ export class CliAuthStore {
     if (input.displayedUserId !== user.id) throw new CliError('identity_changed', 409);
     if (input.action !== 'authorize' && input.action !== 'deny') throw new CliError('invalid_action');
     return transaction(this.pool, async client => {
-      await parentActive(client, web.session.issuer, web.session.sessionId);
+      await parentActive(client, web.session.issuer, web.session.sessionId, user.id);
       const row = (await client.query('SELECT * FROM cli_login_transactions WHERE code_hash=$1 FOR UPDATE', [hash(userCode)])).rows[0];
       if (!row || row.expires_at.getTime() <= this.now() || row.state !== 'pending') throw new CliError('invalid_or_used_code', 409);
       if (input.action === 'deny') {
@@ -138,7 +164,7 @@ export class CliAuthStore {
       const row = (await client.query('SELECT * FROM cli_sessions WHERE credential_hash=$1 FOR SHARE', [hash(secret(credential))])).rows[0];
       if (!row || row.revoked_at || row.expires_at.getTime() <= this.now()) throw new CliError('revoked', 401);
       if (row.scope !== 'cli:session server_check:create') throw new CliError('server_scope_required', 403);
-      await parentActive(client, row.web_issuer, row.web_session_id);
+      await parentActive(client, row.web_issuer, row.web_session_id, row.user_id);
       const user = { id: row.user_id, displayName: null, membershipGeneration: row.membership_generation };
       const member = await requireWorkspaceMembership(client, user, row.workspace_id, 'cli:authorize-server-check');
       if (member.generation !== row.membership_generation) throw new CliError('revoked', 401);

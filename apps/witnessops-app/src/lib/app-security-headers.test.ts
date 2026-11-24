@@ -39,7 +39,7 @@ describe("app security headers", { concurrency: false }, () => {
   });
 
   test("app next config publishes that single Referrer-Policy", async () => {
-    const config = require("../../next.config.js") as { headers: () => Promise<{ source: string; headers: { key: string; value: string }[] }[]> };
+    const config = require("../../next.config.js") as { headers: () => Promise<{ source: string; headers: { key: string; value: string }[] }[]>; logging: { incomingRequests: { ignore: RegExp[] } } };
     const routes = await config.headers();
     assert.deepEqual(routes.map((route) => route.source), ["/:path*"]);
     assert.deepEqual(routes[0]?.headers.filter((header) => header.key === "Referrer-Policy"), [
@@ -47,6 +47,9 @@ describe("app security headers", { concurrency: false }, () => {
     ]);
     const enforced = routes[0]?.headers.find((header) => header.key === "Content-Security-Policy")?.value;
     assert.equal(enforced, appSecurityHeaders().find((header) => header.key === "Content-Security-Policy")?.value);
+    const ignored = config.logging.incomingRequests.ignore;
+    assert.ok(ignored.some(pattern => pattern.test("/auth/keycloak/callback?code=private")));
+    assert.ok(ignored.some(pattern => pattern.test("/callback?code=private")));
   });
 
   test("form-action extension throws when the shared directive is missing or already changed", () => {
