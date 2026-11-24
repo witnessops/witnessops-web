@@ -122,7 +122,13 @@ the existing disposable Academy CI stack. It requires `ACADEMY_E2E=1`,
 `ACADEMY_REGISTRATION_DISPOSABLE=1` and the `approved-free-pilot` fixture policy.
 It captures only synthetic verification/recovery mail in memory, follows the
 real Keycloak flow, and checks the account landing, stable identity and denied
-lesson access without a grant. It restores the fixture's realm and application
+lesson access without a grant. It then runs the complete free learner journey
+for that verified account: an explicit synthetic owner-approved grant, saved
+identifiable lesson work, Sign out (Academy session revoked, Keycloak session
+ended, old cookie denied), a closed browser, a fresh login that restores exactly
+that work, password recovery that rejects the old password and restores the same
+work, another learner unable to read or overwrite it, and support links on the
+logged-out account, denied lesson, invitation and failed-callback pages. It restores the fixture's realm and application
 settings and removes its own synthetic accounts. Passing this phase does not
 establish live mail delivery or authorize public registration.
 

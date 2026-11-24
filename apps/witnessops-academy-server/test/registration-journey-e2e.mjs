@@ -13,6 +13,7 @@ import { chromium, expect } from '@playwright/test';
 import { env, secret, int } from '../src/env.mjs';
 import { createSessionTokenCodec } from '../src/session-tokens.mjs';
 import { startRegistrationMailCapture, capturedActionLink } from './registration-smtp-capture.mjs';
+import { createInvitationBatch } from '../src/pilot-invitations.mjs';
 
 const results = [];
 const cleanup = [];
@@ -44,6 +45,7 @@ const stamp = () => new Date().toISOString();
 const startedAt = stamp();
 const pass = name => { results.push({ name, result: 'PASS' }); console.log('PASS registration ' + name); };
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
+const EXPECTED_RESULTS = 8;
 const knownImage = 'quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0';
 
 function loopbackOrigin(value) {
@@ -138,6 +140,23 @@ async function noPilotAccess(page, id) {
     assert.equal((await page.request.get(APP + `/academy/learn/${lesson}`)).status(), 403);
   }
   assert.equal((await db.query('SELECT 1 FROM academy_pilot_grants WHERE identity_id=$1', [id])).rowCount, 0);
+}
+
+async function sessionRow(context) {
+  const cookie = (await context.cookies()).find(item => ['academy_sid', '__Host-academy_sid'].includes(item.name));
+  assert.ok(cookie, 'ACADEMY_SESSION_PRESENT');
+  return { cookie, hash: digest(cookie.value) };
+}
+
+async function savedLessonWork(page, lesson) {
+  const response = await page.request.get(APP + `/academy/api/lessons/${lesson}/draft`);
+  assert.equal(response.status(), 200, 'ADMITTED_DRAFT_READ');
+  return (await response.json()).content;
+}
+
+function launchBrowser() {
+  return chromium.launch({ headless: true, timeout: 20_000,
+    ...(process.env.ACADEMY_TEST_BROWSER_EXECUTABLE ? { executablePath: process.env.ACADEMY_TEST_BROWSER_EXECUTABLE } : {}) });
 }
 
 async function accountIdentity(context, page, subject) {
@@ -308,10 +327,9 @@ try {
     assert.equal(await userRecord(user), null, 'FRESH_SYNTHETIC_RECIPIENT');
     user.absentBefore = true;
   }
-  const grantsBefore = await grantCounts();
+  let grantsBefore = await grantCounts();
   mail = await startRegistrationMailCapture({ host: network.Gateway, peer: network.IPAddress, recipients: planned.map(user => user.email) });
-  browser = await chromium.launch({ headless: true, timeout: 20_000,
-    ...(process.env.ACADEMY_TEST_BROWSER_EXECUTABLE ? { executablePath: process.env.ACADEMY_TEST_BROWSER_EXECUTABLE } : {}) });
+  browser = await launchBrowser();
 
   stage = 'closed_registration';
   replaceFlag('false');
@@ -376,6 +394,57 @@ try {
   await returning.context.close();
   pass('fresh ordinary login reuses issuer/subject and both draft APIs remain denied');
 
+  stage = 'admitted_free_learner_journey';
+  // The intended free learner: a self-registered, verified account receives an explicit
+  // owner-approved grant, saves identifiable work, signs out, closes the browser and returns.
+  const issued = (await createInvitationBatch(db, {
+    approvalReference: 'synthetic-owner-approved-free-learner-journey',
+    administratorReference: 'synthetic-authorized-administrator',
+    recipients: [{ issuer: ISSUER, subject: verified.subject }],
+  })).invitations[0];
+  verified.invited = true;
+  const learner = await ordinaryLogin(verified, password);
+  await learner.page.goto(APP + '/academy/invitation#token=' + issued.token);
+  assert.equal(new URL(learner.page.url()).hash, '', 'PRIVATE_INVITATION_FRAGMENT_CLEARED');
+  await expect(learner.page.locator('#invitation-status')).toContainText('This account can accept');
+  await learner.page.locator('#accept-invitation').click();
+  await expect(learner.page).toHaveURL(APP + '/academy/learn/report-or-evidence');
+  await expect(learner.page.locator('#progress-status')).toContainText('No saved work');
+  const marker = `Synthetic free learner ${run}: the report is not evidence of the saved file.`;
+  await learner.page.locator('#reason-1').fill(marker);
+  await learner.page.locator('#save-progress').click();
+  await expect(learner.page.locator('#progress-status')).toContainText(/^Saved/);
+  const savedWork = await savedLessonWork(learner.page, 'report-or-evidence');
+  assert.ok(savedWork.includes(marker), 'IDENTIFIABLE_WORK_SAVED');
+  const ownedRows = (await db.query('SELECT owner_id FROM academy_lesson_drafts WHERE content LIKE $1', ['%' + run + '%'])).rows;
+  assert.deepEqual(ownedRows.map(row => row.owner_id), [learner.owner.id], 'WORK_OWNED_BY_LEARNER_ONLY');
+  const signedIn = await sessionRow(learner.context);
+  assert.ok((await admin('GET', `/users/${encodeURIComponent(verified.subject)}/sessions`)).length >= 1);
+  await learner.page.locator('#sign-out').click();
+  await expect(learner.page.locator('#progress-status')).toContainText('Signed out. Sign in again to recover your saved work.');
+  await expect(learner.page.locator('#reason-1')).toHaveValue('');
+  const ended = (await db.query('SELECT revoked_at IS NOT NULL AS revoked FROM academy_sessions WHERE token_hash=$1', [signedIn.hash])).rows[0];
+  assert.equal(ended?.revoked, true, 'ACADEMY_SESSION_REVOKED_ON_SIGN_OUT');
+  assert.equal((await admin('GET', `/users/${encodeURIComponent(verified.subject)}/sessions`)).length, 0, 'IDP_SESSION_ENDED_ON_SIGN_OUT');
+  const replay = await fetch(APP + '/academy/api/lessons/report-or-evidence/draft', {
+    headers: { Cookie: `${signedIn.cookie.name}=${signedIn.cookie.value}` }, redirect: 'manual', signal: AbortSignal.timeout(10_000) });
+  assert.equal(replay.status, 401, 'SIGNED_OUT_COOKIE_DENIED');
+  await learner.context.close();
+  await browser.close();
+  browser = await launchBrowser();
+  const back = await ordinaryLogin(verified, password);
+  assert.equal(back.owner.id, learner.owner.id);
+  await expect(back.page.locator('#lesson-access')).toBeVisible();
+  await back.page.goto(APP + '/academy/learn/report-or-evidence');
+  await expect(back.page.locator('#progress-status')).toContainText('loaded');
+  await expect(back.page.locator('#reason-1')).toHaveValue(marker);
+  assert.equal(await savedLessonWork(back.page, 'report-or-evidence'), savedWork);
+  await back.page.locator('#sign-out').click();
+  await expect(back.page.locator('#progress-status')).toContainText('Signed out.');
+  await back.context.close();
+  grantsBefore = await grantCounts();
+  pass('verified self-registered learner is admitted, saves work, signs out everywhere, closes the browser and recovers exactly that work');
+
   stage = 'password_recovery_mail';
   await admin('PUT', '', { resetPasswordAllowed: true });
   const recovery = await contextPage();
@@ -387,11 +456,59 @@ try {
   await recovery.page.goto(capturedActionLink(recoveryMessage, KC, REALM));
   await setPassword(recovery.page, recoveredPassword);
   await recovery.context.close();
+  const oldPassword = await contextPage();
+  await oldPassword.page.goto(APP + '/academy/auth/login?return=account');
+  await oldPassword.page.locator('#username').fill(verified.username);
+  await oldPassword.page.locator('#password').fill(password);
+  await oldPassword.page.locator('#kc-login').click();
+  await expect(oldPassword.page.locator('#input-error, .kc-feedback-text, [id*="error"]').first()).toBeVisible();
+  assert.ok(!(await oldPassword.context.cookies()).some(cookie => ['academy_sid', '__Host-academy_sid'].includes(cookie.name)));
+  await oldPassword.context.close();
   const recovered = await ordinaryLogin(verified, recoveredPassword);
   assert.equal(recovered.owner.id, admitted.owner.id);
-  await noPilotAccess(recovered.page, recovered.owner.id);
+  await recovered.page.goto(APP + '/academy/learn/report-or-evidence');
+  await expect(recovered.page.locator('#progress-status')).toContainText('loaded');
+  await expect(recovered.page.locator('#reason-1')).toHaveValue(marker);
+  assert.equal(await savedLessonWork(recovered.page, 'report-or-evidence'), savedWork);
   await recovered.context.close();
-  pass('actual captured recovery email resets the password and preserves the same account without enrollment');
+  pass('actual captured recovery email resets the password, rejects the old one and recovers the same saved work');
+
+  stage = 'isolation_and_support';
+  const other = await contextPage();
+  await other.page.goto(APP + '/academy/auth/login?return=account');
+  await other.page.locator('#username').fill(env('TEST_LEARNER_B_USERNAME'));
+  await other.page.locator('#password').fill(password);
+  await other.page.locator('#kc-login').click();
+  await expect(other.page).toHaveURL(APP + '/academy/account');
+  await expect(other.page.locator('#sign-out')).toBeVisible();
+  for (const suffix of ['', '?owner_id=' + admitted.owner.id, '?sub=' + encodeURIComponent(verified.subject)]) {
+    const response = await other.page.request.get(APP + '/academy/api/lessons/report-or-evidence/draft' + suffix);
+    assert.ok([200, 403, 404].includes(response.status()), 'OTHER_LEARNER_DRAFT_STATUS');
+    assert.ok(!(await response.text()).includes(run), 'OTHER_LEARNER_CANNOT_READ_WORK');
+  }
+  const forged = await other.page.evaluate(async ({ owner }) => {
+    const csrf = document.querySelector('#academy-csrf') ? JSON.parse(document.querySelector('#academy-csrf').textContent) : '';
+    const response = await fetch('/academy/api/lessons/report-or-evidence/draft', { method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify({ content: 'forged overwrite', expected_version: 1, owner_id: owner }) });
+    return response.status;
+  }, { owner: admitted.owner.id });
+  assert.ok([400, 403, 409].includes(forged), 'FORGED_OWNER_WRITE_DENIED');
+  assert.equal((await db.query('SELECT content FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2', [admitted.owner.id, 'report-or-evidence'])).rows[0].content, savedWork);
+  await other.context.close();
+  const anonymous = await contextPage();
+  const supportStates = [
+    ['/academy/account', 200], ['/academy/learn/report-or-evidence', 403], ['/academy/invitation', 200],
+    ['/academy/auth/callback?code=x&state=y', 400],
+  ];
+  for (const [path, expected] of supportStates) {
+    const response = await anonymous.page.goto(APP + path);
+    assert.equal(response.status(), expected, 'SUPPORT_STATE_STATUS ' + path);
+    await expect(anonymous.page.locator('a[href="https://witnessops.com/support#support-request"]')).toHaveCount(1);
+    await expect(anonymous.page.locator('a[href^="mailto:engage@mail.witnessops.com"]')).toHaveCount(1);
+  }
+  await anonymous.context.close();
+  pass('another learner cannot read or overwrite the work, and logged-out and error states offer support');
 
   stage = 'unverified_signed_callback';
   // A deliberate disposable-only IdP misconfiguration exercises Academy's independent claim gate.
@@ -442,6 +559,12 @@ try {
       const client = await db.connect();
       try {
         await client.query('BEGIN');
+        if (user.invited) {
+          // Only this run's synthetic grant, invitation and draft rows are removed.
+          await client.query('DELETE FROM academy_lesson_drafts WHERE owner_id=$1', [owner.id]);
+          await client.query('DELETE FROM academy_pilot_grants WHERE identity_id=$1', [owner.id]);
+          await client.query('DELETE FROM academy_pilot_invitations WHERE recipient_issuer=$1 AND recipient_subject=$2', [ISSUER, user.subject]);
+        }
         assert.equal((await client.query('SELECT 1 FROM academy_pilot_grants WHERE identity_id=$1', [owner.id])).rowCount, 0);
         assert.equal((await client.query('SELECT 1 FROM academy_lesson_drafts WHERE owner_id=$1', [owner.id])).rowCount, 0);
         await client.query('DELETE FROM academy_session_revocations WHERE identity_id=$1', [owner.id]);
@@ -458,13 +581,13 @@ try {
   if (mail) await cleanStep('private_mail_capture_closed', () => mail.close());
   if (db) await cleanStep('database_pool_closed', () => db.end());
   adminToken = undefined;
-  const status = !failure && results.length === 6 ? 'PASS' : 'FAIL';
+  const status = !failure && results.length === EXPECTED_RESULTS ? 'PASS' : 'FAIL';
   if (EV) writeFileSync(join(EV, 'registration-journey-results.json'), JSON.stringify({
     schema: 'witnessops.academy.disposable-registration.v1', startedAt, finishedAt: stamp(), status,
     stage, scope: 'existing disposable Docker Keycloak 26.8.2, PostgreSQL and browser', results, cleanup,
     mail: { kind: 'in-memory SMTP capture; no relay', messages: mail?.count || 0, rawMessagesRetained: false },
     production: 'NOT_TOUCHED', externalMail: 'NOT_SENT', communityMembership: 'NOT_TESTED',
   }, null, 2) + '\n', { mode: 0o600 });
-  console.log(`RESULT registration ${results.length}/6 ${status}`);
+  console.log(`RESULT registration ${results.length}/${EXPECTED_RESULTS} ${status}`);
   process.exitCode = status === 'PASS' ? 0 : 1;
 }
