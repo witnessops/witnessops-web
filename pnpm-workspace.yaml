@@ -3,5 +3,5 @@ packages:
   - "packages/*"
 
 overrides:
-  next: 15.5.28
+  next: 15.5.29
   postcss: 8.5.10
