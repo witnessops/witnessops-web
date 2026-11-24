@@ -44,9 +44,9 @@ test('access help is visible without a session or JavaScript in every invitation
   assert.deepEqual(INVITATION_PAGE_HEADERS, { 'Referrer-Policy': 'same-origin' });
 });
 
-const browserErrors = ['login_state_missing', 'login_failed', 'rate_limited', 'idp_unavailable', 'internal'];
+const browserErrors = ['login_state_missing', 'login_failed', 'email_verification_required', 'rate_limited', 'idp_unavailable', 'internal'];
 test('known browser page failures offer fixed help without reflecting request or session data', () => {
-  for (const path of ['/academy/auth/login', '/academy/auth/callback', '/academy/invitation', '/academy/learn/report-or-evidence', '/academy/learn/same-scope']) {
+  for (const path of ['/academy/auth/login', '/academy/auth/register', '/academy/auth/callback', '/academy/account', '/academy/invitation', '/academy/learn/report-or-evidence', '/academy/learn/same-scope']) {
     for (const method of ['GET', 'HEAD']) {
       for (const code of browserErrors) {
         const page = browserErrorBody({ method, url: path + '?code=synthetic-private-code&state=synthetic-private-state', headers: { accept: 'text/html,application/xhtml+xml', cookie: 'synthetic-private-cookie' }, body: 'synthetic-private-draft' }, code);

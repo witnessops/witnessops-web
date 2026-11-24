@@ -33,7 +33,7 @@ academy.witnessops.com {
 
 		@academyRead {
 			method GET HEAD
-			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/invitation /academy/static/invitation.js
+			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/invitation /academy/static/invitation.js /academy/account /academy/static/account.js
 		}
 		handle @academyRead {
 			reverse_proxy 127.0.0.1:18300 {
@@ -43,7 +43,7 @@ academy.witnessops.com {
 		}
 		@academyLogin {
 			method GET
-			path /academy/auth/login /academy/auth/callback
+			path /academy/auth/login /academy/auth/callback /academy/auth/register
 		}
 		handle @academyLogin {
 			reverse_proxy 127.0.0.1:18300 {

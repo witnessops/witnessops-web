@@ -16,10 +16,11 @@ const LABEL_LINES = [
   'The observed record matches the exact claim being checked, and the conclusion stays inside that match.',
 ];
 const LOCAL_SCRIPTS = new Set(['/academy.mjs', '/lesson.mjs']);
-// These exact homepage links enter the hosted login flow or existing public help.
+// These exact homepage links enter the hosted account/login flow or public help.
 // They are not files served by the standalone static preview.
 const HOME_ENTRY_LINKS = new Set([
   '/academy/auth/login',
+  '/academy/account',
   'https://witnessops.com/support#support-request',
   'mailto:engage@mail.witnessops.com?subject=Academy%20help',
 ]);
@@ -105,7 +106,7 @@ test('workbook print styles darken the light foreground tokens', async () => {
   assert.match(printBlock, /body\.workbook\{[^}]*--t1:#111/);
 });
 
-test('academy pages keep links local apart from exact homepage login and help links', async () => {
+test('academy pages keep links local apart from exact homepage account, login and help links', async () => {
   const pages = await htmlFiles(PUBLIC_ROOT);
   assert.deepEqual(pages.filter((file) => file.startsWith('lessons/')).sort(), [
     PILOT,
@@ -151,16 +152,21 @@ test('academy pages keep links local apart from exact homepage login and help li
   }
 });
 
-test('homepage login binds to the existing GET route and help links carry only fixed data', async () => {
+test('homepage account and login links bind to exact hosted routes and help links carry only fixed data', async () => {
   const home = await readPublic('index.html');
   for (const reference of HOME_ENTRY_LINKS) assert.ok(home.includes(`href="${reference}"`), reference);
   const proxy = await readFile(new URL('../../../deploy/academy/Caddyfile.academy', import.meta.url), 'utf8');
   const loginMatcher = proxy.match(/@academyLogin\s*\{([^}]+)\}/)[1];
   assert.deepEqual(loginMatcher.match(/\bmethod\s+([^\n]+)/)[1].trim().split(/\s+/), ['GET']);
-  assert.deepEqual(loginMatcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/), ['/academy/auth/login', '/academy/auth/callback']);
+  assert.deepEqual(loginMatcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/), ['/academy/auth/login', '/academy/auth/callback', '/academy/auth/register']);
   assert.match(proxy, /handle @academyLogin\s*\{\s*reverse_proxy 127\.0\.0\.1:18300\s*\{/);
   const server = await readFile(new URL('../../witnessops-academy-server/src/server.mjs', import.meta.url), 'utf8');
   assert.match(server, /if \(p === '\/academy\/auth\/login' && req\.method === 'GET'\)\s*\{\s*return startLogin\(req, res,/);
+  const accountMatcher = proxy.match(/@academyRead\s*\{([^}]+)\}/)[1];
+  assert.deepEqual(accountMatcher.match(/\bmethod\s+([^\n]+)/)[1].trim().split(/\s+/), ['GET', 'HEAD']);
+  assert.ok(accountMatcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/).includes('/academy/account'));
+  assert.match(server, /if \(p === ACCOUNT_ROUTE && read\)/);
+  assert.doesNotMatch(home, /type="password"/);
   assert.match(home, /href="https:\/\/witnessops\.com\/support#support-request" target="_blank" rel="noopener noreferrer"/);
   const mailto = new URL(home.match(/href="(mailto:[^"]+)"/)[1]);
   assert.equal(mailto.pathname, 'engage@mail.witnessops.com');

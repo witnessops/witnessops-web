@@ -59,3 +59,17 @@ test('invitation context is encrypted, authenticated and single-use with login',
   assert.equal(codec.open(token).invitationToken, invitationToken);
   assert.equal(codec.open(token), null);
 });
+
+test('account and registration intent are sealed while arbitrary return URLs are excluded', () => {
+  const codec = createPreauthCodec(key);
+  const token = codec.seal({ state: 's', nonce: 'n', verifier: 'v', returnTo: 'account', registration: true });
+  const context = codec.open(token);
+  assert.equal(context.returnTo, 'account');
+  assert.equal(context.registration, true);
+  assert.equal(codec.open(token), null);
+  for (const returnTo of ['https://outsider.example.invalid/', '//outsider.example.invalid/', '/academy/account', 'lesson']) {
+    const rejected = codec.open(codec.seal({ state: 's', nonce: 'n', verifier: 'v', returnTo, registration: 'true' }));
+    assert.equal(Object.hasOwn(rejected, 'returnTo'), false);
+    assert.equal(Object.hasOwn(rejected, 'registration'), false);
+  }
+});

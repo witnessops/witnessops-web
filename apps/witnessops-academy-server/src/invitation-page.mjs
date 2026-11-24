@@ -26,7 +26,8 @@ export function supportLinks(lessonQuestion = false) {
 
 const BROWSER_ERRORS = Object.freeze({
   login_state_missing: 'This sign-in attempt has expired or cannot be matched to this browser. Start sign-in again. If you were accepting an invitation, reopen its original link.',
-  login_failed: 'Sign-in did not finish. Try again with your invited account. If you were accepting an invitation, reopen its original link.',
+  login_failed: 'Sign-in did not finish. Try again with your WitnessOps account. If you were accepting an invitation, reopen its original link.',
+  email_verification_required: 'Your email has not been verified. Complete the verification email from WitnessOps, then sign in. If it did not arrive, ask for help below.',
   rate_limited: 'There have been too many sign-in attempts. Please wait before trying again.',
   idp_unavailable: 'Sign-in is temporarily unavailable. Try again later. If this continues, contact support.',
   internal: 'Academy could not open this page. Try again later, or contact support.',
@@ -39,7 +40,7 @@ export function browserErrorBody(req, code) {
   if (!['GET', 'HEAD'].includes(req.method) || !Object.hasOwn(BROWSER_ERRORS, code)) return json;
   let path;
   try { path = new URL(req.url, 'https://academy.invalid').pathname; } catch { return json; }
-  if (!['/academy/auth/login', '/academy/auth/callback', '/academy/invitation'].includes(path) && !lessonByRoute(path)) return json;
+  if (!['/academy/auth/login', '/academy/auth/register', '/academy/auth/callback', '/academy/account', '/academy/invitation'].includes(path) && !lessonByRoute(path)) return json;
   const accept = typeof req.headers?.accept === 'string' ? req.headers.accept : '';
   const acceptsHtml = accept.split(',').some(value => {
     const [type, ...parameters] = value.trim().split(';');
@@ -51,7 +52,7 @@ export function browserErrorBody(req, code) {
 <title>Academy sign-in help · WitnessOps Academy</title><link rel="stylesheet" href="/chron.css"><link rel="stylesheet" href="/academy.css"></head>
 <body><header class="site"><a href="/">WitnessOps Academy</a></header><main class="col" id="main-content">
 <h1>Need help getting in?</h1><p role="status">${BROWSER_ERRORS[code]}</p>
-<p><a class="btn" href="/academy/auth/login">Start sign-in again</a> <a href="/">Academy home</a></p>
+<p><a class="btn" href="/academy/auth/login">Start sign-in again</a> <a href="/academy/account">Your account</a> <a href="/">Academy home</a></p>
 <h2>Help without signing in</h2><p>Tell support which step failed and what you need help with. Choose what you share.</p>
 ${supportLinks()}</main></body></html>`;
 }
@@ -69,6 +70,7 @@ export function invitationPage(session, { denied = false, failed = false, lesson
 <h1>Your Academy place</h1><p id="invitation-status" role="status" aria-live="polite">${status}</p>
 <p>This invitation gives one named learner free access to the two Verify results pilot lessons. It does not grant administrative rights or community membership.</p>
 <p>Open the private invitation link you received, then sign in with the invited WitnessOps account through Keycloak. Creating an account does not give you a pilot place. If you already accepted your invitation, sign in to return to your lessons.</p>
+<p>Need an account? <a href="/academy/account">Open your account page</a> for account creation, sign-in and help.</p>
 <form id="invitation-form" method="post" action="/academy/auth/invitation" autocomplete="off">
 <input type="hidden" id="invitation-token" name="token"><button class="btn" id="accept-invitation" type="${session ? 'button' : 'submit'}" disabled>${session ? 'Accept invitation' : 'Accept invitation and sign in'}</button></form>
 <p><a id="sign-in" href="/academy/auth/login?lesson=${lesson.id}"${session ? ' hidden' : ''}>Sign in</a>
