@@ -89,6 +89,43 @@ production acceptance. [A3 token protection](SESSION-TOKEN-PROTECTION.md) and
 combined source changes, explicit cutover, rotation, rollback limits and remaining
 operator acceptance. No production cutover or key provisioning has been applied.
 
+## Self-service accounts
+
+`/academy/account` is a public account entry page. An existing WitnessOps account
+can sign in and reach Community and support without an Academy pilot grant.
+The page reads the current grant before offering saved lessons; registering an
+identity never creates a grant or changes the four-person pilot limit.
+
+Public account creation is off by default. `ACADEMY_SELF_SERVICE_REGISTRATION`
+accepts only `true` or `false`; unknown values stop startup. When explicitly
+enabled, the page offers Create account at `/academy/auth/register`. Keycloak
+26.8.2 supports registration through its ordinary authorization endpoint with
+`prompt=create`; the deprecated `/registrations` endpoint is not used. The same
+state, nonce, S256 PKCE, exact callback and encrypted single-use preauth context
+are retained. Registration requests the `email` scope and requires a boolean
+`email_verified=true` claim before creating an Academy session. The fixed return
+destination is the account page. No password or verification token is handled
+by Academy, and no arbitrary return URL is accepted.
+This check covers the explicit Academy registration intent; it does not replace
+the realm's required verification flow or enforce access for other clients.
+
+Enabling the Academy flag alone does not enable safe public signup. The operator
+must first accept the Keycloak registration flow, verified email delivery,
+password recovery delivery and abuse controls for the intended realm, with
+exact client redirect URIs and S256 unchanged. No live realm setting, mail
+provider or access policy is changed by this source. The existing realm fixture
+also remains closed by default. See the [versioned Keycloak registration
+guidance](https://www.keycloak.org/docs/26.8.2/server_admin/#_user-registration).
+
+`test/registration-journey-e2e.mjs` is a separate real browser acceptance phase in
+the existing disposable Academy CI stack. It requires `ACADEMY_E2E=1`,
+`ACADEMY_REGISTRATION_DISPOSABLE=1` and the `approved-free-pilot` fixture policy.
+It captures only synthetic verification/recovery mail in memory, follows the
+real Keycloak flow, and checks the account landing, stable identity and denied
+lesson access without a grant. It restores the fixture's realm and application
+settings and removes its own synthetic accounts. Passing this phase does not
+establish live mail delivery or authorize public registration.
+
 ## Owner-approved initial free pilot
 
 Academy remains a paid programme; the owner approved an initial group of one to

@@ -11,6 +11,8 @@ import { LESSON_ROUTE, lessonPage } from './lesson-page.mjs';
 import { LESSONS, DEFAULT_LESSON, lessonById, lessonByAlias, lessonByRoute, lessonByDraft } from './lesson-routes.mjs';
 import { accessPolicy, browserErrorBody, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
 import { communityUrl } from './community-link.mjs';
+import { ACCOUNT_ROUTE, accountPage, registrationEnabled } from './account-page.mjs';
+import { authorizationIntent, loginDestination, registrationClaimsAccepted } from './login-intent.mjs';
 import { previewInvitation, redeemInvitation, hasApprovedFreeGrant } from './pilot-invitations.mjs';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -29,9 +31,11 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
 const INVITATION_JS = readFileSync(join(HERE, 'invitation-client.js'));
+const ACCOUNT_JS = readFileSync(join(HERE, 'account-client.js'));
 const ACCESS_POLICY = accessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved-free-pilot'));
 const REQUIRES_GRANT = ACCESS_POLICY === 'approved-free-pilot';
 const COMMUNITY_URL = communityUrl(env('ACADEMY_COMMUNITY_URL', ''));
+const SELF_SERVICE_REGISTRATION = registrationEnabled(env('ACADEMY_SELF_SERVICE_REGISTRATION', 'false'));
 const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
@@ -230,7 +234,7 @@ function identityClaims(tokens) {
   return claims;
 }
 
-async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken } = {}) {
+async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, returnTo, registration = false } = {}) {
   const decision = loginGuard.begin(requestClient(req));
   if (!decision.ok) {
     return send(res, 429, browserErrorBody(req, 'rate_limited'), { 'Retry-After': String(decision.retryAfter) });
@@ -238,10 +242,10 @@ async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken }
   const state = rnd();
   const nonce = rnd();
   const verifier = oidc.randomPKCECodeVerifier();
-  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, invitationToken });
+  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, invitationToken, returnTo, registration });
   const to = oidc.buildAuthorizationUrl(config, {
     redirect_uri: REDIRECT_URI,
-    scope: 'openid',
+    ...authorizationIntent(registration),
     state,
     nonce,
     code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
@@ -259,6 +263,15 @@ async function handle(req, res) {
     : send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, HEAD' });
 
   if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
+
+  if (p === ACCOUNT_ROUTE && read) {
+    const s = await getSession(req);
+    const admitted = s && (!REQUIRES_GRANT || await hasApprovedFreeGrant(pool, { identityId: s.identity_id }));
+    return send(res, 200, accountPage(s, { registration: SELF_SERVICE_REGISTRATION, admitted, communityUrl: COMMUNITY_URL }));
+  }
+  if (p === '/academy/static/account.js' && read) {
+    return send(res, 200, ACCOUNT_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
 
   if (p === '/academy/static/lesson.js' && read) {
     return send(res, 200, LESSON_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
@@ -320,7 +333,12 @@ async function handle(req, res) {
       : { error: 'invalid_invitation' });
   }
   if (p === '/academy/auth/login' && req.method === 'GET') {
-    return startLogin(req, res, { lesson: lessonById(url.searchParams.get('lesson')) || DEFAULT_LESSON });
+    return startLogin(req, res, { lesson: lessonById(url.searchParams.get('lesson')) || DEFAULT_LESSON,
+      returnTo: url.searchParams.get('return') === 'account' ? 'account' : undefined });
+  }
+  if (p === '/academy/auth/register' && req.method === 'GET') {
+    if (!SELF_SERVICE_REGISTRATION) return send(res, 302, '', { Location: ACCOUNT_ROUTE });
+    return startLogin(req, res, { returnTo: 'account', registration: true });
   }
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
@@ -342,6 +360,9 @@ async function handle(req, res) {
     if (!claims) {
       log({ ev: 'callback_failed', err: 'claims' });
       return send(res, 400, browserErrorBody(req, 'login_failed'));
+    }
+    if (!registrationClaimsAccepted(pa, claims)) {
+      return send(res, 400, browserErrorBody(req, 'email_verification_required'));
     }
     // Identity rows are immutable for the runtime role (no UPDATE grant): insert-if-absent, then read.
     await pool.query(
@@ -365,7 +386,7 @@ async function handle(req, res) {
       VALUES ($1,$2,$3,$4,$5, now()+make_interval(secs=>$6), now()+make_interval(secs=>$7))`,
       [context.token_hash, context.identity_id, csrf, claims.sid || null, sealed, tokens.expires_in || 300, SESSION_TTL_MS / 1000],
     );
-    let destination = (lessonById(pa.lessonId) || DEFAULT_LESSON).route;
+    let destination = loginDestination(pa);
     if (REQUIRES_GRANT && pa.invitationToken) {
       const result = await redeemInvitation(pool, { token: pa.invitationToken, identityId: rows[0].id });
       if (!result.ok) destination = '/academy/invitation?status=not-accepted';

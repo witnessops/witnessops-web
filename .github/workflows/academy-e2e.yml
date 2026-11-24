@@ -346,6 +346,22 @@ jobs:
           node apps/witnessops-academy-mcp/test/pilot-admission-http-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-mcp-http.log"
           node apps/witnessops-academy-server/test/pilot-journey-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-journey.log"
 
+      - name: Verify self-service registration and email recovery
+        id: registration_journey
+        timeout-minutes: 10
+        env:
+          ACADEMY_REGISTRATION_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == approved-free-pilot ]]
+          node apps/witnessops-academy-server/test/registration-journey-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/registration-journey.log"
+
       - name: Fail if generated secrets or JWTs appear in logs or evidence
         id: scan
         if: always()
