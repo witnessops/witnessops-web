@@ -55,7 +55,7 @@ const situationLanes = [
     emphasize: true,
   },
   {
-    href: "#contact",
+    href: "#support-request",
     title: "Product help or access",
     body: "Questions about the product, access, mailbox verification, or how to use a public surface. Verify your email to send your request to the support team.",
     emphasize: false,
@@ -170,10 +170,10 @@ export default function SupportPage() {
                 Support is for product help, access issues, and verifier
                 questions. Need a review instead of product help? See{" "}
                 <Link
-                  href="/reviews"
+                  href={PUBLIC_AGENT_ACTION_OFFER.route}
                   className="font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
-                  the two published reviews
+                  the {PUBLIC_AGENT_ACTION_OFFER.name.en}
                 </Link>
                 .
               </p>
