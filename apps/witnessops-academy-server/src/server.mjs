@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { preloadRoutes } from '../../witnessops-academy/scripts/serve.mjs';
 import { LESSON_ROUTE, lessonPage } from './lesson-page.mjs';
 import { LESSONS, DEFAULT_LESSON, lessonById, lessonByAlias, lessonByRoute, lessonByDraft } from './lesson-routes.mjs';
-import { accessPolicy, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
+import { accessPolicy, browserErrorBody, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
 import { communityUrl } from './community-link.mjs';
 import { previewInvitation, redeemInvitation, hasApprovedFreeGrant } from './pilot-invitations.mjs';
 import { fileURLToPath } from 'node:url';
@@ -233,7 +233,7 @@ function identityClaims(tokens) {
 async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken } = {}) {
   const decision = loginGuard.begin(requestClient(req));
   if (!decision.ok) {
-    return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(decision.retryAfter) });
+    return send(res, 429, browserErrorBody(req, 'rate_limited'), { 'Retry-After': String(decision.retryAfter) });
   }
   const state = rnd();
   const nonce = rnd();
@@ -325,7 +325,7 @@ async function handle(req, res) {
 
   if (p === '/academy/auth/callback' && req.method === 'GET') {
     const pa = preauth.open(cookies(req)[PRE]);
-    if (!pa) return send(res, 400, { error: 'login_state_missing' });
+    if (!pa) return send(res, 400, browserErrorBody(req, 'login_state_missing'));
     let tokens;
     try {
       tokens = await oidc.authorizationCodeGrant(config, new URL(req.url, ORIGIN), {
@@ -336,12 +336,12 @@ async function handle(req, res) {
       });
     } catch (e) {
       log({ ev: 'callback_failed', err: publicErrorCode(e) });
-      return send(res, 400, { error: 'login_failed' });
+      return send(res, 400, browserErrorBody(req, 'login_failed'));
     }
     const claims = identityClaims(tokens);
     if (!claims) {
       log({ ev: 'callback_failed', err: 'claims' });
-      return send(res, 400, { error: 'login_failed' });
+      return send(res, 400, browserErrorBody(req, 'login_failed'));
     }
     // Identity rows are immutable for the runtime role (no UPDATE grant): insert-if-absent, then read.
     await pool.query(
@@ -354,7 +354,7 @@ async function handle(req, res) {
     );
     if (!rows[0]) {
       log({ ev: 'callback_failed', err: 'identity' });
-      return send(res, 400, { error: 'login_failed' });
+      return send(res, 400, browserErrorBody(req, 'login_failed'));
     }
     const sid = rnd();
     const csrf = rnd();
@@ -499,11 +499,11 @@ async function handle(req, res) {
 const server = http.createServer((req, res) => handle(req, res).catch((e) => {
   if (e instanceof IdpUnavailable) {
     log({ ev: 'idp_unavailable' });
-    if (!res.headersSent) send(res, 503, { error: 'idp_unavailable' });
+    if (!res.headersSent) send(res, 503, browserErrorBody(req, 'idp_unavailable'));
     return;
   }
   log({ ev: 'error', err: publicErrorCode(e) });
-  if (!res.headersSent) send(res, 500, { error: 'internal' });
+  if (!res.headersSent) send(res, 500, browserErrorBody(req, 'internal'));
 }));
 server.listen(PORT, HOST, () => log({ ev: 'listening', host: HOST, port: PORT, origin: ORIGIN, db: DB_NAME }));
 for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => {
