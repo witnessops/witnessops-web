@@ -107,14 +107,23 @@ cat > "$LAB/element-config.json" <<'JSON'
 {"default_server_config":{"m.homeserver":{"base_url":"http://127.0.0.1:18008","server_name":"academy-test.invalid"}},"brand":"Element Web — disposable Academy acceptance","default_theme":"dark","disable_guests":true,"disable_custom_urls":true,"integrations_ui_url":null,"integrations_rest_url":null,"integrations_widgets_urls":[]}
 JSON
 chmod 600 "$LAB/element-config.json"
-docker run -d --name "$ELEMENT_CONTAINER" --publish 127.0.0.1:18444:80 \
+docker run -d --name "$ELEMENT_CONTAINER" --publish 127.0.0.1:18444:8080 \
+  --env ELEMENT_WEB_PORT=8080 \
   --volume "$LAB/element-config.json:/app/config.json:ro" "$ELEMENT_IMAGE" >/dev/null
 ready=0
 for _ in $(seq 1 40); do
   if curl --max-time 2 -fsS http://127.0.0.1:18444/config.json >/dev/null 2>&1; then ready=1; break; fi
   sleep 1
 done
-[[ "$ready" == 1 ]] || { echo 'Disposable Element Web did not start'; exit 1; }
+if [[ "$ready" != 1 ]]; then
+  echo 'Disposable Element Web did not start'
+  docker inspect --format 'Element container status={{.State.Status}} exit={{.State.ExitCode}}' "$ELEMENT_CONTAINER" || true
+  # Error category only; no startup environment, headers, bodies or private tokens.
+  docker logs --tail 40 "$ELEMENT_CONTAINER" 2>&1 |
+    grep -E -i 'permission denied|bind\(|address already in use|permission|emerg|invalid number|error|fail' |
+    sed -E 's/[A-Za-z0-9_=-]{80,}/[REDACTED]/g' | tail -12 || true
+  exit 1
+fi
 
 if grep -q '^ACADEMY_MATRIX_WIDGET_ORIGINS=' "$ACADEMY_CI_ENV"; then
   echo 'Origin setting was already present, refusing to modify'; exit 1
