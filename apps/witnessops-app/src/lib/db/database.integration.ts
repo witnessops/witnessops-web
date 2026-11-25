@@ -827,7 +827,7 @@ test("identity: concurrent Keycloak claims cannot bind one subject to two accoun
   assert.ok([first.id, second.id].includes(resolved.id));
 });
 test("identity: WorkOS-bound Keycloak linking rejects another user and a revoked session", async () => {
-  const source = identity("keycloak_session_link");
+  const source = identity("user_keycloaksessionlink");
   const owner = await resolveUnenrolledIdentity(pool, source);
   const session = sessionKey(source.issuer, "session_keycloaklink", source.subject);
   const keycloak: KeycloakIdentity = { provider: "keycloak", issuer: "https://auth.example.test/realms/academy",
@@ -836,7 +836,7 @@ test("identity: WorkOS-bound Keycloak linking rejects another user and a revoked
     (error: unknown) => error instanceof ApiError && error.status === 403);
   assert.equal((await pool.query("SELECT count(*) FROM identity_mappings WHERE provider='keycloak' AND subject=$1", [keycloak.subject])).rows[0].count, "0");
   assert.equal((await linkKeycloakIdentityFromWorkosSession(pool, session, owner.id, keycloak)).id, owner.id);
-  const revokedSource = identity("keycloak_session_revoked");
+  const revokedSource = identity("user_keycloaksessionrevoked");
   const revokedOwner = await resolveUnenrolledIdentity(pool, revokedSource);
   const revoked = sessionKey(revokedSource.issuer, "session_keycloakrevoked", revokedSource.subject);
   await revokeSession(pool, revoked);
