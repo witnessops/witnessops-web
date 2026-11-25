@@ -38,7 +38,7 @@ export function matrixWidgetCsp(origins) {
 
 export function matrixWidgetHtml(csrfToken) {
   if (typeof csrfToken !== 'string' || !csrfToken) throw new Error('Authenticated Academy session required');
-  const token = JSON.stringify(csrfToken).replaceAll('<', '\u003c');
+  const token = JSON.stringify(csrfToken).replaceAll('<', '\\u003c');
   const insert = `<script type="application/json" id="academy-csrf">${token}</script>\n<script>${adapter}</script>\n<script>`;
   const result = html.replace('<script>', insert);
   if (result === html) throw new Error('Missing Decision Room script insertion point');
