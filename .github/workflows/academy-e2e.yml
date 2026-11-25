@@ -24,6 +24,8 @@ on:
       - "apps/witnessops-academy/**"
       - "deploy/academy/**"
       - ".github/workflows/academy-e2e.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 permissions:
@@ -111,6 +113,16 @@ jobs:
 
       - name: Lint MCP tool schemas
         run: node apps/witnessops-academy-mcp/scripts/lint-tool-schemas.mjs
+
+      # Unit suites: academy-mcp includes the decision-room drift check
+      # (scripts/sync-decision-room.mjs --check) against the academy-server copy.
+      - name: Academy MCP unit tests (includes decision-room drift check)
+        timeout-minutes: 5
+        run: pnpm --filter @witnessops/academy-mcp test
+
+      - name: Academy server unit tests
+        timeout-minutes: 5
+        run: pnpm --filter @witnessops/academy-server test
 
       - name: Install Chromium for the real lesson journey
         run: pnpm exec playwright install chromium --with-deps
