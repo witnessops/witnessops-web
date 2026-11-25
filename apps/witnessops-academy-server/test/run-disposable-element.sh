@@ -106,7 +106,7 @@ PY
 cat > "$LAB/element-config.json" <<'JSON'
 {"default_server_config":{"m.homeserver":{"base_url":"http://127.0.0.1:18008","server_name":"academy-test.invalid"}},"brand":"Element Web — disposable Academy acceptance","default_theme":"dark","disable_guests":true,"disable_custom_urls":true,"integrations_ui_url":null,"integrations_rest_url":null,"integrations_widgets_urls":[]}
 JSON
-chmod 600 "$LAB/element-config.json"
+chmod 644 "$LAB/element-config.json"  # Public loopback-only settings; readable by the unprivileged Element container.
 docker run -d --name "$ELEMENT_CONTAINER" --publish 127.0.0.1:18444:8080 \
   --env ELEMENT_WEB_PORT=8080 \
   --volume "$LAB/element-config.json:/app/config.json:ro" "$ELEMENT_IMAGE" >/dev/null
