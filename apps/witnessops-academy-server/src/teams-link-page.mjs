@@ -2,7 +2,9 @@ import { isCanonicalTeamsLinkToken } from './preauth-cookie.mjs';
 
 export const TEAMS_LINK_ROUTE = '/academy/teams/link';
 export const TEAMS_LINK_JS_ROUTE = '/academy/static/teams-link.js';
-export const TEAMS_LINK_PAGE_HEADERS = Object.freeze({ 'Referrer-Policy': 'no-referrer' });
+// Native POST needs an exact Origin; no-referrer serializes it as null in browsers.
+// The controller removes the one-time token fragment before enabling submission.
+export const TEAMS_LINK_PAGE_HEADERS = Object.freeze({ 'Referrer-Policy': 'same-origin' });
 
 const jsonText = value => JSON.stringify(value).replaceAll('<', String.fromCharCode(92) + 'u003c');
 

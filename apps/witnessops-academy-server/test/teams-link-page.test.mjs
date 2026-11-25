@@ -52,7 +52,7 @@ test('Teams link shell keeps identities and tokens out while preserving existing
   assert.match(signed, /does not grant pilot access, create another learner record, or move, copy or reset saved work/);
   assert.doesNotMatch(signed, /<\/script><img>|synthetic-private|issuer|subject|identity_id/);
   assert.equal(JSON.parse(signed.match(/id="academy-csrf">([^<]+)<\/script>/)[1]), session.csrf_token);
-  assert.deepEqual(TEAMS_LINK_PAGE_HEADERS, { 'Referrer-Policy': 'no-referrer' });
+  assert.deepEqual(TEAMS_LINK_PAGE_HEADERS, { 'Referrer-Policy': 'same-origin' });
 
   const linked = teamsLinkPage(session, { enabled: true, linked: true });
   assert.match(linked, /id="unlink-teams-account"/);

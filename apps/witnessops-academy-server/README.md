@@ -122,6 +122,20 @@ Unreferenced intents that have been expired for 24 hours are removed in bounded
 batches on subsequent intent creation. Confirmed intents remain attached to their
 link audit row, including after unlink; no raw bearer or one-time token is retained.
 
+The signed-out Teams link shell uses `Referrer-Policy: same-origin` after its
+controller removes the one-time fragment. This preserves the exact `Origin` on
+the native form POST without sending a referrer to the cross-origin identity
+provider; the server's strict Origin and fetch-site checks remain unchanged.
+Run the isolated browser regression after installing Chromium:
+
+```sh
+ACADEMY_TEAMS_LINK_BROWSER=1 node apps/witnessops-academy-server/test/teams-link-entry-browser.mjs
+```
+
+The regression exercises the actual HTML, controller and header policy against
+a synthetic loopback receiver. It proves browser form and token-placement
+behavior, not live Entra issuance or Keycloak acceptance.
+
 This slice intentionally exposes no Teams lesson read/write endpoint. A mapping
 is not an Academy login or authorization grant. Any later Teams data operation
 must separately prove a current Keycloak authorization, recheck the Academy grant
