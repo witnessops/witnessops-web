@@ -186,3 +186,42 @@ test('sign-in hint only for 401 or 403 access/scope; CSRF and Origin refusals ar
     if (/refused/.test(String(expected))) assert.doesNotMatch(status, /Sign in/, body.error);
   }
 });
+
+function matrixView() {
+  const calls = [];
+  let answer = null;
+  const transport = {
+    post(method, params, expectsResponse) {
+      assert.equal(method, 'tools/call'); assert.equal(expectsResponse, true);
+      calls.push(params);
+      return new Promise(resolve => { answer = resolve; });
+    },
+    open({ acceptPayload }) { acceptPayload({ structuredContent: kase() }); },
+  };
+  const view = bootView(html, { windowExtras: { AcademyMatrixTransport: transport } });
+  return { view, calls, reply: async body => { answer({ result: { isError: true, structuredContent: body } }); await flush(); } };
+}
+
+test('Matrix transport: a 401/403 write asks to reload the widget, not to sign in and retry (N-4)', async () => {
+  for (const body of [{ error: 'session_unavailable', status: 401 }, { error: 'csrf', status: 403 }, { error: 'access_required', status: 403 }]) {
+    const { view, calls, reply } = matrixView();
+    await flush();
+    assert.equal(view.q('prompt').textContent, kase().prompt, 'opened through the Matrix transport');
+    await view.choose(0);
+    view.q('commit').click(); await flush();
+    assert.equal(calls.at(-1).name, 'submit_decision');
+    await reply(body);
+    const status = view.q('status').textContent;
+    assert.equal(status, 'Your Academy session changed. Reload the widget to read saved progress.', body.error);
+    assert.doesNotMatch(status, /Sign in|retry/i);
+    assert.equal(view.sent.length, 0, 'Matrix mode never posts to the parent window');
+  }
+});
+
+test('Matrix transport: a 409 still drops the request and re-reads through the transport', async () => {
+  const { view, calls, reply } = matrixView();
+  await flush(); await view.choose(0);
+  view.q('commit').click(); await flush();
+  await reply({ error: 'version_conflict', status: 409 });
+  assert.equal(calls.at(-1).name, 'resume_lesson');
+});

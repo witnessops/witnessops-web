@@ -57,7 +57,7 @@ export function inlineScript(html) {
 
 export async function flush() { for (let i = 0; i < 5; i += 1) await new Promise(resolve => setImmediate(resolve)); }
 
-export function bootView(html, { hostOrigin = 'https://host.example' } = {}) {
+export function bootView(html, { hostOrigin = 'https://host.example', windowExtras = {} } = {}) {
   const ids = elementsById(html);
   const sent = [];
   let now = 0, nextTimer = 1;
@@ -69,7 +69,7 @@ export function bootView(html, { hostOrigin = 'https://host.example' } = {}) {
     createElement: tag => new FakeElement(tag),
     createTextNode: text => new TextNode(text),
   };
-  const window = { parent, addEventListener: (type, fn) => { if (type === 'message') windowListeners.push(fn); } };
+  const window = { parent, addEventListener: (type, fn) => { if (type === 'message') windowListeners.push(fn); }, ...windowExtras };
   const context = vm.createContext({
     window, document, crypto: webcrypto, console,
     setTimeout: (fn, ms) => { const id = nextTimer++; timers.set(id, { fn, at: now + ms }); return id; },

@@ -298,7 +298,8 @@ optimistic versions and PostgreSQL records remain authoritative.
 - The client retries an uncertain write (host silence after a bounded
   timeout, transport failure or 5xx) with exactly the original UUID and
   arguments. A 401/403 keeps that pending request and its UUID so it can be
-  retried unchanged after signing in again. Any other definitive 4xx (for
+  retried unchanged after signing in again (in the Matrix widget, whose CSRF
+  token is fixed at load, it asks the learner to reload the widget instead). Any other definitive 4xx (for
   example 409 conflict, 422 validation or a stale version) drops the pending
   request and re-reads the saved case instead of offering a resend or claiming
   a save.

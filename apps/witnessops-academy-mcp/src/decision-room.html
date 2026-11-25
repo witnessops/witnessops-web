@@ -212,6 +212,9 @@
     return body?.status === 401 || (body?.status === 403 && ['access_required', 'insufficient_scope'].includes(body?.error));
   }
   function authMessage(body) {
+    // In Matrix/Element the CSRF token is fixed when the widget loads, so signing
+    // in again elsewhere cannot make a retry from this frame succeed.
+    if (matrixTransport) return 'Your Academy session changed. Reload the widget to read saved progress.';
     const code = errorCode(body, body?.status === 401 ? 'session_unavailable' : 'access_required');
     return signInFixes(body)
       ? `Not confirmed: ${code}. Sign in to Academy, then retry the same request.`
