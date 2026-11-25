@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import struct
 import zlib
 from pathlib import Path
@@ -41,14 +42,22 @@ def icon(size: int, outlined: bool) -> bytes:
     ihdr = struct.pack("!IIBBBBB", size, size, 8, 6, 0, 0, 0)
     return SIGNATURE + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
 
-def make_package(output: Path) -> None:
+def make_package(output: Path, entra_app_id: str | None = None) -> None:
     manifest = json.loads((ROOT / "manifest.json").read_text(encoding="utf-8"))
     if manifest.get("staticTabs", [{}])[0].get("contentUrl") != "https://academy.witnessops.com/academy/teams/launch":
         raise SystemExit("Unexpected Teams contentUrl; refusing to package")
     if manifest.get("staticTabs", [{}])[0].get("scopes") != ["personal"]:
         raise SystemExit("This package is personal-scope only")
+    if entra_app_id is not None:
+        # Entra registration is private tenant state; never commit tenant-specific IDs in source.
+        if not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", entra_app_id):
+            raise SystemExit("Invalid Entra app ID; use canonical lowercase UUID")
+        manifest["webApplicationInfo"] = {
+            "id": entra_app_id,
+            "resource": f"api://academy.witnessops.com/{entra_app_id}",
+        }
     items = {
-        "manifest.json": (ROOT / "manifest.json").read_bytes(),
+        "manifest.json": json.dumps(manifest, sort_keys=True, indent=2).encode("utf-8") + b"\\n",
         "color.png": icon(96, outlined=False),
         "outline.png": icon(20, outlined=True),
     }
@@ -64,4 +73,6 @@ def make_package(output: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=ROOT / "academy-teams-private-preview.zip")
-    make_package(parser.parse_args().out)
+    parser.add_argument("--entra-app-id", help="Use a separately registered, single-tenant Entra application (private ZIP only)")
+    args = parser.parse_args()
+    make_package(args.out, args.entra_app_id)
