@@ -52,3 +52,24 @@ test('element-config.json carries no secrets and is guarded at runtime', () => {
 test('the run-disposable-element script has no shellcheck SC2155 export-with-substitution', () => {
   assert.doesNotMatch(script, /^export [A-Z_]+="[^"]*\$\(/m);
 });
+
+test('widget setup targets only the loopback test homeserver and the fixture widget ID', () => {
+  const start = script.indexOf(`python3 - "$ACADEMY_CI_SECRET_DIR/matrix_learner_password" "$LAB/room-id" <<'PY'`);
+  assert.ok(start > 0);
+  const setup = script.slice(start, script.indexOf('\nPY\n', start));
+  assert.ok(setup.includes("base='http://127.0.0.1:18008'"));
+  const urls = [...setup.matchAll(/https?:\/\/[^'"\s]+/g)].map(m => m[0]);
+  assert.deepEqual([...new Set(urls)].sort(), [
+    'http://127.0.0.1:18008',
+    'http://127.0.0.1:18300/academy/learn/report-or-evidence?format=matrix',
+  ]);
+  // Every request goes through request(), which prefixes the loopback base.
+  assert.match(setup, /urllib\.request\.Request\(base\+path/);
+  assert.equal(setup.split('urllib.request.Request(').length, 2, 'single request helper');
+  const stateKeys = [...setup.matchAll(/state\+'([^']+)'/g)].map(m => m[1]);
+  assert.deepEqual(stateKeys, ['im.vector.modular.widgets/academy-decision-room', 'io.element.widgets.layout/']);
+  assert.match(setup, /'id':'academy-decision-room'/);
+  const layout = setup.slice(setup.indexOf("io.element.widgets.layout/"));
+  assert.deepEqual([...layout.matchAll(/'widgets':\{'([^']+)'/g)].map(m => m[1]), ['academy-decision-room']);
+  assert.doesNotMatch(setup, /witnessops\.com|matrix\.org|community\./i);
+});
