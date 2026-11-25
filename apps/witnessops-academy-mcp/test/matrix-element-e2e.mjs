@@ -31,7 +31,8 @@ const kid = FIX.TEST_MATRIX_ACADEMY_USERNAME;
 const academyPass = readFileSync(FIX.TEST_MATRIX_ACADEMY_PASSWORD_FILE, 'utf8').trim();
 const matrixPass = readFileSync(FIX.MATRIX_TEST_PASSWORD_FILE, 'utf8').trim();
 const roomId = readFileSync(FIX.MATRIX_TEST_ROOM_ID_FILE, 'utf8').trim();
-assert.match(roomId, /^![^ ]+:academy-test\.invalid$/);
+// Room version 12 (Synapse default since v1.13x) IDs carry no server name.
+assert.match(roomId, /^!(?:[A-Za-z0-9_-]{43}|[^\s:]+:academy-test\.invalid)$/);
 const evidence = FIX.ACADEMY_TEST_EVIDENCE_DIR;
 mkdirSync(evidence, { recursive: true, mode: 0o700 });
 const sha = x => crypto.createHash('sha256').update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');

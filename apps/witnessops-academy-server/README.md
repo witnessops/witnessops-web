@@ -295,12 +295,22 @@ optimistic versions and PostgreSQL records remain authoritative.
 - This opt-in presentation path does **not** add a route to the static Academy
   release nor mutate Community room state. The existing authenticated lesson
   proxy path already covers it.
-- The client retries an uncertain write with exactly the original UUID and
-  arguments. Deterministic 401/403/409 results require reloading the saved
-  case rather than falsely claiming a save.
+- The client retries an uncertain write (host silence after a bounded
+  timeout, transport failure or 5xx) with exactly the original UUID and
+  arguments. A definitive 4xx (for example 409 conflict, stale version, 401 or
+  403) drops the pending request and re-reads the saved case instead of
+  offering a resend or claiming a save.
 
-Run `pnpm academy:test` for the source contract; the isolated Element-style
-iframe test is a synthetic browser harness, not native Element Web acceptance.
+Run `pnpm academy:test` for the source contract. Native Element Web acceptance
+runs only in CI: the `Academy e2e` workflow step "Verify one private Academy
+case inside disposable Element Web" calls
+`apps/witnessops-academy-server/test/run-disposable-element.sh`, which starts
+digest-pinned disposable Synapse and Element Web containers and runs the seven
+journey checks in `apps/witnessops-academy-mcp/test/matrix-element-e2e.mjs`
+(Keycloak login, widget in a private room, no case before explicit start,
+explicit start, saved decision revision, same case through the MCP client, one
+PostgreSQL progress record with scoped framing). It is a disposable fixture,
+not production acceptance.
 Before any release, verify the current Element origin, same-site cookies,
 iframe sandbox policy, actual user admission and browser/MCP shared progress in
 a disposable environment. Current production installation remains unperformed.
