@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Academy · Decision Room</title>
+<style>
+:root{color-scheme:dark;--bg:#0a1017;--surface:#101b25;--surface2:#15242e;--line:#293a47;--text:#f0f5f8;--muted:#a2b1bb;--accent:#96dfb8;--warning:#f8c88c;--focus:#a4ddf7;font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--text)}button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:3px}button:disabled{cursor:default;opacity:.55}
+.panel{max-width:800px;margin:auto;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:linear-gradient(150deg,#10212c 0%,#0b121a 67%);box-shadow:0 20px 65px #0002}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:9px;font-weight:750;letter-spacing:.12em;font-size:10px}.light{width:9px;height:9px;display:inline-block;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px #95dcb31a,0 0 13px #95dcb366}.state{color:var(--muted);font:11px ui-monospace,SFMono-Regular,Consolas,monospace}
+.main{padding:20px;display:grid;gap:18px}.eyebrow{color:var(--accent);letter-spacing:.16em;font-size:10px;font-weight:750;margin:0}.heading{display:flex;gap:16px;justify-content:space-between;align-items:flex-start}.heading h1{font-size:clamp(24px,4vw,34px);letter-spacing:-.04em;line-height:1.14;margin:6px 0 7px}.description{color:var(--muted);max-width:56ch;margin:0}.step{white-space:nowrap;font:11px ui-monospace,Consolas,monospace;color:var(--accent);border:1px solid #31634f;padding:6px 8px;border-radius:8px;background:#143028}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:14px}.section{min-width:0;padding:16px;border:1px solid var(--line);background:#0a141dbe;border-radius:12px}.section h2{margin:0 0 8px;font-size:13px}.hint{font-size:12px;color:var(--muted);margin:0 0 12px}.evidence-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.evidence-tab{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:12px;text-align:left;max-width:100%;overflow-wrap:anywhere}.evidence-tab[aria-selected="true"]{background:#153529;border-color:#58a67d;color:#d0ffe3}.evidence-preview{background:#071017;border:1px solid #223340;border-radius:8px;overflow:auto;max-height:220px;padding:12px;min-height:76px}.evidence-preview pre{font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#cddde9}.evidence-preview p{color:var(--muted);margin:0}
+.prompt{font-size:15px;font-weight:620;margin:0 0 12px;line-height:1.4}.choices{display:grid;gap:7px}.choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);background:var(--surface);border-radius:9px;cursor:pointer;font-size:12px;line-height:1.45}.choice:has(input:checked){border-color:#8cc9ad;background:#18372d}.choice input{margin:3px 0 0;accent-color:var(--accent);flex:none}.decision-button{width:100%;border:0;border-radius:9px;padding:11px 14px;margin-top:12px;font-weight:750;background:var(--accent);color:#082219}.decision-button.secondary{border:1px solid #67ac8c;background:transparent;color:var(--accent)}.decision-button:disabled{background:#61766f;color:#d5e2df}
+.last{border-top:1px solid var(--line);padding:13px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.footer-note,.help{font-size:11px;color:var(--muted);margin:0}.help{color:var(--warning)}.review{margin-top:10px;border-top:1px dashed #3a505b;padding-top:10px}.review summary{font-size:12px;color:#c8d5df;cursor:pointer}.review ol{margin:8px 0 0;padding-left:20px}.review li{font-size:12px;margin:6px 0;color:var(--muted)}.review li strong{color:var(--text)}
+.emptystate{padding:28px;border:1px dashed #3a505b;border-radius:10px;color:var(--muted);text-align:center}.emptystate strong{color:var(--text);display:block;margin-bottom:7px}.full{grid-column:1/-1}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:580px){.main{padding:14px;gap:12px}.top{padding:12px 14px}.split{grid-template-columns:1fr}.section{padding:13px}.heading{display:block}.step{display:inline-block;margin-top:10px}.evidence-preview{max-height:180px}.last{padding:12px 14px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="panel">
+  <header class="top"><span class="brand"><span class="light" aria-hidden="true"></span> WITNESSOPS / ACADEMY</span><span id="sync" class="state">WAITING FOR CASE</span></header>
+  <div class="main">
+    <div class="heading"><div><p class="eyebrow">INTERACTIVE DECISION ROOM</p><h1 id="title">Report or evidence?</h1><p id="intro" class="description">Inspect the actual records. Decide only what they establish.</p></div><span id="step" class="step">LESSON 01</span></div>
+    <div class="split" id="case" hidden>
+      <section class="section" aria-labelledby="evidence-title"><h2 id="evidence-title">Evidence desk</h2><p class="hint">Review the records before choosing.</p><div id="evidence-tabs" class="evidence-list" role="tablist" aria-label="Evidence files"></div><div id="evidence-detail" class="evidence-preview" role="tabpanel" aria-live="polite"><p>Select a record to inspect.</p></div></section>
+      <section class="section" aria-labelledby="decision-title"><h2 id="decision-title">Your call</h2><p id="prompt" class="prompt"></p><div id="choices" class="choices" role="radiogroup" aria-label="Select your decision"></div><button id="commit" class="decision-button" type="button" disabled>Save decision</button><p class="hint" style="margin:9px 0 0">Only a confirmed save advances the case.</p></section>
+    </div>
+    <div id="empty" class="emptystate"><strong id="empty-title">Loading your case</strong><span id="empty-detail">Sign in through Academy to use your own saved lesson.</span><button id="start" class="decision-button" type="button" hidden>Start this case</button></div>
+    <section id="verdict" class="section full" aria-labelledby="verdict-title" hidden><h2 id="verdict-title">What the records support</h2><ol id="verdict-list" class="review"></ol></section>
+    <details id="history" class="review" hidden><summary>Show decision history and feedback</summary><ol id="history-list"></ol></details>
+  </div>
+  <footer class="last"><p class="footer-note">FICTIONAL EXERCISE · No real-system operations or certificate</p><p id="status" class="help" role="status" aria-live="polite"></p><button id="retry" class="decision-button secondary" style="width:auto;margin:0" hidden>Retry exact request</button></footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  const q = id => document.getElementById(id);
+  const MAX_MESSAGES = 100, MAX_EVIDENCE = 30, MAX_CHOICES = 12, MAX_RECORD = 12;
+  // A host that never answers must not freeze the card: after this bound the
+  // outcome is reported as unknown and Retry resends the identical request.
+  const RPC_TIMEOUT_MS = 20000;
+  const LESSONS = ['report-or-evidence', 'same-scope'];
+  // '*' only until the host has answered ui/initialize; then pin to its origin
+  // when it is a concrete http(s) origin (opaque sandbox origins stay '*').
+  let hostOrigin = '*';
+  let connected = false, busy = false, incomingTool = null, lessonId = 'report-or-evidence';
+  let caseState = null, selectedChoice = null, selectedEvidence = 0, requestNumber = 0;
+  let pendingWrite = null;
+  const pendingRpc = new Map();
+  const matrixTransport = window.AcademyMatrixTransport || null;
+  function requestUUID() {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = [...bytes].map(v => v.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+  function post(method, params, expectsResponse = false) {
+    if (matrixTransport) return matrixTransport.post(method, params, expectsResponse);
+    const message = { jsonrpc: '2.0', method, params };
+    if (expectsResponse) message.id = ++requestNumber;
+    if (!expectsResponse) { window.parent.postMessage(message, hostOrigin); return; }
+    return new Promise((resolve, reject) => {
+      const id = message.id;
+      // A late answer for a timed-out id is dropped: its entry is gone.
+      const timer = setTimeout(() => {
+        if (pendingRpc.delete(id)) reject(Object.assign(new Error('Host did not answer'), { timedOut: true }));
+      }, RPC_TIMEOUT_MS);
+      pendingRpc.set(id, {
+        resolve: value => { clearTimeout(timer); resolve(value); },
+        reject: reason => { clearTimeout(timer); reject(reason); },
+      });
+      window.parent.postMessage(message, hostOrigin);
+    });
+  }
+  function resultData(response) {
+    const r = response?.result ?? response;
+    if (!r || typeof r !== 'object') return null;
+    if (r.structuredContent && typeof r.structuredContent === 'object') return r.structuredContent;
+    if (r.error && typeof r.error === 'string') return r;
+    if (Array.isArray(r.content)) {
+      const item = r.content.find(i => i?.type === 'text');
+      if (item?.text) { try { return JSON.parse(item.text); } catch { /* no JSON */ } }
+    }
+    return r;
+  }
+  function isCase(data) {
+    return data && typeof data === 'object' && LESSONS.includes(data.lesson_id)
+      && typeof data.attempt_id === 'string' && /^[\da-f-]{36}$/i.test(data.attempt_id)
+      && Number.isSafeInteger(data.version) && data.version >= 1
+      && ['judgment', 'verification', 'final', 'complete'].includes(data.stage) && typeof data.status === 'string'
+      && typeof data.prompt === 'string' && Array.isArray(data.messages) && data.messages.length <= MAX_MESSAGES
+      && Array.isArray(data.choices) && data.choices.length <= MAX_CHOICES
+      && data.messages.every(m => m && ['academy', 'learner'].includes(m.role) && typeof m.text === 'string'
+        && (!m.evidence || Array.isArray(m.evidence) && m.evidence.length <= MAX_EVIDENCE
+          && m.evidence.every(e => typeof e.name === 'string' && typeof e.content === 'string')))
+      && data.choices.every(c => typeof c?.id === 'string' && typeof c?.label === 'string');
+  }
+  function el(tag, className, text) {
+    const n = document.createElement(tag); if (className) n.className = className;
+    if (text !== undefined) n.textContent = String(text); return n;
+  }
+  function markBusy(value) {
+    busy = value;
+    q('commit').disabled = value || selectedChoice === null || !caseState || caseState.status === 'completed' || Boolean(pendingWrite);
+    q('start').disabled = value || Boolean(pendingWrite);
+    q('retry').disabled = value;
+    q('choices').querySelectorAll('input').forEach(n => n.disabled = value || Boolean(pendingWrite));
+  }
+  function collectEvidence(data) {
+    const seen = new Set(), files = [];
+    for (const msg of data.messages || []) for (const e of msg.evidence || []) {
+      const key = `${e.name}:${e.content}`;
+      if (!seen.has(key) && files.length < MAX_EVIDENCE) { seen.add(key); files.push(e); }
+    }
+    return files;
+  }
+  function paintEvidence(data) {
+    const tabs = q('evidence-tabs'), detail = q('evidence-detail');
+    const files = collectEvidence(data);
+    tabs.replaceChildren();
+    if (files.length === 0) { detail.replaceChildren(el('p', '', 'No evidence file is available at this stage.')); return; }
+    selectedEvidence = Math.min(selectedEvidence, files.length - 1);
+    files.forEach((file, index) => {
+      const tab = el('button', 'evidence-tab', file.name.slice(0, 100));
+      tab.type = 'button'; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-selected', String(index === selectedEvidence));
+      tab.tabIndex = index === selectedEvidence ? 0 : -1;
+      tab.addEventListener('click', () => { selectedEvidence = index; paintEvidence(data); tabs.children[index]?.focus(); });
+      tab.addEventListener('keydown', event => { if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return; event.preventDefault(); selectedEvidence = (selectedEvidence + files.length + (event.key === 'ArrowRight' ? 1 : -1)) % files.length; paintEvidence(data); tabs.children[selectedEvidence]?.focus(); });
+      tabs.append(tab);
+    });
+    const pre = el('pre'); pre.textContent = files[selectedEvidence].content.slice(0, 24000);
+    detail.replaceChildren(pre);
+    detail.setAttribute('aria-label', files[selectedEvidence].name);
+  }
+  function paintHistory(data) {
+    const messages = data.messages || [], previous = messages.filter(m => m.role === 'learner' || m.heading && !m.evidence?.length);
+    const list = q('history-list'); list.replaceChildren();
+    for (const item of previous.slice(-12)) {
+      const li = el('li'); if (item.heading) li.append(el('strong', '', `${item.heading}: `)); li.append(document.createTextNode(item.text.slice(0, 600))); list.append(li);
+    }
+    q('history').hidden = list.children.length === 0;
+  }
+  function paintVerdict(data) {
+    const section = q('verdict'), list = q('verdict-list'); list.replaceChildren();
+    const record = data.status === 'completed' && Array.isArray(data.decision_record) ? data.decision_record : [];
+    for (const item of record.slice(0, MAX_RECORD)) {
+      if (typeof item?.claim !== 'string' || typeof item?.status !== 'string') continue;
+      const li = el('li'); li.append(el('strong', '', `${item.status.slice(0, 40)}: `), document.createTextNode(item.claim.slice(0, 300))); list.append(li);
+    }
+    section.hidden = list.children.length === 0;
+  }
+  function render(data) {
+    if (!isCase(data)) { showError('The case returned an unsupported format. Nothing was changed.'); return; }
+    caseState = data; lessonId = data.lesson_id; selectedChoice = null;
+    q('title').textContent = lessonId === 'same-scope' ? 'Same record, wrong scope?' : 'Report or evidence?';
+    q('step').textContent = data.status === 'completed' ? 'COMPLETE' : `${String(data.stage).toUpperCase()} · v${data.version}`;
+    q('sync').textContent = `SAVED · REVISION ${data.version}`;
+    q('case').hidden = data.status === 'completed'; q('empty').hidden = data.status !== 'completed';
+    q('start').hidden = true;
+    paintVerdict(data);
+    if (data.status === 'completed') {
+      q('empty-title').textContent = 'Case completed'; q('empty-detail').textContent = 'Your saved decisions remain available in Academy.';
+      q('status').textContent = 'Practice completed; no certification issued.';
+      paintHistory(data); return;
+    }
+    q('prompt').textContent = data.prompt.slice(0, 8000);
+    const choices = q('choices'); choices.replaceChildren();
+    for (const option of data.choices) {
+      const label = el('label', 'choice'); const input = el('input');
+      input.type = 'radio'; input.name = 'judgment'; input.value = option.id;
+      input.addEventListener('change', () => { selectedChoice = option.id; markBusy(busy); q('status').textContent = 'Decision selected. Save to advance.'; });
+      label.append(input, el('span', '', option.label.slice(0, 2000))); choices.append(label);
+    }
+    paintEvidence(data); paintHistory(data); markBusy(busy);
+    q('status').textContent = 'Select a judgment; only explicit saves advance the case.';
+  }
+  function showError(message) { q('sync').textContent = 'ACTION NEEDED'; q('status').textContent = message; }
+  function showWelcome(message, canStart) {
+    q('case').hidden = true; q('verdict').hidden = true; q('empty').hidden = false; q('empty-title').textContent = 'Your case is ready to start';
+    q('empty-detail').textContent = message; q('start').hidden = !canStart;
+    q('sync').textContent = 'NOT STARTED'; q('status').textContent = 'No progress is created until you start.';
+  }
+  function acceptPayload(raw) {
+    const data = resultData(raw);
+    if (isCase(data)) { pendingWrite = null; q('retry').hidden = true; render(data); return true; }
+    if (data?.error === 'no_attempt') { pendingWrite = null; q('retry').hidden = true; showWelcome('No saved case yet. Starting creates a private Academy attempt.', true); return true; }
+    if (data?.error) { showError(`Academy returned ${data.error}. No success assumed.`); return false; }
+    showError('Unable to read a valid Academy case. Nothing was changed.'); return false;
+  }
+  // A definitive 4xx from Academy (conflict, stale version, validation, access)
+  // means the write was not applied and resending it cannot succeed.
+  function definitiveRejection(body) {
+    return Number.isInteger(body?.status) && body.status >= 400 && body.status < 500;
+  }
+  async function action(name, args, write = false) {
+    if (!connected || busy) return;
+    if (pendingWrite && (!write || JSON.stringify(args) !== JSON.stringify(pendingWrite.args))) return;
+    if (write && !pendingWrite) { pendingWrite = { name, args }; q('retry').hidden = false; }
+    let reload = null;
+    markBusy(true); q('status').textContent = write ? 'Saving with Academy…' : 'Reading Academy case…';
+    try {
+      const response = await post('tools/call', { name, arguments: args }, true);
+      const result = response?.result;
+      if (result?.isError || response?.error) {
+        const body = resultData(result) || {};
+        if (body.error === 'no_attempt') acceptPayload(result);
+        else if (write && definitiveRejection(body)) {
+          // Drop the rejected request and re-read the saved case (#597 contract:
+          // conflicts require a fresh read, never a blind resend).
+          pendingWrite = null; reload = { lessonId: args.lesson_id, code: String(body.error || 'rejected').slice(0, 60) };
+          showError(`Not saved: ${body.error || 'rejected'}. Reloading your saved case.`);
+        } else showError(`Not confirmed: ${body.error || 'tool error'}. Retry the same request.`);
+      }
+      else acceptPayload(result);
+    } catch {
+      q('sync').textContent = 'RESULT UNKNOWN';
+      q('status').textContent = 'Result unknown. Retry the same request; do not assume it was saved.';
+    }
+    finally { markBusy(false); q('retry').hidden = !pendingWrite; }
+    if (reload && LESSONS.includes(reload.lessonId)) {
+      await action('resume_lesson', { lesson_id: reload.lessonId });
+      if (caseState && !pendingWrite) q('status').textContent = `Earlier save not applied (${reload.code}). Showing your latest saved case.`;
+    }
+  }
+  q('start').addEventListener('click', () => {
+    const request_id = requestUUID(); action('start_lesson', { lesson_id: lessonId, request_id }, true);
+  });
+  q('commit').addEventListener('click', () => {
+    if (!caseState || !selectedChoice || pendingWrite || busy || caseState.status === 'completed') return;
+    action('submit_decision', { lesson_id: caseState.lesson_id, attempt_id: caseState.attempt_id,
+      stage: caseState.stage, expected_version: caseState.version, choice_id: selectedChoice,
+      request_id: requestUUID() }, true);
+  });
+  q('retry').addEventListener('click', () => {
+    if (pendingWrite && !busy) action(pendingWrite.name, pendingWrite.args, true);
+  });
+  window.addEventListener('message', event => {
+    // Element's parent window is never permitted to inject Academy tool projections.
+    if (matrixTransport) return;
+    if (event.source !== window.parent) return;
+    if (hostOrigin !== '*' && event.origin !== hostOrigin) return;
+    const msg = event.data;
+    if (msg?.jsonrpc !== '2.0') return;
+    if (msg.id === initializeId && pendingRpc.has(msg.id) && /^https?:\/\/[^/]+$/.test(event.origin ?? '')) hostOrigin = event.origin;
+    if (msg.id !== undefined && pendingRpc.has(msg.id)) {
+      const p = pendingRpc.get(msg.id); pendingRpc.delete(msg.id);
+      msg.error ? p.reject(new Error('Host rejected request')) : p.resolve(msg); return;
+    }
+    if (msg.method === 'ui/notifications/tool-input') {
+      incomingTool = msg.params;
+      if (LESSONS.includes(incomingTool?.lesson_id)) lessonId = incomingTool.lesson_id;
+      if (LESSONS.includes(incomingTool?.arguments?.lesson_id)) lessonId = incomingTool.arguments.lesson_id;
+    }
+    if (msg.method === 'ui/notifications/tool-result') acceptPayload(msg.params);
+  });
+  const initializeId = requestNumber + 1;
+  if (matrixTransport) {
+    connected = true;
+    matrixTransport.open({ acceptPayload, showError });
+  } else {
+    post('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'academy-decision-room', version: '1.0.0' }, appCapabilities: { availableDisplayModes: ['inline'] } }, true)
+      .then(() => { connected = true; post('ui/notifications/initialized', {}); })
+      .catch(() => showError('This chat host could not initialize the interactive view. Use the normal Academy lesson tools.'));
+  }
+})();
+</script>
+</body>
+</html>

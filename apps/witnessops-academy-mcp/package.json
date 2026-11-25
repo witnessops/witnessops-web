@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.mjs",
     "build:curriculum": "node scripts/build-curriculum.mjs",
-    "test": "node scripts/lint-tool-schemas.mjs && node --test --test-concurrency=1 test/*.test.mjs"
+    "sync:decision-room": "node scripts/sync-decision-room.mjs",
+    "test": "node scripts/lint-tool-schemas.mjs && node scripts/sync-decision-room.mjs --check && node --test --test-concurrency=1 test/*.test.mjs"
   },
   "engines": {
     "node": ">=22.0.0 <23"
@@ -17,5 +18,8 @@
     "jose": "6.2.17",
     "pg": "8.23.0",
     "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
   }
 }

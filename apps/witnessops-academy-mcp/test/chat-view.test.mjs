@@ -47,3 +47,12 @@ test('legacy worksheet tools are model-only so the view cannot ask the host to c
     assert.ok(block.includes('_meta: { ui: MODEL_ONLY_UI_META }'), `${tool} must be model-only`);
   }
 });
+
+test('the MCP package serves its own decision-room copy, identical to the Matrix widget markup (L-3)', () => {
+  const source = readFileSync(new URL('../src/chat-view.mjs', import.meta.url), 'utf8');
+  assert.ok(source.includes("new URL('./decision-room.html', import.meta.url)"));
+  assert.doesNotMatch(source, /witnessops-academy-server/);
+  const own = readFileSync(new URL('../src/decision-room.html', import.meta.url));
+  const canonical = readFileSync(new URL('../../witnessops-academy-server/src/decision-room.html', import.meta.url));
+  assert.ok(own.equals(canonical), 'run pnpm --filter @witnessops/academy-mcp sync:decision-room');
+});

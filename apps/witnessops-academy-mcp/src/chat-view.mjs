@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 // It contains no saved learner state, secrets, external URLs, or assessments.
 export const CHAT_VIEW_RESOURCE_URI = 'ui://witnessops-academy/decision-room-v1.html';
 const MIME_TYPE = 'text/html;profile=mcp-app';
-const html = readFileSync(new URL('../../witnessops-academy-server/src/decision-room.html', import.meta.url), 'utf8');
+// Package-owned copy (kept byte-identical to academy-server by scripts/sync-decision-room.mjs --check).
+const html = readFileSync(new URL('./decision-room.html', import.meta.url), 'utf8');
 
 export function registerChatView(server) {
   server.registerResource('academy-decision-room', CHAT_VIEW_RESOURCE_URI, {

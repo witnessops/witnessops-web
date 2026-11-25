@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { bootView, flush } from './support/view-dom.mjs';
 
-const html = readFileSync(new URL('../../witnessops-academy-server/src/decision-room.html', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../src/decision-room.html', import.meta.url), 'utf8');
 const AID = '11111111-2222-4333-8444-555555555555';
 const kase = (over = {}) => ({
   lesson_id: 'report-or-evidence', attempt_id: AID, version: 1, stage: 'judgment', status: 'in_progress',
