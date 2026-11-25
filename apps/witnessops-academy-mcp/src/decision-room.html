@@ -204,6 +204,19 @@
   function definitiveRejection(body) {
     return Number.isInteger(body?.status) && body.status >= 400 && body.status < 500 && !authRejection(body);
   }
+  // Server error codes are shown as bounded plain text only.
+  const errorCode = (body, fallback) => String(body?.error || fallback).slice(0, 60);
+  // Only a missing/expired sign-in (401) or missing access/scope (403) is fixed by
+  // signing in. A 403 CSRF or Origin refusal is not, so it gets a neutral message.
+  function signInFixes(body) {
+    return body?.status === 401 || (body?.status === 403 && ['access_required', 'insufficient_scope'].includes(body?.error));
+  }
+  function authMessage(body) {
+    const code = errorCode(body, body?.status === 401 ? 'session_unavailable' : 'access_required');
+    return signInFixes(body)
+      ? `Not confirmed: ${code}. Sign in to Academy, then retry the same request.`
+      : `Not confirmed: refused by Academy (${code}). Nothing was saved.`;
+  }
   async function action(name, args, write = false) {
     if (!connected || busy) return;
     if (pendingWrite && (!write || JSON.stringify(args) !== JSON.stringify(pendingWrite.args))) return;
@@ -217,13 +230,13 @@
         const body = resultData(result) || {};
         if (body.error === 'no_attempt') acceptPayload(result);
         else if (write && authRejection(body)) {
-          showError(`Not confirmed: ${body.error || 'access_required'}. Sign in to Academy, then retry the same request.`);
+          showError(authMessage(body));
         } else if (write && definitiveRejection(body)) {
           // Drop the rejected request and re-read the saved case (#597 contract:
           // conflicts require a fresh read, never a blind resend).
-          pendingWrite = null; reload = { lessonId: args.lesson_id, code: String(body.error || 'rejected').slice(0, 60) };
-          showError(`Not saved: ${body.error || 'rejected'}. Reloading your saved case.`);
-        } else showError(`Not confirmed: ${body.error || 'tool error'}. Retry the same request.`);
+          pendingWrite = null; reload = { lessonId: args.lesson_id, code: errorCode(body, 'rejected') };
+          showError(`Not saved: ${reload.code}. Reloading your saved case.`);
+        } else showError(`Not confirmed: ${errorCode(body, 'tool error')}. Retry the same request.`);
       }
       else acceptPayload(result);
     } catch {
