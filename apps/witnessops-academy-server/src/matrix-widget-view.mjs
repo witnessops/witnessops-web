@@ -1,0 +1,46 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
+// One canonical markup/CSS file, used unchanged by MCP Apps and Matrix/Element.
+const html = readFileSync(new URL('./decision-room.html', import.meta.url), 'utf8');
+const adapter = readFileSync(new URL('./matrix-widget-adapter.js', import.meta.url), 'utf8');
+const inline = html.match(/<script>([\s\S]*?)<\/script>/);
+if (!inline || html.split('<script>').length !== 2 || !html.includes('<style>')) {
+  throw new Error('Academy Decision Room markup does not match the reviewed single-script contract');
+}
+const digest = text => `'sha256-${createHash('sha256').update(text).digest('base64')}'`;
+const scripts = `${digest(adapter)} ${digest(inline[1])}`;
+const originPattern = /^https?:\/\/[^/?#]+\/?$/;
+
+/** Exact origins only. No wildcard, path, query, fragment, credentials or insecure remote hosts. */
+export function matrixWidgetOrigins(raw = '') {
+  if (typeof raw !== 'string') throw new Error('Invalid Matrix widget origin setting');
+  if (!raw.trim()) return [];
+  const values = raw.split(',').map(value => value.trim());
+  if (values.length > 4 || values.some(v => !v || !originPattern.test(v))) throw new Error('Invalid Matrix widget origin allowlist');
+  return [...new Set(values.map(value => {
+    const url = new URL(value);
+    const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (url.username || url.password || url.search || url.hash || url.pathname !== '/'
+        || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')))
+      throw new Error('Invalid Matrix widget origin: HTTPS is required outside loopback');
+    if (value.replace(/\/$/, '') !== url.origin) throw new Error('Noncanonical Matrix widget origin');
+    return url.origin;
+  }))];
+}
+
+/** Scoped policy only for the opt-in lesson iframe. All other Academy pages keep DENY. */
+export function matrixWidgetCsp(origins) {
+  if (!Array.isArray(origins) || origins.length === 0) throw new Error('Matrix widget is disabled');
+  // Existing visual CSS contains inline styles; limit the style exception to this route.
+  return `default-src 'none'; script-src ${scripts}; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors ${origins.join(' ')}`;
+}
+
+export function matrixWidgetHtml(csrfToken) {
+  if (typeof csrfToken !== 'string' || !csrfToken) throw new Error('Authenticated Academy session required');
+  const token = JSON.stringify(csrfToken).replaceAll('<', '\u003c');
+  const insert = `<script type="application/json" id="academy-csrf">${token}</script>\n<script>${adapter}</script>\n<script>`;
+  const result = html.replace('<script>', insert);
+  if (result === html) throw new Error('Missing Decision Room script insertion point');
+  return result;
+}
