@@ -9,7 +9,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("teams_pkg_builder", ROOT / "build-package.py")
 BUILDER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BUILDER)
-SYNTHETIC_ID = "00000000-0000-4000-8000-000000000123"
+SYNTHETIC_ID = "a0000000-0000-4000-8000-000000000123"
 
 
 class PackageContractTest(unittest.TestCase):
