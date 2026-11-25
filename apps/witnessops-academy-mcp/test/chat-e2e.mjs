@@ -6,9 +6,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { isDeepStrictEqual } from 'node:util';
-import { execFileSync } from 'node:child_process';
+import { isDeepStrictEqual, promisify } from 'node:util';
+import { execFile } from 'node:child_process';
 import { env, secret, int } from '../src/env.mjs';
+
+const execFileAsync = promisify(execFile);
 
 if (process.env.ACADEMY_E2E !== '1') {
   throw new Error('ACADEMY_E2E=1 is required; acceptance must not pass without the disposable run');
@@ -53,7 +55,9 @@ function checkPersistedFixture() {
   };
   for (const [key, value] of Object.entries(expected)) {
     const matches = lines.filter(line => line.startsWith(`${key}=`));
-    if (matches.length !== 1 || matches[0] !== `${key}=${value}`) throw new Error('Persisted disposable fixture differs from the running test profile');
+    if (matches.length !== 1 || matches[0] !== `${key}=${value}`) {
+      throw Object.assign(new Error('Persisted disposable fixture differs from the running test profile'), { safeCode: 'persisted_fixture_mismatch' });
+    }
   }
 }
 checkPersistedFixture();
@@ -88,6 +92,20 @@ const record = (id, name, detail = {}) => {
   console.log(`PASS MCP-CHAT ${id} ${name}`);
 };
 const observe = entry => trace.push({ at: new Date().toISOString(), stage, ...entry });
+const checkpoint = name => { stage = name; observe({ surface: 'harness', event: 'checkpoint' }); };
+const ERROR_NAMES = new Set(['Error', 'TypeError', 'RangeError', 'SyntaxError', 'AbortError', 'TimeoutError', 'McpError', 'StreamableHTTPError', 'DatabaseError']);
+const ERROR_CODES = new Set([
+  'ABORT_ERR', 'EACCES', 'ENOENT', 'EADDRINUSE', 'EAI_AGAIN', 'ENOTFOUND',
+  'ECONNABORTED', 'ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
+  'UND_ERR_SOCKET', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT',
+  'UND_ERR_ABORTED', 'UND_ERR_CLOSED', 'UND_ERR_DESTROYED',
+  '08001', '08003', '08006', '57P01', '57P02', '57P03', -32602, -32603, -32000,
+]);
+const errorDiagnostic = error => ({
+  error_name: ERROR_NAMES.has(error?.name) ? error.name : 'OtherError',
+  error_code: ERROR_CODES.has(error?.code) ? error.code : null,
+  cause_code: ERROR_CODES.has(error?.cause?.code) ? error.cause.code : null,
+});
 const projection = ({ resumed, replay, ...value }) => value;
 const evidenceOf = value => value.messages.flatMap(message => message.evidence || []);
 const api = lesson => `${APP}/academy/api/lessons/${lesson}/chat`;
@@ -245,10 +263,11 @@ async function websiteIdentity(browser, claims) {
   requireThat(rows.length === 1 && rows[0].issuer === claims.iss && rows[0].subject === claims.sub, 'website_and_mcp_identity_differ');
   return rows[0].id;
 }
-function restart(script, args = []) {
+async function restart(script, args = []) {
   checkPersistedFixture();
-  try { execFileSync('bash', [script, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 60000 }); }
-  catch { throw Object.assign(new Error('fixture_restart_failed'), { safeCode: 'fixture_restart_failed' }); }
+  // Keep socket close events flowing while the disposable services restart.
+  try { await execFileAsync('bash', [script, ...args], { encoding: 'utf8', timeout: 60000 }); }
+  catch (cause) { throw Object.assign(new Error('fixture_restart_failed', { cause }), { safeCode: 'fixture_restart_failed' }); }
 }
 
 try {
@@ -369,12 +388,23 @@ try {
   }
   const oldCookies = web.map(browser => browser.cookie());
   const oldTokens = sessions.map(session => session.token);
+  checkpoint('restart_logout');
   for (const browser of web) await browser.logout();
+  checkpoint('restart_close_clients');
   for (const session of sessions) await session.client.close();
-  restart(APP_RESTART, [DB_NAME]);
-  restart(MCP_RESTART);
-  const freshWeb = [await new Browser().signIn(USERS[0]), await new Browser().signIn(USERS[1])];
-  const freshMcp = [await mcpSignIn(USERS[0]), await mcpSignIn(USERS[1])];
+  checkpoint('restart_app');
+  await restart(APP_RESTART, [DB_NAME]);
+  checkpoint('restart_mcp');
+  await restart(MCP_RESTART);
+  checkpoint('fresh_website_login_a');
+  const freshWeb = [await new Browser().signIn(USERS[0])];
+  checkpoint('fresh_website_login_b');
+  freshWeb.push(await new Browser().signIn(USERS[1]));
+  checkpoint('fresh_mcp_login_a');
+  const freshMcp = [await mcpSignIn(USERS[0])];
+  checkpoint('fresh_mcp_login_b');
+  freshMcp.push(await mcpSignIn(USERS[1]));
+  checkpoint('restart_readbacks');
   let offset = 0;
   for (let index = 0; index < 2; index++) {
     requireThat(freshWeb[index].cookie() !== oldCookies[index] && freshMcp[index].token !== oldTokens[index], 'fresh_authentication_reused_old_context');
@@ -408,10 +438,13 @@ try {
   record('C14', 'Existing worksheet bytes and metadata are preserved; legacy writers cannot address chat records', { worksheet_rows_preserved: worksheetBefore.length, worksheet_snapshot_sha256: jsonHash(worksheetBefore) });
 } catch (error) {
   // Never log assertions, raw responses, cookies, tokens, HTML, SQL parameters or
-  // subprocess output. The fixed stage/check code identifies the failing boundary.
-  const code = /^[a-z0-9_]{1,90}$/.test(error.safeCode || '') ? error.safeCode : 'unexpected_harness_error';
-  results.push({ id: 'HARNESS', name: stage, result: 'FAIL', detail: { code } });
-  console.log(`FAIL MCP-CHAT ${stage} ${code}`);
+  // subprocess output. Fixed stages and allowlisted error types/codes identify
+  // the boundary without copying messages or other untrusted error fields.
+  const code = /^[a-z0-9_]{1,90}$/.test(error?.safeCode || '') ? error.safeCode : 'unexpected_harness_error';
+  const diagnostic = errorDiagnostic(error);
+  results.push({ id: 'HARNESS', name: stage, result: 'FAIL', detail: { code, ...diagnostic } });
+  observe({ surface: 'harness', event: 'failure', code, ...diagnostic });
+  console.log(`FAIL MCP-CHAT ${stage} ${code} ${JSON.stringify(diagnostic)}`);
   process.exitCode = 1;
 } finally {
   for (const client of clients) await client.close().catch(() => {});

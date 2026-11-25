@@ -322,6 +322,9 @@ jobs:
 
       - name: Verify personalised chat and return journey in Chromium
         id: chat_browser
+        # Separate learners make this useful even if the MCP fixture fails.
+        # The earlier failed step still fails the job; cancellation still stops it.
+        if: ${{ !cancelled() && steps.e2e.outcome == 'success' }}
         timeout-minutes: 5
         env:
           ACADEMY_CHAT_DISPOSABLE: "1"
