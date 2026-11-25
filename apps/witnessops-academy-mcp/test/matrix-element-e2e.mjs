@@ -116,16 +116,14 @@ async function elementProbe(page) {
 async function elementLogin(page) {
   elementPage = page;
   stage = 'real Element Web room and widget: welcome';
-  await page.goto(ELEMENT + '/', { waitUntil: 'domcontentloaded' });
-  // Element's welcome screen may precede its username/password form.
+  // Go straight to Element's login route; its welcome page renders
+  // asynchronously, so an immediate visibility check there finds nothing.
+  await page.goto(ELEMENT + '/#/login', { waitUntil: 'domcontentloaded' });
   const userInput = page.locator('#mx_LoginForm_username, input[name="username"], input[autocomplete="username"]').first();
+  await userInput.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {});
   if (!(await userInput.isVisible().catch(() => false))) {
-    const signIn = page.getByRole('button', { name: /^sign in$|^log in$/i }).first();
-    if (await signIn.isVisible().catch(() => false)) await signIn.click();
-    else {
-      const link = page.getByRole('link', { name: /^sign in$|^log in$/i }).first();
-      if (await link.isVisible().catch(() => false)) await link.click();
-    }
+    const welcomeSignIn = page.locator('a[href="#/login"]').first();
+    if (await welcomeSignIn.isVisible().catch(() => false)) await welcomeSignIn.click();
   }
   stage = 'real Element Web room and widget: login form';
   await expect(userInput).toBeVisible({ timeout: 40_000 });
