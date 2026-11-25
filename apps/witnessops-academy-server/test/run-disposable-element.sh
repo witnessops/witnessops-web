@@ -100,8 +100,11 @@ def request(path, data, token=None, method='POST'):
 login=request('/_matrix/client/v3/login',{'type':'m.login.password','identifier':{'type':'m.id.user','user':'academy-learner'},'password':password,'initial_device_display_name':'disposable-academy-test'})
 token=login['access_token']
 room=request('/_matrix/client/v3/createRoom',{'visibility':'private','preset':'private_chat','name':'Academy Decision Room — disposable'},token)['room_id']
-widget={'type':'m.custom','name':'Academy Decision Room','url':'http://127.0.0.1:18300/academy/learn/report-or-evidence?format=matrix','data':{}}
-request('/_matrix/client/v3/rooms/'+urllib.parse.quote(room,safe='')+'/state/im.vector.modular.widgets/academy-decision-room',widget,token,method='PUT')
+widget={'id':'academy-decision-room','creatorUserId':login['user_id'],'type':'m.custom','name':'Academy Decision Room','url':'http://127.0.0.1:18300/academy/learn/report-or-evidence?format=matrix','data':{}}
+state='/_matrix/client/v3/rooms/'+urllib.parse.quote(room,safe='')+'/state/'
+request(state+'im.vector.modular.widgets/academy-decision-room',widget,token,method='PUT')
+# Element's room widget layout: pin the one widget to the top apps drawer so it renders on room open.
+request(state+'io.element.widgets.layout/',{'widgets':{'academy-decision-room':{'container':'top','index':0,'width':100,'height':60}}},token,method='PUT')
 roompath.write_text(room); roompath.chmod(0o600)
 # Log out this setup device. Element logs in independently in Chromium.
 request('/_matrix/client/v3/logout',{},token)
