@@ -57,7 +57,7 @@ def make_package(output: Path, entra_app_id: str | None = None) -> None:
             "resource": f"api://academy.witnessops.com/{entra_app_id}",
         }
     items = {
-        "manifest.json": json.dumps(manifest, sort_keys=True, indent=2).encode("utf-8") + b"\\n",
+        "manifest.json": json.dumps(manifest, sort_keys=True, indent=2).encode("utf-8") + b"\n",
         "color.png": icon(96, outlined=False),
         "outline.png": icon(20, outlined=True),
     }
