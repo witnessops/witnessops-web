@@ -22,8 +22,10 @@ mkdir -p "$LAB/synapse" "$ACADEMY_CI_SECRET_DIR"
 chmod 700 "$LAB" "$LAB/synapse" "$ACADEMY_CI_SECRET_DIR"
 SYNAPSE_CONTAINER="academy-element-synapse-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
 ELEMENT_CONTAINER="academy-element-web-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-SYNAPSE_IMAGE='docker.io/matrixdotorg/synapse:v1.165.0'
-ELEMENT_IMAGE='docker.io/vectorim/element-web:v1.12.35'
+# Digest-pinned (OCI image index digests, re-resolved anonymously from
+# registry-1.docker.io on 2026-11-25; see the academy-e2e.yml header).
+SYNAPSE_IMAGE='docker.io/matrixdotorg/synapse:v1.165.0@sha256:673b4223c81a7634fd07d832b939a58f97081cfdaae7cdd2d1664cdcf7611b62'
+ELEMENT_IMAGE='docker.io/vectorim/element-web:v1.12.35@sha256:406b48b80153818284a235fa3600b2a5b5b6b0aa0e4ef4896b36d8d3461352f3'
 ORIGIN_ADDED=0
 cleanup() {
   status=$?
@@ -49,7 +51,7 @@ trap cleanup EXIT
 openssl rand -hex 24 > "$ACADEMY_CI_SECRET_DIR/matrix_registration_secret"
 openssl rand -hex 24 > "$ACADEMY_CI_SECRET_DIR/matrix_learner_password"
 chmod 600 "$ACADEMY_CI_SECRET_DIR"/matrix_*
-echo 'Pulling pinned-version disposable Element and Synapse images'
+echo 'Pulling digest-pinned disposable Element and Synapse images'
 docker pull "$SYNAPSE_IMAGE" >/dev/null
 docker pull "$ELEMENT_IMAGE" >/dev/null
 for img in "$SYNAPSE_IMAGE" "$ELEMENT_IMAGE"; do
@@ -81,9 +83,11 @@ for _ in $(seq 1 90); do
 done
 [[ "$ready" == 1 ]] || { echo 'Disposable Synapse did not start'; exit 1; }
 
-docker exec "$SYNAPSE_CONTAINER" register_new_matrix_user \
-  --no-admin -u academy-learner -p "$(cat "$ACADEMY_CI_SECRET_DIR/matrix_learner_password")" \
-  -c /data/homeserver.yaml http://localhost:8008 >/dev/null
+# The synthetic password travels on stdin, never in argv (visible in ps/docker top).
+docker exec -i "$SYNAPSE_CONTAINER" register_new_matrix_user \
+  --no-admin -u academy-learner --password-file /dev/stdin \
+  -c /data/homeserver.yaml http://localhost:8008 \
+  < "$ACADEMY_CI_SECRET_DIR/matrix_learner_password" >/dev/null
 
 python3 - "$ACADEMY_CI_SECRET_DIR/matrix_learner_password" "$LAB/room-id" <<'PY'
 import json,pathlib,urllib.request,urllib.parse,sys
@@ -106,6 +110,14 @@ PY
 cat > "$LAB/element-config.json" <<'JSON'
 {"default_server_config":{"m.homeserver":{"base_url":"http://127.0.0.1:18008","server_name":"academy-test.invalid"}},"brand":"Element Web — disposable Academy acceptance","default_theme":"dark","disable_guests":true,"disable_custom_urls":true,"integrations_ui_url":null,"integrations_rest_url":null,"integrations_widgets_urls":[]}
 JSON
+# Guard: the world-readable Element config must never carry a credential.
+python3 - "$LAB/element-config.json" "$ACADEMY_CI_SECRET_DIR" <<'PY'
+import json,pathlib,re,sys
+raw=pathlib.Path(sys.argv[1]).read_text(); json.loads(raw)
+secrets=[p.read_text().strip() for p in pathlib.Path(sys.argv[2]).glob('*') if p.is_file()]
+if re.search(r'(?i)secret|password|passwd|token|bearer|access_key|private', raw) or any(s and s in raw for s in secrets):
+    print('element-config.json contains credential material; refusing'); sys.exit(1)
+PY
 chmod 644 "$LAB/element-config.json"  # Public loopback-only settings; readable by the unprivileged Element container.
 docker run -d --name "$ELEMENT_CONTAINER" --publish 127.0.0.1:18444:8080 \
   --env ELEMENT_WEB_PORT=8080 \
@@ -121,7 +133,7 @@ if [[ "$ready" != 1 ]]; then
   # Error category only; no startup environment, headers, bodies or private tokens.
   docker logs --tail 40 "$ELEMENT_CONTAINER" 2>&1 |
     grep -E -i 'permission denied|bind\(|address already in use|permission|emerg|invalid number|error|fail' |
-    sed -E 's/[A-Za-z0-9_=-]{80,}/[REDACTED]/g' | tail -12 || true
+    sed -E 's/[A-Za-z0-9_=+\/-]{32,}/[REDACTED]/g' | tail -12 || true
   exit 1
 fi
 
@@ -133,7 +145,8 @@ printf '%s\n' "ACADEMY_MATRIX_WIDGET_ORIGINS=$ACADEMY_MATRIX_WIDGET_ORIGINS" >> 
 ORIGIN_ADDED=1
 bash "$ACADEMY_TEST_RESTART_APP_CMD" "$ACADEMY_DB_NAME"
 # One fresh synthetic Academy/Keycloak principal, separate from existing CI learners.
-export TEST_MATRIX_ACADEMY_USERNAME="learner-new-$(openssl rand -hex 12)"
+TEST_MATRIX_ACADEMY_USERNAME="learner-new-$(openssl rand -hex 12)"
+export TEST_MATRIX_ACADEMY_USERNAME
 export TEST_MATRIX_ACADEMY_PASSWORD_FILE="$TEST_LEARNER_B_PASSWORD_FILE"
 python3 apps/witnessops-academy-server/keycloak/kc_admin.py create-test-invitee "$TEST_MATRIX_ACADEMY_USERNAME" >/dev/null
 export MATRIX_TEST_ROOM_ID_FILE="$LAB/room-id"
