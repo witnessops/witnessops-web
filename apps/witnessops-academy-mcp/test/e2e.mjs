@@ -28,6 +28,8 @@ const BASE = MU.origin;
 const ISS = env('ACADEMY_OIDC_ISSUER').replace(/\/$/, '');
 const REDIRECT = env('MCP_TEST_REDIRECT_URI', 'http://127.0.0.1:18599/callback');
 const LESSON = 'report-or-evidence';
+const EXPECTED_TOOLS = ['get_lesson', 'get_my_answer', 'get_progress', 'inspect_evidence',
+  'list_lessons', 'resume_lesson', 'save_answer', 'start_lesson', 'submit_decision'];
 const AS_META = `${new URL(ISS).origin}/.well-known/oauth-authorization-server${new URL(ISS).pathname}`;
 const CLIENT_ID = env('MCP_TEST_CLIENT_ID', env('MCP_CLIENT_ID', 'academy-mcp-client'));
 const WRONG_CLIENT = env('MCP_TEST_WRONGAUD_CLIENT_ID', 'academy-mcp-wrongaud');
@@ -211,13 +213,15 @@ try {
   const sessionA = await connect(learnerA.access_token);
   const sessionB = await connect(learnerB.access_token);
   const tools = await sessionA.c.listTools();
-  check('M2', 'initialize + tools/list', tools.tools.map((tool) => tool.name).sort().join(',') === 'get_lesson,get_my_answer,list_lessons,save_answer', {
+  check('M2', 'initialize + tools/list', tools.tools.map((tool) => tool.name).sort().join(',') === EXPECTED_TOOLS.join(',')
+    && tools.tools.every((tool) => tool.inputSchema.additionalProperties === false), {
     names: tools.tools.map((tool) => tool.name),
     schemasStrict: tools.tools.every((tool) => tool.inputSchema.additionalProperties === false),
   });
   const lessons = obj(await call(sessionA, 'list_lessons'));
   const lesson = obj(await call(sessionA, 'get_lesson', { lesson_id: LESSON }));
-  check('M3', 'curriculum via tools/call', lessons.lessons[0].id === LESSON && lesson.lesson.title === 'Report or evidence?' && Boolean(lesson.lesson.exercise.artifacts), { title: lesson.lesson.title });
+  check('M3', 'curriculum via tools/call', lessons.lessons.map(item => item.id).join(',') === 'report-or-evidence,same-scope'
+    && lesson.lesson.title === 'Report or evidence?' && Boolean(lesson.lesson.exercise.artifacts), { title: lesson.lesson.title });
 
   const before = obj(await call(sessionA, 'get_my_answer', { lesson_id: LESSON }));
   const text = JSON.stringify({

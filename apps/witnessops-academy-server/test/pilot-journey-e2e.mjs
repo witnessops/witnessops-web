@@ -37,13 +37,24 @@ async function login(index, invitationToken) {
   await page.locator('#username').fill(users[index][0]);
   await page.locator('#password').fill(users[index][1]);
   await page.locator('#kc-login').click();
-  await expect(page.locator('#sign-out')).toBeVisible();
+  await expect(page.locator('#academy-csrf')).toHaveCount(1);
+  if (new URL(page.url()).pathname === '/academy/invitation') {
+    await expect(page.locator('#sign-out')).toBeVisible();
+  } else {
+    await expect(page).toHaveURL(APP + '/academy/learn/report-or-evidence');
+    await expect(page.locator('html[data-academy-authenticated]')).toBeVisible();
+  }
   const cookie = (await context.cookies()).find(c => c.name.endsWith('academy_sid'));
   assert.ok(cookie);
   const row = (await db.query('SELECT identity_id FROM academy_sessions WHERE token_hash=$1',
     [crypto.createHash('sha256').update(cookie.value).digest('hex')])).rows[0];
   const identity = (await db.query('SELECT id, issuer, subject FROM academy_identities WHERE id=$1', [row.identity_id])).rows[0];
   return { context, page, identity };
+}
+async function worksheet(page, lessonId = 'report-or-evidence') {
+  // Keep the canonical auth-return assertions separate from legacy form acceptance.
+  await page.goto(APP + `/academy/learn/${lessonId}?format=worksheet`);
+  await expect(page.locator('#sign-out')).toBeVisible();
 }
 async function api(page, lessonId) {
   const response = await page.request.get(APP + `/academy/api/lessons/${lessonId}/draft`);
@@ -112,6 +123,7 @@ try {
   await b.context.close();
   a = await login(0, inviteA.token);
   await expect(a.page).toHaveURL(APP + '/academy/learn/report-or-evidence');
+  await worksheet(a.page);
   await expect(a.page.locator('#progress-status')).toContainText(/loaded|No saved work/);
   assert.equal((await api(a.page, 'report-or-evidence')).status, 200);
   b = await login(1);
@@ -119,6 +131,7 @@ try {
   await expect(b.page.locator('#invitation-status')).toContainText('This account can accept');
   await b.page.locator('#accept-invitation').click();
   await expect(b.page).toHaveURL(APP + '/academy/learn/report-or-evidence');
+  await worksheet(b.page);
   await expect(b.page.locator('#progress-status')).toContainText(/loaded|No saved work/);
   await exportCommunityState('community-grants-active.json');
   pass('correct-account fresh login and existing-session acceptance create their explicit free grants');
@@ -129,7 +142,7 @@ try {
 
   const saved = [];
   for (const [index, learner] of [a, b].entries()) {
-    await learner.page.goto(APP + '/academy/learn/same-scope');
+    await worksheet(learner.page, 'same-scope');
     await expect(learner.page.locator('#progress-status')).toContainText(/loaded|No saved work/);
     if (await learner.page.locator('#other-draft').isVisible()) {
       learner.page.once('dialog', dialog => dialog.accept()); await learner.page.locator('#replace-draft').click();
@@ -152,7 +165,7 @@ try {
   browser = await launch();
   a = await login(0); b = await login(1);
   for (const [index, learner] of [a, b].entries()) {
-    await learner.page.goto(APP + '/academy/learn/same-scope');
+    await worksheet(learner.page, 'same-scope');
     await expect(learner.page.locator('#progress-status')).toContainText('loaded');
     assert.equal((await api(learner.page, 'same-scope')).body.content, saved[index]);
   }
@@ -176,6 +189,7 @@ try {
   const newInvitation = (await createInvitationBatch(db, { ...refs, recipients: [newRecipient] })).invitations[0];
   users.push([newUsername, users[1][1]]);
   let firstUse = await login(2, newInvitation.token);
+  await worksheet(firstUse.page);
   await expect(firstUse.page.locator('#progress-status')).toContainText('No saved work');
   assert.equal(firstUse.identity.subject, created.subject);
   assert.equal((await api(firstUse.page, 'report-or-evidence')).status, 404);
@@ -185,6 +199,7 @@ try {
   const firstWork = (await api(firstUse.page, 'report-or-evidence')).body.content;
   await firstUse.context.close();
   firstUse = await login(2);
+  await worksheet(firstUse.page);
   await expect(firstUse.page.locator('#progress-status')).toContainText('loaded');
   assert.equal((await api(firstUse.page, 'report-or-evidence')).body.content, firstWork);
   pass('first-ever Academy callback creates the invited stable identity and grant, then a fresh login restores new work');

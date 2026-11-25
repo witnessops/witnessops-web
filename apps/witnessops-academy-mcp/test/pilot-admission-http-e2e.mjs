@@ -135,7 +135,18 @@ const runtime = new pg.Pool({ host: DBH, port: DBP, database: DBN, user: env('AC
 const clients = [];
 const invitations = [];
 const obj = response => response.structuredContent || JSON.parse(response.content[0].text);
-const cases = [ ['list_lessons', {}], ['get_lesson', { lesson_id: LESSON }], ['get_my_answer', { lesson_id: LESSON }], ['save_answer', { lesson_id: LESSON, text: 'synthetic denied write', expected_version: 0 }] ];
+const cases = [
+ ['list_lessons', {}],
+ ['get_lesson', { lesson_id: LESSON }],
+ ['get_my_answer', { lesson_id: LESSON }],
+ ['save_answer', { lesson_id: LESSON, text: 'synthetic denied write', expected_version: 0 }],
+ ['start_lesson', { lesson_id: LESSON, request_id: crypto.randomUUID() }],
+ ['resume_lesson', { lesson_id: LESSON }],
+ ['inspect_evidence', { lesson_id: LESSON }],
+ ['submit_decision', { lesson_id: LESSON, request_id: crypto.randomUUID(), attempt_id: crypto.randomUUID(),
+  expected_version: 1, stage: 'judgment', choice_id: 'nothing' }],
+ ['get_progress', {}],
+];
 const { createInvitationBatch, redeemInvitation, revokeFreeGrant } = await import('../../witnessops-academy-server/src/pilot-invitations.mjs');
 let failed = false;
 function pass(name) { results.push({ name, result: 'PASS' }); console.log('PASS MCP pilot ' + name); }
@@ -144,6 +155,9 @@ async function connect(user) {
   const client = new Client({ name: 'academy-pilot-admission-test', version: '0.1.0' });
   const transport = new StreamableHTTPClientTransport(new URL(MCP), { requestInit: { headers: { authorization: `Bearer ${token}` } } });
   await client.connect(transport); clients.push(client);
+  const listed = await client.listTools();
+  assert.deepEqual(listed.tools.map(tool => tool.name).sort(), cases.map(([name]) => name).sort());
+  assert.ok(listed.tools.every(tool => tool.inputSchema.additionalProperties === false));
   // A tool call creates the server-selected identity even if admission is denied.
   const denial = await client.callTool({ name: 'list_lessons', arguments: {} });
   assert.equal(denial.isError, true); assert.equal(obj(denial).error, 'access_required');
@@ -161,13 +175,13 @@ try {
  const before = (await operator.query('SELECT owner_id,lesson_id,content,version FROM academy_lesson_drafts WHERE owner_id=ANY($1::uuid[]) ORDER BY owner_id,lesson_id', [[a.identity.id, b.identity.id]])).rows;
  await denied(a); await denied(b);
  assert.deepEqual((await operator.query('SELECT owner_id,lesson_id,content,version FROM academy_lesson_drafts WHERE owner_id=ANY($1::uuid[]) ORDER BY owner_id,lesson_id', [[a.identity.id, b.identity.id]])).rows, before);
- pass('valid OAuth sign-in without a grant denies all four tools and preserves saved work');
+ pass('valid OAuth sign-in without a grant denies all nine tools and preserves saved work');
  const refs = { approvalReference: 'synthetic-owner-approved-free-mcp-test', administratorReference: 'synthetic-mcp-test-operator' };
  const batch = await createInvitationBatch(operator, { ...refs, recipients: [a.identity,b.identity].map(({issuer,subject}) => ({issuer,subject})) });
  invitations.push(...batch.invitations.map(item => item.invitationId));
  for (const [index, session] of [a,b].entries()) assert.equal((await redeemInvitation(runtime, { token: batch.invitations[index].token, identityId: session.identity.id })).accepted, true);
  for (const session of [a,b]) {
-  assert.equal(obj(await session.client.callTool({ name:'list_lessons', arguments:{} })).lessons[0].id, LESSON);
+  assert.deepEqual(obj(await session.client.callTool({ name:'list_lessons', arguments:{} })).lessons.map(item => item.id), [LESSON, 'same-scope']);
   assert.equal(obj(await session.client.callTool({ name:'get_lesson', arguments:{ lesson_id: LESSON } })).lesson.title, 'Report or evidence?');
  }
  pass('approved grants unlock existing MCP sessions and current allowed curriculum');
@@ -186,7 +200,7 @@ try {
  await denied(b);
  assert.equal(obj(await a.client.callTool({ name:'get_my_answer', arguments:{ lesson_id: LESSON } })).text, contents[0]);
  const preserved = (await operator.query('SELECT content FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2', [b.identity.id,LESSON])).rows[0]; assert.equal(preserved.content, contents[1]);
- pass('revocation denies all four calls on the same MCP session immediately and preserves both learners work');
+ pass('revocation denies all nine calls on the same MCP session immediately and preserves both learners work');
  await operator.query('REVOKE EXECUTE ON FUNCTION public.academy_has_approved_free_grant(uuid) FROM academy_mcp');
  try {
   for (const [name,args] of cases) {
@@ -195,7 +209,7 @@ try {
   }
  } finally { await operator.query('GRANT EXECUTE ON FUNCTION public.academy_has_approved_free_grant(uuid) TO academy_mcp'); }
  assert.equal(obj(await a.client.callTool({ name:'get_my_answer', arguments:{ lesson_id:LESSON } })).text,contents[0]);
- pass('unavailable admission predicate fails all four tools closed with 503 and recovers without losing work');
+ pass('unavailable admission predicate fails all nine tools closed with 503 and recovers without losing work');
  // Exercise the actual MCP process/pool, including more requests than its
  // default five clients. Locks block identity lookup and admission separately.
  for (const relation of ['academy_identities', 'academy_pilot_grants']) {
@@ -208,8 +222,7 @@ try {
   try {
    await blocker.query('BEGIN');
    await blocker.query(`LOCK TABLE public.${relation} IN ACCESS EXCLUSIVE MODE`);
-   const responses = await Promise.all(Array.from({ length: 6 }, (_, index) => {
-    const [name, original] = cases[index % cases.length];
+   const responses = await Promise.all(cases.map(([name, original]) => {
     const args = name === 'save_answer'
      ? { lesson_id: LESSON, text: 'Synthetic blocked write must never run', expected_version: snapshot.version }
      : original;

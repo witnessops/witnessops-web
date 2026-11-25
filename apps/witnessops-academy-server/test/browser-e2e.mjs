@@ -15,6 +15,7 @@ if (process.env.ACADEMY_E2E !== '1') {
 const APP = env('ACADEMY_TEST_APP_URL', env('ACADEMY_PUBLIC_ORIGIN'));
 const API = '/academy/api/lessons/report-or-evidence/draft';
 const LESSON = '/academy/learn/report-or-evidence';
+const WORKSHEET = `${LESSON}?format=worksheet`;
 const EV = env('ACADEMY_TEST_EVIDENCE_DIR');
 mkdirSync(EV, { recursive: true });
 const users = [
@@ -42,6 +43,10 @@ async function signedIn(index, prepare) {
   // Intercepted draft loads may intentionally remain pending after navigation.
   await page.locator('#kc-login').click({ noWaitAfter: Boolean(prepare) });
   await expect(page).toHaveURL(APP + LESSON);
+  // Auth returns to the canonical chat route; retain worksheet acceptance explicitly.
+  // A held draft response must not block navigation before the delayed-load checks.
+  await page.goto(APP + WORKSHEET, { waitUntil: 'commit' });
+  await expect(page.locator('#lesson-form')).toBeVisible();
   if (!prepare) await expect(page.locator('#progress-status')).toContainText(/loaded|No saved work/);
   return { context, page };
 }
@@ -151,7 +156,7 @@ try {
 
   stage = 'concurrent tabs';
   const stale = await a.context.newPage();
-  await stale.goto(APP + LESSON);
+  await stale.goto(APP + WORKSHEET);
   await expect(stale.locator('#progress-status')).toContainText('loaded');
   await a.page.locator('#reason-1').fill('Synthetic A newer version.');
   await save(a.page);
