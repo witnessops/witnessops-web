@@ -297,9 +297,11 @@ optimistic versions and PostgreSQL records remain authoritative.
   proxy path already covers it.
 - The client retries an uncertain write (host silence after a bounded
   timeout, transport failure or 5xx) with exactly the original UUID and
-  arguments. A definitive 4xx (for example 409 conflict, stale version, 401 or
-  403) drops the pending request and re-reads the saved case instead of
-  offering a resend or claiming a save.
+  arguments. A 401/403 keeps that pending request and its UUID so it can be
+  retried unchanged after signing in again. Any other definitive 4xx (for
+  example 409 conflict, 422 validation or a stale version) drops the pending
+  request and re-reads the saved case instead of offering a resend or claiming
+  a save.
 
 Run `pnpm academy:test` for the source contract. Native Element Web acceptance
 runs only in CI: the `Academy e2e` workflow step "Verify one private Academy

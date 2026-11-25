@@ -42,6 +42,8 @@
   // A host that never answers must not freeze the card: after this bound the
   // outcome is reported as unknown and Retry resends the identical request.
   const RPC_TIMEOUT_MS = 20000;
+  // The host handshake may wait on host start-up or sign-in, so it gets a longer bound.
+  const INIT_TIMEOUT_MS = 60000;
   const LESSONS = ['report-or-evidence', 'same-scope'];
   // '*' only until the host has answered ui/initialize; then pin to its origin
   // when it is a concrete http(s) origin (opaque sandbox origins stay '*').
@@ -58,7 +60,7 @@
     const hex = [...bytes].map(v => v.toString(16).padStart(2, '0')).join('');
     return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
   }
-  function post(method, params, expectsResponse = false) {
+  function post(method, params, expectsResponse = false, timeoutMs = RPC_TIMEOUT_MS) {
     if (matrixTransport) return matrixTransport.post(method, params, expectsResponse);
     const message = { jsonrpc: '2.0', method, params };
     if (expectsResponse) message.id = ++requestNumber;
@@ -68,7 +70,7 @@
       // A late answer for a timed-out id is dropped: its entry is gone.
       const timer = setTimeout(() => {
         if (pendingRpc.delete(id)) reject(Object.assign(new Error('Host did not answer'), { timedOut: true }));
-      }, RPC_TIMEOUT_MS);
+      }, timeoutMs);
       pendingRpc.set(id, {
         resolve: value => { clearTimeout(timer); resolve(value); },
         reject: reason => { clearTimeout(timer); reject(reason); },
@@ -191,10 +193,16 @@
     if (data?.error) { showError(`Academy returned ${data.error}. No success assumed.`); return false; }
     showError('Unable to read a valid Academy case. Nothing was changed.'); return false;
   }
-  // A definitive 4xx from Academy (conflict, stale version, validation, access)
-  // means the write was not applied and resending it cannot succeed.
+  // 401/403: the write was refused for sign-in or access, not judged. Keep the
+  // pending request and its idempotency key so Retry after re-authentication
+  // resends the identical request instead of minting a new one.
+  function authRejection(body) {
+    return body?.status === 401 || body?.status === 403;
+  }
+  // Any other 4xx (409 conflict, 422/400 validation, stale version, 404) means the
+  // write was judged and not applied; resending it cannot succeed.
   function definitiveRejection(body) {
-    return Number.isInteger(body?.status) && body.status >= 400 && body.status < 500;
+    return Number.isInteger(body?.status) && body.status >= 400 && body.status < 500 && !authRejection(body);
   }
   async function action(name, args, write = false) {
     if (!connected || busy) return;
@@ -208,7 +216,9 @@
       if (result?.isError || response?.error) {
         const body = resultData(result) || {};
         if (body.error === 'no_attempt') acceptPayload(result);
-        else if (write && definitiveRejection(body)) {
+        else if (write && authRejection(body)) {
+          showError(`Not confirmed: ${body.error || 'access_required'}. Sign in to Academy, then retry the same request.`);
+        } else if (write && definitiveRejection(body)) {
           // Drop the rejected request and re-read the saved case (#597 contract:
           // conflicts require a fresh read, never a blind resend).
           pendingWrite = null; reload = { lessonId: args.lesson_id, code: String(body.error || 'rejected').slice(0, 60) };
@@ -262,7 +272,7 @@
     connected = true;
     matrixTransport.open({ acceptPayload, showError });
   } else {
-    post('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'academy-decision-room', version: '1.0.0' }, appCapabilities: { availableDisplayModes: ['inline'] } }, true)
+    post('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'academy-decision-room', version: '1.0.0' }, appCapabilities: { availableDisplayModes: ['inline'] } }, true, INIT_TIMEOUT_MS)
       .then(() => { connected = true; post('ui/notifications/initialized', {}); })
       .catch(() => showError('This chat host could not initialize the interactive view. Use the normal Academy lesson tools.'));
   }

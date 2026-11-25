@@ -118,3 +118,43 @@ test('the view only ever asks the host for app-visible tools', async () => {
   for (const call of [...view.calls(), ...startView.calls()]) assert.ok(APP_TOOLS.has(call.message.params.name), call.message.params.name);
   assert.equal(startView.lastCall().message.params.name, 'start_lesson');
 });
+
+test('401/403 keeps the pending request and its idempotency key; no reload (N2)', async () => {
+  for (const status of [401, 403]) {
+    const view = await caseOpen();
+    view.q('commit').click(); await flush();
+    const submit = view.lastCall();
+    const before = view.calls().length;
+    await view.answer(submit, { error: status === 401 ? 'session_unavailable' : 'access_required', status }, true);
+    assert.equal(view.calls().length, before, 'no automatic reload or resend');
+    assert.equal(view.q('retry').hidden, false, String(status));
+    assert.match(view.q('status').textContent, /Sign in to Academy, then retry the same request/);
+    view.q('retry').click(); await flush();
+    assert.deepEqual(view.lastCall().message.params, submit.message.params, 'same request_id after re-auth');
+  }
+});
+
+test('422 validation rejection drops the pending request and reloads like a conflict (N2)', async () => {
+  const view = await caseOpen();
+  view.q('commit').click(); await flush();
+  await view.answer(view.lastCall(), { error: 'invalid_choice', status: 422 }, true);
+  assert.equal(view.lastCall().message.params.name, 'resume_lesson');
+  assert.equal(view.q('retry').hidden, true);
+});
+
+test('the host handshake waits longer than an ordinary request (N3)', async () => {
+  const view = bootView(html);
+  view.advance(20_000); await flush();
+  assert.doesNotMatch(view.q('status').textContent, /could not initialize/, 'still waiting at the request bound');
+  const init = view.sent.find(s => s.message.method === 'ui/initialize');
+  view.advance(39_999); await flush();
+  assert.doesNotMatch(view.q('status').textContent, /could not initialize/);
+  view.advance(1); await flush();
+  assert.match(view.q('status').textContent, /could not initialize/);
+  view.receive({ jsonrpc: '2.0', id: init.message.id, result: {} }); await flush();
+  assert.equal(view.sent.some(s => s.message.method === 'ui/notifications/initialized'), false, 'late handshake answer dropped');
+  const fresh = bootView(html);
+  fresh.advance(59_000); await flush();
+  await fresh.connect();
+  assert.equal(fresh.sent.at(-1).message.method, 'ui/notifications/initialized');
+});
