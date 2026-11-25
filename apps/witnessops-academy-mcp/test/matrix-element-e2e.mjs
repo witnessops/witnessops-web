@@ -140,9 +140,13 @@ async function elementLogin(page) {
   // The room state contains one opt-in widget. If Element leaves it collapsed,
   // open its visible title in the room. Never use Matrix room data for Academy auth.
   const frame = page.locator('iframe[src*="format=matrix"]').first();
-  if (!(await frame.isVisible({ timeout: 12000 }).catch(() => false))) {
+  // The pinned widget renders asynchronously after the room view. Wait for it
+  // first; only then try the collapsed-title fallback, with a short bounded click
+  // (an unbounded click on a moving header can outlast the frame wait).
+  await frame.waitFor({ state: 'visible', timeout: 20_000 }).catch(() => {});
+  if (!(await frame.isVisible().catch(() => false))) {
     const widget = page.getByText('Academy Decision Room', { exact: true }).first();
-    if (await widget.isVisible().catch(() => false)) await widget.click();
+    if (await widget.isVisible().catch(() => false)) await widget.click({ timeout: 5_000 }).catch(() => {});
   }
   await expect(frame).toBeVisible({ timeout: 45_000 });
   return frame;
