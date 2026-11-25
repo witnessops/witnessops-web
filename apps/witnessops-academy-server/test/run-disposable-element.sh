@@ -140,4 +140,4 @@ export MATRIX_TEST_ROOM_ID_FILE="$LAB/room-id"
 export MATRIX_TEST_PASSWORD_FILE="$ACADEMY_CI_SECRET_DIR/matrix_learner_password"
 export MATRIX_TEST_ELEMENT_URL=http://127.0.0.1:18444
 export MATRIX_TEST_SYNAPSE_URL=http://127.0.0.1:18008
-node apps/witnessops-academy-server/test/matrix-element-e2e.mjs
+node apps/witnessops-academy-mcp/test/matrix-element-e2e.mjs
