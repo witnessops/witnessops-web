@@ -58,8 +58,8 @@ def make_package(output: Path, entra_app_id: str | None = None) -> None:
         }
     items = {
         "manifest.json": json.dumps(manifest, sort_keys=True, indent=2).encode("utf-8") + b"\n",
-        "color.png": icon(96, outlined=False),
-        "outline.png": icon(20, outlined=True),
+        "color.png": icon(192, outlined=False),
+        "outline.png": icon(32, outlined=True),
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as archive:

@@ -21,13 +21,14 @@ class PackageContractTest(unittest.TestCase):
                 self.assertIsNone(archive.testzip())
                 self.assertEqual(set(archive.namelist()), {"manifest.json", "color.png", "outline.png"})
                 manifest = json.loads(archive.read("manifest.json"))
+                self.assertEqual(manifest["version"], "1.0.0")
                 self.assertEqual(manifest["staticTabs"][0]["scopes"], ["personal"])
                 self.assertEqual(manifest["validDomains"], ["academy.witnessops.com"])
                 self.assertEqual(manifest["webApplicationInfo"], {
                     "id": SYNTHETIC_ID,
                     "resource": "api://academy.witnessops.com/" + SYNTHETIC_ID,
                 })
-                for name, size in (("color.png", 96), ("outline.png", 20)):
+                for name, size in (("color.png", 192), ("outline.png", 32)):
                     data = archive.read(name)
                     self.assertEqual(data[:8], bytes.fromhex("89504e470d0a1a0a"))
                     self.assertEqual(int.from_bytes(data[16:20], "big"), size)
