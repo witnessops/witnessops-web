@@ -1,5 +1,6 @@
 import { validateChatRequest } from '../../witnessops-academy-server/src/chat-store.mjs';
 import { toolByName } from './tools.mjs';
+import { CHAT_VIEW_RESOURCE_URI } from './chat-view.mjs';
 
 /** The owner is supplied by the existing validated OAuth/admission wrapper only. */
 export async function handleChatTool(name, args, { store, owner }) {
@@ -24,7 +25,11 @@ export function registerChatTools(server, { store, admitted, ownerId, requiredSc
     server.registerTool(name, {
       title: tool.title, description: tool.description,
       inputSchema: tool.inputSchema, annotations: tool.annotations,
-      _meta: { securitySchemes: [{ type: 'oauth2', scopes: [requiredScope] }] },
+      _meta: {
+        securitySchemes: [{ type: 'oauth2', scopes: [requiredScope] }],
+        ...(['start_lesson', 'resume_lesson'].includes(name)
+          ? { ui: { resourceUri: CHAT_VIEW_RESOURCE_URI } } : {}),
+      },
     }, admitted(async (args, extra, admittedOwner) => {
       try {
         const owner = admittedOwner ?? await ownerId(extra.authInfo);
