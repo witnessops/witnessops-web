@@ -241,7 +241,11 @@ try {
   const safe = error?.name === 'AssertionError' ? 'assertion' : error?.name === 'TimeoutError' ? 'timeout' : 'runtime';
   console.error(`BLOCKED matrix-element stage=${stage}; category=${safe}; completed_checks=${steps.length}`);
   if (elementPage && stage.startsWith('real Element Web')) {
-    const probe = await elementProbe(elementPage).catch(() => null);
+    // Bounded: a hung page must never delay the cleanup in finally.
+    const probe = await Promise.race([
+      elementProbe(elementPage),
+      new Promise(resolve => setTimeout(resolve, 5000, null).unref()),
+    ]).catch(() => null);
     if (probe) console.error(`BLOCKED matrix-element element_probe=${JSON.stringify(probe)}`);
   }
   // Do not dump HTTP bodies, login pages, passwords, tokens or browser storage.
