@@ -25,7 +25,8 @@ import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 import { assertPilotAccessReady, requireAccessPolicy, withPilotAdmission } from './pilot-access.mjs';
 import { CHAT_LESSONS } from '../../witnessops-academy-server/src/chat-engine.mjs';
 import { createChatStore } from '../../witnessops-academy-server/src/chat-store.mjs';
-import { registerChatTools } from './chat-tools.mjs';
+import { MODEL_ONLY_UI_META, registerChatTools } from './chat-tools.mjs';
+import { registerChatView } from './chat-view.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
@@ -207,6 +208,7 @@ const chatStore = createChatStore(pool);
 function buildServer() {
   const admitted = (handler) => withPilotAdmission({ db: pool, policy: ACCESS_POLICY, ownerId }, handler);
   const server = new McpServer({ name: 'witnessops-academy', version: '0.1.0' }, { instructions: SERVER_INSTRUCTIONS });
+  registerChatView(server);
   const listLessons = toolByName('list_lessons');
   const getLesson = toolByName('get_lesson');
   const getAnswer = toolByName('get_my_answer');
@@ -216,6 +218,7 @@ function buildServer() {
     description: listLessons.description,
     inputSchema: listLessons.inputSchema,
     annotations: listLessons.annotations,
+    _meta: { ui: MODEL_ONLY_UI_META },
   }, admitted(async () => ok({
     lessons: CHAT_LESSONS.map(({ id, title, position, objective }) => ({
       id, title, path: `/academy/learn/${id}`, position, objective, mode: 'interactive',
@@ -227,6 +230,7 @@ function buildServer() {
     description: getLesson.description,
     inputSchema: getLesson.inputSchema,
     annotations: getLesson.annotations,
+    _meta: { ui: MODEL_ONLY_UI_META },
   }, admitted(async ({ lesson_id: lessonId }) => (
     LESSONS.has(lessonId) ? ok({ lesson: LESSONS.get(lessonId) }) : fail({ error: 'unknown_lesson', status: 404 })
   )));
@@ -235,6 +239,7 @@ function buildServer() {
     description: getAnswer.description,
     inputSchema: getAnswer.inputSchema,
     annotations: getAnswer.annotations,
+    _meta: { ui: MODEL_ONLY_UI_META },
   }, admitted(async ({ lesson_id: lessonId }, extra, admittedOwner) => {
     if (!LESSONS.has(lessonId)) return fail({ error: 'unknown_lesson', status: 404 });
     const owner = admittedOwner ?? await ownerId(extra.authInfo);
@@ -252,6 +257,7 @@ function buildServer() {
     description: saveAnswer.description,
     inputSchema: saveAnswer.inputSchema,
     annotations: saveAnswer.annotations,
+    _meta: { ui: MODEL_ONLY_UI_META },
   }, admitted(async ({ lesson_id: lessonId, text, expected_version: expectedVersion }, extra, admittedOwner) => {
     if (!LESSONS.has(lessonId)) return fail({ error: 'unknown_lesson', status: 404 });
     const textError = answerTextError(text);

@@ -64,5 +64,11 @@ test('MCP advertises honest read/write annotations and OAuth for all five chat o
     assert.equal(tool.annotations.openWorldHint, false);
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.deepEqual(tool._meta.securitySchemes, [{ type: 'oauth2', scopes: ['academy-mcp'] }]);
+    const visibility = ['start_lesson', 'resume_lesson', 'submit_decision'].includes(tool.name) ? ['model', 'app'] : ['model'];
+    if (['start_lesson', 'resume_lesson'].includes(tool.name))
+      assert.deepEqual(tool._meta.ui, { resourceUri: 'ui://witnessops-academy/decision-room-v1.html', visibility });
+    else assert.deepEqual(tool._meta.ui, { visibility });
   }
+  const appCallable = result.tools.filter(tool => tool._meta.ui.visibility.includes('app')).map(tool => tool.name).sort();
+  assert.deepEqual(appCallable, ['resume_lesson', 'start_lesson', 'submit_decision']);
 });
