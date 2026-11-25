@@ -30,6 +30,7 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 import { chatPage, chatConnectionPage } from './chat-page.mjs';
 import { createChatStore } from './chat-store.mjs';
 import { chatLessonFromPath, createChatHandler } from './chat-http.mjs';
+import { teamsLaunchHeaders, teamsLaunchPage, TEAMS_LAUNCH_ROUTE, TEAMS_JS_ROUTE, TEAMS_CSS_ROUTE } from './teams-launch.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
@@ -43,6 +44,8 @@ const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 const CHAT_JS = readFileSync(join(HERE, 'chat-client.js'));
 const CHAT_CSS = readFileSync(join(HERE, 'chat.css'));
+const TEAMS_JS = readFileSync(join(HERE, 'teams-launch-client.js'));
+const TEAMS_CSS = readFileSync(join(HERE, 'teams-launch.css'));
 const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
 const LESSON_HTML = new Map(LESSONS.map(lesson => [lesson.id, PUBLIC_ROUTES.get(lesson.publicPath).body.toString()]));
 
@@ -274,6 +277,16 @@ async function handle(req, res) {
     : send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, HEAD' });
 
   if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
+
+  // Teams gets a narrowly scoped *public* launch screen; authenticated lesson
+  // routes retain their DENY X-Frame-Options, no-embedding CSP, and Lax cookies.
+  if (p === TEAMS_LAUNCH_ROUTE && read) {
+    res.writeHead(200, teamsLaunchHeaders({ secure: SECURE }));
+    res.end(req.method === 'HEAD' ? undefined : teamsLaunchPage());
+    return;
+  }
+  if (p === TEAMS_JS_ROUTE && read) return send(res, 200, TEAMS_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  if (p === TEAMS_CSS_ROUTE && read) return send(res, 200, TEAMS_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
 
   if (p === ACCOUNT_ROUTE && read) {
     const s = await getSession(req);
