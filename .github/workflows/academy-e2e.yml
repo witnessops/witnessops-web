@@ -356,6 +356,22 @@ jobs:
           node apps/witnessops-academy-server/test/pilot-invitations-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-invitations.log"
           node apps/witnessops-academy-mcp/test/pilot-access-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/pilot-mcp-access.log"
 
+      - name: Verify disposable Teams identity-link invariants
+        id: teams_link_core
+        timeout-minutes: 5
+        env:
+          ACADEMY_TEAMS_LINKS_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == session-only ]]
+          node apps/witnessops-academy-server/test/teams-link-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/teams-link.log"
+
       - name: Verify approved-free invitation and return journey
         id: invitation_journey
         timeout-minutes: 15

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   PREAUTH_TTL_MS,
   createPreauthCodec,
+  isCanonicalTeamsLinkToken,
   openPreauth,
   preauthKeyFromSecret,
   sealPreauth,
@@ -72,4 +73,41 @@ test('account and registration intent are sealed while arbitrary return URLs are
     assert.equal(Object.hasOwn(rejected, 'returnTo'), false);
     assert.equal(Object.hasOwn(rejected, 'registration'), false);
   }
+});
+
+test('a canonical Teams link token is encrypted, paired with its fixed return and single-use', () => {
+  const codec = createPreauthCodec(key);
+  const teamsLinkToken = 'A'.repeat(43);
+  assert.equal(isCanonicalTeamsLinkToken(teamsLinkToken), true);
+  assert.equal(isCanonicalTeamsLinkToken('x'.repeat(43)), false);
+  const token = codec.seal({ state: 's', nonce: 'n', verifier: 'v', returnTo: 'teams-link', teamsLinkToken });
+  assert.equal(token.includes(teamsLinkToken), false);
+  assert.deepEqual(
+    (({ returnTo, teamsLinkToken: linkedToken }) => ({ returnTo, teamsLinkToken: linkedToken }))(codec.open(token)),
+    { returnTo: 'teams-link', teamsLinkToken },
+  );
+  assert.equal(codec.open(token), null);
+});
+
+test('malformed or unpaired Teams link context is excluded or rejected', () => {
+  for (const fields of [
+    { returnTo: 'teams-link', teamsLinkToken: 'short' },
+    { returnTo: 'teams-link', teamsLinkToken: 'x'.repeat(43) },
+    { returnTo: 'account', teamsLinkToken: 'A'.repeat(43) },
+  ]) {
+    const codec = createPreauthCodec(key);
+    const context = codec.open(codec.seal({ state: 's', nonce: 'n', verifier: 'v', ...fields }));
+    assert.equal(Object.hasOwn(context, 'teamsLinkToken'), false);
+    assert.notEqual(context.returnTo, 'teams-link');
+  }
+  const malformed = sealPreauth({
+    state: 's', nonce: 'n', verifier: 'v', id: 'bad-teams-context', exp: 5_000,
+    returnTo: 'teams-link', teamsLinkToken: 'x'.repeat(43),
+  }, key);
+  assert.equal(openPreauth(malformed, key, 4_000), null);
+  const unpaired = sealPreauth({
+    state: 's', nonce: 'n', verifier: 'v', id: 'unpaired-teams-context', exp: 5_000,
+    teamsLinkToken: 'A'.repeat(43),
+  }, key);
+  assert.equal(openPreauth(unpaired, key, 4_000), null);
 });

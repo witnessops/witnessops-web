@@ -90,6 +90,45 @@ The MCP runtime uses `ACADEMY_MCP_DB_USER` (default `academy_mcp`) and
 Its reconciled grants exclude all session tables, DELETE and DDL.
 Other secrets use the same `*_FILE` or `CREDENTIALS_DIRECTORY` rule as the rest of this package. Migrations are run explicitly with `scripts/migrate.sh`. The app does not migrate on startup.
 
+## Microsoft Teams identity link (source only)
+
+The optional Teams bridge is off by default. `ACADEMY_TEAMS_IDENTITY_BRIDGE`
+accepts only `true` or `false`; an unknown value stops startup. Enabling it also
+requires the exact private single-tenant Entra tenant and application UUIDs in
+`ACADEMY_TEAMS_TENANT_ID` and `ACADEMY_TEAMS_APP_ID`, plus migration
+`005_academy_teams_identity_links`. These identifiers are runtime configuration,
+not credentials, but the private pilot values are deliberately not committed to
+this public source.
+
+The Teams tab requests an Entra access token only after the user chooses to link
+an account. The server accepts only a signed v2 delegated token for the configured
+tenant and API audience, `RS256`, the `access_as_user` scope and an allowlisted
+Microsoft Teams client. It identifies the external account only by immutable
+tenant, object and subject claims. Names, email addresses, UPNs and Teams context
+values are neither owner keys nor stored profile data. Raw tokens are never put
+in URLs, cookies, PostgreSQL or application logs.
+
+A verified Teams token creates a five-minute random link intent. PostgreSQL stores
+only its SHA-256 hash and the validated immutable claims. The browser carries the
+one-time value in a fragment, removes the fragment immediately, and requires an
+explicit confirmation from a current Keycloak-backed Academy session with the
+existing CSRF controls. Confirmation maps the Entra identity to the existing
+`academy_identities.id`; it never creates an Academy identity, session, admission
+grant or draft, and it never changes a draft owner. Active links are unique in
+both directions and can be revoked without deleting the Keycloak account, pilot
+grant or saved work. The application role reaches the link tables only through
+fixed-search-path security-definer functions; the MCP role receives no access.
+Unreferenced intents that have been expired for 24 hours are removed in bounded
+batches on subsequent intent creation. Confirmed intents remain attached to their
+link audit row, including after unlink; no raw bearer or one-time token is retained.
+
+This slice intentionally exposes no Teams lesson read/write endpoint. A mapping
+is not an Academy login or authorization grant. Any later Teams data operation
+must separately prove a current Keycloak authorization, recheck the Academy grant
+and retain the existing owner/version/idempotency checks. Source tests and a
+disposable PostgreSQL suite do not prove live Microsoft token issuance, tenant
+consent, Teams-host rendering, deployment or user acceptance.
+
 ## Production deployment checklist
 
 This checklist is source guidance for a later operator review. It does not authorize deployment.

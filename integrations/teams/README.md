@@ -19,7 +19,16 @@ The adapter deliberately maintains one progress authority. It contains no Teams 
 
 Microsoft Teams tabs are embedded webpages. Current Academy source uses `frame-ancestors 'none'`, `X-Frame-Options: DENY` and `SameSite=Lax` cookies, so the current authenticated page cannot simply be embedded in a Teams iframe. Do **not** widen the existing Academy response's frame policy as a quick fix, change shared cookie settings or equate an untrusted Teams context ID with a Keycloak subject.
 
-An embedded, saved, authenticated tab needs a separately approved and independently reviewed identity bridge: Teams / Microsoft Entra SSO token validation (issuer, audience, signature, tenant, replay/expiry, subject), explicit account link to the existing Academy identity, Academy's existing grant check per action, restrictive tab-only CSP/frame ancestors, safe cookie/token handling, and a protected logout/revocation path. Support for an arbitrary outside tenant is not assumed. A tenant-installed bot or app is a separate Microsoft permission/approval gate. The first real acceptance must cover two synthetic users, denied access without an Academy grant, case save/reload, no cross-user read, and no leakage of private answers to channel messages.
+An embedded, saved, authenticated tab needs more than an identity map: every
+data operation must also prove current Academy authorization, recheck the Academy
+grant, retain owner/version/idempotency controls, and use restrictive tab-only
+browser policy. This branch implements only the independently reviewed token
+verification and explicit identity-link foundation. It deliberately does not add
+Teams draft reads or writes. Support for an arbitrary outside tenant is not
+assumed. A tenant-installed bot or app is a separate Microsoft permission and
+approval gate. The first data-access acceptance must cover two synthetic users,
+denied access without an Academy grant, case save/reload, no cross-user read, and
+no leakage of private answers to channel messages.
 
 ## Boundaries and next acceptance
 
@@ -28,7 +37,11 @@ An embedded, saved, authenticated tab needs a separately approved and independen
 - No Teams organisation was contacted; no message sent. Do not claim installation or Teams-host rendering from Node tests.
 - Existing saved Academy case records remain the one authoritative source. The creator/community/Teams distribution paths must not create competing learner ledgers.
 
-For an actual inside-Teams pilot, the next action-specific approval is to register or select a **private test Teams app** in a named tenant and configure its Entra identity bridge. That action is **not** performed here.
+The private Teams application and single-tenant Entra registration are maintained
+outside this public source. The next acceptance gate is an attended, isolated
+test-host configuration and founder-user link check. That is not a production
+deployment, shared-Team installation or authorization for lesson data inside the
+tab.
 
 References:
 - https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/tab-requirements
@@ -37,7 +50,12 @@ References:
 
 ## Private Teams personal-tab package (25 November 2026)
 
-Added a **public-only Teams launch page** at `/academy/teams/launch`. It uses TeamsJS `app.initialize()`, shows two fixed Academy cases, and opens the existing protected Academy lessons in a new browser window. It is not a sign-in bridge and never reads or writes learner progress. This is a stricter and safer intermediate design than embedding the existing protected Academy pages.
+Added a Teams launch page at `/academy/teams/launch`. With the bridge disabled
+(the default), it remains a public-only launcher: TeamsJS initializes, two fixed
+cases open the existing protected Academy lessons in a new browser window, and no
+token is requested. When the bridge is explicitly configured, the same page adds
+the user-initiated identity-link action described below. Neither mode reads or
+writes learner progress inside Teams.
 
 Only that public page has Teams-specific `frame-ancestors` and omits `X-Frame-Options`. All other Academy pages retain their existing `DENY` and `SameSite=Lax` controls. The route is currently **source-only** and not live at academy.witnessops.com.
 
@@ -67,4 +85,32 @@ python3 integrations/teams/build-package.py \
 
 This adds `webApplicationInfo.id` and `webApplicationInfo.resource` (`api://academy.witnessops.com/<SINGLE_TENANT_APP_ID>`) to the private ZIP. The helper rejects malformed app IDs, refuses alternate lesson origins, and does not register an application or request access tokens. The tenant-specific manifest is an **operator-held build artifact** and must not be committed to the public repository.
 
-An Entra scope or Teams client pre-authorization only enables a future SSO token exchange. It does not validate tokens, establish a Keycloak/Academy account link, admit a learner or enable private lesson access. A proper bridge must independently check signed Teams tokens and explicitly bind a verified Entra subject to the existing Academy identity, with owner authorization and revocation checks. Until that bridge is implemented and independently tested, the Teams tab is a public launcher only. The package is not installation-ready while the Teams route returns 404.
+An Entra scope or Teams client pre-authorization alone only enables a token
+exchange. The Academy server now contains an off-by-default, source-only identity
+link bridge. When explicitly configured, the tab asks for a Teams token only on
+the user's Link action. The server verifies its signature, exact single tenant,
+API audience, v2 issuer, lifetime, immutable user claims, delegated
+`access_as_user` scope and allowlisted Teams client. It then issues a five-minute,
+one-use link intent whose raw value is never stored.
+
+The user must finish the link in a top-level Academy page backed by the existing
+Keycloak session and explicitly confirm with Academy's CSRF control. The resulting
+record maps immutable Entra `(tenant, object, subject)` claims to the existing
+Academy identity UUID. It does not create an Academy account, session, pilot
+grant, lesson record or parallel progress store. Unlinking revokes only the map
+and preserves the Keycloak account, admission state and saved drafts. Email,
+display name, UPN and Teams context identifiers are never used to select an
+Academy owner. Unreferenced intents are purged in bounded batches after they have
+been expired for 24 hours; confirmed link audit rows retain their originating
+intent metadata but never the raw Teams bearer or one-time token.
+
+The feature remains disabled unless all of
+`ACADEMY_TEAMS_IDENTITY_BRIDGE=true`, `ACADEMY_TEAMS_TENANT_ID`,
+`ACADEMY_TEAMS_APP_ID` and migration `005_academy_teams_identity_links` are
+present. No private tenant/application value is committed here. This source slice
+does not add Teams lesson read/write APIs: a link is not a second Academy login,
+and existing protected routes still require Keycloak plus the Academy grant and
+owner checks. It also does not deploy the route, change Entra/tenant policy or
+install the app. The package remains installation-incomplete while its configured
+endpoint returns 404; live token shape, iframe behavior and YubiKey-backed sign-in
+require a separate attended test.

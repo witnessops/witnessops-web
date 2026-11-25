@@ -2,6 +2,17 @@ import crypto from 'node:crypto';
 
 export const PREAUTH_TTL_MS = 5 * 60 * 1000;
 export const PREAUTH_USED_MAX = 1024;
+export const TEAMS_LINK_TOKEN_PATTERN = /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
+
+export function isCanonicalTeamsLinkToken(value) {
+  if (typeof value !== 'string' || !TEAMS_LINK_TOKEN_PATTERN.test(value)) return false;
+  try {
+    const decoded = Buffer.from(value, 'base64url');
+    return decoded.length === 32 && decoded.toString('base64url') === value;
+  } catch {
+    return false;
+  }
+}
 
 export function preauthKeyFromSecret(secretValue) {
   if (Buffer.byteLength(String(secretValue ?? ''), 'utf8') < 32) {
@@ -37,6 +48,9 @@ export function openPreauth(token, key, now = Date.now()) {
     if (!payload || typeof payload.state !== 'string' || typeof payload.nonce !== 'string' || typeof payload.verifier !== 'string') return null;
     if (!Number.isSafeInteger(payload.exp) || payload.exp <= now) return null;
     if (typeof payload.id !== 'string' || payload.id === '') return null;
+    const hasTeamsLinkToken = Object.hasOwn(payload, 'teamsLinkToken');
+    if ((hasTeamsLinkToken && (!isCanonicalTeamsLinkToken(payload.teamsLinkToken) || payload.returnTo !== 'teams-link'))
+      || (payload.returnTo === 'teams-link' && !hasTeamsLinkToken)) return null;
     return payload;
   } catch {
     return null;
@@ -60,12 +74,15 @@ export function createPreauthCodec(key, options = {}) {
 
   return {
     seal(fields, now = Date.now()) {
+      const teamsLinkToken = fields.returnTo === 'teams-link' && isCanonicalTeamsLinkToken(fields.teamsLinkToken)
+        ? fields.teamsLinkToken : null;
       return sealPreauth({
         state: fields.state,
         nonce: fields.nonce,
         verifier: fields.verifier,
         ...(typeof fields.lessonId === 'string' ? { lessonId: fields.lessonId } : {}),
         ...(fields.returnTo === 'account' ? { returnTo: 'account' } : {}),
+        ...(teamsLinkToken ? { returnTo: 'teams-link', teamsLinkToken } : {}),
         ...(fields.registration === true ? { registration: true } : {}),
         ...(typeof fields.invitationToken === 'string' ? { invitationToken: fields.invitationToken } : {}),
         id: crypto.randomBytes(16).toString('base64url'),
