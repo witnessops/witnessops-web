@@ -265,3 +265,55 @@ ACADEMY_INVITATION_BROWSER=1 node apps/witnessops-academy-server/test/invitation
 This regression uses actual HTML/controller/header policy and a synthetic loopback
 receiver. It proves native form/header behavior, not external identity integration.
 The separate two-learner Keycloak/PostgreSQL journey still verifies the full flow.
+
+## Matrix/Element Decision Room — source-only candidate
+
+The same `src/decision-room.html` markup and CSS are used by ChatGPT MCP Apps
+and the Matrix/Element widget. Neither adapter owns assessment truth or saved
+progress. The iframe calls the existing authenticated Lesson 1 chat GET/POST API;
+the existing Keycloak server session, admission predicate, CSRF, request UUID,
+optimistic versions and PostgreSQL records remain authoritative.
+
+- The pilot URL shape is `/academy/learn/report-or-evidence?format=matrix`.
+- **Disabled by default:** `ACADEMY_MATRIX_WIDGET_ORIGINS` must be an explicit
+  comma-separated list of up to four exact Element Web origins. HTTPS is required
+  except for loopback tests; wildcard origins are rejected.
+- Only a signed-in, admitted learner can receive the widget HTML and CSRF
+  context. Other Academy routes retain `X-Frame-Options: DENY` and
+  `frame-ancestors 'none'`. The sole widget response uses CSP with
+  exact script hashes and `frame-ancestors` restricted to configured origins.
+- The widget requests **no Matrix capabilities**, reads no Matrix room/user
+  identifiers, sends no room events and persists no lesson data to Matrix.
+  It is an ordinary embedded web application; the widget URL is not an
+  invitation, enrollment grant or authorization credential.
+- Academy's `SameSite=Lax` session cookie is unchanged. An Element Web origin
+  on a different site cannot be assumed to send this cookie inside an iframe.
+  The intended candidate is a same-site HTTPS Element Web deployment with an
+  already-established Academy session; otherwise use the ordinary Academy
+  top-level lesson. No `SameSite=None` relaxation or third-party-cookie
+  workaround is part of this candidate.
+- This opt-in presentation path does **not** add a route to the static Academy
+  release nor mutate Community room state. The existing authenticated lesson
+  proxy path already covers it.
+- The client retries an uncertain write (host silence after a bounded
+  timeout, transport failure or 5xx) with exactly the original UUID and
+  arguments. A 401/403 keeps that pending request and its UUID so it can be
+  retried unchanged after signing in again (in the Matrix widget, whose CSRF
+  token is fixed at load, it asks the learner to reload the widget instead). Any other definitive 4xx (for
+  example 409 conflict, 422 validation or a stale version) drops the pending
+  request and re-reads the saved case instead of offering a resend or claiming
+  a save.
+
+Run `pnpm academy:test` for the source contract. Native Element Web acceptance
+runs only in CI: the `Academy e2e` workflow step "Verify one private Academy
+case inside disposable Element Web" calls
+`apps/witnessops-academy-server/test/run-disposable-element.sh`, which starts
+digest-pinned disposable Synapse and Element Web containers and runs the seven
+journey checks in `apps/witnessops-academy-mcp/test/matrix-element-e2e.mjs`
+(Keycloak login, widget in a private room, no case before explicit start,
+explicit start, saved decision revision, same case through the MCP client, one
+PostgreSQL progress record with scoped framing). It is a disposable fixture,
+not production acceptance.
+Before any release, verify the current Element origin, same-site cookies,
+iframe sandbox policy, actual user admission and browser/MCP shared progress in
+a disposable environment. Current production installation remains unperformed.

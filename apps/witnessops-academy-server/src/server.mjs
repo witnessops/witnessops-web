@@ -30,6 +30,7 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 import { chatPage, chatConnectionPage } from './chat-page.mjs';
 import { createChatStore } from './chat-store.mjs';
 import { chatLessonFromPath, createChatHandler } from './chat-http.mjs';
+import { matrixWidgetOrigins, matrixWidgetResponse } from './matrix-widget-view.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
@@ -38,6 +39,8 @@ const ACCOUNT_JS = readFileSync(join(HERE, 'account-client.js'));
 const ACCESS_POLICY = accessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved-free-pilot'));
 const REQUIRES_GRANT = ACCESS_POLICY === 'approved-free-pilot';
 const COMMUNITY_URL = communityUrl(env('ACADEMY_COMMUNITY_URL', ''));
+// Empty by default. Only explicitly listed Element Web origins can frame Lesson 1.
+const MATRIX_WIDGET_ORIGINS = matrixWidgetOrigins(env('ACADEMY_MATRIX_WIDGET_ORIGINS', ''));
 const SELF_SERVICE_REGISTRATION = registrationEnabled(env('ACADEMY_SELF_SERVICE_REGISTRATION', 'false'));
 const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
@@ -143,6 +146,7 @@ function send(res, status, body, headers = {}) {
   });
   res.end(isObj ? JSON.stringify(body) : body);
 }
+
 
 async function revoke(s, reason) {
   await pool.query(
@@ -526,6 +530,17 @@ async function handle(req, res) {
 
   const lesson = lessonByRoute(p);
   if (lesson && read) {
+    if (url.searchParams.get('format') === 'matrix') {
+      // Narrow iframe exception: denials and every other Academy response keep X-Frame-Options: DENY via send().
+      const widget = await matrixWidgetResponse({
+        lesson, origins: MATRIX_WIDGET_ORIGINS, method: req.method, requiresGrant: REQUIRES_GRANT, secure: SECURE,
+        getSession: () => getSession(req),
+        hasGrant: session => hasApprovedFreeGrant(pool, { identityId: session.identity_id }),
+      });
+      if (widget.json) return send(res, widget.status, widget.json);
+      res.writeHead(widget.status, widget.headers);
+      return res.end(widget.body);
+    }
     const s = await getSession(req);
     if (REQUIRES_GRANT && (!s || !await hasApprovedFreeGrant(pool, { identityId: s.identity_id }))) {
       return send(res, 403, invitationPage(s, { denied: true, lesson, communityUrl: COMMUNITY_URL }), INVITATION_PAGE_HEADERS);

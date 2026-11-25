@@ -52,6 +52,7 @@
   let caseState = null, selectedChoice = null, selectedEvidence = 0, requestNumber = 0;
   let pendingWrite = null;
   const pendingRpc = new Map();
+  const matrixTransport = window.AcademyMatrixTransport || null;
   function requestUUID() {
     if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
     const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -60,6 +61,7 @@
     return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
   }
   function post(method, params, expectsResponse = false, timeoutMs = RPC_TIMEOUT_MS) {
+    if (matrixTransport) return matrixTransport.post(method, params, expectsResponse);
     const message = { jsonrpc: '2.0', method, params };
     if (expectsResponse) message.id = ++requestNumber;
     if (!expectsResponse) { window.parent.postMessage(message, hostOrigin); return; }
@@ -210,6 +212,9 @@
     return body?.status === 401 || (body?.status === 403 && ['access_required', 'insufficient_scope'].includes(body?.error));
   }
   function authMessage(body) {
+    // In Matrix/Element the CSRF token is fixed when the widget loads, so signing
+    // in again elsewhere cannot make a retry from this frame succeed.
+    if (matrixTransport) return 'Your Academy session changed. Reload the widget to read saved progress.';
     const code = errorCode(body, body?.status === 401 ? 'session_unavailable' : 'access_required');
     return signInFixes(body)
       ? `Not confirmed: ${code}. Sign in to Academy, then retry the same request.`
@@ -260,6 +265,8 @@
     if (pendingWrite && !busy) action(pendingWrite.name, pendingWrite.args, true);
   });
   window.addEventListener('message', event => {
+    // Element's parent window is never permitted to inject Academy tool projections.
+    if (matrixTransport) return;
     if (event.source !== window.parent) return;
     if (hostOrigin !== '*' && event.origin !== hostOrigin) return;
     const msg = event.data;
@@ -277,9 +284,14 @@
     if (msg.method === 'ui/notifications/tool-result') acceptPayload(msg.params);
   });
   const initializeId = requestNumber + 1;
-  post('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'academy-decision-room', version: '1.0.0' }, appCapabilities: { availableDisplayModes: ['inline'] } }, true, INIT_TIMEOUT_MS)
-    .then(() => { connected = true; post('ui/notifications/initialized', {}); })
-    .catch(() => showError('This chat host could not initialize the interactive view. Use the normal Academy lesson tools.'));
+  if (matrixTransport) {
+    connected = true;
+    matrixTransport.open({ acceptPayload, showError });
+  } else {
+    post('ui/initialize', { protocolVersion: '2026-01-26', appInfo: { name: 'academy-decision-room', version: '1.0.0' }, appCapabilities: { availableDisplayModes: ['inline'] } }, true, INIT_TIMEOUT_MS)
+      .then(() => { connected = true; post('ui/notifications/initialized', {}); })
+      .catch(() => showError('This chat host could not initialize the interactive view. Use the normal Academy lesson tools.'));
+  }
 })();
 </script>
 </body>
