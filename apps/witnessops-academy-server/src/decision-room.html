@@ -173,7 +173,15 @@
     try {
       const response = await post('tools/call', { name, arguments: args }, true);
       const result = response?.result;
-      if (result?.isError || response?.error) { const body = resultData(result) || {}; showError(`Not confirmed: ${body.error || response?.error?.message || 'tool error'}. Retry the same request.`); }
+      if (result?.isError || response?.error) {
+        const body = resultData(result) || {};
+        if ([401, 403, 409].includes(body.status)) {
+          pendingWrite = null;
+          showError(`Academy rejected this operation (${body.error || body.status}). Reload your saved case before deciding again.`);
+        } else {
+          showError(`Not confirmed: ${body.error || response?.error?.message || 'tool error'}. Retry the same request.`);
+        }
+      }
       else acceptPayload(result);
     } catch { showError('Result unknown. Retry the same request; do not assume it was saved.'); }
     finally { markBusy(false); q('retry').hidden = !pendingWrite; }
