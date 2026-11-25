@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.25/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.25",
+  "id": "7569dffb-cdbb-49cf-a89f-ecc132be04c3",
+  "version": "0.1.0",
+  "name": {
+    "short": "WitnessOps Academy",
+    "full": "WitnessOps Academy — Private Teams Prototype"
+  },
+  "description": {
+    "short": "Private decision-room learning launcher.",
+    "full": "A private Microsoft Teams prototype that opens WitnessOps Academy investigations. Academy owns sign-in, lesson access, decisions, and saved progress."
+  },
+  "developer": {
+    "name": "WitnessOps P.S.A.",
+    "websiteUrl": "https://witnessops.com",
+    "privacyUrl": "https://witnessops.com/privacy",
+    "termsOfUseUrl": "https://witnessops.com/terms"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#0A101B",
+  "staticTabs": [
+    {
+      "entityId": "academy-launch",
+      "name": "Decision Room",
+      "contentUrl": "https://academy.witnessops.com/academy/teams/launch",
+      "websiteUrl": "https://academy.witnessops.com/",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "validDomains": [
+    "academy.witnessops.com"
+  ],
+  "defaultInstallScope": "personal"
+}
