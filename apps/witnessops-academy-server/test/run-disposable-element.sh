@@ -82,7 +82,7 @@ done
 [[ "$ready" == 1 ]] || { echo 'Disposable Synapse did not start'; exit 1; }
 
 docker exec "$SYNAPSE_CONTAINER" register_new_matrix_user \
-  -u academy-learner -p "$(cat "$ACADEMY_CI_SECRET_DIR/matrix_learner_password")" \
+  --no-admin -u academy-learner -p "$(cat "$ACADEMY_CI_SECRET_DIR/matrix_learner_password")" \
   -c /data/homeserver.yaml http://localhost:8008 >/dev/null
 
 python3 - "$ACADEMY_CI_SECRET_DIR/matrix_learner_password" "$LAB/room-id" <<'PY'
