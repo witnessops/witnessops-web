@@ -211,7 +211,7 @@ try {
   const sessionA = await connect(learnerA.access_token);
   const sessionB = await connect(learnerB.access_token);
   const tools = await sessionA.c.listTools();
-  check('M2', 'initialize + tools/list', tools.tools.map((tool) => tool.name).sort().join(',') === 'get_lesson,get_my_answer,list_lessons,save_answer', {
+  check('M2', 'initialize + tools/list', tools.tools.map((tool) => tool.name).sort().join(',') === 'get_lesson,get_my_answer,get_progress,inspect_evidence,list_lessons,resume_lesson,save_answer,start_lesson,submit_decision', {
     names: tools.tools.map((tool) => tool.name),
     schemasStrict: tools.tools.every((tool) => tool.inputSchema.additionalProperties === false),
   });

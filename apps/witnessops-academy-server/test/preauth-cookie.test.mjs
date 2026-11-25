@@ -51,6 +51,15 @@ test('sealed login context retains a lesson choice for an allowlisted callback r
   assert.equal(codec.open(token).lessonId, 'same-scope');
 });
 
+test('chat return is sealed only for the exact supported lesson and mode', () => {
+  const codec = createPreauthCodec(key);
+  const fields = { state: 's', nonce: 'n', verifier: 'v', lessonId: 'report-or-evidence', lessonMode: 'chat' };
+  assert.equal(codec.open(codec.seal(fields)).lessonMode, 'chat');
+  for (const override of [{ lessonId: 'same-scope' }, { lessonId: '../other' }, { lessonMode: '//outside.invalid/' }, { lessonMode: true }]) {
+    assert.equal(Object.hasOwn(codec.open(codec.seal({ ...fields, ...override })), 'lessonMode'), false);
+  }
+});
+
 test('invitation context is encrypted, authenticated and single-use with login', () => {
   const codec = createPreauthCodec(key);
   const invitationToken = 'x'.repeat(43);

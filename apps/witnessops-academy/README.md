@@ -2,6 +2,13 @@
 
 A small, independent static app for the Sovereign AI programme, based on the supplied Academy v1.1 design. It contains the Academy home, two Verify results pilot lessons (**Report or evidence?** and **Same record, wrong scope?**), a separate prepared Lesson 1, and a printable workbook. The prepared course title **Build Your First AI Operator** and the four-lesson syllabus are **PROPOSED**. No price is published. The other three learning paths are labelled as not written yet.
 
+The home and Verify results entry points also link a three-minute Lesson 1
+conversation, served by the Academy lesson server. It shares saved choices with
+the Academy MCP service and preserves the existing worksheet. The standalone
+static preview does not implement the authenticated chat route. See the
+[conversation contract](../witnessops-academy-server/LESSON-CHAT.md) for its shared
+engine, interfaces and release acceptance.
+
 ## Track teaser pages
 
 `/tracks/` is the Academy teaser index with the four track cards, and

@@ -65,6 +65,7 @@ export function createPreauthCodec(key, options = {}) {
         nonce: fields.nonce,
         verifier: fields.verifier,
         ...(typeof fields.lessonId === 'string' ? { lessonId: fields.lessonId } : {}),
+        ...(fields.lessonId === 'report-or-evidence' && fields.lessonMode === 'chat' ? { lessonMode: 'chat' } : {}),
         ...(fields.returnTo === 'account' ? { returnTo: 'account' } : {}),
         ...(fields.registration === true ? { registration: true } : {}),
         ...(typeof fields.invitationToken === 'string' ? { invitationToken: fields.invitationToken } : {}),

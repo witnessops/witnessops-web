@@ -164,6 +164,11 @@ class ProxyCandidateTests(unittest.TestCase):
 
     def test_exact_app_allowlist_and_reserved_paths(self):
         allowed = {"/academy/learn/report-or-evidence": ["GET", "HEAD"],
+                   "/academy/learn/report-or-evidence/chat": ["GET", "HEAD"],
+                   "/academy/static/lesson-chat.js": ["GET", "HEAD"],
+                   "/academy/static/lesson-chat.css": ["GET", "HEAD"],
+                   "/academy/api/lessons/report-or-evidence/chat": ["GET"],
+                   "/academy/api/lessons/report-or-evidence/chat/decision": ["POST"],
                    "/academy/learn/same-scope": ["GET", "HEAD"],
                    "/academy/api/lessons/same-scope/draft": ["GET", "PUT"],
                    "/academy/static/lesson.js": ["GET", "HEAD"],
@@ -185,6 +190,10 @@ class ProxyCandidateTests(unittest.TestCase):
                 self.assertEqual(status, 200, (method, path))
                 self.assertEqual(len(self.app.seen), before + 1)
         for method, path in [("POST", "/academy/api/lessons/report-or-evidence/draft"),
+                             ("POST", "/academy/api/lessons/report-or-evidence/chat"),
+                             ("GET", "/academy/api/lessons/report-or-evidence/chat/decision"),
+                             ("PUT", "/academy/api/lessons/report-or-evidence/chat/decision"),
+                             ("GET", "/academy/learn/same-scope/chat"),
                              ("DELETE", "/academy/api/lessons/report-or-evidence/draft"),
                              ("GET", "/academy/auth/logout"), ("HEAD", "/academy/auth/login"),
                              ("POST", "/academy/account"), ("HEAD", "/academy/auth/register"),

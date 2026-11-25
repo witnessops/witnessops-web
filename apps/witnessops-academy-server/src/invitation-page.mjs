@@ -1,4 +1,5 @@
 import { DEFAULT_LESSON, lessonByRoute } from './lesson-routes.mjs';
+import { CHAT_ROUTE } from './lesson-chat-routes.mjs';
 import { invitationTokenHash } from './pilot-invitations.mjs';
 
 // Native POST needs an exact Origin; no-referrer serializes it as null in browsers.
@@ -40,7 +41,7 @@ export function browserErrorBody(req, code) {
   if (!['GET', 'HEAD'].includes(req.method) || !Object.hasOwn(BROWSER_ERRORS, code)) return json;
   let path;
   try { path = new URL(req.url, 'https://academy.invalid').pathname; } catch { return json; }
-  if (!['/academy/auth/login', '/academy/auth/register', '/academy/auth/callback', '/academy/account', '/academy/invitation'].includes(path) && !lessonByRoute(path)) return json;
+  if (!['/academy/auth/login', '/academy/auth/register', '/academy/auth/callback', '/academy/account', '/academy/invitation', CHAT_ROUTE].includes(path) && !lessonByRoute(path)) return json;
   const accept = typeof req.headers?.accept === 'string' ? req.headers.accept : '';
   const acceptsHtml = accept.split(',').some(value => {
     const [type, ...parameters] = value.trim().split(';');

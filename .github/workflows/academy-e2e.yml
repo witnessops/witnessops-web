@@ -112,6 +112,9 @@ jobs:
       - name: Validate native invitation form Origin and fragment handling
         run: ACADEMY_INVITATION_BROWSER=1 node apps/witnessops-academy-server/test/invitation-entry-browser.mjs
 
+      - name: Validate shared lesson conversation in desktop and mobile browsers
+        run: ACADEMY_CHAT_BROWSER=1 node apps/witnessops-academy-server/test/lesson-chat-browser-e2e.mjs
+
       - name: Start Postgres 17 and Keycloak 26.8.2
         id: deps
         timeout-minutes: 15

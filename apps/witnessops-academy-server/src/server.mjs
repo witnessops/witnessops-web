@@ -9,6 +9,8 @@ import { dirname, join } from 'node:path';
 import { preloadRoutes } from '../../witnessops-academy/scripts/serve.mjs';
 import { LESSON_ROUTE, lessonPage } from './lesson-page.mjs';
 import { LESSONS, DEFAULT_LESSON, lessonById, lessonByAlias, lessonByRoute, lessonByDraft } from './lesson-routes.mjs';
+import { handleLessonChat } from './lesson-chat-http.mjs';
+import { isChatLogin } from './lesson-chat-routes.mjs';
 import { accessPolicy, browserErrorBody, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
 import { communityUrl } from './community-link.mjs';
 import { ACCOUNT_ROUTE, accountPage, registrationEnabled } from './account-page.mjs';
@@ -30,6 +32,8 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
+const LESSON_CHAT_JS = readFileSync(join(HERE, 'lesson-chat-client.js'));
+const LESSON_CHAT_CSS = readFileSync(join(HERE, 'lesson-chat.css'));
 const INVITATION_JS = readFileSync(join(HERE, 'invitation-client.js'));
 const ACCOUNT_JS = readFileSync(join(HERE, 'account-client.js'));
 const ACCESS_POLICY = accessPolicy(env('ACADEMY_ACCESS_POLICY', 'approved-free-pilot'));
@@ -234,7 +238,7 @@ function identityClaims(tokens) {
   return claims;
 }
 
-async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, returnTo, registration = false } = {}) {
+async function startLogin(req, res, { lesson = DEFAULT_LESSON, lessonMode, invitationToken, returnTo, registration = false } = {}) {
   const decision = loginGuard.begin(requestClient(req));
   if (!decision.ok) {
     return send(res, 429, browserErrorBody(req, 'rate_limited'), { 'Retry-After': String(decision.retryAfter) });
@@ -242,7 +246,7 @@ async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, 
   const state = rnd();
   const nonce = rnd();
   const verifier = oidc.randomPKCECodeVerifier();
-  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, invitationToken, returnTo, registration });
+  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, lessonMode, invitationToken, returnTo, registration });
   const to = oidc.buildAuthorizationUrl(config, {
     redirect_uri: REDIRECT_URI,
     ...authorizationIntent(registration),
@@ -275,6 +279,12 @@ async function handle(req, res) {
 
   if (p === '/academy/static/lesson.js' && read) {
     return send(res, 200, LESSON_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === '/academy/static/lesson-chat.js' && read) {
+    return send(res, 200, LESSON_CHAT_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === '/academy/static/lesson-chat.css' && read) {
+    return send(res, 200, LESSON_CHAT_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
   }
   if (p === '/academy/static/draft-text.mjs' && req.method === 'GET') {
     return send(res, 200, DRAFT_TEXT_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
@@ -333,7 +343,9 @@ async function handle(req, res) {
       : { error: 'invalid_invitation' });
   }
   if (p === '/academy/auth/login' && req.method === 'GET') {
-    return startLogin(req, res, { lesson: lessonById(url.searchParams.get('lesson')) || DEFAULT_LESSON,
+    const lesson = lessonById(url.searchParams.get('lesson')) || DEFAULT_LESSON;
+    return startLogin(req, res, { lesson,
+      lessonMode: isChatLogin(lesson.id, url.searchParams.get('mode')) ? 'chat' : undefined,
       returnTo: url.searchParams.get('return') === 'account' ? 'account' : undefined });
   }
   if (p === '/academy/auth/register' && req.method === 'GET') {
@@ -436,6 +448,11 @@ async function handle(req, res) {
       'Set-Cookie': setCookie(COOKIE, '', 0),
     });
   }
+
+  if (await handleLessonChat(req, res, p, {
+    pool, getSession, send, csrfError: csrfOk, communityUrl: COMMUNITY_URL,
+    canAccess: identityId => !REQUIRES_GRANT || hasApprovedFreeGrant(pool, { identityId }),
+  })) return;
 
   const draftLesson = lessonByDraft(p);
   if (draftLesson) {

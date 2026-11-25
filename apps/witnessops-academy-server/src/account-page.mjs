@@ -22,7 +22,7 @@ ${registration ? '<p><a class="btn" id="create-account" href="/academy/auth/regi
   const community = session && communityUrl
     ? `<section><h2>Community</h2><p>Use your WitnessOps account to sign in to Community. Private rooms have their own access rules.</p><p><a class="btn" id="community-link" href="${escape(communityUrl)}" target="_blank" rel="noopener noreferrer">Open Community (opens in a new tab)</a></p></section>` : '';
   const lessons = session && admitted
-    ? '<p id="lesson-access">Your pilot place is active. Open a lesson to continue your saved work.</p><p><a class="btn" href="/academy/learn/report-or-evidence">Report or evidence?</a> <a class="btn ghost" href="/academy/learn/same-scope">Same record, wrong scope?</a></p>'
+    ? '<p id="lesson-access">Your pilot place is active. Open a lesson to continue your saved work.</p><p><a class="btn" href="/academy/learn/report-or-evidence/chat">Start the 3-minute chat lesson</a> <a class="btn ghost" href="/academy/learn/report-or-evidence">Report or evidence? worksheet</a> <a class="btn ghost" href="/academy/learn/same-scope">Same record, wrong scope?</a></p>'
     : '<p id="lesson-access">The saved pilot lessons need an owner-approved place. Creating an account does not enrol you in the pilot. If you received a private invitation, open its original link to accept it with the invited account.</p><p><a href="/academy/invitation">Invitation help</a></p>';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Your account · WitnessOps Academy</title><link rel="stylesheet" href="/chron.css"><link rel="stylesheet" href="/academy.css"></head>

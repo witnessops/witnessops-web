@@ -2,6 +2,17 @@
 
 This package is the Academy lesson server: Keycloak sign-in, server-side sessions, and owner-scoped drafts. It is not the authenticated product app.
 
+## Conversation practice
+
+Lesson 1 also has a three-minute conversation at
+`/academy/learn/report-or-evidence/chat`: inspect fictional backup evidence,
+choose a judgment and a further check, then decide whether the task can close.
+Each explicit choice saves progress. The website and five new MCP practice tools
+share one deterministic definition, existing identity and existing database.
+Original worksheet answers remain separate and unchanged. See the
+[lesson conversation contract](LESSON-CHAT.md) for routes, retries, acceptance
+and the coordinated release boundary.
+
 ## HTTP and TLS
 
 Plain `http://` is accepted only for a loopback listen address and a loopback public origin. That is the local development mode.
@@ -134,7 +145,7 @@ Sign-in alone does not grant access. Both saved lessons and their draft endpoint
 require an unrevoked Academy pilot grant. Unknown policy values stop startup;
 missing migration `004_academy_pilot_invitations` also stops the admitted profile.
 The MCP server uses the same default policy and rechecks admission on every tool
-invocation, including existing sessions. All four tools require an active grant;
+invocation, including existing sessions. All nine tools require an active grant;
 unavailable grant status fails closed. Its database role can execute only a
 boolean admission predicate. MCP database acquisition/connection, client responses
 and PostgreSQL statement execution each have a five-second limit; failed pooled

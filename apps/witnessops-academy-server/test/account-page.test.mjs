@@ -44,6 +44,15 @@ test('login returns only to a fixed account page or one of the existing lessons'
   }
 });
 
+test('chat login returns to one fixed route while account and other lesson destinations remain intact', () => {
+  assert.equal(loginDestination({ lessonId: 'report-or-evidence', lessonMode: 'chat' }), '/academy/learn/report-or-evidence/chat');
+  assert.equal(loginDestination({ lessonId: 'report-or-evidence', lessonMode: 'chat', returnTo: 'account' }), '/academy/account');
+  assert.equal(loginDestination({ lessonId: 'same-scope', lessonMode: 'chat' }), '/academy/learn/same-scope');
+  for (const lessonMode of ['//outside.invalid/', '/academy/learn/report-or-evidence/chat', true]) {
+    assert.equal(loginDestination({ lessonId: 'report-or-evidence', lessonMode }), '/academy/learn/report-or-evidence');
+  }
+});
+
 test('a signed-in account is useful without a pilot grant and keeps secret identity data out of HTML', () => {
   const session = { csrf_token: '</script><img>', issuer: 'synthetic-private-issuer', subject: 'synthetic-private-subject', identity_id: 'synthetic-private-id', tokens: 'synthetic-private-token' };
   const page = accountPage(session, { registration: true, communityUrl: 'https://community.example.invalid/' });

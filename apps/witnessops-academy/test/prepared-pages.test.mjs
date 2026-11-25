@@ -16,6 +16,10 @@ const LABEL_LINES = [
   'The observed record matches the exact claim being checked, and the conclusion stays inside that match.',
 ];
 const LOCAL_SCRIPTS = new Set(['/academy.mjs', '/lesson.mjs']);
+const CHAT_ENTRY_LINKS = new Set([
+  '/academy/learn/report-or-evidence/chat',
+  '/academy/learn/report-or-evidence/chat#chatgpt-help',
+]);
 // These exact homepage links enter the hosted account/login flow or public help.
 // They are not files served by the standalone static preview.
 const HOME_ENTRY_LINKS = new Set([
@@ -141,6 +145,7 @@ test('academy pages keep links local apart from exact homepage account, login an
     for (const match of html.matchAll(/\s(href|src)="([^"]+)"/g)) {
       const reference = match[2];
       if (relative === 'index.html' && match[1] === 'href' && HOME_ENTRY_LINKS.has(reference)) continue;
+      if (match[1] === 'href' && CHAT_ENTRY_LINKS.has(reference)) continue;
       assert.doesNotMatch(reference, /^(?:https?:|\/\/|javascript:|data:|mailto:)/i, `${relative} ${reference}`);
       const { pathPart, hash } = splitReference(reference);
       const target = pathPart === '' ? relative : await resolvePublicFile(pathPart);
@@ -161,7 +166,7 @@ test('homepage account and login links bind to exact hosted routes and help link
   assert.deepEqual(loginMatcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/), ['/academy/auth/login', '/academy/auth/callback', '/academy/auth/register']);
   assert.match(proxy, /handle @academyLogin\s*\{\s*reverse_proxy 127\.0\.0\.1:18300\s*\{/);
   const server = await readFile(new URL('../../witnessops-academy-server/src/server.mjs', import.meta.url), 'utf8');
-  assert.match(server, /if \(p === '\/academy\/auth\/login' && req\.method === 'GET'\)\s*\{\s*return startLogin\(req, res,/);
+  assert.match(server, /if \(p === '\/academy\/auth\/login' && req\.method === 'GET'\)\s*\{\s*const lesson = lessonById\(url.searchParams.get\('lesson'\)\) \|\| DEFAULT_LESSON;\s*return startLogin\(req, res,/);
   const accountMatcher = proxy.match(/@academyRead\s*\{([^}]+)\}/)[1];
   assert.deepEqual(accountMatcher.match(/\bmethod\s+([^\n]+)/)[1].trim().split(/\s+/), ['GET', 'HEAD']);
   assert.ok(accountMatcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/).includes('/academy/account'));
@@ -171,4 +176,14 @@ test('homepage account and login links bind to exact hosted routes and help link
   const mailto = new URL(home.match(/href="(mailto:[^"]+)"/)[1]);
   assert.equal(mailto.pathname, 'engage@mail.witnessops.com');
   assert.deepEqual([...mailto.searchParams], [['subject', 'Academy help']]);
+});
+
+test('chat entry points use only the saved lesson route and its same-account connection help', async () => {
+  for (const page of ['index.html', PILOT, 'tracks/verify-results/index.html']) {
+    const html = await readPublic(page);
+    for (const link of CHAT_ENTRY_LINKS) assert.ok(html.includes(`href="${link}"`), `${page}: ${link}`);
+  }
+  const proxy = await readFile(new URL('../../../deploy/academy/Caddyfile.academy', import.meta.url), 'utf8');
+  const matcher = proxy.match(/@academyRead\s*\{([^}]+)\}/)[1];
+  assert.ok(matcher.match(/\bpath\s+([^\n]+)/)[1].trim().split(/\s+/).includes('/academy/learn/report-or-evidence/chat'));
 });

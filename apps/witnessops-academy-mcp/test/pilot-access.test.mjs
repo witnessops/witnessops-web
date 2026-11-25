@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertPilotAccessReady, hasPilotAdmission, requireAccessPolicy, withPilotAdmission } from '../src/pilot-access.mjs';
+import { TOOLS } from '../src/tools.mjs';
 
 const owner = '00000000-0000-4000-8000-000000000001';
 const other = '00000000-0000-4000-8000-000000000002';
@@ -29,7 +30,7 @@ test('startup requires the installed status predicate and its narrow EXECUTE per
 });
 
 test('all tool kinds deny uninvited learners before reading curriculum or touching drafts', async () => {
-  for (const name of ['list_lessons', 'get_lesson', 'get_my_answer', 'save_answer']) {
+  for (const { name } of TOOLS) {
     let invoked = false;
     const guarded = withPilotAdmission({
       db: { query: async (_sql, values) => {

@@ -23,6 +23,7 @@ import { createRemoteJwks } from './jwks-client.mjs';
 import { isProtectedResourceMetadataRequest, protectedResourceMetadataPath } from './metadata-path.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 import { assertPilotAccessReady, requireAccessPolicy, withPilotAdmission } from './pilot-access.mjs';
+import { lessonChatMetadata, registerLessonChatTools } from './lesson-chat-tools.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
@@ -218,6 +219,7 @@ function buildServer() {
       title,
       path: lessonPath,
       position,
+      ...(lessonChatMetadata(id) ? { practice: lessonChatMetadata(id) } : {}),
     })),
   })));
   server.registerTool(getLesson.name, {
@@ -285,6 +287,7 @@ function buildServer() {
       updated_at: current?.updated_at,
     });
   }));
+  registerLessonChatTools(server, { db: pool, policy: ACCESS_POLICY, ownerId });
   return server;
 }
 

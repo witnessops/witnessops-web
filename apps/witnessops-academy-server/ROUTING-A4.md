@@ -29,6 +29,10 @@ explain the source checks.
   to proxied responses; the lesson server supplies its own same-origin policy.
 - Existing MCP routing and exact path-suffixed metadata remain bounded to their
   source contract. The bare metadata path and app health path are not exposed.
+- The Lesson 1 conversation adds exact GET/HEAD page and controller/style routes,
+  GET progress and POST decision routes. It preserves the original worksheet
+  routes. The [conversation contract](LESSON-CHAT.md) lists the new paths; methods
+  or lesson IDs outside those allowlists remain denied.
 
 ## Validation without apply
 
