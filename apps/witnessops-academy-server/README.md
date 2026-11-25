@@ -49,9 +49,15 @@ the actual MCP SDK in-memory transport, and browser-controller behavior.
 Those tests use synthetic database/session adapters; they do not replace the
 disposable PostgreSQL/Keycloak/browser journeys or an installed ChatGPT test.
 The existing browser journeys explicitly open worksheet mode for their original
-acceptance checks. Release acceptance must additionally verify the chat with
-two real disposable identities, persistence through service restart, and
-website-to-MCP resume for the same identity.
+acceptance checks. The separate `test/chat-browser-e2e.mjs` and
+`../witnessops-academy-mcp/test/chat-e2e.mjs` journeys exercise chat through real
+Chromium, Keycloak, PostgreSQL and MCP HTTP in the existing disposable CI job.
+They require `ACADEMY_E2E=1`, `ACADEMY_CHAT_DISPOSABLE=1`, the explicit
+`session-only` fixture and loopback service addresses. They cover separate
+learners, browser return, service restart and website-to-MCP progress for the
+same identity, preserving worksheet records. Their sanitized evidence stays in
+the existing CI evidence directory. These fixtures do not establish an installed
+ChatGPT connection or production acceptance; those remain separate checks.
 
 ## HTTP and TLS
 

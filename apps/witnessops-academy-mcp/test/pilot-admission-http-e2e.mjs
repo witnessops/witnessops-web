@@ -185,6 +185,39 @@ try {
   assert.equal(obj(await session.client.callTool({ name:'get_lesson', arguments:{ lesson_id: LESSON } })).lesson.title, 'Report or evidence?');
  }
  pass('approved grants unlock existing MCP sessions and current allowed curriculum');
+ const chatSnapshot = async owner => (await operator.query(
+  'SELECT content,version,last_save_request_id,updated_at FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2',
+  [owner, `chat-${LESSON}`],
+ )).rows[0];
+ const chatSnapshots = [];
+ for (const session of [a,b]) {
+  const existing = before.find(row => row.owner_id === session.identity.id && row.lesson_id === `chat-${LESSON}`);
+  const started = await session.client.callTool({ name:'start_lesson', arguments:{ lesson_id:LESSON, request_id:crypto.randomUUID() } });
+  assert.notEqual(started.isError,true); const view = obj(started);
+  if (existing) { assert.equal(view.resumed,true); assert.equal(view.attempt_id,JSON.parse(existing.content).attempt.attempt_id); }
+  const { resumed, ...assigned } = view;
+  for (const name of ['resume_lesson','inspect_evidence']) {
+   const read = await session.client.callTool({ name, arguments:{ lesson_id:LESSON } });
+   assert.notEqual(read.isError,true); assert.deepEqual(obj(read),assigned);
+  }
+  const priorChat = await chatSnapshot(session.identity.id);
+  assert.equal(priorChat.version,view.version); assert.ok(view.choices?.length,'approved fixture needs an offered chat decision');
+  const requestId = crypto.randomUUID(), choiceId = view.choices[0].id;
+  const submitted = await session.client.callTool({ name:'submit_decision', arguments:{ lesson_id:LESSON,
+   attempt_id:view.attempt_id, expected_version:view.version, request_id:requestId, stage:view.stage, choice_id:choiceId } });
+  assert.notEqual(submitted.isError,true); const advanced = obj(submitted);
+  assert.equal(advanced.attempt_id,view.attempt_id); assert.equal(advanced.version,view.version+1);
+  const savedChat = await chatSnapshot(session.identity.id), savedState = JSON.parse(savedChat.content).attempt;
+  assert.equal(savedChat.version,advanced.version); assert.equal(savedChat.last_save_request_id,requestId);
+  assert.equal(savedState.decisions.length,JSON.parse(priorChat.content).attempt.decisions.length+1);
+  assert.deepEqual(savedState.decisions.at(-1),{ stage:view.stage, choice_id:choiceId });
+  const progress = await session.client.callTool({ name:'get_progress', arguments:{} }); assert.notEqual(progress.isError,true);
+  const progressRow = obj(progress).lessons.find(item => item.lesson_id === LESSON);
+  assert.equal(progressRow.version,advanced.version); assert.equal(progressRow.status,advanced.status);
+  chatSnapshots.push(savedChat);
+ }
+ assert.notEqual(JSON.parse(chatSnapshots[0].content).attempt.attempt_id,JSON.parse(chatSnapshots[1].content).attempt.attempt_id);
+ pass('approved learners resume their assigned chats, submit offered decisions and read persisted progress');
  const contents = [];
  for (const [index, session] of [a,b].entries()) {
   const prior = obj(await session.client.callTool({ name:'get_my_answer', arguments:{ lesson_id: LESSON } }));
@@ -200,6 +233,7 @@ try {
  await denied(b);
  assert.equal(obj(await a.client.callTool({ name:'get_my_answer', arguments:{ lesson_id: LESSON } })).text, contents[0]);
  const preserved = (await operator.query('SELECT content FROM academy_lesson_drafts WHERE owner_id=$1 AND lesson_id=$2', [b.identity.id,LESSON])).rows[0]; assert.equal(preserved.content, contents[1]);
+ assert.deepEqual(await chatSnapshot(b.identity.id),chatSnapshots[1],'revocation must retain the exact chat row');
  pass('revocation denies all nine calls on the same MCP session immediately and preserves both learners work');
  await operator.query('REVOKE EXECUTE ON FUNCTION public.academy_has_approved_free_grant(uuid) FROM academy_mcp');
  try {
@@ -267,5 +301,5 @@ finally {
  await runtime.end(); await operator.end();
  fs.writeFileSync(path.join(EV, 'pilot-mcp-admission-http-results.json'), JSON.stringify({ scope:'disposable real Keycloak/PostgreSQL/MCP HTTP', results, failed }, null, 2));
 }
-console.log(`RESULT MCP pilot ${results.length}/7 PASS`);
-if (results.length !== 7) process.exitCode = 1;
+console.log(`RESULT MCP pilot ${results.length}/8 PASS`);
+if (results.length !== 8) process.exitCode = 1;

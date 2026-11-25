@@ -38,7 +38,10 @@ async function login(index, invitationToken) {
   await page.locator('#password').fill(users[index][1]);
   await page.locator('#kc-login').click();
   await expect(page.locator('#academy-csrf')).toHaveCount(1);
-  if (new URL(page.url()).pathname === '/academy/invitation') {
+  // A signed-in learner without a grant sees the invitation page at the
+  // requested lesson URL too. Identify the rendered access state, not its URL.
+  if (await page.locator('#invitation-status').count()) {
+    assert.ok(['/academy/invitation', '/academy/learn/report-or-evidence'].includes(new URL(page.url()).pathname));
     await expect(page.locator('#sign-out')).toBeVisible();
   } else {
     await expect(page).toHaveURL(APP + '/academy/learn/report-or-evidence');

@@ -304,6 +304,38 @@ jobs:
           fi
           exit "$code"
 
+      - name: Verify shared chat progress through real HTTP and MCP
+        id: chat_mcp
+        timeout-minutes: 5
+        env:
+          ACADEMY_CHAT_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == session-only ]]
+          node apps/witnessops-academy-mcp/test/chat-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/chat-mcp.log"
+
+      - name: Verify personalised chat and return journey in Chromium
+        id: chat_browser
+        timeout-minutes: 5
+        env:
+          ACADEMY_CHAT_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_ACCESS_POLICY" == session-only ]]
+          node apps/witnessops-academy-server/test/chat-browser-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/chat-browser.log"
+
       - name: Verify disposable invitation PostgreSQL invariants
         id: invitation_core
         timeout-minutes: 5
