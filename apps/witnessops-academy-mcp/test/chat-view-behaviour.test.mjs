@@ -158,3 +158,31 @@ test('the host handshake waits longer than an ordinary request (N3)', async () =
   await fresh.connect();
   assert.equal(fresh.sent.at(-1).message.method, 'ui/notifications/initialized');
 });
+
+test('401/403 error text is capped at 60 characters (N6)', async () => {
+  const view = await caseOpen();
+  view.q('commit').click(); await flush();
+  const long = 'x'.repeat(500);
+  await view.answer(view.lastCall(), { error: long, status: 401 }, true);
+  const status = view.q('status').textContent;
+  assert.ok(status.includes('x'.repeat(60)));
+  assert.ok(!status.includes('x'.repeat(61)));
+});
+
+test('sign-in hint only for 401 or 403 access/scope; CSRF and Origin refusals are neutral (N7)', async () => {
+  const cases = [
+    [{ error: 'session_unavailable', status: 401 }, /Sign in to Academy, then retry the same request/],
+    [{ error: 'access_required', status: 403 }, /Sign in to Academy/],
+    [{ error: 'insufficient_scope', status: 403 }, /Sign in to Academy/],
+    [{ error: 'csrf', status: 403 }, /refused by Academy \(csrf\)/],
+    [{ error: 'origin_not_allowed', status: 403 }, /refused by Academy \(origin_not_allowed\)/],
+  ];
+  for (const [body, expected] of cases) {
+    const view = await caseOpen();
+    view.q('commit').click(); await flush();
+    await view.answer(view.lastCall(), body, true);
+    const status = view.q('status').textContent;
+    assert.match(status, expected, body.error);
+    if (/refused/.test(String(expected))) assert.doesNotMatch(status, /Sign in/, body.error);
+  }
+});
