@@ -54,3 +54,17 @@ The ZIP contains `manifest.json`, `color.png`, and `outline.png` only. Keep it p
 Focused source checks: `node --test integrations/teams/test/academy-case-card.test.mjs apps/witnessops-academy-server/test/teams-launch.test.mjs` (10/10 passed under Node 24 on ops-laptop-03 on 25 November). Full Node 22 CI, preview-host CSP/frame inspection, Microsoft Teams rendering and Entra SSO acceptance remain pending.
 
 One private smoke message was sent to the authenticated Teams user's **self-chat** and read back; no shared team/channel communication or app installation occurred. That message checks Teams delivery, **not** Adaptive Card rendering or a registered Teams app.
+
+### Optional private Teams SSO manifest binding
+
+The package builder can embed a separately verified Entra app registration without adding that app/tenant identifier to public Git source:
+
+```sh
+python3 integrations/teams/build-package.py \
+  --entra-app-id <SINGLE_TENANT_APP_ID> \
+  --out ./academy-teams-private-sso-staged.zip
+```
+
+This adds `webApplicationInfo.id` and `webApplicationInfo.resource` (`api://academy.witnessops.com/<SINGLE_TENANT_APP_ID>`) to the private ZIP. The helper rejects malformed app IDs, refuses alternate lesson origins, and does not register an application or request access tokens. The tenant-specific manifest is an **operator-held build artifact** and must not be committed to the public repository.
+
+An Entra scope or Teams client pre-authorization only enables a future SSO token exchange. It does not validate tokens, establish a Keycloak/Academy account link, admit a learner or enable private lesson access. A proper bridge must independently check signed Teams tokens and explicitly bind a verified Entra subject to the existing Academy identity, with owner authorization and revocation checks. Until that bridge is implemented and independently tested, the Teams tab is a public launcher only. The package is not installation-ready while the Teams route returns 404.
