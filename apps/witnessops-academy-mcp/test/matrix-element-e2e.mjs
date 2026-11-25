@@ -40,7 +40,7 @@ const steps = [];
 let stage = 'startup';
 const record = (name, detail = {}) => { steps.push({ name, result: 'PASS', ...detail }); console.log(`PASS matrix-element ${name}`); };
 const expect = baseExpect.configure({ timeout: 20_000 });
-let browser, db, mcpClient, mcpTransport;
+let browser, db, mcpClient, mcpTransport, elementPage;
 
 async function mcpLogin() {
   // Dedicated HTTP cookie jar follows the actual Authorization Code + S256 PKCE
@@ -97,7 +97,25 @@ async function mcpLogin() {
   return claims;
 }
 
+// Category-only Element probes for a blocked run: booleans, never page text,
+// inputs, HTTP bodies, storage or credentials.
+async function elementProbe(page) {
+  const seen = async selector => page.locator(selector).first().isVisible().catch(() => false);
+  return {
+    login_form: await seen('#mx_LoginForm_username, input[name="username"]'),
+    password_field: await seen('input[type="password"]'),
+    welcome: await seen('.mx_Welcome, .mx_AuthPage'),
+    error_dialog: await seen('.mx_ErrorDialog, .mx_Login_error, .mx_ServerPicker_desc .mx_ErrorMessage'),
+    sso_button: await seen('.mx_SSOButton, .mx_SSOButtons'),
+    room_view: await seen('.mx_RoomView'),
+    widget_frame: await seen('iframe[src*="format=matrix"]'),
+    unsupported_browser: await seen('.mx_UnsupportedBrowserView, .mx_CompatibilityPage'),
+  };
+}
+
 async function elementLogin(page) {
+  elementPage = page;
+  stage = 'real Element Web room and widget: welcome';
   await page.goto(ELEMENT + '/', { waitUntil: 'domcontentloaded' });
   // Element's welcome screen may precede its username/password form.
   const userInput = page.locator('#mx_LoginForm_username, input[name="username"], input[autocomplete="username"]').first();
@@ -109,13 +127,16 @@ async function elementLogin(page) {
       if (await link.isVisible().catch(() => false)) await link.click();
     }
   }
+  stage = 'real Element Web room and widget: login form';
   await expect(userInput).toBeVisible({ timeout: 40_000 });
   await userInput.fill('academy-learner');
   const password = page.locator('#mx_LoginForm_password, input[type="password"]').first();
   await password.fill(matrixPass);
   const submit = page.getByRole('button', { name: /^sign in$|^log in$/i }).last();
+  stage = 'real Element Web room and widget: login submit';
   await submit.click();
   await expect(userInput).toBeHidden({ timeout: 50_000 });
+  stage = 'real Element Web room and widget: room widget';
   const roomUrl = `${ELEMENT}/#/room/${encodeURIComponent(roomId)}`;
   await page.goto(roomUrl, { waitUntil: 'domcontentloaded' });
   // The room state contains one opt-in widget. If Element leaves it collapsed,
@@ -221,6 +242,10 @@ try {
 } catch (error) {
   const safe = error?.name === 'AssertionError' ? 'assertion' : error?.name === 'TimeoutError' ? 'timeout' : 'runtime';
   console.error(`BLOCKED matrix-element stage=${stage}; category=${safe}; completed_checks=${steps.length}`);
+  if (elementPage && stage.startsWith('real Element Web')) {
+    const probe = await elementProbe(elementPage).catch(() => null);
+    if (probe) console.error(`BLOCKED matrix-element element_probe=${JSON.stringify(probe)}`);
+  }
   // Do not dump HTTP bodies, login pages, passwords, tokens or browser storage.
   process.exitCode = 1;
 } finally {
