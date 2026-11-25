@@ -31,7 +31,7 @@ jobs:
   academy-e2e:
     name: Academy e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 55
     permissions:
       contents: read
     env:
@@ -338,6 +338,22 @@ jobs:
           set +a
           [[ "$ACADEMY_ACCESS_POLICY" == session-only ]]
           node apps/witnessops-academy-server/test/chat-browser-e2e.mjs 2>&1 | tee "$ACADEMY_CI_LOG_DIR/chat-browser.log"
+
+      - name: Verify one private Academy case inside disposable Element Web
+        id: matrix_element
+        timeout-minutes: 15
+        env:
+          ACADEMY_CHAT_DISPOSABLE: "1"
+        shell: bash
+        run: |
+          set +x
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1090
+          source "$ACADEMY_CI_ENV"
+          set +a
+          [[ "$ACADEMY_E2E" == 1 && "$ACADEMY_ACCESS_POLICY" == session-only ]]
+          bash apps/witnessops-academy-server/test/run-disposable-element.sh 2>&1 | tee "$ACADEMY_CI_LOG_DIR/matrix-element.log"
 
       - name: Verify disposable invitation PostgreSQL invariants
         id: invitation_core
