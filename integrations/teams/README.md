@@ -34,3 +34,23 @@ References:
 - https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/tab-requirements
 - https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview
 - https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference
+
+## Private Teams personal-tab package (25 November 2026)
+
+Added a **public-only Teams launch page** at `/academy/teams/launch`. It uses TeamsJS `app.initialize()`, shows two fixed Academy cases, and opens the existing protected Academy lessons in a new browser window. It is not a sign-in bridge and never reads or writes learner progress. This is a stricter and safer intermediate design than embedding the existing protected Academy pages.
+
+Only that public page has Teams-specific `frame-ancestors` and omits `X-Frame-Options`. All other Academy pages retain their existing `DENY` and `SameSite=Lax` controls. The route is currently **source-only** and not live at academy.witnessops.com.
+
+`integrations/teams/manifest.json` is a local test *Teams app package identifier*, **not an Entra application registration or consent receipt**. Its personal tab targets the source-only route.
+
+Build a private test ZIP using standard-library Python:
+
+```sh
+python3 integrations/teams/build-package.py --out ./academy-teams-private-preview.zip
+```
+
+The ZIP contains `manifest.json`, `color.png`, and `outline.png` only. Keep it private until the source route is independently deployed to a suitable test host, the manifest's actual endpoint is validated, and a named tenant/user has custom-app upload rights. Do **not** install this package yet against the current undeployed URL.
+
+Focused source checks: `node --test integrations/teams/test/academy-case-card.test.mjs apps/witnessops-academy-server/test/teams-launch.test.mjs` (10/10 passed under Node 24 on ops-laptop-03 on 25 November). Full Node 22 CI, preview-host CSP/frame inspection, Microsoft Teams rendering and Entra SSO acceptance remain pending.
+
+One private smoke message was sent to the authenticated Teams user's **self-chat** and read back; no shared team/channel communication or app installation occurred. That message checks Teams delivery, **not** Adaptive Card rendering or a registered Teams app.
