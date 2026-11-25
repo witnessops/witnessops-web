@@ -26,6 +26,7 @@ import { assertPilotAccessReady, requireAccessPolicy, withPilotAdmission } from 
 import { CHAT_LESSONS } from '../../witnessops-academy-server/src/chat-engine.mjs';
 import { createChatStore } from '../../witnessops-academy-server/src/chat-store.mjs';
 import { registerChatTools } from './chat-tools.mjs';
+import { registerChatView } from './chat-view.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
@@ -207,6 +208,7 @@ const chatStore = createChatStore(pool);
 function buildServer() {
   const admitted = (handler) => withPilotAdmission({ db: pool, policy: ACCESS_POLICY, ownerId }, handler);
   const server = new McpServer({ name: 'witnessops-academy', version: '0.1.0' }, { instructions: SERVER_INSTRUCTIONS });
+  registerChatView(server);
   const listLessons = toolByName('list_lessons');
   const getLesson = toolByName('get_lesson');
   const getAnswer = toolByName('get_my_answer');
