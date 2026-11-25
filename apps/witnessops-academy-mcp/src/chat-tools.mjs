@@ -18,6 +18,18 @@ export async function handleChatTool(name, args, { store, owner }) {
   throw Object.assign(new Error('unknown_tool'), { code: 'unknown_tool', status: 404 });
 }
 
+// MCP Apps tool visibility (SEP-1865 `_meta.ui.visibility`). The Decision Room
+// view may ask the host to call only the tools it actually uses: start_lesson,
+// submit_decision, and resume_lesson (the fresh read after a rejected write).
+// Every other tool, including the legacy worksheet tools, is model-only.
+export const APP_CALLABLE_TOOLS = Object.freeze(['start_lesson', 'resume_lesson', 'submit_decision']);
+export const MODEL_ONLY_UI_META = Object.freeze({ visibility: Object.freeze(['model']) });
+export function chatToolUiMeta(name) {
+  const visibility = APP_CALLABLE_TOOLS.includes(name) ? ['model', 'app'] : ['model'];
+  return ['start_lesson', 'resume_lesson'].includes(name)
+    ? { resourceUri: CHAT_VIEW_RESOURCE_URI, visibility } : { visibility };
+}
+
 export function registerChatTools(server, { store, admitted, ownerId, requiredScope }) {
   const reply = (body, isError = false) => ({ ...(isError ? { isError: true } : {}), content: [{ type: 'text', text: JSON.stringify(body) }], structuredContent: body });
   for (const name of ['start_lesson', 'resume_lesson', 'inspect_evidence', 'submit_decision', 'get_progress']) {
@@ -27,8 +39,7 @@ export function registerChatTools(server, { store, admitted, ownerId, requiredSc
       inputSchema: tool.inputSchema, annotations: tool.annotations,
       _meta: {
         securitySchemes: [{ type: 'oauth2', scopes: [requiredScope] }],
-        ...(['start_lesson', 'resume_lesson'].includes(name)
-          ? { ui: { resourceUri: CHAT_VIEW_RESOURCE_URI } } : {}),
+        ui: chatToolUiMeta(name),
       },
     }, admitted(async (args, extra, admittedOwner) => {
       try {
