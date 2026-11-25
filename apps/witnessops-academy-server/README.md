@@ -2,6 +2,63 @@
 
 This package is the Academy lesson server: Keycloak sign-in, server-side sessions, and owner-scoped drafts. It is not the authenticated product app.
 
+## Interactive lessons
+
+The two saved lesson routes now open a conversation: inspect evidence, make a
+judgment, choose a simulated verification action, and record the final decision.
+`?format=worksheet` preserves access to the previous forms and their existing
+saved answers. The public static source remains the reference material; the
+authenticated server provides the interactive experience.
+
+Each learner receives a randomly seeded, versioned scenario on an explicit
+Start lesson action. The seed, attempt identifier and decisions are stored in
+the existing owner-scoped PostgreSQL draft table using the reserved
+`chat-report-or-evidence` and `chat-same-scope` keys. The existing worksheet keys
+are unchanged. No schema, grant, identity-provider or dependency change is
+required. A GET only reads; it never allocates a scenario. Both website and MCP
+resolve the owner through their existing authenticated identity and admission
+checks before using the shared `chat-store.mjs` and `chat-engine.mjs`.
+
+Variation changes the evidence and the supported conclusion: uploads can fail,
+inventories can be incomplete, restores can pass or fail, and checks can refer
+to a different environment, revision or tenant. This pilot is procedural
+scenario generation with deterministic coaching, not a free-form model that
+invents the assessment truth. Choosing a verification action reveals an
+explicitly simulated result. It never runs an infrastructure operation.
+
+An explicit decision POST uses the current attempt ID, stage, expected version
+and request UUID. Compare-and-set writes reject stale submissions. Replaying
+the exact request cannot advance twice, including after progress from the
+other interface. The response can contain that newer current projection.
+Unknown saved formats or versions are preserved and rejected for interpretation.
+The complete prior decision history is retained. After twelve unresolved
+decisions, the learner is offered one supported final choice with explicit
+coaching; choosing it completes the exercise with `coached: true`. This is
+practice completion, not a certification or a report about real infrastructure.
+
+`/academy/connect/chatgpt` provides setup instructions for the existing `/mcp`
+resource. It does not claim an installed plugin or a live accepted connection.
+The MCP adds `start_lesson`, `resume_lesson`, `inspect_evidence`,
+`submit_decision` and `get_progress`, retaining the four worksheet tools.
+Starting/submitting are accurately marked as writes. Ship the Academy server
+and MCP source together so both use the same evaluator version.
+
+`pnpm academy:test` covers generation, transcript reconstruction, preserved
+worksheet records, owner isolation, conflicts/replays, HTTP-handler boundaries,
+the actual MCP SDK in-memory transport, and browser-controller behavior.
+Those tests use synthetic database/session adapters; they do not replace the
+disposable PostgreSQL/Keycloak/browser journeys or an installed ChatGPT test.
+The existing browser journeys explicitly open worksheet mode for their original
+acceptance checks. The separate `test/chat-browser-e2e.mjs` and
+`../witnessops-academy-mcp/test/chat-e2e.mjs` journeys exercise chat through real
+Chromium, Keycloak, PostgreSQL and MCP HTTP in the existing disposable CI job.
+They require `ACADEMY_E2E=1`, `ACADEMY_CHAT_DISPOSABLE=1`, the explicit
+`session-only` fixture and loopback service addresses. They cover separate
+learners, browser return, service restart and website-to-MCP progress for the
+same identity, preserving worksheet records. Their sanitized evidence stays in
+the existing CI evidence directory. These fixtures do not establish an installed
+ChatGPT connection or production acceptance; those remain separate checks.
+
 ## HTTP and TLS
 
 Plain `http://` is accepted only for a loopback listen address and a loopback public origin. That is the local development mode.
@@ -134,7 +191,7 @@ Sign-in alone does not grant access. Both saved lessons and their draft endpoint
 require an unrevoked Academy pilot grant. Unknown policy values stop startup;
 missing migration `004_academy_pilot_invitations` also stops the admitted profile.
 The MCP server uses the same default policy and rechecks admission on every tool
-invocation, including existing sessions. All four tools require an active grant;
+invocation, including existing sessions. All nine tools require an active grant;
 unavailable grant status fails closed. Its database role can execute only a
 boolean admission predicate. MCP database acquisition/connection, client responses
 and PostgreSQL statement execution each have a five-second limit; failed pooled
@@ -143,9 +200,10 @@ and the grant check run sequentially, rather than sharing one five-second reques
 deadline. Stalled checks return `access_unavailable` without invoking the tool.
 The database role has no direct invitation/grant table access or
 rights to issue, redeem or revive access. Repeatable privilege reconciliation
-retains that narrow predicate permission. MCP curriculum remains limited to the
-existing mapped Report or evidence? lesson; adding saved browser Lesson 2 does
-not export another MCP curriculum entry.
+retains that narrow predicate permission. The legacy reference curriculum remains
+limited to the mapped Report or evidence? worksheet. The interactive MCP catalog
+includes both saved lessons through the shared scenario engine; it does not
+export another static reference entry.
 The explicit `session-only` compatibility profile exists for earlier regression
 fixtures and is not an accepted launch access policy.
 

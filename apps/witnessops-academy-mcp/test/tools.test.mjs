@@ -8,6 +8,11 @@ const EXPECTED_KEYS = {
   get_lesson: ['lesson_id'],
   get_my_answer: ['lesson_id'],
   save_answer: ['lesson_id', 'text', 'expected_version'],
+  start_lesson: ['lesson_id', 'request_id'],
+  resume_lesson: ['lesson_id'],
+  inspect_evidence: ['lesson_id'],
+  submit_decision: ['lesson_id', 'attempt_id', 'expected_version', 'request_id', 'stage', 'choice_id'],
+  get_progress: [],
 };
 
 test('tool inputs have no owner, sub, or id fields', () => {

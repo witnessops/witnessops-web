@@ -33,7 +33,7 @@ academy.witnessops.com {
 
 		@academyRead {
 			method GET HEAD
-			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/invitation /academy/static/invitation.js /academy/account /academy/static/account.js
+			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/static/chat.js /academy/static/chat.css /academy/connect/chatgpt /academy/invitation /academy/static/invitation.js /academy/account /academy/static/account.js
 		}
 		handle @academyRead {
 			reverse_proxy 127.0.0.1:18300 {
@@ -56,6 +56,16 @@ academy.witnessops.com {
 			path /academy/api/lessons/report-or-evidence/draft /academy/api/lessons/same-scope/draft
 		}
 		handle @academyDraft {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
+		}
+		@academyChat {
+			method GET POST
+			path /academy/api/lessons/report-or-evidence/chat /academy/api/lessons/same-scope/chat
+		}
+		handle @academyChat {
 			reverse_proxy 127.0.0.1:18300 {
 				header_up -Forwarded
 				header_up X-Forwarded-For {http.request.remote.host}

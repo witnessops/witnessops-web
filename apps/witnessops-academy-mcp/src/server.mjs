@@ -23,6 +23,9 @@ import { createRemoteJwks } from './jwks-client.mjs';
 import { isProtectedResourceMetadataRequest, protectedResourceMetadataPath } from './metadata-path.mjs';
 import { SERVER_INSTRUCTIONS, toolByName } from './tools.mjs';
 import { assertPilotAccessReady, requireAccessPolicy, withPilotAdmission } from './pilot-access.mjs';
+import { CHAT_LESSONS } from '../../witnessops-academy-server/src/chat-engine.mjs';
+import { createChatStore } from '../../witnessops-academy-server/src/chat-store.mjs';
+import { registerChatTools } from './chat-tools.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
@@ -199,6 +202,7 @@ async function ownerId(auth) {
 
 const ok = (obj) => ({ content: [{ type: 'text', text: JSON.stringify(obj) }], structuredContent: obj });
 const fail = (obj) => ({ isError: true, content: [{ type: 'text', text: JSON.stringify(obj) }], structuredContent: obj });
+const chatStore = createChatStore(pool);
 
 function buildServer() {
   const admitted = (handler) => withPilotAdmission({ db: pool, policy: ACCESS_POLICY, ownerId }, handler);
@@ -213,11 +217,9 @@ function buildServer() {
     inputSchema: listLessons.inputSchema,
     annotations: listLessons.annotations,
   }, admitted(async () => ok({
-    lessons: [...LESSONS.values()].map(({ id, title, path: lessonPath, position }) => ({
-      id,
-      title,
-      path: lessonPath,
-      position,
+    lessons: CHAT_LESSONS.map(({ id, title, position, objective }) => ({
+      id, title, path: `/academy/learn/${id}`, position, objective, mode: 'interactive',
+      reference_available: LESSONS.has(id),
     })),
   })));
   server.registerTool(getLesson.name, {
@@ -285,6 +287,7 @@ function buildServer() {
       updated_at: current?.updated_at,
     });
   }));
+  registerChatTools(server, { store: chatStore, admitted, ownerId, requiredScope: REQUIRED_SCOPE });
   return server;
 }
 

@@ -27,6 +27,9 @@ import { createLoginGuard, startLoginSweep } from './login-guard.mjs';
 import { PREAUTH_TTL_MS, createPreauthCodec, preauthKeyFromSecret } from './preauth-cookie.mjs';
 import { discardAfterResponse, readBody } from './read-body.mjs';
 import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
+import { chatPage, chatConnectionPage } from './chat-page.mjs';
+import { createChatStore } from './chat-store.mjs';
+import { chatLessonFromPath, createChatHandler } from './chat-http.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
@@ -38,6 +41,8 @@ const COMMUNITY_URL = communityUrl(env('ACADEMY_COMMUNITY_URL', ''));
 const SELF_SERVICE_REGISTRATION = registrationEnabled(env('ACADEMY_SELF_SERVICE_REGISTRATION', 'false'));
 const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
+const CHAT_JS = readFileSync(join(HERE, 'chat-client.js'));
+const CHAT_CSS = readFileSync(join(HERE, 'chat.css'));
 const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
 const LESSON_HTML = new Map(LESSONS.map(lesson => [lesson.id, PUBLIC_ROUTES.get(lesson.publicPath).body.toString()]));
 
@@ -254,6 +259,12 @@ async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, 
   return send(res, 302, '', { Location: to.href, 'Set-Cookie': setCookie(PRE, sealed, PREAUTH_TTL_MS / 1000) });
 }
 
+const chatStore = createChatStore(pool);
+const handleChat = createChatHandler({
+  store: chatStore, getSession, csrfCheck: csrfOk, send, readBody, discardAfterResponse,
+  hasAccess: owner => REQUIRES_GRANT ? hasApprovedFreeGrant(pool, { identityId: owner }) : Promise.resolve(true),
+});
+
 async function handle(req, res) {
   const url = new URL(req.url, ORIGIN);
   const p = url.pathname;
@@ -282,6 +293,15 @@ async function handle(req, res) {
   if (p === '/academy/static/lesson.css' && req.method === 'GET') {
     return send(res, 200, LESSON_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
   }
+  if (p === '/academy/static/chat.js' && read) {
+    return send(res, 200, CHAT_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === '/academy/static/chat.css' && read) {
+    return send(res, 200, CHAT_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
+  }
+  if (p === '/academy/connect/chatgpt' && read) return send(res, 200, chatConnectionPage());
+  const chatLesson = chatLessonFromPath(p);
+  if (chatLesson) return handleChat(req, res, chatLesson);
 
   if (REQUIRES_GRANT && p === '/academy/invitation' && read) {
     return send(res, 200, invitationPage(await getSession(req), { failed: url.searchParams.get('status') === 'not-accepted', communityUrl: COMMUNITY_URL }), INVITATION_PAGE_HEADERS);
@@ -510,7 +530,9 @@ async function handle(req, res) {
     if (REQUIRES_GRANT && (!s || !await hasApprovedFreeGrant(pool, { identityId: s.identity_id }))) {
       return send(res, 403, invitationPage(s, { denied: true, lesson, communityUrl: COMMUNITY_URL }), INVITATION_PAGE_HEADERS);
     }
-    return send(res, 200, lessonPage(LESSON_HTML.get(lesson.id), s, lesson, COMMUNITY_URL));
+    return send(res, 200, url.searchParams.get('format') === 'worksheet'
+      ? lessonPage(LESSON_HTML.get(lesson.id), s, lesson, COMMUNITY_URL)
+      : chatPage({ session: s, lesson, communityUrl: COMMUNITY_URL }));
   }
   const resource = PUBLIC_ROUTES.get(p);
   if (resource && read) return send(res, 200, resource.body, { 'Content-Type': resource.type });

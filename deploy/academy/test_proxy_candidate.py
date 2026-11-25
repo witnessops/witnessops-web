@@ -167,6 +167,11 @@ class ProxyCandidateTests(unittest.TestCase):
                    "/academy/learn/same-scope": ["GET", "HEAD"],
                    "/academy/api/lessons/same-scope/draft": ["GET", "PUT"],
                    "/academy/static/lesson.js": ["GET", "HEAD"],
+                   "/academy/static/chat.js": ["GET", "HEAD"],
+                   "/academy/static/chat.css": ["GET", "HEAD"],
+                   "/academy/connect/chatgpt": ["GET", "HEAD"],
+                   "/academy/api/lessons/report-or-evidence/chat": ["GET", "POST"],
+                   "/academy/api/lessons/same-scope/chat": ["GET", "POST"],
                    "/academy/invitation": ["GET", "HEAD"],
                    "/academy/static/invitation.js": ["GET", "HEAD"],
                    "/academy/account": ["GET", "HEAD"],
@@ -193,6 +198,17 @@ class ProxyCandidateTests(unittest.TestCase):
                              ("GET", "/academy/static/draft-text.mjs"),
                              ("PUT", "/academy/api/lessons/unknown/draft"),
                              ("POST", "/academy/api/lessons/same-scope/draft")]:
+            before = len(self.app.seen)
+            self.assertEqual(self.request(method, path)[0], 404, (method, path))
+            self.assertEqual(len(self.app.seen), before)
+
+    def test_chat_rejects_unlisted_methods_lessons_and_subpaths(self):
+        for method, path in [("PUT", "/academy/api/lessons/report-or-evidence/chat"),
+                             ("DELETE", "/academy/api/lessons/same-scope/chat"),
+                             ("POST", "/academy/api/lessons/unknown/chat"),
+                             ("POST", "/academy/api/lessons/report-or-evidence/chat/reset"),
+                             ("POST", "/academy/connect/chatgpt"),
+                             ("POST", "/academy/static/chat.js")]:
             before = len(self.app.seen)
             self.assertEqual(self.request(method, path)[0], 404, (method, path))
             self.assertEqual(len(self.app.seen), before)
