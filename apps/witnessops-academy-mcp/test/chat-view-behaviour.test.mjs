@@ -186,3 +186,55 @@ test('sign-in hint only for 401 or 403 access/scope; CSRF and Origin refusals ar
     if (/refused/.test(String(expected))) assert.doesNotMatch(status, /Sign in/, body.error);
   }
 });
+
+
+test('latest coaching appears immediately after a saved decision and survives readback without another write', async () => {
+  const view = bootView(html); await view.connect();
+  const opening = { role: 'academy', text: 'Review the report.', evidence: [{ name: 'log.txt', content: 'ok' }] };
+  await view.toolResult(kase({ messages: [opening] }));
+  assert.equal(view.q('feedback').hidden, true, 'an opening claim is not learner feedback');
+  assert.equal(view.q('feedback-text').textContent, '');
+  const text = 'Archive created.\nRecovery <img src=x onerror=alert(1)> remains UNVERIFIED.';
+  const first = kase({
+    stage: 'verification', version: 2,
+    messages: [opening, { role: 'learner', text: 'Accept limited findings' },
+      { role: 'academy', heading: 'What the records support', text }],
+  });
+  await view.toolResult(first);
+  assert.equal(view.q('feedback').hidden, false);
+  assert.equal(view.q('feedback-heading').textContent, 'What the records support');
+  assert.equal(view.q('feedback-text').textContent, text, 'feedback preserves newlines and text literally');
+  assert.equal(view.q('feedback-text').elements().length, 0, 'untrusted text never becomes HTML');
+  assert.equal(view.q('history').hidden, false, 'full history remains accessible separately');
+  await view.toolResult(first);
+  assert.equal(view.q('feedback-text').textContent, text, 'resume shows same saved feedback');
+  assert.equal(view.calls().length, 0, 'render and resume notifications do not write');
+  const second = kase({
+    stage: 'final', version: 3, messages: [...first.messages,
+      { role: 'learner', text: 'Run a controlled restore' },
+      { role: 'academy', heading: 'Restore result', text: 'Simulated restore still failed.',
+        evidence: [{ name: 'restore-result.json', content: '{"result":"failed"}' }] }],
+  });
+  await view.toolResult(second);
+  assert.equal(view.q('feedback-heading').textContent, 'Restore result');
+  assert.equal(view.q('feedback-text').textContent, 'Simulated restore still failed.',
+    'even feedback that contains evidence is visible');
+  await view.toolResult({ error: 'no_attempt', status: 404 });
+  assert.equal(view.q('feedback').hidden, true);
+  assert.equal(view.q('feedback-text').textContent, '', 'the no-case state clears previous coaching');
+});
+
+test('completed lesson shows the latest coaching alongside the existing evidence verdict', async () => {
+  const view = bootView(html); await view.connect();
+  await view.toolResult(kase({
+    stage: 'complete', status: 'completed', version: 4, choices: [],
+    messages: [{ role: 'academy', text: 'Read the evidence.' },
+      { role: 'learner', text: 'Block closure until restore.' },
+      { role: 'academy', heading: 'Lesson completed', text: 'Only verified findings are accepted.' }],
+    decision_record: [{ claim: 'Recovery', status: 'UNVERIFIED' }],
+  }));
+  assert.equal(view.q('feedback').hidden, false);
+  assert.equal(view.q('feedback-text').textContent, 'Only verified findings are accepted.');
+  assert.equal(view.q('verdict').hidden, false);
+  assert.match(view.q('verdict-list').textContent, /UNVERIFIED: Recovery/);
+});
