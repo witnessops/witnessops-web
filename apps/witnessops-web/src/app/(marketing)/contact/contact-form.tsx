@@ -320,7 +320,7 @@ export function ContactForm({
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
           ? `To zgłoszenie pozostaje historycznym przeglądem narzędzi i dostępu agenta AI. Nie przepisujemy go na ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Aktualny płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
-          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${plainOfferPrice(PUBLIC_AGENT_ACTION_OFFER.price.en)} ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`,
+          : `This request stays the historical AI Agent Tools & Access Review. It is not reassigned to ${PUBLIC_AGENT_ACTION_OFFER.name.en}. The current paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en} ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,

@@ -22,11 +22,12 @@ test("active one-action testing keeps its identity without inheriting the read-o
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "Fixed fee, agreed in a signed SOW before we start.");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "€2\u00A0500\u00A0bez\u00A0VAT");
   assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "fee_agreed_in_signed_sow");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_ex_vat");
+  assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, READ_ONLY_AGENT_ACTION_OFFER.commercialContract.price);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.scope, "one_action_adversarial_testing_v2");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "We don't test until you give written authority.");
@@ -46,7 +47,8 @@ test("active one-action testing keeps its identity without inheriting the read-o
     assert.match(rendered, locale === "en" ? /We don't test until you give written authority/ : /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
     assert.match(rendered, locale === "en" ? /Explicit unknowns/ : /Czego nie udało się ustalić i jakich dowodów brakuje/);
     assert.doesNotMatch(rendered, /10 working days|10 dni roboczych/);
-    assert.doesNotMatch(JSON.stringify(landing), /€2,500|€2 500|No execution of the reviewed action|read, inspect, reconstruct and report|Nie wykonujemy tego działania/);
+    assert.match(JSON.stringify(landing), /€2,500|€2[\s\u00A0]500/);
+    assert.doesNotMatch(JSON.stringify(landing), /No execution of the reviewed action|read, inspect, reconstruct and report|Nie wykonujemy tego działania/);
     assert.match(rendered, locale === "en" ? /failure demonstrated, resisted under tested conditions, inconclusive, or not tested/ : /wykazane przełamanie zabezpieczenia, odparcie w warunkach testu, wynik nierozstrzygający albo brak testu/);
     assert.match(rendered, locale === "en" ? /partial, duplicate or absent changes/ : /częściowe, powielone lub niezapisane/);
   }

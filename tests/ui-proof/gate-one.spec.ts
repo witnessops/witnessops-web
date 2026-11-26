@@ -78,7 +78,6 @@ for (const width of [1440, 390, 320]) {
       await expect(main.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(main).toContainText("Agent Action Security Review");
       await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.price[route.startsWith("/pl") ? "pl" : "en"]);
-      await expect(main).not.toContainText(/€2[, \u00a0]500/);
       await expect(main).not.toContainText(/External Attack Surface Review|€1[,\s]?900|€950|€550|10 working days|3 working days/);
       await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
       await expect(main.locator('a[href*="/review/request"]:visible, form:visible').first()).toBeVisible();
@@ -123,7 +122,7 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
       const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { description: string; price?: string | number } } }> }).find(value => value["@type"] === "ItemList");
       expect(services?.itemListElement).toHaveLength(1);
       expect(services?.itemListElement?.[0].item.name).toBe("Agent Action Security Review");
-      expect(services?.itemListElement?.[0].item.offers.description).toBe("Fixed fee, agreed in a signed SOW before we start.");
+      expect(services?.itemListElement?.[0].item.offers.description).toBe(PUBLIC_AGENT_ACTION_OFFER.price.en);
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("price");
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("priceCurrency");
     }

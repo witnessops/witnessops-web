@@ -433,7 +433,7 @@ test("commercial fit keeps successful public guidance coherent with the live off
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
   assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
-  assert.match(askWitnessOpsAnswerText(answer), /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
   assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
@@ -460,7 +460,7 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     askWitnessOpsAnswerText(answer),
     /We don't test until you give written authority/,
   );
-  assert.match(askWitnessOpsAnswerText(answer), /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /fixed quote after scope|10 working days|€550/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);

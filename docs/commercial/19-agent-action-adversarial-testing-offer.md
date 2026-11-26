@@ -88,18 +88,19 @@ specimens are not completed customer adversarial tests. Public `/verify` and
 
 ## Commercial status and earlier agreements
 
-The expanded package has **no approved fixed price, delivery capacity or default
-retest allowance**. Public copy says **Fee agreed in signed SOW**. Delivery timing
-agreed in the signed statement of work. Resolve capacity and commercial terms
-before accepting work; do not make an automatic booking or customer commitment.
+The listed public fee for this adversarial review is **€2,500 excluding VAT**
+(`eur_2500_ex_vat`). Delivery capacity and any retest allowance stay in the
+signed SOW. Delivery timing is agreed in the signed statement of work. Resolve
+capacity before accepting work; do not make an automatic booking or customer
+commitment.
 
-The earlier public Agent Action Security Review was **€2,500 excluding VAT** for
-read, inspect, reconstruct and report. It excluded executing the action,
-exploitation and retesting. Its source record is retained as
+The earlier public Agent Action Security Review used the same amount for read,
+inspect, reconstruct and report, under `eur_2500_fixed`. It excluded executing
+the action, exploitation and retesting. That record stays
 `READ_ONLY_AGENT_ACTION_OFFER` in `commercial-truth.ts`; the older
 `bounded-workflow-review` and `agent-tools-access-review` contracts also remain.
-Issued agreements retain the scope, exclusions, fee and retest terms actually
-accepted. Do not sell expanded work at the old fee by implication.
+The same amount does not merge the two contracts. Issued agreements retain the
+scope, exclusions, fee and retest terms actually accepted.
 
 ## Maintained surfaces
 

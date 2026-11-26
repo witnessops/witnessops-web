@@ -35,7 +35,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const agentHtml = render(agent);
   assert.match(agentHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(agentHtml, /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(agentHtml, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.match(agentHtml, /One consequential agent or automation action/);
   assert.doesNotMatch(agentHtml, /Starting at €2,500/);
   assert.doesNotMatch(agentHtml, /offerId=agent-tools-access-review/);
@@ -56,7 +56,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const polishHtml = render(polishAgent);
   assert.match(polishHtml, /name="intent" value="agent-action-security-review"/);
-  assert.match(polishHtml, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
+  assert.match(polishHtml, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(polishHtml, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.doesNotMatch(polishHtml, /cena stała/);
   assert.match(polishHtml, /Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji/);

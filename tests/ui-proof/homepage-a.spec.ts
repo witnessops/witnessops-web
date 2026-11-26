@@ -22,11 +22,11 @@ for (const [width, height] of [[390, 844], [1440, 900]] as const) {
     expect(box!.height).toBeGreaterThanOrEqual(44);
     expect(box!.y + box!.height).toBeLessThanOrEqual(height);
     expect(await primary.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
-    await expect(hero.locator("[data-home-fee]")).toHaveText("Fixed fee, agreed in a signed SOW before we start.");
+    await expect(hero.locator("[data-home-fee]")).toHaveText(/€2,500\s+excl\.\s+VAT/);
     await expect(page.locator("[data-home-offer]")).toHaveCount(0);
     await expect(page.locator("[data-agent-action-specimen]")).toHaveCount(0);
     await expect(page.locator("main section")).toHaveCount(5);
-    await expect(page.locator("main")).not.toContainText(/10 working days|3 working days|€|EUR|PLN|2,500|Request an external review|One Server Security Check/);
+    await expect(page.locator("main")).not.toContainText(/10 working days|3 working days|EUR|PLN|€1,900|Starting at €2,500|Request an external review|One Server Security Check/);
     await expect(page.locator("main")).not.toContainText(/FIRST 10|No\. 0042|free while in Early Access/);
     expect((await page.locator("body").innerText()).split("We don't test until you give written authority").length - 1).toBe(1);
     await expect(page.locator("main")).toContainText("Not a full pentest, certification, fixing or monitoring.");

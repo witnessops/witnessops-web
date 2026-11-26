@@ -1,7 +1,7 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
-import { ACADEMY_PUBLIC_HREF } from "@/components/shared/public-nav-groups";
+import { ACADEMY_PUBLIC_HREF, includeAcademyPromotion } from "@/components/shared/public-nav-groups";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   COMPANY_DETAILS,
@@ -152,7 +152,10 @@ export function isFooterRequestHref(href: string): boolean {
 
 /** Footer navigation for a locale (exported for tests). */
 export function footerGroups(locale: "en" | "pl"): readonly FooterGroup[] {
-  return FOOTER_COPY[locale].groups;
+  return FOOTER_COPY[locale].groups.map((group) => ({
+    ...group,
+    links: [...includeAcademyPromotion(group.links)],
+  }));
 }
 
 export function Footer({ build_label }: FooterProps) {
@@ -210,7 +213,7 @@ export function Footer({ build_label }: FooterProps) {
             </p>
           </div>
 
-          {copy.groups.map((group) => (
+          {footerGroups(locale).map((group) => (
             <nav key={group.id} aria-labelledby={group.id} className="footer-column">
               <h2 id={group.id} className="footer-heading">{group.label}</h2>
               <ul className="flex flex-col items-start">

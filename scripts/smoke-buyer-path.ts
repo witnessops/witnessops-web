@@ -59,7 +59,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
     requiredMarkers: ["WitnessOps", "We try to break your AI agent before someone else does.", "engineering teams and AI implementation partners", "Authorization must be enforced before the system changes.", "Action map", "Findings linked to evidence", "Prioritised recommendations", "Documented unknowns", "Written report and readout", PUBLIC_AGENT_ACTION_OFFER.price.en, "What the record looks like.", "Discuss a review:", "engage@mail.witnessops.com", "Request a break test", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), "offerId=agent-action-security-review", "Consequential action", "Systems involved", "When you need to decide", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Tool · not a review", "We agree the scope first. The findings come with the evidence.", "What this isn't.", "Four ways we try to break it."],
-    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "€1,900", "Request an external review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Submit non-secret enquiry", "Which review?", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
+    prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "€1,900", "Request an external review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Submit non-secret enquiry", "Which review?", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
   },
   {
     path: "/check",
@@ -106,7 +106,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Request a break test",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
+    prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
       "From €1,500",
@@ -182,7 +182,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "broad compliance certification",
       "legal audit opinion",
       "Minimal buyer reading order",
-      "fixed fee, agreed in a signed SOW before we start",
+      "€2,500 excl. VAT",
       "no longer available for new engagements",
       "We don't test until you give written authority.",
       "offerId=agent-action-security-review",
@@ -213,7 +213,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Review workflow",
       "Agent Action Security Review",
-      "fixed fee, agreed in a signed SOW before we start",
+      "€2,500 excl. VAT",
       "External Attack Surface Review is no longer available for new engagements",
       "We don't test until you give written authority.",
       "offerId=agent-action-security-review",
@@ -345,7 +345,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "A non-secret fit check comes first. No work starts from the enquiry.",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
+    prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
       "From €1,500",
@@ -419,7 +419,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl",
     requiredMarkers: ["Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.", "Poproś o test przełamania", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
-    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
+    prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
     path: "/pl/catalog",
@@ -430,7 +430,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Poproś o test przełamania",
       "offerId=agent-action-security-review",
     ],
-    prohibitedMarkers: ["€2,500", "€2 500", "€2\u00A0500", "Read, inspect, reconstruct and report only",
+    prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
       "Co się wydarzyło?",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",

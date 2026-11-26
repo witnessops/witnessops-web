@@ -53,11 +53,11 @@ test("footer shows one review, two columns and no retired or second-product link
   }
   assert.deepEqual(footerGroups("en").map((group) => [group.label, group.links.map((link) => link.label)]), [
     ["The review", ["Agent Action Security Review", "How it works", "Examples"]],
-    ["Company", ["Docs", "Academy", "Security", "Company details"]],
+    ["Company", ["Docs", "Security", "Company details"]],
   ]);
   assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [
     ["Przegląd", ["/pl/reviews/agent-action-security-review", "/pl/why-witnessops", "/review/sample-cases"]],
-    ["Firma", ["/pl/docs", "https://academy.witnessops.com/", "/pl/security", "/pl/company"]],
+    ["Firma", ["/pl/docs", "/pl/security", "/pl/company"]],
   ]);
   const footer = source();
   assert.doesNotMatch(footer, /Ask Sovereign|sovereignAssistantPublished|label: "Pricing"|Talk to an expert|Media kit/);

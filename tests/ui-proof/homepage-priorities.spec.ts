@@ -67,12 +67,12 @@ test("Polish homepage carries the same five sections and keeps docs reachable by
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText(HOMEPAGE_CUT_COPY.pl.sub);
   const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
   await expect(hero).toContainText("Agent Action Security Review");
-  await expect(hero).toContainText("Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
+  await expect(hero).toContainText(/€2\s+500\s+bez\s+VAT/);
   await expect(hero.getByRole("link", { name: "Poproś o test przełamania", exact: true })).toHaveAttribute("href", /\/pl\/review\/request\?offerId=agent-action-security-review/);
   await expect(page.locator("#enquiry form")).toBeVisible();
   await expect(page.locator("[data-home-offer]")).toHaveCount(0);
   await expect(page.locator("main")).toContainText("Nie testujemy bez Twojej pisemnej zgody.");
-  await expect(page.locator("main")).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|€|EUR|PLN/);
+  await expect(page.locator("main")).not.toContainText(/10 dni roboczych|3 dni roboczych|10 working days|3 working days|EUR|PLN|€1/);
   // Footer bundle B (Design 2026-11-13): About became Docs, labelled Dokumentacja (pending native review).
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Dokumentacja", exact: true })).toHaveAttribute("href", "/pl/docs");
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

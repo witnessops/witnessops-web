@@ -35,7 +35,7 @@ test("pricing renders the same agent review through shared catalogue presentatio
     [...html.matchAll(/data-pricing-review="([^"]+)"/g)].map((match) => match[1]),
     ["agent-action"],
   );
-  assert.match(html, /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(html, /€1,900\u00A0excl.\u00A0VAT/);
   assert.doesNotMatch(html, /enquiryPath=early-bird|Internet Footprint Review|€500|offerId=agent-tools-access-review/);
   assert.match(html, /does not authorise collection or start a review/);
@@ -48,7 +48,8 @@ test("both catalogue and pricing introductions describe active testing without s
       assert.match(html, locale === "en" ? /Active adversarial testing of one consequential action/ : /Aktywnie testujemy jedno istotne działanie/);
       assert.match(html, locale === "en" ? /Authorization must be enforced before the system changes/ : /upoważnienie przed zmianą/);
       assert.doesNotMatch(html, /Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go|No execution of the reviewed action|read, inspect, reconstruct and report only/);
-      assert.doesNotMatch(html, /€2[, \u00a0]500/);
+      assert.match(html, locale === "en" ? /€2,500\u00A0excl\.\u00A0VAT/ : /€2\u00A0500\u00A0bez\u00A0VAT/);
+      assert.doesNotMatch(html, /Starting at €2,500|€2,500 fixed/);
     }
   }
 });
