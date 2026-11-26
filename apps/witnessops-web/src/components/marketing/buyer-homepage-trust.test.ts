@@ -86,7 +86,7 @@ test("EN and PL homepage sources project only the agent review", () => {
     `${HOMEPAGE_TWO_OFFER_COPY.en.aiDescription} ${HOMEPAGE_TWO_OFFER_COPY.en.aiScopeNote}`,
     /10 working days|3 working days|€550|550 €|fixed quote after scope|€1,900/,
   );
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "Fixed fee, agreed in a signed SOW before we start.");
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.aiPrice, "€2,500\u00A0excl.\u00A0VAT");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.evidenceHeadline, "What the record looks like.");
   assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.contactLead, "Discuss a review:");
   assert.match(HOMEPAGE_TWO_OFFER_COPY.pl.headline, /Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny/);

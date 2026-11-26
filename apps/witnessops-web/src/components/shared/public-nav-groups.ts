@@ -7,6 +7,14 @@ export type PublicNavGroup = {
 
 export const ACADEMY_PUBLIC_HREF = "https://academy.witnessops.com/";
 
+/** Public menu and footer links stay off until Academy launch readiness is verified. */
+export const ACADEMY_PROMOTIONAL_NAV_ENABLED = false;
+
+export function includeAcademyPromotion<T extends { href: string }>(links: readonly T[]): readonly T[] {
+  if (ACADEMY_PROMOTIONAL_NAV_ENABLED) return links;
+  return links.filter((link) => link.href !== ACADEMY_PUBLIC_HREF);
+}
+
 /** Current destinations, grouped for the click-to-expand public navigation. */
 export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
   {
@@ -24,13 +32,13 @@ export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
     id: "explore",
     label: "Explore",
     description: "Lessons, stories, ideas and the people behind them.",
-    links: [
+    links: includeAcademyPromotion([
       { label: "WitnessOps Academy", href: ACADEMY_PUBLIC_HREF, description: "Try the pilot lesson on checking AI results." },
       { label: "The Sovereign Chronicles", href: "/chronicles", description: "Stories from the WitnessOps desk. Read or listen." },
       { label: "Research & articles", href: "/research", description: "Ideas, observations and longer reads." },
       { label: "Company details", href: "/company", description: "Who we are and how to reach us." },
       { label: "Security", href: "/security", description: "Security practices and disclosure." },
-    ],
+    ]),
   },
 ];
 
@@ -53,13 +61,13 @@ export const POLISH_NAV_GROUPS: readonly PublicNavGroup[] = [
     id: "explore",
     label: "Odkrywaj",
     description: "Lekcje, historie, artykuły i ludzie stojący za WitnessOps.",
-    links: [
+    links: includeAcademyPromotion([
       { label: "WitnessOps Academy (EN)", href: ACADEMY_PUBLIC_HREF, description: "Wypróbuj lekcję pilotażową o sprawdzaniu wyników AI." },
       { label: "The Sovereign Chronicles (EN)", href: "/chronicles", description: "Historie z biurka WitnessOps. Czytaj lub słuchaj." },
       { label: "Artykuły i analizy (EN)", href: "/research", description: "Pomysły, obserwacje i dłuższe teksty." },
       { label: "Dane firmy", href: "/pl/company", description: "Kim jesteśmy i jak się z nami skontaktować." },
       { label: "Bezpieczeństwo", href: "/pl/security", description: "Zasady bezpieczeństwa i zgłaszanie podatności." },
-    ],
+    ]),
   },
 ];
 

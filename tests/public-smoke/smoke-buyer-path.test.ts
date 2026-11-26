@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { PUBLIC_AGENT_ACTION_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 import {
   buyerPathIntakeProbes,
   buyerPathSmokeRoutes,
@@ -233,7 +234,7 @@ test("catalogue smoke preserves the single public review request path", () => {
   const catalogue = routeContract("/catalog");
   for (const marker of [
     "Agent Action Security Review",
-    "Fixed fee, agreed in a signed SOW before we start.",
+    PUBLIC_AGENT_ACTION_OFFER.price.en,
     "We don't test until you give written authority.",
     "Request a break test",
   ]) {
@@ -337,7 +338,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const englishOpen = routeContract(
     "/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(englishOpen.requiredMarkers.includes("Fixed fee, agreed in a signed SOW before we start."));
+  assert.ok(englishOpen.requiredMarkers.includes(PUBLIC_AGENT_ACTION_OFFER.price.en));
   assert.ok(
     englishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',
@@ -360,7 +361,7 @@ test("historical inventory request URLs stay closed while Agent Action intake is
   const polishOpen = routeContract(
     "/pl/review/request?offerId=agent-action-security-review",
   );
-  assert.ok(polishOpen.requiredMarkers.includes("Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem."));
+  assert.ok(polishOpen.requiredMarkers.includes(PUBLIC_AGENT_ACTION_OFFER.price.pl));
   assert.ok(
     polishOpen.requiredMarkers.includes(
       'name="intent" value="agent-action-security-review"',

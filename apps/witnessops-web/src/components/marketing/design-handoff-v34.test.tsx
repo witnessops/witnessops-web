@@ -37,7 +37,7 @@ function render(node: ReactNode) {
 
 const webSrc = resolve(__dirname, "../..");
 const COPPER = "#" + "b94716";
-const FEE_FIGURE = /€|2,500|2500|1,900|1900/;
+const PARKED_FEE = /€1,900|1,900|€1\u00A0900|1900/;
 
 function walk(dir: string, files: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -52,7 +52,7 @@ function headings(html: string) {
   return html.match(/<h1\b[^>]*>[\s\S]*?<\/h1>/g) ?? [];
 }
 
-test("rendered buyer copy and JSON-LD contain no public numeric fee", () => {
+test("rendered buyer copy and JSON-LD show the public fee and no parked price", () => {
   const html = [
     render(createElement(SimpleHomepage)),
     render(createElement(SimpleHomepage, { locale: "pl" })),
@@ -68,10 +68,12 @@ test("rendered buyer copy and JSON-LD contain no public numeric fee", () => {
     publicExposureServiceJsonLd("en"),
     publicExposureServiceJsonLd("pl"),
   ]);
-  assert.doesNotMatch(html, FEE_FIGURE);
-  assert.doesNotMatch(json, FEE_FIGURE);
-  assert.match(html, /Fixed fee, agreed in a signed SOW before we start/);
-  assert.match(html, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
+  assert.match(html, /€2,500\u00A0excl\.\u00A0VAT/);
+  assert.match(html, /€2\u00A0500\u00A0bez\u00A0VAT/);
+  assert.match(json, /€2,500 excl\. VAT|€2,500\u00A0excl\.\u00A0VAT/);
+  assert.doesNotMatch(html, PARKED_FEE);
+  assert.doesNotMatch(json, PARKED_FEE);
+  assert.doesNotMatch(html, /Starting at €2,500|€2,500 fixed/);
   assert.doesNotMatch(html, /\.\.(?!\.)/);
 });
 

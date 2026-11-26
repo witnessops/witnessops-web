@@ -218,7 +218,7 @@ test("current homepage metadata and offer ownership stay current", () => {
   assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(agentActionCard, /Start with a broken workflow/);
   assert.match(agentActionCard, /Agent Action Security Review/);
-  assert.match(agentActionCard, /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(agentActionCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCard, /AI Agent Tools &amp; Access Review/);
   assert.doesNotMatch(agentActionCard, /External Attack Surface Review/);
   assert.doesNotMatch(agentActionCard, /Agent Risk &amp; Control Review|€1,500/);
@@ -235,7 +235,7 @@ test("current homepage metadata and offer ownership stay current", () => {
   );
   assert.doesNotMatch(agentActionCatalogueCard, /Start with a broken workflow/);
   assert.match(agentActionCatalogueCard, /Agent Action Security Review/);
-  assert.match(agentActionCatalogueCard, /Fixed fee, agreed in a signed SOW before we start/);
+  assert.match(agentActionCatalogueCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCatalogueCard, /AI Agent Tools &amp; Access Review|Agent Risk &amp; Control Review|€1,500/);
   assert.doesNotMatch(catalogue, /id="system-reviews"/);
   assert.match(catalogue, /id="ai-reviews"/);
@@ -269,7 +269,7 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   for (const assessment of [assessments[0], assessments[2]]) {
     assert.equal(assessment.offer_id, PUBLIC_AGENT_ACTION_OFFER.id);
     assert.equal(assessment.offer?.name, PUBLIC_AGENT_ACTION_OFFER.name.en);
-    assert.equal(assessment.offer?.price_label, "Fixed fee, agreed in a signed SOW before we start.");
+    assert.equal(assessment.offer?.price_label, "€2,500 excl. VAT");
     assert.doesNotMatch(assessment.offer?.price_label ?? "", /\u00A0/);
     assert.equal(assessment.offer?.unit_label, PUBLIC_AGENT_ACTION_OFFER.unit.en);
     assert.equal(assessment.offer?.fit_check_label, PUBLIC_AGENT_ACTION_OFFER.fitCheck.en);

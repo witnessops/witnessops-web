@@ -418,7 +418,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "Fixed fee, agreed in a signed SOW before we start.",
+        "€2,500 excl. VAT",
         "One consequential agent or automation action",
         "Submitting this form opens fit review only",
         "We don't test until you give written authority.",
@@ -430,7 +430,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Zapytaj o Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.",
+        "€2 500 bez VAT",
         "Nie wysyłaj sekretów.",
         "Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji.",
         "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
@@ -536,7 +536,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     expect(submittedPayload?.scope).toContain("permitted actions");
     expect(submittedPayload?.scope).toContain("stop conditions, recovery");
     expect(submittedPayload?.scope).toContain("any retest cases, window and allowance");
-    expect(submittedPayload?.scope).toContain("Fixed fee, agreed in a signed SOW before we start.");
+    expect(submittedPayload?.scope).toContain("€2,500 excl. VAT");
     expect(submittedPayload?.scope).not.toMatch(/€2[, \u00a0]500|€1[, \u00a0]900/);
     expect(submittedPayload?.scope).not.toContain("Unintended effect:");
     expect(submittedPayload?.scope).not.toContain("dated system-level inventory");

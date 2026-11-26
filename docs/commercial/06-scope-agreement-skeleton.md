@@ -172,7 +172,7 @@ Payment: [terms]
 
 Current paid review, for a new agreement:
 
-- Agent Action Security Review: fee agreed in signed SOW for the specified testing scope. Resolve delivery capacity and any retest cases, window and allowance before acceptance. No expanded fixed price or default retest allowance is approved.
+- Agent Action Security Review: €2,500 excluding VAT (`eur_2500_ex_vat`) for the specified adversarial testing scope. Resolve delivery capacity and any retest cases, window and allowance before acceptance. No default retest allowance is approved.
 
 Earlier read-only Agent Action agreements at €2,500 excluding VAT retain their accepted scope, fee and exclusions. They do not authorize active testing.
 

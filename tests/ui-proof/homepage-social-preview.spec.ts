@@ -18,7 +18,7 @@ test("homepages publish the canonical WitnessOps Editorial A preview", async ({ 
   );
   await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
     "content",
-    "Agent Action Security Review. We try to break your AI agent before someone else does. Fixed fee, agreed in a signed SOW before we start.",
+    "Agent Action Security Review. We try to break your AI agent before someone else does. €2,500 excl. VAT.",
   );
   await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
   await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");

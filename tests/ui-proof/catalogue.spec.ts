@@ -138,7 +138,7 @@ test("pricing opens the agent review and the external review URL stays parked", 
   await expect(detail).toHaveAttribute("data-offer-status", "parked");
   await expect(detail.locator("h1")).toHaveText("External Attack Surface Review is no longer available");
   await expect(detail).toContainText("This is not the Agent Action Security Review.");
-  await expect(detail).toContainText("Fixed fee, agreed in a signed SOW before we start.");
+  await expect(detail).toContainText("€2,500 excl. VAT");
   await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
   const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });

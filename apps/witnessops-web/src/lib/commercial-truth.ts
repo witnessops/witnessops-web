@@ -211,12 +211,12 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   fitCheckQuestion: LEGACY_AGENT_ACTION_OFFER.fitCheckQuestion,
   commercialContract: {
     scope: "one_action_adversarial_testing_v2",
-    price: "fee_agreed_in_signed_sow",
+    price: "eur_2500_ex_vat",
     timing: "delivery_timing_per_signed_sow",
   },
   price: {
-    en: "Fixed fee, agreed in a signed SOW before we start.",
-    pl: "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.",
+    en: AGENT_PRICE_EN,
+    pl: AGENT_PRICE_PL,
   },
   timing: {
     en: "We don't test until you give written authority.",

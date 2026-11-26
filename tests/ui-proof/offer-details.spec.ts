@@ -76,7 +76,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       await expect(main.locator("h1")).toHaveText(locale === "en" ? "Agent Action Security Review" : "Przegląd zabezpieczeń działania agenta AI");
       await expect(main.locator("header")).toContainText("Agent Action Security Review");
       const commercial = main.getByRole("complementary");
-      await expect(commercial).toContainText(locale === "en" ? "Fixed fee, agreed in a signed SOW before we start." : "Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem.");
+      await expect(commercial).toContainText(locale === "en" ? /€2,500\s+excl\.\s+VAT/ : /€2\s+500\s+bez\s+VAT/);
       const cta = commercial.getByRole("link");
       const target = new URL((await cta.getAttribute("href")) ?? "", "http://witnessops.test");
       expect(target.pathname).toBe(`${locale === "pl" ? "/pl" : ""}/review/request`);
@@ -85,7 +85,7 @@ test("current review puts its price and fit-check CTA before long detail on narr
       await expect(main).toContainText(locale === "en" ? "actual saved change" : "faktycznie zapisaną zmianę");
       await expect(main).toContainText(locale === "en" ? "Authorization must be enforced before the system changes" : "System musi egzekwować upoważnienie przed zmianą");
       await expect(main).toContainText(locale === "en" ? "resisted under tested conditions" : "odparcie w warunkach testu");
-      await expect(main).not.toContainText(/€2,500|€2[ \u00a0]500|No execution of the reviewed action/);
+      await expect(main).not.toContainText(/No execution of the reviewed action|read, inspect, reconstruct and report/);
       await expect(main).toContainText(locale === "en" ? "Explicit unknowns" : "Czego nie udało się ustalić i jakich dowodów brakuje");
       await expect(main).not.toContainText(/€1,900|separate quote|10 working days/);
       await expect(main.getByRole("link", { name: /historical synthetic|Historyczny syntetyczny/ })).toHaveAttribute("href", "/review/sample-cases/ai-agent-action-proof-run");

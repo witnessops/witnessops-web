@@ -11,9 +11,9 @@ customer access or testing.
   review, retired offers and private pilot are not new-sales choices.
 - [ ] Request identity is `agent-action-security-review`. Historical IDs,
   including `OFFSEC-EXTERNAL-EXPOSURE`, retain their old meaning.
-- [ ] Fee, delivery capacity and any retest cases, window and allowance are
-  agreed in the signed SOW; no expanded fixed price is assumed. Earlier €2,500
-  read-only agreements keep their accepted terms.
+- [ ] The listed public fee is €2,500 excluding VAT (`eur_2500_ex_vat`). Delivery
+  capacity and any retest cases, window and allowance stay in the signed SOW.
+  Earlier read-only agreements keep `eur_2500_fixed` and their accepted terms.
 - [ ] The [current scope block](./06-scope-agreement-skeleton.md) matches the
   selected review. Scope, authority, handling, required inputs, payment terms
   and capacity are resolved before work; a request alone grants no authority.

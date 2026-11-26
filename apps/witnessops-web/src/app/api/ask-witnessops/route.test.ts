@@ -51,7 +51,7 @@ function askRequest(question: string, ip: string, context: Record<string, unknow
 
 const CURRENT_AGENT_ACTION_OFFER = {
   name: "Agent Action Security Review",
-  price_label: "Fixed fee, agreed in a signed SOW before we start.",
+  price_label: "€2,500 excl. VAT",
   unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "We don't test until you give written authority.",
@@ -76,7 +76,7 @@ for (const providerEnabled of [false, true]) {
         assert.equal(answer.authority_answer.schema, "witnessops.ask.assembled-answer.v1");
         assert.doesNotMatch(answer.template.body, /One Server|dwa dni|Workflow [SML]/);
         if (index === 0) assert.match(answer.template.body, /Aktualnie oferujemy jeden płatny przegląd/);
-        if (index === 1) assert.match(answer.template.body, /Stała opłata, uzgadniana w podpisanym SOW przed rozpoczęciem/);
+        if (index === 1) assert.match(answer.template.body, /€2\u00A0500\u00A0bez\u00A0VAT/);
         if (index === 2) assert.match(answer.template.body, /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
         if (index === 3) assert.equal(answer.recommendation, null);
         else assert.equal(answer.recommendation.service_id, "agent-action-security-review");
@@ -357,7 +357,7 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   const cases = [
-    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "Fixed fee, agreed in a signed SOW before we start.", words: "The listed price below covers one consequential action.", deterministic: true },
+    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
     { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "External Attack Surface Review is no longer available. It is not the Agent Action Security Review.", deterministic: true, parked: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
@@ -799,7 +799,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "Fixed fee, agreed in a signed SOW before we start.",
+    "€2,500 excl. VAT",
   );
 
   const multiResponse = await POST(
@@ -814,7 +814,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "Fixed fee, agreed in a signed SOW before we start.",
+    "€2,500 excl. VAT",
   );
 
   const unrelatedResponse = await POST(

@@ -24,8 +24,8 @@ for (const locale of [
     await expect(reviewPanel).toBeHidden();
     const explorePanel = await controlledPanel(page, explore);
     await expect(explorePanel).toBeVisible();
-    await expect(explorePanel.getByRole("link", { name: new RegExp(locale.academy.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) })).toHaveAttribute("href", "https://academy.witnessops.com/");
-    await expect(page.locator("footer").getByRole("link", { name: locale.route === "/pl" ? "Academy (EN)" : "Academy", exact: true })).toHaveAttribute("href", "https://academy.witnessops.com/");
+    await expect(explorePanel.getByRole("link", { name: new RegExp(locale.academy.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) })).toHaveCount(0);
+    await expect(page.locator("footer").getByRole("link", { name: locale.route === "/pl" ? "Academy (EN)" : "Academy", exact: true })).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(explorePanel).toBeHidden();
     await expect(explore).toBeFocused();
@@ -71,7 +71,7 @@ for (const viewport of [{ width: 320, height: 740 }, { width: 390, height: 844 }
     await explore.click();
     const explorePanel = await controlledPanel(page, explore);
     await expect(explorePanel).toBeVisible();
-    await expect(explorePanel.getByRole("link", { name: /WitnessOps Academy/ })).toHaveAttribute("href", "https://academy.witnessops.com/");
+    await expect(explorePanel.getByRole("link", { name: /WitnessOps Academy/ })).toHaveCount(0);
     await review.click();
     await expect(explorePanel).toBeHidden();
     const reviewPanel = await controlledPanel(page, review);
@@ -100,7 +100,7 @@ test("Polish mobile groups use Polish destinations and label English content", a
   await menu.getByRole("button", { name: "Przegląd", exact: true }).click();
   await expect(menu.getByRole("link", { name: /Agent Action Security Review/ })).toHaveAttribute("href", "/pl/reviews/agent-action-security-review");
   await menu.getByRole("button", { name: "Odkrywaj", exact: true }).click();
-  await expect(menu.getByRole("link", { name: /WitnessOps Academy \(EN\)/ })).toHaveAttribute("href", "https://academy.witnessops.com/");
+  await expect(menu.getByRole("link", { name: /WitnessOps Academy \(EN\)/ })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: /The Sovereign Chronicles \(EN\)/ })).toHaveAttribute("href", "/chronicles");
   await expect(menu.getByRole("link", { name: /Dane firmy/ })).toHaveAttribute("href", "/pl/company");
   await expect(menu.getByRole("link", { name: "Dokumentacja", exact: true })).toHaveAttribute("href", "/pl/docs");
