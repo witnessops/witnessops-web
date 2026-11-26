@@ -14,6 +14,7 @@
 .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:14px}.section{min-width:0;padding:16px;border:1px solid var(--line);background:#0a141dbe;border-radius:12px}.section h2{margin:0 0 8px;font-size:13px}.hint{font-size:12px;color:var(--muted);margin:0 0 12px}.evidence-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.evidence-tab{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:12px;text-align:left;max-width:100%;overflow-wrap:anywhere}.evidence-tab[aria-selected="true"]{background:#153529;border-color:#58a67d;color:#d0ffe3}.evidence-preview{background:#071017;border:1px solid #223340;border-radius:8px;overflow:auto;max-height:220px;padding:12px;min-height:76px}.evidence-preview pre{font:11px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:#cddde9}.evidence-preview p{color:var(--muted);margin:0}
 .prompt{font-size:15px;font-weight:620;margin:0 0 12px;line-height:1.4}.choices{display:grid;gap:7px}.choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);background:var(--surface);border-radius:9px;cursor:pointer;font-size:12px;line-height:1.45}.choice:has(input:checked){border-color:#8cc9ad;background:#18372d}.choice input{margin:3px 0 0;accent-color:var(--accent);flex:none}.decision-button{width:100%;border:0;border-radius:9px;padding:11px 14px;margin-top:12px;font-weight:750;background:var(--accent);color:#082219}.decision-button.secondary{border:1px solid #67ac8c;background:transparent;color:var(--accent)}.decision-button:disabled{background:#61766f;color:#d5e2df}
 .last{border-top:1px solid var(--line);padding:13px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.footer-note,.help{font-size:11px;color:var(--muted);margin:0}.help{color:var(--warning)}.review{margin-top:10px;border-top:1px dashed #3a505b;padding-top:10px}.review summary{font-size:12px;color:#c8d5df;cursor:pointer}.review ol{margin:8px 0 0;padding-left:20px}.review li{font-size:12px;margin:6px 0;color:var(--muted)}.review li strong{color:var(--text)}
+.feedback-heading{margin:0 0 6px;color:var(--accent);font-weight:700;font-size:12px}.feedback-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
 .emptystate{padding:28px;border:1px dashed #3a505b;border-radius:10px;color:var(--muted);text-align:center}.emptystate strong{color:var(--text);display:block;margin-bottom:7px}.full{grid-column:1/-1}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:580px){.main{padding:14px;gap:12px}.top{padding:12px 14px}.split{grid-template-columns:1fr}.section{padding:13px}.heading{display:block}.step{display:inline-block;margin-top:10px}.evidence-preview{max-height:180px}.last{padding:12px 14px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
@@ -29,6 +30,7 @@
       <section class="section" aria-labelledby="decision-title"><h2 id="decision-title">Your call</h2><p id="prompt" class="prompt"></p><div id="choices" class="choices" role="radiogroup" aria-label="Select your decision"></div><button id="commit" class="decision-button" type="button" disabled>Save decision</button><p class="hint" style="margin:9px 0 0">Only a confirmed save advances the case.</p></section>
     </div>
     <div id="empty" class="emptystate"><strong id="empty-title">Loading your case</strong><span id="empty-detail">Sign in through Academy to use your own saved lesson.</span><button id="start" class="decision-button" type="button" hidden>Start this case</button></div>
+    <section id="feedback" class="section full" aria-labelledby="feedback-title" aria-live="polite" hidden><h2 id="feedback-title">Latest coaching feedback</h2><p id="feedback-heading" class="feedback-heading" hidden></p><p id="feedback-text" class="feedback-text"></p></section>
     <section id="verdict" class="section full" aria-labelledby="verdict-title" hidden><h2 id="verdict-title">What the records support</h2><ol id="verdict-list" class="review"></ol></section>
     <details id="history" class="review" hidden><summary>Show decision history and feedback</summary><ol id="history-list"></ol></details>
   </div>
@@ -144,6 +146,23 @@
     }
     q('history').hidden = list.children.length === 0;
   }
+  // The most recent Academy message after a learner decision is the current
+  // coaching response. Keep older turns in the expandable history; opening
+  // claims before the first decision are not coaching feedback.
+  function paintFeedback(data) {
+    const messages = data.messages || [];
+    let lastLearner = -1;
+    for (let i = 0; i < messages.length; i += 1) if (messages[i].role === 'learner') lastLearner = i;
+    let latest = null;
+    for (let i = lastLearner + 1; lastLearner >= 0 && i < messages.length; i += 1) {
+      if (messages[i].role === 'academy') latest = messages[i];
+    }
+    const panel = q('feedback'), heading = q('feedback-heading'), copy = q('feedback-text');
+    heading.textContent = latest && typeof latest.heading === 'string' ? latest.heading.slice(0, 140) : '';
+    heading.hidden = !heading.textContent;
+    copy.textContent = latest ? latest.text.slice(0, 8000) : '';
+    panel.hidden = !latest;
+  }
   function paintVerdict(data) {
     const section = q('verdict'), list = q('verdict-list'); list.replaceChildren();
     const record = data.status === 'completed' && Array.isArray(data.decision_record) ? data.decision_record : [];
@@ -161,6 +180,7 @@
     q('sync').textContent = `SAVED · REVISION ${data.version}`;
     q('case').hidden = data.status === 'completed'; q('empty').hidden = data.status !== 'completed';
     q('start').hidden = true;
+    paintFeedback(data);
     paintVerdict(data);
     if (data.status === 'completed') {
       q('empty-title').textContent = 'Case completed'; q('empty-detail').textContent = 'Your saved decisions remain available in Academy.';
@@ -180,7 +200,7 @@
   }
   function showError(message) { q('sync').textContent = 'ACTION NEEDED'; q('status').textContent = message; }
   function showWelcome(message, canStart) {
-    q('case').hidden = true; q('verdict').hidden = true; q('empty').hidden = false; q('empty-title').textContent = 'Your case is ready to start';
+    q('case').hidden = true; q('feedback').hidden = true; q('feedback-heading').textContent = ''; q('feedback-text').textContent = ''; q('verdict').hidden = true; q('empty').hidden = false; q('empty-title').textContent = 'Your case is ready to start';
     q('empty-detail').textContent = message; q('start').hidden = !canStart;
     q('sync').textContent = 'NOT STARTED'; q('status').textContent = 'No progress is created until you start.';
   }
