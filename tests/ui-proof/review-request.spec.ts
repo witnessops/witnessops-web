@@ -537,7 +537,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     expect(submittedPayload?.scope).toContain("stop conditions, recovery");
     expect(submittedPayload?.scope).toContain("any retest cases, window and allowance");
     expect(submittedPayload?.scope).toContain("€2,500 excl. VAT");
-    expect(submittedPayload?.scope).not.toMatch(/€2[, \u00a0]500|€1[, \u00a0]900/);
+    expect(submittedPayload?.scope).not.toMatch(/€1[, \u00a0]900|Starting at €2,500|€2,500 fixed/);
     expect(submittedPayload?.scope).not.toContain("Unintended effect:");
     expect(submittedPayload?.scope).not.toContain("dated system-level inventory");
 
