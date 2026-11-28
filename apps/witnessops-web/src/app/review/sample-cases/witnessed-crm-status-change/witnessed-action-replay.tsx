@@ -364,8 +364,8 @@ export function WitnessedActionReplay() {
 
           <aside className={styles.paidCta}>
             <span>{PUBLIC_AGENT_ACTION_OFFER.name.en}</span>
-            <div><h3>Bring one consequential action.</h3><p>Review its authority, executing identity, permissions, tools, execution path, evidence chain, and control gaps.</p></div>
-            <Link href={buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id)}>Start a non-secret fit check <InlineArrow /></Link>
+            <div><h3>Have an agent that can change a record?</h3><p>We test one consequential action in one agreed workflow and show what the evidence supports.</p></div>
+            <Link href={buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_OFFER.id)}>Request a security assessment <InlineArrow /></Link>
           </aside>
         </section>
       ) : null}

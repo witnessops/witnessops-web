@@ -117,7 +117,7 @@ test("review request route issues a security-workflow package verification email
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
-  assert.match(mailRaw, /^Confirm the mailbox-only boundary before continuing\.$/m);
+  assert.match(mailRaw, /^Confirm that the code verifies access to your email address\.$/m);
   assert.match(
     mailRaw,
     /^Open Verification Page: https:\/\/witnessops\.com\/verify-token\?context=[A-Za-z0-9_-]{32,}$/m,
@@ -127,7 +127,7 @@ test("review request route issues a security-workflow package verification email
     /\/verify-token\?[^\n]*(?:email|issuanceId|token)=/,
   );
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
-  assert.match(mailRaw, /^It does not start a proof run\.$/m);
+  assert.match(mailRaw, /^Email confirmation does not book work or authorize testing\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
   assert.match(mailRaw, /Confirm your AI Agent Red Teaming request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);

@@ -72,8 +72,8 @@ export const HOMEPAGE_CUT_COPY: { en: HomepageCutCopy; pl: HomepageCutCopy } = {
     howTitle: "Three steps. Nothing happens without your sign-off.",
     steps: [
       ["01", "Tell us the action", "One action and the systems it touches. No secrets."],
-      ["02", "Agree the boundary", "Fixed fee and scope in a signed SOW. We don't test until you give written authority."],
-      ["03", "Get the findings", "Report and readout. If we don't get through, that's a result too."],
+      ["02", "Agree the boundary", "We confirm scope, fee, capacity and timing in the signed statement of work. We don't test until you give written authority."],
+      ["03", "Get the findings", "We show which controls held in the test, what failed and what the evidence leaves open."],
     ],
     howNote: "Not a full pentest, certification, fixing or monitoring.",
     scopeLabel: "See the full scope",
@@ -116,8 +116,8 @@ export const HOMEPAGE_CUT_COPY: { en: HomepageCutCopy; pl: HomepageCutCopy } = {
     howTitle: "Trzy kroki. Nic się nie dzieje bez Twojej zgody.",
     steps: [
       ["01", "Opisz akcję", "Jedna akcja i systemy, których dotyczy. Bez sekretów."],
-      ["02", "Uzgodnij granice", "Stała opłata i zakres w podpisanym SOW. Nie testujemy bez Twojej pisemnej zgody."],
-      ["03", "Otrzymaj ustalenia", "Raport i omówienie. Jeśli się nie przebijemy, to też jest wynik."],
+      ["02", "Uzgodnij granice", "W podpisanej umowie potwierdzamy zakres, cenę, dostępność zespołu i termin. Nie testujemy bez Twojej pisemnej zgody."],
+      ["03", "Otrzymaj ustalenia", "Pokazujemy, które zabezpieczenia zadziałały w teście, które zawiodły i czego nie udało się ustalić."],
     ],
     howNote: "To nie pełny pentest, certyfikacja, naprawa ani monitoring.",
     scopeLabel: "Zobacz pełny zakres",
@@ -138,7 +138,7 @@ export const HOMEPAGE_CUT_FORM_COPY = {
   },
   pl: {
     workflowHelp: "Tylko ogólnie. Bez sekretów, logów i danych klientów.",
-    next: "Poprosimy o potwierdzenie e-maila, potem odpowiemy w sprawie dopasowania.",
+    next: "Po potwierdzeniu adresu e-mail odpowiemy, czy możemy przetestować opisane działanie.",
     submitBoundary: "To tylko sprawdzenie dopasowania. Nie jest to rezerwacja, płatność ani zgoda na testy.",
   },
 } as const;

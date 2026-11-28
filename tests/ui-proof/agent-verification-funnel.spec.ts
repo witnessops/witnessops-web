@@ -450,7 +450,7 @@ test("recorded replay emits no live action request and downloaded receipt matche
       2,
     )}\n`,
   );
-  const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check", exact: true });
+  const reviewLink = page.locator('[data-ui-proof-id="witnessed-action-replay"]').getByRole("link", { name: "Request a security assessment", exact: true });
   await expect(reviewLink).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
   await expect(reviewLink.locator("..")).toContainText("AI Agent Red Teaming");
   await reviewLink.click();

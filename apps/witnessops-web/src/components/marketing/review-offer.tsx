@@ -26,9 +26,9 @@ const COPY = {
     reviews: "/pl/reviews",
     receive: "Zachowujesz raport i dowody.",
     limits: "Czym to nie jest.",
-    start: "Najpierw uzgadniamy zakres. Ustalenia idą razem z dowodami.",
+    start: "Jak przebiegają testy",
     agentEyebrow: "Testy bezpieczeństwa agentów AI",
-    fitNote: "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów. Zakres, upoważnienie i obsługę dowodów uzgadniamy przed rozpoczęciem pracy.",
+    fitNote: "Opisz działanie bez podawania poufnych informacji. Przed testami uzgodnimy zakres, potrzebne upoważnienia i sposób przekazania dowodów.",
     example: "Przykład i jego ograniczenia",
   },
 } as const;

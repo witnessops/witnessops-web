@@ -32,7 +32,7 @@ test("synthetic Polish issuance stores the new email template version", async ()
     });
     const stored = await getIssuanceById(issued.issuanceId);
     assert.equal(stored?.delivery?.provider, "file");
-    assert.equal(stored?.delivery?.templateVersion, "tier1-code-v5-light");
+    assert.equal(stored?.delivery?.templateVersion, "tier1-code-v6-light");
     const [file] = await readdir(env.WITNESSOPS_MAIL_OUTPUT_DIR);
     assert.ok(file);
     const text = await readFile(path.join(env.WITNESSOPS_MAIL_OUTPUT_DIR, file), "utf8");

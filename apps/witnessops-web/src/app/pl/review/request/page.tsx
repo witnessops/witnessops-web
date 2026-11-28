@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
       ? params.fitCall === "1" ? "Poproś o 20-minutową rozmowę z ekspertem" : "Zapytaj o ocenę bezpieczeństwa"
       : "To zgłoszenie nie rozpoczyna przeglądu",
     description: agentActionOrder
-      ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Operator potwierdzi dostępny termin zaproszeniem albo zaproponuje inne." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
+      ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Wyślemy zaproszenie lub zaproponujemy inny termin." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
       : "Ten link nie jest dostępny dla nowych zleceń. Istniejące zgłoszenia i podpisane umowy zachowują pierwotne warunki.",
     alternates: languageAlternates("/pl/contact", {
       en: "/contact",
@@ -57,7 +57,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.pl}</p>
               <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Porozmawiaj z ekspertem</h1>
               <p className="mt-4 text-base leading-7 text-text-muted">Poproś o 20-minutową rozmowę. Podaj tylko krótki, niepoufny temat, służbowy adres e-mail, strefę czasową i dwa preferowane terminy. To prośba, a nie rezerwacja.</p>
-              <p className="mt-3 text-sm leading-6 text-text-secondary">Po potwierdzeniu adresu kodem operator sprawdzi dostępność i potwierdzi termin zaproszeniem albo zaproponuje inne. {PUBLIC_AGENT_ACTION_OFFER.price.pl} To zgłoszenie nie upoważnia do rozpoczęcia przeglądu.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">Gdy potwierdzisz adres e-mail, wyślemy zaproszenie lub zaproponujemy inny termin. Stała cena {PUBLIC_AGENT_ACTION_OFFER.price.pl} dotyczy oceny jednego działania w jednym uzgodnionym procesie. Prośba o rozmowę nie rozpoczyna testów.</p>
             </header>
             <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
               <ContactForm compact fitCall locale="pl" intent={decision.intent} />
