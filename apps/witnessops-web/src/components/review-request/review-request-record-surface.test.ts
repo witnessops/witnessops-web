@@ -89,7 +89,7 @@ test("recorded confirmation keeps the no-secret and no-conclusion boundary visib
 test("External Attack Surface Review confirmation states the parked offer boundary", () => {
   assert.match(confirmed, /public-exposure-review/);
   assert.match(confirmed, /no longer available for new engagements/);
-  assert.match(confirmed, /not the AI Agent Red Teaming/);
+  assert.match(confirmed, /AI Agent Red Teaming is a separate service/);
   assert.match(confirmed, /No new target-facing work starts from this confirmation alone/);
   assert.match(confirmed, /\/pl\/reviews\/external-attack-surface-review/);
   assert.match(confirmed, /\/reviews\/external-attack-surface-review/);

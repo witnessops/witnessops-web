@@ -266,7 +266,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (sku.id === "OFFSEC-EXTERNAL-EXPOSURE") {
     return {
       title: "External Attack Surface Review is no longer available",
-      description: "WitnessOps no longer accepts new External Attack Surface Review engagements. This is not the AI Agent Red Teaming.",
+      description: "WitnessOps no longer accepts new External Attack Surface Review engagements. AI Agent Red Teaming is a separate service.",
       robots: { index: false, follow: true },
     };
   }

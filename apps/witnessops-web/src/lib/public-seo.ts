@@ -106,8 +106,8 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
   const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
   const polish = locale === "pl";
   const description = polish
-    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To nie jest Red teaming agentów AI. To nie jest test penetracyjny."
-    : "External Attack Surface Review is no longer available for new engagements. It is not the AI Agent Red Teaming. It is not a penetration test.";
+    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Red teaming agentów AI to odrębna usługa. To nie jest test penetracyjny."
+    : "External Attack Surface Review is no longer available for new engagements. AI Agent Red Teaming is a separate service. It is not a penetration test.";
 
   return {
     "@context": "https://schema.org",

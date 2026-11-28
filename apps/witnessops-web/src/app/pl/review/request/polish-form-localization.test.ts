@@ -25,7 +25,7 @@ test("Polish request chrome uses the agent review and closes a parked external q
   const externalQuery = { searchParams: Promise.resolve({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }) };
   const external = renderToStaticMarkup(await PolishReviewRequestPage(externalQuery));
   assert.match(external, /External Attack Surface Review nie jest już dostępny/);
-  assert.match(external, /To nie jest Red teaming agentów AI/);
+  assert.match(external, /Red teaming agentów AI to odrębna usługa/);
   assert.doesNotMatch(external, /<form|€1[\s,\u00a0]?900/);
 
   const unknownQuery = { searchParams: Promise.resolve({ offerId: "unknown" }) };

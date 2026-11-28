@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
 
 import {
   buildReviewRequestConfirmation,
@@ -59,6 +62,50 @@ test("builds the browser-held record for standalone email verification", () => {
       source: "request-form",
     },
   );
+});
+
+test("new request records keep the offer label shown at confirmation, including after a language switch", () => {
+  for (const [locale, displayedOfferLabel] of [
+    ["en", "AI Agent Red Teaming"],
+    ["pl", "Red teaming agentów AI"],
+  ] as const) {
+    const path = locale === "pl" ? "/pl/review/request/confirmed" : "/review/request/confirmed";
+    const confirmation = buildReviewRequestConfirmation(
+      { ...validResponse, postVerifyPath: path },
+      { locale, requestKind: "agent-action-security-review", source: "request-form", displayedOfferLabel },
+    );
+    assert.ok(confirmation);
+    let saved = "";
+    storeReviewRequestConfirmation({ setItem: (_key, value) => { saved = value; } }, confirmation);
+    const reloaded = readReviewRequestConfirmation({ getItem: () => saved }, locale === "pl" ? "en" : "pl");
+    assert.ok(reloaded);
+    assert.equal(reloaded.offerLabel, displayedOfferLabel);
+    const html = renderToStaticMarkup(createElement(ReviewRequestRecord, { confirmation: reloaded }));
+    assert.ok(html.includes(displayedOfferLabel));
+    assert.ok(buildReviewRequestConfirmationText(reloaded).includes(displayedOfferLabel));
+  }
+});
+
+test("an ID-only confirmation displays its identifier without inferring a name or fee", () => {
+  const id = "agent-action-security-review";
+  const oldRecord = JSON.stringify({
+    schema: "witnessops.review-request-confirmation.v1",
+    requestReference: validResponse.intakeId,
+    confirmedAt: validResponse.verifiedAt,
+    locale: "en",
+    requestKind: id,
+    source: "request-form",
+  });
+  const standalone = buildStandaloneReviewRequestConfirmation({ ...validResponse, requestIntent: id });
+  for (const record of [standalone, readReviewRequestConfirmation({ getItem: () => oldRecord }, "pl")]) {
+    assert.ok(record);
+    const copied = buildReviewRequestConfirmationText(record);
+    const rendered = renderToStaticMarkup(createElement(ReviewRequestRecord, { confirmation: record }));
+    for (const output of [copied, rendered]) {
+      assert.ok(output.includes(id));
+      assert.doesNotMatch(output, /AI Agent Red Teaming|Red teaming agentów AI|Agent Action Security Review|€/);
+    }
+  }
 });
 
 test("fit-call confirmation requires the verified server marker and stores no request details", () => {

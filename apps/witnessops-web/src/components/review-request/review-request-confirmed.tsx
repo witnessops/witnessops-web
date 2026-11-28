@@ -70,7 +70,7 @@ const copy = {
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review is no longer available for new engagements. This recorded request is not the AI Agent Red Teaming.",
+      "External Attack Surface Review is no longer available for new engagements. This request retains its original service. AI Agent Red Teaming is a separate service.",
       "Issued agreements keep their original terms. We will confirm by email whether any remaining work still applies under those terms.",
       "No new target-facing work starts from this confirmation alone.",
     ],
@@ -119,7 +119,7 @@ const copy = {
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zapisane zgłoszenie nie jest Red teaming agentów AI.",
+      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zgłoszenie dotyczy pierwotnej usługi. Red teaming agentów AI to odrębna usługa.",
       "Dotychczasowe uzgodnienia zachowują pierwotne warunki. Potwierdzimy e-mailem, czy na ich podstawie pozostały jeszcze prace do wykonania.",
       "Samo to potwierdzenie nie rozpoczyna nowej pracy wobec celu.",
     ],
@@ -209,7 +209,7 @@ export function ReviewRequestConfirmed({
     ? text.fitCallNextSteps
     : publicExposureReview
     ? text.publicExposureNextSteps
-    : agentActionRequest
+    : agentActionRequest && confirmation.offerLabel
       ? text.agentActionNextSteps
       : primaryOfferRequest
         ? text.primaryOfferNextSteps

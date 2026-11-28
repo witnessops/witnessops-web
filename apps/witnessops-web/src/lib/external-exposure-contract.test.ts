@@ -69,7 +69,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
 
   const landing = getServiceLanding(service.id, "en");
   assert.match(landing.commercialNote ?? "", /no longer available for new engagements/i);
-  assert.match(landing.commercialNote ?? "", /not the AI Agent Red Teaming/i);
+  assert.match(landing.commercialNote ?? "", /AI Agent Red Teaming is a separate service/i);
   assert.equal(landing.primaryCta, "See availability notice");
   assert.doesNotMatch(landing.commercialNote ?? "", /€1,900|Request an external review|Payment is due in full|No sales call required/i);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500|€550|3 working days|three working days/i);

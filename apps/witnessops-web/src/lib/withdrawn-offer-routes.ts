@@ -22,7 +22,7 @@ export const WITHDRAWN_OFFER_PATHS = [
   "/catalog/workflows",
 ] as const;
 
-/** Retired samples outside the AI Agent Red Teaming. These return 410. */
+/** Retired samples outside the scope of AI Agent Red Teaming. These return 410. */
 export const WITHDRAWN_SAMPLE_PATHS = [
   "/review/sample-cases/external-exposure-assessment",
   "/pl/review/sample-cases/external-exposure-assessment",

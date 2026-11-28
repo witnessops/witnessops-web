@@ -496,7 +496,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation, null);
   assert.match(externalAnswer.text, /no longer available/);
-  assert.match(externalAnswer.text, /not the AI Agent Red Teaming/);
+  assert.match(externalAnswer.text, /AI Agent Red Teaming is a separate service/);
   assert.doesNotMatch(externalAnswer.text, /€1,900/);
   assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:withdrawn}]}), null);
   assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:withdrawn}]}), null);

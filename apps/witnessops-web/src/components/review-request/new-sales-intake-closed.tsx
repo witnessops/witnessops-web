@@ -14,7 +14,7 @@ const copy = {
     title: "This link does not start a new review",
     parkedTitle: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available`,
     body: `New paid-review requests accept only ${PUBLIC_AGENT_ACTION_OFFER.name.en}. A legacy, unknown, or conflicting identifier is not a request.`,
-    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. It is not the ${PUBLIC_AGENT_ACTION_OFFER.name.en}.`,
+    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available for new engagements. ${PUBLIC_AGENT_ACTION_OFFER.name.en} is a separate service.`,
     records:
       "Existing requests and issued agreements keep their original terms.",
     agent: PUBLIC_AGENT_ACTION_OFFER.name.en,
@@ -24,7 +24,7 @@ const copy = {
     title: "Ten link nie rozpoczyna nowego przeglądu",
     parkedTitle: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny`,
     body: `Nowe zgłoszenia dotyczące płatnego przeglądu przyjmujemy wyłącznie dla ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. Ten link zawiera nieaktualne, nieznane lub sprzeczne informacje o ofercie. Nie jest zgłoszeniem.`,
-    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. To nie jest ${PUBLIC_AGENT_ACTION_OFFER.name.pl}.`,
+    parkedBody: `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny dla nowych zleceń. ${PUBLIC_AGENT_ACTION_OFFER.name.pl} to odrębna usługa.`,
     records:
       "Istniejące zgłoszenia i dotychczasowe uzgodnienia zachowują pierwotne warunki.",
     agent: PUBLIC_AGENT_ACTION_OFFER.name.pl,

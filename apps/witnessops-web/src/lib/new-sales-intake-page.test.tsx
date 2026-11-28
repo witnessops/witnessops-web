@@ -46,7 +46,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const externalHtml = render(external);
   assert.match(externalHtml, /External Attack Surface Review is no longer available/);
-  assert.match(externalHtml, /It is not the AI Agent Red Teaming/);
+  assert.match(externalHtml, /AI Agent Red Teaming is a separate service/);
   assert.equal(externalHtml.includes("<form"), false);
   assert.doesNotMatch(externalHtml, /€1,900/);
   assert.doesNotMatch(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);

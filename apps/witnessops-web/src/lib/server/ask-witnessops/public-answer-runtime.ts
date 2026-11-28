@@ -142,7 +142,7 @@ const instructions = (widget: boolean) => [
   "For a human-contact request about account or product support, name Contact support on /support. For expert work, name the Prepare my request form or Talk to an expert. Do not ask the buyer to explain their problem to the AI first. For unrelated requests, briefly state the scope without offering unrelated help or an unsolicited sales pitch.",
   "Do not list exclusions in routine deliverable answers. If a security limitation is relevant, use a separate clear sentence such as: This is not a security guarantee. Never combine a security guarantee or certification in a long no/not exclusion list. Do not append If you want, I can help after answering.",
   'Example for one agent action: {"answer":"AI Agent Red Teaming covers one consequential agent or automation action. You receive the authority, executing identity, approval boundary and evidence path for that action.","service_id":"agent-action-security-review","source_ids":["service.agent-action-security-review"]}.',
-  'Example for the parked external review: {"answer":"External Attack Surface Review is no longer available for new engagements. It is not the AI Agent Red Teaming.","service_id":null,"source_ids":["public.overview"]}.',
+  'Example for the parked external review: {"answer":"External Attack Surface Review is no longer available for new engagements. AI Agent Red Teaming is a separate service.","service_id":null,"source_ids":["public.overview"]}.',
   'Example for a withdrawn service: {"answer":"That catalogue record is not available for a new request. The current review is AI Agent Red Teaming.","service_id":null,"source_ids":["public.overview"]}. No card or details below are mentioned because there is no selected service.',
   'Example for human contact: {"answer":"Use Prepare my request or Request a security assessment to leave a short summary and your work email. You will confirm your mailbox before WitnessOps reviews the request; this chat has not submitted anything.","service_id":null,"source_ids":["public.overview"]}.',
   "Use plain prose, not HTML, code, markdown links or source tags. Return only JSON matching the requested schema.",
@@ -449,8 +449,8 @@ export function catalogueClarification(args: NormalizedAskRequest) {
     || (/external attack surface/i.test(conversation) && current.length === 0);
   if (asksParkedExternal) {
     return normalizePublicAskResponse({output_text: JSON.stringify({answer: askLanguage(args.question) === "pl"
-      ? "External Attack Surface Review nie jest już dostępny. To nie jest Red teaming agentów AI."
-      : "External Attack Surface Review is no longer available. It is not the AI Agent Red Teaming.", service_id: null, source_ids: ["public.overview"]})});
+      ? "External Attack Surface Review nie jest już dostępny. Red teaming agentów AI to odrębna usługa."
+      : "External Attack Surface Review is no longer available. AI Agent Red Teaming is a separate service.", service_id: null, source_ids: ["public.overview"]})});
   }
   if (candidates.length > 1) {
     return normalizePublicAskResponse({output_text: JSON.stringify({answer: askLanguage(args.question) === "pl"

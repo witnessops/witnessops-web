@@ -710,6 +710,7 @@ export function ContactForm({
           locale,
           requestKind: payload.requestMode === "fit-call" ? "fit-call" : resolveReviewRequestKind(submittedIntent),
           source: "request-form",
+          displayedOfferLabel: selectedService?.name[locale],
         });
         if (!confirmation) {
           throw new Error(
