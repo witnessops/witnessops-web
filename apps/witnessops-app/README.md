@@ -2,6 +2,10 @@
 
 UX reference: `witnessops/witnessops-demo-ui` at `4887c0fc5f2ac6742de0f4c9e11cb11e8603ade4`. The app uses WorkOS AuthKit for identity/session and WitnessOps-owned PostgreSQL data for workspace access. Deployment state requires separate runtime evidence.
 
+## Product identity and Academy
+
+WorkOS AuthKit implements product sign-in on this source line. Academy has its own Keycloak client and learner admission rules. On 28 November 2026 a separate product migration candidate exercised login, workspace access and logout for one pre-linked synthetic account. That run covered neither existing-account migration nor hosted acceptance. The candidate remains a separate [authentication workstream](https://github.com/witnessops/witnessops-web/pull/596). See the [project architecture](../../ARCHITECTURE.md).
+
 ## Local setup
 
 Use Node 22 and pnpm 9.15.4 from the monorepo root:

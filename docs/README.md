@@ -6,6 +6,10 @@ that are not public site content.
 
 ## Current docs
 
+- [Manifesto](../MANIFESTO.md) — mission, customer priorities and commercial direction.
+- [Architecture](../ARCHITECTURE.md) — system boundaries, implementation evidence and release status.
+- [Project charter](../SOUL.md) and [engineering instructions](../AGENTS.md) — operating principles, session startup and acceptance.
+
 - [`commercial/`](./commercial/README.md) — commercial delivery kit.
 - [`EMAIL-SIGNATURE-RESEND.md`](./EMAIL-SIGNATURE-RESEND.md) — public ops signature paste rules.
 - [`CODEX_SECURITY_THREAT_MODEL.md`](./CODEX_SECURITY_THREAT_MODEL.md) — seed context for Codex Security review.

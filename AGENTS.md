@@ -10,6 +10,18 @@ Published remote: `https://github.com/witnessops/witnessops-web`
 Default branch: `main`
 Release authority: explicit operator action; merge alone is not deployment authority.
 
+## Start each session
+
+WitnessOps exists to make consequential AI and security work independently verifiable. Read the [README](README.md) for orientation, the [manifesto](MANIFESTO.md) for customer priorities and commercial direction, the [project charter](SOUL.md) for working principles, and the [architecture](ARCHITECTURE.md) for component owners and the evidence behind runtime claims. Then read the applicable subtree instructions and the contract that owns the change. Signed agreements govern customer terms. The [command contract](commands.md), adopted product decisions and [deployment boundary](docs/DEPLOYMENT_AUTHORITY.md) govern their respective subjects.
+
+Confirm the checkout, branch, HEAD, staged, unstaged and untracked work before editing. Inspect relevant concurrent changes again before handoff. Preserve work in progress, including changes by other contributors. Resolve an overlap with its owner before replacing it.
+
+Find the existing implementation and its consumers first. Define completion as an observable outcome for a buyer, operator, learner or workspace member. Keep the ordinary path simple. Preserve the evidence needed to reproduce a consequential result and its limits.
+
+For material claims, distinguish **proposed** (under consideration), **authorized** (permission for a specific action), **attempted** (action started), **observed** (result seen), **tested** (scenario exercised), **verified** (named check supports the claim), **accepted** (owner decision), and **deployed** (release identified at its destination). Record unknowns explicitly. Never invent execution, tests, delegation, independent review or deployment.
+
+Finish authorized work through the applicable checks. Obtain explicit authority for production changes, external communication, publication, spending and customer commitments. For a handoff, record the revision and diff, actual commands and results, evidence location, remaining gaps, recovery path for material changes and next owner decision. Keep sensitive evidence outside the public repository.
+
 ## Cloud agent quick start
 
 Node 22 and pnpm 9.15.4 are preinstalled in the Cloud Agent image. `.nvmrc` is `22`. `packageManager` and `engines.pnpm` are `pnpm@9.15.4`. CI installs the same pnpm version and Node 22.
@@ -66,7 +78,7 @@ their existing approval and execution gates.
 ## Authenticated app and CLI boundaries
 
 - `apps/witnessops-app/` owns the product's account/workspace, membership, saved-result, report-sharing and sandbox seat-billing implementation. Read its [README](./apps/witnessops-app/README.md) and [API contract](./apps/witnessops-app/src/lib/api-contract.ts) before changing these paths.
-- WorkOS authentication, current workspace membership, product entitlements and collection/CLI authorization are separate checks. Preserve Owner/Contributor/Viewer restrictions and revocation behavior.
+- Identity and session validation, current workspace membership, product entitlements and collection/CLI authorization are separate checks. WorkOS AuthKit provides product identity and sessions in this source. Academy owns its separate identity integration. Consult the architecture and app README for the status of candidate migrations. Preserve Owner/Contributor/Viewer restrictions and revocation behavior.
 - Signup, joining a workspace and payment never authorize collection by themselves. Preserve existing historical admission/consent behavior; do not silently convert it into new billing terms.
 - Preserve original source evidence, material unknowns and synthetic labels. Report sharing uses an explicit recipient projection and a fixed revision; it grants no workspace membership and must not expose unselected source data.
 - The CLI source in `packages/wops-cli/` and the app's separately scoped server-check/finalization implementation are not the receipt-only verifier. Their presence does not authorize collection, signing, provider activation or deployment.
