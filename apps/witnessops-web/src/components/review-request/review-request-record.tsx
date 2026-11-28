@@ -34,7 +34,7 @@ const copyByLocale = {
     nextStepLabel: "Next step",
     nextStep: "Asynchronous fit and scope review",
     boundary:
-      "This records mailbox access and intake capture only. It is not a proof receipt, verifier result, identity proof, scope acceptance, or start-of-work record.",
+      "These facts describe the time of mailbox confirmation. This record confirms mailbox access and intake capture only. It is not a proof receipt, verifier result, identity proof, scope acceptance, or start-of-work record.",
     copy: "Copy request record",
     copied: "Record copied",
     failed: "Select record below",
@@ -63,7 +63,7 @@ const copyByLocale = {
     nextStepLabel: "Następny krok",
     nextStep: "Asynchroniczna ocena dopasowania i zakresu",
     boundary:
-      "Ten zapis potwierdza wyłącznie dostęp do skrzynki i przyjęcie zgłoszenia. Nie jest paragonem dowodowym, wynikiem weryfikatora, potwierdzeniem tożsamości, akceptacją zakresu ani zapisem rozpoczęcia pracy.",
+      "Dane dotyczą chwili potwierdzenia adresu e-mail. Ten zapis potwierdza wyłącznie dostęp do skrzynki i przyjęcie zgłoszenia. Nie jest paragonem dowodowym, wynikiem weryfikatora, potwierdzeniem tożsamości, akceptacją zakresu ani zapisem rozpoczęcia pracy.",
     copy: "Kopiuj zapis zgłoszenia",
     copied: "Zapis skopiowany",
     failed: "Zaznacz zapis poniżej",

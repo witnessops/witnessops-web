@@ -10,10 +10,7 @@ import {
   buyerServiceById,
   type BuyerService,
 } from "@/lib/buyer-services";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
   readReviewRequestConfirmation,
   type ReviewRequestConfirmation,
@@ -56,18 +53,13 @@ const copy = {
     nextLabel: "What happens next",
     nextSteps: [
       "We assess whether this request fits one bounded review.",
-      "We confirm scope, authority, evidence handling, timing, and fee by email.",
-      "Work begins only after those terms are explicitly agreed.",
-    ],
-    agentActionNextSteps: [
-      `We assess one consequential agent or automation action. ${PUBLIC_AGENT_ACTION_OFFER.fitCheckQuestion.en} No secrets yet.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.price.en} Before active testing, agree the environment, permitted actions, authority, executing identity, approval boundary, stop conditions, recovery and evidence handling.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.timing.en} The request and mailbox confirmation do not start work.`,
+      "Any agreed scope, fee, capacity and timing are recorded in a separate signed statement of work.",
+      "Testing requires written authorisation and agreed evidence handling.",
     ],
     primaryOfferNextSteps: [
-      "This recorded request stays agent-tools-access-review. It is not reassigned to AI Agent Red Teaming.",
-      `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")} External Attack Surface Review is no longer available for new engagements.`,
-      "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
+      "This request retains its agent-tools-access-review identifier.",
+      "Any signed agreement retains its original scope, fee and timing. Refer to that agreement for the applicable terms.",
+      "Mailbox confirmation recorded the enquiry. It did not start work.",
     ],
     publicExposureNextSteps: [
       "External Attack Surface Review is no longer available for new engagements. This request retains its original service. AI Agent Red Teaming is a separate service.",
@@ -105,18 +97,13 @@ const copy = {
     nextLabel: "Co wydarzy się dalej",
     nextSteps: [
       "Sprawdzimy, czy zgłoszenie pasuje do przeglądu o określonym zakresie.",
-      "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
-      "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
-    ],
-    agentActionNextSteps: [
-      "Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu. Nie wysyłaj jeszcze danych poufnych.",
-      `${PUBLIC_AGENT_ACTION_OFFER.price.pl} Przed aktywnym testem uzgadniamy środowisko, dozwolone działania, upoważnienie, tożsamość wykonującą działanie, granice zatwierdzania, warunki przerwania, odtworzenie stanu i obsługę dowodów.`,
-      `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
+      "Uzgodniony zakres, cenę, dostępność i termin określa osobna podpisana umowa o zakresie prac.",
+      "Testy wymagają pisemnego upoważnienia i uzgodnienia zasad obsługi materiałów.",
     ],
     primaryOfferNextSteps: [
-      "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Red teaming agentów AI.",
-      `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
-      "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
+      "Zgłoszenie zachowuje identyfikator agent-tools-access-review.",
+      "Jeśli podpisano umowę, obowiązują zapisane w niej zakres, cena i termin.",
+      "Potwierdzenie adresu e-mail pozwoliło zapisać zgłoszenie. Nie rozpoczęło prac.",
     ],
     publicExposureNextSteps: [
       "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zgłoszenie dotyczy pierwotnej usługi. Red teaming agentów AI to odrębna usługa.",
@@ -196,11 +183,15 @@ export function ReviewRequestConfirmed({
     );
   }
 
+  return <RecordedReviewRequest confirmation={confirmation} />;
+}
+
+export function RecordedReviewRequest({ confirmation }: { confirmation: ReviewRequestConfirmation }) {
+  const { locale } = confirmation;
+  const text = copy[locale];
   const fitCallRequest = confirmation.requestKind === "fit-call";
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
-  const agentActionRequest =
-    confirmation.requestKind === "agent-action-security-review";
   const primaryOfferRequest =
     confirmation.requestKind === "agent-tools-access-review";
   const aiAgentActionProofRun =
@@ -209,11 +200,9 @@ export function ReviewRequestConfirmed({
     ? text.fitCallNextSteps
     : publicExposureReview
     ? text.publicExposureNextSteps
-    : agentActionRequest && confirmation.offerLabel
-      ? text.agentActionNextSteps
-      : primaryOfferRequest
-        ? text.primaryOfferNextSteps
-        : text.nextSteps;
+    : primaryOfferRequest
+    ? text.primaryOfferNextSteps
+    : text.nextSteps;
   const proofResource = publicExposureReview
     ? {
         href: locale === "pl"

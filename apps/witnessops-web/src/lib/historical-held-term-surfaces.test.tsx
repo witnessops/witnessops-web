@@ -153,8 +153,8 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     resolve(__dirname, "../components/review-request/review-request-confirmed.tsx"),
     "utf8",
   );
-  assert.ok(confirmation.includes(CURRENT_TIMING));
-  assert.match(confirmation, /Termin realizacji uzgodniony w podpisanym zakresie prac/);
+  assert.match(confirmation, /Any signed agreement retains its original scope, fee and timing/);
+  assert.match(confirmation, /Jeśli podpisano umowę, obowiązują zapisane w niej zakres, cena i termin/);
   assert.match(confirmation, /agent-tools-access-review/);
   assert.doesNotMatch(confirmation, /PRIMARY_OFFER\.timing|fixed quote after scope|stała wycena po określeniu zakresu/);
 });

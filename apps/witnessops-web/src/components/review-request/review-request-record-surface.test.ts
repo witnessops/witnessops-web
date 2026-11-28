@@ -60,9 +60,8 @@ test("direct confirmation-page visits do not claim a verified request", () => {
   assert.match(confirmed, /No confirmed request record is present/);
   assert.match(confirmed, /readReviewRequestConfirmation/);
   assert.match(confirmed, /WitnessOps \/ zapis zgłoszenia/);
-  assert.match(confirmed, /Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu/);
-  assert.match(confirmed, /PUBLIC_AGENT_ACTION_OFFER\.timing\.pl/);
-  assert.match(confirmed, /Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy/);
+  assert.match(confirmed, /Uzgodniony zakres, cenę, dostępność i termin określa osobna podpisana umowa/);
+  assert.doesNotMatch(confirmed, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.doesNotMatch(confirmed, /Your mailbox is verified/);
   assert.doesNotMatch(confirmed, /Request verified/);
 });
