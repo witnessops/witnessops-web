@@ -35,7 +35,14 @@ export const exposureSnapshotNote: EditorialEntry = {
   deck: 'Introductory note based on existing public WitnessOps product boundaries. No new target was checked for this article.',
   contentReference: 'src/app/research/reading-a-public-exposure-snapshot/page.tsx',
 };
-export const editorialArticles: readonly EditorialEntry[] = [civilizationArticle, exposureSnapshotNote];
+export const documentTrustNote: EditorialEntry = {
+  slug: 'document-trust-boundary', href: '/research/document-trust-boundary',
+  type: 'Research note', title: 'When a document asks an agent to act', publishedAt: '2026-11-28',
+  summary: 'Eight offline control checks examine document trust, action scope and independent receiver evidence. A historical research lead remains separate from the new synthetic results.',
+  deck: 'An offline WitnessOps control exercise tests a simple question: can reading a document become authority to perform an action?',
+  contentReference: 'src/app/research/document-trust-boundary/page.tsx',
+};
+export const editorialArticles: readonly EditorialEntry[] = [civilizationArticle, exposureSnapshotNote, documentTrustNote];
 export function editorialDate(value: string) {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(value + 'T00:00:00Z'));
 }

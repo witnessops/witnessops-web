@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 const essay = '/articles/when-civilization-can-no-longer-understand-itself';
 const note = '/research/reading-a-public-exposure-snapshot';
+const documentTrust = '/research/document-trust-boundary';
 for (const width of [1440,390]) {
   test(`editorial discovery and reading at ${width}`, async ({page}, info) => {
     await page.setViewportSize({width,height:900});
@@ -8,8 +9,9 @@ for (const width of [1440,390]) {
     await page.route('**/api/ask-witnessops', r=>r.fulfill({status:204}));
     expect((await page.goto('/research'))?.status()).toBe(200);
     await expect(page.getByRole('region',{name:'Featured',exact:true}).getByRole('link')).toHaveAttribute('href',essay);
-    await expect(page.getByRole('region',{name:'Latest',exact:true}).getByRole('link')).toHaveAttribute('href',note);
-    await expect(page.locator('main a')).toHaveCount(2);
+    await expect(page.getByRole('region',{name:'Latest',exact:true}).locator('a[href="'+note+'"]')).toHaveCount(1);
+    await expect(page.getByRole('region',{name:'Latest',exact:true}).locator('a[href="'+documentTrust+'"]')).toHaveCount(1);
+    await expect(page.getByRole('region',{name:'Latest',exact:true}).getByRole('link')).toHaveCount(2);
     await expect(page.locator('[data-editorial-hero] img')).toBeVisible();
     await expect(page.getByRole('region',{name:'Latest',exact:true}).locator('img')).toHaveCount(0);
     await expect(page.locator('main')).toContainText('Essay · 3 September 2026');
@@ -18,7 +20,7 @@ for (const width of [1440,390]) {
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.getByRole('region',{name:'Featured',exact:true}).getByRole('link').click();
     await expect(page).toHaveURL(new RegExp(essay+'$'));
-    for (const [path,type,title] of [[essay,'Essay','When Civilization Can No Longer Understand Itself'],[note,'Research note','How to read a public exposure snapshot']]) {
+    for (const [path,type,title] of [[essay,'Essay','When Civilization Can No Longer Understand Itself'],[note,'Research note','How to read a public exposure snapshot'],[documentTrust,'Research note','When a document asks an agent to act']]) {
       expect((await page.goto(path))?.status()).toBe(200);
       await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href','https://witnessops.com'+path);
       const article=page.locator('[data-editorial-article]');
@@ -37,10 +39,11 @@ for (const width of [1440,390]) {
       await expect(article.locator('h2').first()).toHaveCSS('font-family',/Inter/);
       const data=await page.locator('script[type="application/ld+json"]').textContent();const json=JSON.parse(data!);
       expect(json.mainEntityOfPage).toBe('https://witnessops.com'+path);expect(json.headline).toBe(title);expect(json.dateModified).toBe(json.datePublished);
-      const launcher=page.getByRole('button',{name:'Ask WitnessOps',exact:true});await expect(launcher).toBeVisible();
-      await page.screenshot({path:info.outputPath(`${type.replace(' ','-')}-${width}.png`)});
-      await article.locator('h2').first().scrollIntoViewIfNeeded();await expect(launcher).toBeVisible();
-      await page.screenshot({path:info.outputPath(`${type.replace(' ','-')}-body-${width}.png`)});
+      // Public pages no longer mount the assistant widget (Design 2026-11-13).
+      const launcher=page.getByRole('button',{name:/^Ask (WitnessOps|Sovereign)$/});await expect(launcher).toHaveCount(0);
+      await page.screenshot({path:info.outputPath(`${path.split('/').pop()}-${width}.png`)});
+      await article.locator('h2').first().scrollIntoViewIfNeeded();await expect(launcher).toHaveCount(0);
+      await page.screenshot({path:info.outputPath(`${path.split('/').pop()}-body-${width}.png`)});
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     }
     await page.locator('#site-footer').scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath(`footer-${width}.png`)});
@@ -50,5 +53,5 @@ for (const width of [1440,390]) {
 }
 test('sitemap lists each editorial URL exactly once', async ({request})=>{
   const response=await request.get('/sitemap.xml');expect(response.status()).toBe(200);const xml=await response.text();
-  for(const path of [essay,note])expect(xml.split(`<loc>https://witnessops.com${path}</loc>`).length-1).toBe(1);
+  for(const path of [essay,note,documentTrust])expect(xml.split(`<loc>https://witnessops.com${path}</loc>`).length-1).toBe(1);
 });

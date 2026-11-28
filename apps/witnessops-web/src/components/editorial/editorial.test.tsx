@@ -7,13 +7,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import ResearchPage from '@/app/research/page';
 import CivilizationPage from '@/app/(marketing)/articles/when-civilization-can-no-longer-understand-itself/page';
 import SnapshotNote from '@/app/research/reading-a-public-exposure-snapshot/page';
-import { editorialArticles, civilizationArticle, exposureSnapshotNote, editorialJsonLd, editorialMetadata } from '@/lib/research';
+import DocumentTrustPage from '@/app/research/document-trust-boundary/page';
+import { editorialArticles, civilizationArticle, exposureSnapshotNote, documentTrustNote, editorialJsonLd, editorialMetadata } from '@/lib/research';
 import { EditorialArticle } from './editorial-article';
 
-test('Research lists the Featured essay and Latest note once with stable links and dates', () => {
+test('Research lists the Featured essay and Latest notes once with stable links and dates', () => {
   const html = renderToStaticMarkup(<ResearchPage />);
-  assert.equal(editorialArticles.length, 2);
-  assert.equal(new Set(editorialArticles.map(x => x.href)).size, 2);
+  assert.equal(editorialArticles.length, 3);
+  assert.equal(new Set(editorialArticles.map(x => x.href)).size, editorialArticles.length);
   assert.match(html, /aria-label="Featured"[\s\S]*Featured · Essay ·/);
   assert.match(html, /3 September 2026/);
   assert.match(html, /Latest[\s\S]*Research note ·[\s\S]*10 September 2026/);
@@ -24,8 +25,8 @@ test('Research lists the Featured essay and Latest note once with stable links a
   assert.doesNotMatch(html, /lorem ipsum|placeholder|Coming soon/i);
 });
 
-test('Both articles use the original readable shell with correct identity and JSON-LD', () => {
-  for (const [Page, entry] of [[CivilizationPage, civilizationArticle], [SnapshotNote, exposureSnapshotNote]] as const) {
+test('All articles use the original readable shell with correct identity and JSON-LD', () => {
+  for (const [Page, entry] of [[CivilizationPage, civilizationArticle], [SnapshotNote, exposureSnapshotNote], [DocumentTrustPage, documentTrustNote]] as const) {
     const html = renderToStaticMarkup(<Page />);
     assert.match(html, /max-w-\[760px\].*data-editorial-article/);
     assert.equal(html.split('<h1').length - 1, 1);
@@ -111,4 +112,19 @@ test('Activated Civilization artwork matches supplied bytes and intrinsic PNG di
   assert.match(renderToStaticMarkup(<CivilizationPage />),/data-editorial-hero/);
   assert.match(renderToStaticMarkup(<ResearchPage />),/data-editorial-hero/);
   assert.equal(exposureSnapshotNote.hero,undefined);
+});
+
+test('Document trust research distinguishes historical claims from scripted observations', () => {
+  const html = renderToStaticMarkup(<DocumentTrustPage />);
+  const summary = JSON.parse(readFileSync(resolve(process.cwd(), 'public/research/document-trust-control-summary.json'), 'utf8'));
+  assert.match(html, /Eight checks, eight passes/);
+  assert.match(html, /not a live model security evaluation/);
+  assert.match(html, /original submission archive and execution logs have not been recovered/i);
+  assert.match(html, /href="\/research\/document-trust-control-summary.json"/);
+  assert.equal(summary.cases.length, 8);
+  assert.ok(summary.cases.every((c: {status: string}) => c.status === 'PASS'));
+  assert.equal(summary.model_calls, 0);
+  assert.equal(summary.receiver_rows_in_denied_cases, 0);
+  assert.equal(summary.approved_positive_receiver_rows, 1);
+  assert.doesNotMatch(JSON.stringify(summary), /\/home\/|file_000|sqlite3|BUGCROWD-SUBMISSION/i);
 });
