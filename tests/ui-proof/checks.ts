@@ -106,8 +106,9 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
+  const locale = new URL(page.url()).pathname.startsWith("/pl") ? "pl" : "en";
   const expectedFitCheckHref = buyerPublicOfferRequestHref(
-    new URL(page.url()).pathname.startsWith("/pl") ? "pl" : "en",
+    locale,
     PUBLIC_AGENT_ACTION_REVIEW_ID,
   );
   checks.push({
@@ -124,7 +125,7 @@ export async function checkHomepageHero(
     .getAttribute("href")
     .catch(() => null);
   // EN and PL homepages link the example record on the review page (Design 2026-11-13).
-  const expectedDemoHref = "/reviews/agent-action-security-review#example-record";
+  const expectedDemoHref = `${locale === "pl" ? "/pl" : ""}/reviews/agent-action-security-review#example-record`;
   checks.push({
     name: "sample CTA opens the supported sample destination",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",

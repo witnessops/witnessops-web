@@ -7,23 +7,15 @@ for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const response = await page.goto("/pricing");
     expect(response?.status()).toBe(200);
-    const description = `${PUBLIC_AGENT_ACTION_OFFER.name.en}: ${PUBLIC_AGENT_ACTION_OFFER.price.en}. ${PUBLIC_AGENT_ACTION_OFFER.timing.en}.`;
-    await expect(page).toHaveTitle("Review Pricing | WitnessOps");
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://witnessops.com/pricing");
-    for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-      await expect(page.locator(selector)).toHaveAttribute("content", description);
-    }
-    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Review Pricing | WitnessOps");
+    await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://witnessops.com/reviews/agent-action-security-review");
     const main = page.locator("main");
-    await expect(main.getByRole("heading", { level: 1 })).toHaveText("Review pricing and scope");
-    await expect(main.locator("[data-pricing-review]")).toHaveCount(1);
-    const agent = main.locator('[data-pricing-review="agent-action"]');
-    await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.name.en);
+    await expect(main.getByRole("heading", { level: 1 })).toHaveText(PUBLIC_AGENT_ACTION_OFFER.name.en);
+    const agent = main.getByRole("complementary");
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.price.en);
     await expect(agent).toContainText(PUBLIC_AGENT_ACTION_OFFER.timing.en);
     await expect(main).not.toContainText(/External Attack Surface Review|One Server Security Check|Early Bird|Internet Footprint Review|AI Agent Tools & Access Review/i);
-    const agentCta = agent.getByRole("link", { name: "Request a break test", exact: true });
-    expect(await agentCta.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
+    const agentCta = agent.getByRole("link", { name: "Request a security assessment", exact: true });
     expect(await agentCta.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     expect((await agentCta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -40,8 +32,8 @@ for (const width of [390, 1440]) {
 
 test("catalogue and withdrawn routes preserve their current dispositions", async ({ page }) => {
   await page.goto("/catalog");
-  await expect(page).toHaveURL(/\/reviews$/);
-  await expect(page.locator("[data-buyer-service]")).toHaveCount(1);
+  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review$/);
+  await expect(page.locator('[data-buyer-service-detail="agent-action-security-review"]')).toHaveCount(1);
   for (const route of ["/catalog/workflows", "/catalog/offsec-local-audit"]) {
     const response = await page.goto(route);
     expect(response?.status(), route).toBe(410);

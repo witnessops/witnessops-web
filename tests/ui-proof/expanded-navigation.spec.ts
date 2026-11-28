@@ -98,7 +98,7 @@ test("Polish mobile groups use Polish destinations and label English content", a
   await page.getByRole("button", { name: "Otwórz główną nawigację" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   await menu.getByRole("button", { name: "Przegląd", exact: true }).click();
-  await expect(menu.getByRole("link", { name: /Agent Action Security Review/ })).toHaveAttribute("href", "/pl/reviews/agent-action-security-review");
+  await expect(menu.getByRole("link", { name: /Red teaming agentów AI/ })).toHaveAttribute("href", "/pl/reviews/agent-action-security-review");
   await menu.getByRole("button", { name: "Odkrywaj", exact: true }).click();
   await expect(menu.getByRole("link", { name: /WitnessOps Academy \(EN\)/ })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: /The Sovereign Chronicles \(EN\)/ })).toHaveAttribute("href", "/chronicles");

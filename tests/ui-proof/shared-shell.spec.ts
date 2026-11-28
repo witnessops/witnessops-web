@@ -298,7 +298,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         `${route} footer contrast`,
       ).toBeGreaterThanOrEqual(4.5);
       if (viewport.width >= 1024 && !route.startsWith("/pl")) {
-        expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Request a break test");
+        expect(shell.desktopCtaLabel, `${route} desktop CTA label`).toBe("Request a security assessment");
         expect(shell.desktopCtaHref, `${route} desktop CTA destination`).toBe("/review/request");
         if (signupUrl) {
           expect(shell.desktopCtaHref, `${route} signup is not the header action`).not.toBe(signupUrl);
@@ -463,7 +463,7 @@ test("media kit exposes the exact canonical logo package without mobile overflow
 
     expect(response?.status()).toBe(200);
     await expect(page.locator('[data-ui-proof-id="logo-system-package"]')).toBeVisible();
-    await expect(page.locator("main")).toContainText("Agent Action Security Review");
+    await expect(page.locator("main")).toContainText("AI Agent Red Teaming");
     await expect(page.locator("#screenshots")).toHaveCount(0);
     await expect(page.locator('a[href^="/media-kit/witnessops-homepage-"]')).toHaveCount(0);
     await expect(page.getByRole("link", { name: /Download complete WitnessOps Logo System v1 ZIP/ })).toHaveAttribute(
@@ -504,7 +504,7 @@ test("media kit exposes the exact canonical logo package without mobile overflow
 
       const polishResponse = await page.goto("/pl/media-kit", { waitUntil: "networkidle" });
       expect(polishResponse?.status()).toBe(200);
-      await expect(page.locator("main")).toContainText("Agent Action Security Review");
+      await expect(page.locator("main")).toContainText("Red teaming agentów AI");
       await expect(page.locator("#screenshots")).toHaveCount(0);
       await expect(page.locator('a[href^="/media-kit/witnessops-homepage-"]')).toHaveCount(0);
       await expect(page.locator('[data-ui-proof-id="logo-system-package"]')).toBeVisible();
@@ -526,7 +526,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     const response = await page.goto("/review/request", { waitUntil: "networkidle" });
 
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole("heading", { name: "Start with a fit check. Don't send secrets." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Request a security assessment" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {

@@ -27,7 +27,7 @@ test("catalogue and pricing open the agent request path and withdrawn routes sta
     await page.goto(retired, { waitUntil: "networkidle" });
     await expect(page, retired).toHaveURL(/\/reviews\/agent-action-security-review$/);
   }
-  await expect(page.locator("main")).toContainText("Agent Action Security Review");
+  await expect(page.locator("main")).toContainText("AI Agent Red Teaming");
   await expect(page.locator("main")).not.toContainText("Private Pilot");
   await expect(page.locator("main")).not.toContainText("€950");
   await page.locator('[data-ui-proof-id="offer-in-page-cta"]').click();

@@ -17,7 +17,7 @@ for (const viewport of [
     await page.route("**/api/ask-witnessops", route => route.fulfill({ status: 204 }));
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-    await expect(hero.getByRole("heading", { level: 1 })).toHaveAccessibleName("We try to break your AI agent before someone else does.");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveAccessibleName("AI Agent Red Teaming for agents that take real-world actions.");
     await expect(page.locator("[data-home-offer]")).toHaveCount(0);
     await expect(page.getByRole("complementary", { name: "Free check — not a review" })).toHaveCount(0);
     await expectMenusOmitRetiredEntries(page);
@@ -32,7 +32,7 @@ for (const viewport of [
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Ask Sovereign", exact: true })).toHaveCount(0);
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
-    const primary = hero.getByRole("link", { name: "Request a break test", exact: true });
+    const primary = hero.getByRole("link", { name: "Request a security assessment", exact: true });
     await expect(primary).toHaveAttribute("href", /\/review\/request\?offerId=agent-action-security-review/);
     if (viewport.width >= 360) {
       // Fold check at the phone sizes the spec names; 320px is legacy-only.
@@ -43,7 +43,7 @@ for (const viewport of [
 
     const enquiry = page.locator("#enquiry");
     await enquiry.scrollIntoViewIfNeeded();
-    await expect(enquiry.getByRole("button", { name: "Request a break test" })).toBeVisible();
+    await expect(enquiry.getByRole("button", { name: "Request a security assessment" })).toBeVisible();
     await expect(enquiry).toContainText("We'll ask you to confirm your email, then reply about fit.");
     await page.screenshot({ path: `artifacts/ui-proof/priorities/enquiry-${viewport.width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -61,14 +61,14 @@ test("Polish homepage carries the same five sections and keeps docs reachable by
   await expect(page.locator(".pl-copy-review")).toHaveCount(0);
   await expect(page.locator("[data-home-hero-illustration]")).toBeHidden();
   for (const selector of ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]']) {
-    await expect(page.locator(selector)).toHaveAttribute("content", /Próbujemy przełamać Twojego agenta AI/);
+    await expect(page.locator(selector)).toHaveAttribute("content", /testy bezpieczeństwa agentów AI/i);
     await expect(page.locator(selector)).not.toHaveAttribute("content", /co ujawniają Twoje systemy/);
   }
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText(HOMEPAGE_CUT_COPY.pl.sub);
   const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-  await expect(hero).toContainText("Agent Action Security Review");
+  await expect(hero).toContainText("Red teaming agentów AI");
   await expect(hero).toContainText(/€2\s+500\s+bez\s+VAT/);
-  await expect(hero.getByRole("link", { name: "Poproś o test przełamania", exact: true })).toHaveAttribute("href", /\/pl\/review\/request\?offerId=agent-action-security-review/);
+  await expect(hero.getByRole("link", { name: "Zapytaj o ocenę bezpieczeństwa", exact: true })).toHaveAttribute("href", /\/pl\/review\/request\?offerId=agent-action-security-review/);
   await expect(page.locator("#enquiry form")).toBeVisible();
   await expect(page.locator("[data-home-offer]")).toHaveCount(0);
   await expect(page.locator("main")).toContainText("Nie testujemy bez Twojej pisemnej zgody.");

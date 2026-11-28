@@ -29,8 +29,8 @@ test("single-review catalogue routes remain responsive and usable", async ({ bro
     await expect(page.locator("main")).not.toContainText(/Nie wykonujemy (?:tego|badanego) działania|Nie wykonujemy go/);
     await expect(page.locator("main")).toContainText(scenario.path.startsWith("/pl") ? "Aktywnie testujemy jedno istotne działanie" : "Active adversarial testing of one consequential action");
     if (scenario.path.startsWith("/pl")) {
-      await expect(page.locator("main h1")).toHaveText("Przegląd zabezpieczeń działania agenta AI");
-      await expect(page.locator("main header")).toContainText("Agent Action Security Review");
+      await expect(page.locator("main h1")).toHaveText("Red teaming agentów AI");
+      await expect(page.locator("main header")).toContainText("Red teaming agentów AI");
     }
     const serviceCards = page.locator("[data-buyer-service]");
     await expect(serviceCards).toHaveCount(1);
@@ -90,7 +90,7 @@ test("single-review catalogue routes remain responsive and usable", async ({ bro
       expect(request.searchParams.get("offerId")).toBe(id);
       expect(request.searchParams.has("productId")).toBe(false);
       expect(request.searchParams.get("offer")).toBe(PUBLIC_AGENT_ACTION_OFFER.name[polish ? "pl" : "en"]);
-      await expect(primary).toHaveText(polish ? "Poproś o test przełamania" : "Request a break test");
+      await expect(primary).toHaveText(polish ? "Zapytaj o ocenę bezpieczeństwa" : "Request a security assessment");
       await expect(links).toHaveCount(2);
       await expect(links.nth(1)).toHaveAttribute("href", `${polish ? "/pl" : ""}/reviews/agent-action-security-review`);
       await expect(card.locator('a[href="/catalog/workflows"]')).toHaveCount(0);
@@ -137,11 +137,11 @@ test("pricing opens the agent review and the external review URL stays parked", 
   const detail = page.locator("main");
   await expect(detail).toHaveAttribute("data-offer-status", "parked");
   await expect(detail.locator("h1")).toHaveText("External Attack Surface Review is no longer available");
-  await expect(detail).toContainText("This is not the Agent Action Security Review.");
+  await expect(detail).toContainText("AI Agent Red Teaming is a separate service.");
   await expect(detail).toContainText("€2,500 excl. VAT");
   await expect(detail).not.toContainText("€1,900");
   await expect(detail).not.toContainText(/3 working days|three working days|€550|550 €/);
-  const fit = detail.getByRole("link", { name: "See the Agent Action Security Review", exact: true });
+  const fit = detail.getByRole("link", { name: "Explore AI Agent Red Teaming", exact: true });
   await expect(fit).toHaveAttribute("href", "/reviews/agent-action-security-review");
   await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
   await expect(detail.locator("form")).toHaveCount(0);

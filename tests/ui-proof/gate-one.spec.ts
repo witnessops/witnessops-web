@@ -76,7 +76,7 @@ for (const width of [1440, 390, 320]) {
       expect(response?.status(), route).toBe(200);
       const main = page.getByRole("main");
       await expect(main.getByRole("heading", { level: 1 })).toBeVisible();
-      await expect(main).toContainText("Agent Action Security Review");
+      await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.name[route.startsWith("/pl") ? "pl" : "en"]);
       await expect(main).toContainText(PUBLIC_AGENT_ACTION_OFFER.price[route.startsWith("/pl") ? "pl" : "en"]);
       await expect(main).not.toContainText(/External Attack Surface Review|€1[,\s]?900|€950|€550|10 working days|3 working days/);
       await expect(main.locator('a[href*="OFFSEC-EXTERNAL-EXPOSURE"]')).toHaveCount(0);
@@ -121,7 +121,7 @@ test("Gate 1 commercial metadata, structured data, sitemap and local links agree
       const jsonLd = await page.locator('script[type="application/ld+json"]').allTextContents();
       const services = jsonLd.map(value => JSON.parse(value) as { "@type"?: string; itemListElement?: Array<{ item: { name: string; offers: { description: string; price?: string | number } } }> }).find(value => value["@type"] === "ItemList");
       expect(services?.itemListElement).toHaveLength(1);
-      expect(services?.itemListElement?.[0].item.name).toBe("Agent Action Security Review");
+      expect(services?.itemListElement?.[0].item.name).toBe("AI Agent Red Teaming");
       expect(services?.itemListElement?.[0].item.offers.description).toBe(PUBLIC_AGENT_ACTION_OFFER.price.en);
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("price");
       expect(services?.itemListElement?.[0].item.offers).not.toHaveProperty("priceCurrency");
@@ -151,7 +151,7 @@ test("Gate 1 retired sales links explain withdrawal and preserved utility routes
       expect(response?.status()).toBe(200);
       const main = page.getByRole("main");
       await expect(main).toHaveAttribute("data-offer-status", "parked");
-      await expect(main).toContainText(prefix ? "Obecnie oferujemy inny przegląd: Agent Action Security Review" : "This is not the Agent Action Security Review");
+      await expect(main).toContainText(prefix ? "Red teaming agentów AI to odrębna usługa" : "AI Agent Red Teaming is a separate service");
       await expect(main).not.toContainText(/1[,\s\u00a0]?900/);
       await expect(main.locator('form, a[href*="/review/request"]')).toHaveCount(0);
     }

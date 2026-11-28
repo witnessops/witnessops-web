@@ -21,17 +21,17 @@ const externalReviewRedirects = [
     path: "/catalog/offsec-external-exposure",
     destination: "/reviews/external-attack-surface-review",
     title: "External Attack Surface Review is no longer available",
-    differentService: "This is not the Agent Action Security Review.",
+    differentService: "AI Agent Red Teaming is a separate service.",
     reviewHref: "/reviews/agent-action-security-review",
-    reviewLink: "See the Agent Action Security Review",
+    reviewLink: "Explore AI Agent Red Teaming",
   },
   {
     path: "/pl/catalog/offsec-external-exposure",
     destination: "/pl/reviews/external-attack-surface-review",
     title: "External Attack Surface Review nie jest już dostępny",
-    differentService: "Obecnie oferujemy inny przegląd: Agent Action Security Review.",
+    differentService: "Red teaming agentów AI to odrębna usługa.",
     reviewHref: "/pl/reviews/agent-action-security-review",
-    reviewLink: "Zobacz Agent Action Security Review",
+    reviewLink: "Zobacz Red teaming agentów AI",
   },
 ] as const;
 
@@ -73,8 +73,8 @@ test("current review puts its price and fit-check CTA before long detail on narr
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
       const main = page.locator('[data-buyer-service-detail="agent-action-security-review"]');
-      await expect(main.locator("h1")).toHaveText(locale === "en" ? "Agent Action Security Review" : "Przegląd zabezpieczeń działania agenta AI");
-      await expect(main.locator("header")).toContainText("Agent Action Security Review");
+      await expect(main.locator("h1")).toHaveText(locale === "en" ? "AI Agent Red Teaming" : "Red teaming agentów AI");
+      await expect(main.locator("header")).toContainText(locale === "en" ? "AI Agent Red Teaming" : "Red teaming agentów AI");
       const commercial = main.getByRole("complementary");
       await expect(commercial).toContainText(locale === "en" ? /€2,500\s+excl\.\s+VAT/ : /€2\s+500\s+bez\s+VAT/);
       const cta = commercial.getByRole("link");

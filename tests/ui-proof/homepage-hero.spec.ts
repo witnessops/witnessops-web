@@ -62,29 +62,29 @@ const askWorkflowFallback = {
   presented_sources: [],
 } as const;
 
-const questionnaireService = BUYER_SERVICES.find(service => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID)!;
-const questionnaireRequest = new URL(buyerServiceRequestHref("en", questionnaireService), "https://witnessops.com");
-questionnaireRequest.searchParams.set("source", "ask");
-const questionnaireRequestHref = `${questionnaireRequest.pathname}${questionnaireRequest.search}`;
+const assessmentService = BUYER_SERVICES.find(service => service.id === PUBLIC_AGENT_ACTION_REVIEW_ID)!;
+const assessmentRequest = new URL(buyerServiceRequestHref("en", assessmentService), "https://witnessops.com");
+assessmentRequest.searchParams.set("source", "ask");
+const assessmentRequestHref = `${assessmentRequest.pathname}${assessmentRequest.search}`;
 
-const generatedQuestionnaireAnswer = {
+const generatedAssessmentAnswer = {
   schema: "witnessops.ask.generated-answer.v1",
   status: "success",
   answer_mode: "ai_assisted",
   model: "gpt-5.4-mini",
   template: {
-    template_id: "ui-proof.generated-questionnaire",
-    body: "We can prepare proposed answers and evidence references for one customer security questionnaire. Your team approves the final answers before submission.",
+    template_id: "ui-proof.generated-assessment",
+    body: "We can test one agreed refund action and report which controls held, what changed and what remains unknown.",
     source_display: null,
   },
-  route: { route_id: "route.fit-check", href: questionnaireRequestHref },
+  route: { route_id: "route.fit-check", href: assessmentRequestHref },
   recommendation: {
-    service_id: questionnaireService.id,
-    name: questionnaireService.name.en,
-    price_label: questionnaireService.price.en,
-    delivery_label: questionnaireService.timing.en,
-    detail_href: questionnaireService.detailHref.en ?? "/catalog",
-    request_href: questionnaireRequestHref,
+    service_id: assessmentService.id,
+    name: assessmentService.name.en,
+    price_label: assessmentService.price.en,
+    delivery_label: assessmentService.timing.en,
+    detail_href: assessmentService.detailHref.en ?? "/catalog",
+    request_href: assessmentRequestHref,
   },
   commercial_fit: {
     ...askWorkflowFallback.commercial_fit,
@@ -238,7 +238,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
         ),
       );
       // Both locales render the five-section cut (Design 2026-11-13).
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", "/reviews/agent-action-security-review#example-record");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", `${path === "/pl" ? "/pl" : ""}/reviews/agent-action-security-review#example-record`);
       await expect(page.locator('main[data-home-direction="agents-act"]')).toHaveCount(1);
       const primary = page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]');
       const box = await primary.boundingBox();
@@ -258,7 +258,7 @@ test("English and Polish homepages preserve bounded entry points and evidence li
       await expect(page.locator("#home-process-heading")).toBeVisible();
       await expect(page.locator("#enquiry form")).toBeVisible();
       if (path === "/pl") {
-        await expect(page.locator("main").getByRole("link", { name: "Poproś o test przełamania", exact: true }).first()).toHaveAttribute(
+        await expect(page.locator("main").getByRole("link", { name: "Zapytaj o ocenę bezpieczeństwa", exact: true }).first()).toHaveAttribute(
           "href",
           buyerServiceRequestHref("pl", buyerServiceById(PUBLIC_AGENT_ACTION_REVIEW_ID)),
         );
@@ -372,13 +372,13 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
 
 test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
   test.skip(!askPreviewServer, "Legacy Ask WitnessOps component fixture; current production chat is covered in production-chat.spec.ts.");
-  expect(generatedQuestionnaireAnswer.route.href).toBe(generatedQuestionnaireAnswer.recommendation.request_href);
-  expect(new URL(generatedQuestionnaireAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
-  const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";
-  const followUpQuestion = "What should we prepare for Customer Security Review Sprint, without sharing secrets here?";
-  const visitorFact = "We need help with a customer's security questionnaire.";
-  const followUpAnswer = { ...generatedQuestionnaireAnswer, template: { ...generatedQuestionnaireAnswer.template,
-    body: "Prepare one questionnaire, the product scope, a named answer owner and references to existing policies. Agree a safe way to share evidence before the review starts." } };
+  expect(generatedAssessmentAnswer.route.href).toBe(generatedAssessmentAnswer.recommendation.request_href);
+  expect(new URL(generatedAssessmentAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
+  const firstQuestion = "Our agent can issue a refund after approval. What would you deliver?";
+  const followUpQuestion = "What should we prepare for a refund approval assessment, without sharing secrets here?";
+  const visitorFact = "Our agent can issue a refund after approval.";
+  const followUpAnswer = { ...generatedAssessmentAnswer, template: { ...generatedAssessmentAnswer.template,
+    body: "Describe the refund action, the approval boundary and the decision deadline. Agree a safe way to share evidence before the review starts." } };
   for (const width of [390, 1440]) {
     const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
     try {
@@ -388,7 +388,7 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await page.route("**/api/ask-witnessops", async route => {
         if (await fulfillAskTelemetry(route)) return;
         submitted.push(route.request().postDataJSON());
-        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(submitted.length === 2 ? followUpAnswer : generatedQuestionnaireAnswer) });
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(submitted.length === 2 ? followUpAnswer : generatedAssessmentAnswer) });
       });
       await page.route("**/api/contact", async route => {
         contact = route.request().postDataJSON();
@@ -398,12 +398,12 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       const composer = surface.getByLabel("Ask WitnessOps question");
       await composer.fill(firstQuestion);
       await surface.locator("[data-ask-composer] button[type=submit]").click();
-      await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
+      await expect(surface).toContainText(generatedAssessmentAnswer.template.body);
       await expect(surface.locator("summary").filter({ hasText: "About this AI" })).toBeVisible();
       const recommendation = surface.getByRole("region", { name: "Suggested service" });
-      await expect(recommendation).toContainText(questionnaireService.name.en);
-      await expect(recommendation).toContainText(questionnaireService.price.en);
-      await expect(recommendation).toContainText(generatedQuestionnaireAnswer.recommendation.delivery_label);
+      await expect(recommendation).toContainText(assessmentService.name.en);
+      await expect(recommendation).toContainText(assessmentService.price.en);
+      await expect(recommendation).toContainText(generatedAssessmentAnswer.recommendation.delivery_label);
       await expect(recommendation.getByRole("link", { name: "See scope" })).toHaveCount(0);
       await expect(surface.getByRole("region", { name: "Commercial fit", exact: true })).toHaveCount(0);
       await expect(surface.getByRole("button", { name: "What should we prepare?", exact: true })).toHaveCount(0);
@@ -412,7 +412,7 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await expect(surface).toContainText(followUpAnswer.template.body);
       expect(submitted).toEqual([{ question: firstQuestion, history: [] }, {
         question: followUpQuestion, history: [{ role: "user", content: firstQuestion },
-          { role: "assistant", content: generatedQuestionnaireAnswer.template.body }] }]);
+          { role: "assistant", content: generatedAssessmentAnswer.template.body }] }]);
       const disclosure = surface.locator("summary").filter({ hasText: "About this AI" });
       await disclosure.click();
       await expect(surface).toContainText("AI can make mistakes; a person confirms fit and scope.");
@@ -430,12 +430,12 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await expect(summary).not.toHaveValue(/What would you deliver|What should we prepare/);
       await share.uncheck();
       await expect(summary).toHaveValue("");
-      await summary.fill("One questionnaire for one product.");
+      await summary.fill("One refund action in one payments workflow.");
       await share.check();
       await expect(summary).toHaveValue(visitorFact);
-      await summary.fill("Help us scope one non-secret customer questionnaire.");
+      await summary.fill("Help us scope one refund approval assessment.");
       await share.uncheck();
-      await expect(summary).toHaveValue("One questionnaire for one product.");
+      await expect(summary).toHaveValue("One refund action in one payments workflow.");
       if (width < 1024) await share.check();
       await expect(surface).toContainText("AI answers are not shared");
       await expect(surface).toContainText("No mailing list or review booking");
@@ -443,16 +443,16 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await surface.getByRole("button", { name: "Send confirmation code" }).click();
       await expect(surface.getByLabel("Email code", { exact: true })).toBeFocused();
       expect(contact?.intent).toBe("ask-ai-contact");
-      expect(contact?.scope).toContain(`Offer: ${questionnaireService.id}`);
-      expect(contact?.scope).toContain(width < 1024 ? "Visitor-approved question: Help us scope one non-secret customer questionnaire." : "Visitor note: One questionnaire for one product.");
+      expect(contact?.scope).toContain(`Offer: ${assessmentService.id}`);
+      expect(contact?.scope).toContain(width < 1024 ? "Visitor-approved question: Help us scope one refund approval assessment." : "Visitor note: One refund action in one payments workflow.");
       expect(contact?.scope).toContain(width < 1024 ? "Question sharing: visitor opted in" : "Question sharing: not requested");
-      for (const excluded of [firstQuestion, followUpQuestion, generatedQuestionnaireAnswer.template.body, followUpAnswer.template.body]) expect(contact?.scope).not.toContain(excluded);
+      for (const excluded of [firstQuestion, followUpQuestion, generatedAssessmentAnswer.template.body, followUpAnswer.template.body]) expect(contact?.scope).not.toContain(excluded);
       await surface.getByRole("button", { name: "Back", exact: true }).click();
       await surface.getByRole("button", { name: "Start over", exact: true }).click();
       await expect(surface).not.toContainText(followUpAnswer.template.body);
       await composer.fill(firstQuestion);
       await surface.locator("[data-ask-composer] button[type=submit]").click();
-      await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
+      await expect(surface).toContainText(generatedAssessmentAnswer.template.body);
       expect(submitted[2]).toEqual({ question: firstQuestion, history: [] });
       expect(submitted).toHaveLength(3);
     } finally { await context.close(); }

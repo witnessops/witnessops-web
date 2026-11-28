@@ -9,7 +9,7 @@ import path from "node:path";
 
 const OUTPUT_DIR = path.resolve(
   process.cwd(),
-  "docs/product-decisions/assets/agent-verification-funnel",
+  "artifacts/ui-proof/agent-verification-funnel",
 );
 const FEATURED_SHA256 = "ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0";
 const HISTORICAL_SHA256 = "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5";
@@ -127,7 +127,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("We try to break your AI agent before someone else does.");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("AI Agent Red Teaming for agents that take real-world actions.");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toContainText(HOMEPAGE_CUT_COPY.en.sub);
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).not.toContainText("internet-facing systems");
       await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
@@ -452,10 +452,10 @@ test("recorded replay emits no live action request and downloaded receipt matche
   );
   const reviewLink = page.getByRole("link", { name: "Start a non-secret fit check", exact: true });
   await expect(reviewLink).toHaveAttribute("href", buyerPublicOfferRequestHref("en", PUBLIC_AGENT_ACTION_REVIEW_ID));
-  await expect(reviewLink.locator("..")).toContainText("Agent Action Security Review");
+  await expect(reviewLink.locator("..")).toContainText("AI Agent Red Teaming");
   await reviewLink.click();
   await expect(page).toHaveURL(new RegExp(`offerId=${PUBLIC_AGENT_ACTION_REVIEW_ID}`));
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(PUBLIC_AGENT_ACTION_REVIEW_ID);
-  await expect(page.locator("main")).toContainText("Selected offer: Agent Action Security Review");
+  await expect(page.locator("main")).toContainText("Selected offer: AI Agent Red Teaming");
   await context.close();
 });

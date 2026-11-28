@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const VERIFIER_PATH = "/samples/api-key-rotation/v1/verify.mjs";
 const REVIEW_HREF =
-  "/review/request?offerId=agent-action-security-review&offer=Agent+Action+Security+Review";
+  "/review/request?offerId=agent-action-security-review&offer=AI+Agent+Red+Teaming";
 
 test("the proof page enforces its bounded claim, offer, metadata, and replay contract", async ({
   browser,
@@ -39,16 +39,16 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.getByText(/real-world actor or approver identity/)).toBeVisible();
   await expect(page.getByText(/execution of the declared hard-stop conditions/)).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Need to review one important agent action?" })).toBeVisible();
-  await expect(page.locator("main")).toContainText("Agent Action Security Review");
+  await expect(page.locator("main")).toContainText("AI Agent Red Teaming");
   await expect(page.locator("main")).toContainText("€2,500 excl. VAT");
   await expect(page.locator("main")).toContainText("This synthetic one-action example is historical. It is not a complete sample of the current paid review. Its signed artifacts and verification tools do not become standard review deliverables.");
   await expect(page.locator("main")).toContainText("Non-secret fit and scoping request first.");
-  await expect(page.locator("main")).toContainText("We don't test until you give written authority.");
+  await expect(page.locator("main")).toContainText("Testing requires written authorisation.");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("AI Agent Tools & Access Review");
   await expect(page.locator("main")).not.toContainText("dated, source-bounded device inventory");
   await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.locator("main").getByRole("link", { name: "Request a break test", exact: true }))
+  await expect(page.locator("main").getByRole("link", { name: "Request a security assessment", exact: true }))
     .toHaveAttribute("href", REVIEW_HREF);
 
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(

@@ -11,7 +11,7 @@ for (const width of [390, 1440]) {
     const nav = page.getByRole('navigation', { name: 'Primary navigation', exact: true });
     if (width < 1024) await nav.getByRole('button', { name: 'Open primary navigation' }).click();
     const account = width < 1024 ? nav.locator('[data-mobile-account-actions]') : nav;
-    const cta = account.getByRole('link', { name: 'Request a break test', exact: true }).filter({ visible: true });
+    const cta = account.getByRole('link', { name: 'Request a security assessment', exact: true }).filter({ visible: true });
     await expect(cta).toHaveCount(1);
     await expect(cta).toHaveAttribute('href', '/review/request');
     await expect(cta).toBeInViewport();
