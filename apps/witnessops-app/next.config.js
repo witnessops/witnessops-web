@@ -13,7 +13,7 @@ module.exports = {
     WITNESSOPS_COMPILED_STAGING_WORKOS_CLIENT_ID: profile.workosClientId,
     WITNESSOPS_COMPILED_STAGING_DATABASE_SHA256: profile.databaseSha256,
   },
-  logging: { incomingRequests: { ignore: [/^\/callback(?:\?|$)/] } },
+  logging: { incomingRequests: { ignore: [/^\/callback(?:\?|$)/, /^\/auth\/keycloak\/callback(?:\?|$)/] } },
   distDir: process.env.WITNESSOPS_APP_BROWSER_TEST === "1" ? ".next-browser" : process.env.NODE_ENV === "development" ? ".next-dev" : ".next",
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."),

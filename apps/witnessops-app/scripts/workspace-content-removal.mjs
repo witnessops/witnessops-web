@@ -17,7 +17,7 @@ const where = table => related.includes(table) || table === 'report_share_names'
   ? 'share_id IN (SELECT id FROM report_shares WHERE workspace_id=$1)'
   : table === 'workspaces' ? 'id=$1' : 'workspace_id=$1';
 const exclusions = [
-  'Account and identity-provider records; workspace identity, memberships and admission history',
+  'Account and identity-provider records, including Keycloak sessions, pending auth attempts and session revocations; workspace identity, memberships and admission history',
   'Reserved report names (detached tombstones; names must not contain confidential data)',
   'Backups, logs, correspondence, provider records and previously downloaded/received copies',
 ];
@@ -25,9 +25,12 @@ const exclusions = [
 async function checkMigrations(client) {
   const dir = new URL('../db/migrations/', import.meta.url);
   const names = (await readdir(dir)).filter(n => /^\d{4}_[a-z_]+\.sql$/.test(n)).sort();
-  // 0024 adds composite unique and foreign keys only. It creates no table and does not
-  // change which rows this tool deletes. ON DELETE matches the previous foreign keys.
-  if (names.length !== 23 || names.at(-1) !== '0024_composite_tenant_keys.sql') {
+  // 0024 changes only tenant keys. 0025-0026 add account-bound Keycloak sessions
+  // and one-use auth attempts, neither of which belongs to a single workspace.
+  // Keep both with account identity records: a user may have other workspaces.
+  // 0027 broadens the account-level revocation subject constraint. None of these
+  // changes the workspace rows this tool removes. Unknown migrations still block.
+  if (names.length !== 26 || names.at(-1) !== '0027_keycloak_revocation_subjects.sql') {
     throw new Error('Removal scope needs review for this schema version');
   }
   const expected = [];

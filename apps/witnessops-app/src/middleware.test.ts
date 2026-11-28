@@ -23,7 +23,7 @@ after(() => {
 const event = undefined as unknown as NextFetchEvent;
 const reportOnlyHeader = "content-security-policy-report-only";
 const bypassPaths = ["/s", "/s/", "/api/shared-report", "/api/shared-report/", "/api/billing/webhook", "/api/billing/webhook/"];
-const authKeys = ["WORKOS_API_KEY", "WORKOS_CLIENT_ID", "WORKOS_COOKIE_PASSWORD", "WORKOS_COOKIE_DOMAIN", "WORKOS_COOKIE_SAMESITE", "NEXT_PUBLIC_WORKOS_REDIRECT_URI"] as const;
+const authKeys = ["WORKOS_API_KEY", "WORKOS_CLIENT_ID", "WORKOS_COOKIE_PASSWORD", "WORKOS_COOKIE_DOMAIN", "WORKOS_COOKIE_SAMESITE", "NEXT_PUBLIC_WORKOS_REDIRECT_URI", "WITNESSOPS_APP_AUTH_PROVIDER"] as const;
 let middleware: (request: NextRequest, fetchEvent: NextFetchEvent) => Promise<Response | undefined> | Response | undefined;
 
 function request(url: string, host = "127.0.0.1:3020", method = "GET") {
@@ -156,6 +156,22 @@ describe("app middleware CSP branches", { concurrency: false }, () => {
       assert.equal(directive(policy, "script-src").includes("unsafe-inline"), false);
       assert.match(directive(policy, "script-src"), /'nonce-/);
       assert.equal(response?.headers.get("content-security-policy"), null);
+    });
+  });
+
+  test("Keycloak mode preserves the app nonce without invoking AuthKit", async () => {
+    await withEnv({ ...unconfigured,
+      WITNESSOPS_APP_AUTH_PROVIDER: "keycloak",
+      WITNESSOPS_KEYCLOAK_ISSUER: "https://identity.example.test/realms/academy",
+      WITNESSOPS_KEYCLOAK_CLIENT_ID: "app-client",
+      WITNESSOPS_KEYCLOAK_CLIENT_SECRET: "placeholder",
+      WITNESSOPS_KEYCLOAK_CALLBACK_URL: "http://127.0.0.1:3020/auth/keycloak/callback",
+      WITNESSOPS_KEYCLOAK_TOKEN_KEYRING_FILE: "/tmp/example-keyring",
+    }, async () => {
+      const response = await middleware(request("http://127.0.0.1:3020/"), event);
+      assert.equal(response?.headers.get("x-middleware-next"), "1");
+      assert.equal(response?.headers.get("x-test-authkit"), null);
+      assert.match(directive(response?.headers.get(reportOnlyHeader) ?? null, "script-src"), /'nonce-/);
     });
   });
 });
