@@ -169,7 +169,6 @@ jobs:
           console.log(`- Commit: \`${report.commitSha}\``);
           console.log(`- Generated: \`${report.generatedAt}\``);
           console.log(`- Browser: \`${report.browser}\``);
-          console.log(`- Asset: \`${report.asset.assetId}\``);
           console.log("");
           console.log("| Scenario | Severity | Status | Viewport | Failed checks |");
           console.log("| --- | --- | --- | --- | --- |");

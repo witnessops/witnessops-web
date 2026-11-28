@@ -1,7 +1,6 @@
 import { execSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { assetFoundryVisuals } from "../../apps/witnessops-web/src/lib/asset-foundry-visuals";
 import type { HomepageHeroScenario, ScenarioSeverity } from "./scenarios";
 
 export const UI_PROOF_OUTPUT_DIR = path.join(
@@ -42,7 +41,7 @@ export type ScenarioResult = {
 };
 
 export type HomepageHeroUiProofReport = {
-  schemaVersion: "ui-proof-report.v1";
+  schemaVersion: "ui-proof-report.v2";
   proofType: "witnessops.web.homepage-hero.mobile";
   status: ReportStatus;
   repo: "witnessops/witnessops-web";
@@ -50,17 +49,6 @@ export type HomepageHeroUiProofReport = {
   generatedAt: string;
   commitSha: string;
   browser: "chromium";
-  asset: {
-    assetId: string;
-    src: string;
-    width: number;
-    height: number;
-    sourcePath?: string;
-    sourceRecord?: string;
-    sourceStatus?: string;
-    sourceCommit?: string;
-    sourceSha256?: string;
-  };
   artifacts: {
     report: string;
     grid: string;
@@ -92,11 +80,11 @@ export function reportStatus(results: ScenarioResult[]): ReportStatus {
 
 export async function writeHomepageHeroReport(
   results: ScenarioResult[],
+  outputDir = UI_PROOF_OUTPUT_DIR,
 ): Promise<HomepageHeroUiProofReport> {
-  await mkdir(UI_PROOF_OUTPUT_DIR, { recursive: true });
-  const asset = assetFoundryVisuals.homepageHero;
+  await mkdir(outputDir, { recursive: true });
   const report: HomepageHeroUiProofReport = {
-    schemaVersion: "ui-proof-report.v1",
+    schemaVersion: "ui-proof-report.v2",
     proofType: "witnessops.web.homepage-hero.mobile",
     status: reportStatus(results),
     repo: "witnessops/witnessops-web",
@@ -104,17 +92,6 @@ export async function writeHomepageHeroReport(
     generatedAt: new Date().toISOString(),
     commitSha: getCommitSha(),
     browser: "chromium",
-    asset: {
-      assetId: asset.assetId,
-      src: asset.src,
-      width: asset.width,
-      height: asset.height,
-      sourcePath: asset.sourcePath,
-      sourceRecord: asset.sourceRecord,
-      sourceStatus: asset.sourceStatus,
-      sourceCommit: asset.sourceCommit,
-      sourceSha256: asset.sourceSha256,
-    },
     artifacts: {
       report: "artifacts/ui-proof/homepage-hero/latest.json",
       grid: "artifacts/ui-proof/homepage-hero/grid.png",
@@ -123,7 +100,7 @@ export async function writeHomepageHeroReport(
     scenarios: results,
   };
   await writeFile(
-    path.join(UI_PROOF_OUTPUT_DIR, "latest.json"),
+    path.join(outputDir, "latest.json"),
     `${JSON.stringify(report, null, 2)}\n`,
   );
   return report;
