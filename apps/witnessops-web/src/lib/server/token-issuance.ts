@@ -130,6 +130,14 @@ function renderHtmlField(label: string, value: string | null | undefined): strin
   return `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(normalizeText(value) ?? "not provided")}</p>`;
 }
 
+function operatorRequestLabel(submission: IntakeSubmissionRecord): string {
+  if (submission.intent !== NEW_SALES_AGENT_ACTION_OFFER_ID) {
+    return getCommercialRequestLabel(submission.intent);
+  }
+  const nameAtEnquiry = normalizeHeaderText(submission.offerSnapshot?.name.en);
+  return nameAtEnquiry ? `${nameAtEnquiry} request` : "review request";
+}
+
 function operatorNotificationSubject(intake: IntakeRecord): string {
   const org = normalizeHeaderText(intake.submission.org);
   const name = normalizeHeaderText(intake.submission.name);
@@ -140,7 +148,7 @@ function operatorNotificationSubject(intake: IntakeRecord): string {
   if (intake.submission.requestMode === "fit-call" && intake.submission.fitCall) {
     return `Verified fit call time request: ${identity}`;
   }
-  const requestLabel = getCommercialRequestLabel(intake.submission.intent);
+  const requestLabel = operatorRequestLabel(intake.submission);
   return `Verified ${requestLabel}: ${identity}`;
 }
 
@@ -169,7 +177,7 @@ function renderOperatorNotificationText(args: {
     ].join("\n");
   }
 
-  const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
+  const requestLabel = operatorRequestLabel(args.intake.submission);
   const fitCall = args.intake.submission.requestMode === "fit-call"
     ? args.intake.submission.fitCall
     : null;
@@ -251,7 +259,7 @@ function renderOperatorNotificationHtml(args: {
     ].join("");
   }
 
-  const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
+  const requestLabel = operatorRequestLabel(args.intake.submission);
   const scope = args.intake.submission.scope ?? "not provided";
   const fitCall = args.intake.submission.requestMode === "fit-call"
     ? args.intake.submission.fitCall

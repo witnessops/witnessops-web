@@ -156,6 +156,8 @@ test("older unversioned enquiries are unchanged by reads, queue projection and v
   assert.equal(queue.rows.find((row) => row.intakeId === issued.intakeId)?.submission.offerSnapshot, undefined);
   assert.equal(await readFile(file, "utf8"), bytes);
   const notification = await verifyEnquiry(issued);
+  assert.match(notification, /^Subject: Verified review request:/m);
+  assert.doesNotMatch(notification, /AI Agent Red Teaming request/);
   assert.match(notification, /Unversioned — no offer snapshot recorded/);
   assert.doesNotMatch(notification, /one_action_adversarial_testing_v2|Fee agreed in signed SOW/);
   assert.deepEqual((await getIntakeById(issued.intakeId))?.submission, intake.submission);
@@ -167,6 +169,7 @@ test("previously recorded terms render unchanged instead of resolving today's of
   const intake = await getIntakeById(issued.intakeId);
   assert.ok(intake?.submission.offerSnapshot);
   const recorded = intake.submission.offerSnapshot;
+  recorded.name = { en: "Earlier recorded offer", pl: "Wcześniejsza oferta" };
   recorded.scopeRevision = "historical_read_only_revision";
   recorded.price = { basis: "historical_fixed_fee", en: "Historical agreed fee", pl: "Historyczna uzgodniona cena" };
   recorded.timing = { basis: "historical_timing", en: "Historical delivery window", pl: "Historyczny termin" };
@@ -176,6 +179,10 @@ test("previously recorded terms render unchanged instead of resolving today's of
   assert.ok(fields.some((field) => field.value === "Historical agreed fee"));
   const notification = await verifyEnquiry(issued);
   assert.match(notification, /Offer revision: historical_read_only_revision/);
+  assert.match(notification, /^Subject: Verified Earlier recorded offer request:/m);
+  assert.match(notification, /Verified WitnessOps Earlier recorded offer request/);
+  assert.match(notification, />WitnessOps Earlier recorded offer request<\/h1>/);
+  assert.doesNotMatch(notification, /AI Agent Red Teaming request/);
   assert.match(notification, /Price at enquiry: Historical agreed fee/);
   assert.doesNotMatch(notification, /one_action_adversarial_testing_v2|Fee agreed in signed SOW/);
   assert.deepEqual((await getIntakeById(issued.intakeId))?.submission.offerSnapshot, recorded);
