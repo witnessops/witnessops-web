@@ -6,7 +6,7 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/check", "/early-access", "/pl/review/withdrawn-sample", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot", "/review/withdrawn-sample"] as const;
+const addedOfferRoutes = ["/check", "/early-access", "/pl/review/withdrawn-sample", "/proofpack", "/research", "/research/document-trust-boundary", "/research/reading-a-public-exposure-snapshot", "/review/withdrawn-sample"] as const;
 const retiredRoutes = [
   { publicPath: "/catalog/workflows", appPath: "/(marketing)/catalog/workflows/page" },
   { publicPath: "/catalog/professional-public-footprint-audit", appPath: "/(marketing)/catalog/professional-public-footprint-audit/page" },
@@ -135,7 +135,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
     assert.equal(Object.hasOwn(manifest, appPath), false);
     delete expectedManifest[appPath];
   }
-  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/api/sovereign-booking/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
+  for (const route of ["/proofpack/page", "/check/page", "/early-access/page", "/api/external-exposure/route", "/api/sovereign-booking/route", "/research/page", "/research/document-trust-boundary/page", "/research/reading-a-public-exposure-snapshot/page", "/review/withdrawn-sample/page", "/pl/review/withdrawn-sample/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }
