@@ -127,6 +127,19 @@ test("evaluateBuyerPathRoute fails when old public markers are still present", (
   assert.deepEqual(result.prohibitedMarkersPresent, ["Receipt shape only"]);
 });
 
+test("the free check remains usable without a paid enquiry while shared navigation can link to one", () => {
+  const route = routeContract("/check");
+  const sales = '<a href="/review/request?offerId=agent-action-security-review">Request a security assessment</a>';
+  const main = route.requiredMarkers.join(" ");
+  for (const [body, expected] of [
+    [`<nav>${sales}</nav><main id="main-content">${main}</main>`, true],
+    [`<main>${main}${sales}</main>`, false],
+    [`<nav>${main}</nav>`, false],
+  ] as const) {
+    assert.equal(evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body).ok, expected);
+  }
+});
+
 test("access-change smoke contract does not fail on global request nav", () => {
   const route: BuyerPathSmokeRoute = {
     path: "/access-change-proof-run",
@@ -177,23 +190,18 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
   assert.equal(results[0]?.ok, true);
 });
 
-test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
-  const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Tool · not a review"));
-  assert.ok(english.requiredMarkers.includes("We try to break your AI agent before someone else does."));
-  assert.ok(english.requiredMarkers.includes("We agree the scope first. The findings come with the evidence."));
-  assert.equal(english.requiredMarkers.includes("Start a free check"), false);
-  assert.equal(english.requiredMarkers.includes("Delivery timing agreed in the signed statement of work"), false);
-  assert.ok(english.prohibitedMarkers?.includes("10 working days"));
-  assert.ok(english.prohibitedMarkers?.includes("3 working days"));
-  assert.ok(english.prohibitedMarkers?.includes("€550"));
-  const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Poproś o test przełamania"));
-  assert.ok(polish.requiredMarkers.includes("Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny."));
-  assert.ok(polish.requiredMarkers.includes("Nie testujemy, dopóki nie dasz pisemnego upoważnienia."));
-  assert.ok(polish.prohibitedMarkers?.includes("10 dni roboczych"));
-  assert.ok(polish.prohibitedMarkers?.includes("3 dni roboczych"));
-  assert.ok(polish.prohibitedMarkers?.includes("€550"));
+test("both homepages link the illustrative record, state the fee and require written authority", () => {
+  for (const [path, locale, cta, example, authority] of [
+    ["/", "en", "Request a security assessment", "/reviews/agent-action-security-review#example-record", "We don't test until you give written authority."],
+    ["/pl", "pl", "Zapytaj o ocenę bezpieczeństwa", "/pl/reviews/agent-action-security-review#example-record", "Nie testujemy bez Twojej pisemnej zgody."],
+  ] as const) {
+    const route = routeContract(path);
+    for (const marker of [PUBLIC_AGENT_ACTION_OFFER.price[locale], cta, example, authority]) {
+      assert.ok(route.requiredMarkers.includes(marker), path + " " + marker);
+    }
+    assert.ok(route.prohibitedMarkers?.includes("10 working days"));
+    assert.ok(route.prohibitedMarkers?.includes("€550"));
+  }
 });
 
 test("English Skill Library smoke follows the exact-byte library contract", () => {
@@ -233,10 +241,10 @@ test("catalogue smoke preserves the single public review request path", () => {
   }
   const catalogue = routeContract("/catalog");
   for (const marker of [
-    "Agent Action Security Review",
+    PUBLIC_AGENT_ACTION_OFFER.name.en,
     PUBLIC_AGENT_ACTION_OFFER.price.en,
-    "We don't test until you give written authority.",
-    "Request a break test",
+    PUBLIC_AGENT_ACTION_OFFER.timing.en,
+    "Request a security assessment",
   ]) {
     assert.ok(
       catalogue.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -277,6 +285,7 @@ test("intake probes reject withdrawn identities before issuance and keep the two
   assert.equal(reasons.get("bounded-workflow-review"), "historical");
   assert.equal(reasons.get("OFFSEC-PILOT"), "unsupported");
   assert.equal(reasons.get("AI Agent Tools & Access Review — Private Pilot"), "unsupported");
+  assert.equal(reasons.get(PUBLIC_AGENT_ACTION_OFFER.name.en), "unsupported");
   assert.equal(reasons.get("Agent Action Security Review"), "unsupported");
   assert.equal(reasons.get("agent-action-security-review+product"), "ambiguous");
   assert.equal(reasons.get("agent-action-security-review+offer"), "ambiguous");
@@ -292,7 +301,7 @@ test("intake probes reject withdrawn identities before issuance and keep the two
 
 test("request smoke markers use the current fit and start-work boundaries", () => {
   const generic = routeContract("/review/request");
-  assert.ok(generic.requiredMarkers.includes("Request a break test"));
+  assert.ok(generic.requiredMarkers.includes("Request a security assessment"));
   assert.ok(generic.requiredMarkers.includes("Next, confirm your email with a code."));
   assert.ok(
     generic.requiredMarkers.includes(
@@ -416,9 +425,9 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
 
 test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
   for (const [path, marker] of [
-    ["/", "Tool · not a review"],
-    ["/docs", "Signup is free. Verify your email to create your own workspace. No card is required."],
-    ["/pricing", "An enquiry does not authorise collection or start a review."],
+    ["/", "We don't test until you give written authority."],
+    ["/docs", "Sign up and verify your email when you want your own workspace; no card is required."],
+    ["/pricing", PUBLIC_AGENT_ACTION_OFFER.timing.en],
     ["/review/request", "No work or target-facing check starts from this form."],
   ]) {
     const route = routeContract(path);
@@ -430,9 +439,9 @@ test("removing signup, billing or enquiry limits fails the buyer smoke gate", ()
 });
 
 
-test("the limits heading is a required homepage marker", () => {
+test("the scope limitation is a required homepage marker", () => {
   const route = routeContract("/");
-  const marker = "What this isn't.";
+  const marker = "Not a full pentest, certification, fixing or monitoring.";
   const body = route.requiredMarkers.filter((value) => value !== marker).join("\n");
   assert.equal(body.includes(marker), false);
   const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
