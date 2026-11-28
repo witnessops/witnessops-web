@@ -403,6 +403,7 @@ test("expert-time request asks for a time through email verification without cla
     await expect(page.locator('[data-ui-proof-id="review-request-record"]')).toContainText("int_fit_call_test");
     const held = await page.evaluate(() => sessionStorage.getItem("witnessops.review-request-confirmation.v1") ?? "");
     expect(JSON.parse(held).requestKind).toBe("fit-call");
+    await expect(page.locator('[data-ui-proof-id="review-request-confirmed"]')).not.toContainText(/€[\s\d]/);
     expect(held).not.toContain(topic);
     expect(held).not.toContain(preferredStarts[0]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
@@ -866,6 +867,31 @@ test("confirmation routes render a bounded browser-held request record", async (
       );
       expect(overflow, scenario.path).toBeLessThanOrEqual(1);
       await context.close();
+    }
+  }
+});
+
+test("historical confirmations preserve their saved label and carry no current fee", async ({ page }) => {
+  for (const locale of ["en", "pl"] as const) {
+    const path = (locale === "pl" ? "/pl" : "") + "/review/request/confirmed";
+    for (const offerLabel of ["Agent Action Security Review", null]) {
+      await page.goto(path);
+      await page.evaluate(({ locale, offerLabel }) => {
+        sessionStorage.setItem("witnessops.review-request-confirmation.v1", JSON.stringify({
+          schema: "witnessops.review-request-confirmation.v1",
+          requestReference: "intk_prior_request",
+          requestKind: "agent-action-security-review",
+          confirmedAt: "2026-09-01T12:00:00.000Z",
+          locale,
+          source: "request-form",
+          ...(offerLabel ? { offerLabel } : {}),
+        }));
+      }, { locale, offerLabel });
+      await page.reload();
+      const confirmed = page.locator('[data-ui-proof-id="review-request-confirmed"]');
+      const record = confirmed.locator('[data-ui-proof-id="review-request-record"]');
+      await expect(record).toContainText(offerLabel ?? "agent-action-security-review");
+      await expect(confirmed).not.toContainText(/€[\s\d]|AI Agent Red Teaming|Red teaming agentów AI/);
     }
   }
 });

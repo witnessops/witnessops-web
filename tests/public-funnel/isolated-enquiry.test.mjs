@@ -71,6 +71,9 @@ test("one confirmed browser enquiry produces exactly one admitted intake", { tim
   assert.equal(letters.length, 1);
   const letter = await readFile(join(mail, letters[0]), "utf8");
   assert.match(letter, /^To: buyer@example\.test$/m);
+  assert.match(letter, /^Confirm your AI Agent Red Teaming request\.$/m);
+  assert.match(letter, /^Email confirmation does not book work or authorize testing\.$/m);
+  assert.doesNotMatch(letter, /€[\s\d]/);
   const code = letter.match(/^Verification Code:\s+([A-Z0-9-]+)\s*$/m)?.[1];
   assert.ok(code, "The fixture mailbox must receive one confirmation code");
   await page.locator("#verification-code").fill(code);
@@ -88,6 +91,9 @@ test("one confirmed browser enquiry produces exactly one admitted intake", { tim
   await expect(confirmationRecord).toContainText(intakeId);
   await expect(confirmationRecord).toContainText("AI Agent Red Teaming");
   await expect(confirmationRecord).toContainText("Mailbox confirmed");
+  const confirmation = page.locator('[data-ui-proof-id="review-request-confirmed"]');
+  await expect(confirmation).toContainText("signed statement of work");
+  await expect(confirmation).not.toContainText(/€[\s\d]/);
 
   const files = await readdir(join(store, "intakes"));
   assert.deepEqual(files, [intakeId + ".json"]);
@@ -97,10 +103,15 @@ test("one confirmed browser enquiry produces exactly one admitted intake", { tim
   assert.equal(record.email, email);
   assert.equal(record.latestIssuanceId, issuanceId);
   assert.equal(record.submission.intent, "agent-action-security-review");
+  assert.equal(record.submission.offerSnapshot.name.en, "AI Agent Red Teaming");
+  assert.match(record.submission.offerSnapshot.price.en, /^€2,500\s+excl\.\s+VAT$/);
   assert.ok(record.submission.scope.includes(action));
   assert.ok(record.submission.scope.includes(deadline));
   assert.equal(record.operatorNotification?.provider, "file");
   const deliveries = await Promise.all((await readdir(mail)).map(name => readFile(join(mail, name), "utf8")));
   assert.deepEqual(deliveries.map(letter => letter.match(/^To: ([^\r\n]+)$/m)?.[1]).sort(), [email, "engage@example.test"]);
+  const notification = deliveries.find(message => /^To: engage@example\.test$/m.test(message));
+  assert.match(notification, /^Subject: Verified AI Agent Red Teaming request:/m);
+  assert.match(notification, /Price at enquiry: €2,500\s+excl\.\s+VAT/);
   t.diagnostic("Verified one admitted intake with the submitted action and deadline; buyer and operator email stayed in the fixture.");
 });
