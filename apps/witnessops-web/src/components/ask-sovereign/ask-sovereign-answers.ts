@@ -26,9 +26,9 @@ function externalText(locale: SovereignLocale): string {
   const parked = EXTERNAL_ATTACK_SURFACE_OFFER.name[locale];
   const current = PUBLIC_AGENT_ACTION_OFFER;
   if (locale === "pl") {
-    return `${parked} nie jest już dostępny dla nowych zleceń. To nie jest ${current.name.pl}. Aktualny płatny przegląd dotyczy jednego istotnego działania agenta lub automatyzacji. ${current.price.pl} ${current.timing.pl}`;
+    return `${parked} nie jest już dostępny dla nowych zleceń. ${current.name.pl} to odrębna usługa. Aktualny płatny przegląd dotyczy jednego istotnego działania agenta lub automatyzacji. ${current.price.pl} ${current.timing.pl}`;
   }
-  return `${parked} is no longer available for new engagements. It is not the ${current.name.en}. The current paid review covers one consequential agent or automation action. ${current.price.en} ${current.timing.en}`;
+  return `${parked} is no longer available for new engagements. ${current.name.en} is a separate service. The current paid review covers one consequential agent or automation action. ${current.price.en} ${current.timing.en}`;
 }
 
 function contactText(locale: SovereignLocale): string {

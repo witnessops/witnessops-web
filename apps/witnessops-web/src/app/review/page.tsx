@@ -149,7 +149,7 @@ export default function ReviewPage() {
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/review/request" variant="primary" label="Start a review" />
+            <CtaButton href="/review/request" variant="primary" label="Request a security assessment" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
               Send the non-secret fit check first.
             </p>
@@ -256,7 +256,7 @@ export default function ReviewPage() {
         <p className="mt-4 max-w-[760px] text-sm leading-relaxed text-text-muted">
           Inspect a bounded action, its evidence references and limits before you
           request work. These synthetic examples are not complete samples of the
-          current Agent Action Security Review.
+          current AI Agent Red Teaming.
         </p>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <a
@@ -282,7 +282,7 @@ export default function ReviewPage() {
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Start a review"
+            label="Request a security assessment"
           />
           <CtaButton
             href="/review/sample-cases"

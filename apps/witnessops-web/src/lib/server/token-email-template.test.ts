@@ -18,8 +18,8 @@ test("proof-run verification email uses light paper theme", () => {
     intent: "ai-agent-action-proof-run",
   });
 
-  assert.equal(rendered.templateVersion, "tier1-code-v5-light");
-  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v5-light");
+  assert.equal(rendered.templateVersion, "tier1-code-v6-light");
+  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v6-light");
   assert.ok(rendered.html);
   assert.match(rendered.html!, /background-color:#f7f5f1/);
   assert.match(rendered.html!, /background-color:#ffffff/);
@@ -42,7 +42,8 @@ test("unclassified engage requests use the no-work manual email boundary", () =>
   });
 
   assert.ok(rendered.html);
-  assert.match(rendered.text, /does not start a proof run/);
+  assert.match(rendered.text, /does not book work or authorize testing/);
+  assert.match(rendered.text, /signed statement of work confirms the scope, fee, capacity and timing/);
   assert.match(rendered.text, /security-workflow package request/);
 });
 
@@ -66,7 +67,8 @@ test("Polish engage requests localize the buyer verification boundary", () => {
     /Potwierdź: Zgłoszenie: Przegląd narzędzi i dostępu agenta AI/,
   );
   assert.match(rendered.text, /Kod weryfikacyjny: ABCD-EFGH-JKLM/);
-  assert.match(rendered.text, /Nie rozpoczyna przeglądu ani pracy/);
+  assert.match(rendered.text, /nie rezerwuje terminu ani nie upoważnia do rozpoczęcia testów/);
+  assert.match(rendered.text, /w podpisanej umowie potwierdzimy zakres, cenę, dostępność zespołu i termin/);
   assert.match(rendered.text, /Wygasa: 30 lipca 2026, 14:00:00 \(czas w Polsce, UTC\+02:00\)/);
   assert.match(rendered.text, /Otwórz stronę weryfikacji \(po angielsku\): https:\/\/witnessops\.com\/verify-token\?context=opaque/);
   assert.doesNotMatch(rendered.text, /Confirm your/);
@@ -109,6 +111,6 @@ test("Polish email identifies each autumn overlap instant in both text and HTML"
     assert.ok(rendered.html!.includes(`Wygasa: ${display}`));
     assert.ok(rendered.text.includes("https://witnessops.com/verify-token?context=opaque"));
     assert.ok(rendered.html!.includes("https://witnessops.com/verify-token?context=opaque"));
-    assert.equal(rendered.templateVersion, "tier1-code-v5-light");
+    assert.equal(rendered.templateVersion, "tier1-code-v6-light");
   }
 });

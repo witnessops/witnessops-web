@@ -9,7 +9,7 @@ test("Polish catalogue questions, with and without accents, describe only the cu
     const answer = polishOfferGuidance({ question, locale: "pl", surface: "sovereign_widget" });
     assert.ok(answer, question);
     assert.equal(answer.recommend, true);
-    assert.match(answer.text, /jeden płatny przegląd: Agent Action Security Review/);
+    assert.match(answer.text, /jeden płatny przegląd: Red teaming agentów AI/);
     assert.ok(answer.text.includes(PUBLIC_AGENT_ACTION_OFFER.result.pl));
     assert.doesNotMatch(answer.text, /One Server|External Attack|Sprint|Workflow [SML]/);
   }

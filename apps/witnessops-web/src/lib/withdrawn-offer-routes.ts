@@ -22,7 +22,7 @@ export const WITHDRAWN_OFFER_PATHS = [
   "/catalog/workflows",
 ] as const;
 
-/** Retired samples outside the Agent Action Security Review. These return 410. */
+/** Retired samples outside the scope of AI Agent Red Teaming. These return 410. */
 export const WITHDRAWN_SAMPLE_PATHS = [
   "/review/sample-cases/external-exposure-assessment",
   "/pl/review/sample-cases/external-exposure-assessment",
@@ -76,7 +76,7 @@ export function withdrawnOfferCopy(polish: boolean) {
         title: "Ta oferta została wycofana",
         body: "WitnessOps nie oferuje już tego przeglądu. Aktualny przegląd i kontakt są poniżej.",
         links: [
-          ["/pl/reviews/agent-action-security-review", "Agent Action Security Review"],
+          ["/pl/reviews/agent-action-security-review", "Red teaming agentów AI"],
           ["/pl/contact", "Kontakt"],
         ] as const,
       }
@@ -84,7 +84,7 @@ export function withdrawnOfferCopy(polish: boolean) {
         title: "This offer has been withdrawn",
         body: "WitnessOps no longer offers this review. The current review and contact are below.",
         links: [
-          ["/reviews/agent-action-security-review", "Agent Action Security Review"],
+          ["/reviews/agent-action-security-review", "AI Agent Red Teaming"],
           ["/contact", "Contact"],
         ] as const,
       };
@@ -97,7 +97,7 @@ export function withdrawnSampleCopy(polish: boolean) {
         body: "Ten przykład nie należy już do publicznego katalogu przykładów. Poniżej znajdziesz przykłady działań agenta oraz aktualny przegląd.",
         links: [
           ["/review/sample-cases", "Przykłady działań agenta (EN)"],
-          ["/pl/reviews/agent-action-security-review", "Agent Action Security Review"],
+          ["/pl/reviews/agent-action-security-review", "Red teaming agentów AI"],
         ] as const,
       }
     : {
@@ -105,7 +105,7 @@ export function withdrawnSampleCopy(polish: boolean) {
         body: "This example is no longer part of the public sample collection. Explore the agent-action examples or the current review below.",
         links: [
           ["/review/sample-cases", "Agent-action examples"],
-          ["/reviews/agent-action-security-review", "Agent Action Security Review"],
+          ["/reviews/agent-action-security-review", "AI Agent Red Teaming"],
         ] as const,
       };
 }

@@ -49,7 +49,7 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
 
 test("recognizes the current Agent Action offer and does not sell the inventory review", () => {
   const current = classify(
-    "What is included in Agent Action Security Review and how much does it cost?",
+    "What is included in AI Agent Red Teaming and how much does it cost?",
   );
   assert.equal(current.commercialFit.result, "likely");
   assert.equal(current.commercialFit.intent, "offer");
@@ -136,7 +136,7 @@ test("selects the external review and its 30-day retest without treating it as t
 
 test("does not choose a review when the question names both current offers", () => {
   const result = classify(
-    "Should we buy the Agent Action Security Review or the External Attack Surface Review?",
+    "Should we buy the AI Agent Red Teaming or the External Attack Surface Review?",
   );
   assert.equal(result.commercialFit.result, "unknown");
   assert.equal(result.commercialFit.offer_id, null);

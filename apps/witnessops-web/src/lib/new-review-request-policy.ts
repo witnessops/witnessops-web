@@ -19,7 +19,7 @@ import {
 /**
  * New-sales intake identities.
  *
- * Accept exactly one paid review: Agent Action Security Review by offerId.
+ * Accept exactly one paid review: AI Agent Red Teaming by offerId.
  * External Attack Surface Review is parked and is not a new-sales identity.
  * Ask follow-up remains a non-review contact intent and cannot also name a
  * review. Historical catalogue ids, display labels, pilots, and aliases do
@@ -69,6 +69,7 @@ export type NewSalesPageDecision =
 const AGENT_ACTION_NAMES = [
   PUBLIC_AGENT_ACTION_OFFER.name.en,
   PUBLIC_AGENT_ACTION_OFFER.name.pl,
+  LEGACY_AGENT_ACTION_OFFER.name.en, // Display label in existing links. The offer ID still selects the service.
 ] as const;
 
 const EXTERNAL_NAMES = [

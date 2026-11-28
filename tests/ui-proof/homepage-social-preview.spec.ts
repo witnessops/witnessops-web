@@ -14,11 +14,11 @@ test("homepages publish the canonical WitnessOps Editorial A preview", async ({ 
   await page.goto("/");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
     "content",
-    "We try to break your AI agent before someone else does. | WitnessOps",
+    "AI Agent Red Teaming | WitnessOps",
   );
   await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
     "content",
-    "Agent Action Security Review. We try to break your AI agent before someone else does. €2,500 excl. VAT.",
+    "Independent AI Agent Security Testing for one agreed workflow and one consequential action. €2,500 excl. VAT.",
   );
   await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
   await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");

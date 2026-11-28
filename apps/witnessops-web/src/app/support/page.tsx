@@ -98,7 +98,7 @@ export default function SupportPage() {
           <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
             Support is for product help, access issues, and verifier questions.
             If you want WitnessOps to review one consequential agent action,
-            start from the Agent Action Security Review.
+            explore AI Agent Red Teaming.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <CtaButton

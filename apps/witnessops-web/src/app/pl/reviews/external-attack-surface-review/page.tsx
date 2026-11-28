@@ -7,7 +7,7 @@ import { pageSocialMetadata } from "@/lib/social-metadata";
 
 const title = `${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} nie jest już dostępny`;
 const description =
-  "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. To nie jest Agent Action Security Review.";
+  "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. Red teaming agentów AI to odrębna usługa.";
 
 export const metadata: Metadata = {
   title,

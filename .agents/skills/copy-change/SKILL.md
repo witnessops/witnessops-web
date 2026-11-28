@@ -18,7 +18,7 @@ Public website and content edits stay inside the current paid offer and the clai
 
 ## Write
 
-- The public new-sales offer is Agent Action Security Review at €2,500 excluding VAT (`eur_2500_ex_vat`). The adversarial testing scope stays in place. Earlier read-only agreements stay `eur_2500_fixed`. External Attack Surface Review is parked and is not a new-sales offer.
+- Use AI Agent Red Teaming as the public service name, AI Agent Security Testing as supporting language, and Request a security assessment as the primary CTA. Agent Action Security Review is the internal methodology. The public fixed fee is €2,500 excluding VAT (`eur_2500_ex_vat`) for one agreed workflow and one consequential action. Confirm scope, fee, capacity and timing in the signed SOW. Earlier read-only agreements stay `eur_2500_fixed`. External Attack Surface Review is parked and is not a new-sales offer.
 - Public contact is `engage@mail.witnessops.com` only.
 - Timing copy is `Delivery timing per signed SOW`.
 - Do not reintroduce held or historical prices and terms tracked in the commercial registry. Read them from `apps/witnessops-web/src/lib/commercial-truth.ts` and `apps/witnessops-web/src/lib/historical-held-term-surfaces.test.tsx`, and keep them off public surfaces and new-sales selection.

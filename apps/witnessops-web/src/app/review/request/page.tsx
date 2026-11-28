@@ -25,7 +25,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     offer: params.offer,
   });
   const title = decision.state === "selected"
-    ? params.fitCall === "1" ? "Request a 20-minute expert conversation" : `Request ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
+    ? params.fitCall === "1" ? "Request a 20-minute expert conversation" : "Request a security assessment"
     : "This link does not start a new review";
   const description = decision.state === "selected"
     ? params.fitCall === "1" ? "Request a 20-minute expert conversation. Share a non-secret topic, time zone and two preferred times. An operator confirms availability by invitation or offers alternatives." : requestDescription
@@ -94,7 +94,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">{PUBLIC_AGENT_ACTION_OFFER.name.en}</p>
               <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Talk to an expert</h1>
               <p className="mt-4 text-base leading-7 text-text-muted">Request a 20-minute conversation. Share only a short, non-secret topic, your work email, time zone and two preferred times. The times are requests, not a booking.</p>
-              <p className="mt-3 text-sm leading-6 text-text-secondary">An operator checks the calendar after your email-code check, then confirms an available time by invitation or replies with alternatives. {PUBLIC_AGENT_ACTION_OFFER.price.en} This request does not authorize or start a review.</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">After you confirm your email, we’ll send an invitation or suggest another time. The fixed fee of {PUBLIC_AGENT_ACTION_OFFER.price.en} covers the assessment of one action in one agreed workflow. Requesting a call does not start the assessment.</p>
             </header>
             <section className="border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
               <ContactForm compact fitCall intent={decision.intent} campaignAttribution={campaignAttribution} />
@@ -132,11 +132,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           style={{ fontFamily: "var(--font-display)" }}
         >
           {selectedOffer
-            ? "Start with a fit check. Don't send secrets."
+            ? "Request a security assessment"
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          Tell us one action, which systems it touches, and when you need to decide.
+          Tell us the action, the systems it touches and when you need to decide. Leave out credentials, logs and customer data. After you confirm your email, we’ll reply about fit.
         </p>
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}

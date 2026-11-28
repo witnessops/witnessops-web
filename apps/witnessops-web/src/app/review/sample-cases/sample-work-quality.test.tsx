@@ -21,7 +21,7 @@ test("sample index exposes only four agent-action examples with their limits", (
   for (const route of WITHDRAWN_SAMPLE_PATHS) {
     assert.equal(html.includes(`href="${route}"`), false, route);
   }
-  assert.match(html, /Agent Action Security Review/);
+  assert.match(html, /AI Agent Red Teaming/);
   assert.match(html, /not live customer evidence/);
   assert.match(html, /not a complete sample of the current agent review/);
   assert.match(html, /not complete deliverables from the current paid review/);

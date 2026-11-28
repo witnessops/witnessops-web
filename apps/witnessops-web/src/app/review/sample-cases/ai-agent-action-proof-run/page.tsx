@@ -79,7 +79,7 @@ export default function ApiKeyRotationSamplePage() {
             <p className={styles.offerTiming}>{PUBLIC_AGENT_ACTION_OFFER.timing.en}</p>
           </div>
           <div className={styles.offerAction}>
-            <Link href={reviewRequestHref}>Request a break test</Link>
+            <Link href={reviewRequestHref}>Request a security assessment</Link>
             <span>Non-secret fit and scoping request first.</span>
           </div>
         </section>

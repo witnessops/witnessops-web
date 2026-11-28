@@ -42,7 +42,7 @@ test(
         ? 'href="/review/sample-cases"'
         : (polish ? 'href="/pl/contact"' : 'href="/contact"');
       if (!html.includes(title)) mismatches.push(`${path}: missing withdrawn heading`);
-      if (!html.includes("Agent Action Security Review")) {
+      if (!html.includes(polish ? "Red teaming agentów AI" : "AI Agent Red Teaming")) {
         mismatches.push(`${path}: missing current review link`);
       }
       if (!html.includes(nextLink)) mismatches.push(`${path}: missing sample or contact link`);

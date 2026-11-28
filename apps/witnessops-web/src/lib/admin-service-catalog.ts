@@ -61,11 +61,11 @@ function requestContext(requestHref: string): AdminServiceRequestContext {
 }
 
 /**
- * Admin projection of the two public paid reviews.
+ * Admin projection of the current public paid review.
  *
  * The buyer registry stays authoritative for offer names and commercial
- * terms. `publicPaidReviews` selects Agent Action Security Review and
- * External Attack Surface Review. This projection makes request-handoff
+ * terms. `publicPaidReviews` selects AI Agent Red Teaming.
+ * This projection makes request-handoff
  * gaps visible without turning a buyer offer into an immutable execution
  * contract.
  */

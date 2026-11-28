@@ -386,7 +386,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 href="/review/request"
                 className="font-semibold text-brand-accent underline-offset-4 hover:underline"
               >
-                Start a review
+                Request a security assessment
               </Link>
               . Vulnerabilities go to{" "}
               <a

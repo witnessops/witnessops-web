@@ -256,6 +256,7 @@ export function DocsAssistantContactHandoff({
               ? "public-exposure-review"
               : "review-request",
         source: "ask",
+        displayedOfferLabel: service?.name[language],
       });
       if (!record) {
         throw new Error(

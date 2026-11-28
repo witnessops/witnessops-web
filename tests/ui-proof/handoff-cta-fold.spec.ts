@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 
 import { expect, test } from "@playwright/test";
 
@@ -34,9 +34,8 @@ for (const viewport of viewports) {
         bottom: Math.round(bottom),
         clearance: Math.round(clearance),
       };
-      mkdirSync("/opt/cursor/artifacts", { recursive: true });
       writeFileSync(
-        `/opt/cursor/artifacts/cta-${target.label}-${viewport.width}.json`,
+        test.info().outputPath(`cta-${target.label}-${viewport.width}.json`),
         `${JSON.stringify(measurement, null, 2)}\n`,
       );
       console.log(JSON.stringify(measurement));

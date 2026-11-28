@@ -46,8 +46,8 @@ type FooterGroup = { id: string; label: string; links: FooterLink[] };
  */
 const FOOTER_COPY = {
   en: {
-    subline: "We try to break one AI agent action, then show you what got through and the evidence.",
-    cta: "Request a break test",
+    subline: "We test one agent action and show you what changed, which controls held and what to fix first.",
+    cta: "Request a security assessment",
     emailLead: "or email",
     groups: [
       { id: "footer-review-heading", label: "The review", links: [
@@ -76,7 +76,7 @@ const FOOTER_COPY = {
   // Przegląd, Firma, Dokumentacja, Testujemy agentów zbudowanych na and the CTA lead are new PL strings pending native review.
   pl: {
     subline: "Jedno ważne działanie agenta. Pisemny raport i jasno opisane ograniczenia.",
-    cta: "Poproś o test przełamania",
+    cta: "Zapytaj o ocenę bezpieczeństwa",
     emailLead: "Lub napisz:",
     groups: [
       { id: "footer-review-heading", label: "Przegląd", links: [

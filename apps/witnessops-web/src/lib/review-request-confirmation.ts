@@ -19,7 +19,6 @@ import { verifyTokenResponseSchema } from "@/lib/token-contract";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
   LEGACY_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
 
@@ -65,6 +64,7 @@ const reviewRequestConfirmationSchema = z.object({
     "review-request",
   ]),
   source: z.enum(["ask", "request-form"]),
+  offerLabel: z.string().min(1).max(120).optional(),
 });
 
 export type ReviewRequestConfirmation = z.infer<
@@ -117,6 +117,7 @@ export function buildReviewRequestConfirmation(
     locale: ReviewRequestConfirmationLocale;
     requestKind: ReviewRequestKind;
     source: "ask" | "request-form";
+    displayedOfferLabel?: string;
   },
 ): ReviewRequestConfirmation | null {
   const parsed = verifyTokenResponseSchema.safeParse(payload);
@@ -144,6 +145,9 @@ export function buildReviewRequestConfirmation(
     locale: context.locale,
     requestKind: context.requestKind,
     source: context.source,
+    ...(context.requestKind === "agent-action-security-review" && context.displayedOfferLabel
+      ? { offerLabel: context.displayedOfferLabel }
+      : {}),
   });
 }
 
@@ -196,50 +200,59 @@ export function readReviewRequestConfirmation(
   }
 }
 
+const requestLabels: Record<
+  ReviewRequestConfirmationLocale,
+  Record<ReviewRequestKind, string>
+> = {
+  en: {
+    "fit-call": "20-minute expert conversation request",
+    "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
+    "agent-action-security-review": AGENT_ACTION_SECURITY_REVIEW_INTENT,
+    "agent-tools-access-review": PRIMARY_OFFER.name.en,
+    "ai-agent-action-proof-run": "AI Agent Action Proof Run",
+    "access-change-proof-run": "Access Change Proof Run",
+    "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
+    "customer-security-review-sprint": "Customer Security Review Sprint",
+    "one-server-security-check": "One Server Security Check",
+    "launch-readiness-check": "Launch Readiness Check",
+    "key-access-custody-review": "Key, Access and Custody Review",
+    "incident-readiness-review": "Incident Readiness Review",
+    "professional-public-footprint-audit":
+      "Professional Public Footprint Audit",
+    "review-request": "WitnessOps review request",
+  },
+  pl: {
+    "fit-call": "Prośba o 20-minutową rozmowę z ekspertem",
+    "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
+    "agent-action-security-review": AGENT_ACTION_SECURITY_REVIEW_INTENT,
+    "agent-tools-access-review": PRIMARY_OFFER.name.pl,
+    "ai-agent-action-proof-run": "AI Agent Action Proof Run",
+    "access-change-proof-run": "Access Change Proof Run",
+    "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
+    "customer-security-review-sprint": "Customer Security Review Sprint",
+    "one-server-security-check": "One Server Security Check",
+    "launch-readiness-check": "Launch Readiness Check",
+    "key-access-custody-review": "Key, Access and Custody Review",
+    "incident-readiness-review": "Incident Readiness Review",
+    "professional-public-footprint-audit":
+      "Audyt publicznego śladu zawodowego",
+    "review-request": "Zgłoszenie przeglądu WitnessOps",
+  },
+};
+
+/** Keep the displayed offer name when recorded. A bare request ID carries no dated commercial terms. */
+export function confirmationRequestLabel(confirmation: ReviewRequestConfirmation): string {
+  if (confirmation.requestKind === "agent-action-security-review" && confirmation.offerLabel) {
+    return confirmation.offerLabel;
+  }
+  return requestLabels[confirmation.locale][confirmation.requestKind];
+}
+
 export function buildReviewRequestConfirmationText(
   confirmation: ReviewRequestConfirmation,
 ): string {
   const polish = confirmation.locale === "pl";
-  const requestLabels: Record<
-    ReviewRequestConfirmationLocale,
-    Record<ReviewRequestKind, string>
-  > = {
-    en: {
-      "fit-call": "20-minute expert conversation request",
-      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
-      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.en,
-      "agent-tools-access-review": PRIMARY_OFFER.name.en,
-      "ai-agent-action-proof-run": "AI Agent Action Proof Run",
-      "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-      "customer-security-review-sprint": "Customer Security Review Sprint",
-      "one-server-security-check": "One Server Security Check",
-      "launch-readiness-check": "Launch Readiness Check",
-      "key-access-custody-review": "Key, Access and Custody Review",
-      "incident-readiness-review": "Incident Readiness Review",
-      "professional-public-footprint-audit":
-        "Professional Public Footprint Audit",
-      "review-request": "WitnessOps review request",
-    },
-    pl: {
-      "fit-call": "Prośba o 20-minutową rozmowę z ekspertem",
-      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
-      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.pl,
-      "agent-tools-access-review": PRIMARY_OFFER.name.pl,
-      "ai-agent-action-proof-run": "AI Agent Action Proof Run",
-      "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
-      "customer-security-review-sprint": "Customer Security Review Sprint",
-      "one-server-security-check": "One Server Security Check",
-      "launch-readiness-check": "Launch Readiness Check",
-      "key-access-custody-review": "Key, Access and Custody Review",
-      "incident-readiness-review": "Incident Readiness Review",
-      "professional-public-footprint-audit":
-        "Audyt publicznego śladu zawodowego",
-      "review-request": "Zgłoszenie przeglądu WitnessOps",
-    },
-  };
-  const requestLabel = requestLabels[confirmation.locale][confirmation.requestKind];
+  const requestLabel = confirmationRequestLabel(confirmation);
 
   if (confirmation.requestKind === "fit-call") {
     return polish
@@ -273,6 +286,7 @@ export function buildReviewRequestConfirmationText(
         `Zgłoszenie: ${requestLabel}`,
         `Numer referencyjny: ${confirmation.requestReference}`,
         `Potwierdzono: ${confirmation.confirmedAt}`,
+        "Stan w chwili potwierdzenia adresu e-mail",
         "Dostęp do skrzynki: POTWIERDZONY",
         "Przegląd rozpoczęty: NIE",
         "Materiały klienta przyjęte: NIE",
@@ -286,6 +300,7 @@ export function buildReviewRequestConfirmationText(
         `Request: ${requestLabel}`,
         `Request reference: ${confirmation.requestReference}`,
         `Confirmed at: ${confirmation.confirmedAt}`,
+        "Status at mailbox confirmation",
         "Mailbox access: CONFIRMED",
         "Review started: NO",
         "Customer evidence accepted: NO",

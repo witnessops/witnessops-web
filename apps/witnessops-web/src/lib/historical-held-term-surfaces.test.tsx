@@ -102,7 +102,7 @@ test("buyer docs and historical request copy use the signed-statement timing lin
     "utf8",
   );
   for (const source of [reviewWorkflow, buyerPath]) {
-    assert.match(source, /Agent Action Security Review/);
+    assert.match(source, /AI Agent Red Teaming/);
     assert.match(source, /€2,500 excl\. VAT/);
     assert.match(source, /External Attack Surface Review is no longer available for new engagements/);
     assert.doesNotMatch(source, /€1,900 excluding VAT/);
@@ -146,15 +146,15 @@ test("buyer docs and historical request copy use the signed-statement timing lin
       assert.doesNotMatch(html, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
     }
     assert.doesNotMatch(html, HELD_TERM);
-    if (locale === "en") assert.match(html, /We don(?:'|&#x27;|&#39;)t test until you give written authority/);
-    if (locale === "pl") assert.match(html, /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
+    if (locale === "en") assert.match(html, /Testing requires written authorisation/);
+    if (locale === "pl") assert.match(html, /Testy wymagają pisemnego upoważnienia/);
   }
   const confirmation = readFileSync(
     resolve(__dirname, "../components/review-request/review-request-confirmed.tsx"),
     "utf8",
   );
-  assert.ok(confirmation.includes(CURRENT_TIMING));
-  assert.match(confirmation, /Termin realizacji uzgodniony w podpisanym zakresie prac/);
+  assert.match(confirmation, /Any signed agreement retains its original scope, fee and timing/);
+  assert.match(confirmation, /Jeśli podpisano umowę, obowiązują zapisane w niej zakres, cena i termin/);
   assert.match(confirmation, /agent-tools-access-review/);
   assert.doesNotMatch(confirmation, /PRIMARY_OFFER\.timing|fixed quote after scope|stała wycena po określeniu zakresu/);
 });
@@ -309,7 +309,7 @@ test("remaining held-term hits are historical records, held marks, or test fixtu
 
 test("operator commercial records cannot reopen parked or historical offers", () => {
   const onlyNewSalesReview =
-    /Agent Action Security Review at €2,500 excluding VAT is the only new-sales review/;
+    /AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review/;
   const externalIsParked = /External Attack Surface Review is parked/;
   const readCommercialCopy = (file: string) =>
     readFileSync(resolve(repoRoot, file), "utf8")

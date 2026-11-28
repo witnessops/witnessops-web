@@ -21,7 +21,7 @@ const PRIMARY_OFFER_SAMPLE_PACK = {
   pl: "Przykładowy pakiet z obsługiwanym zapisem JSON do wyodrębnienia i sprawdzenia przez /verify",
 } as const;
 
-const PRIMARY_OFFER_PUBLIC_NAME = "Agent Action Security Review";
+const HISTORICAL_AGENT_ACTION_NAME = "Agent Action Security Review";
 const PRIMARY_OFFER_DELIVERY_METHOD = "Agent Workflow Reconstruction";
 
 /** Superseded one-action offer. Keep its identity and terms for historical requests. */
@@ -29,10 +29,10 @@ export const LEGACY_AGENT_ACTION_OFFER = {
   id: "bounded-workflow-review",
   route: "/catalog/workflows",
   requestRoute: "/review/request",
-  mailSubject: `WitnessOps request — ${PRIMARY_OFFER_PUBLIC_NAME}`,
+  mailSubject: `WitnessOps request — ${HISTORICAL_AGENT_ACTION_NAME}`,
   name: {
-    en: PRIMARY_OFFER_PUBLIC_NAME,
-    pl: PRIMARY_OFFER_PUBLIC_NAME,
+    en: HISTORICAL_AGENT_ACTION_NAME,
+    pl: HISTORICAL_AGENT_ACTION_NAME,
   },
   deliveryMethod: {
     en: PRIMARY_OFFER_DELIVERY_METHOD,
@@ -204,9 +204,12 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
   id: "agent-action-security-review",
   route: "/reviews/agent-action-security-review",
   requestRoute: "/review/request",
-  mailSubject: "WitnessOps request — Agent Action Security Review",
-  name: { en: PRIMARY_OFFER_PUBLIC_NAME, pl: PRIMARY_OFFER_PUBLIC_NAME },
-  unit: LEGACY_AGENT_ACTION_OFFER.unit,
+  mailSubject: "WitnessOps request — AI Agent Red Teaming",
+  name: { en: "AI Agent Red Teaming", pl: "Red teaming agentów AI" },
+  unit: {
+    en: "One consequential agent or automation action in one agreed workflow",
+    pl: "Jedno istotne działanie agenta lub automatyzacji w jednym uzgodnionym procesie",
+  },
   fitCheck: LEGACY_AGENT_ACTION_OFFER.fitCheck,
   fitCheckQuestion: LEGACY_AGENT_ACTION_OFFER.fitCheckQuestion,
   commercialContract: {
@@ -219,12 +222,12 @@ export const PUBLIC_AGENT_ACTION_OFFER = {
     pl: AGENT_PRICE_PL,
   },
   timing: {
-    en: "We don't test until you give written authority.",
-    pl: "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
+    en: "Scope, fee, capacity and timing are confirmed in the signed statement of work. Testing requires written authorisation.",
+    pl: "Zakres, cenę, dostępność i termin potwierdzamy w podpisanej umowie o zakresie prac (SOW). Testy wymagają pisemnego upoważnienia.",
   },
   cardSituation: {
-    en: "We try to break your AI agent before someone else does.",
-    pl: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
+    en: "AI Agent Red Teaming for agents that take real-world actions.",
+    pl: "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
   },
   situation: {
     en: "WitnessOps actively tests one consequential AI-agent action across the complete path: attacker-controlled input, the agent’s selected action, tool or API execution, effective permissions, the actual saved change, and the evidence supporting the result. Within an agreed environment and test boundary, we attempt prohibited outcomes and show which controls resisted, which failed, what changed, and what needs fixing.",

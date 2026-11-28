@@ -125,12 +125,12 @@ test("the homepage example link opens the example record and the header opens th
   await context.close();
 });
 
-test("the Polish homepage example link opens the English example record", async ({ page }) => {
+test("the Polish homepage example link opens the Polish example record", async ({ page }) => {
   await page.goto("/pl", { waitUntil: "networkidle" });
   const sampleLink = page.locator('main a[data-ui-proof-id="homepage-sample-review-cta"]');
-  await expect(sampleLink).toHaveAttribute("href", "/reviews/agent-action-security-review#example-record");
+  await expect(sampleLink).toHaveAttribute("href", "/pl/reviews/agent-action-security-review#example-record");
   await sampleLink.click();
-  await expect(page).toHaveURL(/\/reviews\/agent-action-security-review#example-record$/);
+  await expect(page).toHaveURL(/\/pl\/reviews\/agent-action-security-review#example-record$/);
   await expect(page.locator("#example-record")).toBeVisible();
 });
 
@@ -263,7 +263,7 @@ test("support sends paid-work buyers to the current agent review", async ({
 
     const agentLinks = main.locator(`a[href="${scenario.prefix}/reviews/agent-action-security-review"]`);
     expect(await agentLinks.count(), `${scenario.path} agent review`).toBeGreaterThanOrEqual(1);
-    await expect(agentLinks.first()).toContainText("Agent Action Security Review");
+    await expect(agentLinks.first()).toContainText(scenario.prefix ? "Red teaming agentów AI" : "AI Agent Red Teaming");
     await expect(main.locator(`a[href="${scenario.prefix}/reviews/external-attack-surface-review"]`)).toHaveCount(0);
     await expect(main).not.toContainText("Request an external review");
 
@@ -350,7 +350,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   // Flat menu (Design 2026-11-13, bundle B): request + login, links, then the language switch last. Dark only: no theme control.
-  const cta = menu.getByRole("link", { name: "Request a break test", exact: true });
+  const cta = menu.getByRole("link", { name: "Request a security assessment", exact: true });
   const lastLink = menu.locator("[data-mobile-language-link]");
   await expect(menu).toHaveAttribute("aria-hidden", "false");
   await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeHidden();
@@ -519,10 +519,10 @@ test("grouped desktop navigation opens current destinations", async ({ page }) =
   await nav.getByRole("button", { name: "The review", exact: true }).click();
   const panel = page.locator("#public-nav-group-review");
   for (const [name, href] of [
-    ["Agent Action Security Review", "/reviews/agent-action-security-review"],
+    ["AI Agent Red Teaming", "/reviews/agent-action-security-review"],
     ["How it works", "/how-it-works"],
     ["Examples", "/review/sample-cases"],
-    ["Request a break test", "/review/request"],
+    ["Request a security assessment", "/review/request"],
   ]) {
     await expect(panel.getByRole("link", { name: new RegExp(name) })).toHaveAttribute("href", href);
   }
@@ -554,7 +554,7 @@ test("grouped mobile navigation keeps every destination reachable", async ({ pag
   await expect(menu.getByRole("link", { name: "Pricing", exact: true })).toHaveCount(0);
   await expect(menu.getByRole("link", { name: "Docs", exact: true })).toBeVisible();
   await menu.getByRole("button", { name: "The review", exact: true }).click();
-  for (const name of ["Agent Action Security Review", "How it works", "Examples"]) {
+  for (const name of ["AI Agent Red Teaming", "How it works", "Examples"]) {
     await expect(menu.getByRole("link", { name: new RegExp(name) })).toBeVisible();
   }
   await menu.getByRole("link", { name: /How it works/ }).click();

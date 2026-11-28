@@ -1,5 +1,7 @@
 # Two-Offer V1 — founder-approved new-sales direction
 
+> For the current AI Agent Red Teaming service, see the [adopted offer](./19-agent-action-adversarial-testing-offer.md). The amendments below retain the names and terms in effect on their recorded dates.
+
 > **PARKED — 27 October 2026.** External Attack Surface Review is no longer a
 > new-sales offer. The only active public offer is Agent Action Security Review
 > at €2,500 excluding VAT. This file remains the historical record of the

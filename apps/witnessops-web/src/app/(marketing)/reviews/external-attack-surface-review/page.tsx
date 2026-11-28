@@ -7,7 +7,7 @@ import { pageSocialMetadata } from "@/lib/social-metadata";
 
 const title = `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} is no longer available`;
 const description =
-  "WitnessOps no longer accepts new External Attack Surface Review engagements. This is not the Agent Action Security Review.";
+  "WitnessOps no longer accepts new External Attack Surface Review engagements. AI Agent Red Teaming is a separate service.";
 
 export const metadata: Metadata = {
   title,

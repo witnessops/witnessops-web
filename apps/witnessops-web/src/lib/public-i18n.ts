@@ -19,7 +19,7 @@ export const POLISH_PUBLIC_NAV = {
     { label: "Przykłady (EN)", href: "/review/sample-cases" },
     { label: "Dokumentacja", href: "/pl/docs" },
   ],
-  cta: { label: "Poproś o test przełamania", href: "/pl/review/request", variant: "primary" },
+  cta: { label: "Zapytaj o ocenę bezpieczeństwa", href: "/pl/review/request", variant: "primary" },
 } as const;
 
 export type PolishOfferCopy = {

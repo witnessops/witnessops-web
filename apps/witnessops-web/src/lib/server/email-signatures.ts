@@ -95,7 +95,7 @@ const HTML_SIGNATURES: Record<
     contact: [
       { text: "engage@mail.witnessops.com", href: "mailto:engage@mail.witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
-      { text: "Start a review", href: "https://witnessops.com/review/request" },
+      { text: "Request a security assessment", href: "https://witnessops.com/review/request" },
     ],
     accentColor: WO_EMAIL_COLORS.trust,
   },

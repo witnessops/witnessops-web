@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 
 - Follow `apps/witnessops-app/AGENTS.md`, its README, and `src/lib/api-contract.ts`.
-- WorkOS AuthKit owns customer identity and session. WitnessOps PostgreSQL owns workspace membership and product data.
+- This source uses WorkOS AuthKit for product identity and sessions. See the project architecture for separately reviewed identity candidates. WitnessOps PostgreSQL owns workspace membership and product data.
 - Register API routes and auth handlers in `src/lib/api-contract.ts` and keep route parity.
 - Use centralized current-workspace membership and scoped queries. Preserve Owner, Contributor, and Viewer restrictions and revocation.
 - Signup, joining a workspace, or payment does not authorize collection.

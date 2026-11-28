@@ -4,7 +4,7 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Agent Action Security Review",
+  title: "Red teaming agentów AI",
   description:
     "Jedno istotne działanie agenta lub automatyzacji. Zakres, wyniki i cena przed rozpoczęciem pracy.",
   alternates: languageAlternates("/pl/catalog", {

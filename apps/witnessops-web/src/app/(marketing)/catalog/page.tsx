@@ -4,7 +4,7 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Agent Action Security Review",
+  title: "AI Agent Red Teaming",
   description:
     "One consequential agent or automation action. Scope, deliverables and price before work begins.",
   alternates: languageAlternates("/catalog", {

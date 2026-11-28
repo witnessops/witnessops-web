@@ -109,25 +109,25 @@ test("public source has no copper accent outside an explicit allowlist", () => {
   assert.deepEqual(hits, []);
 });
 
-test("Request a break test is the English CTA on header, hero, review page, form and restart", () => {
+test("Request a security assessment is the English CTA on header, hero, review page, form and restart", () => {
   const navbar = readFileSync(resolve(webSrc, "components/shared/navbar.tsx"), "utf8");
   const form = readFileSync(resolve(webSrc, "app/(marketing)/contact/contact-form.tsx"), "utf8");
   const confirmed = readFileSync(resolve(webSrc, "components/review-request/review-request-confirmed.tsx"), "utf8");
   const home = render(createElement(SimpleHomepage));
   const offer = render(createElement(ReviewOffer, { locale: "en" }));
-  assert.match(navbar, /label: "Request a break test"/);
-  assert.match(form, /send: polish \? "Poproś o test przełamania" : "Request a break test"/);
-  assert.match(confirmed, /restart: "Request a break test"/);
+  assert.match(navbar, /label: "Request a security assessment"/);
+  assert.match(form, /send: polish \? "Zapytaj o ocenę bezpieczeństwa" : "Request a security assessment"/);
+  assert.match(confirmed, /restart: "Request a security assessment"/);
   assert.doesNotMatch(confirmed, /uppercase tracking-\[0\.08em\]/);
   const hero = home.match(/data-ui-proof-id="homepage-hero-primary-cta"[^>]*>[^<]+/)?.[0] ?? "";
-  assert.match(hero, /Request a break test/);
+  assert.match(hero, /Request a security assessment/);
   // The 2026-11-13 homepage cut has no offer card; the form submit keeps the CTA.
   assert.doesNotMatch(home, /data-home-offer=/);
-  assert.match(home, /<button type="submit"[^>]*>Request a break test<\/button>/);
-  assert.match(offer, /data-ui-proof-id="offer-in-page-cta"[^>]*>Request a break test/);
-  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headlineMobile, "We try to break your AI agent first.");
+  assert.match(home, /<button type="submit"[^>]*>Request a security assessment<\/button>/);
+  assert.match(offer, /data-ui-proof-id="offer-in-page-cta"[^>]*>Request a security assessment/);
+  assert.equal(HOMEPAGE_TWO_OFFER_COPY.en.headlineMobile, "AI Agent Red Teaming.");
   assert.equal(
     HOMEPAGE_TWO_OFFER_COPY.pl.headlineDesktopVisual,
-    "Próbujemy przełamać agenta AI jako pierwsi.",
+    "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
   );
 });

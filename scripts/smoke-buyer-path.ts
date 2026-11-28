@@ -14,6 +14,7 @@ type FetchLike = (
 export type BuyerPathSmokeRoute = {
   path: string;
   expectedStatus?: 200 | 410;
+  mainOnly?: boolean;
   requiredMarkers: string[];
   prohibitedMarkers?: string[];
 };
@@ -55,14 +56,36 @@ const WITHDRAWN_PURCHASE_MARKERS = [
   "Request a scope and fixed quote",
 ] as const;
 
+const serviceMarkers = (locale: "en" | "pl") => [
+  PUBLIC_AGENT_ACTION_OFFER.name[locale],
+  PUBLIC_AGENT_ACTION_OFFER.price[locale],
+  PUBLIC_AGENT_ACTION_OFFER.unit[locale],
+  PUBLIC_AGENT_ACTION_OFFER.timing[locale],
+  locale === "en" ? "AI Agent Security Testing" : "Testy bezpieczeństwa agentów AI",
+  locale === "en" ? "Request a security assessment" : "Zapytaj o ocenę bezpieczeństwa",
+  'id="example-record"',
+  "offerId=agent-action-security-review",
+];
+
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "We try to break your AI agent before someone else does.", "engineering teams and AI implementation partners", "Authorization must be enforced before the system changes.", "Action map", "Findings linked to evidence", "Prioritised recommendations", "Documented unknowns", "Written report and readout", PUBLIC_AGENT_ACTION_OFFER.price.en, "What the record looks like.", "Discuss a review:", "engage@mail.witnessops.com", "Request a break test", escapeAmpersandsForHtml(PUBLIC_AGENT_ACTION_OFFER.name.en), "offerId=agent-action-security-review", "Consequential action", "Systems involved", "When you need to decide", "Historical synthetic one-action example", "Illustrative · shape only", "Designed, not executed", "Tool · not a review", "We agree the scope first. The findings come with the evidence.", "What this isn't.", "Four ways we try to break it."],
+    requiredMarkers: [
+      "AI Agent Red Teaming for agents that take real-world actions.",
+      "Request a security assessment", "View an example record",
+      "/reviews/agent-action-security-review#example-record",
+      PUBLIC_AGENT_ACTION_OFFER.price.en, "offerId=agent-action-security-review",
+      "What we test", "Findings with evidence", "Unknowns in writing",
+      "What to fix first", "Written report and readout", "engage@mail.witnessops.com",
+      "Not a full pentest, certification, fixing or monitoring.",
+      "No secrets", "We don't test until you give written authority.",
+    ],
     prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500", "€1,900", "Request an external review", "productId=OFFSEC-EXTERNAL-EXPOSURE", "Submit non-secret enquiry", "Which review?", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "10 working days", "3 working days", "€550", "550 €", ...WITHDRAWN_PURCHASE_MARKERS],
   },
   {
     path: "/check",
+    // The free check has its own boundary. A paid-service link also exists in the shared navigation.
+    mainOnly: true,
     requiredMarkers: [
       "Check your hostname. Know what to do next.",
       "Run free check",
@@ -98,14 +121,18 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/reviews/agent-action-security-review",
+    requiredMarkers: serviceMarkers("en"),
+    prohibitedMarkers: WITHDRAWN_PURCHASE_MARKERS.slice(),
+  },
+  {
+    path: "/pl/reviews/agent-action-security-review",
+    requiredMarkers: serviceMarkers("pl"),
+    prohibitedMarkers: ["productId=OFFSEC-PILOT", "€950", "Od 6 500 zł"],
+  },
+  {
     path: "/catalog",
-    requiredMarkers: [
-      "Agent Action Security Review",
-      PUBLIC_AGENT_ACTION_OFFER.price.en,
-      PUBLIC_AGENT_ACTION_OFFER.timing.en,
-      "Request a break test",
-      "offerId=agent-action-security-review",
-    ],
+    requiredMarkers: serviceMarkers("en"),
     prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
@@ -154,7 +181,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Documentation",
       "Start with the app",
-      "Signup is free. Verify your email to create your own workspace. No card is required.",
+      "Sign up and verify your email when you want your own workspace; no card is required.",
       "CLI setup and authentication",
       "Try an example",
       "The default example is indeterminate",
@@ -170,10 +197,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/docs/getting-started/proof-run-buyer-path",
     requiredMarkers: [
       "Buyer path for a security or operational review",
-      "Agent Action Security Review",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
       "External Attack Surface Review",
       "View services",
-      "Start a review",
+      "Request a security assessment",
       "receipt-only",
       "non-secret fit check",
       "Mailbox verification is not review start",
@@ -212,7 +239,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/docs/getting-started/review-workflow",
     requiredMarkers: [
       "Review workflow",
-      "Agent Action Security Review",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
       "€2,500 excl. VAT",
       "External Attack Surface Review is no longer available for new engagements",
       "We don't test until you give written authority.",
@@ -231,12 +258,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/why-witnessops",
-    requiredMarkers: ["Understand the finding. Inspect the evidence. Decide what to do.", "Permissions and controls", "Company background", "not evidence of a real provider action", "Scope a review"],
+    requiredMarkers: ["Understand the finding. Inspect the evidence. Decide what to do.", "Permissions and controls", "Company background", "not evidence of a real provider action", "Request a security assessment"],
     prohibitedMarkers: ["Meet Karol", "Work directly with Karol"],
   },
   {
     path: "/pl/why-witnessops",
-    requiredMarkers: ["Zrozum ustalenia. Sprawdź dowody. Zdecyduj, co dalej.", "Uprawnienia i zabezpieczenia", "Informacje o firmie", "Omów zakres przeglądu"],
+    requiredMarkers: ["Zrozum ustalenia. Sprawdź dowody. Zdecyduj, co dalej.", "Uprawnienia i zabezpieczenia", "Informacje o firmie", "Zapytaj o ocenę bezpieczeństwa"],
     prohibitedMarkers: ["Poznaj Karola", "Pracujesz bezpośrednio z Karolem"],
   },
   {
@@ -249,7 +276,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "First-party reference contracts, not customer evidence",
       "A readable contract is not a safety certification.",
       "does not establish that a resulting workflow",
-      "Scope a review",
+      "Request a security assessment",
     ],
     prohibitedMarkers: [
       "The public artifact classes here are sample or intake surfaces",
@@ -294,7 +321,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Get help or start a review",
       "Ready for a bounded review?",
-      "Agent Action Security Review",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
       "Support is for product help, access issues, and verifier questions.",
       "Choose the right path",
       "Verify a receipt",
@@ -335,16 +362,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pricing",
-    requiredMarkers: [
-      "Review fee and scope",
-      PUBLIC_AGENT_ACTION_OFFER.name.en,
-      PUBLIC_AGENT_ACTION_OFFER.price.en,
-      PUBLIC_AGENT_ACTION_OFFER.timing.en,
-      "Request a break test",
-      "An enquiry does not authorise collection or start a review.",
-      "A non-secret fit check comes first. No work starts from the enquiry.",
-      "offerId=agent-action-security-review",
-    ],
+    requiredMarkers: serviceMarkers("en"),
     prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
       "Agent Risk &amp; Control Review",
       "Agent Risk & Control Review",
@@ -385,7 +403,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Do not submit",
       "No dashboard subscription. No vague audit promise.",
       "What the review package contains",
-      "Start a review",
+      "Request a security assessment",
       "Inspect sample package",
       "Verify a receipt",
     ],
@@ -418,7 +436,14 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.", "Poproś o test przełamania", PUBLIC_AGENT_ACTION_OFFER.price.pl, PUBLIC_AGENT_ACTION_OFFER.timing.pl, "offerId=agent-action-security-review"],
+    requiredMarkers: [
+      "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
+      "Zapytaj o ocenę bezpieczeństwa", "Zobacz przykładową dokumentację",
+      "/pl/reviews/agent-action-security-review#example-record",
+      PUBLIC_AGENT_ACTION_OFFER.price.pl, "offerId=agent-action-security-review",
+      "Co sprawdzamy", "Ustalenia z dowodami", "Niewiadome na piśmie",
+      "Nie testujemy bez Twojej pisemnej zgody.",
+    ],
     prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only", "VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500", "offerId=agent-tools-access-review", "offerId=automation-repair-handover", "offerId=customer-security-review-sprint", "productId=OFFSEC-PILOT", "Private Pilot", "€950", "Od €2 500", "Customer Security Review Sprint", "Omów zakres przeglądu", "Scope this review", "10 dni roboczych", "3 dni roboczych", "10 working days", "3 working days", "€550", "550 €"],
   },
   {
@@ -427,7 +452,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       PUBLIC_AGENT_ACTION_OFFER.name.pl,
       PUBLIC_AGENT_ACTION_OFFER.price.pl,
       PUBLIC_AGENT_ACTION_OFFER.timing.pl,
-      "Poproś o test przełamania",
+      "Zapytaj o ocenę bezpieczeństwa",
       "offerId=agent-action-security-review",
     ],
     prohibitedMarkers: ["€2,500 fixed", "Read, inspect, reconstruct and report only",
@@ -475,11 +500,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/library",
     requiredMarkers: [
       "Biblioteka",
-      "Publiczne punkty wejścia",
+      "Oferta, przykłady i dokumentacja",
       "Zacznij tutaj",
       "Przeglądaj usługi",
       "Zweryfikuj zapis",
-      "Rozpocznij przegląd",
+      "Zapytaj o ocenę bezpieczeństwa",
     ],
     prohibitedMarkers: [
       "Package one security workflow",
@@ -489,7 +514,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/catalog/offsec-external-exposure",
     requiredMarkers: [
       "External Attack Surface Review is no longer available",
-      "This is not the Agent Action Security Review",
+      "AI Agent Red Teaming is a separate service.",
       "Issued agreements keep their original terms.",
       "/reviews/agent-action-security-review",
     ],
@@ -543,14 +568,14 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "Start with a fit check. Don't send secrets.",
+      "Leave out credentials, logs and customer data.",
       "Work email",
       "The action",
       "Systems involved",
       "When you need to decide",
       "Do not send passwords, private keys, API keys, recovery codes, session tokens",
       "Next, confirm your email with a code.",
-      "Request a break test",
+      "Request a security assessment",
       'value="agent-action-security-review"',
       'action="/api/review/request"',
       "No work or target-facing check starts from this form.",
@@ -584,7 +609,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request?offerId=agent-action-security-review",
     requiredMarkers: [
-      "Start with a fit check. Don't send secrets.",
+      "Leave out credentials, logs and customer data.",
       PUBLIC_AGENT_ACTION_OFFER.price.en,
       "The action",
       "Systems involved",
@@ -610,7 +635,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
     requiredMarkers: [
       "External Attack Surface Review is no longer available",
-      "It is not the Agent Action Security Review",
+      "AI Agent Red Teaming is a separate service.",
       "Existing requests and issued agreements keep their original terms.",
       "offerId=agent-action-security-review",
       "No work or target-facing check starts from this page.",
@@ -662,12 +687,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl/review/request",
     requiredMarkers: [
-      "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów.",
+      "Pomiń hasła, logi i dane klientów.",
       "Służbowy adres e-mail",
       "Co ma zrobić agent?",
       "Z jakich systemów korzysta agent?",
       "Do kiedy potrzebujesz decyzji?",
-      "Poproś o test przełamania",
+      "Zapytaj o ocenę bezpieczeństwa",
       'name="intent" value="agent-action-security-review"',
       PUBLIC_AGENT_ACTION_OFFER.price.pl,
     ],
@@ -677,9 +702,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
     requiredMarkers: [
       "External Attack Surface Review nie jest już dostępny",
-      "To nie jest Agent Action Security Review",
+      "Red teaming agentów AI to odrębna usługa.",
       "offerId=agent-action-security-review",
-      "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
     ],
     prohibitedMarkers: [
       "Opowiedz, co wymaga sprawdzenia",
@@ -689,14 +714,14 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl/review/request?offerId=agent-action-security-review",
     requiredMarkers: [
-      "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów.",
+      "Pomiń hasła, logi i dane klientów.",
       PUBLIC_AGENT_ACTION_OFFER.price.pl,
       "Co ma zrobić agent?",
       "Z jakich systemów korzysta agent?",
       "Do kiedy potrzebujesz decyzji?",
       "Jedno istotne działanie agenta lub automatyzacji",
       'name="intent" value="agent-action-security-review"',
-      "Samo zgłoszenie nie rozpoczyna pracy.",
+      "Samo zgłoszenie nie rozpoczyna przeglądu.",
     ],
     prohibitedMarkers: [
       "Od €2 500 · bez VAT",
@@ -711,9 +736,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/review/request?offerId=agent-tools-access-review",
     requiredMarkers: [
       "Ten link nie rozpoczyna nowego przeglądu",
-      "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
+      "Istniejące zgłoszenia i dotychczasowe uzgodnienia zachowują pierwotne warunki.",
       "offerId=agent-action-security-review",
-      "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -730,8 +755,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
       "Ten link nie rozpoczyna nowego przeglądu",
-      "Istniejące zgłoszenia i wydane uzgodnienia zachowują pierwotne warunki.",
-      "Ta strona nie rozpoczyna pracy ani kontroli wobec celu.",
+      "Istniejące zgłoszenia i dotychczasowe uzgodnienia zachowują pierwotne warunki.",
+      "Otwarcie tej strony nie rozpoczyna pracy ani sprawdzania wskazanego celu.",
     ],
     prohibitedMarkers: [
       "Wybrana oferta:",
@@ -766,7 +791,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl/review/request/confirmed",
     requiredMarkers: [
-      "WitnessOps / request record",
+      "WitnessOps / zapis zgłoszenia",
       "Wczytywanie zapisu zgłoszenia przechowywanego w przeglądarce…",
     ],
     prohibitedMarkers: [
@@ -781,12 +806,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Agent actions, approvals and supporting evidence.",
       "Sample cases",
-      "Agent Action Security Review",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
       "Compromised API key rotation",
       "Witnessed synthetic CRM action",
       "Privileged access grant",
       "Approval-gated containment",
-      "Start a review",
+      "Request a security assessment",
       "Verify a receipt",
       "Not a legal compliance claim",
     ],
@@ -818,7 +843,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Start a review",
+      "Request a security assessment",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -844,7 +869,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Start a review",
+      "Request a security assessment",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -870,7 +895,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Start a review",
+      "Request a security assessment",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -913,13 +938,13 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "DEMO_KEY_REGISTRY.json",
       "What this sample can show",
       "that an AI agent caused or authorized the tool calls",
-      "Agent Action Security Review",
+      PUBLIC_AGENT_ACTION_OFFER.name.en,
       PUBLIC_AGENT_ACTION_OFFER.price.en,
       "This synthetic one-action example is historical",
       "not a complete sample of the current paid review",
       "do not become standard review deliverables",
-      "We don't test until you give written authority.",
-      "Request a break test",
+      PUBLIC_AGENT_ACTION_OFFER.timing.en,
+      "Request a security assessment",
     ],
     prohibitedMarkers: [
       "Agent Risk &amp; Control Review",
@@ -955,11 +980,12 @@ export function evaluateBuyerPathRoute(
   status: number,
   body: string,
 ): BuyerPathSmokeResult {
+  const surface = route.mainOnly ? body.match(/<main\b[^>]*>[\s\S]*?<\/main>/i)?.[0] ?? "" : body;
   const missingMarkers = route.requiredMarkers.filter(
-    (marker) => !body.includes(marker),
+    (marker) => !surface.includes(marker),
   );
   const prohibitedMarkersPresent = (route.prohibitedMarkers ?? []).filter(
-    (marker) => body.includes(marker),
+    (marker) => surface.includes(marker),
   );
 
   return {
@@ -1001,7 +1027,8 @@ export const buyerPathIntakeProbes: readonly BuyerPathIntakeProbe[] = [
   { name: "historical bounded workflow", path: "/api/review/request", body: intakeBody("bounded-workflow-review"), expectReason: "historical" },
   { name: "private pilot id", path: "/api/review/request", body: intakeBody("OFFSEC-PILOT"), expectReason: "unsupported" },
   { name: "private pilot label", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review — Private Pilot"), expectReason: "unsupported" },
-  { name: "display name only", path: "/api/review/request", body: intakeBody("Agent Action Security Review"), expectReason: "unsupported" },
+  { name: "current display name only", path: "/api/review/request", body: intakeBody(PUBLIC_AGENT_ACTION_OFFER.name.en), expectReason: "unsupported" },
+  { name: "former display name only", path: "/api/review/request", body: intakeBody("Agent Action Security Review"), expectReason: "unsupported" },
   { name: "inventory display name", path: "/api/review/request", body: intakeBody("AI Agent Tools & Access Review"), expectReason: "unsupported" },
   { name: "parked external service id", path: "/api/review/request", body: intakeBody("external-exposure-assessment"), expectReason: "parked" },
   { name: "ambiguous both identities", path: "/api/review/request", body: intakeBody("agent-action-security-review", { productId: "OFFSEC-EXTERNAL-EXPOSURE" }), expectReason: "ambiguous" },

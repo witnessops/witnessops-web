@@ -55,7 +55,7 @@ const LIKELY_FIT_AUTHORITY_CLASSES = new Set([
 
 
 
-const NAMED_OFFER_PATTERN = /\bagent action security review\b/i;
+const NAMED_OFFER_PATTERN = /\b(?:agent action security review|ai agent red teaming|ai agent security testing|red teaming agentów ai|testy bezpieczeństwa agentów ai)\b/i;
 const EXTERNAL_OFFER_PATTERN =
   /\b(external attack surface(?: review)?|internet-facing)\b/i;
 const WITHDRAWN_NEW_SALES_PATTERN =

@@ -1,6 +1,6 @@
 # Agent Risk & Control Review
 
-> **Historical / superseded commercial record.** This document preserves the former positioning and commercial terms adopted on 2026-08-26. It no longer defines the current primary offer or paid entry point. The [commercial index](./README.md) is current authority: Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. [Document 16](./16-agent-workflow-reconstruction-offer.md) is itself a historical one-action contract, not current sales authority. The content below is intentionally retained and must not be propagated into active buyer-facing surfaces.
+> **Historical / superseded commercial record.** This document preserves the former positioning and commercial terms adopted on 2026-08-26. It no longer defines the current primary offer or paid entry point. The [commercial index](./README.md) is current authority: AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. [Document 16](./16-agent-workflow-reconstruction-offer.md) is itself a historical one-action contract, not current sales authority. The content below is intentionally retained and must not be propagated into active buyer-facing surfaces.
 
 **Commercial status:** Primary homepage offer as of 2026-08-26.
 

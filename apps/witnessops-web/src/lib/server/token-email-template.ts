@@ -10,7 +10,7 @@ import {
   emailTextStyle,
 } from "./email-theme-light";
 
-export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v5-light" as const;
+export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v6-light" as const;
 
 export interface VerificationEmailTemplateInput {
   channel: Exclude<ChannelName, "noreply">;
@@ -92,8 +92,8 @@ function manualCommercialVerificationCopy(
       meaningTitle: "Co oznacza ta weryfikacja",
       meaningLines: [
         "Ta weryfikacja potwierdza wyłącznie dostęp do skrzynki.",
-        "Nie rozpoczyna przeglądu ani pracy.",
-        "WitnessOps potwierdzi e-mailem dopasowanie, zakres, płatność i sposób obsługi materiałów przed przyjęciem jakichkolwiek materiałów źródłowych.",
+        "Samo potwierdzenie adresu nie rezerwuje terminu ani nie upoważnia do rozpoczęcia testów.",
+        "Odpowiemy na zapytanie e-mailem. Jeśli zdecydujesz się na ocenę bezpieczeństwa, w podpisanej umowie potwierdzimy zakres, cenę, dostępność zespołu i termin. Przed przekazaniem materiałów uzgodnimy bezpieczny sposób ich udostępnienia.",
       ],
       doNotReply:
         "Nie odpowiadaj, przesyłając sekrety, eksporty źródłowe, logi, zrzuty ekranu, dane uwierzytelniające, klucze prywatne, kody MFA ani materiały klienta.",
@@ -117,12 +117,12 @@ function manualCommercialVerificationCopy(
     steps: [
       "Return to the request page.",
       "Enter the code in the verification box.",
-      "Confirm the mailbox-only boundary before continuing.",
+      "Confirm that the code verifies access to your email address.",
     ],
     textInstructions: [
       "Return to the WitnessOps request page that is already open in your browser.",
       "Enter the code in the verification box. No link is required.",
-      "Confirm the mailbox-only boundary before continuing.",
+      "Confirm that the code verifies access to your email address.",
     ],
     verificationPageLabel: "Open Verification Page",
     reopenLead: "Request page no longer open?",
@@ -131,8 +131,8 @@ function manualCommercialVerificationCopy(
     meaningTitle: "What this verification means",
     meaningLines: [
       "This confirms mailbox access only.",
-      "It does not start a proof run.",
-      "WitnessOps confirms fit, scope, payment, and evidence handling by email before any source materials are accepted.",
+      "Email confirmation does not book work or authorize testing.",
+      "We will reply to your enquiry by email. If you proceed with an assessment, the signed statement of work confirms the scope, fee, capacity and timing. We will agree how to share evidence before you send it.",
     ],
     doNotReply:
       "Do not reply with secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, or customer evidence.",

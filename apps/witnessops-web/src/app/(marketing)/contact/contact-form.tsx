@@ -385,7 +385,7 @@ export function ContactForm({
         evidencePlaceholder: polish
           ? "Nazwij tylko rodzaje: zgłoszenie, prompt, log, zatwierdzenie, wynik. Nie wysyłaj ich teraz."
           : "Name types only: ticket, prompt, log, approval, or output. Do not send them yet.",
-        send: polish ? "Poproś o test przełamania" : "Request a break test",
+        send: polish ? "Zapytaj o ocenę bezpieczeństwa" : "Request a security assessment",
         submitBoundary: polish
           ? `Wysyłasz zapytanie o przegląd. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} Nie rezerwujesz terminu, nie dokonujesz płatności ani nie upoważniasz nas do sprawdzania systemów.`
           : `Submitting this form opens fit review only. ${PUBLIC_AGENT_ACTION_OFFER.price.en} It is not a booking, a payment, or permission to test.`,
@@ -536,7 +536,7 @@ export function ContactForm({
     const preferredStarts = [stringField(data, "preferredStart1"), stringField(data, "preferredStart2")];
     const requestScope = fitCall
       ? [
-          "Request: 20-minute expert conversation about Agent Action Security Review",
+          "Request: 20-minute expert conversation about AI Agent Red Teaming",
           `Selected product / intent: ${submittedIntent}`,
           `Request locale: ${locale}`,
           "First-message boundary: non-secret topic only; no files, credentials, logs, customer records, or production evidence requested",
@@ -710,6 +710,7 @@ export function ContactForm({
           locale,
           requestKind: payload.requestMode === "fit-call" ? "fit-call" : resolveReviewRequestKind(submittedIntent),
           source: "request-form",
+          displayedOfferLabel: selectedService?.name[locale],
         });
         if (!confirmation) {
           throw new Error(

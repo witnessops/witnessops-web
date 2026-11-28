@@ -664,7 +664,7 @@ test("an already issued External Attack Surface Review token stays on the manual
   }
 });
 
-test("Agent Action Security Review uses the Polish manual commercial path and operator notification", async () => {
+test("Historical bounded-workflow-review uses the Polish manual commercial path and operator notification", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-bounded-workflow-review-"),
   );
@@ -842,7 +842,7 @@ test("verify-token route sends a reply-ready operator notification for package r
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,
-    /^Subject: Verified Agent Action Security Review request: WitnessOps Labs$/m,
+    /^Subject: Verified AI Agent Red Teaming request: WitnessOps Labs$/m,
   );
   assert.match(operatorMailRaw, /^X-WitnessOps-Message-Class: internal_notification$/m);
   assert.match(operatorMailRaw, /^X-WitnessOps-Signature-Profile: none$/m);

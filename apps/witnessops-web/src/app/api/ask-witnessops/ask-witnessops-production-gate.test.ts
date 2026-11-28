@@ -93,6 +93,6 @@ test("production answers an exact company introduction from published facts with
   const answer = await response.json();
   assert.equal(response.status, 200);
   assert.equal(answer.answer_mode, "deterministic_fallback");
-  assert.match(answer.template.body, /Agent Action Security Review/);
+  assert.match(answer.template.body, /AI Agent Red Teaming/);
   assert.equal(providerCalls, 0);
 });

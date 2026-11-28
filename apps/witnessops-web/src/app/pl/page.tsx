@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 
 import { SimpleHomepage } from "@/components/marketing/simple-homepage";
-import { HOMEPAGE_TWO_OFFER_COPY } from "@/components/marketing/homepage-two-offer-copy";
 import { languageAlternates, organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { JsonLd } from "@/components/seo/json-ld";
 
-const homeTitle = "Bezpieczeństwo i weryfikacja";
-const homeDescription = `${HOMEPAGE_TWO_OFFER_COPY.pl.headline} ${HOMEPAGE_TWO_OFFER_COPY.pl.support}`;
+const homeTitle = "Red teaming agentów AI i testy bezpieczeństwa";
+const homeDescription = "Niezależne testy bezpieczeństwa agentów AI przed wdrożeniem. Sprawdzamy uprawnienia, zatwierdzanie i wpływ poleceń na jedno działanie w jednym procesie. €2 500 bez VAT.";
 
 export const metadata: Metadata = {
   title: homeTitle,

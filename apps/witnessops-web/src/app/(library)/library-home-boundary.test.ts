@@ -28,6 +28,6 @@ test("PL library mirrors the short map structure", () => {
   assert.match(pl, /Przeglądaj usługi/);
   assert.match(pl, /Zweryfikuj zapis/);
   assert.match(pl, /href: "\/pl\/verify"/);
-  assert.match(pl, /Zapytaj o przegląd/);
+  assert.match(pl, /Zapytaj o ocenę bezpieczeństwa/);
   assert.doesNotMatch(pl, /border-2 border-black bg-white/);
 });

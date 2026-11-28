@@ -432,7 +432,7 @@ test("commercial fit keeps successful public guidance coherent with the live off
   };
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Red Teaming/);
   assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
   assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
@@ -454,11 +454,11 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     answer_mode: "ai_assisted" as const,
   };
 
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
+  assert.match(askWitnessOpsAnswerText(answer), /AI Agent Red Teaming/);
   assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
   assert.match(
     askWitnessOpsAnswerText(answer),
-    /We don't test until you give written authority/,
+    /Testing requires written authorisation/,
   );
   assert.match(askWitnessOpsAnswerText(answer), /€2,500 excl\. VAT/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /\u00A0/);
@@ -590,7 +590,7 @@ test("unsafe and external action routes are omitted without changing the answer"
 });
 
 test("ask witnessops route labels map known buyer paths", () => {
-  assert.equal(askWitnessOpsRouteLabel("route.fit-check"), "Request a fit check");
+  assert.equal(askWitnessOpsRouteLabel("route.fit-check"), "Request a security assessment");
   assert.equal(askWitnessOpsRouteLabel("route.support"), "Open support");
   assert.equal(askWitnessOpsRouteLabel("route.unknown"), "Continue");
 });

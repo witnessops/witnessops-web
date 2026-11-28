@@ -4,14 +4,9 @@ import { useId, useRef, useState, type Ref } from "react";
 
 import {
   buildReviewRequestConfirmationText,
+  confirmationRequestLabel,
   type ReviewRequestConfirmation,
 } from "@/lib/review-request-confirmation";
-import {
-  EXTERNAL_ATTACK_SURFACE_OFFER,
-  PRIMARY_OFFER,
-  PUBLIC_AGENT_ACTION_OFFER,
-  LEGACY_AGENT_ACTION_OFFER,
-} from "@/lib/commercial-truth";
 import styles from "./review-request-record.module.css";
 
 type CopyState = "idle" | "copied" | "failed";
@@ -31,23 +26,6 @@ const copyByLocale = {
     fitCallNextStep: "Operator checks availability and confirms a time or replies with alternatives",
     fitCallBoundary: "This record confirms mailbox access and a time request at verification. It does not reserve time or start work. A later email or calendar invitation determines current status.",
     requestLabel: "Requested path",
-    requestNames: {
-      "fit-call": "20-minute expert conversation request",
-      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.en,
-      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.en,
-      "agent-tools-access-review": PRIMARY_OFFER.name.en,
-      "ai-agent-action-proof-run": "AI Agent Action Proof Run",
-      "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
-      "customer-security-review-sprint": "Customer Security Review Sprint",
-      "one-server-security-check": "One Server Security Check",
-      "launch-readiness-check": "Launch Readiness Check",
-      "key-access-custody-review": "Key, Access and Custody Review",
-      "incident-readiness-review": "Incident Readiness Review",
-      "professional-public-footprint-audit":
-        "Professional Public Footprint Audit",
-      "review-request": "WitnessOps review request",
-    },
     reference: "Request reference",
     confirmedAt: "Confirmed at",
     reviewStarted: "Review started",
@@ -56,7 +34,7 @@ const copyByLocale = {
     nextStepLabel: "Next step",
     nextStep: "Asynchronous fit and scope review",
     boundary:
-      "This records mailbox access and intake capture only. It is not a proof receipt, verifier result, identity proof, scope acceptance, or start-of-work record.",
+      "These facts describe the time of mailbox confirmation. This record confirms mailbox access and intake capture only. It is not a proof receipt, verifier result, identity proof, scope acceptance, or start-of-work record.",
     copy: "Copy request record",
     copied: "Record copied",
     failed: "Select record below",
@@ -77,23 +55,6 @@ const copyByLocale = {
     fitCallNextStep: "Operator sprawdzi dostępność i potwierdzi termin albo zaproponuje inne",
     fitCallBoundary: "Ten zapis potwierdza dostęp do skrzynki i prośbę o termin w chwili weryfikacji. Nie rezerwuje terminu ani nie rozpoczyna pracy. Późniejsza wiadomość lub zaproszenie określa aktualny stan.",
     requestLabel: "Wybrana ścieżka",
-    requestNames: {
-      "fit-call": "Prośba o 20-minutową rozmowę z ekspertem",
-      "agent-risk-control-review": LEGACY_AGENT_ACTION_OFFER.name.pl,
-      "agent-action-security-review": PUBLIC_AGENT_ACTION_OFFER.name.pl,
-      "agent-tools-access-review": PRIMARY_OFFER.name.pl,
-      "ai-agent-action-proof-run": "AI Agent Action Proof Run",
-      "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
-      "customer-security-review-sprint": "Customer Security Review Sprint",
-      "one-server-security-check": "One Server Security Check",
-      "launch-readiness-check": "Launch Readiness Check",
-      "key-access-custody-review": "Key, Access and Custody Review",
-      "incident-readiness-review": "Incident Readiness Review",
-      "professional-public-footprint-audit":
-        "Audyt publicznego śladu zawodowego",
-      "review-request": "Zgłoszenie przeglądu WitnessOps",
-    },
     reference: "Numer referencyjny",
     confirmedAt: "Potwierdzono",
     reviewStarted: "Przegląd rozpoczęty",
@@ -102,7 +63,7 @@ const copyByLocale = {
     nextStepLabel: "Następny krok",
     nextStep: "Asynchroniczna ocena dopasowania i zakresu",
     boundary:
-      "Ten zapis potwierdza wyłącznie dostęp do skrzynki i przyjęcie zgłoszenia. Nie jest paragonem dowodowym, wynikiem weryfikatora, potwierdzeniem tożsamości, akceptacją zakresu ani zapisem rozpoczęcia pracy.",
+      "Dane dotyczą chwili potwierdzenia adresu e-mail. Ten zapis potwierdza wyłącznie dostęp do skrzynki i przyjęcie zgłoszenia. Nie jest paragonem dowodowym, wynikiem weryfikatora, potwierdzeniem tożsamości, akceptacją zakresu ani zapisem rozpoczęcia pracy.",
     copy: "Kopiuj zapis zgłoszenia",
     copied: "Zapis skopiowany",
     failed: "Zaznacz zapis poniżej",
@@ -168,7 +129,7 @@ export function ReviewRequestRecord({
         </h2>
         <p className={styles.requestName}>
           <span>{text.requestLabel}</span>
-          <strong>{text.requestNames[confirmation.requestKind]}</strong>
+          <strong>{confirmationRequestLabel(confirmation)}</strong>
         </p>
 
         <dl className={styles.facts}>

@@ -22,10 +22,10 @@ export const PUBLIC_NAV_GROUPS: readonly PublicNavGroup[] = [
     label: "The review",
     description: "One action. Clear findings.",
     links: [
-      { label: "Agent Action Security Review", href: "/reviews/agent-action-security-review", description: "What the review covers and delivers." },
+      { label: "AI Agent Red Teaming", href: "/reviews/agent-action-security-review", description: "What the review covers and delivers." },
       { label: "How it works", href: "/how-it-works", description: "From the first conversation to the findings." },
       { label: "Examples", href: "/review/sample-cases", description: "Published samples and their evidence." },
-      { label: "Request a break test", href: "/review/request", description: "Tell us about your agent and its action." },
+      { label: "Request a security assessment", href: "/review/request", description: "Tell us about your agent and its action." },
     ],
   },
   {
@@ -51,10 +51,10 @@ export const POLISH_NAV_GROUPS: readonly PublicNavGroup[] = [
     label: "Przegląd",
     description: "Jedno działanie. Jasne ustalenia.",
     links: [
-      { label: "Agent Action Security Review", href: "/pl/reviews/agent-action-security-review", description: "Zakres przeglądu i materiały, które otrzymasz." },
+      { label: "Red teaming agentów AI", href: "/pl/reviews/agent-action-security-review", description: "Zakres przeglądu i materiały, które otrzymasz." },
       { label: "Podejście", href: "/pl/why-witnessops", description: "Od pierwszej rozmowy do ustaleń." },
       { label: "Przykłady (EN)", href: "/review/sample-cases", description: "Opublikowane przykłady i materiały do sprawdzenia." },
-      { label: "Poproś o test przełamania", href: "/pl/review/request", description: "Opisz agenta i jego działanie." },
+      { label: "Zapytaj o ocenę bezpieczeństwa", href: "/pl/review/request", description: "Opisz agenta i jego działanie." },
     ],
   },
   {

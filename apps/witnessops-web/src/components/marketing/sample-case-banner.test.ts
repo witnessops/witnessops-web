@@ -17,7 +17,7 @@ test("sample case banner is the shared not-live boundary with primary CTAs", () 
   assert.match(banner, /Published sample, not live customer evidence/);
   assert.match(banner, /showActions = true/);
   assert.match(banner, /showActions \?/);
-  assert.match(banner, /Start a review/);
+  assert.match(banner, /Request a security assessment/);
   assert.match(banner, /Verify a receipt/);
   assert.match(banner, /Skills/);
 });

@@ -2,7 +2,7 @@
 
 Write in email or PDF. Keep short. **Nothing starts until both sides accept.**
 
-For a new agreement, use only the Agent Action Security Review scope below and
+For a new agreement, use only the AI Agent Red Teaming scope below and
 the [current commercial index](./README.md). The historical blocks preserve
 earlier agreements; they are not new-sales options.
 
@@ -12,7 +12,8 @@ earlier agreements; they are not new-sales options.
 
 ```text
 WitnessOps — Scope agreement
-Product: Agent Action Security Review
+Product: AI Agent Red Teaming
+Methodology: Agent Action Security Review
 Engagement ref: [id]
 Date: [ISO date]
 Customer: [legal or trading name]
@@ -36,11 +37,12 @@ not alternatives to paste into a new agreement.
 
 ## 2. In scope
 
-### Current: Agent Action Security Review
+### Current: AI Agent Red Teaming
 
 ```text
 - Offer identity: agent-action-security-review
 - Scope revision: one_action_adversarial_testing_v2
+- Agreed workflow: [workflow name and owner]
 - One consequential AI-agent action: [allowed behaviour and prohibited outcomes]
 - Agreed environment/resources/input surfaces: [named boundary and owners]
 - Test identities, effective permissions and approvals: [named path and evidence]
@@ -172,7 +174,7 @@ Payment: [terms]
 
 Current paid review, for a new agreement:
 
-- Agent Action Security Review: €2,500 excluding VAT (`eur_2500_ex_vat`) for the specified adversarial testing scope. Resolve delivery capacity and any retest cases, window and allowance before acceptance. No default retest allowance is approved.
+- AI Agent Red Teaming: €2,500 excluding VAT (`eur_2500_ex_vat`) for the specified adversarial testing scope. Resolve delivery capacity and any retest cases, window and allowance before acceptance. No default retest allowance is approved.
 
 Earlier read-only Agent Action agreements at €2,500 excluding VAT retain their accepted scope, fee and exclusions. They do not authorize active testing.
 

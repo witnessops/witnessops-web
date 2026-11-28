@@ -16,7 +16,7 @@ const likelyWorkflowFit = {
   offer_id: "agent-action-security-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Action Security Review" as const,
+    name: "AI Agent Red Teaming" as const,
     price_label: "€2,500 excl. VAT" as const,
     unit_label: "One consequential agent or automation action" as const,
     fit_check_label: "Non-secret fit check first" as const,

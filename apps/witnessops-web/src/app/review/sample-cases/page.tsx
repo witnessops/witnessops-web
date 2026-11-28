@@ -82,11 +82,11 @@ const nextSteps = [
     label: "Open sample report",
   },
   {
-    title: "Start a review",
+    title: "Request a security assessment",
     description:
       "Describe one situation without secrets. We confirm fit, scope, fee and evidence handling before work starts.",
     href: "/review/request",
-    label: "Request a break test",
+    label: "Request a security assessment",
   },
 ] as const;
 
@@ -104,7 +104,7 @@ export default function SampleCasesIndexPage() {
               Agent actions, approvals and supporting evidence.
             </p>
             <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
-              Explore four examples relevant to Agent Action Security Review.
+              Explore four examples relevant to AI Agent Red Teaming.
               Published sample, not live customer evidence. No production verification or certification.
             </p>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">

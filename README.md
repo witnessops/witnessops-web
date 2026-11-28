@@ -4,6 +4,8 @@ Source for the WitnessOps public website, authenticated product app, CLI and
 shared packages. Source presence, passing tests and a merge are not evidence
 that a feature is enabled or accepted in production.
 
+Start with the [manifesto](MANIFESTO.md) for the customer problem and offer direction, the [architecture](ARCHITECTURE.md) for the implemented surfaces and their verification status, and the [project charter](SOUL.md) and [agent instructions](AGENTS.md) for engineering work.
+
 ## Repository map
 
 | Source | Role and starting point |
@@ -40,7 +42,7 @@ by this source description.
 - A CI canary workflow emits and keyless-signs a public-manifest diff to test repository release evidence. That is not customer proof issuance or production acceptance.
 - Public samples and their source relationships do not establish production deployment, legal compliance, source-system truth or complete AI governance coverage.
 - Separate private control-plane and mesh systems are not made part of this repository by documentation references.
-- Public positioning category (working): bounded independent verification of consequential AI and security work—one activity reconstructed (authorized, executed, observed, unresolved); not a whole-environment or GRC replacement.
+- The mission is independent verifiability of consequential AI and security work. The [manifesto](MANIFESTO.md) distinguishes the accepted offer from historical offers and describes its buyer language and pricing.
 - Retired cloud deployment material is not active authority.
 
 ## Product governance

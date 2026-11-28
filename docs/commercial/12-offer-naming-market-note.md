@@ -2,8 +2,7 @@
 
 > **Historical / superseded commercial instruction.** This remains a dated market-research record;
 > its Agent Risk & Control Review and Public Exposure Review naming recommendations are no longer
-> current. The [commercial index](./README.md) governs current new-sales direction: Agent Action
-> Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface
+> current. The [commercial index](./README.md) governs current new-sales direction: AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface
 > Review is parked. The [external offer](./10-public-exposure-review-offer.md) and
 > [fit check](./11-public-exposure-review-fit-check.md) are historical records for issued agreements
 > and old lookups, not current sales authority. The analysis below is intentionally retained.

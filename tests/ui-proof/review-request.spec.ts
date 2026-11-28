@@ -313,7 +313,7 @@ test("the agent enquiry recovers from request and code errors and confirms throu
     await expect(page).toHaveURL(new RegExp(`${prefix}/review/request/confirmed$`));
     expect(verifications).toBe(2);
     const record = page.locator('[data-ui-proof-id="review-request-record"]');
-    await expect(record).toContainText("Agent Action Security Review");
+    await expect(record).toContainText(locale === "en" ? "AI Agent Red Teaming" : "Red teaming agentów AI");
     await expect(record).toContainText("int_synthetic_gate_one");
     const heldRecord = await page.evaluate(() => JSON.parse(window.sessionStorage.getItem("witnessops.review-request-confirmation.v1") ?? "null"));
     expect(heldRecord.requestKind).toBe("agent-action-security-review");
@@ -403,6 +403,7 @@ test("expert-time request asks for a time through email verification without cla
     await expect(page.locator('[data-ui-proof-id="review-request-record"]')).toContainText("int_fit_call_test");
     const held = await page.evaluate(() => sessionStorage.getItem("witnessops.review-request-confirmation.v1") ?? "");
     expect(JSON.parse(held).requestKind).toBe("fit-call");
+    await expect(page.locator('[data-ui-proof-id="review-request-confirmed"]')).not.toContainText(/€[\s\d]/);
     expect(held).not.toContain(topic);
     expect(held).not.toContain(preferredStarts[0]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
@@ -410,30 +411,30 @@ test("expert-time request asks for a time through email verification without cla
   }
 });
 
-test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
+test("AI Agent Red Teaming gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {
       locale: "en",
       path: "/review/request",
-      fitTitle: "Start your Agent Action Security Review.",
+      fitTitle: "Start your AI Agent Red Teaming.",
       contractMarkers: [
-        "Agent Action Security Review",
+        "AI Agent Red Teaming",
         "€2,500 excl. VAT",
-        "One consequential agent or automation action",
+        "Tell us the action, the systems it touches and when you need to decide.",
         "Submitting this form opens fit review only",
-        "We don't test until you give written authority.",
+        "Testing requires written authorisation.",
       ],
     },
     {
       locale: "pl",
       path: "/pl/review/request",
-      fitTitle: "Zapytaj o Agent Action Security Review.",
+      fitTitle: "Zapytaj o Red teaming agentów AI.",
       contractMarkers: [
-        "Agent Action Security Review",
+        "Red teaming agentów AI",
         "€2 500 bez VAT",
-        "Nie wysyłaj sekretów.",
-        "Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji.",
-        "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
+        "Pomiń hasła, logi i dane klientów.",
+        "Opisz działanie, systemy, których dotyczy, oraz termin decyzji.",
+        "Testy wymagają pisemnego upoważnienia.",
       ],
     },
   ] as const) {
@@ -529,7 +530,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     }
     expect(submittedPayload?.intent).toBe("agent-action-security-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
+    expect(submittedPayload?.scope).toContain("Request: AI Agent Red Teaming");
     expect(submittedPayload?.scope).toContain("Consequential action:");
     expect(submittedPayload?.scope).toContain("Systems involved:");
     expect(submittedPayload?.scope).toContain("Decision deadline:");
@@ -573,7 +574,7 @@ test("supported request identities open a selling form and rejected identities s
   expect(parked?.status()).toBe(200);
   await expect(page.locator("main h1")).toHaveText("External Attack Surface Review is no longer available");
   await expect(page.locator("main form")).toHaveCount(0);
-  await expect(page.locator("main")).toContainText("It is not the Agent Action Security Review.");
+  await expect(page.locator("main")).toContainText("AI Agent Red Teaming is a separate service.");
 
   for (const query of [
     "offer=AI+Agent+Tools+%26+Access+Review",
@@ -606,13 +607,13 @@ test("External Attack Surface Review queries stay closed and do not sell that re
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
       title: "External Attack Surface Review is no longer available",
-      body: "It is not the Agent Action Security Review.",
+      body: "AI Agent Red Teaming is a separate service.",
       href: "/review/request?offerId=agent-action-security-review",
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
       title: "External Attack Surface Review nie jest już dostępny",
-      body: "To nie jest Agent Action Security Review.",
+      body: "Red teaming agentów AI to odrębna usługa.",
       href: "/pl/review/request?offerId=agent-action-security-review",
     },
   ] as const) {
@@ -866,6 +867,31 @@ test("confirmation routes render a bounded browser-held request record", async (
       );
       expect(overflow, scenario.path).toBeLessThanOrEqual(1);
       await context.close();
+    }
+  }
+});
+
+test("historical confirmations preserve their saved label and carry no current fee", async ({ page }) => {
+  for (const locale of ["en", "pl"] as const) {
+    const path = (locale === "pl" ? "/pl" : "") + "/review/request/confirmed";
+    for (const offerLabel of ["Agent Action Security Review", null]) {
+      await page.goto(path);
+      await page.evaluate(({ locale, offerLabel }) => {
+        sessionStorage.setItem("witnessops.review-request-confirmation.v1", JSON.stringify({
+          schema: "witnessops.review-request-confirmation.v1",
+          requestReference: "intk_prior_request",
+          requestKind: "agent-action-security-review",
+          confirmedAt: "2026-09-01T12:00:00.000Z",
+          locale,
+          source: "request-form",
+          ...(offerLabel ? { offerLabel } : {}),
+        }));
+      }, { locale, offerLabel });
+      await page.reload();
+      const confirmed = page.locator('[data-ui-proof-id="review-request-confirmed"]');
+      const record = confirmed.locator('[data-ui-proof-id="review-request-record"]');
+      await expect(record).toContainText(offerLabel ?? "agent-action-security-review");
+      await expect(confirmed).not.toContainText(/€[\s\d]|AI Agent Red Teaming|Red teaming agentów AI/);
     }
   }
 });

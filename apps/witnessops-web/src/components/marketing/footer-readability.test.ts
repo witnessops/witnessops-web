@@ -52,7 +52,7 @@ test("footer shows one review, two columns and no retired or second-product link
     assert.equal(hrefs.some(isFooterRequestHref), false, "The request action is the single brand CTA, not a column link.");
   }
   assert.deepEqual(footerGroups("en").map((group) => [group.label, group.links.map((link) => link.label)]), [
-    ["The review", ["Agent Action Security Review", "How it works", "Examples"]],
+    ["The review", ["AI Agent Red Teaming", "How it works", "Examples"]],
     ["Company", ["Docs", "Security", "Company details"]],
   ]);
   assert.deepEqual(footerGroups("pl").map((group) => [group.label, group.links.map((link) => link.href)]), [

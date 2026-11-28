@@ -8,7 +8,7 @@ import { serverOrigin } from '../storage.mjs';
 // Public new-sales identity. Kept aligned with PUBLIC_AGENT_ACTION_OFFER.id.
 export const AGENT_ACTION_REVIEW_INTENT = 'agent-action-security-review';
 export const DEFAULT_REVIEW_ORIGIN = 'https://witnessops.com';
-// Same sentence as the Agent Action Security Review preparation prompt.
+// Keep the CLI preparation prompt aligned with the web enquiry.
 export const SCOPE_PROMPT = 'Name the consequential agent or automation action, the systems it can affect and the decision deadline. Do not send credentials, secrets or production data in this form.';
 const SHORT_TEXT_MAX = 240;
 const SCOPE_MAX = 8_000;
@@ -40,7 +40,7 @@ const SAFE_ERRORS = new Set([
 export const reviewHelp = `Usage:
   wops review request [--server URL]
 
-Sends one non-secret fit check for Agent Action Security Review.
+Sends one non-secret fit check for AI Agent Red Teaming.
 Intent is fixed to agent-action-security-review. Use HTTPS, or HTTP on
 127.0.0.1. The default server is https://witnessops.com.
 

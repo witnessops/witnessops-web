@@ -60,9 +60,8 @@ test("direct confirmation-page visits do not claim a verified request", () => {
   assert.match(confirmed, /No confirmed request record is present/);
   assert.match(confirmed, /readReviewRequestConfirmation/);
   assert.match(confirmed, /WitnessOps \/ zapis zgłoszenia/);
-  assert.match(confirmed, /Wstępnie sprawdzimy, czy opisane działanie agenta lub automatyzacji mieści się w zakresie przeglądu/);
-  assert.match(confirmed, /PUBLIC_AGENT_ACTION_OFFER\.timing\.pl/);
-  assert.match(confirmed, /Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy/);
+  assert.match(confirmed, /Uzgodniony zakres, cenę, dostępność i termin określa osobna podpisana umowa/);
+  assert.doesNotMatch(confirmed, /PUBLIC_AGENT_ACTION_OFFER/);
   assert.doesNotMatch(confirmed, /Your mailbox is verified/);
   assert.doesNotMatch(confirmed, /Request verified/);
 });
@@ -89,7 +88,7 @@ test("recorded confirmation keeps the no-secret and no-conclusion boundary visib
 test("External Attack Surface Review confirmation states the parked offer boundary", () => {
   assert.match(confirmed, /public-exposure-review/);
   assert.match(confirmed, /no longer available for new engagements/);
-  assert.match(confirmed, /not the Agent Action Security Review/);
+  assert.match(confirmed, /AI Agent Red Teaming is a separate service/);
   assert.match(confirmed, /No new target-facing work starts from this confirmation alone/);
   assert.match(confirmed, /\/pl\/reviews\/external-attack-surface-review/);
   assert.match(confirmed, /\/reviews\/external-attack-surface-review/);

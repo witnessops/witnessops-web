@@ -1,6 +1,6 @@
 # AI Agent Tools & Access Review — historical commercial contract
 
-> **Historical / superseded for new sales.** Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work. See the [commercial index](./README.md).
+> **Historical / superseded for new sales.** AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work. See the [commercial index](./README.md).
 
 - Status: **HISTORICAL SOURCE CONTRACT / NOT FOR NEW SALES**
 - Effective in source: 2026-09-28

@@ -46,10 +46,10 @@ test("buyer-path offer section matches the live catalogue", () => {
     "utf-8",
   );
   assert.match(buyer, /External Attack Surface Review/);
-  assert.match(buyer, /Agent Action Security Review/);
+  assert.match(buyer, /AI Agent Red Teaming/);
   assert.match(buyer, /offerId=agent-action-security-review/);
-  assert.match(buyer, /\[Agent Action Security Review\]\(\/reviews\/agent-action-security-review\)/);
-  assert.match(buyer, /## \d+\. Minimal buyer reading order\n\n1\. \[Agent Action Security Review\]\(\/reviews\/agent-action-security-review\)/);
+  assert.match(buyer, /\[AI Agent Red Teaming\]\(\/reviews\/agent-action-security-review\)/);
+  assert.match(buyer, /## \d+\. Minimal buyer reading order\n\n1\. \[AI Agent Red Teaming\]\(\/reviews\/agent-action-security-review\)/);
   assert.doesNotMatch(buyer, /href: "\/reviews\/external-attack-surface-review"/);
   assert.match(buyer, /pinned AI-agent public sample only/i);
   assert.match(buyer, /Treat \[View services\]\(\/catalog\) as the live offer list/);

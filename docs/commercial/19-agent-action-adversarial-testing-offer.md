@@ -1,8 +1,20 @@
-# Agent Action Security Review — active adversarial testing
+# AI Agent Red Teaming
 
-This record implements the founder scope direction supplied for this update.
-It defines maintained source, not production publication or customer testing
-authority. The [commercial index](./README.md) selects this scope for new work.
+## Founder decision of 28 November 2026
+
+**Adopted for new enquiries.** In the attended instruction *Adopt Commercial Direction and Complete Website Repair*, the Founder accepted the website positioning brief and resolved public pricing. This decision supersedes the 14 November policy of disclosing the numeric fee only in the signed statement of work.
+
+| Element | Decision |
+| --- | --- |
+| Public service | AI Agent Red Teaming |
+| Supporting buyer language | AI Agent Security Testing |
+| Internal methodology | Agent Action Security Review |
+| Primary call to action | Request a security assessment |
+| Public fixed fee | €2,500 excluding VAT for one agreed workflow and one consequential action |
+
+The Polish public name is **Red teaming agentów AI** and the primary CTA is **Zapytaj o ocenę bezpieczeństwa**.
+
+Use the existing service and intake identity and keep its English and Polish URLs. The signed SOW confirms scope, fee, capacity and timing. Agreements already signed retain their original names, terms, exclusions and evidence requirements. This decision authorizes commercial source changes and a draft PR. Production release requires its own decision.
 
 ## Buyer promise
 
@@ -12,7 +24,7 @@ Short version:
 
 > We try to make your AI agent take actions it should refuse, then show you the evidence and what needs fixing.
 
-Keep the name **Agent Action Security Review** and request identity
+Use the public name **AI Agent Red Teaming** and request identity
 `agent-action-security-review`. The scope revision is
 `one_action_adversarial_testing_v2`. Record the accepted scope revision and actual
 terms in each SOW. An identity alone never expands an earlier request or agreement.
@@ -36,7 +48,7 @@ describe coverage, not an instruction to check permissions after execution.
 
 Resolve these fields in the SOW before accepting or starting testing:
 
-- One consequential action, intended allowed behaviour and prohibited outcomes.
+- One agreed workflow, the consequential action in scope, its intended behaviour and the prohibited outcomes covered by the agreement.
 - Named environment, resources, input surfaces, affected systems and ownership,
   including any third-party authority.
 - Test identities, effective access, permitted operations, test data and side-effect
@@ -88,11 +100,7 @@ specimens are not completed customer adversarial tests. Public `/verify` and
 
 ## Commercial status and earlier agreements
 
-The listed public fee for this adversarial review is **€2,500 excluding VAT**
-(`eur_2500_ex_vat`). Delivery capacity and any retest allowance stay in the
-signed SOW. Delivery timing is agreed in the signed statement of work. Resolve
-capacity before accepting work; do not make an automatic booking or customer
-commitment.
+The public fixed fee is **€2,500 excluding VAT** (`eur_2500_ex_vat`) for one agreed workflow and one consequential action. Confirm scope, fee, capacity and timing in the signed SOW. Specify any retest allowance there. An enquiry does not reserve capacity.
 
 The earlier public Agent Action Security Review used the same amount for read,
 inspect, reconstruct and report, under `eur_2500_fixed`. It excluded executing

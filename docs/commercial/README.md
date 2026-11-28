@@ -3,10 +3,10 @@
 Operator-facing materials for the current review and its sample, with earlier
 offer records retained for issued agreements.
 
-**Public new-sales review:** one, by founder decision on 2026-10-27. [Two-Offer V1](./18-two-offer-portfolio.md) remains the historical record of the earlier pair. This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
+The Founder selected one new-sales review on 27 October 2026 and adopted its current public positioning and fixed fee on [28 November 2026](./19-agent-action-adversarial-testing-offer.md#founder-decision-of-28-november-2026). [Two-Offer V1](./18-two-offer-portfolio.md) remains the historical record of the earlier pair. This index is source direction. It does not record that production has been updated, and it does not authorize merge or deployment.
 
-- **Agent Action Security Review** — active adversarial testing of one consequential AI-agent action in an agreed environment. [Current scope record](./19-agent-action-adversarial-testing-offer.md). The listed public fee is €2,500 excluding VAT (`eur_2500_ex_vat`). Delivery capacity and any retest allowance stay in the signed SOW. New-sales identity `agent-action-security-review`. Detail routes: `/reviews/agent-action-security-review` and `/pl/reviews/agent-action-security-review`. Request path: `/review/request?offerId=agent-action-security-review`. One consequential agent or automation action, with explicit unknowns in the deliverables. Delivery timing per signed SOW. This is not the historical inventory offer and not `bounded-workflow-review`.
-- **External Attack Surface Review** — parked. The [offer record](./10-public-exposure-review-offer.md) stays for issued agreements and old lookups. Product identity `OFFSEC-EXTERNAL-EXPOSURE` is not a new-sales offerId or productId. Do not book it, and do not present Agent Action Security Review as the same offer. Existing URLs explain that the review is no longer available.
+- **AI Agent Red Teaming** — AI Agent Security Testing of one consequential action in one agreed workflow. The internal methodology is Agent Action Security Review. Primary CTA: **Request a security assessment**. Public fixed fee: **€2,500 excluding VAT** (`eur_2500_ex_vat`). Confirm scope, fee, capacity and timing in the signed SOW, including any agreed retest allowance. The offer ID stays `agent-action-security-review`. Detail routes stay `/reviews/agent-action-security-review` and `/pl/reviews/agent-action-security-review`. The request path stays `/review/request?offerId=agent-action-security-review`. [Current offer contract](./19-agent-action-adversarial-testing-offer.md).
+- **External Attack Surface Review** — parked. The [offer record](./10-public-exposure-review-offer.md) stays for issued agreements and old lookups. Product identity `OFFSEC-EXTERNAL-EXPOSURE` is not a new-sales offerId or productId. Do not book it, and keep the historical terms separate from AI Agent Red Teaming. Existing URLs explain that the review is no longer available.
 
 The €950 private pilot is not a public new-sales choice. The free hostname check remains a separate tool at `/check`.
 
@@ -16,7 +16,7 @@ Earlier read-only Agent Action agreements keep `eur_2500_fixed`, their accepted 
 
 1. **Current scope:** actively test one consequential AI-agent action across attacker-controlled input, observable agent decision, tool or API call, effective permissions, actual saved change and supporting evidence. Attempt agreed prohibited outcomes. Deliver the action map, test results, demonstrated impact, reproduction conditions, mitigation recommendations, explicit gaps, written report and readout. Authorization must be enforced before the system changes; the six stages describe coverage, not permission-check ordering.
 2. **[Scope agreement](./06-scope-agreement-skeleton.md)** — start with a non-secret fit check, then agree scope, authority and evidence handling. Use only the one-action scope for new sales. Delivery timing is agreed in the signed statement of work. Before testing, agree the environment, permitted actions, written authority, stop conditions, recovery and evidence handling. A retest can be included when its cases, window and allowance are specified. Publication and customer testing remain separate actions.
-3. **Readiness and history:** the [dry-run checklist](./05-dry-run-checklist.md) and [operator playbook](./07-operator-playbook-complete.md) open with current Agent Action-only guidance. Their earlier two-offer, CSR and One Server sections, [Two-Offer V1](./18-two-offer-portfolio.md), the [external offer](./10-public-exposure-review-offer.md) and [external fit check](./11-public-exposure-review-fit-check.md) preserve historical terms and process. They do not reopen retired sales.
+3. **Readiness and history:** the [dry-run checklist](./05-dry-run-checklist.md) and [operator playbook](./07-operator-playbook-complete.md) open with current AI Agent Red Teaming guidance. Their earlier two-offer, CSR and One Server sections, [Two-Offer V1](./18-two-offer-portfolio.md), the [external offer](./10-public-exposure-review-offer.md) and [external fit check](./11-public-exposure-review-fit-check.md) preserve historical terms and process. They do not reopen retired sales.
 
 The [former run sheet](./THIS-WEEK.md), [learning guide](./00-offer-learning-guide.md),
 older reply/delivery/claim/demo templates, [drafts](./drafts/) and
@@ -44,9 +44,9 @@ retained as superseded research, not a current general naming policy.
 | 02 | [Delivery emails](./02-delivery-email.md) | Historical CSR / One Server handovers |
 | 03 | [Claim blurbs](./03-claim-blurb.md) | Historical CSR / One Server claim limits |
 | 04 | [Demo script 15 min](./04-demo-script-15min.md) | Historical demo sequence; not current sales instructions |
-| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current Agent Action readiness; earlier rehearsals retained as historical |
-| 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | Agent Action terms for a new agreement; historical blocks for issued agreements |
-| 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current Agent Action lifecycle; earlier delivery paths retained as historical |
+| 05 | [Dry-run checklist](./05-dry-run-checklist.md) | Current AI Agent Red Teaming readiness; earlier rehearsals retained as historical |
+| 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | AI Agent Red Teaming terms for a new agreement; historical blocks for issued agreements |
+| 07 | [Operator playbook](./07-operator-playbook-complete.md) | Current AI Agent Red Teaming lifecycle; earlier delivery paths retained as historical |
 | 08 | [Artifact map](./08-artifact-map.md) | Current agent examples, retained verifier fixtures and retired sample identities |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Historical July 2026 research and superseded PLN display policy |
 | 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | Historical fixed-scope terms for issued agreements |
@@ -58,7 +58,7 @@ retained as superseded research, not a current general naming policy.
 | 16 | [Agent Action Security Review offer](./16-agent-workflow-reconstruction-offer.md) | Superseded historical one-action contract (`bounded-workflow-review`). Not the new-sales Agent Action identity |
 | 17 | [AI Agent Tools & Access Review offer](./17-ai-agent-tools-access-review-offer.md) | Historical inventory-plus-action contract (`agent-tools-access-review`). Not a new-sales identity |
 | 18 | [Two-Offer V1](./18-two-offer-portfolio.md) | Historical two-offer decision; External is parked for new sales. Not a deployment record |
-| 19 | [Agent Action adversarial testing offer](./19-agent-action-adversarial-testing-offer.md) | Current founder-directed six-stage scope, acceptance criteria and unresolved commercial terms |
+| 19 | [Agent Action adversarial testing offer](./19-agent-action-adversarial-testing-offer.md) | Adopted service name, public fixed fee, methodology, scope and acceptance criteria |
 
 ## Public anchors
 
@@ -67,7 +67,7 @@ Source routes below. A listed URL is not evidence that the route is the released
 | Surface | URL |
 | --- | --- |
 | Catalog | https://witnessops.com/catalog |
-| Agent Action Security Review request | https://witnessops.com/review/request?offerId=agent-action-security-review |
+| AI Agent Red Teaming request | https://witnessops.com/review/request?offerId=agent-action-security-review |
 | Retired External Attack Surface Review request (availability notice only) | https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE |
 | Former inventory-offer route (410 withdrawal notice) | https://witnessops.com/catalog/workflows |
 | Compromised API key rotation (historical synthetic agent specimen) | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |

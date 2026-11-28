@@ -18,14 +18,14 @@ test("Polish request chrome uses the agent review and closes a parked external q
   assert.match(page, /NewSalesIntakeClosed/);
   assert.match(page, /PUBLIC_AGENT_ACTION_OFFER\.name\.pl/);
   assert.match(page, /agentActionOrder/);
-  assert.match(page, /Zacznij od sprawdzenia dopasowania\. Nie wysyłaj sekretów\./);
+  assert.match(page, /Zapytaj o ocenę bezpieczeństwa/);
   assert.doesNotMatch(page, /decision\.role === "product"/);
   assert.doesNotMatch(page, /EXTERNAL_ATTACK_SURFACE_OFFER/);
 
   const externalQuery = { searchParams: Promise.resolve({ productId: "OFFSEC-EXTERNAL-EXPOSURE" }) };
   const external = renderToStaticMarkup(await PolishReviewRequestPage(externalQuery));
   assert.match(external, /External Attack Surface Review nie jest już dostępny/);
-  assert.match(external, /To nie jest Agent Action Security Review/);
+  assert.match(external, /Red teaming agentów AI to odrębna usługa/);
   assert.doesNotMatch(external, /<form|€1[\s,\u00a0]?900/);
 
   const unknownQuery = { searchParams: Promise.resolve({ offerId: "unknown" }) };
