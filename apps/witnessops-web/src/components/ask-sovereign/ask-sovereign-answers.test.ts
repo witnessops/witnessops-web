@@ -18,7 +18,7 @@ test("simulated answers use the current review and park the external review", ()
   assert.doesNotMatch(agent.text, /Starting at €2,500|€2,500 fixed|read, inspect, reconstruct/);
   assert.equal(external.kind, "external");
   assert.match(external.text, /no longer available/);
-  assert.match(external.text, /not the Agent Action Security Review/);
+  assert.match(external.text, /not the AI Agent Red Teaming/);
   assert.doesNotMatch(external.text, /€1,900/);
   assert.equal(handoff.kind, "handoff");
   assert.equal(handoff.needsReview, true);

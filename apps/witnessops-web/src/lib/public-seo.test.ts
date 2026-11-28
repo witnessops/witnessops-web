@@ -49,21 +49,22 @@ test("homepage review data lists the public fee without a schema price field", (
   const data = homepageReviewsJsonLd();
   const offers = data.itemListElement.map((entry) => entry.item.offers);
   assert.deepEqual(offers.map((offer) => offer.description), ["€2,500\u00A0excl.\u00A0VAT"]);
-  assert.equal(data.itemListElement[0]?.item.name, "Agent Action Security Review");
+  assert.equal(data.itemListElement[0]?.item.name, "AI Agent Red Teaming");
   assert.ok(offers.every((offer) => !Object.hasOwn(offer, "price") && !Object.hasOwn(offer, "priceCurrency")));
 });
 
 test("active detail structured data keeps scope, the public fee and agreed timing", () => {
   for (const locale of ["en", "pl"] as const) {
     const service = agentActionServiceJsonLd(locale);
-    assert.equal(service.name, "Agent Action Security Review");
+    assert.equal(service.name, locale === "pl" ? "Red teaming agentów AI" : "AI Agent Red Teaming");
+    assert.equal(service.serviceType, locale === "pl" ? "Testy bezpieczeństwa agentów AI" : "AI Agent Security Testing");
     assert.equal(service.url, canonicalUrl(`${locale === "pl" ? "/pl" : ""}/reviews/agent-action-security-review`));
     assert.deepEqual(service.offers, {
       "@type": "Offer",
       url: service.url,
       description: locale === "en"
-        ? "€2,500 excl. VAT We don't test until you give written authority."
-        : "€2 500 bez VAT Nie testujemy, dopóki nie dasz pisemnego upoważnienia.",
+        ? "€2,500 excl. VAT Scope, fee, capacity and timing are confirmed in the signed statement of work. Testing requires written authorisation."
+        : "€2 500 bez VAT Zakres, cenę, dostępność i termin potwierdzamy w podpisanej umowie o zakresie prac (SOW). Testy wymagają pisemnego upoważnienia.",
     });
     assert.equal(Object.hasOwn(service.offers, "price"), false);
     assert.doesNotMatch(JSON.stringify(service), /AggregateOffer|lowPrice|1900|10 working days|agent-tools-access-review/);

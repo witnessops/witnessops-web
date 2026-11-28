@@ -50,11 +50,11 @@ function askRequest(question: string, ip: string, context: Record<string, unknow
 }
 
 const CURRENT_AGENT_ACTION_OFFER = {
-  name: "Agent Action Security Review",
+  name: "AI Agent Red Teaming",
   price_label: "€2,500 excl. VAT",
-  unit_label: "One consequential agent or automation action",
+  unit_label: "One consequential agent or automation action in one agreed workflow",
   fit_check_label: "Non-secret fit check first",
-  delivery_label: "We don't test until you give written authority.",
+  delivery_label: "Scope, fee, capacity and timing are confirmed in the signed statement of work. Testing requires written authorisation.",
 } as const;
 
 for (const providerEnabled of [false, true]) {
@@ -77,7 +77,7 @@ for (const providerEnabled of [false, true]) {
         assert.doesNotMatch(answer.template.body, /One Server|dwa dni|Workflow [SML]/);
         if (index === 0) assert.match(answer.template.body, /Aktualnie oferujemy jeden płatny przegląd/);
         if (index === 1) assert.match(answer.template.body, /€2\u00A0500\u00A0bez\u00A0VAT/);
-        if (index === 2) assert.match(answer.template.body, /Nie testujemy, dopóki nie dasz pisemnego upoważnienia/);
+        if (index === 2) assert.match(answer.template.body, /Testy wymagają pisemnego upoważnienia/);
         if (index === 3) assert.equal(answer.recommendation, null);
         else assert.equal(answer.recommendation.service_id, "agent-action-security-review");
       }
@@ -357,8 +357,8 @@ test("public Ask answers ordinary buyer questions with canonical service routing
   enableTestOpenAiRuntime();
   const originalFetch = globalThis.fetch;
   const cases = [
-    { question: "What does Agent Action Security Review cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
-    { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "External Attack Surface Review is no longer available. It is not the Agent Action Security Review.", deterministic: true, parked: true },
+    { question: "What does AI Agent Red Teaming cost?", id: "agent-action-security-review", price: "€2,500 excl. VAT", words: "The listed price below covers one consequential action.", deterministic: true },
+    { question: "What does the External Attack Surface Review cost?", id: null, price: undefined, words: "External Attack Surface Review is no longer available. It is not the AI Agent Red Teaming.", deterministic: true, parked: true },
     { question: "What does One Server Security Check cost?", id: null, price: undefined, words: "That service is not part of a new paid request.", deterministic: false },
     { question: "What review would help our company?", id: null, price: undefined, words: "What is prompting the review: one agent action, or an internet-facing system? A non-secret outline is enough.", deterministic: false },
     { question: "Who would I work with?", id: null, price: undefined, words: "You work directly with the founder to agree the scope and review the findings.", deterministic: false },
@@ -453,7 +453,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
   let calls = 0;
   globalThis.fetch = (async () => {
     calls += 1;
-    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The Agent Action Security Review can map approval, permissions and execution evidence.", "agent-action-security-review");
+    return generatedResponse("Start by choosing one consequential action and the evidence needed to reconstruct it. The AI Agent Red Teaming can map approval, permissions and execution evidence.", "agent-action-security-review");
   }) as typeof fetch;
 
   try {
@@ -506,7 +506,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
 test("public Ask presents current paid terms while preserving the original authority decision", async () => {
   const response = await POST(
     askRequest(
-      "What is included in Agent Action Security Review and how much does it cost?",
+      "What is included in AI Agent Red Teaming and how much does it cost?",
       "203.0.113.89",
     ),
   );

@@ -183,19 +183,19 @@ test("current homepage metadata and offer ownership stay current", () => {
   const home = loadHomeContent();
   assert.equal(
     home.seo.title,
-    "Agent Action Security Review | WitnessOps",
+    "AI Agent Red Teaming & AI Agent Security Testing | WitnessOps",
   );
   assert.equal(
     home.seo.og_title,
-    "We try to break your AI agent before someone else does. | WitnessOps",
+    "AI Agent Red Teaming | WitnessOps",
   );
 
   const homepageSource = readFileSync(
     resolve(__dirname, "../../../../content/witnessops/landing/home.yaml"),
     "utf8",
   );
-  assert.match(homepageSource, /Find security gaps in your systems/);
-  assert.match(homepageSource, /Scope a review/);
+  assert.match(homepageSource, /AI Agent Red Teaming for agents that take real-world actions/);
+  assert.match(homepageSource, /Request a security assessment/);
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
   assert.equal(pricingMetadata.title, "Review Pricing");
   assert.ok(String(pricingMetadata.description).includes(PUBLIC_AGENT_ACTION_OFFER.name.en));
@@ -217,7 +217,7 @@ test("current homepage metadata and offer ownership stay current", () => {
   assert.doesNotMatch(pricing, /productId=OFFSEC-EXTERNAL-EXPOSURE|Request an external review/);
   assert.doesNotMatch(pricing, /€49|€149|Early Bird|Internet Footprint Review|One Server Security Check/);
   assert.doesNotMatch(agentActionCard, /Start with a broken workflow/);
-  assert.match(agentActionCard, /Agent Action Security Review/);
+  assert.match(agentActionCard, /AI Agent Red Teaming/);
   assert.match(agentActionCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCard, /AI Agent Tools &amp; Access Review/);
   assert.doesNotMatch(agentActionCard, /External Attack Surface Review/);
@@ -234,7 +234,7 @@ test("current homepage metadata and offer ownership stay current", () => {
     PUBLIC_AGENT_ACTION_REVIEW_ID,
   );
   assert.doesNotMatch(agentActionCatalogueCard, /Start with a broken workflow/);
-  assert.match(agentActionCatalogueCard, /Agent Action Security Review/);
+  assert.match(agentActionCatalogueCard, /AI Agent Red Teaming/);
   assert.match(agentActionCatalogueCard, /€2,500\u00A0excl\.\u00A0VAT/);
   assert.doesNotMatch(agentActionCatalogueCard, /AI Agent Tools &amp; Access Review|Agent Risk &amp; Control Review|€1,500/);
   assert.doesNotMatch(catalogue, /id="system-reviews"/);
@@ -246,7 +246,7 @@ test("Ask WitnessOps keeps the current and historical identities distinct", () =
   const assessments = [
     classifyCommercialFit({
       question:
-        "What is included in Agent Action Security Review and how much does it cost?",
+        "What is included in AI Agent Red Teaming and how much does it cost?",
       authorityQuestionClassId: "outside_approved_public_context",
     }),
     classifyCommercialFit({

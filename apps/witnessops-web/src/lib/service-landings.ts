@@ -3,7 +3,6 @@ import {
   PRIMARY_OFFER,
   PUBLIC_AGENT_ACTION_OFFER,
 } from "@/lib/commercial-truth";
-import { OFFER_SPOKEN_SUPPORT } from "@/components/marketing/homepage-two-offer-copy";
 
 export type ServiceLandingCopy = {
   /** Punchy hero line under the service name (CSR-style). Accessible name. */
@@ -115,11 +114,11 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Request a scope and fixed quote",
   },
   "agent-action-security-review": {
-    headline: "We try to break your AI agent before someone else does.",
-    headlineMobile: "We try to break your AI agent first.",
+    headline: "Choose one action your agent can take.",
+    headlineMobile: "Test one agent action.",
     whoFor: "Engineering teams and AI implementation partners preparing to launch or hand over an agent.",
-    scopeNote: OFFER_SPOKEN_SUPPORT.en,
-    scopeNoteCompact: OFFER_SPOKEN_SUPPORT.enCompact,
+    scopeNote: "We follow the action from the incoming request to the change saved in the system. Your report shows what held, what failed and what to fix first.",
+    scopeNoteCompact: "We follow the request to the saved change and show what to fix first.",
     deliverables: [
       "A map of the action — from a message in, to a change that sticks",
       "What we tried, and what it actually did",
@@ -146,7 +145,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "See a historical synthetic one-action example (not a full-review sample)",
     commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.en} Delivery capacity and any retest allowance are agreed before work. The request is not a booking, checkout or authorization.`,
-    primaryCta: "Request a break test",
+    primaryCta: "Request a security assessment",
   },
   "one-server-security-check": {
     headline: "Know what needs attention on one Linux server.",
@@ -217,7 +216,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "External Attack Surface Review is no longer available for new engagements. Issued agreements keep their original terms. This is not the Agent Action Security Review.",
+      "External Attack Surface Review is no longer available for new engagements. Issued agreements keep their original terms. This is not the AI Agent Red Teaming.",
     primaryCta: "See availability notice",
   },
   "launch-readiness-check": {
@@ -459,12 +458,12 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Poproś o zakres i stałą wycenę",
   },
   "agent-action-security-review": {
-    headline: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
-    headlineMobile: "Najpierw próbujemy przełamać Twojego agenta AI.",
+    headline: "Wybierz jedno działanie, które może wykonać Twój agent.",
+    headlineMobile: "Sprawdź jedno działanie agenta.",
     whoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     whoForCompact: "Dla zespołów inżynierskich i partnerów wdrażających AI.",
-    scopeNote: OFFER_SPOKEN_SUPPORT.pl,
-    scopeNoteCompact: OFFER_SPOKEN_SUPPORT.plCompact,
+    scopeNote: "Śledzimy działanie od otrzymania żądania do zmiany zapisanej w systemie. Raport wskazuje, które zabezpieczenia zadziałały, które zawiodły i co warto poprawić najpierw.",
+    scopeNoteCompact: "Sprawdzamy, co zapisano w systemie i co warto poprawić najpierw.",
     deliverables: [
       "Mapa działania — od wiadomości na wejściu do zmiany, która zostaje",
       "Co próbowaliśmy i co to faktycznie zrobiło",
@@ -491,7 +490,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "Historyczny syntetyczny przykład jednego działania (EN; nie jest pełnym raportem z przeglądu)",
     commercialNote: `${PUBLIC_AGENT_ACTION_OFFER.price.pl} Dostępność i limit ponownych testów uzgadniamy przed pracą. Zgłoszenie nie jest rezerwacją, płatnością ani upoważnieniem.`,
-    primaryCta: "Poproś o test przełamania",
+    primaryCta: "Zapytaj o ocenę bezpieczeństwa",
   },
   "one-server-security-check": {
     headline: "Sprawdź, co poprawić na serwerze.",
@@ -565,7 +564,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Wydane uzgodnienia zachowują pierwotne warunki. To nie jest Agent Action Security Review.",
+      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. Wydane uzgodnienia zachowują pierwotne warunki. To nie jest Red teaming agentów AI.",
     primaryCta: "Zobacz komunikat o dostępności",
   },
   "launch-readiness-check": {

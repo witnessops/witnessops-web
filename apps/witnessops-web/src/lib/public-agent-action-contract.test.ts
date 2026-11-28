@@ -21,17 +21,17 @@ test("active one-action testing keeps its identity without inheriting the read-o
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.id, PRIMARY_OFFER.id);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.id, "agent-tools-access-review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "AI Agent Red Teaming");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.en, "€2,500\u00A0excl.\u00A0VAT");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.price.pl, "€2\u00A0500\u00A0bez\u00A0VAT");
   assert.equal(Object.hasOwn(PUBLIC_AGENT_ACTION_OFFER.price, "amount"), false);
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.unit.en, "One consequential agent or automation action in one agreed workflow");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, "eur_2500_ex_vat");
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.commercialContract.price, READ_ONLY_AGENT_ACTION_OFFER.commercialContract.price);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.scope, "one_action_adversarial_testing_v2");
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.commercialContract.timing, "delivery_timing_per_signed_sow");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.en, "We don't test until you give written authority.");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.timing.pl, "Nie testujemy, dopóki nie dasz pisemnego upoważnienia.");
+  assert.match(PUBLIC_AGENT_ACTION_OFFER.timing.en, /Scope, fee, capacity and timing.*signed statement of work/);
+  assert.match(PUBLIC_AGENT_ACTION_OFFER.timing.pl, /Zakres, cenę, dostępność i termin.*podpisanej umowie/);
   assert.notEqual(PUBLIC_AGENT_ACTION_OFFER.timing.en, LEGACY_AGENT_ACTION_OFFER.timing.en);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.timing.en, "Within 10 working days after evidence rules are agreed");
   assert.ok(PUBLIC_AGENT_ACTION_OFFER.included.en.includes("Explicit unknowns"));
@@ -67,7 +67,8 @@ test("the distinct inventory review retains its original identity and its differ
   assert.equal(PRIMARY_OFFER.name.en, "AI Agent Tools & Access Review");
   assert.equal(PRIMARY_OFFER.price.en, "Starting at €2,500 · excluding VAT");
   assert.match(PRIMARY_OFFER.unit.en, /dated system-level inventory/);
-  assert.equal(LEGACY_AGENT_ACTION_OFFER.name.en, PUBLIC_AGENT_ACTION_OFFER.name.en);
+  assert.equal(LEGACY_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(READ_ONLY_AGENT_ACTION_OFFER.name.en, LEGACY_AGENT_ACTION_OFFER.name.en);
   assert.equal(LEGACY_AGENT_ACTION_OFFER.id, "bounded-workflow-review");
 });
 

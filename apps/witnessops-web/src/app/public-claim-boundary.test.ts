@@ -180,7 +180,11 @@ const HOMEPAGE_RENDERED_EVIDENCE_BOUNDARIES = [
 
 /** Boundaries and the example record moved from the homepage to the review page. */
 const REVIEW_PAGE_EVIDENCE_BOUNDARIES = [
-  ...HOMEPAGE_COPY_EVIDENCE_BOUNDARIES,
+  "one consequential agent action in the agreed environment only",
+  "authorization must be enforced before the system changes",
+  "no production changes without separate explicit authorization",
+  "remediation implementation, continuous monitoring or safety certification",
+  "this is not a penetration test of the whole environment",
   "historical synthetic one-action example",
   "illustrative · shape only",
   "designed, not executed",
@@ -356,8 +360,8 @@ test("prohibited homepage copy fails validation", () => {
   const rendered = renderHomepage();
   const dummyBoundary = "not a legal compliance claim";
   const prohibitedCopy = `${copy.replace(
-    "We try to break your AI agent before someone else does.",
-    "We try to break your AI agent before someone else does. Verified compliance.",
+    "AI Agent Red Teaming for agents that take real-world actions.",
+    "AI Agent Red Teaming for agents that take real-world actions. Verified compliance.",
   )}\n${dummyBoundary}`;
 
   const prohibited = assessHomepageClaims(prohibitedCopy, rendered);

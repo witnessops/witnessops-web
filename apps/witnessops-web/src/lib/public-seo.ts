@@ -106,8 +106,8 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
   const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
   const polish = locale === "pl";
   const description = polish
-    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To nie jest Agent Action Security Review. To nie jest test penetracyjny."
-    : "External Attack Surface Review is no longer available for new engagements. It is not the Agent Action Security Review. It is not a penetration test.";
+    ? "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To nie jest Red teaming agentów AI. To nie jest test penetracyjny."
+    : "External Attack Surface Review is no longer available for new engagements. It is not the AI Agent Red Teaming. It is not a penetration test.";
 
   return {
     "@context": "https://schema.org",
@@ -170,7 +170,7 @@ export function agentActionServiceJsonLd(locale: "en" | "pl") {
     "@id": `${url}#service`,
     name: offer.name[locale],
     description: `${offer.situation[locale]} ${offer.timing[locale]}`,
-    serviceType: "Agent action security review",
+    serviceType: locale === "en" ? "AI Agent Security Testing" : "Testy bezpieczeństwa agentów AI",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {

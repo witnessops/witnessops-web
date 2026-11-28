@@ -154,8 +154,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Aktywne testy jednego istotnego działania w uzgodnionym środowisku. Upoważnienie musi być egzekwowane przed zmianą systemu. Bez zmian produkcyjnych bez osobnego wyraźnego upoważnienia, działań destrukcyjnych, utrzymywania dostępu, wdrażania poprawek, ciągłego monitoringu i certyfikacji bezpieczeństwa. Przypadki i limit ponownych testów określa umowa.",
     },
     requestCta: {
-      en: "Request a break test",
-      pl: "Poproś o test przełamania",
+      en: "Request a security assessment",
+      pl: "Zapytaj o ocenę bezpieczeństwa",
     },
     // The historical inventory review retains /catalog/workflows and its identity.
     detailHref: {

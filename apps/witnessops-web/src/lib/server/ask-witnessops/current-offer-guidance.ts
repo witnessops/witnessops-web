@@ -35,7 +35,7 @@ export function polishOfferGuidance(args: NormalizedAskRequest): { text: string;
   if (language !== "pl") return null;
   const question = offerWords(args.question).replace(/[?!.]+$/, "");
   const offer = PUBLIC_AGENT_ACTION_OFFER;
-  const namesCurrent = question.includes(offerWords(offer.name.pl)) || question.includes(offerWords(offer.id));
+  const namesCurrent = [offer.name.en, offer.name.pl, offer.id, "AI Agent Security Testing", "testy bezpieczeństwa agentów AI"].some((name) => question.includes(offerWords(name)));
   const isFollowUp = (text: string) => /^(?:a )?(?:ile|jaka|jaki|jak dlugo|co (?:dostane|obejmuje)|czy (?:to|ten|ta))\b/.test(offerWords(text));
   const priorUser = [...(args.history ?? [])].reverse().find((item) => item.role === "user" && (
     !isFollowUp(item.content) || mentionsRetiredOffer(item.content) || offerWords(item.content).includes(offerWords(offer.name.pl))

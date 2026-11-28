@@ -149,7 +149,7 @@ export default function SampleReportPage() {
             </h1>
             <p className="text-base leading-8 text-text-secondary">
               This example illustrates one automated deployment action, relevant
-              to Agent Action Security Review. It shows a report shape and
+              to AI Agent Red Teaming. It shows a report shape and
               judgment style, not a complete delivery of the current paid review. It is not a live customer report and not a
               claim of completed verification for your system.
             </p>
@@ -165,7 +165,7 @@ export default function SampleReportPage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Start a review" />
+              <CtaButton href="/review/request" variant="primary" label="Request a security assessment" />
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all examples" />
             </div>
           </section>

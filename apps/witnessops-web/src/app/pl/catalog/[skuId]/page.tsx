@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (resolved === "OFFSEC-EXTERNAL-EXPOSURE") {
     return {
       title: "External Attack Surface Review nie jest już dostępny",
-      description: "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. To nie jest Agent Action Security Review.",
+      description: "WitnessOps nie przyjmuje nowych zleceń External Attack Surface Review. To nie jest Red teaming agentów AI.",
       robots: { index: false, follow: true },
     };
   }

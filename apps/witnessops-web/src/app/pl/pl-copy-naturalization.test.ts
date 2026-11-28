@@ -20,7 +20,7 @@ test("Polish pages carry the native-review tag without changing company details"
 
 test("Polish homepage leads with the agent review", () => {
   assert.match(homePage, /<SimpleHomepage locale="pl" \/>/);
-  assert.match(homePage, /HOMEPAGE_TWO_OFFER_COPY\.pl\.headline/);
+  assert.match(homePage, /Niezależne testy bezpieczeństwa agentów AI/);
   assert.doesNotMatch(homePage, /co ujawniają Twoje systemy/);
   assert.match(buyerHomepage, /HOMEPAGE_TWO_OFFER_COPY/);
   assert.match(buyerHomepage, /publicPaidReviews\(BUYER_SERVICES\)/);
@@ -39,7 +39,7 @@ test("public catalogue uses the approved service names in Polish", () => {
       "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
       "Przegląd narzędzi i dostępu agenta AI",
-      "Agent Action Security Review",
+      "Red teaming agentów AI",
       "One Server Security Check",
       "External Attack Surface Review",
       "Launch Readiness Check",

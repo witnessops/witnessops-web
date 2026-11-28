@@ -25,7 +25,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     offer: params.offer,
   });
   const title = decision.state === "selected"
-    ? params.fitCall === "1" ? "Request a 20-minute expert conversation" : `Request ${PUBLIC_AGENT_ACTION_OFFER.name.en}`
+    ? params.fitCall === "1" ? "Request a 20-minute expert conversation" : "Request a security assessment"
     : "This link does not start a new review";
   const description = decision.state === "selected"
     ? params.fitCall === "1" ? "Request a 20-minute expert conversation. Share a non-secret topic, time zone and two preferred times. An operator confirms availability by invitation or offers alternatives." : requestDescription
@@ -132,11 +132,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           style={{ fontFamily: "var(--font-display)" }}
         >
           {selectedOffer
-            ? "Start with a fit check. Don't send secrets."
+            ? "Request a security assessment"
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          Tell us one action, which systems it touches, and when you need to decide.
+          Tell us the action, the systems it touches and when you need to decide. Leave out credentials, logs and customer data. After you confirm your email, we’ll reply about fit.
         </p>
         <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}

@@ -120,7 +120,7 @@ export function fitCallPreferencesAreValid(fitCall: FitCallRequest, nowMs: numbe
 
 function fitCallRequestSummary(fitCall: FitCallRequest): string {
   return [
-    "20-minute fit call request for Agent Action Security Review.",
+    "20-minute fit call request for AI Agent Red Teaming.",
     `Discussion topic: ${fitCall.topic}`,
     `Time zone: ${fitCall.timezone}`,
     `Preferred window 1: ${fitCall.preferredStarts[0]} (20 minutes)`,

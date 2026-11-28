@@ -49,7 +49,7 @@ const secondaryGroups = [
         "Aktualna oferta i jej zakres.",
       ],
       [
-        "Zapytaj o przegląd",
+        "Zapytaj o ocenę bezpieczeństwa",
         "/pl/review/request",
         "Opisz potrzebę bez danych poufnych. Najpierw sprawdzimy, czy przegląd jest odpowiedni.",
       ],
@@ -147,7 +147,7 @@ export default function PolishLibraryPage() {
             <CtaButton
               href="/pl/review/request"
               variant="secondary"
-              label="Zapytaj o przegląd"
+              label="Zapytaj o ocenę bezpieczeństwa"
             />
           </div>
         </header>

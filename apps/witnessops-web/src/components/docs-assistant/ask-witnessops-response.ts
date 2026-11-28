@@ -193,7 +193,7 @@ export function askWitnessOpsSourceTarget(
 
 export function askWitnessOpsRouteLabel(routeId: string): string {
   const labels: Record<string, string> = {
-    "route.fit-check": "Request a fit check",
+    "route.fit-check": "Request a security assessment",
     "route.support": "Open support",
     "route.security-disclosure": "Security disclosure",
   };

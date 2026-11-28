@@ -1,16 +1,15 @@
 /**
  * Active public paid-review projection.
  *
- * Founder decision 2026-10-27: the only new-sales review is Agent Action
- * Security Review. External Attack Surface Review stays in the historical
+ * The only new-sales review is AI Agent Red Teaming. External Attack Surface Review stays in the historical
  * registry and is not part of this projection.
  *
  * Do not use this list to delete routes, issued terms or old records.
  * Service IDs are not interchangeable with offerId/productId request fields.
  */
 /**
- * New-sale identity adopted on 2026-10-08 for the fixed EUR 2,500
- * Agent Action Security Review. Distinct from both historical
+ * New-sale identity adopted on 2026-10-08 for Agent Action Security Review
+ * and retained with the 2026-11-28 public name change. Distinct from both historical
  * bounded-workflow-review and the inventory-based agent-tools-access-review.
  * This selector does not activate intake or change issued terms by itself.
  */

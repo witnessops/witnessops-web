@@ -31,7 +31,7 @@ export const POLISH_DOC_CONTENT: Record<string, PolishDoc> = {
       { heading: "2. Uzgodnij zakres", paragraphs: ["Przed testem uzgadniamy środowisko, dozwolone działania, tożsamości, limity prób i skutków, warunki przerwania, odtworzenie stanu i obsługę dowodów. Cenę, termin i ewentualne przypadki oraz limit ponownych testów określa podpisany SOW. Wysłanie zapytania ani potwierdzenie adresu e-mail nie rozpoczyna przeglądu i nie daje upoważnienia do sprawdzania systemów."] },
       { heading: "3. Aktywne testy i raport", paragraphs: ["Próbujemy doprowadzić do uzgodnionych niedozwolonych skutków. Łączymy wejście, obserwowalną decyzję agenta, wywołanie narzędzia lub API, efektywne uprawnienia, faktycznie zapisaną zmianę i dowody. Upoważnienie musi być egzekwowane przed zmianą systemu.", PUBLIC_AGENT_ACTION_OFFER.result.pl] },
     ],
-    related: [{ label: "Co musisz dostarczyć", href: "/pl/docs/what-you-need-to-provide" }, { label: "Zapytaj o przegląd", href: "/pl/review/request" }],
+    related: [{ label: "Co musisz dostarczyć", href: "/pl/docs/what-you-need-to-provide" }, { label: "Zapytaj o ocenę bezpieczeństwa", href: "/pl/review/request" }],
   },
   "what-you-receive": {
     introduction: "Po przeglądzie otrzymasz pisemny raport i omówienie dotyczące jednego uzgodnionego działania.",
@@ -50,7 +50,7 @@ export const POLISH_DOC_CONTENT: Record<string, PolishDoc> = {
       { heading: "Ile kosztuje i jak długo trwa?", paragraphs: [`${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.timing.pl} Dostępność uzgadniamy przed przyjęciem prac; nie ma domyślnej stałej ceny dla rozszerzonego zakresu.`, PUBLIC_AGENT_ACTION_OFFER.retest.pl] },
       { heading: "Czy zapytanie rozpoczyna pracę?", paragraphs: ["Nie. Najpierw sprawdzamy dopasowanie. Praca wymaga uzgodnienia zakresu, upoważnienia i sposobu obchodzenia się z materiałami."] },
     ],
-    related: [{ label: "Oferta i cena", href: "/pl/reviews/agent-action-security-review" }, { label: "Wyślij zapytanie", href: "/pl/review/request" }],
+    related: [{ label: "Oferta i cena", href: "/pl/reviews/agent-action-security-review" }, { label: "Zapytaj o ocenę bezpieczeństwa", href: "/pl/review/request" }],
   },
   "buyer-approver-guide": {
     introduction: "Przed podjęciem decyzji ustal, jakie działanie agenta jest ważne dla organizacji i kto może zatwierdzić zakres przeglądu.",
@@ -66,7 +66,7 @@ export const POLISH_DOC_CONTENT: Record<string, PolishDoc> = {
       { heading: "Kiedy warto zapytać?", bullets: ["Przed uruchomieniem agenta, który może zwracać płatności, zmieniać dane lub nadawać dostęp.", "Przed przekazaniem rozwiązania innemu zespołowi albo klientowi, gdy potrzebny jest pisemny opis jednego działania i jego ograniczeń."] },
       { heading: "Kiedy potrzebujesz innej usługi?", paragraphs: ["Jeżeli oczekujesz testu penetracyjnego całego środowiska, wdrożenia napraw, ciągłego monitoringu, certyfikatu lub oceny wszystkich działań agenta, ten przegląd nie obejmuje takich prac.", "Możesz opisać potrzebę bez informacji poufnych. Najpierw sprawdzimy, czy da się ją dopasować do zakresu; zapytanie nie jest rezerwacją ani upoważnieniem do pracy."] },
     ],
-    related: [{ label: "Zrozum usługę", href: "/pl/docs/understand-the-service" }, { label: "Zapytaj o przegląd", href: "/pl/review/request" }],
+    related: [{ label: "Zrozum usługę", href: "/pl/docs/understand-the-service" }, { label: "Zapytaj o ocenę bezpieczeństwa", href: "/pl/review/request" }],
   },
   "what-you-need-to-provide": {
     introduction: "Na początku potrzebny jest tylko ogólny opis, który pozwoli ocenić dopasowanie przeglądu.",

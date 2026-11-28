@@ -39,7 +39,7 @@ export function SampleCaseBanner({
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Start a review"
+            label="Request a security assessment"
           />
           <CtaButton
             href="/verify"

@@ -38,13 +38,13 @@ test("evidence categories and receipt limitations remain visible", () => {
   assert.match(replay, /sha256sum \{filename\}/);
 });
 
-test("paid Agent Action Security Review CTA appears only inside the receipt stage", () => {
+test("paid AI Agent Red Teaming CTA appears only inside the receipt stage", () => {
   const receiptStart = replay.indexOf('stage === "receipt"');
   const paidCta = replay.indexOf("{PUBLIC_AGENT_ACTION_OFFER.name.en}");
   assert.ok(receiptStart >= 0);
   assert.ok(paidCta > receiptStart);
   assert.equal(PUBLIC_AGENT_ACTION_OFFER.id, "agent-action-security-review");
-  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "Agent Action Security Review");
+  assert.equal(PUBLIC_AGENT_ACTION_OFFER.name.en, "AI Agent Red Teaming");
   assert.match(
     replay,
     /buyerPublicOfferRequestHref\("en", PUBLIC_AGENT_ACTION_OFFER\.id\)/,

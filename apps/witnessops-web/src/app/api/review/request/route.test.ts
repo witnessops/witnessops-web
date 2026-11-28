@@ -113,7 +113,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Confirm your Agent Action Security Review request\.$/m,
+    /^Confirm your AI Agent Red Teaming request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
@@ -129,7 +129,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
-  assert.match(mailRaw, /Confirm your Agent Action Security Review request/);
+  assert.match(mailRaw, /Confirm your AI Agent Red Teaming request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });

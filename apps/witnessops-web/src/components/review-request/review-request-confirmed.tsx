@@ -65,12 +65,12 @@ const copy = {
       `${PUBLIC_AGENT_ACTION_OFFER.timing.en} The request and mailbox confirmation do not start work.`,
     ],
     primaryOfferNextSteps: [
-      "This recorded request stays agent-tools-access-review. It is not reassigned to Agent Action Security Review.",
+      "This recorded request stays agent-tools-access-review. It is not reassigned to AI Agent Red Teaming.",
       `The only new paid review is ${PUBLIC_AGENT_ACTION_OFFER.name.en}. ${PUBLIC_AGENT_ACTION_OFFER.price.en.replaceAll("\u00A0", " ")} External Attack Surface Review is no longer available for new engagements.`,
       "Delivery timing agreed in the signed statement of work. The request and mailbox confirmation do not start work.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review is no longer available for new engagements. This recorded request is not the Agent Action Security Review.",
+      "External Attack Surface Review is no longer available for new engagements. This recorded request is not the AI Agent Red Teaming.",
       "Issued agreements keep their original terms. We will confirm by email whether any remaining work still applies under those terms.",
       "No new target-facing work starts from this confirmation alone.",
     ],
@@ -83,7 +83,7 @@ const copy = {
     missingTitle: "No request record in this browser.",
     missingBody:
       "No confirmed request record is present in this browser session. Open this page through the mailbox-verification flow; a direct visit does not establish that a mailbox or request was verified.",
-    restart: "Request a break test",
+    restart: "Request a security assessment",
   },
   pl: {
     loading: "Wczytywanie zapisu zgłoszenia przechowywanego w przeglądarce…",
@@ -114,12 +114,12 @@ const copy = {
       `${PUBLIC_AGENT_ACTION_OFFER.timing.pl} Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.`,
     ],
     primaryOfferNextSteps: [
-      "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Agent Action Security Review.",
+      "To zapisane zgłoszenie pozostaje przy identyfikatorze agent-tools-access-review. Nie przepisujemy go na Red teaming agentów AI.",
       `Jedyny nowy płatny przegląd to ${PUBLIC_AGENT_ACTION_OFFER.name.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} External Attack Surface Review nie jest już dostępny dla nowych zleceń.`,
       "Termin realizacji uzgodniony w podpisanym zakresie prac. Zgłoszenie i potwierdzenie skrzynki nie rozpoczynają pracy.",
     ],
     publicExposureNextSteps: [
-      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zapisane zgłoszenie nie jest Agent Action Security Review.",
+      "External Attack Surface Review nie jest już dostępny dla nowych zleceń. To zapisane zgłoszenie nie jest Red teaming agentów AI.",
       "Dotychczasowe uzgodnienia zachowują pierwotne warunki. Potwierdzimy e-mailem, czy na ich podstawie pozostały jeszcze prace do wykonania.",
       "Samo to potwierdzenie nie rozpoczyna nowej pracy wobec celu.",
     ],
@@ -132,7 +132,7 @@ const copy = {
     missingTitle: "Brak zapisu zgłoszenia w tej przeglądarce.",
     missingBody:
       "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia. Otwórz tę stronę przez proces weryfikacji skrzynki; bezpośrednia wizyta nie potwierdza skrzynki ani zgłoszenia.",
-    restart: "Poproś o test przełamania",
+    restart: "Zapytaj o ocenę bezpieczeństwa",
   },
 } as const;
 

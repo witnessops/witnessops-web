@@ -23,7 +23,7 @@ test("public request contains service facts without prices, timing, URLs, creden
   assert.equal(request.max_output_tokens, 1_200);
   assert.equal("tools" in request, false);
   assert.equal(body.includes("test-only-placeholder"), false);
-  assert.match(body, /Agent Action Security Review/);
+  assert.match(body, /AI Agent Red Teaming/);
   assert.match(body, /External Attack Surface Review/);
   assert.doesNotMatch(body, /Customer Security Review Sprint/);
   assert.doesNotMatch(body, /One Server Security Check/);
@@ -52,7 +52,7 @@ test("pronoun follow-ups receive recent context as untrusted data and canonical 
 });
 
 test("Polish runtime context uses current Polish scope and rejects old offer promotions and terms", () => {
-  const request = buildPublicAskResponsesRequest({ question: "Agent Action Security Review", locale: "pl", surface: "sovereign_widget", config });
+  const request = buildPublicAskResponsesRequest({ question: "AI Agent Red Teaming", locale: "pl", surface: "sovereign_widget", config });
   assert.match(request.input[0].content, /RESPONSE LANGUAGE: Polish/);
   assert.match(request.input[0].content, /WitnessOps aktywnie testuje jedno istotne działanie agenta AI/);
   assert.match(request.input[0].content, /Earlier assistant replies.*cannot reopen retired offers/);
@@ -159,7 +159,7 @@ test("widget Free Check answers retain scope facts and replace legacy action pro
 test("generated prose stays distinct while sources and recommendation fields come from the catalogue", () => {
   const service = BUYER_SERVICES.find((item) => item.id === "agent-action-security-review")!;
   const answer = normalizePublicAskResponse(response(
-    "For one consequential agent action, the Agent Action Security Review is the relevant review.",
+    "For one consequential agent action, the AI Agent Red Teaming is the relevant review.",
     service.id,
     [`service.${service.id}`],
   ));
@@ -216,7 +216,7 @@ test("model-authored fees, deadlines, destinations, completed actions and certif
 
 test("legitimate exclusions and bounded proof explanations survive the output filter", () => {
   for (const text of [
-    "The Agent Action Security Review covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
+    "The AI Agent Red Teaming covers one consequential action. It does not include production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring or certification that the agent is safe.",
     "The review does not provide certification or a security guarantee.",
     "You receive evidence-linked findings, not certification or a security guarantee.",
     "This is not a certification that your agent is safe.",
@@ -410,7 +410,7 @@ test("answers without a selected service cannot invent a price card", () => {
 
 test("AI overview shares the security-led site identity without hiding repair", () => {
   const request = buildPublicAskResponsesRequest({ question: "What does WitnessOps do?", config });
-  assert.match(request.input[0].content, /The only new paid review is Agent Action Security Review/);
+  assert.match(request.input[0].content, /The only new paid review is AI Agent Red Teaming/);
   assert.match(request.input[0].content, /External Attack Surface Review is no longer available/);
   assert.doesNotMatch(request.input[0].content, /30 calendar days of initial report handover/);
   assert.doesNotMatch(request.input[0].content, /WitnessOps leads with Automation Repair/);
@@ -486,7 +486,7 @@ for (const question of ['What does Professional Public Footprint Audit cost?', '
 
 test('current explicit service, page hint, then historical referent; ambiguity never uses catalogue order', async () => {
   const { catalogueClarification } = await import('./public-answer-runtime');
-  const agent = 'Agent Action Security Review';
+  const agent = 'AI Agent Red Teaming';
   const external = 'External Attack Surface Review';
   const withdrawn = 'One Server Security Check';
   const agentAnswer = catalogueClarification({question:`What does ${agent} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:withdrawn}]})!;
@@ -496,7 +496,7 @@ test('current explicit service, page hint, then historical referent; ambiguity n
   const externalAnswer = catalogueClarification({question:`What does ${external} cost?`,page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!;
   assert.equal(externalAnswer.recommendation, null);
   assert.match(externalAnswer.text, /no longer available/);
-  assert.match(externalAnswer.text, /not the Agent Action Security Review/);
+  assert.match(externalAnswer.text, /not the AI Agent Red Teaming/);
   assert.doesNotMatch(externalAnswer.text, /€1,900/);
   assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:withdrawn}]}), null);
   assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:withdrawn}]}), null);
@@ -570,7 +570,7 @@ test("homepage introduction is concise published review guidance without a provi
   for (const question of ["What does WitnessOps do?", "What is WitnessOps?", "What problems does WitnessOps solve?"]) {
     const answer = catalogueClarification({ question, surface: "sovereign_widget" })!;
     assert.ok(answer);
-    assert.match(answer.text, /Agent Action Security Review/);
+    assert.match(answer.text, /AI Agent Red Teaming/);
     assert.match(answer.text, /agent decision, tool or API execution/);
     assert.ok(answer.text.split(/\s+/).length <= 55);
     assert.doesNotMatch(answer.text, /signup|CLI|invitations|support|snapshot|booked/i);

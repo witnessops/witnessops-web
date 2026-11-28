@@ -46,7 +46,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   });
   const externalHtml = render(external);
   assert.match(externalHtml, /External Attack Surface Review is no longer available/);
-  assert.match(externalHtml, /It is not the Agent Action Security Review/);
+  assert.match(externalHtml, /It is not the AI Agent Red Teaming/);
   assert.equal(externalHtml.includes("<form"), false);
   assert.doesNotMatch(externalHtml, /€1,900/);
   assert.doesNotMatch(externalHtml, /name="intent" value="OFFSEC-EXTERNAL-EXPOSURE"/);
@@ -59,7 +59,7 @@ test("English and Polish request pages sell only the agent review", async () => 
   assert.match(polishHtml, /€2\u00A0500\u00A0bez\u00A0VAT/);
   assert.doesNotMatch(polishHtml, /€\s?[\d\s\u00A0]+\s?·\s?bez VAT/);
   assert.doesNotMatch(polishHtml, /cena stała/);
-  assert.match(polishHtml, /Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji/);
+  assert.match(polishHtml, /Opisz działanie, systemy, których dotyczy, oraz termin decyzji/);
   assert.doesNotMatch(polishHtml, /Od €2 500 · bez VAT/);
 });
 
@@ -134,7 +134,7 @@ test("the unselected enquiry is the agent review and has no offer selector", asy
 test("enquiry metadata preserves the canonical contact alias and describes rejected links accurately", async () => {
   for (const [locale, generateMetadata] of [["en", englishMetadata], ["pl", polishMetadata]] as const) {
     const active = await generateMetadata({ searchParams: Promise.resolve({}) });
-    assert.match(String(active.title), /Agent Action Security Review/);
+    assert.match(String(active.title), /Request a security assessment|Zapytaj o ocenę bezpieczeństwa/);
     assert.equal(active.alternates?.canonical, `https://witnessops.com${locale === "pl" ? "/pl" : ""}/contact`);
     for (const query of [
       { productId: "OFFSEC-EXTERNAL-EXPOSURE" },

@@ -21,7 +21,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   return {
     title: agentActionOrder
-      ? params.fitCall === "1" ? "Poproś o 20-minutową rozmowę z ekspertem" : `Zapytaj o ${PUBLIC_AGENT_ACTION_OFFER.name.pl}`
+      ? params.fitCall === "1" ? "Poproś o 20-minutową rozmowę z ekspertem" : "Zapytaj o ocenę bezpieczeństwa"
       : "To zgłoszenie nie rozpoczyna przeglądu",
     description: agentActionOrder
       ? params.fitCall === "1" ? "Podaj niepoufny temat, strefę czasową i dwa preferowane terminy. Operator potwierdzi dostępny termin zaproszeniem albo zaproponuje inne." : `${PUBLIC_AGENT_ACTION_OFFER.unit.pl}. ${PUBLIC_AGENT_ACTION_OFFER.price.pl} ${PUBLIC_AGENT_ACTION_OFFER.fitCheck.pl}. ${PUBLIC_AGENT_ACTION_OFFER.timing.pl}`
@@ -88,11 +88,11 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         </p>
         <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
           {selectedOffer
-            ? "Zacznij od sprawdzenia dopasowania. Nie wysyłaj sekretów."
+            ? "Zapytaj o ocenę bezpieczeństwa"
             : "Opowiedz, co wymaga sprawdzenia"}
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
-          Napisz, jakie to działanie, jakich systemów dotyczy i do kiedy potrzebujesz decyzji.
+          Opisz działanie, systemy, których dotyczy, oraz termin decyzji. Pomiń hasła, logi i dane klientów. Po potwierdzeniu adresu e-mail odpowiemy, czy możemy pomóc.
         </p>
         {selectedOffer ? <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary"><p className="sr-only">Wybrana oferta: {selectedOffer.name}</p><p>{selectedOffer.price}</p><p>{selectedOffer.timing}</p></div> : null}
       </header>

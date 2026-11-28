@@ -55,19 +55,19 @@ const PL_SUPPORT_COMPACT =
 
 export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOfferCopy } = {
   en: {
-    headline: "We try to break your AI agent before someone else does.",
-    headlineMobile: "We try to break your AI agent first.",
+    headline: "AI Agent Red Teaming for agents that take real-world actions.",
+    headlineMobile: "AI Agent Red Teaming.",
     support: EN_SUPPORT,
     supportCompact: EN_SUPPORT_COMPACT,
-    aiQuestion: "We try to break your AI agent before someone else does.",
-    aiHeadline: "We try to break your AI agent before someone else does.",
+    aiQuestion: "AI Agent Red Teaming for agents that take real-world actions.",
+    aiHeadline: "AI Agent Red Teaming for agents that take real-world actions.",
     aiWhoFor: "For engineering teams and AI implementation partners preparing to launch or hand over an agent.",
     aiScopeNote:
       "One consequential action, such as issuing a refund, changing a record or granting access. Active adversarial testing only within the agreed environment and test boundary. Authorization must be enforced before the system changes. No production changes without separate explicit authorization, remediation implementation, continuous monitoring or safety certification. This is not a penetration test of the whole environment.",
     aiDescription:
       "Test attacker-controlled input, the agent decision, tool or API execution, effective permissions and the actual saved change against the supporting evidence. Receive an action map, test results, demonstrated impact, reproduction conditions, prioritised recommendations, documented unknowns, a written report and a readout.",
     aiPrice: PUBLIC_AGENT_ACTION_OFFER.price.en,
-    aiCta: "Request a break test",
+    aiCta: "Request a security assessment",
     evidenceHeadline: "What the record looks like.",
     contactLead: "Discuss a review:",
     reviewsEyebrow: "One paid review",
@@ -78,8 +78,8 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
     freeBody: "A public hostname snapshot. No account needed. Not a review.",
     freeCta: "Start a free check",
     compareCta: "See scope and deliverables",
-    fitCta: "Request a break test",
-    offerName: "Agent Action Security Review",
+    fitCta: "Request a security assessment",
+    offerName: PUBLIC_AGENT_ACTION_OFFER.name.en,
     timing: PUBLIC_AGENT_ACTION_OFFER.timing.en,
     deliverables: [
       "Action map",
@@ -91,7 +91,7 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
       "Written report and readout",
     ],
     fourWaysEyebrow: "What we try to break",
-    fourWaysTitle: "Four ways we try to break it.",
+    fourWaysTitle: "What we test",
     fourWaysIntro:
       "We follow the action from a message someone could send, through to a change that sticks. Along the way we ask:",
     fourWays: [
@@ -104,21 +104,21 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
       "These are the kinds of tests we run, not findings. What we actually try depends on your action and the boundary we agree.",
   },
   pl: {
-    headline: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
-    headlineDesktopVisual: "Próbujemy przełamać agenta AI jako pierwsi.",
-    headlineMobile: "Próbujemy przełamać agenta AI.",
+    headline: "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
+    headlineDesktopVisual: "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
+    headlineMobile: "Red teaming agentów AI.",
     support: PL_SUPPORT,
     supportCompact: PL_SUPPORT_COMPACT,
     supportShort:
       "Wskazujesz działanie. Próbujemy, by agent je wykonał, gdy nie powinien. Możemy nie przejść.",
-    aiHeadline: "Próbujemy przełamać Twojego agenta AI, zanim zrobi to ktoś inny.",
+    aiHeadline: "Red teaming agentów AI, które mogą zmieniać dane, pieniądze lub dostęp.",
     aiWhoFor: "Dla zespołów inżynierskich i partnerów wdrażających AI przed uruchomieniem lub przekazaniem agenta.",
     aiScopeNote:
       "Aktywne testy jednego istotnego działania w uzgodnionym środowisku. Upoważnienie musi być egzekwowane przed zmianą systemu. Zmiany produkcyjne wymagają osobnego wyraźnego upoważnienia. Bez wdrażania poprawek, ciągłego monitoringu i certyfikacji bezpieczeństwa agenta. To nie jest test penetracyjny całego środowiska.",
     aiDescription:
       "Badamy treść kontrolowaną przez atakującego, decyzję agenta, wywołanie narzędzia lub API, efektywne uprawnienia, faktycznie zapisaną zmianę i dowody wyniku.",
     aiPrice: PUBLIC_AGENT_ACTION_OFFER.price.pl,
-    aiCta: "Poproś o test przełamania",
+    aiCta: "Zapytaj o ocenę bezpieczeństwa",
     evidenceHeadline: "Jak wygląda zapis.",
     contactLead: "Zapytaj o przegląd:",
     reviewsEyebrow: "Jeden płatny przegląd",
@@ -129,8 +129,8 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
     freeBody: "Publiczny podgląd nazwy hosta. Bez konta. To nie jest przegląd.",
     freeCta: "Zacznij bezpłatne sprawdzenie",
     compareCta: "Zobacz pełny zakres przeglądu",
-    fitCta: "Poproś o test przełamania",
-    offerName: "Agent Action Security Review",
+    fitCta: "Zapytaj o ocenę bezpieczeństwa",
+    offerName: PUBLIC_AGENT_ACTION_OFFER.name.pl,
     timing: PUBLIC_AGENT_ACTION_OFFER.timing.pl,
     deliverables: [
       "Mapa działania",
@@ -142,7 +142,7 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
       "Raport pisemny i omówienie",
     ],
     fourWaysEyebrow: "Co próbujemy przełamać",
-    fourWaysTitle: "Cztery sposoby, w jakie próbujemy to przełamać.",
+    fourWaysTitle: "Co sprawdzamy",
     fourWaysIntro:
       "Śledzimy działanie od wiadomości, którą ktoś mógłby wysłać, aż do zmiany, która zostaje. Po drodze pytamy:",
     fourWays: [
@@ -155,10 +155,3 @@ export const HOMEPAGE_TWO_OFFER_COPY: { en: HomepageOfferCopy; pl: HomepageOffer
       "To rodzaje testów, które przeprowadzamy, a nie ustalenia. To, co faktycznie próbujemy, zależy od Twojego działania i granicy, którą uzgodnimy.",
   },
 };
-
-export const OFFER_SPOKEN_SUPPORT = {
-  en: EN_SUPPORT,
-  enCompact: EN_SUPPORT_COMPACT,
-  pl: PL_SUPPORT,
-  plCompact: PL_SUPPORT_COMPACT,
-} as const;

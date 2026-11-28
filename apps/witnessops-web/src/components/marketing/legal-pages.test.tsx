@@ -100,7 +100,7 @@ test("media kit names the brand and the legal entity without withdrawn offers", 
     assert.ok(html.includes(COMPANY_DETAILS[locale].legalName));
     assert.match(html, new RegExp(`href="${locale === "pl" ? "/pl/company" : "/company"}"`));
     assert.ok(html.includes(PUBLIC_CONTACT_EMAIL));
-    assert.match(html, /Agent Action Security Review/);
+    assert.match(html, locale === "pl" ? /Red teaming agentów AI/ : /AI Agent Red Teaming/);
     assert.match(
       html,
       locale === "pl"
