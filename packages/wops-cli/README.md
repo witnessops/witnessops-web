@@ -16,9 +16,9 @@ Morpheus adapter is included. Read the [contract and privacy boundary](./AGENT_O
 before collecting or sharing a record. `wops agent inspect --help` explains bounds
 and exit codes. Existing files are never overwritten.
 
-## Agent Action Security Review fit check
+## AI Agent Red Teaming fit check
 
-`wops review request` sends one non-secret fit check for Agent Action Security Review.
+`wops review request` sends one non-secret fit check for AI Agent Red Teaming.
 The intent is fixed to `agent-action-security-review`. It prompts for name, business
 email, optional organisation, locale (`en` or `pl`), and one scope note: the
 consequential action, the systems it can affect, and the decision deadline.

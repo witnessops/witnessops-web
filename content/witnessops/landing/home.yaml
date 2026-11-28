@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-09-12"
+  last_reviewed: "2026-11-28"
 
 seo:
-  title: "Agent Action Security Review | WitnessOps"
-  description: "We try to break your AI agent before someone else does. €2,500 excl. VAT."
+  title: "AI Agent Red Teaming & AI Agent Security Testing | WitnessOps"
+  description: "Independent AI Agent Security Testing for one agreed workflow and one consequential action. €2,500 excl. VAT."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/witnessops-home-editorial-a-2026-10.png"
-  og_title: "We try to break your AI agent before someone else does. | WitnessOps"
-  og_description: "Agent Action Security Review. We try to break your AI agent before someone else does. €2,500 excl. VAT."
+  og_title: "AI Agent Red Teaming | WitnessOps"
+  og_description: "Independent AI Agent Security Testing for one agreed workflow and one consequential action. €2,500 excl. VAT."
   twitter_card: "summary_large_image"
 
 theme:
@@ -40,22 +40,22 @@ navbar:
     - label: "Docs"
       href: "/docs"
   cta:
-    label: "Scope a review"
+    label: "Request a security assessment"
     href: "/review/request"
     variant: "primary"
 
 hero:
   eyebrow: "Security · Verification · Evidence"
-  title: "Find security gaps in your systems."
-  body: "Verify what is exposed, what changed, what acted, and what the evidence actually supports."
+  title: "AI Agent Red Teaming for agents that take real-world actions."
+  body: "Before your agent issues a refund, changes a record or grants access, find out whether its permissions and approvals hold."
   supporting_points: []
   primary_cta:
-    label: "Scope a review"
+    label: "Request a security assessment"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "See a historical action example"
-    href: "/review/sample-cases/ai-agent-action-proof-run"
+    label: "View an example record"
+    href: "/reviews/agent-action-security-review#example-record"
     variant: "secondary"
   proof_badges: []
   media:
@@ -128,7 +128,7 @@ sections:
         body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Scope a review"
+      - label: "Request a security assessment"
         href: "/review/request"
         variant: "primary"
       - label: "Inspect sample package"
@@ -183,7 +183,7 @@ final_cta:
   title: "What does your system do and what needs checking?"
   body: "Tell us about the system and your concern. We’ll propose a scope and next step. Leave out credentials and customer data."
   ctas:
-    - label: "Scope a review"
+    - label: "Request a security assessment"
       href: "/review/request"
       variant: "primary"
     - label: "View services"
@@ -194,7 +194,7 @@ footer:
   brand_line: "WitnessOps"
   subline: "Security verification with clear findings, supporting evidence and practical next steps."
   links:
-    - label: "Agent Action Security Review"
+    - label: "AI Agent Red Teaming"
       href: "/reviews/agent-action-security-review"
     - label: "Our approach"
       href: "/why-witnessops"

@@ -15,7 +15,7 @@ Every public sentence must stay inside what the artefact actually established.
 Always be willing to say:
 
 - Fixed scope and written authority before work
-- For the current Agent Action Security Review, attempts at agreed prohibited outcomes are included; do not apply the former read-only/no-exploitation exclusion
+- For AI Agent Red Teaming, attempts at agreed prohibited outcomes are included; do not apply the former read-only/no-exploitation exclusion
 - Name the environment, permitted test actions, stop conditions and recovery; authorization must be enforced before a system changes
 - No credentials through public enquiry or chat; any limited test access is arranged separately after agreement
 - Free hostname checks and historical reviews retain their own no-exploitation and access exclusions

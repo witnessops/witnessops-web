@@ -46,7 +46,7 @@ node packages/wops-cli/src/main.mjs agent inspect --output ./agent-observation.j
 
 `agent inspect` checks fixed agent executable names in bounded `PATH` locations using file metadata. It reads MCP declarations only from up to four explicitly selected JSON files passed with `--mcp-config FILE`; do not select credential files. It writes a new, private `agent-observation.json` by default, or a new file at `--output FILE`, and refuses to overwrite an existing file. Review the record's scope, unknowns, failures and retained source paths before sharing it. Exit `0` means the selected checks completed, `2` means partial or unsupported with a record, and `1` means invalid invocation or output failure. None is a security verdict.
 
-### Agent Action Security Review fit check
+### AI Agent Red Teaming fit check
 
 ```bash
 node packages/wops-cli/src/main.mjs review request --help
