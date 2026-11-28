@@ -33,7 +33,7 @@ academy.witnessops.com {
 
 		@academyRead {
 			method GET HEAD
-			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/static/chat.js /academy/static/chat.css /academy/connect/chatgpt /academy/invitation /academy/static/invitation.js /academy/account /academy/static/account.js
+			path /academy/learn/report-or-evidence /academy/learn/same-scope /academy/static/lesson.js /academy/static/chat.js /academy/static/chat.css /academy/connect/chatgpt /academy/invitation /academy/static/invitation.js /academy/account /academy/static/account.js /academy/teams/launch /academy/static/teams-launch.js /academy/static/teams-launch.css /academy/teams/link /academy/static/teams-link.js
 		}
 		handle @academyRead {
 			reverse_proxy 127.0.0.1:18300 {
@@ -74,6 +74,16 @@ academy.witnessops.com {
 		@academyInvitationWrite {
 			method POST
 			path /academy/auth/invitation /academy/api/invitations/preview /academy/api/invitations/redeem
+		}
+		@academyTeamsWrite {
+			method POST
+			path /academy/api/teams/link-intents /academy/auth/teams-link /academy/api/teams/link-confirm /academy/api/teams/unlink
+		}
+		handle @academyTeamsWrite {
+			reverse_proxy 127.0.0.1:18300 {
+				header_up -Forwarded
+				header_up X-Forwarded-For {http.request.remote.host}
+			}
 		}
 		handle @academyInvitationWrite {
 			reverse_proxy 127.0.0.1:18300 {

@@ -12,7 +12,9 @@ import { LESSONS, DEFAULT_LESSON, lessonById, lessonByAlias, lessonByRoute, less
 import { accessPolicy, browserErrorBody, invitationInput, invitationPage, INVITATION_PAGE_HEADERS } from './invitation-page.mjs';
 import { communityUrl } from './community-link.mjs';
 import { ACCOUNT_ROUTE, accountPage, registrationEnabled } from './account-page.mjs';
-import { authorizationIntent, loginDestination, registrationClaimsAccepted } from './login-intent.mjs';
+import {
+  authorizationIntent, loginDestination, registrationClaimsAccepted, resolveLoginIdentity,
+} from './login-intent.mjs';
 import { previewInvitation, redeemInvitation, hasApprovedFreeGrant } from './pilot-invitations.mjs';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -30,6 +32,16 @@ import { env, list, secret, int, requireHttpsOrLoopback } from './env.mjs';
 import { chatPage, chatConnectionPage } from './chat-page.mjs';
 import { createChatStore } from './chat-store.mjs';
 import { chatLessonFromPath, createChatHandler } from './chat-http.mjs';
+import { teamsLaunchHeaders, teamsLaunchPage, TEAMS_LAUNCH_ROUTE, TEAMS_JS_ROUTE, TEAMS_CSS_ROUTE } from './teams-launch.mjs';
+import {
+  TEAMS_LINK_JS_ROUTE, TEAMS_LINK_PAGE_HEADERS, TEAMS_LINK_ROUTE,
+  teamsLinkInput, teamsLinkPage,
+} from './teams-link-page.mjs';
+import {
+  confirmTeamsLinkIntent, createTeamsLinkIntent, hasTeamsIdentityLink,
+  revokeTeamsIdentityLink,
+} from './teams-link.mjs';
+import { createTeamsTokenVerifier, teamsSsoEnabled, TeamsTokenError } from './teams-token.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LESSON_JS = readFileSync(join(HERE, 'lesson-client.js'));
@@ -43,6 +55,9 @@ const DRAFT_TEXT_JS = readFileSync(join(HERE, 'draft-text.mjs'));
 const LESSON_CSS = readFileSync(join(HERE, 'lesson.css'));
 const CHAT_JS = readFileSync(join(HERE, 'chat-client.js'));
 const CHAT_CSS = readFileSync(join(HERE, 'chat.css'));
+const TEAMS_JS = readFileSync(join(HERE, 'teams-launch-client.js'));
+const TEAMS_CSS = readFileSync(join(HERE, 'teams-launch.css'));
+const TEAMS_LINK_JS = readFileSync(join(HERE, 'teams-link-client.js'));
 const PUBLIC_ROUTES = await preloadRoutes(new URL('../../witnessops-academy/public/', import.meta.url));
 const LESSON_HTML = new Map(LESSONS.map(lesson => [lesson.id, PUBLIC_ROUTES.get(lesson.publicPath).body.toString()]));
 
@@ -65,6 +80,13 @@ const PRE = SECURE ? '__Host-academy_preauth' : 'academy_preauth';
 const COOKIE_PATH = SECURE ? '/' : '/academy';
 const DB_NAME = env('ACADEMY_DB_NAME', 'academy');
 const TRUSTED_PROXIES = list('ACADEMY_TRUSTED_PROXIES', '');
+const TEAMS_BRIDGE_ENABLED = teamsSsoEnabled(env('ACADEMY_TEAMS_IDENTITY_BRIDGE', 'false'));
+const TEAMS_TENANT_ID = TEAMS_BRIDGE_ENABLED ? env('ACADEMY_TEAMS_TENANT_ID') : null;
+const TEAMS_APP_ID = TEAMS_BRIDGE_ENABLED ? env('ACADEMY_TEAMS_APP_ID') : null;
+const TEAMS_ISSUER = TEAMS_BRIDGE_ENABLED
+  ? `https://login.microsoftonline.com/${TEAMS_TENANT_ID}/v2.0` : null;
+const verifyTeamsAccessToken = TEAMS_BRIDGE_ENABLED
+  ? createTeamsTokenVerifier({ tenantId: TEAMS_TENANT_ID, appId: TEAMS_APP_ID }) : null;
 const preauth = createPreauthCodec(preauthKeyFromSecret(secret('ACADEMY_PREAUTH_KEY')));
 assertHttpBindIsLoopback(HOST, ORIGIN);
 
@@ -80,6 +102,10 @@ await assertTokenStorageReady(pool);
 if (REQUIRES_GRANT) {
   const migration = await pool.query("SELECT 1 FROM academy_schema_migrations WHERE version='004_academy_pilot_invitations'");
   if (migration.rowCount !== 1) throw new Error('Academy admission migration is required');
+}
+if (TEAMS_BRIDGE_ENABLED) {
+  const migration = await pool.query("SELECT 1 FROM academy_schema_migrations WHERE version='005_academy_teams_identity_links'");
+  if (migration.rowCount !== 1) throw new Error('Academy Teams identity-link migration is required');
 }
 const IDP_TIMEOUT_MS = 5000;
 async function timedFetch(url, options = {}) {
@@ -108,6 +134,8 @@ const loginGuard = createLoginGuard();
 startLoginSweep(loginGuard);
 const invitationGuard = createLoginGuard();
 startLoginSweep(invitationGuard);
+const teamsLinkGuard = createLoginGuard({ maxPerWindow: 10 });
+startLoginSweep(teamsLinkGuard);
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const rnd = (n = 32) => crypto.randomBytes(n).toString('base64url');
@@ -231,6 +259,27 @@ function csrfOk(req, s) {
   return null;
 }
 
+function sameOriginPostError(req) {
+  if (req.headers.origin !== ORIGIN) return 'origin';
+  const site = req.headers['sec-fetch-site'];
+  return site && site !== 'same-origin' ? 'sec-fetch-site' : null;
+}
+
+function teamsBearer(req) {
+  const value = req.headers.authorization;
+  if (typeof value !== 'string' || value.length > 16_400) throw new TeamsTokenError('invalid_token', 401);
+  const match = /^Bearer ([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/i.exec(value);
+  if (!match) throw new TeamsTokenError('invalid_token', 401);
+  return match[1];
+}
+
+function sendTeamsTokenFailure(res, error) {
+  if (!(error instanceof TeamsTokenError)) throw error;
+  const headers = error.status === 503 ? { 'Retry-After': '30' }
+    : { 'WWW-Authenticate': `Bearer error="${error.code}"` };
+  return send(res, error.status, { error: error.code }, headers);
+}
+
 function identityClaims(tokens) {
   const claims = tokens.claims();
   if (!claims || typeof claims.iss !== 'string' || claims.iss === '' || typeof claims.sub !== 'string' || claims.sub === '') {
@@ -239,7 +288,9 @@ function identityClaims(tokens) {
   return claims;
 }
 
-async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, returnTo, registration = false } = {}) {
+async function startLogin(req, res, {
+  lesson = DEFAULT_LESSON, invitationToken, teamsLinkToken, returnTo, registration = false,
+} = {}) {
   const decision = loginGuard.begin(requestClient(req));
   if (!decision.ok) {
     return send(res, 429, browserErrorBody(req, 'rate_limited'), { 'Retry-After': String(decision.retryAfter) });
@@ -247,7 +298,9 @@ async function startLogin(req, res, { lesson = DEFAULT_LESSON, invitationToken, 
   const state = rnd();
   const nonce = rnd();
   const verifier = oidc.randomPKCECodeVerifier();
-  const sealed = preauth.seal({ state, nonce, verifier, lessonId: lesson.id, invitationToken, returnTo, registration });
+  const sealed = preauth.seal({
+    state, nonce, verifier, lessonId: lesson.id, invitationToken, teamsLinkToken, returnTo, registration,
+  });
   const to = oidc.buildAuthorizationUrl(config, {
     redirect_uri: REDIRECT_URI,
     ...authorizationIntent(registration),
@@ -274,6 +327,116 @@ async function handle(req, res) {
     : send(res, 405, { error: 'method_not_allowed' }, { Allow: 'GET, HEAD' });
 
   if (p === '/academy/healthz' && req.method === 'GET') return send(res, 200, { ok: true });
+
+  // Teams gets a narrowly scoped public shell. Even with identity linking enabled,
+  // authenticated lesson routes retain DENY, no-embedding CSP, and Lax cookies.
+  if (p === TEAMS_LAUNCH_ROUTE && read) {
+    res.writeHead(200, teamsLaunchHeaders({ secure: SECURE, bridgeEnabled: TEAMS_BRIDGE_ENABLED }));
+    res.end(req.method === 'HEAD' ? undefined : teamsLaunchPage({ bridgeEnabled: TEAMS_BRIDGE_ENABLED }));
+    return;
+  }
+  if (p === TEAMS_JS_ROUTE && read) return send(res, 200, TEAMS_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  if (p === TEAMS_CSS_ROUTE && read) return send(res, 200, TEAMS_CSS, { 'Content-Type': 'text/css; charset=utf-8' });
+  if (p === TEAMS_LINK_JS_ROUTE && read) {
+    return send(res, 200, TEAMS_LINK_JS, { 'Content-Type': 'text/javascript; charset=utf-8' });
+  }
+  if (p === TEAMS_LINK_ROUTE && read) {
+    const s = TEAMS_BRIDGE_ENABLED ? await getSession(req) : null;
+    const linked = s ? await hasTeamsIdentityLink(pool, { identityId: s.identity_id }) : false;
+    return send(res, 200, teamsLinkPage(s, { linked, enabled: TEAMS_BRIDGE_ENABLED }), TEAMS_LINK_PAGE_HEADERS);
+  }
+
+  if (TEAMS_BRIDGE_ENABLED && p === '/academy/api/teams/link-intents' && req.method === 'POST') {
+    const originError = sameOriginPostError(req);
+    if (originError) return send(res, 403, { error: 'origin' });
+    const limit = teamsLinkGuard.begin(requestClient(req));
+    if (!limit.ok) return send(res, 429, { error: 'rate_limited' }, { 'Retry-After': String(limit.retryAfter) });
+    try {
+      const body = await readBody(req, 1024);
+      if (body !== '') return send(res, 400, { error: 'invalid_request' });
+    } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_request' });
+    }
+    let claims;
+    try {
+      claims = await verifyTeamsAccessToken(teamsBearer(req));
+    } catch (error) {
+      return sendTeamsTokenFailure(res, error);
+    }
+    const result = await createTeamsLinkIntent(pool, { ...claims, issuer: TEAMS_ISSUER });
+    return result.ok ? send(res, 201, { token: result.token })
+      : send(res, 403, { error: 'teams_link_unavailable' });
+  }
+
+  if (TEAMS_BRIDGE_ENABLED && p === '/academy/auth/teams-link' && req.method === 'POST') {
+    const originError = sameOriginPostError(req);
+    if (originError) return send(res, 403, { error: 'origin' });
+    if (!(req.headers['content-type'] || '').startsWith('application/x-www-form-urlencoded')) {
+      return send(res, 415, { error: 'form_required' });
+    }
+    let raw;
+    try { raw = await readBody(req, 1024); } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_teams_link' });
+    }
+    const fields = new URLSearchParams(raw);
+    const token = teamsLinkInput({ token: fields.get('token') });
+    if (fields.size !== 1 || !token) return send(res, 400, { error: 'invalid_teams_link' });
+    return startLogin(req, res, { returnTo: 'teams-link', teamsLinkToken: token });
+  }
+
+  if (TEAMS_BRIDGE_ENABLED && p === '/academy/api/teams/link-confirm') {
+    const s = await getSession(req);
+    if (!s) return send(res, 401, { error: 'unauthenticated' });
+    if (req.method !== 'POST') return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'POST' });
+    const bad = csrfOk(req, s);
+    if (bad) return send(res, 403, { error: 'csrf', check: bad });
+    if (!(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'json_required' });
+    let body;
+    try { body = JSON.parse(await readBody(req, 1024)); } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_teams_link' });
+    }
+    const token = teamsLinkInput(body);
+    if (!token) return send(res, 400, { error: 'invalid_teams_link' });
+    const result = await confirmTeamsLinkIntent(pool, { token, identityId: s.identity_id });
+    return result.ok ? send(res, 200, { linked: true })
+      : send(res, 403, { error: 'teams_link_unavailable' });
+  }
+
+  if (TEAMS_BRIDGE_ENABLED && p === '/academy/api/teams/unlink') {
+    const s = await getSession(req);
+    if (!s) return send(res, 401, { error: 'unauthenticated' });
+    if (req.method !== 'POST') return send(res, 405, { error: 'method_not_allowed' }, { Allow: 'POST' });
+    const bad = csrfOk(req, s);
+    if (bad) return send(res, 403, { error: 'csrf', check: bad });
+    try {
+      const body = await readBody(req, 1024);
+      if (body !== '') return send(res, 400, { error: 'invalid_request' });
+    } catch (error) {
+      if (error.status === 413) {
+        send(res, 413, { error: 'body_too_large' });
+        discardAfterResponse(res, req);
+        return;
+      }
+      return send(res, 400, { error: 'invalid_request' });
+    }
+    await revokeTeamsIdentityLink(pool, { identityId: s.identity_id });
+    return send(res, 200, { unlinked: true });
+  }
 
   if (p === ACCOUNT_ROUTE && read) {
     const s = await getSession(req);
@@ -384,22 +547,14 @@ async function handle(req, res) {
     if (!registrationClaimsAccepted(pa, claims)) {
       return send(res, 400, browserErrorBody(req, 'email_verification_required'));
     }
-    // Identity rows are immutable for the runtime role (no UPDATE grant): insert-if-absent, then read.
-    await pool.query(
-      'INSERT INTO academy_identities(issuer, subject) VALUES ($1,$2) ON CONFLICT (issuer, subject) DO NOTHING',
-      [claims.iss, claims.sub],
-    );
-    const { rows } = await pool.query(
-      'SELECT id FROM academy_identities WHERE issuer = $1 AND subject = $2',
-      [claims.iss, claims.sub],
-    );
-    if (!rows[0]) {
+    const identityId = await resolveLoginIdentity(pool, claims, pa);
+    if (!identityId) {
       log({ ev: 'callback_failed', err: 'identity' });
       return send(res, 400, browserErrorBody(req, 'login_failed'));
     }
     const sid = rnd();
     const csrf = rnd();
-    const context = { token_hash: sha(sid), identity_id: rows[0].id };
+    const context = { token_hash: sha(sid), identity_id: identityId };
     const sealed = sessionTokens.seal({ id_token: tokens.id_token, access_token: tokens.access_token, refresh_token: tokens.refresh_token }, context);
     await pool.query(
       `INSERT INTO academy_sessions(token_hash, identity_id, csrf_token, idp_session_id, tokens_ciphertext, access_expires_at, expires_at)
@@ -408,10 +563,10 @@ async function handle(req, res) {
     );
     let destination = loginDestination(pa);
     if (REQUIRES_GRANT && pa.invitationToken) {
-      const result = await redeemInvitation(pool, { token: pa.invitationToken, identityId: rows[0].id });
+      const result = await redeemInvitation(pool, { token: pa.invitationToken, identityId });
       if (!result.ok) destination = '/academy/invitation?status=not-accepted';
     }
-    log({ ev: 'login', identity: rows[0].id });
+    log({ ev: 'login', identity: identityId });
     return send(res, 302, '', {
       Location: destination,
       'Set-Cookie': [setCookie(COOKIE, sid, SESSION_TTL_MS / 1000), setCookie(PRE, '', 0)],
