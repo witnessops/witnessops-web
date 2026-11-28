@@ -1,7 +1,7 @@
 # Earlier operating pack (superseded)
 
 **Status:** superseded as current commercial instruction on 2026-09-01; the 2026-07-30 public dry-run record remains **PASSED**.
-**Current mode:** Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Start from the [commercial index](./README.md). The checklist below is retained as an earlier operator rehearsal record and must not be used to reposition CSR Sprint or One Server as the primary entry point.
+**Current mode:** AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Start from the [commercial index](./README.md). The checklist below is retained as an earlier operator rehearsal record and must not be used to reposition CSR Sprint or One Server as the primary entry point.
 
 ---
 

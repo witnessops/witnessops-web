@@ -1,6 +1,6 @@
-# Operator playbook — current Agent Action Security Review path
+# Operator playbook — current AI Agent Red Teaming path
 
-Start with the [current commercial index](./README.md) and the Agent Action
+Start with the [current commercial index](./README.md) and the current
 [scope agreement block](./06-scope-agreement-skeleton.md). The historical
 External, CSR and One Server paths below are not new-sales instructions.
 
@@ -9,7 +9,7 @@ External, CSR and One Server paths below are not new-sales instructions.
 | Stage | Required outcome |
 | --- | --- |
 | Enquiry | Non-secret description of one consequential agent or automation action, decision owner and intended deadline. No evidence or credentials requested in the fit check. |
-| Fit | Select only `agent-action-security-review`; confirm that one bounded action fits the need. Do not reinterpret a historical request or offer the private pilot. |
+| Fit | Select only `agent-action-security-review`; confirm one agreed workflow and one consequential action. Do not reinterpret a historical request or offer the private pilot. |
 | Agreement | Confirm the one-action scope, exclusions, authority, handling, inputs, payment terms and capacity. The listed public fee is €2,500 excluding VAT (`eur_2500_ex_vat`). Agree delivery capacity, environment, prohibited outcomes, permitted test actions, window, attempt/side-effect limits, stop conditions and recovery. Delivery timing is agreed in the signed statement of work. Specify any retest cases, window and allowance. Earlier read-only agreements keep `eur_2500_fixed`. |
 | Work | Attempt the agreed prohibited outcomes across attacker-controlled input, observable agent decision, tool/API execution, effective permissions, actual saved change and evidence. Enforce authorization before changes. Read back authoritative backend state, including partial, duplicate or absent changes. Stop when an agreed limit or authority boundary fails. |
 | Package | Link test results to evidence, demonstrated impact and reproduction conditions; prioritise mitigation and state gaps. Classify each case as failure demonstrated, resisted under tested conditions, inconclusive or not tested. Do not infer resistance from missing evidence or an execution error. |
@@ -19,7 +19,7 @@ External, CSR and One Server paths below are not new-sales instructions.
 ## Current operator checks
 
 - [ ] The selected review, identifiers and accepted terms agree; the public
-  new-sales choice contains only Agent Action Security Review, with the free
+  new-sales choice contains only AI Agent Red Teaming, with the free
   check separate.
 - [ ] Initial enquiry, scope acceptance, payment and permission to work remain
   separate; testing starts only after written authority, limits, recovery and the applicable gates are confirmed.

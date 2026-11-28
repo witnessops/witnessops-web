@@ -1,6 +1,6 @@
 # Delivery email templates
 
-> **Historical / superseded.** These CSR and One Server templates are not current sales instruction. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
+> **Historical / superseded.** These CSR and One Server templates are not current sales instruction. AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
 
 Send only after scope agreement and package assembly. Attach or link **only** agreed deliverables. Re-state claim limits.
 

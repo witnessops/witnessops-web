@@ -1,14 +1,12 @@
-# Dry-run checklist — current Agent Action Security Review
+# Dry-run checklist — current AI Agent Red Teaming
 
-Use the current [Agent Action Security Review](./README.md) scope for a new-sales
+Use the current [AI Agent Red Teaming](./README.md) scope for a new-sales
 dry run. Rehearse with labelled synthetic material. A dry run does not authorise
 customer access or testing.
 
 ## Current readiness checks
 
-- [ ] New-sales discovery and request selection identify only Agent Action
-  Security Review. The free hostname check is separate; the parked external
-  review, retired offers and private pilot are not new-sales choices.
+- [ ] New-sales discovery and request selection identify only AI Agent Red Teaming. The free hostname check has its own path. The parked external review, retired offers and private pilot remain outside new sales.
 - [ ] Request identity is `agent-action-security-review`. Historical IDs,
   including `OFFSEC-EXTERNAL-EXPOSURE`, retain their old meaning.
 - [ ] The listed public fee is €2,500 excluding VAT (`eur_2500_ex_vat`). Delivery

@@ -1,6 +1,6 @@
 # Public commercial route disposition — 2026-08-13
 
-> **Historical / superseded.** The table below is the 2026-08-13 disposition. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
+> **Historical / superseded.** The table below is the 2026-08-13 disposition. AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work.
 
 ## Amendment — 2026-10-09
 

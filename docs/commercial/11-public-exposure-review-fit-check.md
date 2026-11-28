@@ -1,6 +1,6 @@
 # External Attack Surface Review — non-secret request and fit check
 
-> **Historical / parked for new sales.** External Attack Surface Review is parked and no longer available for new engagements. Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. Delivery timing is agreed in the signed statement of work. Keep this record only for issued agreements and old lookups.
+> **Historical / parked for new sales.** External Attack Surface Review is parked and no longer available for new engagements. AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. Delivery timing is agreed in the signed statement of work. Keep this record only for issued agreements and old lookups.
 
 The path is retained for repository continuity. Public Exposure Review was the former public name; External Attack Surface Review was the adopted public name as of 2026-09-02. The stable SKU and historical service mechanics are preserved for issued agreements and old lookups.
 

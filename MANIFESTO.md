@@ -16,4 +16,6 @@ Our immediate commercial objective is acquiring and successfully serving real cu
 
 ## Commercial direction
 
-Use the [commercial index](docs/commercial/README.md) and the [current offer record](docs/commercial/19-agent-action-adversarial-testing-offer.md) for the buyer-facing name, fee, scope and compatibility identity. Signed agreements retain their own scope and terms. A new presentation of the service must preserve the evidence a buyer needs to decide whether to purchase.
+**AI Agent Red Teaming** is the public service. **AI Agent Security Testing** is supporting buyer language. We use the **Agent Action Security Review** methodology to assess one consequential action in one agreed workflow. A buyer can **Request a security assessment**. The public fixed fee is **€2,500 excluding VAT**. We confirm scope, fee, capacity and timing in the signed statement of work.
+
+The Founder adopted this direction on 28 November 2026. Existing agreements keep their original terms, and the service retains its identifiers and compatible request and detail routes. See the [founder decision and offer contract](docs/commercial/19-agent-action-adversarial-testing-offer.md#founder-decision-of-28-november-2026) and [commercial index](docs/commercial/README.md).

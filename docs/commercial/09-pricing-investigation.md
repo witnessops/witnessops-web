@@ -3,7 +3,7 @@
 > **Historical / superseded for current sales.** The 30 July 2026 research,
 > display policy, price table, sales wording and implementation map below are
 > retained as a dated record. They are not current pricing or currency policy.
-> Agent Action Security Review at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work. Use the
+> AI Agent Red Teaming at €2,500 excluding VAT is the only new-sales review. External Attack Surface Review is parked. Delivery timing is agreed in the signed statement of work. Use the
 > [commercial index](./README.md) for new agreements.
 > This note does not alter historical quotes, invoices or accepted terms.
 

@@ -1,6 +1,6 @@
 # Artifact map — agent examples and retired samples
 
-The current public sample set supports the **Agent Action Security Review**.
+The current public sample set supports the **AI Agent Red Teaming** service.
 Examples are synthetic or explanatory, not customer evidence or complete review
 deliveries. This map records repository source state as of 2026-10-31; it does
 not establish production deployment.
@@ -23,7 +23,7 @@ review or customer case. `/verify` and `/api/verify` remain receipt-only.
 
 The key-rotation specimen's signed artifacts and verifier are purpose-limited demo
 mechanics. They do not add signed receipts, production signing-key custody or
-source-system verification to the Agent Action Security Review's deliverables.
+source-system verification to the service deliverables.
 
 ## Retired sample pages
 

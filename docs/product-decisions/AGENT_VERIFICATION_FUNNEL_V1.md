@@ -11,10 +11,10 @@ Status: superseded implementation contract retained for migration provenance
 > under `agent-tools-access-review`. Both identities are historical for new sales;
 > their original agreements and this document's technical evidence remain intact.
 >
-> **Current new-sales guidance:** Agent Action Security Review uses
+> **Current new-sales guidance:** AI Agent Red Teaming uses
 > `agent-action-security-review` and
-> `/review/request?offerId=agent-action-security-review`; it has no dedicated
-> detail route. `/catalog/workflows` remains the historical inventory-review route.
+> `/review/request?offerId=agent-action-security-review`. Its detail route is
+> `/reviews/agent-action-security-review`. `/catalog/workflows` remains the historical inventory-review route.
 > Current delivery timing is agreed in the signed statement of work, not the
 > historical fixed-day term. Use the [current commercial index](../commercial/README.md)
 > and matching current [scope agreement](../commercial/06-scope-agreement-skeleton.md).
